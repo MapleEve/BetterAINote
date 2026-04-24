@@ -1,0 +1,29 @@
+# Ensure BetterAINote text files use LF line endings consistently.
+# Keep repository metadata predictable without introducing repo-specific tooling rules.
+* text eol=lf
+
+*.ts whitespace=error
+*.tsx whitespace=error
+*.js whitespace=error
+*.jsx whitespace=error
+*.mjs whitespace=error
+*.cjs whitespace=error
+*.json whitespace=error
+*.md whitespace=error
+*.svg whitespace=error
+*.yml whitespace=error
+*.yaml whitespace=error
+*.sh text eol=lf whitespace=error
+*.py whitespace=error
+
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.zip binary
+*.mp3 binary
+*.wav binary
+*.m4a binary
+*.opus binary
+*.pcm binary

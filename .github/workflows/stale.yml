@@ -1,0 +1,23 @@
+name: BetterAINote stale cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_stale_maintenance:
+        description: "Stale maintenance is disabled before first public release."
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  stale-disabled:
+    if: ${{ inputs.allow_stale_maintenance == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep stale automation disabled
+        run: |
+          echo "Stale maintenance is intentionally disabled before first public release."
+          echo "Re-enable this workflow with explicit issue and pull request permissions only after review."

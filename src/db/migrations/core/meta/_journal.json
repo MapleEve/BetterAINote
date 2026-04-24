@@ -1,0 +1,20 @@
+{
+    "version": "7",
+    "dialect": "sqlite",
+    "entries": [
+        {
+            "idx": 0,
+            "version": "7",
+            "when": 1776912000000,
+            "tag": "0000_core_baseline",
+            "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "7",
+            "when": 1776998400000,
+            "tag": "0001_voscript_no_repeat_ngram",
+            "breakpoints": true
+        }
+    ]
+}

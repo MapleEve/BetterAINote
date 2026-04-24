@@ -1,0 +1,137 @@
+name: Bug report
+description: Report a reproducible problem in BetterAINote
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve BetterAINote.
+
+        Before opening a new report, search existing issues and confirm this is a bug rather than a feature request.
+        This template is for product or runtime problems in BetterAINote itself, not for general setup help or third-party provider outages.
+
+        Privacy reminder: do not paste tokens, cookies, organization IDs, user IDs, recording IDs, recording titles, private meeting content, HAR files, full environment files, or internal/local filesystem paths. Redact logs before sharing them.
+
+  - type: input
+    id: version
+    attributes:
+      label: BetterAINote version or commit
+      description: Which release, branch build, or commit are you running?
+      placeholder: v0.1.0 / main @ abc1234
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the product is most affected?
+      options:
+        - Web app
+        - Background worker
+        - Data source sync
+        - Private transcription / VoScript
+        - Speaker review / voiceprints
+        - Authentication / onboarding
+        - Build / CI / packaging
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Related provider or service
+      description: If the issue is related to a specific source or service, pick it here.
+      options:
+        - Not provider-specific
+        - Plaud
+        - TicNote
+        - Feishu Minutes
+        - DingTalk A1
+        - iFLYTEK iflyrec
+        - VoScript
+    validations:
+      required: true
+
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and concisely.
+      placeholder: Tell us what went wrong.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Installation method
+      description: How are you running BetterAINote?
+      options:
+        - Docker Compose
+        - Docker
+        - Local development
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: Describe the expected behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Give the exact steps so someone else can reproduce the issue.
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. Save ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, internal hostnames, or local private paths.
+      placeholder: |
+        - OS:
+        - Browser:
+        - Deployment:
+        - Provider:
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach HAR files or include tokens, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or internal paths.
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Add screenshots, recordings, or anything else that helps explain the problem.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues before opening this report.
+          required: true
+        - label: I filled in the requested details above.
+          required: true
+        - label: I removed or redacted tokens, cookies, org/user/recording IDs, recording titles, private meeting content, HAR data, env values, and internal paths from this report.
+          required: true
+        - label: I can help verify a fix if needed.
+          required: false

@@ -1,0 +1,86 @@
+# dependencies
+/node_modules
+node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+coverage/
+
+# next.js
+/.next/
+.next/
+/out/
+
+# production
+/build
+
+# local data and private artifacts
+/tmp/
+tmp/
+/.full-review/
+.full-review/
+/.full-review-archive/
+.full-review-archive/
+/.worktrees/
+.worktrees/
+/data/
+data/
+/storage/
+storage/
+/audio/
+audio/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+logs/
+*.har
+*.har.gz
+*.trace
+*.trace.zip
+
+# misc
+.DS_Store
+._*
+*.pem
+*.key
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local env files
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# audio storage
+
+# drizzle
+/drizzle
+
+# git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# README
+README.md

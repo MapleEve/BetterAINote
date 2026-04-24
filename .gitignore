@@ -1,0 +1,115 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# drizzle
+/drizzle
+
+# local storage
+/storage
+/audio
+plans/
+
+# local cloud credentials
+*service-account*.json
+*credentials*.json
+
+# Pi coding agent
+.pi/
+
+# local audit / debug artifacts
+/tmp/
+
+# local planning / internal continuity notes
+/todo.md
+/docs/.DS_Store
+/.github/.DS_Store
+
+# local sqlite databases and E2E artifacts
+database.db
+database.db-*
+*.db-wal
+*.db-shm
+/data/
+/data/**/*.db
+/data/**/*.db-*
+/e2e/**/*.db
+/e2e/**/*.db-*
+
+# repository hygiene: generated dependencies / build outputs at any depth
+node_modules/
+.next/
+tmp/
+coverage/
+build/
+out/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local network capture / trace artifacts
+*.har
+*.har.gz
+*.trace.zip
+
+# local-only environment overrides
+.env.*.local
+.env.local
+CLAUDE.local.md
+*.key
+
+# editors / local workspace state
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
