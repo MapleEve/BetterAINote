@@ -1,29 +1,45 @@
 # 自动同步说明
 
-[English](#english)
+## 适用对象
 
-## 中文
+这篇面向开启 `Sync` 的自托管用户和排查同步行为的贡献者。自动同步由 worker 执行，不在浏览器里执行。
 
-自动同步由 worker 负责，不在浏览器里执行。
+## 当前状态
 
-### 行为
+BetterAINote 当前是 `preview`。自动同步用于私有部署中的后台检查，行为可能在首个正式 release 前继续调整。
 
-- 根据用户设置的同步间隔检查已启用数据源
-- 手动点击同步时，会立刻执行一次，不受下一次定时检查限制
-- 同步成功后，录音列表会按录音开始时间倒序刷新
+## 行为
 
-### 说明
+- worker 按用户设置的同步间隔检查已启用数据源。
+- 手动点击同步时，会立刻请求一次同步，不等待下一次定时检查。
+- 同步成功后，录音列表按录音开始时间倒序刷新。
+- 本地没有音频的录音不会进入私有转写。
+- 私有转写排队和来源平台自己的处理状态是两层状态。
+- Worker 状态会显示最近一次检查时间和下一次自动检查时间。
 
-- 本地没有音频的录音不会进入私有转录
-- 私有转录排队与远端排队是两层状态
-- Worker 状态会显示最近一次检查时间和下一次自动检查时间
+## 数据边界
 
-## English
+自动同步可能读取或更新：
 
-Automatic sync is executed by the worker, not by the browser.
+- 数据源连接状态。
+- 本地录音库。
+- 来源逐字稿、摘要或脱敏后的来源报告。
+- 本地音频归档状态。
+- 转写任务排队状态。
 
-### Behavior
+自动同步不应把 provider 凭据、上游完整响应、网络抓包文件或本地路径写入公开日志。
 
-- enabled data sources are checked on the configured interval
-- manual sync runs immediately and does not wait for the next scheduled cycle
-- the recording list refreshes in descending capture-time order after sync
+## 排查建议
+
+- 先确认对应数据源已启用且显示 connected。
+- 检查 worker 是否正在运行。
+- 查看脱敏后的 app / worker 日志。
+- 确认 `LOCAL_STORAGE_PATH` 对运行用户可写。
+- 如果只有来源记录、没有音频，私有转写不会自动开始。
+
+## 相关链接
+
+- [数据源说明](./DATA_SOURCES.md)
+- [部署说明](./DEPLOYMENT.md)
+- [隐私说明](./PRIVACY.md)
+- [安全策略](../SECURITY.md)

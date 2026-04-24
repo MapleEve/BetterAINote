@@ -1,41 +1,60 @@
-# 安全说明
+# 安全策略
 
-[English](#english)
+## 适用对象
 
-## 中文
+这篇面向 BetterAINote 自托管用户、部署者和漏洞报告者。BetterAINote 当前是私有部署优先的 preview 项目，请把它当成会处理录音、转写文本、来源账号状态和服务凭据的本地数据库。
 
-BetterAINote 当前是单用户私有部署产品，重点风险主要来自：
+## 支持版本
 
-- 数据源网页登录态或 bearer token 泄露
-- 私有转录服务 API key 泄露
-- 本地 SQLite 与录音目录权限过宽
-- 将数据库放在不可靠的网络文件系统上
+| 版本 / 分支 | 支持状态 |
+| --- | --- |
+| `main` | preview 阶段支持 |
+| 正式 release | 尚未发布 |
+| 旧 commit | 不承诺安全修复 |
 
-### 建议
+## 威胁模型
 
-- `DATABASE_PATH` 放本地磁盘
-- 录音目录单独挂载并限制权限
-- 不要把真实 token、cookie、API key 提交到仓库
-- 对外暴露面板时，使用你自己的强随机 `BETTER_AUTH_SECRET`
-- 定期轮换私有服务密钥
+BetterAINote 的主要风险来自：
 
-### 报告方式
+- 数据源凭据或会话字段泄露。
+- 私有转写服务、AI 标题服务或其它服务密钥泄露。
+- 本地 SQLite 与录音目录权限过宽。
+- 面板被暴露到不可信网络。
+- 日志、Issue、截图或网络抓包文件包含私人录音内容或账号状态。
 
-如果发现安全问题，请通过私有渠道联系维护者，或使用仓库的私有安全通道，不要直接公开披露敏感细节。
+## 部署侧必须做的硬化
 
-## English
+- 为 `BETTER_AUTH_SECRET` 和 `ENCRYPTION_KEY` 生成强随机值。
+- `.env.local`、数据库、音频目录、服务密钥和来源凭据永远不要提交到 git。
+- 把 `DATABASE_PATH` 放在可靠本地磁盘或可信存储上。
+- 限制 `LOCAL_STORAGE_PATH`、数据库目录和备份目录的文件权限。
+- 对外访问时使用 VPN、反向代理、TLS 和访问控制，不要裸露面板。
+- 定期轮换来源凭据和服务密钥。
 
-BetterAINote is intended for private single-user deployments. The main risks are:
+## 公开报告边界
 
-- leaked source-provider cookies, bearer tokens, or sessions
-- leaked private transcription API keys
-- overly broad filesystem permissions on SQLite files or recording storage
-- storing SQLite databases on unreliable network filesystems
+公开 Issue / PR / 讨论中不要包含：
 
-### Recommendations
+- cookie、bearer、刷新凭据、会话字段。
+- 组织 ID、用户 ID、录音 ID、临时下载链接、签名 URL。
+- 私人录音标题、完整转写、会议内容、说话人姓名。
+- 数据库文件、音频文件、完整环境文件。
+- 网络抓包文件、上游完整请求 / 响应、本地私有路径。
 
-- keep `DATABASE_PATH` on local disk
-- mount recordings separately and restrict access
-- never commit real credentials
-- use a strong `BETTER_AUTH_SECRET`
-- rotate private service keys regularly
+可以提供：
+
+- BetterAINote commit 或版本。
+- 操作步骤和预期结果。
+- 来源名称、站点模式和脱敏后的错误码。
+- 最小化的脱敏日志片段。
+
+## 漏洞上报
+
+如果发现未修复安全问题，请使用 GitHub private security advisory 或私有渠道联系维护者。不要在公开 Issue 中披露可利用细节。
+
+## 相关链接
+
+- [隐私说明](./docs/PRIVACY.md)
+- [部署说明](./docs/DEPLOYMENT.md)
+- [数据源说明](./docs/DATA_SOURCES.md)
+- [API 参考](./docs/API.md)

@@ -1,101 +1,123 @@
-# Data Sources
+# 数据源说明
 
-`Data Sources` is where BetterAINote connects recording platforms such as DingTalk, TicNote, Plaud, Feishu Minutes, and iFLYTEK iflyrec. Each provider keeps its own account settings while the rest of the app uses a shared local library, transcription, and rename workflow.
+## 适用对象
 
-BetterAINote is a preview self-hosted app. Source capabilities depend on the selected provider, the account, and what the source makes available.
+这篇面向想把录音平台接入 BetterAINote 的普通用户、部署者和贡献者。它只说明公开可用的设置方式、成熟度和限制，不记录数据源内部协议细节。
 
-## Credential Safety
+## 当前状态
 
-- Store provider credentials only in your self-hosted BetterAINote settings or deployment environment.
-- Do not paste private cookies, bearer strings, session values, or service keys into GitHub issues, pull requests, screenshots, logs, or public docs.
-- When reporting a problem, share sanitized request shape, field names, HTTP status, and redacted response samples.
-- Rotate any credential that may have been exposed outside your own deployment.
+BetterAINote 当前是 `preview`，数据源能力按“账号可见内容 + 来源实际返回 + BetterAINote 已实现能力”共同决定。不要把任一来源的能力理解为所有来源都支持。
 
-## Capability Overview
+| 来源 | 连接 | 同步 / 导入 | 音频归档 | 来源逐字稿 / 摘要 | 标题写回 |
+| --- | --- | --- | --- | --- | --- |
+| 钉钉 / A1 / 闪记 | 可配置 | 账号可见记录可同步 | 取决于来源是否提供可用音频 | 账号可见时可展示 | 暂不作为默认能力宣传 |
+| TicNote | 可配置中国区 / 国际区 | 支持 | 可获取时支持 | 支持可用内容 | 可启用 |
+| Plaud | 可配置 | 支持 | 可获取时支持 | 支持可用内容 | 可启用 |
+| 飞书妙记 | 可配置 | 账号权限允许时支持 | 取决于访问权限 | 账号权限允许时支持 | 暂不作为默认能力宣传 |
+| 讯飞听见 | 偏导入 / 查看 | 支持部分转写记录 | 来源相关 | 偏转写内容 | 暂不作为默认能力宣传 |
 
-| Source | Connect | Import or sync records | Audio handling | Title write-back |
-| --- | --- | --- | --- | --- |
-| DingTalk / A1 / Flash Notes | Yes, with account credentials available to the operator | Available where the account exposes supported records | Available when the source returns usable audio information | Not advertised as a default capability |
-| TicNote | Yes, China and international site modes | Yes | Available when source audio can be fetched | Supported |
-| Plaud | Yes | Yes | Available when source audio can be fetched | Supported |
-| Feishu Minutes | Yes, with available user credentials | Metadata and source details where available | Depends on account and source access | Not advertised as a default capability |
-| iFLYTEK iflyrec | Import or inspect transcript-oriented records | Available for supported records | Source-dependent | Not advertised as a default capability |
+这张表是用户口径，不是内部能力矩阵，也不是稳定承诺。来源页面、账号权限、地区站点和服务端调整都可能影响结果。
 
-This table is a user-facing setup guide, not a promise that every provider exposes the same fields or workflow.
+## 敏感信息边界
+
+数据源设置通常会涉及账号凭据或会话信息。请遵守：
+
+- 只在自己的 BetterAINote 部署里保存凭据。
+- 不要在 Issue、PR、截图、日志或文档里贴 cookie、bearer、刷新凭据、组织 / 用户 / 录音 ID、完整来源详情、网络抓包文件或环境文件。
+- 反馈问题时只提供来源名称、站点模式、可见错误码、脱敏字段名和最小复现步骤。
+- 一旦怀疑凭据离开了私有部署，请在对应来源平台轮换或撤销。
+
+## 设置区域
+
+`Data Sources` 只负责录音来源连接。其它能力放在独立设置里：
+
+| 设置 | 作用 |
+| --- | --- |
+| `Data Sources` | 钉钉、TicNote、Plaud、飞书妙记、讯飞听见等来源连接。 |
+| `Sync` | 自动同步间隔、手动同步和 worker 状态。 |
+| `VoScript` | 私有转写服务地址和凭据状态。 |
+| `Transcription` | 通用转写偏好。 |
+| `AI Rename` | 标题生成和重命名策略。 |
+| `Playback` / `Display` | 播放和界面偏好。 |
+
+保持这些边界能避免 BetterAINote 被某一个来源或某一种转写服务绑定。
 
 ## TicNote
 
-TicNote can be configured for either site mode:
+TicNote 支持两个站点模式：
 
-- China: `https://voice-api.ticnote.cn`
-- International: `https://prd-backend-api.ticnote.com/api`
+- 中国区：`https://voice-api.ticnote.cn`
+- 国际区：`https://prd-backend-api.ticnote.com/api`
 
-Setup notes:
+设置建议：
 
-- Choose the site mode in `Data Sources > TicNote`.
-- Paste the credential requested by the settings page.
-- Leave `Org ID` empty unless the app asks for it. BetterAINote can try to detect the organization for many accounts.
-- If multiple organizations are detected, enter the one you want BetterAINote to use.
+- 在 `Data Sources > TicNote` 选择站点模式。
+- 按设置页要求填写凭据。
+- `Org ID` 不是所有账号都需要；如果界面能自动识别组织，可以先留空。
+- 如果账号下有多个组织，请填写你希望同步的组织。
 
-Title write-back:
+标题写回：
 
-- Enable `Write renamed title back to source` in `Data Sources > TicNote`.
-- When enabled, local rename or AI Rename can try to update the title in TicNote.
-- If the source rejects the update, the local title remains the source of truth inside BetterAINote.
+- 在 `Data Sources > TicNote` 启用 `Write renamed title back to source` 后，本地重命名和 AI 重命名可尝试写回 TicNote。
+- 来源拒绝写回时，本地 BetterAINote 标题仍会保存，来源标题保持原样。
 
 ## Plaud
 
-Plaud is one recording source in BetterAINote's provider model.
+Plaud 是 BetterAINote 的一个录音来源。
 
-Setup notes:
+设置建议：
 
-- Configure Plaud in `Data Sources > Plaud`.
-- Sync brings supported records into the local library.
-- Available audio can be archived to local storage and sent to private transcription.
+- 在 `Data Sources > Plaud` 配置账号连接。
+- 同步会把可见记录写入本地录音库。
+- 可获取音频时，可以归档到 `LOCAL_STORAGE_PATH` 并提交给私有转写。
 
-Title write-back:
+标题写回：
 
-- Plaud supports the same public rename-back concept as TicNote when the account and source response allow it.
-- Failed write-back should not prevent the local BetterAINote title from being saved.
+- Plaud 与 TicNote 一样按能力处理标题写回。
+- 写回失败不应阻止本地标题保存。
 
-## DingTalk / A1 / Flash Notes
+## 钉钉 / A1 / 闪记
 
-DingTalk can be configured from `Data Sources > DingTalk`.
+设置建议：
 
-Setup notes:
+- 在 `Data Sources > DingTalk` 按界面要求填写账号凭据。
+- 保存后先测试连接，再依赖自动同步。
+- BetterAINote 会同步账号可见的支持记录，并在可用时展示来源逐字稿、摘要或详情。
 
-- Use the credential mode shown in the settings page for your account.
-- Save and test the connection before relying on scheduled sync.
-- BetterAINote can import supported records and show source details when the account exposes them.
+限制：
 
-Audio and detail availability depends on the account and the source response. Keep screenshots and logs redacted when asking for help.
+- 音频、来源详情和摘要是否可见取决于账号权限和来源返回内容。
+- 对外反馈时不要上传来源详情原文或账号页面截图。
 
-## Feishu Minutes
+## 飞书妙记
 
-Feishu Minutes setup is intended for users who can provide the credentials requested by the settings page.
+设置建议：
 
-Setup notes:
+- 在 `Data Sources > Feishu Minutes` 配置界面要求的用户凭据。
+- 账号权限允许时，可读取来源元数据、逐字稿和摘要。
+- 来源记录和私有转写是两层数据：来源已有逐字稿不等于 BetterAINote 已完成私有转写。
 
-- Configure the available user credential mode in `Data Sources > Feishu Minutes`.
-- BetterAINote can show source metadata and details where access allows.
-- Keep source credentials separate from transcription and title-generation service credentials.
+## 讯飞听见
 
-## iFLYTEK iflyrec
+讯飞听见当前偏“转写记录导入 / 查看”场景。
 
-iFLYTEK iflyrec is treated as a transcript-oriented source.
+使用建议：
 
-Setup notes:
+- 用于查看或导入支持的记录。
+- 音频下载、标题写回和字段完整度按来源实际可用情况处理。
+- 如果只需要本地私有转写，优先确认对应录音是否已归档到本地。
 
-- Use it for supported record import or detail inspection.
-- Audio and title write-back behavior may differ from sources that expose downloadable recording files.
+## 普通用户限制说明
 
-## Provider Settings Are Separate From Services
+- 同步不等于下载音频；只有来源提供可用音频时才会进入本地归档。
+- 有来源逐字稿不等于有私有转写；私有转写需要音频和转写服务可用。
+- 标题写回是可选能力，失败时本地标题仍是 BetterAINote 内的主显示名。
+- 同一来源在不同地区站点、账号类型或权限下可能表现不同。
 
-`Data Sources` only manages recording platforms. Other settings live elsewhere:
+## 相关链接
 
-- `VoScript`: private transcription service.
-- `Transcription`: shared transcription behavior.
-- `AI Rename`: title generation and rename behavior.
-- `Sync`: automatic sync interval and worker behavior.
-
-Keeping these areas separate helps BetterAINote support DingTalk, TicNote, Plaud, and future sources without making the app feel tied to any single vendor.
+- [README](../README.md)
+- [API 参考](./API.md)
+- [自动同步](./AUTO_SYNC.md)
+- [隐私说明](./PRIVACY.md)
+- [安全策略](../SECURITY.md)

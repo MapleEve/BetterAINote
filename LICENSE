@@ -1,11 +1,49 @@
-BetterAINote License
-Custom license based on Apache License, Version 2.0
+BetterAINote 自定义许可
+BetterAINote Custom License based on Apache License, Version 2.0
 
 Copyright 2026 BetterAINote Contributors
 
-This license is based on the Apache License, Version 2.0, January 2004.
-The original Apache License text is maintained by the Apache Software
-Foundation and is available from its licenses page:
+────────────────────────────────────────
+中文版 · Chinese
+────────────────────────────────────────
+
+本项目使用“基于 Apache License 2.0 的 BetterAINote 自定义许可”。
+这不是未修改的标准 Apache License 2.0，也不应以标准 Apache-2.0 SPDX
+标识来描述本仓库。`package.json` 中使用 `SEE LICENSE IN LICENSE`，
+表示实际许可条款以本文件为准。
+
+除本文件明确调整或补充的项目说明外，使用、复制、修改、贡献、再分发、
+专利授权、商标限制、免责声明和责任限制均按下方英文条款执行。Apache
+License 2.0 原文由 Apache Software Foundation 维护，可在以下地址查看：
+
+    https://www.apache.org/licenses/
+
+项目特定说明：
+
+1. 本文件包含 BetterAINote 的完整许可条款。请不要把 BetterAINote 描述为
+   “未修改的 Apache License 2.0 项目”，也不要使用标准 Apache-2.0 SPDX
+   标识描述整个仓库。
+2. 本项目特定说明不额外增加使用领域限制。使用、复制、修改、贡献和分发
+   均受本完整文件约束。
+3. BetterAINote 的名称、标志、服务标识和产品身份不随代码许可一并授权；
+   仅可按下方第 6 条在合理描述作品来源时使用。
+4. 如果你分发修改版本，请保留本许可文件，并在修改文件或发行说明中清楚
+   标明你做过修改。
+
+────────────────────────────────────────
+English Version
+────────────────────────────────────────
+
+BetterAINote is licensed under the BetterAINote Custom License based on the
+Apache License, Version 2.0. This is not the unmodified Apache License 2.0,
+and this repository should not be described with the standard Apache-2.0 SPDX
+identifier. The package metadata uses `SEE LICENSE IN LICENSE` because this
+file is the controlling license text.
+
+Except for the project-specific notices in this file, use, reproduction,
+modification, contribution, redistribution, patent grants, trademark limits,
+disclaimers, and liability limits follow the terms below. The original Apache
+License 2.0 text is maintained by the Apache Software Foundation:
 
     https://www.apache.org/licenses/
 
@@ -15,13 +53,13 @@ Project-specific notices:
    describe this project as being licensed under the unmodified Apache
    License, Version 2.0, and do not use the standard SPDX identifier for
    that license to describe this repository.
-
 2. No additional field-of-use restriction is added by this project-specific
    notice. Use, reproduction, modification, contribution, and distribution are
    governed by this complete file.
-
 3. The BetterAINote name, logos, service marks, and product identity are not
    granted except as permitted by Section 6 below.
+4. If You distribute a modified version, keep this license file and clearly
+   state that You changed the relevant files or release.
 
 TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 

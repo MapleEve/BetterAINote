@@ -1,4 +1,4 @@
-name: Bug report
+name: Bug report / 缺陷报告
 description: Report a reproducible problem in BetterAINote
 title: "[Bug] "
 labels: ["bug"]
@@ -6,18 +6,17 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve BetterAINote.
+        感谢帮助改进 BetterAINote。
 
-        Before opening a new report, search existing issues and confirm this is a bug rather than a feature request.
-        This template is for product or runtime problems in BetterAINote itself, not for general setup help or third-party provider outages.
+        提交前请先搜索已有 issue，并确认这是 BetterAINote 本身的产品或运行问题，而不是功能建议、通用部署咨询或第三方服务临时故障。
 
-        Privacy reminder: do not paste tokens, cookies, organization IDs, user IDs, recording IDs, recording titles, private meeting content, HAR files, full environment files, or internal/local filesystem paths. Redact logs before sharing them.
+        隐私提醒：不要粘贴 cookie、bearer、组织 ID、用户 ID、录音 ID、录音标题、私人会议内容、网络抓包文件、完整环境文件或内部 / 本地文件路径。分享日志前请先脱敏。
 
   - type: input
     id: version
     attributes:
-      label: BetterAINote version or commit
-      description: Which release, branch build, or commit are you running?
+      label: BetterAINote version or commit / 版本或提交
+      description: Which release, branch build, or commit are you running? 当前 preview 阶段也可以填写 main @ commit。
       placeholder: v0.1.0 / main @ abc1234
     validations:
       required: true
@@ -25,7 +24,7 @@ body:
   - type: dropdown
     id: area
     attributes:
-      label: Affected area
+      label: Affected area / 影响区域
       description: Which part of the product is most affected?
       options:
         - Web app
@@ -42,7 +41,7 @@ body:
   - type: dropdown
     id: provider
     attributes:
-      label: Related provider or service
+      label: Related provider or service / 相关来源或服务
       description: If the issue is related to a specific source or service, pick it here.
       options:
         - Not provider-specific
@@ -58,8 +57,8 @@ body:
   - type: textarea
     id: happened
     attributes:
-      label: What happened?
-      description: Describe the bug clearly and concisely.
+      label: What happened? / 发生了什么
+      description: Describe the bug clearly and concisely. 请勿贴未脱敏内容。
       placeholder: Tell us what went wrong.
     validations:
       required: true
@@ -67,7 +66,7 @@ body:
   - type: dropdown
     id: deployment
     attributes:
-      label: Installation method
+      label: Installation method / 安装方式
       description: How are you running BetterAINote?
       options:
         - Docker Compose
@@ -80,7 +79,7 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: What did you expect to happen?
+      label: What did you expect to happen? / 期望行为
       placeholder: Describe the expected behavior.
     validations:
       required: true
@@ -88,8 +87,8 @@ body:
   - type: textarea
     id: reproduce
     attributes:
-      label: Steps to reproduce
-      description: Give the exact steps so someone else can reproduce the issue.
+      label: Steps to reproduce / 复现步骤
+      description: Give the exact steps so someone else can reproduce the issue. 不要包含真实凭据或私人录音内容。
       placeholder: |
         1. Open ...
         2. Click ...
@@ -101,7 +100,7 @@ body:
   - type: textarea
     id: environment
     attributes:
-      label: Environment details
+      label: Environment details / 环境信息
       description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, internal hostnames, or local private paths.
       placeholder: |
         - OS:
@@ -112,26 +111,26 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Logs or error messages
-      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach HAR files or include tokens, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or internal paths.
+      label: Logs or error messages / 日志或错误信息
+      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach network capture files or include credentials, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or internal paths.
       render: shell
 
   - type: textarea
     id: extra
     attributes:
-      label: Additional context
+      label: Additional context / 补充说明
       description: Add screenshots, recordings, or anything else that helps explain the problem.
 
   - type: checkboxes
     id: checklist
     attributes:
-      label: Checklist
+      label: Checklist / 自检
       options:
         - label: I searched existing issues before opening this report.
           required: true
         - label: I filled in the requested details above.
           required: true
-        - label: I removed or redacted tokens, cookies, org/user/recording IDs, recording titles, private meeting content, HAR data, env values, and internal paths from this report.
+        - label: I removed or redacted credentials, cookies, org/user/recording IDs, recording titles, private meeting content, network capture data, env values, and internal paths from this report.
           required: true
         - label: I can help verify a fix if needed.
           required: false
