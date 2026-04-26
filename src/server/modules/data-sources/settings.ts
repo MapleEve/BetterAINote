@@ -4,6 +4,10 @@ import {
 } from "@/lib/data-sources/catalog";
 import { getSourceProviderDefinition } from "@/lib/data-sources/providers";
 import {
+    DINGTALK_DEVICE_CREDENTIAL_KEY,
+    DINGTALK_LEGACY_DEVICE_CREDENTIAL_KEY,
+} from "@/lib/data-sources/providers/dingtalk-a1/constants";
+import {
     DATA_SOURCE_PROVIDERS,
     type DataSourcesRequestBody,
     type GenericSourceConfig,
@@ -55,7 +59,10 @@ const AUTH_MODE_SECRET_KEYS: Record<SourceAuthMode, string[]> = {
     "oauth-device-flow": ["userAccessToken"],
     "web-reverse": ["webCookie"],
     "session-header": ["sessionId"],
-    "agent-token": ["agentToken"],
+    "device-signin": [
+        DINGTALK_DEVICE_CREDENTIAL_KEY,
+        DINGTALK_LEGACY_DEVICE_CREDENTIAL_KEY,
+    ],
 };
 
 export function getSourceConnectionDefaults(

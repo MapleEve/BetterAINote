@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, CloudOff, Pencil, X } from "lucide-react";
+import { CheckCircle, CloudOff, Pencil, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { RecordingPlayer } from "@/components/dashboard/recording-player";
@@ -9,17 +9,18 @@ import { SourceReportPanel } from "@/components/recordings/source-report-panel";
 import { TranscriptionSection } from "@/components/recordings/transcription-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import {
     canRecordingPrivateTranscribe,
     canRecordingRename,
-    getAutoRenameBehaviorHint,
-    getLocalRenameUnavailableMessage,
     getPrivateTranscriptionUnavailableMessage,
     getRecordingRenameActionKey,
     getSourceProviderLabel,
     getSourceTabLabel,
 } from "@/lib/data-sources/presentation";
+import { formatDateTime } from "@/lib/format-date";
 import {
     navigateBrowserRoute,
     useBrowserRouteController,
@@ -51,11 +52,15 @@ export function RecordingWorkstation({
     transcriptionJob,
 }: RecordingWorkstationProps) {
     const { language, t } = useLanguage();
+    const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
+    const { settings: titleGenerationSettings } =
+        useTitleGenerationSettingsStore();
     const [filename, setFilename] = useState(recording.filename);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState(recording.filename);
     const [isSavingRename, setIsSavingRename] = useState(false);
+    const [isAutoRenaming, setIsAutoRenaming] = useState(false);
     const [activeTranscriptTab, setActiveTranscriptTab] = useState<
         "source" | "local"
     >("source");
@@ -71,6 +76,24 @@ export function RecordingWorkstation({
     const hasLocalTranscriptContent = Boolean(
         transcription?.text || transcriptionJob,
     );
+    const titleGenerationProviderConfigured = Boolean(
+        titleGenerationSettings.titleGenerationApiKeySet &&
+            titleGenerationSettings.titleGenerationModel?.trim(),
+    );
+    const autoRenameDisabledReason = !titleGenerationProviderConfigured
+        ? t("transcription.aiRenameConfigureFirst")
+        : !transcription?.text?.trim()
+          ? t("transcription.aiRenameNeedsTranscript")
+          : !canRenameRecording
+            ? renameActionLabel
+            : null;
+    const canAutoRenameRecording = Boolean(
+        canRenameRecording &&
+            transcription?.text?.trim() &&
+            titleGenerationProviderConfigured &&
+            !isSavingRename &&
+            !isAutoRenaming,
+    );
     const showLocalTranscriptTab =
         !recording.sourceProvider ||
         canPrivateTranscribe ||
@@ -81,14 +104,6 @@ export function RecordingWorkstation({
             recording.hasAudio,
             language,
         );
-    const renameUnavailableReason = getLocalRenameUnavailableMessage(
-        recording.sourceProvider,
-        language,
-    );
-    const autoRenameBehaviorHint = getAutoRenameBehaviorHint(
-        recording.sourceProvider,
-        language,
-    );
 
     useEffect(() => {
         if (previousRecordingIdRef.current !== recording.id) {
@@ -150,6 +165,59 @@ export function RecordingWorkstation({
         }
     }, [filename, handleRenameCancel, recording.id, renameValue, t]);
 
+    const handleAutoRename = useCallback(async () => {
+        if (!canAutoRenameRecording) {
+            if (autoRenameDisabledReason) {
+                toast.error(autoRenameDisabledReason);
+            }
+            return;
+        }
+
+        const confirmed = await confirm({
+            title: t("common.confirmAction"),
+            description: t("transcription.aiRenameConfirm"),
+            confirmLabel: t("common.confirm"),
+            cancelLabel: t("common.cancel"),
+        });
+        if (!confirmed) {
+            return;
+        }
+
+        setIsAutoRenaming(true);
+        try {
+            const response = await fetch(
+                `/api/recordings/${recording.id}/rename/auto`,
+                { method: "POST" },
+            );
+            const data = await response.json();
+            if (!response.ok) {
+                toast.error(data.error || t("transcription.autoRenameFailed"));
+                return;
+            }
+
+            const nextFilename =
+                typeof data.filename === "string" ? data.filename : filename;
+            setFilename(nextFilename);
+            setRenameValue(nextFilename);
+            toast.success(
+                t("transcription.autoRenameSuccess", {
+                    filename: nextFilename,
+                }),
+            );
+        } catch {
+            toast.error(t("transcription.autoRenameFailed"));
+        } finally {
+            setIsAutoRenaming(false);
+        }
+    }, [
+        autoRenameDisabledReason,
+        canAutoRenameRecording,
+        confirm,
+        filename,
+        recording.id,
+        t,
+    ]);
+
     return (
         <div className="bg-transparent">
             <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -186,20 +254,44 @@ export function RecordingWorkstation({
                                     disabled={isSavingRename}
                                 />
                                 <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={handleRenameSave}
-                                    disabled={isSavingRename}
-                                    aria-label={t("recording.saveRename")}
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleAutoRename}
+                                    disabled={!canAutoRenameRecording}
+                                    title={
+                                        autoRenameDisabledReason ??
+                                        t("transcription.aiRename")
+                                    }
+                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
                                 >
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                    <Sparkles
+                                        className={
+                                            isAutoRenaming
+                                                ? "h-4 w-4 animate-pulse"
+                                                : "h-4 w-4"
+                                        }
+                                    />
+                                    <span className="hidden sm:inline">
+                                        {t("transcription.aiRename")}
+                                    </span>
                                 </Button>
                                 <Button
                                     size="icon"
-                                    variant="ghost"
+                                    variant="outline"
+                                    onClick={handleRenameSave}
+                                    disabled={isSavingRename}
+                                    aria-label={t("recording.saveRename")}
+                                    className="h-10 w-10 shrink-0 rounded-full border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
+                                >
+                                    <CheckCircle className="h-5 w-5" />
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
                                     onClick={handleRenameCancel}
                                     disabled={isSavingRename}
                                     aria-label={t("recording.cancelRename")}
+                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
                                 >
                                     <X className="h-5 w-5" />
                                 </Button>
@@ -230,7 +322,11 @@ export function RecordingWorkstation({
                             </div>
                         )}
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {new Date(recording.startTime).toLocaleString()}
+                            {formatDateTime(
+                                recording.startTime,
+                                "absolute",
+                                language,
+                            )}
                         </p>
                     </div>
                 </div>
@@ -317,11 +413,6 @@ export function RecordingWorkstation({
                                     transcribeUnavailableReason={
                                         transcriptionUnavailableReason
                                     }
-                                    canRename={canRenameRecording}
-                                    renameUnavailableReason={
-                                        renameUnavailableReason
-                                    }
-                                    renameBehaviorHint={autoRenameBehaviorHint}
                                     initialTranscription={transcription?.text}
                                     initialLanguage={
                                         transcription?.detectedLanguage
@@ -349,9 +440,6 @@ export function RecordingWorkstation({
                             transcribeUnavailableReason={
                                 transcriptionUnavailableReason
                             }
-                            canRename={canRenameRecording}
-                            renameUnavailableReason={renameUnavailableReason}
-                            renameBehaviorHint={autoRenameBehaviorHint}
                             initialTranscription={transcription?.text}
                             initialLanguage={transcription?.detectedLanguage}
                             initialType={transcription?.transcriptionType}
@@ -407,9 +495,11 @@ export function RecordingWorkstation({
                                         {t("recording.date")}
                                     </div>
                                     <div className="font-medium">
-                                        {new Date(
+                                        {formatDateTime(
                                             recording.startTime,
-                                        ).toLocaleDateString()}
+                                            "absolute",
+                                            language,
+                                        )}
                                     </div>
                                 </div>
                                 <div>

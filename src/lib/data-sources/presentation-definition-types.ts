@@ -94,6 +94,7 @@ export interface ProviderPresentationDefinition {
         state: DataSourceUiState;
         secretDraft: Record<string, string>;
         payload: DataSourceSavePayload;
+        language: UiLanguage;
     }) => DataSourceSavePayload;
 }
 

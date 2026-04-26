@@ -93,6 +93,10 @@ describe("frontend data-source routing regression", () => {
             path.join(ROOT, "components/settings-content.tsx"),
             "utf8",
         );
+        const workstation = readFileSync(
+            path.join(ROOT, "components/dashboard/workstation.tsx"),
+            "utf8",
+        );
         const dataSourcesSection = readFileSync(
             path.join(
                 ROOT,
@@ -107,6 +111,9 @@ describe("frontend data-source routing regression", () => {
         expect(settingsDialog).toContain('display: "appearance"');
         expect(settingsDialog).toContain('sync: "misc"');
         expect(settingsDialog).toContain('playback: "misc"');
+        expect(settingsDialog).toContain(
+            "export function normalizeSettingsSection",
+        );
         expect(settingsDialog).toContain("settingsDialog.sections.appearance");
         expect(settingsDialog).toContain("settingsDialog.sections.misc");
         expect(settingsContent).toContain('case "appearance"');
@@ -121,6 +128,10 @@ describe("frontend data-source routing regression", () => {
             "getSupportedSourceCapabilityDisplayItems",
         );
         expect(dataSourcesSection).not.toContain("renderCapabilityMatrix");
+        expect(workstation).toContain("readBrowserHash");
+        expect(workstation).toContain("normalizeSettingsSection");
+        expect(workstation).toContain("hashchange");
+        expect(workstation).toContain("setSettingsOpen(true)");
     });
 
     it("hides sensitive provider secret replacement inputs in settings", () => {
@@ -131,13 +142,18 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
+        const settingFieldControl = readFileSync(
+            path.join(ROOT, "components/settings/setting-field-control.tsx"),
+            "utf8",
+        );
 
         expect(fieldControl).toContain("isSensitiveTextField");
         expect(fieldControl).toContain('field.target === "secret"');
         expect(fieldControl).toContain("password");
-        expect(fieldControl).toContain("onPaste");
-        expect(fieldControl).toContain('clipboardData.getData("text")');
-        expect(fieldControl).toContain("preventDefault");
+        expect(fieldControl).toContain("sensitive: sensitiveTextField");
+        expect(settingFieldControl).toContain("onPaste");
+        expect(settingFieldControl).toContain('clipboardData.getData("text")');
+        expect(settingFieldControl).toContain("preventDefault");
     });
 
     it("keeps recording-facing shared panels free of inline Plaud-only source branches", () => {
@@ -169,12 +185,19 @@ describe("frontend data-source routing regression", () => {
             "disabled={isTranscribing || !canTranscribe}",
         );
         expect(transcriptionPanel).not.toContain('sourceProvider === "plaud"');
+        expect(transcriptionPanel).toContain('id: "source"');
+        expect(transcriptionPanel).toContain("<SourceReportPanel");
+        expect(transcriptionPanel).toContain('variant="embedded"');
         expect(sourceReportPanel).not.toContain('sourceProvider === "plaud"');
         expect(sourceReportPanel).not.toContain(
             ['t("sourceReport.detail', 'Payload")'].join(""),
         );
         expect(sourceReportPanel).not.toContain("JSON.stringify(data.detail");
         expect(sourceReportPanel).toContain('t("sourceReport.sourceDetails")');
+        expect(sourceReportPanel).toContain("formatTranscriptTimeRange");
+        expect(sourceReportPanel).toContain("data.transcript.segments");
+        expect(sourceReportPanel).toContain("segment.startMs");
+        expect(sourceReportPanel).toContain("segment.endMs");
     });
 
     it("removes legacy recording route shells in favor of neutral endpoints", () => {
@@ -205,12 +228,17 @@ describe("frontend data-source routing regression", () => {
         expect(
             existsSync(path.join(ROOT, "app/api/recordings/[id]/summary")),
         ).toBe(false);
-        expect(
-            existsSync(path.join(ROOT, "app/api/recordings/[id]/tags")),
-        ).toBe(false);
         expect(existsSync(path.join(ROOT, "app/api/recordings/upload"))).toBe(
             false,
         );
+        expect(
+            existsSync(path.join(ROOT, "app/api/recording-tags/route.ts")),
+        ).toBe(true);
+        expect(
+            existsSync(
+                path.join(ROOT, "app/api/recordings/[id]/tags/route.ts"),
+            ),
+        ).toBe(true);
         expect(
             existsSync(
                 path.join(ROOT, "app/api/recordings/[id]/transcribe/route.ts"),

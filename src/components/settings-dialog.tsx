@@ -9,6 +9,7 @@ import {
     Settings as SettingsIcon,
     SlidersHorizontal,
     Sparkles,
+    X,
 } from "lucide-react";
 import * as React from "react";
 import { useLanguage } from "@/components/language-provider";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogTitle,
@@ -142,7 +144,7 @@ const legacySectionAliases: Record<string, CanonicalSettingsSection> = {
     playback: "misc",
 };
 
-function normalizeSettingsSection(
+export function normalizeSettingsSection(
     value: string | null | undefined,
 ): CanonicalSettingsSection | null {
     if (!value) {
@@ -172,6 +174,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
     );
 
     React.useEffect(() => {
+        if (!props.open) return;
+
         const hash = readBrowserHash();
         const validSection = normalizeSettingsSection(hash);
 
@@ -200,12 +204,14 @@ export function SettingsDialog(props: SettingsDialogProps) {
 
         setActiveSection(orderedSettingsNav[0].id);
         setKeyboardSelectedIndex(0);
-    }, []);
+    }, [props.open]);
 
     React.useEffect(() => {
+        if (!props.open) return;
+
         writeBrowserHash(activeSection);
         writeBrowserStorage(STORAGE_KEY, activeSection);
-    }, [activeSection]);
+    }, [activeSection, props.open]);
 
     React.useEffect(() => {
         if (!props.open) return;
@@ -282,7 +288,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
 
     return (
         <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-            <DialogContent className="h-[calc(100svh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:h-[min(90svh,900px)] sm:w-[min(94vw,1360px)] sm:max-w-none">
+            <DialogContent
+                showCloseButton={false}
+                className="h-[calc(100svh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:h-[min(94svh,980px)] sm:w-[min(96vw,1560px)] sm:max-w-none"
+            >
                 <DialogTitle className="sr-only">
                     {t("settingsDialog.title")}
                 </DialogTitle>
@@ -291,15 +300,15 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 </DialogDescription>
 
                 <SidebarProvider className="min-h-0 flex-1 items-stretch">
-                    <Sidebar className="hidden md:flex border-r border-white/8 shadow-none before:hidden after:hidden backdrop-blur-none">
-                        <SidebarContent>
-                            <div className="flex items-center gap-2 border-b px-4 py-4">
+                    <Sidebar className="hidden md:flex border-r border-border/65 shadow-none before:hidden after:hidden backdrop-blur-none">
+                        <SidebarContent className="gap-0 p-0">
+                            <div className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 px-4">
                                 <SettingsIcon className="h-5 w-5" />
                                 <h2 className="text-lg font-semibold">
                                     {t("settingsDialog.title")}
                                 </h2>
                             </div>
-                            <SidebarGroup>
+                            <SidebarGroup className="p-4">
                                 <SidebarGroupContent>
                                     <nav
                                         ref={navBoundaryRef}
@@ -379,7 +388,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     </Sidebar>
 
                     <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
-                        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 py-0 pl-4 pr-3">
                             <div className="flex flex-1 items-center gap-2">
                                 <Breadcrumb>
                                     <BreadcrumbList>
@@ -436,6 +445,13 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            <DialogClose
+                                className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                                aria-label="Close"
+                            >
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Close</span>
+                            </DialogClose>
                         </header>
 
                         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 pt-6">

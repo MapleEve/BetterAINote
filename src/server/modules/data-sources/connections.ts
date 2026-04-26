@@ -7,6 +7,7 @@ import {
     type SourceProvider,
 } from "@/lib/data-sources/catalog";
 import { getSourceProviderDefinition } from "@/lib/data-sources/providers";
+import { normalizeDingTalkAuthMode } from "@/lib/data-sources/providers/dingtalk-a1/constants";
 import type { ResolvedSourceConnection } from "@/lib/data-sources/types";
 import { decrypt } from "@/lib/encryption";
 
@@ -59,9 +60,16 @@ function resolveSourceAuthMode(
     provider: SourceProvider,
     authMode: string | null,
 ): SourceAuthMode {
+    const normalizedAuthMode =
+        provider === "dingtalk-a1"
+            ? normalizeDingTalkAuthMode(authMode)
+            : authMode;
     const supported = DATA_SOURCE_CATALOG[provider].authModes;
-    if (authMode && supported.includes(authMode as SourceAuthMode)) {
-        return authMode as SourceAuthMode;
+    if (
+        typeof normalizedAuthMode === "string" &&
+        supported.includes(normalizedAuthMode as SourceAuthMode)
+    ) {
+        return normalizedAuthMode as SourceAuthMode;
     }
 
     return supported[0];

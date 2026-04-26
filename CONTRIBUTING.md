@@ -31,8 +31,8 @@ pnpm test
 
 ### 文档要求
 
-- 中文优先
-- 顶部提供英文锚点链接
+- README 以英文为主入口，并维护简体中文、日文、韩文版本
+- 顶部提供语言切换链接
 - 品牌统一使用 `BetterAINote`
 
 ### 变更范围建议
@@ -68,3 +68,9 @@ pnpm dev
 pnpm type-check
 pnpm test
 ```
+
+### Documentation
+
+- Keep `README.md` as the English-first entry.
+- Keep `README.zh-CN.md`, `README.ja.md`, and `README.ko.md` aligned with the public positioning.
+- Do not move private provider research, credentials, raw source responses, transcripts, or local test data into public docs.

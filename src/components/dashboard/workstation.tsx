@@ -7,17 +7,24 @@ import {
     Pencil,
     RefreshCw,
     Settings,
+    Sparkles,
     Trash2,
     X,
 } from "lucide-react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Logo } from "@/components/icons/logo";
 import { useLanguage } from "@/components/language-provider";
-import { SettingsDialog } from "@/components/settings-dialog";
+import {
+    normalizeSettingsSection,
+    SettingsDialog,
+} from "@/components/settings-dialog";
 import { SyncStatus } from "@/components/sync-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import {
     canRecordingPrivateTranscribe,
@@ -30,20 +37,39 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 import {
-    confirmInBrowser,
+    addBrowserWindowEventListener,
+    readBrowserHash,
+    removeBrowserWindowEventListener,
     startBrowserInterval,
     stopBrowserInterval,
 } from "@/lib/platform/browser-shell";
+import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import type { Recording } from "@/types/recording";
 import { RecordingList } from "./recording-list";
 import { RecordingPlayer } from "./recording-player";
+import { RecordingTagManager } from "./recording-tag-manager";
 import { TranscriptionPanel } from "./transcription-panel";
 
 interface TranscriptionData {
+    hasTranscript?: boolean;
     text?: string;
     language?: string;
     speakerMap?: Record<string, string>;
+    segments?: TranscriptSegmentData[] | null;
+}
+
+interface TranscriptSegmentData {
+    id: number;
+    start: number | null;
+    end: number | null;
+    text: string;
+    speakerLabel: string;
+    speakerId?: string | null;
+    speakerName?: string | null;
+    similarity?: number | null;
+    hasOverlap?: boolean | null;
+    displaySpeaker?: string | null;
 }
 
 interface TranscriptionJobData {
@@ -64,22 +90,57 @@ export function Workstation({
     transcriptionJobs,
 }: WorkstationProps) {
     const { language, t } = useLanguage();
+    const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
+    const { settings: titleGenerationSettings } =
+        useTitleGenerationSettingsStore();
 
     const [currentRecording, setCurrentRecording] = useState<Recording | null>(
         recordings[0] ?? null,
+    );
+    const [liveRecordings, setLiveRecordings] = useState(recordings);
+    const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(() =>
+        Array.from(
+            new Map(
+                recordings
+                    .flatMap((recording) => recording.tags)
+                    .map((tag) => [tag.id, tag]),
+            ).values(),
+        ),
     );
     const [, setIsTranscribing] = useState(false);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState("");
     const [isSavingRename, setIsSavingRename] = useState(false);
+    const [isAutoRenaming, setIsAutoRenaming] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [tagManagerOpen, setTagManagerOpen] = useState(false);
     const [liveTranscriptions, setLiveTranscriptions] = useState(
         () => new Map(transcriptions),
     );
     const [liveTranscriptionJobs, setLiveTranscriptionJobs] = useState(
         () => new Map(transcriptionJobs),
     );
+    const [loadingTranscriptIds, setLoadingTranscriptIds] = useState(
+        () => new Set<string>(),
+    );
+
+    const openSettingsFromHash = useCallback(() => {
+        if (normalizeSettingsSection(readBrowserHash())) {
+            setSettingsOpen(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        openSettingsFromHash();
+        addBrowserWindowEventListener("hashchange", openSettingsFromHash);
+
+        return () =>
+            removeBrowserWindowEventListener(
+                "hashchange",
+                openSettingsFromHash,
+            );
+    }, [openSettingsFromHash]);
 
     const currentTranscription = currentRecording
         ? liveTranscriptions.get(currentRecording.id)
@@ -87,12 +148,38 @@ export function Workstation({
     const currentTranscriptionJob = currentRecording
         ? liveTranscriptionJobs.get(currentRecording.id)
         : undefined;
+    const currentHasTranscript = Boolean(
+        currentTranscription?.text?.trim() ||
+            currentTranscription?.hasTranscript,
+    );
+    const isCurrentTranscriptLoading = Boolean(
+        currentRecording && loadingTranscriptIds.has(currentRecording.id),
+    );
     const canRenameCurrentRecording = currentRecording
         ? canRecordingRename(currentRecording.sourceProvider)
         : false;
     const currentRenameActionLabel = currentRecording
         ? t(getRecordingRenameActionKey(currentRecording.sourceProvider))
         : t("dashboard.renameRecording");
+    const titleGenerationProviderConfigured = Boolean(
+        titleGenerationSettings.titleGenerationApiKeySet &&
+            titleGenerationSettings.titleGenerationModel?.trim(),
+    );
+    const autoRenameDisabledReason = !titleGenerationProviderConfigured
+        ? t("transcription.aiRenameConfigureFirst")
+        : !currentHasTranscript
+          ? t("transcription.aiRenameNeedsTranscript")
+          : !canRenameCurrentRecording
+            ? currentRenameActionLabel
+            : null;
+    const canAutoRenameCurrentRecording = Boolean(
+        currentRecording &&
+            canRenameCurrentRecording &&
+            currentHasTranscript &&
+            titleGenerationProviderConfigured &&
+            !isSavingRename &&
+            !isAutoRenaming,
+    );
     const currentCanPrivateTranscribe = currentRecording
         ? canRecordingPrivateTranscribe({
               sourceProvider: currentRecording.sourceProvider,
@@ -116,6 +203,97 @@ export function Workstation({
     }, [transcriptionJobs]);
 
     useEffect(() => {
+        if (isRenaming) {
+            setTagManagerOpen(false);
+        }
+    }, [isRenaming]);
+
+    useEffect(() => {
+        const recordingId = currentRecording?.id;
+        if (!recordingId) {
+            return;
+        }
+
+        const transcription = liveTranscriptions.get(recordingId);
+        if (!transcription?.hasTranscript || transcription.text?.trim()) {
+            return;
+        }
+
+        let cancelled = false;
+        setLoadingTranscriptIds((previous) => {
+            const next = new Set(previous);
+            next.add(recordingId);
+            return next;
+        });
+
+        const loadTranscript = async () => {
+            try {
+                const response = await fetch(
+                    `/api/recordings/${recordingId}/transcript/speakers`,
+                    { cache: "no-store" },
+                );
+
+                if (cancelled) {
+                    return;
+                }
+
+                if (response.status === 404) {
+                    setLiveTranscriptions((previous) => {
+                        const next = new Map(previous);
+                        next.set(recordingId, {
+                            ...next.get(recordingId),
+                            hasTranscript: false,
+                        });
+                        return next;
+                    });
+                    return;
+                }
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                if (cancelled || !data?.transcript) {
+                    return;
+                }
+
+                setLiveTranscriptions((previous) => {
+                    const next = new Map(previous);
+                    next.set(recordingId, {
+                        hasTranscript: true,
+                        text:
+                            data.transcript.rawText ??
+                            data.transcript.displayText ??
+                            "",
+                        language: data.transcript.detectedLanguage ?? undefined,
+                        speakerMap: data.speakerMap ?? undefined,
+                        segments: data.transcript.segments ?? null,
+                    });
+                    return next;
+                });
+            } catch {
+                // The explicit transcript panel actions still surface user-facing errors.
+            } finally {
+                if (!cancelled) {
+                    setLoadingTranscriptIds((previous) => {
+                        const next = new Set(previous);
+                        next.delete(recordingId);
+                        return next;
+                    });
+                }
+            }
+        };
+
+        void loadTranscript();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentRecording?.id, liveTranscriptions]);
+
+    useEffect(() => {
+        setLiveRecordings(recordings);
         setCurrentRecording((previous) => {
             if (!previous) return recordings[0] ?? null;
             return (
@@ -125,6 +303,66 @@ export function Workstation({
             );
         });
     }, [recordings]);
+
+    useEffect(() => {
+        const tagsById = new Map<string, RecordingTag>();
+        for (const recording of liveRecordings) {
+            for (const tag of recording.tags) {
+                tagsById.set(tag.id, tag);
+            }
+        }
+        setTagCatalog((previous) => {
+            for (const tag of previous) {
+                tagsById.set(tag.id, tag);
+            }
+            return Array.from(tagsById.values()).sort((a, b) =>
+                a.name.localeCompare(b.name),
+            );
+        });
+    }, [liveRecordings]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadTags = async () => {
+            try {
+                const response = await fetch("/api/recording-tags", {
+                    cache: "no-store",
+                });
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json();
+                if (!cancelled && Array.isArray(data.tags)) {
+                    setTagCatalog(data.tags);
+                }
+            } catch {
+                // Tag catalog is additive; recordings still carry their assigned tags.
+            }
+        };
+
+        void loadTags();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const applyRecordingTags = useCallback(
+        (recordingId: string, tags: RecordingTag[]) => {
+            setLiveRecordings((previous) =>
+                previous.map((recording) =>
+                    recording.id === recordingId
+                        ? { ...recording, tags }
+                        : recording,
+                ),
+            );
+            setCurrentRecording((previous) =>
+                previous?.id === recordingId ? { ...previous, tags } : previous,
+            );
+        },
+        [],
+    );
 
     useEffect(() => {
         setIsTranscribing(isActiveTranscriptionJob(currentTranscriptionJob));
@@ -168,6 +406,7 @@ export function Workstation({
                                     undefined,
                                 speakerMap:
                                     data.transcript.speakerMap ?? undefined,
+                                segments: data.transcript.segments ?? null,
                             });
                             return next;
                         });
@@ -290,6 +529,7 @@ export function Workstation({
                         text: data.transcript.text,
                         language: data.transcript.detectedLanguage ?? undefined,
                         speakerMap: data.transcript.speakerMap ?? undefined,
+                        segments: data.transcript.segments ?? null,
                     });
                     return next;
                 });
@@ -356,6 +596,7 @@ export function Workstation({
                         text: data.transcript.text,
                         language: data.transcript.detectedLanguage ?? undefined,
                         speakerMap: data.transcript.speakerMap ?? undefined,
+                        segments: data.transcript.segments ?? null,
                     });
                     return next;
                 });
@@ -375,6 +616,7 @@ export function Workstation({
     const handleRenameStart = useCallback(() => {
         if (!currentRecording) return;
         if (!canRenameCurrentRecording) return;
+        setTagManagerOpen(false);
         setRenameValue(currentRecording.filename);
         setIsRenaming(true);
     }, [canRenameCurrentRecording, currentRecording]);
@@ -413,6 +655,13 @@ export function Workstation({
             setCurrentRecording((previous) =>
                 previous ? { ...previous, filename: newName } : previous,
             );
+            setLiveRecordings((previous) =>
+                previous.map((recording) =>
+                    recording.id === currentRecording.id
+                        ? { ...recording, filename: newName }
+                        : recording,
+                ),
+            );
             setIsRenaming(false);
             toast.success(t("dashboard.renameSuccess"));
             refreshBrowserRoute(router);
@@ -423,16 +672,89 @@ export function Workstation({
         }
     }, [currentRecording, handleRenameCancel, renameValue, router, t]);
 
+    const handleAutoRename = useCallback(async () => {
+        if (!currentRecording) return;
+        if (!canAutoRenameCurrentRecording) {
+            if (autoRenameDisabledReason) {
+                toast.error(autoRenameDisabledReason);
+            }
+            return;
+        }
+
+        const confirmed = await confirm({
+            title: t("common.confirmAction"),
+            description: t("transcription.aiRenameConfirm"),
+            confirmLabel: t("common.confirm"),
+            cancelLabel: t("common.cancel"),
+        });
+        if (!confirmed) {
+            return;
+        }
+
+        setIsAutoRenaming(true);
+        try {
+            const response = await fetch(
+                `/api/recordings/${currentRecording.id}/rename/auto`,
+                { method: "POST" },
+            );
+
+            const data = await response.json();
+            if (!response.ok) {
+                toast.error(data.error || t("transcription.autoRenameFailed"));
+                return;
+            }
+
+            const filename =
+                typeof data.filename === "string"
+                    ? data.filename
+                    : currentRecording.filename;
+
+            setCurrentRecording((previous) =>
+                previous ? { ...previous, filename } : previous,
+            );
+            setLiveRecordings((previous) =>
+                previous.map((recording) =>
+                    recording.id === currentRecording.id
+                        ? { ...recording, filename }
+                        : recording,
+                ),
+            );
+            setRenameValue(filename);
+            toast.success(
+                t("transcription.autoRenameSuccess", {
+                    filename,
+                }),
+            );
+            startTransition(() => {
+                refreshBrowserRoute(router);
+            });
+        } catch {
+            toast.error(t("transcription.autoRenameFailed"));
+        } finally {
+            setIsAutoRenaming(false);
+        }
+    }, [
+        autoRenameDisabledReason,
+        canAutoRenameCurrentRecording,
+        confirm,
+        currentRecording,
+        router,
+        t,
+    ]);
+
     const handleDelete = useCallback(async () => {
         if (!currentRecording) return;
 
-        if (
-            !confirmInBrowser(
-                t("dashboard.deleteConfirm", {
-                    filename: currentRecording.filename,
-                }),
-            )
-        ) {
+        const confirmed = await confirm({
+            title: t("common.confirmAction"),
+            description: t("dashboard.deleteConfirm", {
+                filename: currentRecording.filename,
+            }),
+            confirmLabel: t("common.confirm"),
+            cancelLabel: t("common.cancel"),
+            variant: "destructive",
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -454,21 +776,18 @@ export function Workstation({
         } catch {
             toast.error(t("dashboard.deleteFailed"));
         }
-    }, [currentRecording, router, t]);
+    }, [confirm, currentRecording, router, t]);
 
     return (
         <>
             <div className="bg-transparent">
                 <div className="container mx-auto max-w-7xl px-4 py-6">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold">
-                                {t("dashboard.recordings")}
+                    <div className="mb-5 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Logo className="size-10 shrink-0 text-primary" />
+                            <h1 className="text-2xl font-semibold tracking-tight">
+                                BetterAINote
                             </h1>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {recordings.length}{" "}
-                                {t("dashboard.recordingCountSuffix")}
-                            </p>
                         </div>
                         <div className="flex items-center gap-3">
                             <SyncStatus
@@ -503,13 +822,14 @@ export function Workstation({
                                 onClick={() => setSettingsOpen(true)}
                                 variant="outline"
                                 size="icon"
+                                aria-label={t("settingsDialog.title")}
                             >
                                 <Settings className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
 
-                    {recordings.length === 0 ? (
+                    {liveRecordings.length === 0 ? (
                         <Card>
                             <CardContent className="flex flex-col items-center justify-center py-16">
                                 <Mic className="mb-4 h-16 w-16 text-muted-foreground" />
@@ -538,31 +858,24 @@ export function Workstation({
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                            <div className="lg:col-span-1">
+                        <div className="grid grid-cols-1 gap-6 lg:h-[calc(100svh-9rem)] lg:min-h-[680px] lg:grid-cols-3 lg:overflow-hidden">
+                            <div className="min-h-0 lg:col-span-1">
                                 <RecordingList
-                                    recordings={recordings}
+                                    recordings={liveRecordings}
+                                    totalCount={liveRecordings.length}
                                     currentRecording={currentRecording}
-                                    onSelect={setCurrentRecording}
+                                    transcriptionJobs={liveTranscriptionJobs}
+                                    onSelect={(recording) => {
+                                        setTagManagerOpen(false);
+                                        setCurrentRecording(recording);
+                                    }}
                                 />
                             </div>
 
-                            <div className="space-y-6 lg:col-span-2">
+                            <div className="flex min-h-0 flex-col gap-4 lg:col-span-2">
                                 {currentRecording ? (
                                     <>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                                    {t(
-                                                        "dashboard.currentRecordingTitle",
-                                                    )}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {t(
-                                                        "dashboard.currentRecordingDescription",
-                                                    )}
-                                                </p>
-                                            </div>
+                                        <div className="shrink-0 flex flex-col gap-3">
                                             <div className="flex items-center gap-3">
                                                 {isRenaming ? (
                                                     <div className="flex flex-1 items-center gap-2">
@@ -597,26 +910,64 @@ export function Workstation({
                                                             }
                                                         />
                                                         <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={
+                                                                handleAutoRename
+                                                            }
+                                                            disabled={
+                                                                !canAutoRenameCurrentRecording
+                                                            }
+                                                            title={
+                                                                autoRenameDisabledReason ??
+                                                                t(
+                                                                    "transcription.aiRename",
+                                                                )
+                                                            }
+                                                            className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                        >
+                                                            <Sparkles
+                                                                className={
+                                                                    isAutoRenaming
+                                                                        ? "h-4 w-4 animate-pulse"
+                                                                        : "h-4 w-4"
+                                                                }
+                                                            />
+                                                            <span className="hidden sm:inline">
+                                                                {t(
+                                                                    "transcription.aiRename",
+                                                                )}
+                                                            </span>
+                                                        </Button>
+                                                        <Button
                                                             size="icon"
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             onClick={
                                                                 handleRenameSave
                                                             }
                                                             disabled={
                                                                 isSavingRename
                                                             }
+                                                            title={t(
+                                                                "recording.saveRename",
+                                                            )}
+                                                            className="h-10 w-10 shrink-0 rounded-full border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
                                                         >
-                                                            <CheckCircle className="h-5 w-5 text-green-500" />
+                                                            <CheckCircle className="h-5 w-5" />
                                                         </Button>
                                                         <Button
                                                             size="icon"
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             onClick={
                                                                 handleRenameCancel
                                                             }
                                                             disabled={
                                                                 isSavingRename
                                                             }
+                                                            title={t(
+                                                                "recording.cancelRename",
+                                                            )}
+                                                            className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
                                                         >
                                                             <X className="h-5 w-5" />
                                                         </Button>
@@ -669,12 +1020,37 @@ export function Workstation({
                                                     </>
                                                 )}
                                             </div>
-
                                             <RecordingPlayer
                                                 recording={currentRecording}
+                                                tags={currentRecording.tags}
+                                                isTagManagerOpen={
+                                                    tagManagerOpen
+                                                }
+                                                onToggleTagManager={() =>
+                                                    setTagManagerOpen(
+                                                        (open) => !open,
+                                                    )
+                                                }
+                                                tagManagerPanel={
+                                                    <RecordingTagManager
+                                                        variant="popover"
+                                                        recording={
+                                                            currentRecording
+                                                        }
+                                                        availableTags={
+                                                            tagCatalog
+                                                        }
+                                                        onAvailableTagsChange={
+                                                            setTagCatalog
+                                                        }
+                                                        onRecordingTagsChange={
+                                                            applyRecordingTags
+                                                        }
+                                                    />
+                                                }
                                                 onEnded={() => {
                                                     const index =
-                                                        recordings.findIndex(
+                                                        liveRecordings.findIndex(
                                                             (recording) =>
                                                                 recording.id ===
                                                                 currentRecording.id,
@@ -682,11 +1058,14 @@ export function Workstation({
                                                     if (
                                                         index >= 0 &&
                                                         index <
-                                                            recordings.length -
+                                                            liveRecordings.length -
                                                                 1
                                                     ) {
+                                                        setTagManagerOpen(
+                                                            false,
+                                                        );
                                                         setCurrentRecording(
-                                                            recordings[
+                                                            liveRecordings[
                                                                 index + 1
                                                             ],
                                                         );
@@ -695,19 +1074,7 @@ export function Workstation({
                                             />
                                         </div>
 
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                                    {t(
-                                                        "dashboard.transcriptWorkspaceTitle",
-                                                    )}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {t(
-                                                        "dashboard.transcriptWorkspaceDescription",
-                                                    )}
-                                                </p>
-                                            </div>
+                                        <div className="flex min-h-0 flex-1 flex-col">
                                             <TranscriptionPanel
                                                 recording={currentRecording}
                                                 transcription={
@@ -716,10 +1083,14 @@ export function Workstation({
                                                 transcriptionJob={
                                                     currentTranscriptionJob
                                                 }
+                                                isTranscriptLoading={
+                                                    isCurrentTranscriptLoading
+                                                }
                                                 onTranscribe={handleTranscribe}
                                                 onRetranscribe={
                                                     handleRetranscribe
                                                 }
+                                                className="min-h-0 flex-1"
                                             />
                                         </div>
                                     </>

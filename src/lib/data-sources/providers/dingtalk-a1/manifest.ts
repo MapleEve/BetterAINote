@@ -5,7 +5,7 @@ export const dingtalkA1ProviderManifest: SourceProviderManifest = {
     metadata: {
         provider: "dingtalk-a1",
         displayName: "DingTalk A1",
-        authModes: ["agent-token", "cookie"],
+        authModes: ["device-signin"],
         defaultBaseUrl: "https://meeting-ai-tingji.dingtalk.com",
         runtimeStatus: "active",
         maturity: {
@@ -23,7 +23,7 @@ export const dingtalkA1ProviderManifest: SourceProviderManifest = {
         },
     },
     defaults: {
-        authMode: "agent-token",
+        authMode: "device-signin",
         config: {},
     },
 };

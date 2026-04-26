@@ -1,16 +1,23 @@
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/db";
-import { recordings, transcriptionJobs } from "@/db/schema/library";
+import {
+    recordings,
+    recordingTagAssignments,
+    recordingTags,
+    transcriptionJobs,
+} from "@/db/schema/library";
 import { transcriptions } from "@/db/schema/transcripts";
 import {
     buildDashboardTranscriptionJobMap,
     buildDashboardTranscriptionMap,
+    buildRecordingTagMap,
+    type DashboardTranscriptionRow,
     type RecordingTranscriptionJobRow,
     type RecordingTranscriptionRow,
     serializeQueriedRecording,
-    serializeRecording,
     serializeRecordingDetailTranscription,
     serializeRecordingDetailTranscriptionJob,
+    serializeRecordingWithTags,
 } from "./serialize";
 
 type RecordingDetailRow = typeof recordings.$inferSelect;
@@ -45,6 +52,13 @@ const transcriptionSelection = {
     createdAt: transcriptions.createdAt,
     speakerMap: transcriptions.speakerMap,
     providerPayload: transcriptions.providerPayload,
+};
+
+const dashboardTranscriptionSelection = {
+    recordingId: transcriptions.recordingId,
+    hasTranscript: transcriptions.id,
+    detectedLanguage: transcriptions.detectedLanguage,
+    transcriptionType: transcriptions.transcriptionType,
 };
 
 const transcriptionJobSelection = {
@@ -88,24 +102,40 @@ async function listRecordingRowsForUser(
 async function listRecordingRelationsForUser(
     userId: string,
     recordingIds: string[],
+    options: { includeTranscript?: boolean } = {},
 ) {
     if (recordingIds.length === 0) {
         return {
-            transcriptionRows: [] as RecordingTranscriptionRow[],
+            transcriptionRows: [] as Array<
+                RecordingTranscriptionRow | DashboardTranscriptionRow
+            >,
             transcriptionJobRows: [] as RecordingTranscriptionJobRow[],
         };
     }
 
+    const transcriptionRowsPromise =
+        options.includeTranscript === false
+            ? db
+                  .select(dashboardTranscriptionSelection)
+                  .from(transcriptions)
+                  .where(
+                      and(
+                          eq(transcriptions.userId, userId),
+                          inArray(transcriptions.recordingId, recordingIds),
+                      ),
+                  )
+            : db
+                  .select(transcriptionSelection)
+                  .from(transcriptions)
+                  .where(
+                      and(
+                          eq(transcriptions.userId, userId),
+                          inArray(transcriptions.recordingId, recordingIds),
+                      ),
+                  );
+
     const [transcriptionRows, transcriptionJobRows] = await Promise.all([
-        db
-            .select(transcriptionSelection)
-            .from(transcriptions)
-            .where(
-                and(
-                    eq(transcriptions.userId, userId),
-                    inArray(transcriptions.recordingId, recordingIds),
-                ),
-            ),
+        transcriptionRowsPromise,
         db
             .select(transcriptionJobSelection)
             .from(transcriptionJobs)
@@ -123,15 +153,58 @@ async function listRecordingRelationsForUser(
     };
 }
 
+async function listRecordingTagsForUser(
+    userId: string,
+    recordingIds: string[],
+) {
+    if (recordingIds.length === 0) {
+        return [];
+    }
+
+    return db
+        .select({
+            recordingId: recordingTagAssignments.recordingId,
+            tagId: recordingTags.id,
+            tagName: recordingTags.name,
+            tagColor: recordingTags.color,
+            tagIcon: recordingTags.icon,
+        })
+        .from(recordingTagAssignments)
+        .innerJoin(
+            recordingTags,
+            eq(recordingTags.id, recordingTagAssignments.tagId),
+        )
+        .where(
+            and(
+                eq(recordingTagAssignments.userId, userId),
+                eq(recordingTags.userId, userId),
+                inArray(recordingTagAssignments.recordingId, recordingIds),
+            ),
+        );
+}
+
 export async function getDashboardRecordingsPageData(userId: string) {
     const recordingRows = await listRecordingRowsForUser(userId);
     const recordingIds = recordingRows.map((recording) => recording.id);
-    const { transcriptionRows, transcriptionJobRows } =
-        await listRecordingRelationsForUser(userId, recordingIds);
+    const [{ transcriptionRows, transcriptionJobRows }, recordingTagRows] =
+        await Promise.all([
+            listRecordingRelationsForUser(userId, recordingIds, {
+                includeTranscript: false,
+            }),
+            listRecordingTagsForUser(userId, recordingIds),
+        ]);
+    const tagsByRecordingId = buildRecordingTagMap(recordingTagRows);
 
     return {
-        recordings: recordingRows.map(serializeRecording),
-        transcriptions: buildDashboardTranscriptionMap(transcriptionRows),
+        recordings: recordingRows.map((recording) =>
+            serializeRecordingWithTags(
+                recording,
+                tagsByRecordingId.get(recording.id),
+            ),
+        ),
+        transcriptions: buildDashboardTranscriptionMap(
+            transcriptionRows as DashboardTranscriptionRow[],
+        ),
         transcriptionJobs:
             buildDashboardTranscriptionJobMap(transcriptionJobRows),
     };
@@ -195,8 +268,14 @@ export async function getRecordingDetailPageData(
         return null;
     }
 
+    const tagRows = await listRecordingTagsForUser(userId, [recordingId]);
+    const tagsByRecordingId = buildRecordingTagMap(tagRows);
+
     return {
-        recording: serializeRecording(detail.recording),
+        recording: serializeRecordingWithTags(
+            detail.recording,
+            tagsByRecordingId.get(detail.recording.id),
+        ),
         transcription: serializeRecordingDetailTranscription(
             detail.transcription
                 ? {
@@ -233,10 +312,19 @@ export async function queryRecordingsForUser(
         limit,
     });
     const recordingIds = recordingRows.map((recording) => recording.id);
-    const { transcriptionRows, transcriptionJobRows } =
-        await listRecordingRelationsForUser(userId, recordingIds);
+    const [{ transcriptionRows, transcriptionJobRows }, recordingTagRows] =
+        await Promise.all([
+            listRecordingRelationsForUser(userId, recordingIds, {
+                includeTranscript,
+            }),
+            listRecordingTagsForUser(userId, recordingIds),
+        ]);
+    const tagsByRecordingId = buildRecordingTagMap(recordingTagRows);
+    const fullTranscriptionRows = includeTranscript
+        ? (transcriptionRows as RecordingTranscriptionRow[])
+        : [];
     const transcriptionsByRecordingId = new Map(
-        transcriptionRows.map((row) => [row.recordingId, row]),
+        fullTranscriptionRows.map((row) => [row.recordingId, row]),
     );
     const jobsByRecordingId = new Map(
         transcriptionJobRows.map((row) => [row.recordingId, row]),
@@ -248,6 +336,7 @@ export async function queryRecordingsForUser(
             transcriptionsByRecordingId.get(recording.id),
             jobsByRecordingId.get(recording.id),
             includeTranscript,
+            tagsByRecordingId.get(recording.id),
         ),
     );
 }

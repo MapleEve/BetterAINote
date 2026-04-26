@@ -3,7 +3,7 @@ import type { DateTimeFormat } from "@/types/common";
 
 const DISPLAY_SETTINGS_ENDPOINT = "/api/settings/display";
 const UI_LANGUAGES = ["zh-CN", "en"] as const;
-const DATE_TIME_FORMATS = ["relative", "absolute", "iso"] as const;
+const DATE_TIME_FORMATS = ["relative", "absolute"] as const;
 const RECORDING_LIST_SORT_ORDERS = ["newest", "oldest", "name"] as const;
 const THEMES = ["system", "light", "dark"] as const;
 const DEFAULT_DISPLAY_SETTINGS = {
@@ -48,6 +48,16 @@ function parseItemsPerPage(value: unknown) {
         : DEFAULT_DISPLAY_SETTINGS.itemsPerPage;
 }
 
+function normalizeDateTimeFormat(value: unknown): DateTimeFormat {
+    if (value === "iso") {
+        return "absolute";
+    }
+
+    return isEnumValue(value, DATE_TIME_FORMATS)
+        ? value
+        : DEFAULT_DISPLAY_SETTINGS.dateTimeFormat;
+}
+
 function normalizeDisplaySettingsResponse(payload: unknown): DisplaySettings {
     const data =
         typeof payload === "object" && payload !== null
@@ -58,9 +68,7 @@ function normalizeDisplaySettingsResponse(payload: unknown): DisplaySettings {
         uiLanguage: isEnumValue(data.uiLanguage, UI_LANGUAGES)
             ? data.uiLanguage
             : DEFAULT_DISPLAY_SETTINGS.uiLanguage,
-        dateTimeFormat: isEnumValue(data.dateTimeFormat, DATE_TIME_FORMATS)
-            ? data.dateTimeFormat
-            : DEFAULT_DISPLAY_SETTINGS.dateTimeFormat,
+        dateTimeFormat: normalizeDateTimeFormat(data.dateTimeFormat),
         recordingListSortOrder: isEnumValue(
             data.recordingListSortOrder,
             RECORDING_LIST_SORT_ORDERS,

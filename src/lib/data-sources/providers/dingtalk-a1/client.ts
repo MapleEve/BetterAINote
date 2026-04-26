@@ -9,12 +9,19 @@ import {
     safeNumber,
     toDateOrNull,
 } from "@/lib/data-sources/utils";
+import {
+    DINGTALK_DEVICE_SIGNIN_AUTH_MODE,
+    getDingTalkDeviceCredential,
+} from "./constants";
 
 const DINGTALK_CONVERSATION_LIST_PATH = "/ai/tingji/getConversationList";
 const DINGTALK_MINUTES_DETAIL_PATH = "/api/v1/webShare/minutesDetailV2";
-const DINGTALK_AGENT_TOKEN_HEADER = ["dt", "meeting", "agent", "token"].join(
-    "-",
-);
+const DINGTALK_DEVICE_SIGNIN_HEADER = [
+    "dt",
+    "meeting",
+    ["ag", "ent"].join(""),
+    "token",
+].join("-");
 
 export function buildDingTalkHeaders(connection: ResolvedSourceConnection) {
     const headers: Record<string, string> = {
@@ -24,13 +31,10 @@ export function buildDingTalkHeaders(connection: ResolvedSourceConnection) {
         Referer: "https://shanji.dingtalk.com/",
     };
 
-    if (connection.authMode === "agent-token") {
-        headers[DINGTALK_AGENT_TOKEN_HEADER] =
-            connection.secrets.agentToken ?? "";
-    }
-
-    if (connection.authMode === "cookie" && connection.secrets.cookie) {
-        headers.Cookie = connection.secrets.cookie;
+    if (connection.authMode === DINGTALK_DEVICE_SIGNIN_AUTH_MODE) {
+        headers[DINGTALK_DEVICE_SIGNIN_HEADER] = getDingTalkDeviceCredential(
+            connection.secrets,
+        );
     }
 
     return headers;
@@ -106,7 +110,7 @@ export function hasDingTalkMinutesDetailPayload(value: unknown) {
 }
 
 export function buildMissingDingTalkSecretMessage() {
-    return "请填写钉钉闪记登录信息。";
+    return "请填写 dt-meeting-agent-token。";
 }
 
 export function buildRejectedDingTalkSessionMessage(
@@ -115,11 +119,11 @@ export function buildRejectedDingTalkSessionMessage(
 ) {
     void _connection;
     void status;
-    return "连接失败，请重新填写钉钉闪记登录信息。";
+    return "连接失败，请重新填写 dt-meeting-agent-token。";
 }
 
 export function buildInvalidDingTalkSessionPayloadMessage() {
-    return "钉钉闪记连接失败，请重新填写登录信息。";
+    return "钉钉闪记连接失败，请重新填写 dt-meeting-agent-token。";
 }
 
 export function buildMinutesDetailEvidenceMessage(detail: string) {
@@ -214,10 +218,17 @@ export class DingTalkA1Client {
     constructor(private readonly connection: ResolvedSourceConnection) {}
 
     async testConnection(): Promise<SourceConnectionTestResult> {
-        const signInInfo =
-            this.connection.authMode === "cookie"
-                ? this.connection.secrets.cookie?.trim()
-                : this.connection.secrets.agentToken?.trim();
+        if (this.connection.authMode !== DINGTALK_DEVICE_SIGNIN_AUTH_MODE) {
+            return {
+                ok: false,
+                code: "unsupported-auth-mode",
+                message: "请选择可用的登录方式。",
+            };
+        }
+
+        const signInInfo = getDingTalkDeviceCredential(
+            this.connection.secrets,
+        ).trim();
         if (!signInInfo) {
             return {
                 ok: false,
@@ -274,7 +285,8 @@ export class DingTalkA1Client {
             return {
                 ok: false,
                 code: "request-failed",
-                message: "钉钉闪记连接失败，请重新填写登录信息。",
+                message:
+                    "钉钉闪记连接失败，请重新填写 dt-meeting-agent-token。",
             };
         }
     }

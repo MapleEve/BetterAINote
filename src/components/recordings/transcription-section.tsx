@@ -7,8 +7,8 @@ import { SpeakerLabelEditor } from "@/components/dashboard/speaker-label-editor"
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
-    reloadBrowserWindow,
     startBrowserInterval,
     stopBrowserInterval,
 } from "@/lib/platform/browser-shell";
@@ -21,9 +21,6 @@ interface TranscriptionSectionProps {
     recordingId: string;
     canTranscribe?: boolean;
     transcribeUnavailableReason?: string | null;
-    canRename?: boolean;
-    renameUnavailableReason?: string | null;
-    renameBehaviorHint?: string | null;
     initialTranscription?: string;
     initialLanguage?: string;
     initialType?: string;
@@ -57,9 +54,6 @@ export function TranscriptionSection({
     recordingId,
     canTranscribe = true,
     transcribeUnavailableReason,
-    canRename = true,
-    renameUnavailableReason,
-    renameBehaviorHint,
     initialTranscription,
     initialLanguage,
     initialType,
@@ -69,13 +63,13 @@ export function TranscriptionSection({
     initialJobError,
 }: TranscriptionSectionProps) {
     const { language: uiLanguage, t } = useLanguage();
+    const confirm = useConfirmDialog();
     const [transcription, setTranscription] = useState(
         initialTranscription ?? "",
     );
     const [language, setLanguage] = useState(initialLanguage);
     const [transcriptionType, setTranscriptionType] = useState(initialType);
     const [isTranscribing, setIsTranscribing] = useState(false);
-    const [isAutoRenaming, setIsAutoRenaming] = useState(false);
     const [jobStatus, setJobStatus] = useState(initialJobStatus ?? null);
     const [jobRemoteStatus, setJobRemoteStatus] = useState(
         initialJobRemoteStatus ?? null,
@@ -217,38 +211,18 @@ export function TranscriptionSection({
         [canTranscribe, recordingId, t, transcribeUnavailableReason],
     );
 
-    const handleAutoRename = useCallback(async () => {
-        if (!canRename) {
-            toast.error(
-                renameUnavailableReason ?? t("transcription.autoRenameFailed"),
-            );
-            return;
-        }
-
-        setIsAutoRenaming(true);
-        try {
-            const response = await fetch(
-                `/api/recordings/${recordingId}/rename/auto`,
-                { method: "POST" },
-            );
-            const data = await response.json();
-            if (!response.ok) {
-                toast.error(data.error || t("transcription.autoRenameFailed"));
-                return;
-            }
-
-            toast.success(
-                t("transcription.autoRenameSuccess", {
-                    filename: data.filename,
-                }),
-            );
-            reloadBrowserWindow();
-        } catch {
-            toast.error(t("transcription.autoRenameFailed"));
-        } finally {
-            setIsAutoRenaming(false);
-        }
-    }, [canRename, recordingId, renameUnavailableReason, t]);
+    const handleConfirmRetranscribe = useCallback(async () => {
+        if (!canTranscribe) return;
+        const confirmed = await confirm({
+            title: t("common.confirmAction"),
+            description: t("transcription.retranscribeConfirm"),
+            confirmLabel: t("common.confirm"),
+            cancelLabel: t("common.cancel"),
+            variant: "destructive",
+        });
+        if (!confirmed) return;
+        void handleTranscribe(true);
+    }, [canTranscribe, confirm, handleTranscribe, t]);
 
     const wordCount = useMemo(() => {
         const trimmed = transcription.trim();
@@ -283,85 +257,10 @@ export function TranscriptionSection({
                                         : "This source does not provide downloadable local audio. You can only review the source transcript or report for now.")}
                             </p>
                         )}
-                        {(renameUnavailableReason || renameBehaviorHint) && (
-                            <p className="text-sm text-muted-foreground">
-                                {renameUnavailableReason ?? renameBehaviorHint}
-                            </p>
-                        )}
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="rounded-xl border border-white/10 bg-background/25 p-4">
-                    <div className="flex flex-col gap-1">
-                        <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                            {t("transcription.actionsTitle")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            {t("transcription.actionsDescription")}
-                        </p>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                        {transcription ? (
-                            <Button
-                                onClick={() => handleTranscribe(true)}
-                                size="sm"
-                                variant="outline"
-                                disabled={
-                                    !canTranscribe ||
-                                    isTranscribing ||
-                                    isAutoRenaming
-                                }
-                                title={
-                                    !canTranscribe
-                                        ? (transcribeUnavailableReason ??
-                                          undefined)
-                                        : undefined
-                                }
-                            >
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                {t("transcription.retranscribe")}
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={() => handleTranscribe(false)}
-                                size="sm"
-                                disabled={!canTranscribe || isTranscribing}
-                                title={
-                                    !canTranscribe
-                                        ? (transcribeUnavailableReason ??
-                                          undefined)
-                                        : undefined
-                                }
-                            >
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                {t("transcription.transcribe")}
-                            </Button>
-                        )}
-                        <Button
-                            onClick={handleAutoRename}
-                            size="sm"
-                            variant="outline"
-                            disabled={
-                                !transcription ||
-                                !canRename ||
-                                isTranscribing ||
-                                isAutoRenaming
-                            }
-                            title={
-                                !canRename
-                                    ? (renameUnavailableReason ?? undefined)
-                                    : (renameBehaviorHint ?? undefined)
-                            }
-                        >
-                            <Sparkles className="mr-2 h-4 w-4" />
-                            {isAutoRenaming
-                                ? t("transcription.renaming")
-                                : t("transcription.aiRename")}
-                        </Button>
-                    </div>
-                </div>
-
                 {isTranscribing ? (
                     <div className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm text-muted-foreground">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -386,13 +285,33 @@ export function TranscriptionSection({
                 {transcription ? (
                     <>
                         <div className="rounded-xl border border-white/10 bg-background/25 p-4">
-                            <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                    {t("transcription.outputTitle")}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    {t("transcription.outputDescription")}
-                                </p>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                                        {t("transcription.outputTitle")}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {t("transcription.outputDescription")}
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={handleConfirmRetranscribe}
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={!canTranscribe || isTranscribing}
+                                    title={
+                                        !canTranscribe
+                                            ? (transcribeUnavailableReason ??
+                                              undefined)
+                                            : t(
+                                                  "transcription.retranscribeConfirm",
+                                              )
+                                    }
+                                    className="shrink-0"
+                                >
+                                    <RefreshCw className="h-4 w-4" />
+                                    {t("transcription.retranscribe")}
+                                </Button>
                             </div>
                             <div className="mt-4 max-h-[28rem] overflow-y-auto rounded-lg bg-muted p-4">
                                 <p className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -451,6 +370,20 @@ export function TranscriptionSection({
                         <p className="max-w-md text-xs text-muted-foreground">
                             {t("transcription.noTranscriptDescription")}
                         </p>
+                        <Button
+                            onClick={() => handleTranscribe(false)}
+                            size="sm"
+                            disabled={!canTranscribe || isTranscribing}
+                            title={
+                                !canTranscribe
+                                    ? (transcribeUnavailableReason ?? undefined)
+                                    : undefined
+                            }
+                            className="mt-4"
+                        >
+                            <Sparkles className="h-4 w-4" />
+                            {t("transcription.transcribe")}
+                        </Button>
                     </div>
                 )}
             </CardContent>

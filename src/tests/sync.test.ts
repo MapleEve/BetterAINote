@@ -147,6 +147,9 @@ describe("Sync", () => {
                                 id: "rec-1",
                                 sourceVersion: "1000",
                                 storagePath: "user-123/recordings/file.mp3",
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
                             },
                         ]),
                     }),
@@ -175,6 +178,70 @@ describe("Sync", () => {
 
         expect(result.newRecordings).toBe(0);
         expect(result.updatedRecordings).toBe(0);
+    });
+
+    it("updates same-version recordings when normalized source timing changes", async () => {
+        const updateReturning = vi.fn().mockResolvedValue([]);
+        const updateWhere = vi.fn().mockReturnValue({
+            returning: updateReturning,
+        });
+        const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
+        (db.update as Mock).mockReturnValue({ set: updateSet });
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "",
+                                duration: 60000,
+                                startTime: new Date("2026-04-26T16:52:23Z"),
+                                endTime: new Date("2026-04-26T16:53:23Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "ticnote", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "ticnote",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Recording 1.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2026-04-20T15:12:09Z"),
+                    endTime: new Date("2026-04-20T15:13:09Z"),
+                    version: "1000",
+                    audioDownload: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(1);
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                startTime: new Date("2026-04-20T15:12:09Z"),
+                endTime: new Date("2026-04-20T15:13:09Z"),
+            }),
+        );
     });
 
     it("updates recordings with a newer source version", async () => {
@@ -420,7 +487,7 @@ describe("Sync", () => {
                 provider: "dingtalk-a1",
                 userId: mockUserId,
                 enabled: true,
-                authMode: "agent-token",
+                authMode: "device-signin",
             },
         ]);
         (createSourceProviderClient as Mock).mockReturnValue({
@@ -531,7 +598,7 @@ describe("Sync", () => {
                 provider: "dingtalk-a1",
                 userId: mockUserId,
                 enabled: true,
-                authMode: "agent-token",
+                authMode: "device-signin",
             },
         ]);
         (createSourceProviderClient as Mock).mockReturnValue({

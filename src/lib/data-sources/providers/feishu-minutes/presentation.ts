@@ -22,44 +22,46 @@ function buildFeishuFields(
             buildTextField({
                 id: "source-space-name",
                 key: "spaceName",
-                label: zh ? "账号区域" : "Account region",
+                label: "space_name",
                 value: String(state.config.spaceName ?? "cn"),
                 description: zh
-                    ? "不确定时保留默认值 cn。"
-                    : "Keep the default value cn if unsure.",
+                    ? "复制飞书妙记 list?size=... 请求 URL 里的 space_name；不确定就填 cn。"
+                    : "Copy space_name from the Feishu Minutes list?size=... request URL. Use cn if unsure.",
                 placeholder: "cn",
             }),
             buildTextareaField({
                 id: "source-web-cookie",
                 target: "secret",
                 key: "webCookie",
-                label: zh
-                    ? "附加登录信息（可选）"
-                    : "Additional sign-in details (optional)",
+                label: "Cookie",
                 value: secretDraft.webCookie ?? "",
                 rows: 3,
                 className: "font-mono text-sm",
                 description: zh
-                    ? "可直接粘贴网页登录后的信息；没有时留空。"
-                    : "Paste the signed-in web session details when available, or leave blank.",
-                placeholder: zh
-                    ? "已保存。重新粘贴即可替换。"
-                    : "Already saved. Paste again to replace.",
+                    ? "复制飞书妙记 list?size=... 请求头 Cookie，必须包含 minutes_csrf_token=。"
+                    : "Copy the Cookie header from the Feishu Minutes list?size=... request. It must include minutes_csrf_token=.",
+                placeholder: state.secretsConfigured.webCookie
+                    ? "••••••••••••••••"
+                    : zh
+                      ? "Cookie: minutes_csrf_token=..."
+                      : "Cookie: minutes_csrf_token=...",
             }),
             buildTextareaField({
                 id: "source-web-token",
                 target: "secret",
                 key: "webToken",
-                label: zh ? "访问令牌" : "Access token",
+                label: zh
+                    ? "X-Feishu-Minutes-Token（可选）"
+                    : "X-Feishu-Minutes-Token (optional)",
                 value: secretDraft.webToken ?? "",
                 rows: 2,
                 className: "font-mono text-sm",
                 description: zh
-                    ? "没有单独令牌时可留空。"
-                    : "Leave blank if you do not have a separate access token.",
+                    ? "如果同一个请求里有 X-Feishu-Minutes-Token，就把这个请求头的值贴这里；没有就留空。"
+                    : "If the same request has X-Feishu-Minutes-Token, paste that header value here. Leave it empty if absent.",
                 placeholder: zh
-                    ? "没有单独令牌时可留空"
-                    : "Leave empty when there is no separate access token.",
+                    ? "X-Feishu-Minutes-Token"
+                    : "X-Feishu-Minutes-Token",
             }),
         ];
     }
@@ -68,27 +70,29 @@ function buildFeishuFields(
         buildTextField({
             id: "source-app-id",
             key: "appId",
-            label: zh ? "应用编号（可选）" : "App ID (optional)",
+            label: "FEISHU_APP_ID / app_id",
             value: String(state.config.appId ?? ""),
             description: zh
-                ? "没有应用编号时可留空。"
-                : "Leave blank if you do not have an app ID.",
+                ? "粘贴飞书开放平台应用的 app_id，通常是 cli_ 开头。"
+                : "Paste the Feishu open platform app_id, usually starting with cli_.",
             placeholder: "cli_xxx",
         }),
         buildTextareaField({
             id: "source-secret",
             target: "secret",
             key: "userAccessToken",
-            label: zh ? "访问令牌" : "Access token",
+            label: "user_access_token",
             value: secretDraft.userAccessToken ?? "",
             rows: 3,
             className: "font-mono text-sm",
             description: zh
-                ? "粘贴飞书妙记访问令牌。"
-                : "Paste your Feishu Minutes access token.",
-            placeholder: zh
-                ? "已保存。重新粘贴即可替换。"
-                : "Already saved. Paste again to replace.",
+                ? "粘贴飞书开放平台授权结果里的 user_access_token 字段。"
+                : "Paste the user_access_token field from the Feishu open platform authorization result.",
+            placeholder: state.secretsConfigured.userAccessToken
+                ? "••••••••••••••••"
+                : zh
+                  ? "user_access_token"
+                  : "user_access_token",
         }),
     ];
 }

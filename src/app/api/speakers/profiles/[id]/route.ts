@@ -1,8 +1,10 @@
-import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { speakerProfiles } from "@/db/schema/voiceprints";
 import { auth } from "@/lib/auth";
+import {
+    deleteSpeakerProfileForUser,
+    SpeakerProfileError,
+    updateSpeakerProfileForUser,
+} from "@/server/modules/speakers";
 
 export async function PATCH(
     request: Request,
@@ -21,38 +23,21 @@ export async function PATCH(
         }
 
         const { id } = await params;
-        const body = await request.json();
-        const displayName =
-            typeof body.displayName === "string" ? body.displayName.trim() : "";
-        const voiceprintRef =
-            typeof body.voiceprintRef === "string"
-                ? body.voiceprintRef.trim()
-                : null;
-
-        const [profile] = await db
-            .update(speakerProfiles)
-            .set({
-                ...(displayName ? { displayName } : {}),
-                voiceprintRef: voiceprintRef || null,
-                updatedAt: new Date(),
-            })
-            .where(
-                and(
-                    eq(speakerProfiles.id, id),
-                    eq(speakerProfiles.userId, session.user.id),
-                ),
-            )
-            .returning();
-
-        if (!profile) {
-            return NextResponse.json(
-                { error: "Speaker profile not found" },
-                { status: 404 },
-            );
-        }
+        const profile = await updateSpeakerProfileForUser(
+            session.user.id,
+            id,
+            await request.json(),
+        );
 
         return NextResponse.json({ profile });
     } catch (error) {
+        if (error instanceof SpeakerProfileError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status },
+            );
+        }
+
         console.error("Error updating speaker profile:", error);
         return NextResponse.json(
             { error: "Failed to update speaker profile" },
@@ -78,25 +63,17 @@ export async function DELETE(
         }
 
         const { id } = await params;
-        const [profile] = await db
-            .delete(speakerProfiles)
-            .where(
-                and(
-                    eq(speakerProfiles.id, id),
-                    eq(speakerProfiles.userId, session.user.id),
-                ),
-            )
-            .returning({ id: speakerProfiles.id });
+        const result = await deleteSpeakerProfileForUser(session.user.id, id);
 
-        if (!profile) {
+        return NextResponse.json(result);
+    } catch (error) {
+        if (error instanceof SpeakerProfileError) {
             return NextResponse.json(
-                { error: "Speaker profile not found" },
-                { status: 404 },
+                { error: error.message },
+                { status: error.status },
             );
         }
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
         console.error("Error deleting speaker profile:", error);
         return NextResponse.json(
             { error: "Failed to delete speaker profile" },

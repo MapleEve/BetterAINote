@@ -20,6 +20,7 @@
 import * as commonSchemaExports from "./schema/common";
 import * as coreSchemaExports from "./schema/core";
 import * as librarySchemaExports from "./schema/library";
+import * as searchSchemaExports from "./schema/search";
 import * as transcriptsSchemaExports from "./schema/transcripts";
 import * as voiceprintsSchemaExports from "./schema/voiceprints";
 
@@ -28,6 +29,7 @@ export const compatSchemaModules = {
     common: commonSchemaExports,
     core: coreSchemaExports,
     library: librarySchemaExports,
+    search: searchSchemaExports,
     transcripts: transcriptsSchemaExports,
     voiceprints: voiceprintsSchemaExports,
 } as const;
@@ -35,5 +37,6 @@ export const compatSchemaModules = {
 export * from "./schema/common";
 export * from "./schema/core";
 export * from "./schema/library";
+export * from "./schema/search";
 export * from "./schema/transcripts";
 export * from "./schema/voiceprints";

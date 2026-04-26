@@ -1,12 +1,17 @@
 "use client";
 
-import { FileText, Play, RefreshCw, UserRound, Volume2, X } from "lucide-react";
+import { FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+    SpeakerReviewSkeleton,
+    TranscriptReviewSkeleton,
+} from "@/components/dashboard/transcription-skeletons";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +92,11 @@ function formatReviewTimestamp(
         return value;
     }
 
-    return parsed.toLocaleString(language);
+    return formatDateTime(
+        parsed,
+        "absolute",
+        language === "zh-CN" ? "zh-CN" : "en",
+    );
 }
 
 function formatTranscriptionType(
@@ -393,32 +402,12 @@ export function SpeakerLabelEditor({
     );
 
     if (isLoading) {
-        return (
-            <div className="rounded-lg border px-4 py-3 text-sm text-muted-foreground">
-                {t("speakerReview.loadingSpeakerLabels")}
-            </div>
-        );
-    }
-
-    if (speakers.length === 0) {
-        return null;
+        return <SpeakerReviewSkeleton />;
     }
 
     return (
-        <div className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-center gap-2">
-                <UserRound className="h-4 w-4 text-muted-foreground" />
-                <div>
-                    <p className="text-sm font-medium">
-                        {t("speakerReview.title")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        {t("speakerReview.description")}
-                    </p>
-                </div>
-            </div>
-
-            <div className="space-y-3 rounded-lg border bg-muted/10 p-3">
+        <div className="space-y-4 border-t pt-4">
+            <div className="space-y-3">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
@@ -468,9 +457,7 @@ export function SpeakerLabelEditor({
                 </div>
 
                 {isReviewLoading ? (
-                    <div className="rounded-lg border bg-background px-4 py-3 text-sm text-muted-foreground">
-                        {t("speakerReview.loadingTranscriptReview")}
-                    </div>
+                    <TranscriptReviewSkeleton />
                 ) : reviewError ? (
                     <div className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground">
                         {reviewError}
@@ -535,7 +522,7 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div className="max-h-72 overflow-y-auto rounded-lg border bg-background p-3">
+                        <div className="max-h-72 overflow-y-auto rounded-xl bg-background/50 p-3">
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">
                                 {activeReview.text}
                             </p>
@@ -544,319 +531,379 @@ export function SpeakerLabelEditor({
                 ) : null}
             </div>
 
-            <div className="space-y-4">
-                {speakers.map((speaker) => (
-                    <div
-                        key={speaker.rawLabel}
-                        className="space-y-4 rounded-xl border bg-muted/20 p-4"
-                    >
-                        {(() => {
-                            const searchQuery =
-                                searchQueries[speaker.rawLabel] ?? "";
-                            const isPickerOpen =
-                                openPickerFor === speaker.rawLabel;
-                            const filteredProfiles = profiles.filter(
-                                (profile) =>
-                                    profile.displayName
-                                        .toLocaleLowerCase(language)
-                                        .includes(
-                                            searchQuery
-                                                .trim()
-                                                .toLocaleLowerCase(language),
+            {speakers.length === 0 ? (
+                <div className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
+                    {t("speakerReview.noDetectedSpeakers")}
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {speakers.map((speaker) => (
+                        <div
+                            key={speaker.rawLabel}
+                            className="space-y-4 rounded-2xl border bg-background/35 p-4"
+                        >
+                            {(() => {
+                                const searchQuery =
+                                    searchQueries[speaker.rawLabel] ?? "";
+                                const isPickerOpen =
+                                    openPickerFor === speaker.rawLabel;
+                                const filteredProfiles = profiles.filter(
+                                    (profile) =>
+                                        profile.displayName
+                                            .toLocaleLowerCase(language)
+                                            .includes(
+                                                searchQuery
+                                                    .trim()
+                                                    .toLocaleLowerCase(
+                                                        language,
+                                                    ),
+                                            ),
+                                );
+                                const normalizedQuery = searchQuery.trim();
+                                const hasExactMatch = profiles.some(
+                                    (profile) =>
+                                        profile.displayName.toLocaleLowerCase(
+                                            language,
+                                        ) ===
+                                        normalizedQuery.toLocaleLowerCase(
+                                            language,
                                         ),
-                            );
-                            const normalizedQuery = searchQuery.trim();
-                            const hasExactMatch = profiles.some(
-                                (profile) =>
-                                    profile.displayName.toLocaleLowerCase(
-                                        language,
-                                    ) ===
-                                    normalizedQuery.toLocaleLowerCase(language),
-                            );
+                                );
 
-                            return (
-                                <>
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-medium">
-                                                {speaker.rawLabel}
-                                            </p>
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                <span>
-                                                    {speaker.matchedProfileId
-                                                        ? t(
-                                                              "speakerReview.mappedTo",
-                                                              {
-                                                                  name:
-                                                                      speaker.matchedProfileName ??
-                                                                      t(
-                                                                          "speakerReview.savedSpeaker",
-                                                                      ),
-                                                              },
-                                                          )
-                                                        : t(
-                                                              "speakerReview.notMappedYet",
-                                                          )}
-                                                </span>
-                                                {speaker.segmentCount > 0 ? (
+                                return (
+                                    <>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-medium">
+                                                    {speaker.rawLabel}
+                                                </p>
+                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                                     <span>
-                                                        {t(
-                                                            "speakerReview.detectedTurns",
-                                                            {
-                                                                count: speaker.segmentCount,
-                                                            },
-                                                        )}
-                                                    </span>
-                                                ) : null}
-                                                {speaker.matchedProfileId ? (
-                                                    <span>
-                                                        {speaker.hasVoiceprint
+                                                        {speaker.matchedProfileId
                                                             ? t(
-                                                                  "speakerReview.voiceprintReady",
+                                                                  "speakerReview.mappedTo",
+                                                                  {
+                                                                      name:
+                                                                          speaker.matchedProfileName ??
+                                                                          t(
+                                                                              "speakerReview.savedSpeaker",
+                                                                          ),
+                                                                  },
                                                               )
                                                             : t(
-                                                                  "speakerReview.voiceprintMissing",
+                                                                  "speakerReview.notMappedYet",
                                                               )}
                                                     </span>
-                                                ) : null}
+                                                    {speaker.segmentCount >
+                                                    0 ? (
+                                                        <span>
+                                                            {t(
+                                                                "speakerReview.detectedTurns",
+                                                                {
+                                                                    count: speaker.segmentCount,
+                                                                },
+                                                            )}
+                                                        </span>
+                                                    ) : null}
+                                                    {speaker.matchedProfileId ? (
+                                                        <span>
+                                                            {speaker.hasVoiceprint
+                                                                ? t(
+                                                                      "speakerReview.voiceprintReady",
+                                                                  )
+                                                                : t(
+                                                                      "speakerReview.voiceprintMissing",
+                                                                  )}
+                                                        </span>
+                                                    ) : null}
+                                                </div>
                                             </div>
+                                            {speaker.hasPlayableSample ? null : (
+                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <Volume2 className="h-3.5 w-3.5" />
+                                                    {t(
+                                                        "speakerReview.noTimedSamples",
+                                                    )}
+                                                </span>
+                                            )}
                                         </div>
-                                        {speaker.hasPlayableSample ? null : (
-                                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                                <Volume2 className="h-3.5 w-3.5" />
-                                                {t(
-                                                    "speakerReview.noTimedSamples",
-                                                )}
-                                            </span>
-                                        )}
-                                    </div>
 
-                                    <div className="space-y-2 rounded-lg border bg-background/60 p-3">
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-medium">
-                                                {t(
-                                                    "speakerReview.samplesTitle",
-                                                )}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t(
-                                                    "speakerReview.samplesDescription",
-                                                )}
-                                            </p>
-                                        </div>
-                                        {speaker.sampleCount > 0 ? (
-                                            <div className="grid gap-2 md:grid-cols-3">
-                                                {speaker.sampleSegments.map(
-                                                    (segment, index) => (
-                                                        <div
-                                                            key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
-                                                            className="space-y-3 rounded-lg border bg-background/80 p-3"
-                                                        >
-                                                            <div className="flex items-start justify-between gap-3">
-                                                                <p className="text-xs font-medium text-muted-foreground">
-                                                                    {t(
-                                                                        "speakerReview.sample",
-                                                                        {
-                                                                            index:
-                                                                                index +
-                                                                                1,
-                                                                        },
-                                                                    )}
-                                                                    {formatSegmentWindow(
-                                                                        segment.startMs,
-                                                                        segment.endMs,
-                                                                    )
-                                                                        ? ` · ${formatSegmentWindow(
-                                                                              segment.startMs,
-                                                                              segment.endMs,
-                                                                          )}`
-                                                                        : ""}
-                                                                </p>
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    className="shrink-0"
-                                                                    onClick={() =>
-                                                                        handlePlaySample(
-                                                                            speaker.rawLabel,
-                                                                            index,
+                                        <div className="space-y-3 rounded-xl bg-muted/20 p-3">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <p className="text-xs font-medium text-muted-foreground">
+                                                    {t(
+                                                        "speakerReview.samplesTitle",
+                                                    )}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {t(
+                                                        "speakerReview.samplesDescription",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            {speaker.sampleCount > 0 ? (
+                                                <div className="grid gap-2 md:grid-cols-3">
+                                                    {speaker.sampleSegments.map(
+                                                        (segment, index) => (
+                                                            <div
+                                                                key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
+                                                                className="space-y-3 rounded-xl border bg-background/60 p-3"
+                                                            >
+                                                                <div className="flex items-start justify-between gap-3">
+                                                                    <p className="text-xs font-medium text-muted-foreground">
+                                                                        {t(
+                                                                            "speakerReview.sample",
+                                                                            {
+                                                                                index:
+                                                                                    index +
+                                                                                    1,
+                                                                            },
+                                                                        )}
+                                                                        {formatSegmentWindow(
+                                                                            segment.startMs,
+                                                                            segment.endMs,
                                                                         )
-                                                                    }
-                                                                >
-                                                                    <Play className="h-3.5 w-3.5" />
-                                                                    {playingKey ===
-                                                                    `${speaker.rawLabel}:${index}`
-                                                                        ? t(
-                                                                              "speakerReview.playing",
-                                                                          )
-                                                                        : t(
-                                                                              "speakerReview.playSample",
-                                                                          )}
-                                                                </Button>
+                                                                            ? ` · ${formatSegmentWindow(
+                                                                                  segment.startMs,
+                                                                                  segment.endMs,
+                                                                              )}`
+                                                                            : ""}
+                                                                    </p>
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="shrink-0"
+                                                                        onClick={() =>
+                                                                            handlePlaySample(
+                                                                                speaker.rawLabel,
+                                                                                index,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Play className="h-3.5 w-3.5" />
+                                                                        {playingKey ===
+                                                                        `${speaker.rawLabel}:${index}`
+                                                                            ? t(
+                                                                                  "speakerReview.playing",
+                                                                              )
+                                                                            : t(
+                                                                                  "speakerReview.playSample",
+                                                                              )}
+                                                                    </Button>
+                                                                </div>
+                                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                                    {segment.text?.trim() ||
+                                                                        t(
+                                                                            "speakerReview.noSampleSnippet",
+                                                                        )}
+                                                                </p>
                                                             </div>
-                                                            <p className="text-xs leading-relaxed text-muted-foreground">
-                                                                {segment.text?.trim() ||
-                                                                    t(
-                                                                        "speakerReview.noSampleSnippet",
-                                                                    )}
-                                                            </p>
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className="text-xs text-muted-foreground">
-                                                {t(
-                                                    "speakerReview.noTimedSamples",
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="text-xs text-muted-foreground">
+                                                    {t(
+                                                        "speakerReview.noTimedSamples",
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <div className="space-y-2 rounded-lg border bg-background/60 p-3">
-                                        <div className="space-y-1">
-                                            <Label>
+                                        <div className="grid gap-3 border-t pt-4 md:grid-cols-[180px_1fr] md:items-center">
+                                            <Label className="text-sm font-medium">
                                                 {t(
                                                     "speakerReview.mappingTitle",
                                                 )}
                                             </Label>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t(
-                                                    "speakerReview.mappingDescription",
-                                                )}
-                                            </p>
-                                        </div>
-                                        <div className="relative">
-                                            <Input
-                                                value={searchQuery}
-                                                onFocus={() =>
-                                                    setOpenPickerFor(
-                                                        speaker.rawLabel,
-                                                    )
-                                                }
-                                                onBlur={() => {
-                                                    startBrowserTimeout(() => {
+                                            <div className="relative">
+                                                <Input
+                                                    value={searchQuery}
+                                                    onFocus={() =>
                                                         setOpenPickerFor(
-                                                            (current) =>
-                                                                current ===
-                                                                speaker.rawLabel
-                                                                    ? null
-                                                                    : current,
+                                                            speaker.rawLabel,
+                                                        )
+                                                    }
+                                                    onBlur={() => {
+                                                        startBrowserTimeout(
+                                                            () => {
+                                                                setOpenPickerFor(
+                                                                    (
+                                                                        current,
+                                                                    ) =>
+                                                                        current ===
+                                                                        speaker.rawLabel
+                                                                            ? null
+                                                                            : current,
+                                                                );
+                                                            },
+                                                            120,
                                                         );
-                                                    }, 120);
-                                                }}
-                                                onChange={(event) => {
-                                                    const value =
-                                                        event.target.value;
-                                                    setSearchQueries(
-                                                        (prev) => ({
-                                                            ...prev,
-                                                            [speaker.rawLabel]:
-                                                                value,
-                                                        }),
-                                                    );
-                                                    setOpenPickerFor(
-                                                        speaker.rawLabel,
-                                                    );
-                                                }}
-                                                placeholder={t(
-                                                    "speakerReview.searchOrCreateSpeakerPlaceholder",
-                                                )}
-                                                className={
-                                                    searchQuery.trim()
-                                                        ? "pr-10"
-                                                        : undefined
-                                                }
-                                            />
-                                            {searchQuery.trim() ? (
-                                                <Button
-                                                    type="button"
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="absolute right-1 top-1 size-8"
-                                                    aria-label={t(
-                                                        "speakerReview.clearSelectedSpeaker",
-                                                    )}
-                                                    disabled={
-                                                        isSaving ===
-                                                        speaker.rawLabel
-                                                    }
-                                                    onMouseDown={(event) =>
-                                                        event.preventDefault()
-                                                    }
-                                                    onClick={() => {
+                                                    }}
+                                                    onChange={(event) => {
+                                                        const value =
+                                                            event.target.value;
                                                         setSearchQueries(
                                                             (prev) => ({
                                                                 ...prev,
                                                                 [speaker.rawLabel]:
-                                                                    "",
+                                                                    value,
                                                             }),
                                                         );
                                                         setOpenPickerFor(
                                                             speaker.rawLabel,
                                                         );
                                                     }}
-                                                >
-                                                    <X className="h-3.5 w-3.5" />
-                                                </Button>
-                                            ) : null}
-                                        </div>
-                                        {speaker.matchedProfileId ? (
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="outline"
-                                                    disabled={
-                                                        isSaving ===
-                                                        speaker.rawLabel
-                                                    }
-                                                    onClick={() =>
-                                                        void handleAssignProfile(
-                                                            speaker.rawLabel,
-                                                            null,
-                                                        )
-                                                    }
-                                                >
-                                                    {t("speakerReview.unlink")}
-                                                </Button>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {t(
-                                                        "speakerReview.currentAssignment",
-                                                        {
-                                                            name:
-                                                                speaker.matchedProfileName ??
-                                                                t(
-                                                                    "speakerReview.savedSpeaker",
-                                                                ),
-                                                        },
+                                                    placeholder={t(
+                                                        "speakerReview.searchOrCreateSpeakerPlaceholder",
                                                     )}
-                                                </p>
+                                                    className={
+                                                        searchQuery.trim()
+                                                            ? "pr-10"
+                                                            : undefined
+                                                    }
+                                                />
+                                                {searchQuery.trim() ? (
+                                                    <Button
+                                                        type="button"
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="absolute right-1 top-1 size-8"
+                                                        aria-label={t(
+                                                            "speakerReview.clearSelectedSpeaker",
+                                                        )}
+                                                        disabled={
+                                                            isSaving ===
+                                                            speaker.rawLabel
+                                                        }
+                                                        onMouseDown={(event) =>
+                                                            event.preventDefault()
+                                                        }
+                                                        onClick={() => {
+                                                            setSearchQueries(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [speaker.rawLabel]:
+                                                                        "",
+                                                                }),
+                                                            );
+                                                            setOpenPickerFor(
+                                                                speaker.rawLabel,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                ) : null}
                                             </div>
-                                        ) : null}
-
-                                        {isPickerOpen ? (
-                                            profiles.length === 0 &&
-                                            !normalizedQuery ? (
-                                                <div className="rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground">
-                                                    {t(
-                                                        "speakerReview.noSavedSpeakers",
-                                                    )}
+                                            {speaker.matchedProfileId ? (
+                                                <div className="flex flex-wrap items-center gap-2 md:col-start-2">
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        disabled={
+                                                            isSaving ===
+                                                            speaker.rawLabel
+                                                        }
+                                                        onClick={() =>
+                                                            void handleAssignProfile(
+                                                                speaker.rawLabel,
+                                                                null,
+                                                            )
+                                                        }
+                                                    >
+                                                        {t(
+                                                            "speakerReview.unlink",
+                                                        )}
+                                                    </Button>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {t(
+                                                            "speakerReview.currentAssignment",
+                                                            {
+                                                                name:
+                                                                    speaker.matchedProfileName ??
+                                                                    t(
+                                                                        "speakerReview.savedSpeaker",
+                                                                    ),
+                                                            },
+                                                        )}
+                                                    </p>
                                                 </div>
-                                            ) : (
-                                                <div className="max-h-52 overflow-y-auto rounded-lg border bg-background">
-                                                    {filteredProfiles.map(
-                                                        (profile) => (
+                                            ) : null}
+
+                                            {isPickerOpen ? (
+                                                profiles.length === 0 &&
+                                                !normalizedQuery ? (
+                                                    <div className="rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground md:col-start-2">
+                                                        {t(
+                                                            "speakerReview.noSavedSpeakers",
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="max-h-52 overflow-y-auto rounded-lg border bg-background md:col-start-2">
+                                                        {filteredProfiles.map(
+                                                            (profile) => (
+                                                                <button
+                                                                    key={
+                                                                        profile.id
+                                                                    }
+                                                                    type="button"
+                                                                    className={cn(
+                                                                        "flex w-full items-center justify-between border-b px-3 py-2 text-left text-sm last:border-b-0 hover:bg-muted/60",
+                                                                        speaker.matchedProfileId ===
+                                                                            profile.id &&
+                                                                            "bg-muted",
+                                                                    )}
+                                                                    onMouseDown={(
+                                                                        event,
+                                                                    ) =>
+                                                                        event.preventDefault()
+                                                                    }
+                                                                    onClick={() => {
+                                                                        setSearchQueries(
+                                                                            (
+                                                                                prev,
+                                                                            ) => ({
+                                                                                ...prev,
+                                                                                [speaker.rawLabel]:
+                                                                                    profile.displayName,
+                                                                            }),
+                                                                        );
+                                                                        void handleAssignProfile(
+                                                                            speaker.rawLabel,
+                                                                            profile.id,
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <span>
+                                                                        {
+                                                                            profile.displayName
+                                                                        }
+                                                                    </span>
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {speaker.matchedProfileId ===
+                                                                        profile.id
+                                                                            ? t(
+                                                                                  "speakerReview.selected",
+                                                                              )
+                                                                            : profile.hasVoiceprint
+                                                                              ? t(
+                                                                                    "speakerReview.voiceprintReady",
+                                                                                )
+                                                                              : t(
+                                                                                    "speakerReview.voiceprintMissing",
+                                                                                )}
+                                                                    </span>
+                                                                </button>
+                                                            ),
+                                                        )}
+                                                        {normalizedQuery &&
+                                                        !hasExactMatch ? (
                                                             <button
-                                                                key={profile.id}
                                                                 type="button"
-                                                                className={cn(
-                                                                    "flex w-full items-center justify-between border-b px-3 py-2 text-left text-sm last:border-b-0 hover:bg-muted/60",
-                                                                    speaker.matchedProfileId ===
-                                                                        profile.id &&
-                                                                        "bg-muted",
-                                                                )}
+                                                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60"
                                                                 onMouseDown={(
                                                                     event,
                                                                 ) =>
@@ -869,101 +916,56 @@ export function SpeakerLabelEditor({
                                                                         ) => ({
                                                                             ...prev,
                                                                             [speaker.rawLabel]:
-                                                                                profile.displayName,
+                                                                                normalizedQuery,
                                                                         }),
                                                                     );
                                                                     void handleAssignProfile(
                                                                         speaker.rawLabel,
-                                                                        profile.id,
+                                                                        null,
+                                                                        normalizedQuery,
                                                                     );
                                                                 }}
                                                             >
                                                                 <span>
-                                                                    {
-                                                                        profile.displayName
-                                                                    }
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {speaker.matchedProfileId ===
-                                                                    profile.id
-                                                                        ? t(
-                                                                              "speakerReview.selected",
-                                                                          )
-                                                                        : profile.hasVoiceprint
-                                                                          ? t(
-                                                                                "speakerReview.voiceprintReady",
-                                                                            )
-                                                                          : t(
-                                                                                "speakerReview.voiceprintMissing",
-                                                                            )}
+                                                                    {t(
+                                                                        "speakerReview.createSpeakerOption",
+                                                                        {
+                                                                            name: normalizedQuery,
+                                                                        },
+                                                                    )}
                                                                 </span>
                                                             </button>
-                                                        ),
-                                                    )}
-                                                    {normalizedQuery &&
-                                                    !hasExactMatch ? (
-                                                        <button
-                                                            type="button"
-                                                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60"
-                                                            onMouseDown={(
-                                                                event,
-                                                            ) =>
-                                                                event.preventDefault()
-                                                            }
-                                                            onClick={() => {
-                                                                setSearchQueries(
-                                                                    (prev) => ({
-                                                                        ...prev,
-                                                                        [speaker.rawLabel]:
-                                                                            normalizedQuery,
-                                                                    }),
-                                                                );
-                                                                void handleAssignProfile(
-                                                                    speaker.rawLabel,
-                                                                    null,
-                                                                    normalizedQuery,
-                                                                );
-                                                            }}
-                                                        >
-                                                            <span>
+                                                        ) : null}
+                                                        {filteredProfiles.length ===
+                                                            0 &&
+                                                        !normalizedQuery ? (
+                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
                                                                 {t(
-                                                                    "speakerReview.createSpeakerOption",
-                                                                    {
-                                                                        name: normalizedQuery,
-                                                                    },
+                                                                    "speakerReview.noSavedSpeakers",
                                                                 )}
-                                                            </span>
-                                                        </button>
-                                                    ) : null}
-                                                    {filteredProfiles.length ===
-                                                        0 &&
-                                                    !normalizedQuery ? (
-                                                        <div className="px-3 py-2 text-sm text-muted-foreground">
-                                                            {t(
-                                                                "speakerReview.noSavedSpeakers",
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                    {filteredProfiles.length ===
-                                                        0 &&
-                                                    normalizedQuery &&
-                                                    hasExactMatch ? (
-                                                        <div className="px-3 py-2 text-sm text-muted-foreground">
-                                                            {t(
-                                                                "speakerReview.noMatchingSpeakers",
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                </div>
-                                            )
-                                        ) : null}
-                                    </div>
-                                </>
-                            );
-                        })()}
-                    </div>
-                ))}
-            </div>
+                                                            </div>
+                                                        ) : null}
+                                                        {filteredProfiles.length ===
+                                                            0 &&
+                                                        normalizedQuery &&
+                                                        hasExactMatch ? (
+                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                                                                {t(
+                                                                    "speakerReview.noMatchingSpeakers",
+                                                                )}
+                                                            </div>
+                                                        ) : null}
+                                                    </div>
+                                                )
+                                            ) : null}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

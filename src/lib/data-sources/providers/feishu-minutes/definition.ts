@@ -96,14 +96,13 @@ async function prepareFeishuMinutesConnectionWrite(params: {
     const webToken = normalizeSecretValue(nextSecrets.webToken);
 
     if (enabled && authMode === "oauth-device-flow" && !userAccessToken) {
-        throw new SourceProviderSettingsError(
-            "Feishu user access token is required",
-            { code: "missing-secret" },
-        );
+        throw new SourceProviderSettingsError("请填写 user_access_token。", {
+            code: "missing-secret",
+        });
     }
 
     if (enabled && authMode === "web-reverse" && !webCookie) {
-        throw new SourceProviderSettingsError("请填写飞书妙记网页登录信息。", {
+        throw new SourceProviderSettingsError("请填写 Cookie。", {
             code: "missing-secret",
         });
     }
@@ -169,11 +168,12 @@ async function prepareFeishuMinutesConnectionWrite(params: {
     );
     const isValid = await client.testConnection();
     if (!isValid) {
+        const fallbackMessage =
+            authMode === "web-reverse"
+                ? "飞书妙记连接失败，请重新填写 space_name 和 Cookie。"
+                : "飞书妙记连接失败，请重新填写 user_access_token。";
         throw new SourceProviderSettingsError(
-            getConnectionValidationMessage(
-                client,
-                "Invalid Feishu Minutes connection",
-            ),
+            getConnectionValidationMessage(client, fallbackMessage),
             { code: "invalid-connection" },
         );
     }
@@ -208,8 +208,8 @@ export class FeishuMinutesSourceClient implements SourceProviderClient {
                 ok,
                 code: ok ? "web-reverse-list-only" : "invalid-connection",
                 message: ok
-                    ? "飞书妙记网页登录信息已连接。"
-                    : "Invalid Feishu Minutes China web sign-in details. Check the saved browser session details from meetings.feishu.cn.",
+                    ? "飞书妙记 space_name + Cookie 已连接。"
+                    : "飞书妙记连接失败，请重新填写 space_name 和 Cookie。",
             });
         }
 
@@ -217,8 +217,8 @@ export class FeishuMinutesSourceClient implements SourceProviderClient {
             ok,
             code: ok ? "ok" : "invalid-connection",
             message: ok
-                ? "Feishu Minutes access token validated."
-                : "Invalid Feishu Minutes connection",
+                ? "飞书妙记 user_access_token 已连接。"
+                : "飞书妙记连接失败，请重新填写 user_access_token。",
         });
     }
 

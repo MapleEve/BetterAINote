@@ -55,7 +55,7 @@ async function prepareIflyrecConnectionWrite(params: {
     const sessionId = normalizeSecretValue(nextSecrets.sessionId);
 
     if (enabled && !sessionId) {
-        throw new SourceProviderSettingsError("请填写登录会话信息。", {
+        throw new SourceProviderSettingsError("请填写 X-Session-Id。", {
             code: "missing-secret",
         });
     }

@@ -3,7 +3,7 @@ import { normalizeIntegerInRange } from "@/lib/settings/number-normalization";
 import { normalizeEnumSetting } from "@/lib/settings/value-normalization";
 
 const UI_LANGUAGES = ["zh-CN", "en"] as const;
-const DATE_TIME_FORMATS = ["relative", "absolute", "iso"] as const;
+const DATE_TIME_FORMATS = ["relative", "absolute"] as const;
 const RECORDING_LIST_SORT_ORDERS = ["newest", "oldest", "name"] as const;
 const THEMES = ["system", "light", "dark"] as const;
 
@@ -33,11 +33,14 @@ export async function saveDisplaySettingsForUser(
     }
 
     if (body.dateTimeFormat !== undefined) {
-        updates.dateTimeFormat = normalizeEnumSetting(
-            "dateTimeFormat",
-            body.dateTimeFormat,
-            DATE_TIME_FORMATS,
-        );
+        updates.dateTimeFormat =
+            body.dateTimeFormat === "iso"
+                ? "absolute"
+                : normalizeEnumSetting(
+                      "dateTimeFormat",
+                      body.dateTimeFormat,
+                      DATE_TIME_FORMATS,
+                  );
     }
 
     if (body.recordingListSortOrder !== undefined) {

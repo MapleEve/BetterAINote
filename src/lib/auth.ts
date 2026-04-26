@@ -2,9 +2,24 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { coreDb } from "@/db";
 import { coreSchema } from "@/db/schema/core";
+import { isBuildRuntime } from "@/lib/platform/runtime";
 import { env } from "./env";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+const BUILD_ONLY_AUTH_SECRET =
+    "betterainote-build-only-secret-not-used-at-runtime";
+
+function resolveAuthSecret() {
+    if (env.BETTER_AUTH_SECRET) {
+        return env.BETTER_AUTH_SECRET;
+    }
+
+    if (isBuildRuntime()) {
+        return BUILD_ONLY_AUTH_SECRET;
+    }
+
+    return undefined;
+}
 
 function normalizeOrigin(value: string | null | undefined) {
     if (!value) {
@@ -47,11 +62,21 @@ function normalizeForwardedOrigin(
     return normalizeOrigin(`${scheme}://${host}`);
 }
 
-async function resolveTrustedOrigins(request: Request) {
-    const requestOrigin = normalizeOrigin(request.url);
-    const requestHostname = getHostname(requestOrigin);
+async function resolveTrustedOrigins(request?: Request) {
     const configuredOrigin = normalizeOrigin(env.APP_URL);
     const configuredHostname = getHostname(configuredOrigin);
+    const allowedOrigins = new Set<string>();
+
+    if (configuredOrigin) {
+        allowedOrigins.add(configuredOrigin);
+    }
+
+    if (!request) {
+        return [...allowedOrigins];
+    }
+
+    const requestOrigin = normalizeOrigin(request.url);
+    const requestHostname = getHostname(requestOrigin);
     const forwardedHost = request.headers
         .get("x-forwarded-host")
         ?.split(",")[0]
@@ -68,11 +93,6 @@ async function resolveTrustedOrigins(request: Request) {
         ) ?? null;
     const originHeader = normalizeOrigin(request.headers.get("origin"));
     const originHostname = getHostname(originHeader);
-    const allowedOrigins = new Set<string>();
-
-    if (configuredOrigin) {
-        allowedOrigins.add(configuredOrigin);
-    }
 
     if (requestOrigin) {
         allowedOrigins.add(requestOrigin);
@@ -108,7 +128,7 @@ export const auth = betterAuth({
         enabled: true,
         requireEmailVerification: false,
     },
-    secret: env.BETTER_AUTH_SECRET,
+    secret: resolveAuthSecret(),
     baseURL: env.APP_URL,
     trustedOrigins: resolveTrustedOrigins,
 });

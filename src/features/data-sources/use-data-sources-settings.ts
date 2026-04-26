@@ -34,10 +34,14 @@ function updateFormFieldValue(
     } as DataSourceDisplayState;
 }
 
-function getSettingsSaveErrorMessage(language: UiLanguage) {
+function getSettingsSaveErrorMessage(error: unknown, language: UiLanguage) {
+    if (error instanceof Error && error.message.trim()) {
+        return error.message;
+    }
+
     return language === "zh-CN"
-        ? "连接失败，请检查凭据后重试"
-        : "Connection failed. Check the credentials and try again.";
+        ? "保存数据源设置失败"
+        : "Failed to save data source settings";
 }
 
 export function useDataSourcesSettings(language: UiLanguage) {
@@ -123,7 +127,7 @@ export function useDataSourcesSettings(language: UiLanguage) {
             setSavingProvider(source.provider);
             try {
                 await saveDataSource(
-                    buildDataSourceSavePayload(source, secretDrafts),
+                    buildDataSourceSavePayload(source, secretDrafts, language),
                     {
                         fallbackMessage: isZh
                             ? "保存数据源设置失败"
@@ -142,7 +146,7 @@ export function useDataSourcesSettings(language: UiLanguage) {
                 );
             } catch (error) {
                 console.error("Failed to save data source settings:", error);
-                toast.error(getSettingsSaveErrorMessage(language));
+                toast.error(getSettingsSaveErrorMessage(error, language));
             } finally {
                 setSavingProvider(null);
             }

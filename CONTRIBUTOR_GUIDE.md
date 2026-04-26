@@ -1,8 +1,7 @@
-## Agent Guidance
+## Contributor Guidance
 
-This repository is a public BetterAINote codebase. Automated coding agents and
-human contributors should keep changes small, reviewable, and safe for a
-self-hosted recording workspace.
+This repository is a public BetterAINote codebase. Contributors should keep
+changes small, reviewable, and safe for a self-hosted recording workspace.
 
 ### Working Rules
 

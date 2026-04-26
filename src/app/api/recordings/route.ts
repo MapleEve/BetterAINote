@@ -1,8 +1,6 @@
-import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { recordings } from "@/db/schema/library";
 import { auth } from "@/lib/auth";
+import { listRecordingsForUser } from "@/server/modules/recordings";
 
 export async function GET(request: Request) {
     try {
@@ -17,11 +15,7 @@ export async function GET(request: Request) {
             );
         }
 
-        const userRecordings = await db
-            .select()
-            .from(recordings)
-            .where(eq(recordings.userId, session.user.id))
-            .orderBy(desc(recordings.startTime));
+        const userRecordings = await listRecordingsForUser(session.user.id);
 
         return NextResponse.json({ recordings: userRecordings });
     } catch (error) {

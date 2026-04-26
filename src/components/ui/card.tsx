@@ -11,7 +11,7 @@ function Card({
         <div
             data-slot="card"
             className={cn(
-                "glass-surface text-card-foreground flex flex-col gap-6 overflow-hidden rounded-[1.1rem]",
+                "glass-surface content-fade-in text-card-foreground flex flex-col gap-6 overflow-hidden rounded-[1.1rem]",
                 !hasNoPadding && "py-6",
                 className,
             )}

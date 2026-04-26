@@ -164,7 +164,7 @@ export function isSourceAuthMode(value: unknown): value is SourceAuthMode {
             "oauth-device-flow",
             "web-reverse",
             "session-header",
-            "agent-token",
+            "device-signin",
         ].includes(value)
     );
 }

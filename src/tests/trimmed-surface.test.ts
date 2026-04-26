@@ -56,7 +56,6 @@ describe("Trimmed product surface", () => {
             "src/app/api/recordings/[id]/enhance/route.ts",
             "src/app/api/recordings/[id]/export-obsidian/route.ts",
             "src/app/api/recordings/[id]/summary/route.ts",
-            "src/app/api/recordings/[id]/tags/route.ts",
             "src/app/api/recordings/upload/route.ts",
             "src/app/api/settings/ai/providers/route.ts",
             "src/app/api/settings/ai/providers/[id]/route.ts",
@@ -87,6 +86,28 @@ describe("Trimmed product surface", () => {
                 `${relativePath} should be deleted`,
             ).toBe(false);
         }
+    });
+
+    it("keeps neutral recording tag routes while removing legacy tag routes", () => {
+        expect(
+            existsSync(join(process.cwd(), "src/app/api/tags/route.ts")),
+        ).toBe(false);
+        expect(
+            existsSync(join(process.cwd(), "src/app/api/tags/[id]/route.ts")),
+        ).toBe(false);
+        expect(
+            existsSync(
+                join(process.cwd(), "src/app/api/recording-tags/route.ts"),
+            ),
+        ).toBe(true);
+        expect(
+            existsSync(
+                join(
+                    process.cwd(),
+                    "src/app/api/recordings/[id]/tags/route.ts",
+                ),
+            ),
+        ).toBe(true);
     });
 
     it("removes empty legacy API shell directories from the repository", () => {

@@ -8,6 +8,11 @@ import {
     type SourceProvider,
 } from "@/lib/data-sources/catalog";
 import {
+    DINGTALK_DEVICE_CREDENTIAL_KEY,
+    DINGTALK_LEGACY_DEVICE_CREDENTIAL_KEY,
+    normalizeDingTalkAuthMode,
+} from "@/lib/data-sources/providers/dingtalk-a1/constants";
+import {
     getPublicDataSourceErrorMessage,
     PUBLIC_DATA_SOURCE_CONNECTION_ERROR,
 } from "@/lib/data-sources/public-errors";
@@ -43,10 +48,23 @@ export type SerializedSourceState = {
 
 type SourceConnectionRow = typeof sourceConnections.$inferSelect;
 
-function buildSecretPresence(secrets: GenericSourceSecrets) {
-    return Object.fromEntries(
+function buildSecretPresence(
+    provider: SourceProvider,
+    secrets: GenericSourceSecrets,
+) {
+    const presence = Object.fromEntries(
         Object.entries(secrets).map(([key, value]) => [key, Boolean(value)]),
     );
+
+    if (
+        provider === "dingtalk-a1" &&
+        !presence[DINGTALK_DEVICE_CREDENTIAL_KEY] &&
+        secrets[DINGTALK_LEGACY_DEVICE_CREDENTIAL_KEY]
+    ) {
+        presence[DINGTALK_DEVICE_CREDENTIAL_KEY] = true;
+    }
+
+    return presence;
 }
 
 function getSerializedDefaults(provider: SourceProvider) {
@@ -65,7 +83,12 @@ function serializeSourceState(
 ): SerializedSourceState {
     const catalog = DATA_SOURCE_CATALOG[provider];
     const defaults = getSerializedDefaults(provider);
-    const authMode = (row?.authMode ?? defaults.authMode) as SourceAuthMode;
+    const rawAuthMode = row?.authMode ?? defaults.authMode;
+    const authMode = (
+        provider === "dingtalk-a1"
+            ? normalizeDingTalkAuthMode(rawAuthMode)
+            : rawAuthMode
+    ) as SourceAuthMode;
     const baseUrl = row?.baseUrl ?? defaults.baseUrl;
     const secrets = row ? parseSourceSecretConfig(row.secretConfig) : {};
     const persistedConfig =
@@ -95,7 +118,7 @@ function serializeSourceState(
                 persistedConfig,
             ),
         },
-        secretsConfigured: buildSecretPresence(secrets),
+        secretsConfigured: buildSecretPresence(provider, secrets),
         lastSync: row?.lastSync?.toISOString() ?? null,
     };
 }

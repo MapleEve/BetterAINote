@@ -1,3 +1,5 @@
+import type { RecordingTag } from "@/lib/recording-tags";
+
 export type Recording = {
     id: string;
     filename: string;
@@ -10,4 +12,5 @@ export type Recording = {
     sourceRecordingId: string;
     audioUrl: string | null;
     hasAudio: boolean;
+    tags: RecordingTag[];
 };

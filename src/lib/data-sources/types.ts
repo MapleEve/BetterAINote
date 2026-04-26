@@ -14,7 +14,7 @@ export type SourceAuthMode =
     | "oauth-device-flow"
     | "web-reverse"
     | "session-header"
-    | "agent-token";
+    | "device-signin";
 
 export interface SourceCapabilitySet {
     workerSync: boolean;

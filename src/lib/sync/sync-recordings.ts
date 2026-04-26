@@ -28,6 +28,7 @@ import {
     uploadArchivedRecordingAudio,
 } from "@/lib/storage/recording-archive";
 import { enqueueTranscriptionJobs } from "@/lib/transcription/jobs";
+import { replaceSourceArtifactSegmentsForArtifact } from "@/server/modules/search/indexer";
 
 const SYNC_CONFIG = {
     BATCH_CONCURRENCY: 5,
@@ -63,6 +64,61 @@ export interface SyncUsersResult {
         userId: string;
         result: SyncResult;
     }>;
+}
+
+function redactSyncLogText(value: string) {
+    return value
+        .replace(/https?:\/\/\S+/gi, "[redacted-url]")
+        .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [redacted]")
+        .replace(
+            /([?&](?:X-Amz-[^=]+|token|access_token|signature|credential|security-token)=)[^&\s]+/gi,
+            "$1[redacted]",
+        );
+}
+
+function getSyncErrorField(error: unknown, field: string) {
+    if (!error || typeof error !== "object") {
+        return null;
+    }
+
+    const value = (error as Record<string, unknown>)[field];
+    return typeof value === "string" || typeof value === "number"
+        ? value
+        : null;
+}
+
+function summarizeSyncError(error: unknown): Record<string, unknown> {
+    if (error instanceof Error) {
+        const cause = (error as Error & { cause?: unknown }).cause;
+
+        return {
+            name: error.name,
+            message: redactSyncLogText(error.message),
+            code: getSyncErrorField(error, "code"),
+            cause: cause ? summarizeSyncError(cause) : undefined,
+        };
+    }
+
+    if (typeof error === "string") {
+        return { message: redactSyncLogText(error) };
+    }
+
+    if (error && typeof error === "object") {
+        return {
+            name: getSyncErrorField(error, "name"),
+            message:
+                typeof (error as Record<string, unknown>).message === "string"
+                    ? redactSyncLogText(
+                          (error as Record<string, unknown>).message as string,
+                      )
+                    : undefined,
+            code: getSyncErrorField(error, "code"),
+            status: getSyncErrorField(error, "status"),
+            host: getSyncErrorField(error, "host"),
+        };
+    }
+
+    return { message: String(error) };
 }
 
 async function isAudioStorageKeyTaken(
@@ -170,6 +226,35 @@ async function upsertSourceArtifacts(
                     updatedAt: new Date(),
                 },
             });
+
+        if (row.artifactType !== "official-transcript") {
+            continue;
+        }
+
+        const [artifact] = await db
+            .select()
+            .from(sourceArtifacts)
+            .where(
+                and(
+                    eq(sourceArtifacts.recordingId, recordingId),
+                    eq(sourceArtifacts.provider, provider),
+                    eq(sourceArtifacts.artifactType, "official-transcript"),
+                ),
+            )
+            .limit(1);
+
+        if (artifact) {
+            await replaceSourceArtifactSegmentsForArtifact({
+                sourceArtifactId: artifact.id,
+                recordingId,
+                userId,
+                provider,
+                artifactType: "official-transcript",
+                textContent: artifact.textContent,
+                markdownContent: artifact.markdownContent,
+                payload: artifact.payload,
+            });
+        }
     }
 }
 
@@ -231,6 +316,31 @@ async function resolveDownloadedAudio(
     };
 }
 
+function getComparableDateTime(value: Date | string | number | null) {
+    if (value instanceof Date) {
+        return value.getTime();
+    }
+
+    if (value === null) {
+        return Number.NaN;
+    }
+
+    return new Date(value).getTime();
+}
+
+function sourceRecordingTimingMatchesExisting(
+    existingRecording: typeof recordings.$inferSelect,
+    sourceRecording: SourceRecordingData,
+) {
+    return (
+        existingRecording.duration === sourceRecording.durationMs &&
+        getComparableDateTime(existingRecording.startTime) ===
+            sourceRecording.startTime.getTime() &&
+        getComparableDateTime(existingRecording.endTime) ===
+            sourceRecording.endTime.getTime()
+    );
+}
+
 async function processSourceRecording(
     sourceRecording: SourceRecordingData,
     context: SyncContext,
@@ -264,6 +374,10 @@ async function processSourceRecording(
             existingRecording &&
             sourceRecording.version &&
             existingRecording.sourceVersion === sourceRecording.version &&
+            sourceRecordingTimingMatchesExisting(
+                existingRecording,
+                sourceRecording,
+            ) &&
             !sourceRecording.upstreamDeleted
         ) {
             return { status: "skipped" };
@@ -341,9 +455,7 @@ async function processSourceRecording(
     } catch (error) {
         console.error("Failed to sync source recording:", {
             provider: sourceRecording.sourceProvider,
-            sourceRecordingId: sourceRecording.sourceRecordingId,
-            filename: sourceRecording.filename,
-            error,
+            error: summarizeSyncError(error),
         });
         return {
             status: "error",
@@ -370,7 +482,10 @@ async function processSourceBatch(
 
     for (const result of results) {
         if (result.status === "rejected") {
-            console.error("Source sync batch item failed:", result.reason);
+            console.error(
+                "Source sync batch item failed:",
+                summarizeSyncError(result.reason),
+            );
             errors.push(PUBLIC_DATA_SOURCE_IMPORT_ERROR);
             continue;
         }
@@ -576,7 +691,7 @@ export async function syncRecordingsForUser(
             } catch (error) {
                 console.error("Source provider sync failed:", {
                     provider: connection.provider,
-                    error,
+                    error: summarizeSyncError(error),
                 });
                 result.errors.push(PUBLIC_DATA_SOURCE_IMPORT_ERROR);
             }
@@ -592,14 +707,14 @@ export async function syncRecordingsForUser(
                 } catch (error) {
                     console.error(
                         "Failed to enqueue background transcriptions:",
-                        error,
+                        summarizeSyncError(error),
                     );
                 }
             } else {
                 enqueueTranscriptionJobs(userId, pendingIds).catch((error) => {
                     console.error(
                         "Failed to enqueue background transcriptions:",
-                        error,
+                        summarizeSyncError(error),
                     );
                 });
             }
@@ -607,7 +722,7 @@ export async function syncRecordingsForUser(
 
         return result;
     } catch (error) {
-        console.error("Data source sync failed:", error);
+        console.error("Data source sync failed:", summarizeSyncError(error));
         result.errors.push(PUBLIC_DATA_SOURCE_IMPORT_ERROR);
         return result;
     }

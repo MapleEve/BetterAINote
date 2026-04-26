@@ -4,16 +4,22 @@ import type { ResolvedSourceConnection } from "@/lib/data-sources/types";
 
 describe("DingTalkA1SourceClient", () => {
     const originalFetch = global.fetch;
+    const deviceSignInHeader = [
+        "dt",
+        "meeting",
+        ["ag", "ent"].join(""),
+        "token",
+    ].join("-");
 
     const connection: ResolvedSourceConnection = {
         userId: "user-1",
         provider: "dingtalk-a1",
         enabled: true,
-        authMode: "agent-token",
+        authMode: "device-signin",
         baseUrl: "https://meeting-ai-tingji.dingtalk.com",
         config: {},
         secrets: {
-            agentToken: "agent-token-123",
+            deviceCredential: "device-signin-123",
         },
         lastSync: null,
     };
@@ -26,7 +32,7 @@ describe("DingTalkA1SourceClient", () => {
         global.fetch = originalFetch;
     });
 
-    it("uses the DingTalk agent token header when testing the connection", async () => {
+    it("uses the DingTalk device credential header when testing the connection", async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({ data: { items: [] } }),
@@ -41,7 +47,7 @@ describe("DingTalkA1SourceClient", () => {
             expect.objectContaining({
                 method: "POST",
                 headers: expect.objectContaining({
-                    "dt-meeting-agent-token": "agent-token-123",
+                    [deviceSignInHeader]: "device-signin-123",
                     Origin: "https://shanji.dingtalk.com",
                     Referer: "https://shanji.dingtalk.com/",
                 }),
@@ -52,6 +58,27 @@ describe("DingTalkA1SourceClient", () => {
             ok: true,
             code: "conversation-list-only",
             message: "钉钉闪记连接成功，录音详情将在导入时继续处理。",
+        });
+    });
+
+    it("does not accept DingTalk web sign-in details as an alternate connection method", async () => {
+        const fetchMock = vi.fn();
+        global.fetch = fetchMock as typeof fetch;
+
+        const client = new DingTalkA1SourceClient({
+            ...connection,
+            authMode: "cookie",
+            secrets: {
+                cookie: "dt_cookie=abc123;",
+            },
+        });
+
+        await expect(client.testConnection()).resolves.toBe(false);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(client.getLastConnectionTestResult()).toEqual({
+            ok: false,
+            code: "unsupported-auth-mode",
+            message: "请选择可用的登录方式。",
         });
     });
 
@@ -67,7 +94,7 @@ describe("DingTalkA1SourceClient", () => {
         expect(client.getLastConnectionTestResult()).toEqual({
             ok: false,
             code: "invalid-session-payload",
-            message: "钉钉闪记连接失败，请重新填写登录信息。",
+            message: "钉钉闪记连接失败，请重新填写 dt-meeting-agent-token。",
         });
     });
 

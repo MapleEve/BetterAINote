@@ -4,6 +4,7 @@ import { Monitor } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import {
     Card,
     CardContent,
@@ -60,11 +61,6 @@ export function DisplaySection() {
             value: "absolute",
             description: t("display.absoluteDescription"),
         },
-        {
-            label: t("display.iso"),
-            value: "iso",
-            description: t("display.isoDescription"),
-        },
     ];
 
     const sortOrderOptions = [
@@ -86,6 +82,16 @@ export function DisplaySection() {
     useEffect(() => {
         setItemsPerPageInput(itemsPerPage);
     }, [itemsPerPage]);
+
+    useEffect(() => {
+        if (hasLoaded && dateTimeFormat === "iso") {
+            void updateDisplaySettings({ dateTimeFormat: "absolute" }).catch(
+                () => {
+                    toast.error(t("common.saveFailed"));
+                },
+            );
+        }
+    }, [dateTimeFormat, hasLoaded, t, updateDisplaySettings]);
 
     useEffect(() => {
         return () => {
@@ -127,11 +133,7 @@ export function DisplaySection() {
     };
 
     if (isLoading && !hasLoaded) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            </div>
-        );
+        return <SettingsSectionSkeleton cards={4} fieldsPerCard={1} />;
     }
 
     return (
@@ -253,7 +255,11 @@ export function DisplaySection() {
                             {t("display.dateTimeFormat")}
                         </Label>
                         <Select
-                            value={dateTimeFormat}
+                            value={
+                                dateTimeFormat === "iso"
+                                    ? "absolute"
+                                    : dateTimeFormat
+                            }
                             onValueChange={(value) =>
                                 void handleDisplaySettingChange({
                                     dateTimeFormat: value as DateTimeFormat,
@@ -268,7 +274,10 @@ export function DisplaySection() {
                                 <SelectValue>
                                     {dateTimeFormatOptions.find(
                                         (option) =>
-                                            option.value === dateTimeFormat,
+                                            option.value ===
+                                            (dateTimeFormat === "iso"
+                                                ? "absolute"
+                                                : dateTimeFormat),
                                     )?.label || t("display.relative")}
                                 </SelectValue>
                             </SelectTrigger>

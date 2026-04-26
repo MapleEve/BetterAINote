@@ -13,7 +13,8 @@ import type {
     SourceProviderDisplayMetadataRegistry,
 } from "./display-metadata-types";
 
-const FORMAL_DATA_SOURCE_DOC_URL = "/docs/DATA_SOURCES.md";
+const FORMAL_DATA_SOURCE_DOC_URL =
+    "https://github.com/MapleEve/BetterAINote/blob/main/docs/DATA_SOURCES.md";
 
 const SOURCE_MATURITY_LEVEL_COPY: SourceMaturityLevelDisplayMetadataRegistry = {
     validated: {
@@ -165,6 +166,7 @@ const SOURCE_PROVIDER_DISPLAY_METADATA: SourceProviderDisplayMetadataRegistry =
                 zh: "Plaud",
                 en: "Plaud",
             },
+            helpDocAnchor: "#plaud",
             maturityHint: {
                 zh: "连接后可导入 Plaud 录音。",
                 en: "Connect to import Plaud recordings.",

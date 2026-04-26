@@ -19,6 +19,12 @@ import {
     persistSecretConfig,
 } from "../shared";
 import { buildMissingDingTalkSecretMessage, DingTalkA1Client } from "./client";
+import {
+    DINGTALK_DEVICE_CREDENTIAL_KEY,
+    DINGTALK_DEVICE_SIGNIN_AUTH_MODE,
+    getDingTalkDeviceCredential,
+    normalizeDingTalkAuthMode,
+} from "./constants";
 
 const DINGTALK_DEFAULT_BASE_URL = "https://meeting-ai-tingji.dingtalk.com";
 
@@ -35,12 +41,12 @@ async function prepareDingTalkConnectionWrite(params: {
         typeof params.body.enabled === "boolean" ? params.body.enabled : false;
     const authMode =
         params.body.authMode === undefined
-            ? ((params.existing?.authMode ?? "agent-token") as
-                  | "agent-token"
-                  | "cookie")
-            : params.body.authMode;
+            ? normalizeDingTalkAuthMode(
+                  params.existing?.authMode ?? DINGTALK_DEVICE_SIGNIN_AUTH_MODE,
+              )
+            : normalizeDingTalkAuthMode(params.body.authMode);
 
-    if (authMode !== "agent-token" && authMode !== "cookie") {
+    if (authMode !== DINGTALK_DEVICE_SIGNIN_AUTH_MODE) {
         throw new SourceProviderSettingsError("请选择可用的登录方式。", {
             code: "unsupported-auth-mode",
         });
@@ -57,9 +63,10 @@ async function prepareDingTalkConnectionWrite(params: {
         "baseUrl",
     );
 
-    const agentToken = normalizeSecretValue(nextSecrets.agentToken);
-    const cookie = normalizeSecretValue(nextSecrets.cookie);
-    const activeSecret = authMode === "cookie" ? cookie : agentToken;
+    const deviceCredential = normalizeSecretValue(
+        getDingTalkDeviceCredential(nextSecrets),
+    );
+    const activeSecret = deviceCredential;
 
     if (enabled && !activeSecret) {
         throw new SourceProviderSettingsError(
@@ -68,14 +75,9 @@ async function prepareDingTalkConnectionWrite(params: {
         );
     }
 
-    const persistedSecrets: Record<string, string> =
-        authMode === "cookie"
-            ? cookie
-                ? { cookie }
-                : {}
-            : agentToken
-              ? { agentToken }
-              : {};
+    const persistedSecrets: Record<string, string> = deviceCredential
+        ? { [DINGTALK_DEVICE_CREDENTIAL_KEY]: deviceCredential }
+        : {};
 
     const next: PreparedSourceConnectionWrite = {
         enabled,
@@ -90,14 +92,12 @@ async function prepareDingTalkConnectionWrite(params: {
     }
 
     const existingActiveSecret = normalizeSecretValue(
-        authMode === "cookie"
-            ? existingSecrets.cookie
-            : existingSecrets.agentToken,
+        getDingTalkDeviceCredential(existingSecrets),
     );
     const shouldValidateConnection =
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
-        params.existing.authMode !== authMode ||
+        normalizeDingTalkAuthMode(params.existing.authMode) !== authMode ||
         existingActiveSecret !== activeSecret;
 
     if (!shouldValidateConnection) {
@@ -120,7 +120,7 @@ async function prepareDingTalkConnectionWrite(params: {
         throw new SourceProviderSettingsError(
             getConnectionValidationMessage(
                 client,
-                "连接失败，请重新填写钉钉闪记登录信息。",
+                "连接失败，请重新填写 dt-meeting-agent-token。",
             ),
             { code: "invalid-connection" },
         );

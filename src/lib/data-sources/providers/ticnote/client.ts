@@ -24,9 +24,11 @@ interface TicNoteFileNode {
     id?: string;
     fileId?: string;
     name?: string;
+    recordTime?: string | number;
     createTime?: string | number;
     updateTime?: string | number;
     subRemark?: {
+        recordTime?: string | number;
         duration?: number;
     };
     voiceInfo?: {
@@ -35,6 +37,29 @@ interface TicNoteFileNode {
         transcribeId?: string;
     };
     children?: TicNoteFileNode[];
+}
+
+function getTicNoteRecordTime(
+    value: Record<string, unknown> | TicNoteFileNode,
+) {
+    const recordTime = value.recordTime;
+    if (typeof recordTime === "string" || typeof recordTime === "number") {
+        return recordTime;
+    }
+
+    const subRemark = value.subRemark;
+    if (subRemark && typeof subRemark === "object") {
+        const nestedRecordTime = (subRemark as { recordTime?: string | number })
+            .recordTime;
+        if (
+            typeof nestedRecordTime === "string" ||
+            typeof nestedRecordTime === "number"
+        ) {
+            return nestedRecordTime;
+        }
+    }
+
+    return null;
 }
 
 interface TicNoteFileDetailPayload {
@@ -583,6 +608,8 @@ export class TicNoteClient {
         const summary = parseSummary(detail.summaryJson);
         const startTime =
             toDateOrNull(detail.startTime) ??
+            toDateOrNull(getTicNoteRecordTime(detail)) ??
+            toDateOrNull(getTicNoteRecordTime(node)) ??
             toDateOrNull(detail.createTime) ??
             toDateOrNull(node.createTime) ??
             new Date();
