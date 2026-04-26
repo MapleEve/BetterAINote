@@ -174,11 +174,3 @@ export function syncBrowserAudioElementSource(
     audio.src = nextSrc;
     audio.load();
 }
-
-export function confirmInBrowser(message: string): boolean {
-    if (!hasBrowserWindow()) {
-        return false;
-    }
-
-    return window.confirm(message);
-}

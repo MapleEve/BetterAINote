@@ -8,6 +8,7 @@ export interface DatabaseLayout {
     library: string;
     transcripts: string;
     voiceprints: string;
+    search: string;
 }
 
 function ensureLocalDatabasePath(databasePath: string) {
@@ -53,5 +54,6 @@ export function getDatabaseLayout(databasePath: string): DatabaseLayout {
         library: deriveSiblingDatabasePath(databasePath, "library"),
         transcripts: deriveSiblingDatabasePath(databasePath, "transcripts"),
         voiceprints: deriveSiblingDatabasePath(databasePath, "voiceprints"),
+        search: deriveSiblingDatabasePath(databasePath, "search"),
     };
 }

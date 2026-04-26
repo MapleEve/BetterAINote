@@ -1,10 +1,9 @@
-import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { recordings } from "@/db/schema/library";
 import { auth } from "@/lib/auth";
-import { createUserStorageProvider } from "@/lib/storage/factory";
-import { getAudioMimeType } from "@/lib/utils";
+import {
+    getRecordingAudioForUser,
+    RecordingAudioError,
+} from "@/server/modules/recordings";
 
 export async function GET(
     request: Request,
@@ -23,39 +22,10 @@ export async function GET(
         }
 
         const { id } = await params;
-
-        const [recording] = await db
-            .select()
-            .from(recordings)
-            .where(
-                and(
-                    eq(recordings.id, id),
-                    eq(recordings.userId, session.user.id),
-                ),
-            )
-            .limit(1);
-
-        if (!recording) {
-            return NextResponse.json(
-                { error: "Recording not found" },
-                { status: 404 },
-            );
-        }
-
-        if (!recording.storagePath?.trim()) {
-            return NextResponse.json(
-                { error: "No local audio available for this recording" },
-                { status: 404 },
-            );
-        }
-
-        // Get storage provider
-        const storage = await createUserStorageProvider(session.user.id);
-
-        // Download file
-        const audioBuffer = await storage.downloadFile(recording.storagePath);
-
-        const contentType = getAudioMimeType(recording.storagePath);
+        const { audioBuffer, contentType } = await getRecordingAudioForUser(
+            session.user.id,
+            id,
+        );
         const fileSize = audioBuffer.length;
 
         // Parse Range header for seeking support
@@ -117,6 +87,13 @@ export async function GET(
             },
         });
     } catch (error) {
+        if (error instanceof RecordingAudioError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status },
+            );
+        }
+
         console.error("Error streaming audio:", error);
         return NextResponse.json(
             { error: "Failed to stream audio" },

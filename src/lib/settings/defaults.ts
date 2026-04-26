@@ -13,6 +13,14 @@ export const DEFAULT_DISPLAY_SETTINGS = {
     theme: "system" as const,
 };
 
+function normalizeDateTimeFormat(value: string | null | undefined) {
+    if (value === "iso") {
+        return "absolute";
+    }
+
+    return value ?? DEFAULT_DISPLAY_SETTINGS.dateTimeFormat;
+}
+
 export const DEFAULT_PLAYBACK_SETTINGS = {
     defaultPlaybackSpeed: 1.0,
     defaultVolume: 75,
@@ -97,8 +105,7 @@ function resolveVoScriptSpeakerSettings(settings: UserSettingsRow) {
 export function getDisplaySettingsResponse(settings: UserSettingsRow) {
     return {
         uiLanguage: settings?.uiLanguage ?? DEFAULT_DISPLAY_SETTINGS.uiLanguage,
-        dateTimeFormat:
-            settings?.dateTimeFormat ?? DEFAULT_DISPLAY_SETTINGS.dateTimeFormat,
+        dateTimeFormat: normalizeDateTimeFormat(settings?.dateTimeFormat),
         recordingListSortOrder:
             settings?.recordingListSortOrder ??
             DEFAULT_DISPLAY_SETTINGS.recordingListSortOrder,

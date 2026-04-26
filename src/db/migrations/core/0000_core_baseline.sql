@@ -93,6 +93,7 @@ CREATE TABLE `user_settings` (
 	`private_transcription_max_speakers` integer DEFAULT 0 NOT NULL,
 	`private_transcription_denoise_model` text DEFAULT 'none' NOT NULL,
 	`private_transcription_snr_threshold` real,
+	`private_transcription_no_repeat_ngram_size` integer DEFAULT 0 NOT NULL,
 	`private_transcription_max_inflight_jobs` integer DEFAULT 1 NOT NULL,
 	`ui_language` text DEFAULT 'zh-CN' NOT NULL,
 	`date_time_format` text DEFAULT 'relative' NOT NULL,

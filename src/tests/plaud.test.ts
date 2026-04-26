@@ -13,6 +13,7 @@ import {
     normalizePlaudBearerToken,
     PlaudClient,
 } from "../lib/data-sources/providers/plaud/client";
+import { PlaudSourceClient } from "../lib/data-sources/providers/plaud/definition";
 import {
     DEFAULT_SERVER_KEY,
     isValidPlaudApiUrl,
@@ -362,6 +363,26 @@ describe("PlaudClient", () => {
 
             await expect(client.listDevices()).rejects.toThrow("Network error");
         });
+
+        it("retries transient socket disconnects before surfacing an error", async () => {
+            const mockResponse = {
+                status: 0,
+                msg: "success",
+                data_devices: [],
+            };
+
+            mockFetch
+                .mockRejectedValueOnce(
+                    new Error("The socket connection was closed unexpectedly"),
+                )
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockResponse),
+                });
+
+            await expect(client.listDevices()).resolves.toEqual(mockResponse);
+            expect(fetch).toHaveBeenCalledTimes(2);
+        });
     });
 
     describe("normalizePlaudBearerToken", () => {
@@ -380,5 +401,128 @@ describe("PlaudClient", () => {
                 ),
             ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
         });
+
+        it("accepts an Authorization header pasted with a bearer prefix", () => {
+            expect(
+                normalizePlaudBearerToken(
+                    "  Authorization: Bearer\n eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9  ",
+                ),
+            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+
+            expect(
+                normalizePlaudBearerToken(
+                    "Authorization：bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+                ),
+            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+        });
+    });
+});
+
+describe("PlaudSourceClient", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it("limits Plaud enrichment requests while building source recordings", async () => {
+        let activeRequests = 0;
+        let maxActiveRequests = 0;
+        const sourceClient = new PlaudSourceClient({
+            userId: "user-1",
+            provider: "plaud",
+            enabled: true,
+            authMode: "bearer",
+            baseUrl: DEFAULT_PLAUD_API_BASE,
+            config: {},
+            secrets: { bearerToken: "test-bearer-token" },
+            lastSync: null,
+        });
+        const recordings = Array.from({ length: 8 }, (_, index) => ({
+            id: `file-${index}`,
+            filename: `recording-${index}`,
+            keywords: [],
+            filesize: 1024,
+            filetype: "mp3",
+            fullname: `recording-${index}.mp3`,
+            file_md5: `md5-${index}`,
+            ori_ready: true,
+            version: index,
+            version_ms: index + 100,
+            edit_time: 0,
+            edit_from: "",
+            is_trash: false,
+            start_time: 1_700_000_000_000 + index,
+            end_time: 1_700_000_060_000 + index,
+            duration: 60_000,
+            timezone: 8,
+            zonemins: 480,
+            scene: 0,
+            filetag_id_list: [],
+            serial_number: "device-1",
+            is_trans: true,
+            is_summary: true,
+        }));
+
+        mockFetch.mockImplementation(async (input: RequestInfo | URL) => {
+            const url = String(input);
+            if (url.includes("/file/simple/web")) {
+                return {
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            msg: "success",
+                            data_file_total: recordings.length,
+                            data_file_list: recordings,
+                        }),
+                };
+            }
+
+            if (
+                url.includes("/ai/transsumm/") ||
+                url.includes("/file/temp-url/")
+            ) {
+                activeRequests += 1;
+                maxActiveRequests = Math.max(maxActiveRequests, activeRequests);
+                await new Promise((resolve) => setTimeout(resolve, 5));
+                activeRequests -= 1;
+
+                if (url.includes("/ai/transsumm/")) {
+                    return {
+                        ok: true,
+                        json: () =>
+                            Promise.resolve({
+                                status: 0,
+                                msg: "success",
+                                data_result: [
+                                    {
+                                        speaker: "Speaker 1",
+                                        content: "hello",
+                                        start_time: 0,
+                                        end_time: 1000,
+                                    },
+                                ],
+                                data_result_summ: { content: "summary" },
+                                data_result_summ_mul: null,
+                                outline_result: null,
+                            }),
+                    };
+                }
+
+                return {
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            temp_url_opus: "https://example.com/audio.opus",
+                            temp_url: "https://example.com/audio.mp3",
+                        }),
+                };
+            }
+
+            throw new Error(`Unexpected Plaud request: ${url}`);
+        });
+
+        await expect(sourceClient.listRecordings()).resolves.toHaveLength(8);
+        expect(maxActiveRequests).toBeLessThanOrEqual(4);
     });
 });

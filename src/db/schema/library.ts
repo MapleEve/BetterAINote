@@ -76,6 +76,57 @@ export const recordings = sqliteTable(
     }),
 );
 
+export const recordingTags = sqliteTable(
+    "recording_tags",
+    {
+        id: text("id")
+            .primaryKey()
+            .$defaultFn(() => nanoid()),
+        userId: text("user_id").notNull(),
+        name: text("name").notNull(),
+        color: text("color").notNull().default("gray"),
+        icon: text("icon").notNull().default("tag"),
+        createdAt: timestampMs("created_at").notNull().defaultNow(),
+        updatedAt: timestampMs("updated_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        userNameUnique: unique().on(table.userId, table.name),
+        userIdIdx: index("recording_tags_user_id_idx").on(table.userId),
+    }),
+);
+
+export const recordingTagAssignments = sqliteTable(
+    "recording_tag_assignments",
+    {
+        id: text("id")
+            .primaryKey()
+            .$defaultFn(() => nanoid()),
+        userId: text("user_id").notNull(),
+        recordingId: text("recording_id")
+            .notNull()
+            .references(() => recordings.id, { onDelete: "cascade" }),
+        tagId: text("tag_id")
+            .notNull()
+            .references(() => recordingTags.id, { onDelete: "cascade" }),
+        createdAt: timestampMs("created_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        userRecordingTagUnique: unique().on(
+            table.userId,
+            table.recordingId,
+            table.tagId,
+        ),
+        userRecordingIdx: index("recording_tag_assignments_recording_idx").on(
+            table.userId,
+            table.recordingId,
+        ),
+        userTagIdx: index("recording_tag_assignments_tag_idx").on(
+            table.userId,
+            table.tagId,
+        ),
+    }),
+);
+
 export const transcriptionJobs = sqliteTable(
     "transcription_jobs",
     {
@@ -117,5 +168,7 @@ export const transcriptionJobs = sqliteTable(
 export const librarySchema = {
     sourceDevices,
     recordings,
+    recordingTags,
+    recordingTagAssignments,
     transcriptionJobs,
 };

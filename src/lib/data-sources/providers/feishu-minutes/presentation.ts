@@ -42,9 +42,11 @@ function buildFeishuFields(
                 description: zh
                     ? "可直接粘贴网页登录后的信息；没有时留空。"
                     : "Paste the signed-in web session details when available, or leave blank.",
-                placeholder: zh
-                    ? "已保存。重新粘贴即可替换。"
-                    : "Already saved. Paste again to replace.",
+                placeholder: state.secretsConfigured.webCookie
+                    ? "••••••••••••••••"
+                    : zh
+                      ? "粘贴网页登录信息"
+                      : "Paste web sign-in details",
             }),
             buildTextareaField({
                 id: "source-web-token",
@@ -86,9 +88,11 @@ function buildFeishuFields(
             description: zh
                 ? "粘贴飞书妙记访问令牌。"
                 : "Paste your Feishu Minutes access token.",
-            placeholder: zh
-                ? "已保存。重新粘贴即可替换。"
-                : "Already saved. Paste again to replace.",
+            placeholder: state.secretsConfigured.userAccessToken
+                ? "••••••••••••••••"
+                : zh
+                  ? "粘贴飞书妙记访问令牌"
+                  : "Paste your Feishu Minutes access token",
         }),
     ];
 }

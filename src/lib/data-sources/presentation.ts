@@ -431,14 +431,13 @@ export function getLocalTranscriptHint(
         return null;
     }
 
-    const label = getSourceProviderLabel(provider, language);
     const assetLabel = getSourceRecordAssetLabel(provider, language);
 
     if (isZh(language)) {
-        return `${label} 的平台原生${assetLabel}固定放在录音详情页的来源标签，这里只展示本地转录。`;
+        return `来源侧${assetLabel}请切到来源标签查看，这里只展示本地转录。`;
     }
 
-    return `The source-side ${assetLabel} from ${label} stays on the source tab. This panel only shows the local transcript.`;
+    return `Source-side ${assetLabel} stays on the source tab. This panel only shows the local transcript.`;
 }
 
 export function getUpstreamDeletedLabel(language: UiLanguage) {
@@ -513,6 +512,7 @@ export function getProviderFormFields(
 export function buildDataSourceSavePayload(
     state: DataSourceUiState,
     secretDrafts: SecretDraftState,
+    language: UiLanguage,
 ) {
     const secretDraft = secretDrafts[state.provider] ?? {};
     const payload = buildBaseSourcePayload(state, secretDraft);
@@ -521,6 +521,7 @@ export function buildDataSourceSavePayload(
             state,
             secretDraft,
             payload,
+            language,
         }) ?? payload
     );
 }

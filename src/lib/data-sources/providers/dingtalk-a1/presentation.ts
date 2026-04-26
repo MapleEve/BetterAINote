@@ -13,12 +13,13 @@ function buildDingTalkFields(
 ): DataSourceFormField[] {
     const zh = isZh(language);
     const usesWebSignIn = state.authMode === "cookie";
+    const secretKey = usesWebSignIn ? "cookie" : "agentToken";
 
     return [
         buildTextareaField({
             id: "source-secret",
             target: "secret",
-            key: usesWebSignIn ? "cookie" : "agentToken",
+            key: secretKey,
             label: usesWebSignIn
                 ? zh
                     ? "网页登录信息"
@@ -38,9 +39,15 @@ function buildDingTalkFields(
                 : zh
                   ? "粘贴钉钉闪记登录信息。"
                   : "Paste your DingTalk A1 sign-in info.",
-            placeholder: zh
-                ? "已保存。重新粘贴即可替换。"
-                : "Already saved. Paste again to replace.",
+            placeholder: state.secretsConfigured[secretKey]
+                ? "••••••••••••••••"
+                : usesWebSignIn
+                  ? zh
+                      ? "粘贴网页登录信息"
+                      : "Paste web sign-in details"
+                  : zh
+                    ? "粘贴 dt-meeting-agent-token"
+                    : "Paste dt-meeting-agent-token",
         }),
     ];
 }

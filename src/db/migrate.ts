@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/libsql/migrator";
 import { getDatabaseLayout, resolveDatabaseUrl } from "./paths";
 
 // Migration boundary:
-// - The shard baseline folders in `src/db/migrations/{core,library,transcripts,voiceprints}`
+// - The shard baseline folders in `src/db/migrations/{core,library,transcripts,voiceprints,search}`
 //   are the only migration source-of-truth.
 // - There is no legacy unified migration chain to keep in sync anymore.
 // - If schema changes, update the matching shard schema in `src/db/schema/*`
@@ -45,6 +45,7 @@ const runMigrate = async () => {
         layout.voiceprints,
         "./src/db/migrations/voiceprints",
     );
+    await migrateDatabase(layout.search, "./src/db/migrations/search");
 
     console.log("✅ Migrations completed in", Date.now() - start, "ms");
     process.exit(0);

@@ -18,7 +18,6 @@ import { SOURCE_PROVIDER_MANIFESTS } from "@/lib/data-sources/providers/manifest
 import type { UiLanguage } from "@/lib/i18n";
 import {
     DEFAULT_SERVER_KEY,
-    getPlaudServerDescription,
     getPlaudServerLabel,
     PLAUD_SERVERS,
     type PlaudServerKey,
@@ -51,7 +50,6 @@ function getPlaudFields(
             key: "server",
             label: zh ? "站点版本" : "Site edition",
             value: server,
-            description: getPlaudServerDescription(server, language),
             options: getPlaudServerOptions(language),
         }),
         buildTextareaField({
@@ -64,9 +62,7 @@ function getPlaudFields(
             spellCheck: false,
             className: "font-mono text-sm",
             placeholder: state.secretsConfigured.bearerToken
-                ? zh
-                    ? "已保存。重新粘贴即可替换。"
-                    : "Already saved. Paste again to replace."
+                ? "••••••••••••••••"
                 : zh
                   ? "粘贴 Plaud 登录令牌"
                   : "Paste your Plaud sign-in token",

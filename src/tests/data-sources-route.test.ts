@@ -760,7 +760,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         const payload = (await response.json()) as { error: string };
-        expect(payload.error).toBe("连接失败，请检查登录信息后重试");
+        expect(payload.error).toBe("未能连接数据源");
         expect(payload.error).not.toContain("HTTP 401");
         expect(payload.error).not.toContain("session expired");
         expect(payload.error).not.toContain("leaked-token");
@@ -1006,7 +1006,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1145,7 +1145,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1351,7 +1351,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1389,7 +1389,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 

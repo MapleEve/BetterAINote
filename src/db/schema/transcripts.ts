@@ -1,4 +1,10 @@
-import { index, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import {
+    index,
+    integer,
+    sqliteTable,
+    text,
+    unique,
+} from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 import type { VoiceTranscribePayload } from "@/lib/transcription/providers/types";
 import { jsonText, timestampMs } from "./common";
@@ -61,7 +67,89 @@ export const sourceArtifacts = sqliteTable(
     }),
 );
 
+export const transcriptSegments = sqliteTable(
+    "transcript_segments",
+    {
+        localId: integer("local_id").primaryKey({ autoIncrement: true }),
+        id: text("id")
+            .notNull()
+            .$defaultFn(() => nanoid()),
+        recordingId: text("recording_id").notNull(),
+        userId: text("user_id").notNull(),
+        transcriptionId: text("transcription_id"),
+        sourceArtifactId: text("source_artifact_id"),
+        transcriptOrigin: text("transcript_origin").notNull(),
+        providerSegmentId: text("provider_segment_id"),
+        speakerProfileId: text("speaker_profile_id"),
+        rawSpeakerLabel: text("raw_speaker_label"),
+        startMs: integer("start_ms"),
+        endMs: integer("end_ms"),
+        sortSeqMs: integer("sort_seq_ms").notNull(),
+        text: text("text").notNull(),
+        contentHash: text("content_hash").notNull(),
+        createdAt: timestampMs("created_at").notNull().defaultNow(),
+        updatedAt: timestampMs("updated_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        idUnique: unique().on(table.id),
+        userRecordingSortIdx: index(
+            "transcript_segments_user_recording_sort_idx",
+        ).on(table.userId, table.recordingId, table.sortSeqMs),
+        transcriptionIdx: index("transcript_segments_transcription_idx").on(
+            table.transcriptionId,
+        ),
+        sourceArtifactIdx: index("transcript_segments_source_artifact_idx").on(
+            table.sourceArtifactId,
+        ),
+        speakerProfileIdx: index("transcript_segments_speaker_profile_idx").on(
+            table.speakerProfileId,
+        ),
+        contentHashIdx: index("transcript_segments_content_hash_idx").on(
+            table.contentHash,
+        ),
+    }),
+);
+
+export const sourceArtifactSegments = sqliteTable(
+    "source_artifact_segments",
+    {
+        localId: integer("local_id").primaryKey({ autoIncrement: true }),
+        id: text("id")
+            .notNull()
+            .$defaultFn(() => nanoid()),
+        sourceArtifactId: text("source_artifact_id").notNull(),
+        recordingId: text("recording_id").notNull(),
+        userId: text("user_id").notNull(),
+        segmentType: text("segment_type").notNull().default("body"),
+        heading: text("heading"),
+        sortOrder: integer("sort_order").notNull(),
+        text: text("text").notNull(),
+        contentHash: text("content_hash").notNull(),
+        createdAt: timestampMs("created_at").notNull().defaultNow(),
+        updatedAt: timestampMs("updated_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        idUnique: unique().on(table.id),
+        artifactOrderUnique: unique().on(
+            table.sourceArtifactId,
+            table.sortOrder,
+        ),
+        userRecordingIdx: index("source_artifact_segments_recording_idx").on(
+            table.userId,
+            table.recordingId,
+        ),
+        artifactIdx: index("source_artifact_segments_artifact_idx").on(
+            table.sourceArtifactId,
+        ),
+        contentHashIdx: index("source_artifact_segments_content_hash_idx").on(
+            table.contentHash,
+        ),
+    }),
+);
+
 export const transcriptsSchema = {
     transcriptions,
     sourceArtifacts,
+    transcriptSegments,
+    sourceArtifactSegments,
 };

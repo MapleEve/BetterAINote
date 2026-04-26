@@ -69,6 +69,10 @@ export async function getDataSourceSyncStatusForUser(userId: string) {
     const workerHealthy = workerLastHeartbeatAt
         ? Date.now() - workerLastHeartbeatAt.getTime() <= healthyThresholdMs
         : false;
+    const workerIsRunning = workerHealthy && (workerState?.isRunning ?? false);
+    const manualTriggerRequestedAt = workerHealthy
+        ? (workerState?.manualTriggerRequestedAt ?? null)
+        : null;
     const nextSyncTime = computeNextSyncTime(
         autoSyncEnabled,
         lastSyncTime,
@@ -84,13 +88,13 @@ export async function getDataSourceSyncStatusForUser(userId: string) {
         nextSyncTime: nextSyncTime?.toISOString() ?? null,
         workerStatus: {
             healthy: workerHealthy,
-            isRunning: workerState?.isRunning ?? false,
+            isRunning: workerIsRunning,
             lastHeartbeatAt: workerLastHeartbeatAt?.toISOString() ?? null,
             lastStartedAt: workerState?.lastStartedAt?.toISOString() ?? null,
             lastFinishedAt: workerState?.lastFinishedAt?.toISOString() ?? null,
             nextRunAt: workerNextRunAt?.toISOString() ?? null,
             manualTriggerRequestedAt:
-                workerState?.manualTriggerRequestedAt?.toISOString() ?? null,
+                manualTriggerRequestedAt?.toISOString() ?? null,
             lastError: sanitizePublicDataSourceError(
                 workerState?.lastError ?? null,
             ),

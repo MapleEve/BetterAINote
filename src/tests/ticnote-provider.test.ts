@@ -348,6 +348,56 @@ describe("TicNoteSourceClient", () => {
         });
     });
 
+    it("uses TicNote recordTime as the recording start time when available", async () => {
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    chats: [
+                        {
+                            id: "chat-1",
+                            name: "Recordings",
+                            project_id: "project-1",
+                        },
+                    ],
+                }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    fileTree: [
+                        {
+                            id: "record-1",
+                            name: "Call 1",
+                            createTime: 1777222343955,
+                        },
+                    ],
+                }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: {
+                        title: "Customer Call",
+                        duration: 12,
+                        subRemark: {
+                            recordTime: 1776697929129,
+                        },
+                        transcribeJson: [],
+                    },
+                }),
+            });
+        global.fetch = fetchMock as typeof fetch;
+
+        const client = new TicNoteSourceClient(connection);
+        const recordings = await client.listRecordings();
+
+        expect(recordings[0]?.startTime.toISOString()).toBe(
+            "2026-04-20T15:12:09.129Z",
+        );
+    });
+
     it("auto-detects a single TicNote org when saving an enabled connection without an org id", async () => {
         const fetchMock = vi
             .fn()

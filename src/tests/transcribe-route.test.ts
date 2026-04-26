@@ -21,7 +21,7 @@ vi.mock("@/lib/transcription/jobs", () => ({
     serializeTranscriptionJob: vi.fn((job: unknown) => job),
 }));
 
-vi.mock("@/server/modules/recordings", () => ({
+vi.mock("@/server/modules/recordings/ownership", () => ({
     findOwnedRecording: vi.fn(),
 }));
 
@@ -33,7 +33,7 @@ import {
     getTranscriptionJobForRecording,
     hasTranscriptionCapability,
 } from "@/lib/transcription/jobs";
-import { findOwnedRecording } from "@/server/modules/recordings";
+import { findOwnedRecording } from "@/server/modules/recordings/ownership";
 
 function makeRequest(
     methodOrBody: string | Record<string, unknown> = "POST",

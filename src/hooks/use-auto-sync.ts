@@ -121,6 +121,11 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                 autoSyncEnabled: result.autoSyncEnabled ?? true,
                 lastSyncTime,
                 nextSyncTime,
+                lastSyncResult:
+                    workerStatus?.lastError === null &&
+                    workerStatus?.lastSummary?.errorCount === 0
+                        ? null
+                        : prev.lastSyncResult,
                 workerStatus,
             }));
         } catch {
@@ -238,8 +243,9 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
         ...status,
         isAutoSyncing:
             status.isManualSyncing ||
-            status.workerStatus?.isRunning === true ||
-            status.workerStatus?.manualTriggerRequestedAt != null,
+            (status.workerStatus?.healthy === true &&
+                (status.workerStatus.isRunning === true ||
+                    status.workerStatus.manualTriggerRequestedAt != null)),
         manualSync,
         refreshStatus,
     };

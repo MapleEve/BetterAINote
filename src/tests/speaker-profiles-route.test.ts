@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 vi.mock("@/db", () => ({
     db: {
         select: vi.fn(),
+        update: vi.fn(),
     },
 }));
 
@@ -18,6 +19,7 @@ vi.mock("@/lib/speakers", () => ({
     createSpeakerProfile: vi.fn(),
 }));
 
+import { PATCH } from "@/app/api/speakers/profiles/[id]/route";
 import { GET, POST } from "@/app/api/speakers/profiles/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
@@ -29,6 +31,10 @@ function makeRequest() {
     return new Request("http://localhost/api/speakers/profiles", {
         method: "GET",
     });
+}
+
+function makeParams(id: string) {
+    return { params: Promise.resolve({ id }) };
 }
 
 describe("Speaker profiles route", () => {
@@ -156,6 +162,49 @@ describe("Speaker profiles route", () => {
                 voiceprintRef: "vp-3",
                 createdAt: "2026-04-18T11:00:00.000Z",
                 updatedAt: "2026-04-18T11:01:00.000Z",
+                assignmentCount: 0,
+            },
+        });
+    });
+
+    it("updates and serializes a speaker profile without leaking raw database fields", async () => {
+        (db.update as Mock).mockReturnValue({
+            set: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    returning: vi.fn().mockResolvedValue([
+                        {
+                            id: "profile-1",
+                            userId: "user-1",
+                            displayName: "Alex",
+                            voiceprintRef: null,
+                            createdAt: new Date("2026-04-18T09:00:00.000Z"),
+                            updatedAt: new Date("2026-04-18T09:35:00.000Z"),
+                        },
+                    ]),
+                }),
+            }),
+        });
+
+        const response = await PATCH(
+            new Request("http://localhost/api/speakers/profiles/profile-1", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    displayName: " Alex ",
+                    voiceprintRef: "",
+                }),
+            }),
+            makeParams("profile-1"),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            profile: {
+                id: "profile-1",
+                displayName: "Alex",
+                voiceprintRef: null,
+                createdAt: "2026-04-18T09:00:00.000Z",
+                updatedAt: "2026-04-18T09:35:00.000Z",
                 assignmentCount: 0,
             },
         });

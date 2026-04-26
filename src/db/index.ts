@@ -24,12 +24,26 @@ import {
 import {
     librarySchema,
     recordings,
+    recordingTagAssignments,
+    recordingTags,
     sourceDevices,
     transcriptionJobs,
 } from "@/db/schema/library";
 import {
+    searchChunks,
+    searchContentFts,
+    searchDocuments,
+    searchIndexJobs,
+    searchIndexRanges,
+    searchName2Id,
+    searchSchema,
+    searchTombstones,
+} from "@/db/schema/search";
+import {
+    sourceArtifactSegments,
     sourceArtifacts,
     transcriptions,
+    transcriptSegments,
     transcriptsSchema,
 } from "@/db/schema/transcripts";
 import {
@@ -64,8 +78,28 @@ const coreTables = new Set([
     userSettings,
     syncWorkerState,
 ]);
-const libraryTables = new Set([sourceDevices, recordings, transcriptionJobs]);
-const transcriptTables = new Set([transcriptions, sourceArtifacts]);
+const libraryTables = new Set([
+    sourceDevices,
+    recordings,
+    recordingTags,
+    recordingTagAssignments,
+    transcriptionJobs,
+]);
+const transcriptTables = new Set([
+    transcriptions,
+    sourceArtifacts,
+    transcriptSegments,
+    sourceArtifactSegments,
+]);
+const searchTables = new Set([
+    searchName2Id,
+    searchDocuments,
+    searchChunks,
+    searchContentFts,
+    searchIndexRanges,
+    searchTombstones,
+    searchIndexJobs,
+]);
 const voiceprintTables = new Set([speakerProfiles, recordingSpeakers]);
 
 function ensureParentDir(databasePath: string) {
@@ -91,6 +125,7 @@ if (layout) {
     ensureParentDir(layout.library);
     ensureParentDir(layout.transcripts);
     ensureParentDir(layout.voiceprints);
+    ensureParentDir(layout.search);
 }
 
 export const coreDb = layout
@@ -117,6 +152,12 @@ export const voiceprintsDb = layout
       })
     : ({} as ReturnType<typeof drizzle<typeof voiceprintsSchema>>);
 
+export const searchDb = layout
+    ? drizzle(createClient({ url: resolveDatabaseUrl(layout.search) }), {
+          schema: searchSchema,
+      })
+    : ({} as ReturnType<typeof drizzle<typeof searchSchema>>);
+
 function resolveDbForTable(table: unknown) {
     if (coreTables.has(table as never)) {
         return coreDb;
@@ -128,6 +169,10 @@ function resolveDbForTable(table: unknown) {
 
     if (transcriptTables.has(table as never)) {
         return transcriptsDb;
+    }
+
+    if (searchTables.has(table as never)) {
+        return searchDb;
     }
 
     if (voiceprintTables.has(table as never)) {
@@ -198,6 +243,7 @@ const toolingSchema = {
     ...librarySchema,
     ...transcriptsSchema,
     ...voiceprintsSchema,
+    ...searchSchema,
 };
 
 // Compatibility alias only. Runtime DB routing uses the shard imports above,

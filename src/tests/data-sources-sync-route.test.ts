@@ -121,6 +121,52 @@ describe("Data sources sync route", () => {
         });
     });
 
+    it("does not report stale worker state as actively syncing", async () => {
+        (getUserSyncSchedules as Mock).mockResolvedValue([
+            {
+                userId: "user-1",
+                lastSync: new Date("2026-04-18T09:00:00.000Z"),
+                syncInterval: 300000,
+                autoSyncEnabled: true,
+                manualTriggerRequestedAt: null,
+            },
+        ]);
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([
+                        {
+                            syncInterval: 300000,
+                            autoSyncEnabled: true,
+                        },
+                    ]),
+                }),
+            }),
+        });
+
+        (getSyncWorkerStateForUser as Mock).mockResolvedValue({
+            isRunning: true,
+            lastHeartbeatAt: new Date("2026-04-18T08:00:00.000Z"),
+            lastStartedAt: new Date("2026-04-18T08:00:00.000Z"),
+            lastFinishedAt: null,
+            nextRunAt: new Date("2026-04-18T09:05:00.000Z"),
+            manualTriggerRequestedAt: new Date("2026-04-18T08:01:00.000Z"),
+            lastError: null,
+            lastSummary: null,
+        });
+
+        const response = await GET(makeRequest("GET"));
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({
+            workerStatus: {
+                healthy: false,
+                isRunning: false,
+                manualTriggerRequestedAt: null,
+            },
+        });
+    });
+
     it("runs a manual sync immediately and returns the result", async () => {
         (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
             { provider: "plaud" },

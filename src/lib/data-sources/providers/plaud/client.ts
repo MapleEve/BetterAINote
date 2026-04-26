@@ -26,9 +26,37 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 export function normalizePlaudBearerToken(rawToken: string): string {
     return rawToken
         .replace(/\r/g, "\n")
-        .replace(/^\s*bearer[\s:]+/i, "")
+        .replace(/^\s*authorization\s*[:：]\s*/i, "")
+        .replace(/^\s*bearer(?:\s|[:：])+/i, "")
         .replace(/\s+/g, "")
         .trim();
+}
+
+function isRetriablePlaudNetworkError(error: unknown) {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+
+    const cause = (error as Error & { cause?: unknown }).cause;
+    const causeRecord =
+        cause && typeof cause === "object"
+            ? (cause as Record<string, unknown>)
+            : {};
+    const text = [
+        error.name,
+        error.message,
+        typeof causeRecord.message === "string" ? causeRecord.message : "",
+        typeof causeRecord.code === "string" ? causeRecord.code : "",
+    ]
+        .join(" ")
+        .toLowerCase();
+
+    return (
+        (error instanceof TypeError && text.includes("fetch")) ||
+        text.includes("socket connection was closed unexpectedly") ||
+        text.includes("client network socket disconnected") ||
+        text.includes("econnreset")
+    );
 }
 
 function formatStoredTranscript(segments: PlaudTranscriptSegment[]): {
@@ -40,8 +68,15 @@ function formatStoredTranscript(segments: PlaudTranscriptSegment[]): {
         text: string;
     }>;
 } {
+    const sourceSegments = segments.map((segment, index) => ({
+        ...segment,
+        speaker:
+            typeof segment.speaker === "string" && segment.speaker.trim()
+                ? segment.speaker.trim()
+                : `Speaker ${index + 1}`,
+    }));
     const speakerOrder: string[] = [];
-    for (const { speaker } of segments) {
+    for (const { speaker } of sourceSegments) {
         if (!speakerOrder.includes(speaker)) {
             speakerOrder.push(speaker);
         }
@@ -51,7 +86,7 @@ function formatStoredTranscript(segments: PlaudTranscriptSegment[]): {
     const labelFor = (speaker: string) =>
         isRaw ? `Speaker ${speakerOrder.indexOf(speaker) + 1}` : speaker;
 
-    const normalizedSegments = segments.map((segment) => ({
+    const normalizedSegments = sourceSegments.map((segment) => ({
         speaker: labelFor(segment.speaker),
         startMs: segment.start_time,
         endMs: segment.end_time,
@@ -200,8 +235,7 @@ export class PlaudClient {
             return (await response.json()) as T;
         } catch (error) {
             if (
-                error instanceof TypeError &&
-                error.message.includes("fetch") &&
+                isRetriablePlaudNetworkError(error) &&
                 retryCount < MAX_RETRIES
             ) {
                 const delay = INITIAL_RETRY_DELAY * 2 ** retryCount;

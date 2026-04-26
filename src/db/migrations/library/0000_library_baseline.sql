@@ -45,6 +45,36 @@ CREATE INDEX `recordings_source_provider_source_recording_id_idx` ON `recordings
 --> statement-breakpoint
 CREATE INDEX `recordings_user_id_start_time_idx` ON `recordings` (`user_id`, `start_time`);
 --> statement-breakpoint
+CREATE TABLE `recording_tags` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`name` text NOT NULL,
+	`color` text DEFAULT 'gray' NOT NULL,
+	`icon` text DEFAULT 'tag' NOT NULL,
+	`created_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `recording_tags_user_id_name_unique` ON `recording_tags` (`user_id`, `name`);
+--> statement-breakpoint
+CREATE INDEX `recording_tags_user_id_idx` ON `recording_tags` (`user_id`);
+--> statement-breakpoint
+CREATE TABLE `recording_tag_assignments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`recording_id` text NOT NULL,
+	`tag_id` text NOT NULL,
+	`created_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
+	FOREIGN KEY (`recording_id`) REFERENCES `recordings`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`tag_id`) REFERENCES `recording_tags`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `recording_tag_assignments_user_id_recording_id_tag_id_unique` ON `recording_tag_assignments` (`user_id`, `recording_id`, `tag_id`);
+--> statement-breakpoint
+CREATE INDEX `recording_tag_assignments_recording_idx` ON `recording_tag_assignments` (`user_id`, `recording_id`);
+--> statement-breakpoint
+CREATE INDEX `recording_tag_assignments_tag_idx` ON `recording_tag_assignments` (`user_id`, `tag_id`);
+--> statement-breakpoint
 CREATE TABLE `transcription_jobs` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,

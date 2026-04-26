@@ -3,6 +3,7 @@
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -66,11 +67,7 @@ export function TranscriptionSection() {
     };
 
     if (isLoading && !hasLoaded) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
-            </div>
-        );
+        return <SettingsSectionSkeleton cards={1} fieldsPerCard={2} />;
     }
 
     return (

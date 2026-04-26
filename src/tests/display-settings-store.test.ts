@@ -63,6 +63,33 @@ describe("display settings store", () => {
         });
     });
 
+    it("maps legacy ISO display settings to absolute time", async () => {
+        const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    uiLanguage: "zh-CN",
+                    dateTimeFormat: "iso",
+                    recordingListSortOrder: "newest",
+                    itemsPerPage: 50,
+                    theme: "system",
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(ensureDisplaySettingsLoaded()).resolves.toMatchObject({
+            dateTimeFormat: "absolute",
+        });
+
+        expect(getDisplaySettingsStoreSnapshot().settings).toMatchObject({
+            dateTimeFormat: "absolute",
+        });
+    });
+
     it("rolls back optimistic updates when saving fails", async () => {
         const fetchMock = vi
             .fn<typeof fetch>()

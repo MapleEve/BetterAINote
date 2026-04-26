@@ -215,26 +215,27 @@ describe("data-sources presentation helpers", () => {
             key: "region",
             value: "intl",
         });
-        expect(
-            getProviderFormFields(
-                {
-                    provider: "ticnote",
-                    enabled: true,
-                    authMode: "bearer",
-                    baseUrl: drafts.ticnote.baseUrl,
-                    config: drafts.ticnote.config,
-                    secretsConfigured: {},
-                },
-                { ticnote: drafts.ticnote.secrets },
-                "en",
-                "settings",
-            ),
-        ).toContainEqual(
-            expect.objectContaining({
-                key: "orgId",
-                label: "Org ID (optional, advanced)",
-                description: expect.stringContaining("multi-team account"),
-            }),
+        const ticnoteFields = getProviderFormFields(
+            {
+                provider: "ticnote",
+                enabled: true,
+                authMode: "bearer",
+                baseUrl: drafts.ticnote.baseUrl,
+                config: drafts.ticnote.config,
+                secretsConfigured: {},
+            },
+            { ticnote: drafts.ticnote.secrets },
+            "en",
+            "settings",
+        );
+        expect(ticnoteFields.some((field) => field.key === "orgId")).toBe(
+            false,
+        );
+        expect(ticnoteFields.some((field) => field.key === "language")).toBe(
+            false,
+        );
+        expect(ticnoteFields[0]).toEqual(
+            expect.not.objectContaining({ description: expect.any(String) }),
         );
         expect(
             getProviderFormFields(
@@ -274,11 +275,13 @@ describe("data-sources presentation helpers", () => {
                     secretsConfigured: {},
                 },
                 { ticnote: drafts.ticnote.secrets },
+                "zh-CN",
             ),
         ).toMatchObject({
             baseUrl: "https://prd-backend-api.ticnote.com/api",
             config: expect.objectContaining({
                 region: "intl",
+                language: "zh",
                 syncTitleToSource: true,
             }),
             secrets: {
@@ -286,8 +289,12 @@ describe("data-sources presentation helpers", () => {
             },
         });
         expect(getDataSourceHelpDocUrl("ticnote")).toContain(
-            "docs/DATA_SOURCES.md#ticnote",
+            "github.com/MapleEve/BetterAINote/blob/main/docs/DATA_SOURCES.md#ticnote",
         );
+        expect(getDataSourceHelpDocUrl("plaud")).toContain(
+            "github.com/MapleEve/BetterAINote/blob/main/docs/DATA_SOURCES.md#plaud",
+        );
+        expect(getDataSourceHelpDocUrl("plaud")).not.toMatch(/^\/docs\//);
         expect(getDataSourceHelpDocUrl("feishu-minutes")).toContain(
             "#feishu-minutes",
         );
@@ -376,6 +383,7 @@ describe("data-sources presentation helpers", () => {
                 secretsConfigured: {},
             },
             secretDrafts,
+            "zh-CN",
         );
 
         expect(openApiPayload).toMatchObject({
@@ -402,6 +410,7 @@ describe("data-sources presentation helpers", () => {
                 secretsConfigured: {},
             },
             secretDrafts,
+            "zh-CN",
         );
 
         expect(webPayload).toMatchObject({
@@ -438,9 +447,7 @@ describe("data-sources presentation helpers", () => {
 
         expect(field?.label).toBe("DingTalk A1 sign-in info");
         expect(field?.description).toBe("Paste your DingTalk A1 sign-in info.");
-        expect(field?.placeholder).toBe(
-            "Already saved. Paste again to replace.",
-        );
+        expect(field?.placeholder).toBe("Paste dt-meeting-agent-token");
         const blockedEngineeringTerms = new RegExp(
             [
                 ["Web coo", "kie"].join(""),
@@ -521,7 +528,7 @@ describe("data-sources presentation helpers", () => {
         );
         expect(
             fields.find((field) => field.key === "bearerToken")?.placeholder,
-        ).toBe("已保存。重新粘贴即可替换。");
+        ).toBe("••••••••••••••••");
     });
 
     it("uses user-facing iFLYTEK and TicNote credential labels", () => {
@@ -573,8 +580,11 @@ describe("data-sources presentation helpers", () => {
             ticnoteFields.find((field) => field.key === "bearerToken"),
         ).toMatchObject({
             label: "TicNote 登录令牌",
-            placeholder: "已保存。重新粘贴即可替换。",
+            placeholder: "••••••••••••••••",
         });
+        expect(ticnoteFields.some((field) => field.key === "language")).toBe(
+            false,
+        );
     });
 
     it("builds a flat display section without a featured provider slot", () => {
