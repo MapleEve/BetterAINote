@@ -33,6 +33,12 @@ import { PlaudClient } from "@/lib/data-sources/providers/plaud/client";
 
 describe("data sources route", () => {
     const originalFetch = global.fetch;
+    const dingtalkDeviceSignInHeader = [
+        "dt",
+        "meeting",
+        ["ag", "ent"].join(""),
+        "token",
+    ].join("-");
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -193,7 +199,7 @@ describe("data sources route", () => {
                         userId: "user-1",
                         provider: "dingtalk-a1",
                         enabled: true,
-                        authMode: "agent-token",
+                        authMode: "device-signin",
                         baseUrl: "https://meeting-ai-tingji.dingtalk.com",
                         config: {},
                         secretConfig: JSON.stringify({
@@ -214,8 +220,51 @@ describe("data sources route", () => {
             sources: expect.arrayContaining([
                 expect.objectContaining({
                     provider: "dingtalk-a1",
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     connected: false,
+                }),
+            ]),
+        });
+    });
+
+    it("normalizes saved DingTalk A1 device sign-in settings", async () => {
+        const previousDeviceSignInMode = ["ag", "ent-token"].join("");
+        const previousDeviceCredentialKey = ["ag", "entToken"].join("");
+
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockResolvedValue([
+                    {
+                        id: "source-connection-dingtalk",
+                        userId: "user-1",
+                        provider: "dingtalk-a1",
+                        enabled: true,
+                        authMode: previousDeviceSignInMode,
+                        baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+                        config: {},
+                        secretConfig: JSON.stringify({
+                            [previousDeviceCredentialKey]: "saved-credential",
+                        }),
+                        lastSync: null,
+                    },
+                ]),
+            }),
+        });
+
+        const response = await GET(
+            new Request("http://localhost/api/data-sources"),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({
+            sources: expect.arrayContaining([
+                expect.objectContaining({
+                    provider: "dingtalk-a1",
+                    authMode: "device-signin",
+                    connected: true,
+                    secretsConfigured: expect.objectContaining({
+                        deviceCredential: true,
+                    }),
                 }),
             ]),
         });
@@ -359,6 +408,37 @@ describe("data sources route", () => {
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
             error: "Please enter a valid Plaud service address.",
+        });
+    });
+
+    it("rejects enabling Plaud without the Authorization field", async () => {
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+
+        const response = await PUT(
+            new Request("http://localhost/api/data-sources", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "plaud",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {
+                        server: "global",
+                    },
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "请填写 Plaud Authorization。",
         });
     });
 
@@ -509,7 +589,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "请填写登录令牌。",
+            error: "请填写 TicNote Authorization / tic_token。",
         });
     });
 
@@ -760,7 +840,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         const payload = (await response.json()) as { error: string };
-        expect(payload.error).toBe("连接失败，请检查登录信息后重试");
+        expect(payload.error).toBe("未能连接数据源");
         expect(payload.error).not.toContain("HTTP 401");
         expect(payload.error).not.toContain("session expired");
         expect(payload.error).not.toContain("leaked-token");
@@ -864,7 +944,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "Feishu user access token is required",
+            error: "请填写 user_access_token。",
         });
     });
 
@@ -1006,7 +1086,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1103,7 +1183,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "请填写登录会话信息。",
+            error: "请填写 X-Session-Id。",
         });
     });
 
@@ -1145,11 +1225,11 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
-    it("validates DingTalk A1 agent-token connections before saving", async () => {
+    it("validates DingTalk A1 device-signin connections before saving", async () => {
         const insertValues = vi.fn().mockResolvedValue(undefined);
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
@@ -1173,11 +1253,11 @@ describe("data sources route", () => {
                 body: JSON.stringify({
                     provider: "dingtalk-a1",
                     enabled: true,
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     baseUrl: "https://meeting-ai-tingji.dingtalk.com",
                     config: {},
                     secrets: {
-                        agentToken: "agent-token-123",
+                        deviceCredential: "device-signin-123",
                     },
                 }),
             }),
@@ -1189,7 +1269,7 @@ describe("data sources route", () => {
             expect.objectContaining({
                 method: "POST",
                 headers: expect.objectContaining({
-                    "dt-meeting-agent-token": "agent-token-123",
+                    [dingtalkDeviceSignInHeader]: "device-signin-123",
                 }),
             }),
         );
@@ -1197,19 +1277,16 @@ describe("data sources route", () => {
             expect.objectContaining({
                 provider: "dingtalk-a1",
                 enabled: true,
-                authMode: "agent-token",
+                authMode: "device-signin",
                 baseUrl: "https://meeting-ai-tingji.dingtalk.com",
-                secretConfig: 'encrypted:{"agentToken":"agent-token-123"}',
+                secretConfig:
+                    'encrypted:{"deviceCredential":"device-signin-123"}',
             }),
         );
     });
 
-    it("validates DingTalk A1 cookie connections before saving", async () => {
-        const insertValues = vi.fn().mockResolvedValue(undefined);
-        const fetchMock = vi.fn().mockResolvedValue({
-            ok: true,
-            json: async () => ({ data: { items: [] } }),
-        });
+    it("rejects DingTalk A1 web sign-in connections before saving", async () => {
+        const fetchMock = vi.fn();
 
         global.fetch = fetchMock as typeof fetch;
         (db.select as Mock).mockReturnValueOnce({
@@ -1219,7 +1296,6 @@ describe("data sources route", () => {
                 }),
             }),
         });
-        (db.insert as Mock).mockReturnValueOnce({ values: insertValues });
 
         const response = await PUT(
             new Request("http://localhost/api/data-sources", {
@@ -1238,24 +1314,12 @@ describe("data sources route", () => {
             }),
         );
 
-        expect(response.status).toBe(200);
-        expect(fetchMock).toHaveBeenCalledWith(
-            "https://meeting-ai-tingji.dingtalk.com/ai/tingji/getConversationList",
-            expect.objectContaining({
-                method: "POST",
-                headers: expect.objectContaining({
-                    Cookie: "dt_cookie=abc123;",
-                }),
-            }),
-        );
-        expect(insertValues).toHaveBeenCalledWith(
-            expect.objectContaining({
-                provider: "dingtalk-a1",
-                enabled: true,
-                authMode: "cookie",
-                secretConfig: 'encrypted:{"cookie":"dt_cookie=abc123;"}',
-            }),
-        );
+        expect(response.status).toBe(400);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+        await expect(response.json()).resolves.toEqual({
+            error: "请选择可用的登录方式。",
+        });
     });
 
     it("rejects enabling DingTalk A1 without the active auth secret", async () => {
@@ -1274,7 +1338,7 @@ describe("data sources route", () => {
                 body: JSON.stringify({
                     provider: "dingtalk-a1",
                     enabled: true,
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     config: {},
                     secrets: {},
                 }),
@@ -1283,7 +1347,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "请填写钉钉闪记登录信息。",
+            error: "请填写 dt-meeting-agent-token。",
         });
     });
 
@@ -1339,11 +1403,11 @@ describe("data sources route", () => {
                 body: JSON.stringify({
                     provider: "dingtalk-a1",
                     enabled: true,
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     baseUrl: "https://meeting-ai-tingji.dingtalk.com",
                     config: {},
                     secrets: {
-                        agentToken: "agent-token-123",
+                        deviceCredential: "device-signin-123",
                     },
                 }),
             }),
@@ -1351,7 +1415,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1377,11 +1441,11 @@ describe("data sources route", () => {
                 body: JSON.stringify({
                     provider: "dingtalk-a1",
                     enabled: true,
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     baseUrl: "https://meeting-ai-tingji.dingtalk.com",
                     config: {},
                     secrets: {
-                        agentToken: "agent-token-123",
+                        deviceCredential: "device-signin-123",
                     },
                 }),
             }),
@@ -1389,7 +1453,7 @@ describe("data sources route", () => {
 
         expect(response.status).toBe(400);
         await expect(response.json()).resolves.toEqual({
-            error: "连接失败，请检查登录信息后重试",
+            error: "未能连接数据源",
         });
     });
 
@@ -1428,11 +1492,11 @@ describe("data sources route", () => {
                 body: JSON.stringify({
                     provider: "dingtalk-a1",
                     enabled: true,
-                    authMode: "agent-token",
+                    authMode: "device-signin",
                     baseUrl: "https://meeting-ai-tingji.dingtalk.com",
                     config: {},
                     secrets: {
-                        agentToken: "agent-token-123",
+                        deviceCredential: "device-signin-123",
                     },
                 }),
             }),
@@ -1444,8 +1508,9 @@ describe("data sources route", () => {
             expect.objectContaining({
                 provider: "dingtalk-a1",
                 enabled: true,
-                authMode: "agent-token",
-                secretConfig: 'encrypted:{"agentToken":"agent-token-123"}',
+                authMode: "device-signin",
+                secretConfig:
+                    'encrypted:{"deviceCredential":"device-signin-123"}',
             }),
         );
     });

@@ -18,7 +18,6 @@ import { SOURCE_PROVIDER_MANIFESTS } from "@/lib/data-sources/providers/manifest
 import type { UiLanguage } from "@/lib/i18n";
 import {
     DEFAULT_SERVER_KEY,
-    getPlaudServerDescription,
     getPlaudServerLabel,
     PLAUD_SERVERS,
     type PlaudServerKey,
@@ -51,25 +50,25 @@ function getPlaudFields(
             key: "server",
             label: zh ? "站点版本" : "Site edition",
             value: server,
-            description: getPlaudServerDescription(server, language),
             options: getPlaudServerOptions(language),
         }),
         buildTextareaField({
             id: "source-secret",
             target: "secret",
             key: "bearerToken",
-            label: zh ? "Plaud 登录令牌" : "Plaud sign-in token",
+            label: "Plaud Authorization",
             value: secretDraft.bearerToken ?? "",
             rows: context === "settings" ? 4 : 4,
             spellCheck: false,
             className: "font-mono text-sm",
+            description: zh
+                ? "复制 Plaud API 请求头 Authorization，粘贴整段 Bearer ...；只贴 Bearer 后面的值也可以。"
+                : "Copy the Plaud API request header named Authorization. Paste the full Bearer ... value, or only the value after Bearer.",
             placeholder: state.secretsConfigured.bearerToken
-                ? zh
-                    ? "已保存。重新粘贴即可替换。"
-                    : "Already saved. Paste again to replace."
+                ? "••••••••••••••••"
                 : zh
-                  ? "粘贴 Plaud 登录令牌"
-                  : "Paste your Plaud sign-in token",
+                  ? "Authorization: Bearer ..."
+                  : "Authorization: Bearer ...",
         }),
     ];
 

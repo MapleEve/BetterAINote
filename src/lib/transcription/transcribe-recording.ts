@@ -19,6 +19,7 @@ import {
     getVoiceTranscribeCredentials,
 } from "@/lib/voice-transcribe/credentials";
 import { writeRecordingTitleToSource } from "@/server/modules/data-sources";
+import { replaceTranscriptSegmentsForTranscription } from "@/server/modules/search/indexer";
 import {
     getConfiguredPrivateTranscriptionBaseUrl,
     getTranscriptionRuntimeSettingsForUser,
@@ -226,6 +227,15 @@ export async function persistTranscriptionResult(params: {
             providerPayload: sanitizedPayload ?? null,
         });
     }
+
+    await replaceTranscriptSegmentsForTranscription({
+        userId,
+        recordingId,
+        transcriptionId,
+        transcriptOrigin: "local",
+        text: transcriptionText,
+        providerPayload: sanitizedPayload ?? null,
+    });
 
     await persistTranscriptionWordsArtifact({
         transcriptionId: existingTranscription?.id ?? transcriptionId,

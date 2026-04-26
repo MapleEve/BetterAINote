@@ -26,6 +26,8 @@ import {
     serverKeyFromApiBase,
 } from "./servers";
 
+const PLAUD_ENRICHMENT_CONCURRENCY = 4;
+
 function resolvePlaudSourceConfig(
     baseUrl: string | null | undefined,
     config: Record<string, unknown> | null | undefined,
@@ -49,6 +51,29 @@ function resolvePlaudSourceConfig(
                 ? config.syncTitleToSource
                 : false,
     };
+}
+
+async function mapWithConcurrency<T, R>(
+    items: T[],
+    concurrency: number,
+    mapper: (item: T) => Promise<R>,
+) {
+    const results = new Array<R>(items.length);
+    let nextIndex = 0;
+
+    const workers = Array.from(
+        { length: Math.min(concurrency, items.length) },
+        async () => {
+            while (nextIndex < items.length) {
+                const index = nextIndex;
+                nextIndex += 1;
+                results[index] = await mapper(items[index]);
+            }
+        },
+    );
+
+    await Promise.all(workers);
+    return results;
 }
 
 async function upsertPlaudDevices(userId: string, client: PlaudClient) {
@@ -141,7 +166,7 @@ async function preparePlaudConnectionWrite(params: {
             : "";
 
     if (!normalizedBearerToken) {
-        throw new SourceProviderSettingsError("请填写登录令牌。", {
+        throw new SourceProviderSettingsError("请填写 Plaud Authorization。", {
             code: "missing-secret",
         });
     }
@@ -165,7 +190,7 @@ async function preparePlaudConnectionWrite(params: {
         const isValid = await client.testConnection();
         if (!isValid) {
             throw new SourceProviderSettingsError(
-                "连接失败，请重新填写登录令牌。",
+                "连接失败，请重新填写 Plaud Authorization。",
                 {
                     code: "invalid-connection",
                 },
@@ -246,8 +271,10 @@ export class PlaudSourceClient implements SourceProviderClient {
         const response = await this.client.getRecordings(0, 99999, 0);
         const items = response.data_file_list ?? [];
 
-        return await Promise.all(
-            items.map(async (item) => {
+        return await mapWithConcurrency(
+            items,
+            PLAUD_ENRICHMENT_CONCURRENCY,
+            async (item) => {
                 const artifacts = await this.client.fetchOfficialArtifacts(
                     item.id,
                 );
@@ -294,7 +321,7 @@ export class PlaudSourceClient implements SourceProviderClient {
                         > | null,
                     },
                 } satisfies SourceRecordingData;
-            }),
+            },
         );
     }
 }

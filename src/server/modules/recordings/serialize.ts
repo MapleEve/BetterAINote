@@ -1,6 +1,11 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { recordings, transcriptionJobs } from "@/db/schema/library";
 import type { transcriptions } from "@/db/schema/transcripts";
+import {
+    isRecordingTagColor,
+    isRecordingTagIcon,
+    type RecordingTag,
+} from "@/lib/recording-tags";
 import { sanitizeTranscriptionJobLastError } from "@/lib/transcription/public-errors";
 import {
     applySpeakerMap,
@@ -40,15 +45,36 @@ export type RecordingTranscriptionRow = Pick<
     | "providerPayload"
 >;
 
+export type DashboardTranscriptionRow = Pick<
+    TranscriptionRow,
+    "recordingId" | "detectedLanguage" | "transcriptionType"
+> & {
+    hasTranscript: string | null;
+};
+
 export type RecordingTranscriptionJobRow = Pick<
     TranscriptionJobRow,
     "recordingId" | "status" | "remoteStatus" | "lastError" | "updatedAt"
 >;
 
+export type RecordingTagRow = {
+    recordingId: string;
+    tagId: string;
+    tagName: string;
+    tagColor: string;
+    tagIcon: string;
+};
+
 export type DashboardTranscriptionData = {
-    text: string;
+    hasTranscript: boolean;
+    text?: string;
     language?: string;
     speakerMap?: Record<string, string>;
+    segments?: NonNullable<
+        ReturnType<
+            typeof import("@/lib/transcription/voice-transcribe-metadata").buildDisplaySegments
+        >
+    >;
 };
 
 export type DashboardTranscriptionJobData = {
@@ -81,19 +107,46 @@ export function serializeRecording(recording: RecordingListRow): Recording {
         sourceRecordingId: recording.sourceRecordingId,
         hasAudio,
         audioUrl: hasAudio ? `/api/recordings/${recording.id}/audio` : null,
+        tags: [],
+    };
+}
+
+export function buildRecordingTagMap(rows: RecordingTagRow[]) {
+    const tagsByRecordingId = new Map<string, RecordingTag[]>();
+
+    for (const row of rows) {
+        const tags = tagsByRecordingId.get(row.recordingId) ?? [];
+        tags.push({
+            id: row.tagId,
+            name: row.tagName,
+            color: isRecordingTagColor(row.tagColor) ? row.tagColor : "gray",
+            icon: isRecordingTagIcon(row.tagIcon) ? row.tagIcon : "tag",
+        });
+        tagsByRecordingId.set(row.recordingId, tags);
+    }
+
+    return tagsByRecordingId;
+}
+
+export function serializeRecordingWithTags(
+    recording: RecordingListRow,
+    tags: RecordingTag[] | undefined,
+) {
+    return {
+        ...serializeRecording(recording),
+        tags: tags ?? [],
     };
 }
 
 export function buildDashboardTranscriptionMap(
-    rows: RecordingTranscriptionRow[],
+    rows: DashboardTranscriptionRow[],
 ) {
     return new Map<string, DashboardTranscriptionData>(
         rows.map((row) => [
             row.recordingId,
             {
-                text: row.text,
+                hasTranscript: Boolean(row.hasTranscript),
                 language: row.detectedLanguage || undefined,
-                speakerMap: row.speakerMap ?? undefined,
             },
         ]),
     );
@@ -148,17 +201,20 @@ export function serializeQueriedRecording(
     transcription: RecordingTranscriptionRow | undefined,
     transcriptionJob: RecordingTranscriptionJobRow | undefined,
     includeTranscript: boolean,
+    tags?: RecordingTag[],
 ) {
-    const serializedRecording = serializeRecording(recording);
-    const speakerMap = transcription
-        ? mergeSpeakerMaps(
-              transcription.speakerMap,
-              transcription.providerPayload,
-          )
-        : null;
-    const metrics = transcription
-        ? buildTranscriptMetrics(transcription.text, speakerMap)
-        : null;
+    const serializedRecording = serializeRecordingWithTags(recording, tags);
+    const speakerMap =
+        includeTranscript && transcription
+            ? mergeSpeakerMaps(
+                  transcription.speakerMap,
+                  transcription.providerPayload,
+              )
+            : null;
+    const metrics =
+        includeTranscript && transcription
+            ? buildTranscriptMetrics(transcription.text, speakerMap)
+            : null;
 
     return {
         ...serializedRecording,

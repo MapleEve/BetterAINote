@@ -131,6 +131,20 @@ describe("source-report route", () => {
             transcript: {
                 text: "SPEAKER_00: Hello\n\nSPEAKER_01: Hi there",
                 segmentCount: 2,
+                segments: [
+                    {
+                        speaker: "SPEAKER_00",
+                        startMs: 0,
+                        endMs: 1200,
+                        text: "Hello",
+                    },
+                    {
+                        speaker: "SPEAKER_01",
+                        startMs: 1200,
+                        endMs: 2400,
+                        text: "Hi there",
+                    },
+                ],
             },
             summaryMarkdown: "# Summary\n- Follow up",
             detail: {
@@ -138,6 +152,66 @@ describe("source-report route", () => {
                 status: "available",
                 sections: ["transcript", "summary", "detail"],
                 language: "zh",
+            },
+        });
+    });
+
+    it("builds source transcript text from segments when stored text has missing speaker labels", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-missing-speaker",
+                                sourceProvider: "plaud",
+                                filename: "Planning Call",
+                            },
+                        ]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockResolvedValue([
+                        {
+                            artifactType: "official-transcript",
+                            textContent: "undefined: stale transcript text",
+                            payload: {
+                                segments: [
+                                    {
+                                        startMs: 0,
+                                        endMs: 1200,
+                                        text: "Clean transcript text",
+                                    },
+                                ],
+                            },
+                        },
+                    ]),
+                }),
+            });
+
+        const response = await GETSourceReport(
+            makeRequest(
+                "http://localhost/api/recordings/rec-missing-speaker/source-report",
+            ),
+            makeParams("rec-missing-speaker"),
+        );
+
+        expect(response.status).toBe(200);
+
+        await expect(response.json()).resolves.toMatchObject({
+            transcript: {
+                text: "Speaker 1: Clean transcript text",
+                segmentCount: 1,
+                segments: [
+                    {
+                        speaker: "Speaker 1",
+                        startMs: 0,
+                        endMs: 1200,
+                        text: "Clean transcript text",
+                    },
+                ],
             },
         });
     });
@@ -225,6 +299,20 @@ describe("source-report route", () => {
             transcript: {
                 text: "Maple: 大家好\n\nSPEAKER_01: 继续同步一下",
                 segmentCount: 2,
+                segments: [
+                    {
+                        speaker: "Maple",
+                        startMs: 0,
+                        endMs: 1800,
+                        text: "大家好",
+                    },
+                    {
+                        speaker: "SPEAKER_01",
+                        startMs: 1800,
+                        endMs: 4200,
+                        text: "继续同步一下",
+                    },
+                ],
             },
             summaryMarkdown: "# 会议简报\n- 跟进事项",
             detail: {
@@ -301,6 +389,7 @@ describe("source-report route", () => {
             transcript: {
                 text: "SPEAKER_1 00:00 Hello\nSPEAKER_2 00:03 Follow up",
                 segmentCount: 0,
+                segments: [],
             },
             summaryMarkdown: "# Summary\n- Action item",
             detail: {

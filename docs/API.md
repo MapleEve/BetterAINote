@@ -11,7 +11,7 @@
 | 阶段 | `preview`，首个正式 release 前仍可能调整路径、字段和错误码 |
 | 部署 | 私有部署优先，默认面向本机或可信网络 |
 | 鉴权 | 浏览器请求使用 Web app 会话；服务间访问应使用部署方控制的 secret 或 integration key |
-| 发布 | CI 可以运行；Release / Docker 发布工作流默认关闭，需要手动授权 |
+| 发布 | CI 可以运行；`0.6.0-preview` 可作为预发布归档，Release / Docker 发布工作流默认关闭，需要手动授权 |
 
 所有示例都使用 `http://localhost:3001`。不要把示例里的占位符替换成真实凭据后提交到公开仓库。
 
@@ -22,12 +22,7 @@
 - 数据源凭据、转写服务密钥、AI 标题服务密钥不会通过公开 API 完整返回。
 - 示例、Issue、日志和截图里统一使用 `<redacted>`。
 
-```http
-GET /api/recordings/query HTTP/1.1
-Host: localhost:3001
-Authorization: Bearer <redacted-session-or-integration-key>
-Accept: application/json
-```
+下面的 HTTP 示例省略鉴权头；自托管部署可以按自己的网关、反向代理或集成密钥策略添加访问控制。
 
 ## 接口清单
 
@@ -66,7 +61,6 @@ Accept: application/json
 ```http
 GET /api/recordings/query?limit=20&source=ticnote HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer <redacted>
 Accept: application/json
 ```
 
@@ -75,7 +69,6 @@ Accept: application/json
 ```http
 PATCH /api/recordings/rec_123/rename HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer <redacted>
 Content-Type: application/json
 
 {
@@ -88,7 +81,6 @@ Content-Type: application/json
 ```http
 POST /api/recordings/rec_123/transcribe HTTP/1.1
 Host: localhost:3001
-Authorization: Bearer <redacted>
 Content-Type: application/json
 
 {

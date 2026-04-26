@@ -157,9 +157,14 @@ export function SyncStatus({
         >
             {getStatusIcon()}
             <div className="flex flex-col">
-                <span className="font-medium">{getStatusText()}</span>
+                <span className="font-medium" suppressHydrationWarning>
+                    {getStatusText()}
+                </span>
                 {nextSyncText && (
-                    <span className="text-[10px] opacity-70">
+                    <span
+                        className="text-[10px] opacity-70"
+                        suppressHydrationWarning
+                    >
                         {nextSyncText}
                     </span>
                 )}

@@ -195,9 +195,13 @@ export function useOnboardingDataSource({
             return false;
         }
 
-        const payload = buildDataSourceSavePayload(currentState, {
-            [provider]: currentDraft.secrets,
-        });
+        const payload = buildDataSourceSavePayload(
+            currentState,
+            {
+                [provider]: currentDraft.secrets,
+            },
+            language,
+        );
 
         setIsSaving(true);
         try {

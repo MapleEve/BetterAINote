@@ -72,18 +72,24 @@ export function getSourceAuthModeDisplayLabel(
     language: UiLanguage,
 ) {
     const labels: Record<string, { zh: string; en: string }> = {
-        bearer: { zh: "访问令牌", en: "Access token" },
-        cookie: { zh: "网页登录", en: "Web sign-in" },
-        "oauth-device-flow": { zh: "访问令牌", en: "Access token" },
+        bearer: { zh: "Authorization / Bearer", en: "Authorization / Bearer" },
+        cookie: { zh: "Cookie", en: "Cookie" },
+        "oauth-device-flow": {
+            zh: "开放平台 user_access_token",
+            en: "Open platform user_access_token",
+        },
         "web-reverse": {
-            zh: "网页登录信息",
-            en: "Web sign-in details",
+            zh: "space_name + Cookie",
+            en: "space_name + Cookie",
         },
         "session-header": {
-            zh: "会话登录信息",
-            en: "Session sign-in details",
+            zh: "X-Session-Id",
+            en: "X-Session-Id",
         },
-        "agent-token": { zh: "设备登录信息", en: "Device sign-in details" },
+        "device-signin": {
+            zh: "dt-meeting-agent-token",
+            en: "dt-meeting-agent-token",
+        },
     };
 
     const label = labels[mode];
@@ -431,14 +437,13 @@ export function getLocalTranscriptHint(
         return null;
     }
 
-    const label = getSourceProviderLabel(provider, language);
     const assetLabel = getSourceRecordAssetLabel(provider, language);
 
     if (isZh(language)) {
-        return `${label} 的平台原生${assetLabel}固定放在录音详情页的来源标签，这里只展示本地转录。`;
+        return `来源侧${assetLabel}请切到来源标签查看，这里只展示本地转录。`;
     }
 
-    return `The source-side ${assetLabel} from ${label} stays on the source tab. This panel only shows the local transcript.`;
+    return `Source-side ${assetLabel} stays on the source tab. This panel only shows the local transcript.`;
 }
 
 export function getUpstreamDeletedLabel(language: UiLanguage) {
@@ -495,6 +500,54 @@ export function providerUsesCustomServerSelector(provider: SourceProvider) {
     );
 }
 
+export function getProviderServiceAddressDisplay(
+    source: DataSourceUiState,
+    language: UiLanguage,
+) {
+    const zh = isZh(language);
+
+    if (source.provider === "feishu-minutes") {
+        if (source.authMode === "web-reverse") {
+            return {
+                label: zh ? "飞书妙记网页地址" : "Feishu Minutes web address",
+                value: "https://meetings.feishu.cn",
+                description: zh
+                    ? "用于飞书妙记网页请求；填写 space_name、Cookie 时使用这个地址。"
+                    : "Used for Feishu Minutes web requests when pasting space_name and Cookie.",
+                readOnly: true,
+            };
+        }
+
+        return {
+            label: zh ? "飞书开放平台地址" : "Feishu Open Platform address",
+            value: "https://open.feishu.cn",
+            description: zh
+                ? "用于飞书开放平台接口；填写 user_access_token 时使用这个地址。"
+                : "Used for Feishu Open Platform requests when pasting user_access_token.",
+            readOnly: true,
+        };
+    }
+
+    if (source.provider === "dingtalk-a1") {
+        return {
+            label: zh ? "钉钉闪记服务地址" : "DingTalk A1 service address",
+            value: "https://meeting-ai-tingji.dingtalk.com",
+            description: zh
+                ? "用于 getConversationList、minutesDetailV2 等钉钉闪记接口。"
+                : "Used for DingTalk A1 requests such as getConversationList and minutesDetailV2.",
+            readOnly: true,
+        };
+    }
+
+    const manifest = SOURCE_PROVIDER_MANIFESTS[source.provider];
+    return {
+        label: zh ? "服务地址" : "Service URL",
+        value: source.baseUrl ?? manifest.metadata.defaultBaseUrl ?? "",
+        description: null,
+        readOnly: false,
+    };
+}
+
 export function getProviderFormFields(
     state: DataSourceUiState,
     secretDrafts: SecretDraftState,
@@ -513,6 +566,7 @@ export function getProviderFormFields(
 export function buildDataSourceSavePayload(
     state: DataSourceUiState,
     secretDrafts: SecretDraftState,
+    language: UiLanguage,
 ) {
     const secretDraft = secretDrafts[state.provider] ?? {};
     const payload = buildBaseSourcePayload(state, secretDraft);
@@ -521,6 +575,7 @@ export function buildDataSourceSavePayload(
             state,
             secretDraft,
             payload,
+            language,
         }) ?? payload
     );
 }

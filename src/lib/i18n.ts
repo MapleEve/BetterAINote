@@ -15,6 +15,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             back: "返回",
             save: "保存",
             cancel: "取消",
+            confirm: "确认",
+            confirmAction: "确认操作",
             loading: "加载中...",
             saveFailed: "保存设置失败，已回滚。",
         },
@@ -69,8 +71,6 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             relativeDescription: "例如：2 小时前",
             absolute: "绝对时间",
             absoluteDescription: "例如：2026/04/19 15:45",
-            iso: "ISO",
-            isoDescription: "例如：2026-04-19T15:45:00Z",
             sortOrder: "录音列表排序",
             newestFirst: "最新优先",
             oldestFirst: "最早优先",
@@ -109,12 +109,6 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             deleteConfirm: "确定删除“{filename}”吗？这会永久移除录音及其转录。",
             localTranscriptHint:
                 "来源逐字稿/报告固定放在录音详情页，这里只展示本地转录。",
-            currentRecordingTitle: "当前录音与操作",
-            currentRecordingDescription:
-                "先确认当前项，再处理重命名、本地删除和播放相关动作。",
-            transcriptWorkspaceTitle: "本地转录工作区",
-            transcriptWorkspaceDescription:
-                "把本地转录输出、说话人复核和后续动作放在同一个流程里。",
             selectRecording: "选择一条录音以查看详情和转录内容",
         },
         recording: {
@@ -143,14 +137,17 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         transcription: {
             localTitle: "本地转录",
             localDescription: "私有转录结果保存在本地，与来源逐字稿/报告分离。",
-            actionsTitle: "动作",
-            actionsDescription:
-                "只影响本地处理流程，不会回写或覆盖来源原始记录。",
             outputTitle: "转录输出",
             outputDescription: "查看当前本地文本结果、语言信息和基础统计。",
             transcribe: "开始转录",
             retranscribe: "重新转录",
             aiRename: "AI 重命名",
+            aiRenameConfigureFirst: "先配置 AI 重命名服务",
+            aiRenameNeedsTranscript: "需要先生成本地转录",
+            aiRenameConfirm:
+                "AI 重命名会调用已配置的标题生成服务，并改写当前录音标题。继续吗？",
+            retranscribeConfirm:
+                "重新转录会再次调用 GPU 资源，并覆盖当前本地转录结果。继续吗？",
             renaming: "重命名中...",
             transcribing: "转录中...",
             transcribingAudio: "音频转录中...",
@@ -178,17 +175,13 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         speakerReview: {
             loadingSpeakerLabels: "加载说话人标签中...",
             title: "说话人标签",
-            description:
-                "围绕私有转录结果确认原始标签、试听样本，并绑定到本地已保存的人物档案。",
+            description: "确认原始标签，试听样本，并映射到本地人物。",
             transcriptReviewTitle: "逐字稿对照",
-            transcriptReviewDescription:
-                "对比原始分轨文本与已应用本地人物映射的复核版本。",
+            transcriptReviewDescription: "原始标签与说话人名称视图。",
             samplesTitle: "试听样本",
-            samplesDescription:
-                "优先试听较长的本地片段，再决定是否绑定或重绑。",
+            samplesDescription: "先听样本，再决定映射。",
             mappingTitle: "映射到本地人物",
-            mappingDescription:
-                "保持单输入框流程：搜索已有档案，或直接新建一个本地人物。",
+            mappingDescription: "搜索已有档案，或直接新建。",
             speakerNamesMode: "说话人名称",
             rawLabelsMode: "原始标签",
             refresh: "刷新",
@@ -225,6 +218,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             searchResults: "搜索结果",
             noMatchingSpeakers: "没有找到匹配的说话人",
             noSavedSpeakers: "还没有已保存的说话人，可直接新建",
+            noDetectedSpeakers: "当前转录还没有可映射的说话人标签。",
             selected: "已选择",
             selectedSpeaker: "当前选择：{name}",
             currentAssignment: "当前已绑定：{name}",
@@ -243,6 +237,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             create: "创建",
         },
         sourceReport: {
+            tabLabel: "来源",
             title: "来源原始记录详情",
             description:
                 "只读查看来源侧逐字稿/报告，不会向上游提交新的转录任务。",
@@ -280,8 +275,9 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             newRecordings: "{count} 条新录音",
         },
         footer: {
-            madeWith: "用心打造，专注会议",
-            community: "开源 · 为社区而建",
+            madeWith: "专注录音，专注效率",
+            copyright: "软件版权所有",
+            github: "打开 GitHub",
         },
     },
     en: {
@@ -291,6 +287,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             back: "Back",
             save: "Save",
             cancel: "Cancel",
+            confirm: "Confirm",
+            confirmAction: "Confirm action",
             loading: "Loading...",
             saveFailed: "Failed to save settings. Changes reverted.",
         },
@@ -347,8 +345,6 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             relativeDescription: "e.g. 2 hours ago",
             absolute: "Absolute",
             absoluteDescription: "e.g. Apr 19, 2026 3:45 PM",
-            iso: "ISO",
-            isoDescription: "e.g. 2026-04-19T15:45:00Z",
             sortOrder: "Recording list sort order",
             newestFirst: "Newest first",
             oldestFirst: "Oldest first",
@@ -388,12 +384,6 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 'Delete "{filename}"? This removes the recording and its transcript permanently.',
             localTranscriptHint:
                 "The source transcript/report stays on the recording detail page. This dashboard panel shows only your local transcript.",
-            currentRecordingTitle: "Current Recording & Actions",
-            currentRecordingDescription:
-                "Confirm the selected item first, then handle rename, local delete, and playback-related actions.",
-            transcriptWorkspaceTitle: "Local Transcript Workspace",
-            transcriptWorkspaceDescription:
-                "Keep local transcript output, speaker review, and follow-up actions in the same downstream lane.",
             selectRecording:
                 "Select a recording to view details and transcription",
         },
@@ -424,15 +414,18 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             localTitle: "Local Transcript",
             localDescription:
                 "Your private transcript is stored locally and stays separate from the source transcript/report.",
-            actionsTitle: "Actions",
-            actionsDescription:
-                "These actions affect only the local downstream pipeline and never overwrite the source record.",
             outputTitle: "Transcript Output",
             outputDescription:
                 "Review the current local text result with language and basic statistics.",
             transcribe: "Transcribe",
             retranscribe: "Re-transcribe",
             aiRename: "AI Rename",
+            aiRenameConfigureFirst: "Configure AI rename first",
+            aiRenameNeedsTranscript: "Generate a local transcript first",
+            aiRenameConfirm:
+                "AI rename will call the configured title generation service and update this recording title. Continue?",
+            retranscribeConfirm:
+                "Re-transcription will use GPU resources again and replace the current local transcript. Continue?",
             renaming: "Renaming...",
             transcribing: "Transcribing...",
             transcribingAudio: "Transcribing audio...",
@@ -460,17 +453,13 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         speakerReview: {
             loadingSpeakerLabels: "Loading speaker labels...",
             title: "Speaker Labels",
-            description:
-                "Use the private transcript result to confirm raw labels, review sample audio, and map them to saved local profiles.",
+            description: "Confirm labels, review samples, and map profiles.",
             transcriptReviewTitle: "Transcript Review",
-            transcriptReviewDescription:
-                "Compare the raw diarized copy against the review copy with local speaker mappings applied.",
+            transcriptReviewDescription: "Raw labels and speaker-name views.",
             samplesTitle: "Review Samples",
-            samplesDescription:
-                "Listen to the longest local samples first before mapping or remapping a speaker.",
+            samplesDescription: "Listen before mapping.",
             mappingTitle: "Map to a Local Profile",
-            mappingDescription:
-                "Keep the flow to one input: search an existing profile or create a new local profile inline.",
+            mappingDescription: "Search existing or create inline.",
             speakerNamesMode: "Speaker names",
             rawLabelsMode: "Raw labels",
             refresh: "Refresh",
@@ -507,6 +496,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             searchResults: "Search results",
             noMatchingSpeakers: "No matching speakers found",
             noSavedSpeakers: "No saved speakers yet. Create one below.",
+            noDetectedSpeakers: "No speaker labels to map yet.",
             selected: "Selected",
             selectedSpeaker: "Selected: {name}",
             currentAssignment: "Currently linked: {name}",
@@ -526,6 +516,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             create: "Create",
         },
         sourceReport: {
+            tabLabel: "Source",
             title: "Source Record Details",
             description:
                 "Read-only source transcript/report view. This does not submit a new transcription job upstream.",
@@ -564,8 +555,9 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             newRecordings: "{count} new recording{suffix}",
         },
         footer: {
-            madeWith: "Made with care for meetings",
-            community: "Open Source • Built for the Community",
+            madeWith: "Focused on recording and productivity",
+            copyright: "All rights reserved.",
+            github: "Open GitHub",
         },
     },
 };

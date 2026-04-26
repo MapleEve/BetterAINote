@@ -151,7 +151,7 @@ export class FeishuMinutesClient {
     async listRecordingSnapshots(): Promise<FeishuMinutesRecordingSnapshot[]> {
         if (this.connection.authMode === "web-reverse") {
             throw new Error(
-                "飞书妙记连接方式暂不可读取录音，请改用应用访问令牌。",
+                "飞书妙记连接方式暂不可读取录音，请改用开放平台 user_access_token。",
             );
         }
 

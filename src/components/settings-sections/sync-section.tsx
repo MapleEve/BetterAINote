@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import {
+    SettingsCardSkeleton,
+    SettingsSectionSkeleton,
+} from "@/components/settings/settings-skeletons";
+import {
     Card,
     CardContent,
     CardDescription,
@@ -58,11 +62,11 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
     };
 
     if (isLoading && !hasLoaded) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            </div>
-        );
+        if (embedded) {
+            return <SettingsCardSkeleton fields={2} />;
+        }
+
+        return <SettingsSectionSkeleton cards={1} fieldsPerCard={2} />;
     }
 
     const content = (

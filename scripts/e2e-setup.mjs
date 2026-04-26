@@ -2,7 +2,6 @@ import {
     cpSync,
     existsSync,
     mkdirSync,
-    readFileSync,
     rmSync,
     symlinkSync,
 } from "node:fs";
@@ -93,36 +92,17 @@ async function migrateDatabase(targetPath, migrationsFolder) {
     }
 }
 
-async function applySqlFile(targetPath, sqlFilePath) {
-    const client = createClient({ url: resolveDatabaseUrl(targetPath) });
-    const sql = readFileSync(sqlFilePath, "utf8");
-    const statements = sql
-        .split("--> statement-breakpoint")
-        .map((statement) => statement.trim())
-        .filter(Boolean);
-
-    try {
-        for (const statement of statements) {
-            await client.execute(statement);
-        }
-    } finally {
-        await client.close();
-    }
-}
-
 const layout = {
     core: databasePath,
     library: deriveSiblingDatabasePath(databasePath, "library"),
     transcripts: deriveSiblingDatabasePath(databasePath, "transcripts"),
     voiceprints: deriveSiblingDatabasePath(databasePath, "voiceprints"),
+    search: deriveSiblingDatabasePath(databasePath, "search"),
 };
 
 prepareIsolatedAppDir();
 
-await applySqlFile(
-    layout.core,
-    path.resolve(cwd, "src/db/migrations/core/0000_core_baseline.sql"),
-);
+await migrateDatabase(layout.core, path.resolve(cwd, "src/db/migrations/core"));
 await migrateDatabase(
     layout.library,
     path.resolve(cwd, "src/db/migrations/library"),
@@ -134,4 +114,8 @@ await migrateDatabase(
 await migrateDatabase(
     layout.voiceprints,
     path.resolve(cwd, "src/db/migrations/voiceprints"),
+);
+await migrateDatabase(
+    layout.search,
+    path.resolve(cwd, "src/db/migrations/search"),
 );

@@ -113,9 +113,12 @@ async function prepareTicNoteConnectionWrite(params: {
             : normalizedExistingConfig.syncTitleToSource;
 
     if (enabled && !bearerToken) {
-        throw new SourceProviderSettingsError("请填写登录令牌。", {
-            code: "missing-secret",
-        });
+        throw new SourceProviderSettingsError(
+            "请填写 TicNote Authorization / tic_token。",
+            {
+                code: "missing-secret",
+            },
+        );
     }
 
     if (bearerToken) {
@@ -191,7 +194,7 @@ async function prepareTicNoteConnectionWrite(params: {
         throw new SourceProviderSettingsError(
             getConnectionValidationMessage(
                 client,
-                "连接失败，请重新填写登录令牌。",
+                "连接失败，请重新填写 TicNote Authorization / tic_token。",
             ),
             { code: "invalid-connection" },
         );
@@ -234,7 +237,7 @@ async function autoDetectTicNoteOrgId(params: {
         organizationIds = await client.discoverOrganizationIds();
     } catch {
         throw new SourceProviderSettingsError(
-            "无法自动识别组织信息，请检查站点版本和登录令牌，或手动填写组织 ID。",
+            "无法自动识别组织信息，请检查站点版本和 TicNote Authorization / tic_token，或手动填写组织 ID。",
             { code: "org-auto-detect-failed" },
         );
     }

@@ -20,31 +20,31 @@ function buildIflyrecFields(
         buildTextField({
             id: "source-biz-id",
             key: "bizId",
-            label: zh ? "账号类型" : "Account type",
+            label: "X-Biz-Id",
             value: String(state.config.bizId ?? "tjzs"),
             description: zh
-                ? "不确定时保留默认值 tjzs。"
-                : "Keep the default value tjzs if unsure.",
+                ? "复制讯飞听见请求头 X-Biz-Id；不确定就填 tjzs。"
+                : "Copy the iFLYTEK request header named X-Biz-Id. Use tjzs if unsure.",
             placeholder: "tjzs",
         }),
         buildTextareaField({
             id: "source-secret",
             target: "secret",
             key: "sessionId",
-            label: zh ? "登录会话信息" : "Sign-in session details",
+            label: "X-Session-Id",
             value: secretDraft.sessionId ?? "",
             rows: 3,
             className: "font-mono text-sm",
             description: zh
-                ? "从讯飞录音网页登录后复制的会话信息。"
-                : "Paste the sign-in info from iFLYTEK web after logging in.",
+                ? "复制讯飞听见请求头 X-Session-Id 的值。"
+                : "Copy the iFLYTEK request header value named X-Session-Id.",
             placeholder: state.secretsConfigured.sessionId
                 ? zh
                     ? "已保存，如需替换请重新粘贴"
                     : "Already saved. Paste again to replace."
                 : zh
-                  ? "粘贴登录信息"
-                  : "Paste sign-in info",
+                  ? "X-Session-Id"
+                  : "X-Session-Id",
         }),
     ];
 }

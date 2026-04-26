@@ -65,6 +65,8 @@
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
+    --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
+    --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* Hardware Design System */
     --app-background:
@@ -299,14 +301,19 @@
         background:
             linear-gradient(
                 180deg,
-                color-mix(in srgb, var(--card) 78%, white 4%),
-                color-mix(in srgb, var(--card) 68%, transparent)
+                color-mix(in srgb, var(--card) 72%, white 10%),
+                color-mix(in srgb, var(--card) 64%, transparent)
             ), color-mix(in srgb, var(--card) 68%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 68%, white 8%);
-        backdrop-filter: blur(22px) saturate(135%);
+        border: 1px solid color-mix(in srgb, var(--border) 82%, white 8%);
+        backdrop-filter: blur(26px) saturate(148%);
         box-shadow:
-            0 20px 50px rgb(0 0 0 / 0.18),
-            inset 0 1px 0 rgb(255 255 255 / 0.08);
+            0 1px 1px rgb(255 255 255 / 0.08) inset,
+            0 10px 28px rgb(0 0 0 / 0.08);
+        transition:
+            background-color 360ms var(--ease-sine),
+            border-color 360ms var(--ease-sine),
+            box-shadow 360ms var(--ease-sine),
+            opacity 320ms var(--ease-sine);
     }
 
     .glass-surface-subtle {
@@ -318,11 +325,16 @@
                 color-mix(in srgb, var(--secondary) 62%, white 2%),
                 color-mix(in srgb, var(--secondary) 56%, transparent)
             ), color-mix(in srgb, var(--secondary) 58%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 72%, white 4%);
-        backdrop-filter: blur(16px) saturate(125%);
+        border: 1px solid color-mix(in srgb, var(--border) 82%, white 4%);
+        backdrop-filter: blur(18px) saturate(132%);
         box-shadow:
-            0 10px 30px rgb(0 0 0 / 0.12),
-            inset 0 1px 0 rgb(255 255 255 / 0.05);
+            0 1px 1px rgb(255 255 255 / 0.06) inset,
+            0 6px 18px rgb(0 0 0 / 0.06);
+        transition:
+            background-color 360ms var(--ease-sine),
+            border-color 360ms var(--ease-sine),
+            box-shadow 360ms var(--ease-sine),
+            opacity 320ms var(--ease-sine);
     }
 
     .glass-surface::before,
@@ -334,20 +346,19 @@
         background:
             radial-gradient(
                 circle at 18% 0%,
-                rgb(255 255 255 / 0.16),
-                transparent 34%
+                rgb(255 255 255 / 0.12),
+                transparent 32%
             ),
             radial-gradient(
                 circle at 100% 100%,
-                rgb(123 211 255 / 0.08),
+                rgb(123 211 255 / 0.06),
                 transparent 30%
             ),
             linear-gradient(
                 180deg,
-                rgb(255 255 255 / 0.16),
-                rgb(255 255 255 / 0.08) 26%,
-                rgb(255 255 255 / 0.03) 48%,
-                transparent 72%
+                rgb(255 255 255 / 0.12),
+                rgb(255 255 255 / 0.04) 44%,
+                transparent 74%
             );
         mask-image: linear-gradient(
             180deg,
@@ -365,39 +376,36 @@
         inset: 0;
         border-radius: inherit;
         box-shadow:
-            inset 0 1px 0 rgb(255 255 255 / 0.14),
-            inset 0 -1px 0 rgb(0 0 0 / 0.14);
+            inset 0 1px 0 rgb(255 255 255 / 0.1),
+            inset 0 -1px 0 rgb(0 0 0 / 0.04);
         pointer-events: none;
     }
 
     .glass-control {
         position: relative;
         overflow: hidden;
-        background:
-            linear-gradient(
-                180deg,
-                rgb(255 255 255 / 0.18),
-                rgb(255 255 255 / 0.07) 34%,
-                rgb(255 255 255 / 0.02)
-            ), color-mix(in srgb, var(--secondary) 74%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 75%, white 10%);
+        background: color-mix(in srgb, var(--secondary) 58%, transparent);
+        border: 1px solid color-mix(in srgb, var(--border) 82%, white 8%);
         box-shadow:
-            inset 0 1px 0 rgb(255 255 255 / 0.14),
-            inset 0 -1px 0 rgb(0 0 0 / 0.18),
-            0 10px 24px rgb(0 0 0 / 0.16);
+            inset 0 1px 0 rgb(255 255 255 / 0.1),
+            0 4px 12px rgb(0 0 0 / 0.05);
         backdrop-filter: blur(18px) saturate(130%);
+        transition:
+            background-color 320ms var(--ease-sine),
+            border-color 320ms var(--ease-sine),
+            box-shadow 320ms var(--ease-sine);
     }
 
     .glass-control::before {
         content: "";
         position: absolute;
         inset: 1px 1px auto;
-        height: 52%;
+        height: 46%;
         border-radius: inherit;
         background: linear-gradient(
             180deg,
-            rgb(255 255 255 / 0.16),
-            rgb(255 255 255 / 0.05) 55%,
+            rgb(255 255 255 / 0.1),
+            rgb(255 255 255 / 0.03) 55%,
             transparent
         );
         pointer-events: none;
@@ -406,9 +414,100 @@
     .glass-control:hover {
         border-color: color-mix(in srgb, var(--ring) 30%, var(--border));
         box-shadow:
-            inset 0 1px 0 rgb(255 255 255 / 0.16),
-            inset 0 -1px 0 rgb(0 0 0 / 0.2),
-            0 14px 28px rgb(0 0 0 / 0.2);
+            inset 0 1px 0 rgb(255 255 255 / 0.12),
+            0 5px 14px rgb(0 0 0 / 0.06);
+    }
+
+    .liquid-tabs {
+        --active-index: 0;
+        --tab-count: 1;
+        --liquid-tabs-radius: 0.875rem;
+        --liquid-tabs-indicator-radius: 0.625rem;
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(var(--tab-count), minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+        border-radius: var(--liquid-tabs-radius);
+        border: 1px solid color-mix(in srgb, var(--border) 84%, white 8%);
+        background:
+            linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--card) 58%, white 8%),
+                color-mix(in srgb, var(--card) 46%, transparent)
+            ), color-mix(in srgb, var(--background) 42%, transparent);
+        padding: 0.25rem;
+        box-shadow:
+            inset 0 1px 0 rgb(255 255 255 / 0.08),
+            0 3px 12px rgb(0 0 0 / 0.04);
+        backdrop-filter: blur(20px) saturate(136%);
+    }
+
+    .liquid-tabs__indicator {
+        position: absolute;
+        left: 0.25rem;
+        top: 0.25rem;
+        bottom: 0.25rem;
+        width: calc((100% - 0.5rem) / var(--tab-count));
+        border-radius: var(--liquid-tabs-indicator-radius);
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--primary) 88%, white 14%),
+            var(--primary)
+        );
+        box-shadow:
+            0 4px 12px color-mix(in srgb, var(--primary) 18%, transparent),
+            inset 0 1px 0 rgb(255 255 255 / 0.18);
+        transform: translateX(calc(var(--active-index) * 100%));
+        transition:
+            transform 460ms var(--ease-sine),
+            width 360ms var(--ease-sine),
+            opacity 240ms var(--ease-sine);
+    }
+
+    .liquid-tabs__item {
+        position: relative;
+        z-index: 1;
+        min-height: 2.5rem;
+        border-radius: var(--liquid-tabs-indicator-radius);
+        padding: 0.5rem 1rem;
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        transition:
+            color 300ms var(--ease-sine),
+            opacity 300ms var(--ease-sine);
+    }
+
+    .liquid-tabs__item:hover {
+        color: var(--foreground);
+    }
+
+    .liquid-tabs__item--active {
+        color: var(--primary-foreground);
+    }
+
+    .content-fade-in {
+        animation: content-fade-in 420ms var(--ease-sine) both;
+    }
+
+    .skeleton-shimmer {
+        position: relative;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--muted) 70%, transparent);
+    }
+
+    .skeleton-shimmer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgb(255 255 255 / 0.18),
+            transparent
+        );
+        animation: skeleton-shimmer 1.4s var(--ease-sine) infinite;
     }
 
     .glass-control:focus-visible {
@@ -496,7 +595,6 @@
 
     .metal-button:active {
         box-shadow: var(--shadow-xs);
-        transform: translateY(1px);
     }
 
     .text-label {
@@ -721,6 +819,25 @@
         50% {
             opacity: 0.6;
             transform: translate(-50%, -50%) scale(0.95);
+        }
+    }
+
+    @keyframes content-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+            filter: blur(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+
+    @keyframes skeleton-shimmer {
+        to {
+            transform: translateX(100%);
         }
     }
 

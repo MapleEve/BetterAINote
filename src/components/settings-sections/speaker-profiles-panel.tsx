@@ -4,10 +4,12 @@ import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { SettingsListSkeleton } from "@/components/settings/settings-skeletons";
 import { Button } from "@/components/ui/button";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { confirmInBrowser } from "@/lib/platform/browser-shell";
+import { formatDateTime } from "@/lib/format-date";
 
 interface SpeakerProfile {
     id: string;
@@ -35,12 +37,17 @@ function formatTimestamp(value: string | null, locale: string) {
         return value;
     }
 
-    return date.toLocaleString(locale);
+    return formatDateTime(
+        date,
+        "absolute",
+        locale === "zh-CN" ? "zh-CN" : "en",
+    );
 }
 
 export function SpeakerProfilesPanel() {
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
+    const confirm = useConfirmDialog();
     const locale = isZh ? "zh-CN" : "en";
 
     const [profiles, setProfiles] = useState<SpeakerProfile[]>([]);
@@ -53,9 +60,6 @@ export function SpeakerProfilesPanel() {
     );
     const [newName, setNewName] = useState("");
     const [voiceprintsAvailable, setVoiceprintsAvailable] = useState(false);
-    const [voiceprintsProviderName, setVoiceprintsProviderName] = useState<
-        string | null
-    >(null);
     const [voiceprintsReason, setVoiceprintsReason] = useState<string | null>(
         null,
     );
@@ -102,7 +106,6 @@ export function SpeakerProfilesPanel() {
             if (!response.ok) {
                 setVoiceprints([]);
                 setVoiceprintsAvailable(false);
-                setVoiceprintsProviderName(null);
                 setVoiceprintsReason(null);
                 setVoiceprintsError(
                     data.error ||
@@ -121,18 +124,12 @@ export function SpeakerProfilesPanel() {
 
             setVoiceprints(data.voiceprints ?? []);
             setVoiceprintsAvailable(Boolean(data.available));
-            setVoiceprintsProviderName(
-                typeof data.providerName === "string"
-                    ? data.providerName
-                    : null,
-            );
             setVoiceprintsReason(
                 typeof data.reason === "string" ? data.reason : null,
             );
         } catch {
             setVoiceprints([]);
             setVoiceprintsAvailable(false);
-            setVoiceprintsProviderName(null);
             setVoiceprintsReason(null);
             setVoiceprintsError(
                 isZh ? "加载远端声纹失败" : "Failed to load remote voiceprints",
@@ -328,11 +325,15 @@ export function SpeakerProfilesPanel() {
 
     const handleDeleteVoiceprint = useCallback(
         async (voiceprint: RemoteVoiceprint) => {
-            const confirmed = confirmInBrowser(
-                isZh
+            const confirmed = await confirm({
+                title: isZh ? "确认操作" : "Confirm action",
+                description: isZh
                     ? `确定删除远端声纹“${voiceprint.displayName}”吗？本地说话人档案不会自动同步修改。`
                     : `Delete remote voiceprint "${voiceprint.displayName}"? Local speaker profiles will not be changed automatically.`,
-            );
+                confirmLabel: isZh ? "确认" : "Confirm",
+                cancelLabel: isZh ? "取消" : "Cancel",
+                variant: "destructive",
+            });
             if (!confirmed) {
                 return;
             }
@@ -370,7 +371,7 @@ export function SpeakerProfilesPanel() {
                 setVoiceprintSavingId(null);
             }
         },
-        [isZh, refreshVoiceprints],
+        [confirm, isZh, refreshVoiceprints],
     );
 
     return (
@@ -425,11 +426,7 @@ export function SpeakerProfilesPanel() {
                 </div>
 
                 {isProfilesLoading ? (
-                    <div className="text-sm text-muted-foreground">
-                        {isZh
-                            ? "正在加载已保存的说话人..."
-                            : "Loading saved speakers..."}
-                    </div>
+                    <SettingsListSkeleton rows={2} />
                 ) : profiles.length === 0 ? (
                     <div className="text-sm text-muted-foreground">
                         {isZh
@@ -517,19 +514,13 @@ export function SpeakerProfilesPanel() {
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                         <p className="text-sm font-medium">
-                            {isZh ? "远端声纹库" : "Remote Voiceprints"}
+                            {isZh ? "声纹库" : "Voiceprints"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                             {isZh
-                                ? "浏览当前 voice-transcribe provider 背后的声纹库。重命名和删除只会影响远端数据库。"
-                                : "Browse the voiceprint database behind your configured voice-transcribe provider. Rename and delete actions affect the remote database only."}
+                                ? "查看已连接服务中的声纹。重命名和删除只影响声纹库，不会修改本地录音。"
+                                : "View voiceprints from the connected service. Rename and delete actions affect the voiceprint library only and do not change local recordings."}
                         </p>
-                        {voiceprintsProviderName ? (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                {isZh ? "Provider：" : "Provider: "}
-                                {voiceprintsProviderName}
-                            </p>
-                        ) : null}
                     </div>
                     <Button
                         type="button"
@@ -546,11 +537,7 @@ export function SpeakerProfilesPanel() {
                 </div>
 
                 {isVoiceprintsLoading ? (
-                    <div className="text-sm text-muted-foreground">
-                        {isZh
-                            ? "正在加载远端声纹..."
-                            : "Loading remote voiceprints..."}
-                    </div>
+                    <SettingsListSkeleton rows={2} />
                 ) : voiceprintsError ? (
                     <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
                         {voiceprintsError}
@@ -559,8 +546,8 @@ export function SpeakerProfilesPanel() {
                     <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
                         {voiceprintsReason ||
                             (isZh
-                                ? "当前没有为远端声纹配置 voice-transcribe provider。"
-                                : "No voice-transcribe provider is configured for remote voiceprints.")}
+                                ? "请先在 VoScript 保存可用的服务连接。"
+                                : "Save a working VoScript connection first.")}
                     </div>
                 ) : voiceprints.length === 0 ? (
                     <div className="text-sm text-muted-foreground">
@@ -603,9 +590,7 @@ export function SpeakerProfilesPanel() {
 
                                 <div className="space-y-2">
                                     <p className="text-xs font-medium text-muted-foreground">
-                                        {isZh
-                                            ? "声纹引用 ID"
-                                            : "Voiceprint ref"}
+                                        {isZh ? "声纹编号" : "Voiceprint ID"}
                                     </p>
                                     <div className="rounded-md border bg-background px-3 py-2 font-mono text-xs break-all">
                                         {voiceprint.id}

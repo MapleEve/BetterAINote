@@ -296,6 +296,13 @@ describe("Read-only transcript routes", () => {
                         },
                     ]),
                 }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    innerJoin: vi.fn().mockReturnValue({
+                        where: vi.fn().mockResolvedValue([]),
+                    }),
+                }),
             });
 
         const response = await GETQuery(

@@ -1,5 +1,4 @@
-export const PUBLIC_DATA_SOURCE_CONNECTION_ERROR =
-    "连接失败，请检查登录信息后重试";
+export const PUBLIC_DATA_SOURCE_CONNECTION_ERROR = "未能连接数据源";
 
 export const PUBLIC_DATA_SOURCE_IMPORT_ERROR = "导入失败，请稍后重试";
 
