@@ -176,16 +176,16 @@ See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 
 ## Documentation
 
-| Topic | 简体中文 default | English | 日本語 | 한국어 |
-| --- | --- | --- | --- | --- |
-| Project overview | [README.md](./README.md) | [README.en.md](./README.en.md) | [README.ja.md](./README.ja.md) | [README.ko.md](./README.ko.md) |
-| AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
-| API shape and public boundary | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) |
-| Data source maturity | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub project settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
-| Deployment | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
-| Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) | [docs/PRIVACY.md](./docs/PRIVACY.md) | [docs/PRIVACY.md](./docs/PRIVACY.md) | [docs/PRIVACY.md](./docs/PRIVACY.md) |
-| Changelog | [CHANGELOG.md](./CHANGELOG.md) | [CHANGELOG.md](./CHANGELOG.md) | [CHANGELOG.md](./CHANGELOG.md) | [CHANGELOG.md](./CHANGELOG.md) |
+| Topic | Link |
+| --- | --- |
+| Project overview | [README.en.md](./README.en.md) |
+| AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
+| API shape and public boundary | [docs/API.md](./docs/API.md) |
+| Data source maturity | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
+| GitHub project settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
+| Deployment | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
+| Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
+| Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 
 Detailed technical docs are currently kept under `docs/`. The public overview is available in four languages; never move private provider research, credentials, raw source responses, transcripts, or local test data into public docs.
 
