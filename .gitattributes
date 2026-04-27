@@ -19,6 +19,7 @@
 *.ico binary
 *.jpg binary
 *.jpeg binary
+*.gif binary
 *.png binary
 *.webp binary
 *.zip binary
