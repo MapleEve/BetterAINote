@@ -69,10 +69,10 @@ BetterAINote is an independent project. Plaud is one supported source, not the p
 ## Get started
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 Open `http://localhost:3001`, create the first admin account, then configure:
@@ -133,12 +133,12 @@ Providers do not expose identical fields or capabilities. See [Data Sources](./d
 ## Local development
 
 ```bash
-pnpm dev          # Web app + worker
-pnpm dev:web      # Web app only
-pnpm worker       # Worker only
-pnpm type-check
-pnpm format-and-lint
-pnpm test
+bun run dev          # Web app + worker
+bun run dev:web      # Web app only
+bun run worker       # Worker only
+bun run type-check
+bun run format-and-lint
+bun run test
 ```
 
 Runtime shape:

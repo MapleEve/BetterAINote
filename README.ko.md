@@ -69,10 +69,10 @@ BetterAINote는 독립 프로젝트입니다. Plaud는 지원되는 소스 중 �
 ## 시작하기
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 `http://localhost:3001`을 열고 첫 관리자 계정을 만든 뒤 설정하세요.
