@@ -1,4 +1,4 @@
-<sub>🌐 <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a> · <b>한국어</b></sub>
+<sub>🌐 <a href="README.md">简体中文</a> · <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a> · <b>한국어</b></sub>
 
 <div align="center">
 
@@ -20,14 +20,20 @@
 </a>
 
 <br>
+<br>
+
+<img src="./docs/assets/betterainote-hero.gif" alt="BetterAINote private multi-platform voice workspace animation" width="100%" />
+
+<br>
 
 DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소스를 하나의 로컬 작업 공간으로 가져옵니다.<br>
+핵심은 특정 서비스 하나가 아니라 여러 음성 플랫폼 자료를 사설 환경에 모아 통합 관리하는 것입니다.<br>
 녹음, 전사, 화자 검토, AI 제목, 소스 리포트, 검색용 메타데이터는 우선 사용자가 제어하는 배포 환경에 남습니다.<br>
 현재 버전은 `0.6.0-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
 
 <br>
 
-[Quickstart](#시작하기) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md) · [Security](./SECURITY.md)
+[Quickstart](#시작하기) · [AI install/deploy](./docs/AI_INSTALL_DEPLOYMENT.md) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md)
 
 </div>
 
@@ -127,11 +133,13 @@ BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름
 
 ## 문서
 
-| 주제 | English | 简体中文 | 日本語 | 한국어 |
+| 주제 | 简体中文 default | English | 日本語 | 한국어 |
 | --- | --- | --- | --- | --- |
-| 개요 | [README.md](./README.md) | [README.zh-CN.md](./README.zh-CN.md) | [README.ja.md](./README.ja.md) | [README.ko.md](./README.ko.md) |
+| 개요 | [README.md](./README.md) | [README.en.md](./README.en.md) | [README.ja.md](./README.ja.md) | [README.ko.md](./README.ko.md) |
+| AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) |
 | 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
+| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 
 ---
