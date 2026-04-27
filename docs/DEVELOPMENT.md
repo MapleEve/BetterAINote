@@ -25,9 +25,9 @@ bun run dev
 默认：
 
 - Web URL：`http://localhost:3001`
-- `bun run dev`：同时启动 Web app 和 worker。
-- `bun run dev:web`：只启动 Web app。
-- `bun run worker`：只启动 worker。
+- `bun run dev`：执行 `scripts/dev-with-worker.mjs`，同时启动 Next.js Web app 和后台 worker。
+- `bun run dev:web`：只启动 Next.js Web app，适合只调前端和 API。
+- `bun run worker`：只启动后台 worker，适合同步、转写调度和队列任务调试。
 
 ## 常用检查
 

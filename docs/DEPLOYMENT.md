@@ -44,7 +44,7 @@ bun run db:migrate
 bun run dev
 ```
 
-默认地址是 `http://localhost:3001`。
+默认地址是 `http://localhost:3001`。`bun run dev` 会同时启动 Next.js Web app 和后台 worker；生产或容器部署可以把 app 和 worker 拆开运行。
 
 最少需要配置：
 
