@@ -75,6 +75,8 @@ bun run db:migrate
 bun run dev
 ```
 
+`bun run dev`는 Next.js Web app과 백그라운드 worker를 함께 시작합니다. Web만 실행하려면 `bun run dev:web`, worker만 실행하려면 `bun run worker`를 사용하세요.
+
 `http://localhost:3001`을 열고 첫 관리자 계정을 만든 뒤 설정하세요.
 
 - `Data Sources`: 녹음 소스를 연결합니다.

@@ -22,6 +22,8 @@ bun run db:migrate
 bun run dev
 ```
 
+`bun run dev` 会同时启动 Web app 和 worker。只调网页用 `bun run dev:web`，只调后台任务用 `bun run worker`。
+
 ### 提交前检查
 
 ```bash
@@ -61,6 +63,8 @@ cp .env.example .env.local
 bun run db:migrate
 bun run dev
 ```
+
+`bun run dev` starts both the web app and worker. Use `bun run dev:web` for web-only work, or `bun run worker` for background jobs.
 
 ### Required checks
 

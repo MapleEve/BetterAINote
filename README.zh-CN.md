@@ -75,6 +75,8 @@ bun run db:migrate
 bun run dev
 ```
 
+`bun run dev` 会同时启动 Next.js Web app 和后台 worker。只跑网页用 `bun run dev:web`，单独跑 worker 用 `bun run worker`。
+
 打开 `http://localhost:3001`，创建第一个管理员账号，然后进入设置页配置：
 
 - `Data Sources`：连接钉钉、TicNote、Plaud、飞书妙记、讯飞听见等录音来源。

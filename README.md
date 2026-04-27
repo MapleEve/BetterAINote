@@ -75,6 +75,8 @@ bun run db:migrate
 bun run dev
 ```
 
+`bun run dev` starts both the Next.js web app and the background worker. Use `bun run dev:web` for web only, or `bun run worker` when you need to run the worker separately.
+
 Open `http://localhost:3001`, create the first admin account, then configure:
 
 - `Data Sources`: connect DingTalk, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, and similar recording sources.
@@ -133,9 +135,9 @@ Providers do not expose identical fields or capabilities. See [Data Sources](./d
 ## Local development
 
 ```bash
-bun run dev          # Web app + worker
-bun run dev:web      # Web app only
-bun run worker       # Worker only
+bun run dev          # Next.js app + background worker
+bun run dev:web      # Next.js app only
+bun run worker       # background worker only
 bun run type-check
 bun run format-and-lint
 bun run test
