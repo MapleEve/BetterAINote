@@ -133,14 +133,14 @@ BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름
 
 ## 문서
 
-| 주제 | 简体中文 default | English | 日本語 | 한국어 |
-| --- | --- | --- | --- | --- |
-| 개요 | [README.md](./README.md) | [README.en.md](./README.en.md) | [README.ja.md](./README.ja.md) | [README.ko.md](./README.ko.md) |
-| AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
-| API | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) | [docs/API.md](./docs/API.md) |
-| 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
-| 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
+| 주제 | 링크 |
+| --- | --- |
+| 개요 | [README.ko.md](./README.ko.md) |
+| AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
+| API | [docs/API.md](./docs/API.md) |
+| 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
+| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
+| 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 
 ---
 
