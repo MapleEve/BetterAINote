@@ -12,7 +12,7 @@
 | 发布 | `0.6.0-preview` 是预发布基线；正式稳定版仍不发布 |
 | Docker | 可以本地构建；发布工作流手动触发且默认关闭 |
 | Release | Release notes 工作流手动触发且默认关闭，只在预发布归档或正式发布计划批准后使用 |
-| CI | `pnpm format-and-lint`、`pnpm type-check`、测试和构建可在 CI 中运行 |
+| CI | `bun run format-and-lint`、`bun run type-check`、测试和构建可在 CI 中运行 |
 | 推荐部署 | 自己控制的本机、私有服务器或可信容器环境 |
 
 ## 运行形态
@@ -38,10 +38,10 @@ Desktop packaging 不在当前部署边界内。
 ## 本地自托管
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 默认地址是 `http://localhost:3001`。

@@ -16,29 +16,29 @@
 ## 本地启动
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 默认：
 
 - Web URL：`http://localhost:3001`
-- `pnpm dev`：同时启动 Web app 和 worker。
-- `pnpm dev:web`：只启动 Web app。
-- `pnpm worker`：只启动 worker。
+- `bun run dev`：同时启动 Web app 和 worker。
+- `bun run dev:web`：只启动 Web app。
+- `bun run worker`：只启动 worker。
 
 ## 常用检查
 
 ```bash
-pnpm format-and-lint
-pnpm type-check
-pnpm test
-pnpm db:migrate
+bun run format-and-lint
+bun run type-check
+bun run test
+bun run db:migrate
 ```
 
-文档改动至少要跑格式 / lint、类型检查和任务要求的敏感词扫描。`pnpm type-check` 如果生成 `tsconfig.tsbuildinfo`，结束前删除。
+文档改动至少要跑格式 / lint、类型检查和任务要求的敏感词扫描。`bun run type-check` 如果生成 `tsconfig.tsbuildinfo`，结束前删除。
 
 ## 产品边界
 

@@ -16,17 +16,17 @@
 ### 本地开发
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 ### 提交前检查
 
 ```bash
-pnpm type-check
-pnpm test
+bun run type-check
+bun run test
 ```
 
 ### 文档要求
@@ -56,17 +56,17 @@ Contributions to BetterAINote are welcome.
 ### Local development
 
 ```bash
-pnpm install
+bun install
 cp .env.example .env.local
-pnpm db:migrate
-pnpm dev
+bun run db:migrate
+bun run dev
 ```
 
 ### Required checks
 
 ```bash
-pnpm type-check
-pnpm test
+bun run type-check
+bun run test
 ```
 
 ### Documentation

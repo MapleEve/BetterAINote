@@ -59,14 +59,14 @@ Relates to #
 
 <!-- 用 x 勾选已完成项 -->
 
-- [ ] 代码符合项目风格（`pnpm format-and-lint`）
+- [ ] 代码符合项目风格（`bun run format-and-lint`）
 - [ ] 已完成自审
 - [ ] 难理解代码已有必要注释
 - [ ] 已同步更新文档
 - [ ] 没有引入新的警告或错误
 - [ ] 已补充有效测试
-- [ ] 本地测试通过（`pnpm test`）
-- [ ] 类型检查通过（`pnpm type-check`）
+- [ ] 本地测试通过（`bun run test`）
+- [ ] 类型检查通过（`bun run type-check`）
 - [ ] 日志、截图、fixture、文档和示例均已脱敏，不包含凭据、录音内容、完整环境文件、网络抓包文件或本地私有路径
 
 ## 数据库变更
@@ -74,7 +74,7 @@ Relates to #
 <!-- 如果涉及 split SQLite schema / baseline / migrations，请补全下面内容 -->
 
 - [ ] 已更新对应 schema / baseline / migration
-- [ ] 已本地验证 `pnpm db:migrate`
+- [ ] 已本地验证 `bun run db:migrate`
 - [ ] 已提供必要的回滚说明
 
 ## 破坏性变更
