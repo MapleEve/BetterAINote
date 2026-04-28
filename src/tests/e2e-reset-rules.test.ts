@@ -31,8 +31,8 @@ describe("E2E reset safety rules", () => {
         expect(script).toContain("recording_tags");
         expect(script).toContain("search_documents");
         expect(script).toContain("search_content_fts");
-        expect(script).toContain("delete-all");
-        expect(script).not.toContain("DELETE FROM `search_content_fts`");
+        expect(script).toContain("DELETE FROM `search_content_fts`");
+        expect(script).not.toContain("delete-all");
     });
 
     it("never resets remote VoScript voiceprints through API calls", () => {

@@ -387,6 +387,71 @@ describe("transcription jobs", () => {
         );
     });
 
+    it("keeps submitted private jobs retryable after transient network polling errors", async () => {
+        const updateWhere = vi.fn().mockResolvedValue(undefined);
+        const updateSet = vi.fn().mockReturnValue({
+            where: updateWhere,
+        });
+        (db.update as Mock).mockReturnValue({
+            set: updateSet,
+        });
+
+        (db.select as Mock)
+            .mockReturnValueOnce(
+                mockOrderedSelect([
+                    {
+                        id: "job-submitted",
+                        userId: "user-1",
+                        recordingId: "rec-submitted",
+                        status: "processing",
+                        force: false,
+                        provider: "voice-transcribe",
+                        model: "voice-transcribe:whisper",
+                        providerJobId: "job-remote-1",
+                        remoteStatus: "transcribing",
+                        attempts: 1,
+                        submittedAt: new Date("2026-04-18T10:00:00.000Z"),
+                        startedAt: new Date("2026-04-18T10:00:00.000Z"),
+                        nextPollAt: new Date("2026-04-18T10:00:01.000Z"),
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereLimitSelect([
+                    {
+                        privateTranscriptionBaseUrl:
+                            "http://transcribe.internal:8780",
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(mockWhereSelect([]))
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        id: "job-submitted",
+                        status: "processing",
+                    },
+                ]),
+            );
+
+        (pollVoiceTranscribeJob as unknown as Mock).mockRejectedValueOnce(
+            new Error("The socket connection was closed unexpectedly"),
+        );
+
+        await expect(processDueTranscriptionJobs(1)).resolves.toEqual({
+            processed: 1,
+            succeeded: 0,
+            failed: 0,
+        });
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                status: "processing",
+                remoteStatus: "transcribing",
+                completedAt: null,
+            }),
+        );
+    });
+
     it("keeps extra pending private jobs local while another remote job is active", async () => {
         const updateWhere = vi.fn().mockResolvedValue(undefined);
         const updateSet = vi.fn().mockReturnValue({

@@ -62,6 +62,7 @@ plans/
 
 # local audit / debug artifacts
 /tmp/
+/remotion/
 
 # local planning / internal continuity notes
 /todo.md

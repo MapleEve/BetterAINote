@@ -7,7 +7,7 @@ describe("dashboard recording player regressions", () => {
         const source = readFileSync(
             path.join(
                 process.cwd(),
-                "src/components/dashboard/recording-player.tsx",
+                "src/features/recordings/components/recording-player.tsx",
             ),
             "utf8",
         );

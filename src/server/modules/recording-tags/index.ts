@@ -11,6 +11,7 @@ import {
     isValidRecordingTagName,
     normalizeRecordingTagName,
 } from "@/lib/recording-tags";
+import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
 
 export class RecordingTagError extends Error {
     constructor(
@@ -67,6 +68,12 @@ export async function createRecordingTag(
                 icon,
             })
             .returning();
+
+        await enqueueSearchIndexJob({
+            userId,
+            entityType: "tag",
+            entityId: tag.id,
+        });
 
         return serializeTag(tag);
     } catch (error) {
@@ -145,6 +152,12 @@ export async function updateRecordingTagAssignments(
             })),
         );
     }
+
+    await enqueueSearchIndexJob({
+        userId,
+        entityType: "recording",
+        entityId: recordingId,
+    });
 
     const tagById = new Map(tags.map((tag) => [tag.id, tag]));
     return tagIds

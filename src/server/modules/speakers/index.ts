@@ -2,6 +2,10 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { recordingSpeakers, speakerProfiles } from "@/db/schema/voiceprints";
 import { createSpeakerProfile } from "@/lib/speakers";
+import {
+    enqueueSearchDeleteJob,
+    enqueueSearchIndexJob,
+} from "@/server/modules/search/indexer";
 
 export class SpeakerProfileError extends Error {
     constructor(
@@ -31,6 +35,40 @@ function serializeSpeakerProfile(
         updatedAt: profile.updatedAt.toISOString(),
         assignmentCount,
     };
+}
+
+async function enqueueSpeakerVisibleSearchWrites(
+    userId: string,
+    profileId: string,
+) {
+    await enqueueSearchIndexJob({
+        userId,
+        entityType: "speaker",
+        entityId: profileId,
+    });
+
+    const assignments = await db
+        .select({ recordingId: recordingSpeakers.recordingId })
+        .from(recordingSpeakers)
+        .where(
+            and(
+                eq(recordingSpeakers.userId, userId),
+                eq(recordingSpeakers.matchedProfileId, profileId),
+            ),
+        );
+
+    const recordingIds = [
+        ...new Set(assignments.map((row) => row.recordingId)),
+    ];
+    await Promise.all(
+        recordingIds.map((recordingId) =>
+            enqueueSearchIndexJob({
+                userId,
+                entityType: "recording",
+                entityId: recordingId,
+            }),
+        ),
+    );
 }
 
 export async function listSpeakerProfiles(userId: string) {
@@ -98,6 +136,11 @@ export async function createSpeakerProfileForUser(
         displayName,
         voiceprintRef,
     );
+    await enqueueSearchIndexJob({
+        userId,
+        entityType: "speaker",
+        entityId: profile.id,
+    });
 
     return serializeSpeakerProfile(profile, 0);
 }
@@ -136,6 +179,8 @@ export async function updateSpeakerProfileForUser(
         throw new SpeakerProfileError("Speaker profile not found", 404);
     }
 
+    await enqueueSpeakerVisibleSearchWrites(userId, profile.id);
+
     return serializeSpeakerProfile(profile, 0);
 }
 
@@ -156,6 +201,12 @@ export async function deleteSpeakerProfileForUser(
     if (!profile) {
         throw new SpeakerProfileError("Speaker profile not found", 404);
     }
+
+    await enqueueSearchDeleteJob({
+        userId,
+        entityType: "speaker",
+        entityId: profile.id,
+    });
 
     return { success: true };
 }

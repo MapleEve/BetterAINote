@@ -3,14 +3,14 @@
 import { CheckCircle, CloudOff, Pencil, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { RecordingPlayer } from "@/components/dashboard/recording-player";
 import { useLanguage } from "@/components/language-provider";
-import { SourceReportPanel } from "@/components/recordings/source-report-panel";
-import { TranscriptionSection } from "@/components/recordings/transcription-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { RecordingPlayer } from "@/features/recordings/components/recording-player";
+import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import {
     canRecordingPrivateTranscribe,

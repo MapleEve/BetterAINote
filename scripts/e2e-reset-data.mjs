@@ -141,7 +141,7 @@ await executeStatements(layout.voiceprints, [
 ]);
 
 await executeStatements(layout.search, [
-    "INSERT INTO search_content_fts(search_content_fts) VALUES('delete-all')",
+    "DELETE FROM `search_content_fts`",
     "DELETE FROM `search_index_jobs`",
     "DELETE FROM `search_tombstones`",
     "DELETE FROM `search_index_ranges`",

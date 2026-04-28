@@ -128,7 +128,10 @@ function getWordsClient() {
         return wordsClient;
     }
 
-    mkdirSync(path.dirname(path.resolve(wordsPath)), { recursive: true });
+    mkdirSync(
+        path.dirname(path.resolve(/* turbopackIgnore: true */ wordsPath)),
+        { recursive: true },
+    );
     wordsClient = createClient({
         url: resolveDatabaseUrl(wordsPath),
     });

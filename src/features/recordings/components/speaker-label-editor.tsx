@@ -3,14 +3,14 @@
 import { FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-    SpeakerReviewSkeleton,
-    TranscriptReviewSkeleton,
-} from "@/components/dashboard/transcription-skeletons";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    SpeakerReviewSkeleton,
+    TranscriptReviewSkeleton,
+} from "@/features/recordings/components/transcription-skeletons";
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
 import { cn } from "@/lib/utils";

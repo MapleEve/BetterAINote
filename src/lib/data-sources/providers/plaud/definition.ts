@@ -1,9 +1,7 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { sourceDevices } from "@/db/schema/library";
 import type {
     PersistedSourceConnectionState,
     PreparedSourceConnectionWrite,
+    PreparedSourceDeviceWrite,
     ResolvedSourceConnection,
     SourceLinkedRecording,
     SourceProviderClient,
@@ -76,43 +74,17 @@ async function mapWithConcurrency<T, R>(
     return results;
 }
 
-async function upsertPlaudDevices(userId: string, client: PlaudClient) {
+async function listPlaudDevicesForWrite(
+    client: PlaudClient,
+): Promise<PreparedSourceDeviceWrite[]> {
     const deviceList = await client.listDevices();
 
-    for (const device of deviceList.data_devices) {
-        const [existingDevice] = await db
-            .select()
-            .from(sourceDevices)
-            .where(
-                and(
-                    eq(sourceDevices.userId, userId),
-                    eq(sourceDevices.provider, "plaud"),
-                    eq(sourceDevices.providerDeviceId, device.sn),
-                ),
-            )
-            .limit(1);
-
-        if (existingDevice) {
-            await db
-                .update(sourceDevices)
-                .set({
-                    name: device.name,
-                    model: device.model,
-                    versionNumber: device.version_number,
-                    updatedAt: new Date(),
-                })
-                .where(eq(sourceDevices.id, existingDevice.id));
-        } else {
-            await db.insert(sourceDevices).values({
-                userId,
-                provider: "plaud",
-                providerDeviceId: device.sn,
-                name: device.name,
-                model: device.model,
-                versionNumber: device.version_number,
-            });
-        }
-    }
+    return deviceList.data_devices.map((device) => ({
+        providerDeviceId: device.sn,
+        name: device.name,
+        model: device.model,
+        versionNumber: device.version_number,
+    }));
 }
 
 async function preparePlaudConnectionWrite(params: {
@@ -185,20 +157,22 @@ async function preparePlaudConnectionWrite(params: {
         params.existing.baseUrl !== baseUrl ||
         existingBearerToken !== normalizedBearerToken;
 
-    if (shouldValidateConnection) {
-        const client = new PlaudClient(normalizedBearerToken, baseUrl);
-        const isValid = await client.testConnection();
-        if (!isValid) {
-            throw new SourceProviderSettingsError(
-                "连接失败，请重新填写 Plaud Authorization。",
-                {
-                    code: "invalid-connection",
-                },
-            );
-        }
+    const sourceDevices = shouldValidateConnection
+        ? await (async () => {
+              const client = new PlaudClient(normalizedBearerToken, baseUrl);
+              const isValid = await client.testConnection();
+              if (!isValid) {
+                  throw new SourceProviderSettingsError(
+                      "连接失败，请重新填写 Plaud Authorization。",
+                      {
+                          code: "invalid-connection",
+                      },
+                  );
+              }
 
-        await upsertPlaudDevices(params.userId, client);
-    }
+              return listPlaudDevicesForWrite(client);
+          })()
+        : undefined;
 
     nextSecrets.bearerToken = normalizedBearerToken;
 
@@ -212,6 +186,7 @@ async function preparePlaudConnectionWrite(params: {
             syncTitleToSource,
         },
         secretConfig: persistSecretConfig(nextSecrets),
+        sourceDevices,
     };
 }
 

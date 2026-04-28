@@ -28,14 +28,22 @@ describe("preview search write path contract", () => {
         expect(source).toContain("sourceArtifacts.artifactType");
     });
 
-    it("full search rebuild subsumes stale pending index jobs for the rebuilt user", () => {
-        const source = readFileSync(
+    it("keeps read-model rebuild separate from search job ownership", () => {
+        const rebuildSource = readFileSync(
             path.join(process.cwd(), "src/server/modules/search/rebuild.ts"),
             "utf8",
         );
+        const processorSource = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/server/modules/search/job-processor.ts",
+            ),
+            "utf8",
+        );
 
-        expect(source).toContain("searchIndexJobs");
-        expect(source).toContain("delete(searchIndexJobs)");
-        expect(source).toContain("eq(searchIndexJobs.userId, userId)");
+        expect(rebuildSource).not.toContain("searchIndexJobs");
+        expect(rebuildSource).not.toContain("delete(searchIndexJobs)");
+        expect(processorSource).toContain("processTranscriptRebuildGroups");
+        expect(processorSource).toContain("markJobCompleted");
     });
 });

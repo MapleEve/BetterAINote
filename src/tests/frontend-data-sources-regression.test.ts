@@ -53,11 +53,17 @@ describe("frontend data-source routing regression", () => {
             path.join(ROOT, "app/(app)/onboarding/page.tsx"),
             "utf8",
         );
+        const onboardingModule = readFileSync(
+            path.join(ROOT, "server/modules/onboarding/index.ts"),
+            "utf8",
+        );
 
         expect(onboardingForm).toContain("/api/data-sources");
         expect(onboardingForm).not.toContain("/api/plaud/connect");
-        expect(onboardingPage).toContain("sourceConnections");
+        expect(onboardingPage).toContain("hasCompletedOnboarding");
+        expect(onboardingModule).toContain("sourceConnections");
         expect(onboardingPage).not.toContain("plaudConnections");
+        expect(onboardingModule).not.toContain("plaudConnections");
     });
 
     it("keeps onboarding and settings free of Plaud-only main-flow branches", () => {
@@ -94,7 +100,7 @@ describe("frontend data-source routing regression", () => {
             "utf8",
         );
         const workstation = readFileSync(
-            path.join(ROOT, "components/dashboard/workstation.tsx"),
+            path.join(ROOT, "features/dashboard/workstation.tsx"),
             "utf8",
         );
         const dataSourcesSection = readFileSync(
@@ -158,19 +164,28 @@ describe("frontend data-source routing regression", () => {
 
     it("keeps recording-facing shared panels free of inline Plaud-only source branches", () => {
         const recordingWorkstation = readFileSync(
-            path.join(ROOT, "components/recordings/recording-workstation.tsx"),
+            path.join(ROOT, "features/recordings/workstation.tsx"),
             "utf8",
         );
         const transcriptionSection = readFileSync(
-            path.join(ROOT, "components/recordings/transcription-section.tsx"),
+            path.join(
+                ROOT,
+                "features/recordings/components/transcription-section.tsx",
+            ),
             "utf8",
         );
         const transcriptionPanel = readFileSync(
-            path.join(ROOT, "components/dashboard/transcription-panel.tsx"),
+            path.join(
+                ROOT,
+                "features/dashboard/components/transcription-panel.tsx",
+            ),
             "utf8",
         );
         const sourceReportPanel = readFileSync(
-            path.join(ROOT, "components/recordings/source-report-panel.tsx"),
+            path.join(
+                ROOT,
+                "features/recordings/components/source-report-panel.tsx",
+            ),
             "utf8",
         );
 

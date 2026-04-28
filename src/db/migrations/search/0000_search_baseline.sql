@@ -82,8 +82,7 @@ CREATE VIRTUAL TABLE `search_content_fts` USING fts5(
 	`source`,
 	`entity_type` UNINDEXED,
 	`entity_id` UNINDEXED,
-	`recording_id` UNINDEXED,
-	content=''
+	`recording_id` UNINDEXED
 );
 --> statement-breakpoint
 CREATE TABLE `search_index_ranges` (

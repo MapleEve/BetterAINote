@@ -7,7 +7,7 @@ describe("dashboard speaker label editor regressions", () => {
         const source = readFileSync(
             path.join(
                 process.cwd(),
-                "src/components/dashboard/speaker-label-editor.tsx",
+                "src/features/recordings/components/speaker-label-editor.tsx",
             ),
             "utf8",
         );

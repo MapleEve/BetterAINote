@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { RecordingPlayer } from "@/features/recordings/components/recording-player";
+import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import {
@@ -46,10 +48,9 @@ import {
 import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import type { Recording } from "@/types/recording";
-import { RecordingList } from "./recording-list";
-import { RecordingPlayer } from "./recording-player";
-import { RecordingTagManager } from "./recording-tag-manager";
-import { TranscriptionPanel } from "./transcription-panel";
+import { LibrarySearch } from "./components/library-search";
+import { RecordingList } from "./components/recording-list";
+import { TranscriptionPanel } from "./components/transcription-panel";
 
 interface TranscriptionData {
     hasTranscript?: boolean;
@@ -483,6 +484,21 @@ export function Workstation({
         await manualSync();
     }, [manualSync]);
 
+    const handleOpenSearchResult = useCallback(
+        (recordingId: string) => {
+            const recording = liveRecordings.find(
+                (item) => item.id === recordingId,
+            );
+            if (!recording) {
+                return;
+            }
+
+            setTagManagerOpen(false);
+            setCurrentRecording(recording);
+        },
+        [liveRecordings],
+    );
+
     const handleTranscribe = useCallback(async () => {
         if (!currentRecording) return;
         if (!currentCanPrivateTranscribe) {
@@ -818,6 +834,9 @@ export function Workstation({
                                     </>
                                 )}
                             </Button>
+                            <LibrarySearch
+                                onOpenRecording={handleOpenSearchResult}
+                            />
                             <Button
                                 onClick={() => setSettingsOpen(true)}
                                 variant="outline"
@@ -858,7 +877,7 @@ export function Workstation({
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="grid grid-cols-1 gap-6 lg:h-[calc(100svh-9rem)] lg:min-h-[680px] lg:grid-cols-3 lg:overflow-hidden">
+                        <div className="grid grid-cols-1 gap-6 lg:h-[calc(100svh-13rem)] lg:min-h-[640px] lg:grid-cols-3 lg:overflow-hidden">
                             <div className="min-h-0 lg:col-span-1">
                                 <RecordingList
                                     recordings={liveRecordings}

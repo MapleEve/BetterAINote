@@ -11,6 +11,7 @@ import {
 import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
 import { getPublicVoiceTranscribeErrorMessage } from "@/lib/voice-transcribe/public-errors";
 import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
+import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
 import { findOwnedRecording } from "./ownership";
 
 export class RecordingSpeakersError extends Error {
@@ -38,6 +39,32 @@ function serializeSpeakerProfile(profile: {
                 ? profile.hasVoiceprint
                 : Boolean(profile.voiceprintRef),
     };
+}
+
+async function enqueueSpeakerReviewSearchWrites(input: {
+    userId: string;
+    recordingId: string;
+    profileId: string | null | undefined;
+}) {
+    const jobs = [
+        enqueueSearchIndexJob({
+            userId: input.userId,
+            entityType: "recording",
+            entityId: input.recordingId,
+        }),
+    ];
+
+    if (input.profileId) {
+        jobs.push(
+            enqueueSearchIndexJob({
+                userId: input.userId,
+                entityType: "speaker",
+                entityId: input.profileId,
+            }),
+        );
+    }
+
+    await Promise.all(jobs);
 }
 
 async function assertOwnedRecording(userId: string, recordingId: string) {
@@ -177,6 +204,11 @@ export async function updateRecordingSpeakerReview(
             rawLabel: input.rawLabel,
             profileId: null,
         });
+        await enqueueSpeakerReviewSearchWrites({
+            userId,
+            recordingId,
+            profileId: null,
+        });
 
         return {
             success: true as const,
@@ -292,6 +324,11 @@ export async function updateRecordingSpeakerReview(
     await applySpeakerProfileToRecording({
         recordingId,
         rawLabel: input.rawLabel,
+        profileId: resolvedProfileId,
+    });
+    await enqueueSpeakerReviewSearchWrites({
+        userId,
+        recordingId,
         profileId: resolvedProfileId,
     });
 

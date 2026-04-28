@@ -1,7 +1,9 @@
 import { env } from "@/lib/env";
 import { processDueTranscriptionJobs } from "@/lib/transcription/jobs";
+import { processPendingSearchIndexJobs } from "@/server/modules/search";
 import {
     getUserSyncSchedules,
+    hasSyncResultProgress,
     isUserDueForSync,
     type SyncUsersResult,
     syncDueUsers,
@@ -76,11 +78,17 @@ class SyncWorker {
         try {
             const startedAt = new Date();
             const schedules = await getUserSyncSchedules();
-            const dueUserIds = schedules
+            const externalSyncRunning = schedules.some(
+                (schedule) => schedule.isRunning,
+            );
+            const runnableSchedules = schedules.filter(
+                (schedule) => !schedule.isRunning,
+            );
+            const dueUserIds = runnableSchedules
                 .filter((schedule) => isUserDueForSync(schedule, startedAt))
                 .map((schedule) => schedule.userId);
 
-            allUserIds = schedules.map((schedule) => schedule.userId);
+            allUserIds = runnableSchedules.map((schedule) => schedule.userId);
 
             await upsertSyncWorkerStateForUsers(allUserIds, {
                 lastHeartbeatAt: startedAt,
@@ -93,10 +101,22 @@ class SyncWorker {
                 manualTriggerRequestedAt: null,
             });
 
-            const summary = await syncDueUsers(startedAt, schedules);
-            const transcriptionSummary = await processDueTranscriptionJobs();
+            const summary = await syncDueUsers(startedAt, runnableSchedules);
+            const transcriptionSummary = externalSyncRunning
+                ? { processed: 0, succeeded: 0, failed: 0 }
+                : await processDueTranscriptionJobs();
+            const searchSummary = externalSyncRunning
+                ? { processed: 0, succeeded: 0, failed: 0 }
+                : await processPendingSearchIndexJobs();
+            const blockingErrors = summary.results.flatMap(
+                ({ result, userId }) =>
+                    hasSyncResultProgress(result)
+                        ? []
+                        : result.errors.map((error) => `[${userId}] ${error}`),
+            );
+
             this.lastSummary = summary;
-            this.lastError = summary.errors[0] ?? null;
+            this.lastError = blockingErrors[0] ?? null;
             const finishedAt = new Date();
             const nextRunAt = new Date(finishedAt.getTime() + this.tickMs);
 
@@ -114,7 +134,9 @@ class SyncWorker {
                         nextRunAt,
                         manualTriggerRequestedAt: null,
                         isRunning: false,
-                        lastError: result.errors[0] ?? null,
+                        lastError: hasSyncResultProgress(result)
+                            ? null
+                            : (result.errors[0] ?? null),
                         lastSummary: {
                             newRecordings: result.newRecordings,
                             updatedRecordings: result.updatedRecordings,
@@ -126,7 +148,7 @@ class SyncWorker {
             );
 
             console.info(
-                `[worker] sync cycle done checked=${summary.checkedUsers} synced=${summary.syncedUsers} skipped=${summary.skippedUsers} errors=${summary.errors.length} transcriptionJobs=${transcriptionSummary.processed}/${transcriptionSummary.succeeded}/${transcriptionSummary.failed}`,
+                `[worker] sync cycle done checked=${summary.checkedUsers} synced=${summary.syncedUsers} skipped=${summary.skippedUsers} errors=${summary.errors.length} transcriptionJobs=${transcriptionSummary.processed}/${transcriptionSummary.succeeded}/${transcriptionSummary.failed} searchJobs=${searchSummary.processed}/${searchSummary.succeeded}/${searchSummary.failed}`,
             );
         } catch (error) {
             this.lastError =

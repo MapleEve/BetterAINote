@@ -1,6 +1,18 @@
 import { getAudioMimeType } from "@/lib/utils";
 import type { SourceAudioArchivePlan, SourceRecordingData } from "./types";
 
+export const SOURCE_FETCH_TIMEOUT_MS = 60_000;
+
+function createTimeoutSignal(timeoutMs: number) {
+    if (typeof AbortSignal.timeout === "function") {
+        return AbortSignal.timeout(timeoutMs);
+    }
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), timeoutMs).unref?.();
+    return controller.signal;
+}
+
 export function toDateOrNull(value: unknown): Date | null {
     if (value instanceof Date) {
         return Number.isNaN(value.getTime()) ? null : value;
@@ -111,13 +123,16 @@ export async function fetchBuffer(
     options?: {
         headers?: Record<string, string>;
         errorLabel?: string;
+        timeoutMs?: number;
     },
 ) {
     const errorLabel = options?.errorLabel ?? "Failed to fetch source audio";
+    const timeoutMs = options?.timeoutMs ?? SOURCE_FETCH_TIMEOUT_MS;
 
     try {
         const response = await fetch(url, {
             headers: options?.headers,
+            signal: createTimeoutSignal(timeoutMs),
         });
         if (!response.ok) {
             throw new Error(
@@ -127,6 +142,13 @@ export async function fetchBuffer(
 
         return Buffer.from(await response.arrayBuffer());
     } catch (error) {
+        if (
+            error instanceof Error &&
+            (error.name === "AbortError" || error.name === "TimeoutError")
+        ) {
+            throw new Error(`${errorLabel}: request timed out`);
+        }
+
         if (error instanceof Error && error.message.startsWith(errorLabel)) {
             throw error;
         }

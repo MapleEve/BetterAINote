@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { searchIndexJobs } from "@/db/schema/search";
+import { searchIndexJobs, searchTombstones } from "@/db/schema/search";
 import {
     sourceArtifactSegments,
     transcriptSegments,
@@ -13,6 +13,49 @@ import {
 
 type SearchEntityType = "recording" | "transcript" | "speaker" | "tag";
 type SearchIndexAction = "upsert" | "delete" | "rebuild";
+const SQLITE_BUSY_RETRIES = 5;
+const SQLITE_BUSY_RETRY_DELAY_MS = 50;
+
+function isSqliteBusyError(error: unknown, seen = new Set<unknown>()): boolean {
+    if (!error || typeof error !== "object") {
+        return false;
+    }
+    if (seen.has(error)) {
+        return false;
+    }
+    seen.add(error);
+
+    const record = error as Record<string, unknown>;
+    const message = typeof record.message === "string" ? record.message : "";
+
+    return (
+        record.code === "SQLITE_BUSY" ||
+        message.includes("SQLITE_BUSY") ||
+        isSqliteBusyError(record.cause, seen)
+    );
+}
+
+async function waitForRetry(attempt: number) {
+    await new Promise((resolve) =>
+        setTimeout(resolve, SQLITE_BUSY_RETRY_DELAY_MS * attempt),
+    );
+}
+
+async function runWithSqliteBusyRetry<T>(operation: () => Promise<T>) {
+    let attempt = 0;
+
+    while (true) {
+        try {
+            return await operation();
+        } catch (error) {
+            attempt += 1;
+            if (!isSqliteBusyError(error) || attempt > SQLITE_BUSY_RETRIES) {
+                throw error;
+            }
+            await waitForRetry(attempt);
+        }
+    }
+}
 
 export async function enqueueSearchIndexJob(params: {
     userId: string;
@@ -20,14 +63,46 @@ export async function enqueueSearchIndexJob(params: {
     entityId: string;
     action?: SearchIndexAction;
 }) {
-    await db.insert(searchIndexJobs).values({
-        userId: params.userId,
-        entityType: params.entityType,
-        entityId: params.entityId,
-        action: params.action ?? "upsert",
-        status: "pending",
-        scheduledAt: new Date(),
-        updatedAt: new Date(),
+    await runWithSqliteBusyRetry(async () =>
+        db.insert(searchIndexJobs).values({
+            userId: params.userId,
+            entityType: params.entityType,
+            entityId: params.entityId,
+            action: params.action ?? "upsert",
+            status: "pending",
+            scheduledAt: new Date(),
+            updatedAt: new Date(),
+        }),
+    );
+}
+
+export async function enqueueSearchDeleteJob(params: {
+    userId: string;
+    entityType: SearchEntityType;
+    entityId: string;
+}) {
+    await db
+        .insert(searchTombstones)
+        .values({
+            userId: params.userId,
+            entityType: params.entityType,
+            entityId: params.entityId,
+            deletedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+            target: [
+                searchTombstones.userId,
+                searchTombstones.entityType,
+                searchTombstones.entityId,
+            ],
+            set: {
+                deletedAt: new Date(),
+            },
+        });
+
+    await enqueueSearchIndexJob({
+        ...params,
+        action: "delete",
     });
 }
 
