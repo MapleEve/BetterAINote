@@ -1,0 +1,63 @@
+name: Claude Code
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
+  GH_TOKEN_VALUE: ${{ secrets.GH_TOKEN }}
+  CLAUDE_MODEL: claude-sonnet-4-6
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  actions: read
+  id-token: write
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip when Claude secrets are not configured
+        if: ${{ env.ANTHROPIC_API_KEY == '' || env.ANTHROPIC_BASE_URL == '' || env.GH_TOKEN_VALUE == '' }}
+        run: echo "Claude Code secrets are not configured; skipping Claude Code."
+
+      - name: Checkout repository
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run Claude Code
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          claude_args: |
+            --model ${{ env.CLAUDE_MODEL }}
+          allowed_tools: "Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build),Bash(rg *),Bash(git diff *),Bash(git status *)"
+          custom_instructions: |
+            You are working on BetterAINote, a privacy-first self-hosted workspace for multi-platform voice recordings, source artifacts, private transcription, speaker review, and AI titles.
+            Use Bun commands only. Do not introduce pnpm, npm, Yarn, or package-lock/pnpm-lock files.
+            Do not change version numbers unless the maintainer explicitly asks.
+            Do not write tokens, cookies, HAR files, private recordings, private transcripts, provider identifiers, or local private paths into code, docs, logs, or comments.
+            Keep public wording provider-neutral and user-facing. Avoid implementation-only terms in public docs.
+            For code changes, keep the surface narrow, add or update tests, and mention the exact verification commands run.
