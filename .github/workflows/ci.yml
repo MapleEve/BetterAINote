@@ -103,6 +103,9 @@ jobs:
       - name: Run Vitest with coverage
         run: bun run test:coverage
 
+      - name: Normalize LCOV for Codecov line coverage
+        run: perl -0pi -e 's/^BR(?:DA|F|H):.*\n//mg' coverage/lcov.info
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
