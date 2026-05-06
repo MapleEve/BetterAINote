@@ -19,16 +19,30 @@ describe("CI service integrations", () => {
             "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=junit.xml",
         );
         expect(ciWorkflow).toContain("bun run test:coverage");
+        expect(ciWorkflow).toContain(
+            "Normalize LCOV for Codecov line coverage",
+        );
+        expect(ciWorkflow).toContain("BR(?:DA|F|H)");
         expect(ciWorkflow).toContain("codecov/codecov-action@v5");
         expect(ciWorkflow).toContain("coverage/lcov.info");
         expect(ciWorkflow).toContain("junit.xml");
         expect(ciWorkflow).toContain("report_type: test_results");
 
         const codecovConfig = readProjectFile("codecov.yml");
-        expect(codecovConfig).toContain("target: auto");
-        expect(codecovConfig).toContain("threshold: 1%");
-        expect(codecovConfig).toContain("target: 60%");
+        expect(codecovConfig).toContain("target: 80%");
+        expect(codecovConfig).toContain("target: 70%");
+        expect(codecovConfig).toContain("threshold: 0%");
+        expect(codecovConfig).toContain(
+            '"src/server/modules/search/segmenter.ts"',
+        );
         expect(codecovConfig).toContain('"src/tests/**"');
+
+        const vitestConfig = readProjectFile("vitest.config.ts");
+        expect(vitestConfig).toContain('"src/lib/data-sources/**/*.{ts,tsx}"');
+        expect(vitestConfig).toContain(
+            '"src/server/modules/search/segmenter.ts"',
+        );
+        expect(vitestConfig).toContain('"src/features/settings/**/*.{ts,tsx}"');
     });
 
     it("keeps FOSSA as a secret-backed workflow instead of hardcoding tokens", () => {

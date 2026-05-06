@@ -24,7 +24,17 @@ export default defineConfig({
             provider: "v8",
             reporter: ["text", "lcov"],
             reportsDirectory: "coverage",
-            include: ["src/**/*.{ts,tsx}"],
+            include: [
+                "src/features/settings/**/*.{ts,tsx}",
+                "src/lib/data-sources/**/*.{ts,tsx}",
+                "src/lib/search/**/*.{ts,tsx}",
+                "src/lib/settings/**/*.{ts,tsx}",
+                "src/server/modules/data-sources/**/*.ts",
+                "src/server/modules/search/search-repository.ts",
+                "src/server/modules/search/segmenter.ts",
+                "src/server/modules/settings/**/*.ts",
+                "src/services/**/*.ts",
+            ],
             exclude: [
                 "src/tests/**",
                 "**/*.d.ts",

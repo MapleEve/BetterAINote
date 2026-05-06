@@ -1,124 +1,57 @@
 import { describe, expect, it, vi } from "vitest";
 import { createSearchIndexJobProcessor } from "@/server/modules/search/job-processor";
 
-describe("search index job processor", () => {
-    it("processes pending upsert and delete jobs through injected backends", async () => {
-        const jobs = [
+type SearchJobDeps = NonNullable<
+    Parameters<typeof createSearchIndexJobProcessor>[0]
+>;
+
+function createDeps(
+    jobs: Awaited<ReturnType<SearchJobDeps["loadPendingJobs"]>>,
+    overrides: Partial<SearchJobDeps> = {},
+) {
+    const calls: string[] = [];
+    const failed: Array<{
+        jobId: string;
+        attempts: number;
+        status: string;
+        error: string;
+    }> = [];
+
+    const deps: SearchJobDeps = {
+        async loadPendingJobs({ limit }) {
+            calls.push(`load:${limit}`);
+            return jobs;
+        },
+        async markJobStarted({ jobId }) {
+            calls.push(`started:${jobId}`);
+        },
+        async markJobCompleted({ jobId }) {
+            calls.push(`completed:${jobId}`);
+        },
+        async markJobFailed(input) {
+            calls.push(`failed:${input.jobId}:${input.status}`);
+            failed.push(input);
+        },
+        async upsertEntity(input) {
+            calls.push(`upsert:${input.entityType}:${input.entityId}`);
+        },
+        async deleteEntity(input) {
+            calls.push(`delete:${input.entityType}:${input.entityId}`);
+        },
+        async rebuildUser(userId) {
+            calls.push(`rebuild:${userId}`);
+        },
+        ...overrides,
+    };
+
+    return { calls, deps, failed };
+}
+
+describe("search job processor", () => {
+    it("coalesces transcript upserts and processes remaining entity actions", async () => {
+        const { calls, deps } = createDeps([
             {
-                id: "job-1",
-                userId: "user-1",
-                entityType: "recording",
-                entityId: "recording-1",
-                action: "upsert",
-                attempts: 0,
-            },
-            {
-                id: "job-2",
-                userId: "user-1",
-                entityType: "recording",
-                entityId: "recording-2",
-                action: "delete",
-                attempts: 0,
-            },
-        ];
-        const deps = {
-            loadPendingJobs: vi.fn().mockResolvedValue(jobs),
-            markJobStarted: vi.fn(),
-            markJobCompleted: vi.fn(),
-            markJobFailed: vi.fn(),
-            upsertEntity: vi.fn().mockResolvedValue(undefined),
-            deleteEntity: vi.fn().mockResolvedValue(undefined),
-            rebuildUser: vi.fn(),
-        };
-
-        const processor = createSearchIndexJobProcessor(deps);
-        const result = await processor.processPending({ limit: 10 });
-
-        expect(result).toEqual({ processed: 2, succeeded: 2, failed: 0 });
-        expect(deps.upsertEntity).toHaveBeenCalledWith({
-            userId: "user-1",
-            entityType: "recording",
-            entityId: "recording-1",
-        });
-        expect(deps.deleteEntity).toHaveBeenCalledWith({
-            userId: "user-1",
-            entityType: "recording",
-            entityId: "recording-2",
-        });
-        expect(deps.markJobCompleted).toHaveBeenCalledTimes(2);
-        expect(deps.markJobFailed).not.toHaveBeenCalled();
-    });
-
-    it("marks transient indexing failures as retryable before max attempts", async () => {
-        const deps = {
-            loadPendingJobs: vi.fn().mockResolvedValue([
-                {
-                    id: "job-1",
-                    userId: "user-1",
-                    entityType: "recording",
-                    entityId: "recording-1",
-                    action: "upsert",
-                    attempts: 1,
-                },
-            ]),
-            markJobStarted: vi.fn(),
-            markJobCompleted: vi.fn(),
-            markJobFailed: vi.fn(),
-            upsertEntity: vi.fn().mockRejectedValue(new Error("db locked")),
-            deleteEntity: vi.fn(),
-            rebuildUser: vi.fn(),
-        };
-
-        const processor = createSearchIndexJobProcessor(deps);
-        const result = await processor.processPending({
-            limit: 10,
-            maxAttempts: 3,
-        });
-
-        expect(result).toEqual({ processed: 1, succeeded: 0, failed: 1 });
-        expect(deps.markJobFailed).toHaveBeenCalledWith({
-            jobId: "job-1",
-            attempts: 2,
-            status: "pending",
-            error: "db locked",
-        });
-    });
-
-    it("marks poisoned indexing jobs as failed after max attempts", async () => {
-        const deps = {
-            loadPendingJobs: vi.fn().mockResolvedValue([
-                {
-                    id: "job-1",
-                    userId: "user-1",
-                    entityType: "tag",
-                    entityId: "tag-1",
-                    action: "upsert",
-                    attempts: 2,
-                },
-            ]),
-            markJobStarted: vi.fn(),
-            markJobCompleted: vi.fn(),
-            markJobFailed: vi.fn(),
-            upsertEntity: vi.fn().mockRejectedValue("boom"),
-            deleteEntity: vi.fn(),
-            rebuildUser: vi.fn(),
-        };
-
-        const processor = createSearchIndexJobProcessor(deps);
-        await processor.processPending({ limit: 10, maxAttempts: 3 });
-
-        expect(deps.markJobFailed).toHaveBeenCalledWith({
-            jobId: "job-1",
-            attempts: 3,
-            status: "failed",
-            error: "boom",
-        });
-    });
-
-    it("coalesces transcript upsert jobs into one rebuild per user", async () => {
-        const jobs = [
-            {
-                id: "job-1",
+                id: "job-transcript-1",
                 userId: "user-1",
                 entityType: "transcript",
                 entityId: "segment-1",
@@ -126,55 +59,118 @@ describe("search index job processor", () => {
                 attempts: 0,
             },
             {
-                id: "job-2",
+                id: "job-transcript-2",
                 userId: "user-1",
                 entityType: "transcript",
                 entityId: "segment-2",
                 action: "upsert",
-                attempts: 0,
+                attempts: 1,
             },
             {
-                id: "job-3",
-                userId: "user-2",
-                entityType: "transcript",
-                entityId: "segment-3",
-                action: "upsert",
-                attempts: 0,
-            },
-            {
-                id: "job-4",
+                id: "job-recording-delete",
                 userId: "user-1",
                 entityType: "recording",
                 entityId: "recording-1",
+                action: "delete",
+                attempts: 0,
+            },
+            {
+                id: "job-speaker-upsert",
+                userId: "user-1",
+                entityType: "speaker",
+                entityId: "speaker-1",
                 action: "upsert",
                 attempts: 0,
             },
-        ];
-        const deps = {
-            loadPendingJobs: vi.fn().mockResolvedValue(jobs),
-            markJobStarted: vi.fn(),
-            markJobCompleted: vi.fn(),
-            markJobFailed: vi.fn(),
-            upsertEntity: vi.fn().mockResolvedValue(undefined),
-            deleteEntity: vi.fn().mockResolvedValue(undefined),
-            rebuildUser: vi.fn().mockResolvedValue(undefined),
-        };
+            {
+                id: "job-tag-rebuild",
+                userId: "user-2",
+                entityType: "tag",
+                entityId: "tag-1",
+                action: "rebuild",
+                attempts: 0,
+            },
+        ]);
 
-        const processor = createSearchIndexJobProcessor(deps);
-        const result = await processor.processPending({ limit: 10 });
+        const result = await createSearchIndexJobProcessor(deps).processPending(
+            {
+                limit: 500,
+            },
+        );
 
-        expect(result).toEqual({ processed: 4, succeeded: 4, failed: 0 });
-        expect(deps.rebuildUser).toHaveBeenCalledTimes(2);
-        expect(deps.rebuildUser).toHaveBeenCalledWith("user-1");
-        expect(deps.rebuildUser).toHaveBeenCalledWith("user-2");
-        expect(deps.upsertEntity).toHaveBeenCalledTimes(1);
-        expect(deps.upsertEntity).toHaveBeenCalledWith({
-            userId: "user-1",
-            entityType: "recording",
-            entityId: "recording-1",
-        });
-        expect(deps.markJobStarted).toHaveBeenCalledTimes(4);
-        expect(deps.markJobCompleted).toHaveBeenCalledTimes(4);
-        expect(deps.markJobFailed).not.toHaveBeenCalled();
+        expect(result).toEqual({ processed: 5, succeeded: 5, failed: 0 });
+        expect(calls).toContain("load:200");
+        expect(calls).toContain("rebuild:user-1");
+        expect(calls).toContain("delete:recording:recording-1");
+        expect(calls).toContain("upsert:speaker:speaker-1");
+        expect(calls).toContain("rebuild:user-2");
+        expect(calls.filter((call) => call === "rebuild:user-1")).toHaveLength(
+            1,
+        );
+        expect(calls).not.toContain("upsert:transcript:segment-1");
+    });
+
+    it("marks failed jobs as retryable or terminal based on attempts", async () => {
+        const { calls, deps, failed } = createDeps(
+            [
+                {
+                    id: "job-transcript",
+                    userId: "user-1",
+                    entityType: "transcript",
+                    entityId: "segment-1",
+                    action: "upsert",
+                    attempts: 2,
+                },
+                {
+                    id: "job-recording",
+                    userId: "user-2",
+                    entityType: "recording",
+                    entityId: "recording-1",
+                    action: "upsert",
+                    attempts: 0,
+                },
+                {
+                    id: "job-delete",
+                    userId: "user-3",
+                    entityType: "tag",
+                    entityId: "tag-1",
+                    action: "delete",
+                    attempts: 0,
+                },
+            ],
+            {
+                rebuildUser: vi.fn(async () => {
+                    throw new Error("rebuild failed");
+                }),
+                upsertEntity: vi.fn(async () => {
+                    throw "plain failure";
+                }),
+            },
+        );
+
+        const result = await createSearchIndexJobProcessor(deps).processPending(
+            {
+                limit: 0,
+                maxAttempts: 3,
+            },
+        );
+
+        expect(result).toEqual({ processed: 3, succeeded: 1, failed: 2 });
+        expect(calls).toContain("load:1");
+        expect(calls).toContain("delete:tag:tag-1");
+        expect(failed).toEqual([
+            {
+                jobId: "job-transcript",
+                attempts: 3,
+                status: "failed",
+                error: "rebuild failed",
+            },
+            {
+                jobId: "job-recording",
+                attempts: 1,
+                status: "pending",
+                error: "plain failure",
+            },
+        ]);
     });
 });

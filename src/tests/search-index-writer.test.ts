@@ -5,7 +5,11 @@ import {
     buildTagSearchDocument,
     buildTranscriptSearchDocument,
 } from "@/server/modules/recordings/search-read-model";
-import { buildFtsPayloadForChunk } from "@/server/modules/search/index-writer";
+import {
+    buildFtsPayloadForChunk,
+    buildFtsPayloadForStoredChunk,
+    isContentlessSearchContentFtsSchema,
+} from "@/server/modules/search/index-writer";
 
 describe("search index writer", () => {
     it("indexes only the primary searchable fields for each search result type", () => {
@@ -81,6 +85,71 @@ describe("search index writer", () => {
             speaker: null,
             tags: "launch",
             source: null,
+        });
+    });
+
+    it("detects legacy contentless FTS schemas before writeback", () => {
+        expect(
+            isContentlessSearchContentFtsSchema(
+                "CREATE VIRTUAL TABLE search_content_fts USING fts5(body, content='')",
+            ),
+        ).toBe(true);
+        expect(
+            isContentlessSearchContentFtsSchema(
+                'CREATE VIRTUAL TABLE search_content_fts USING fts5(body, content="")',
+            ),
+        ).toBe(true);
+        expect(
+            isContentlessSearchContentFtsSchema(
+                "CREATE VIRTUAL TABLE search_content_fts USING fts5(body)",
+            ),
+        ).toBe(false);
+        expect(isContentlessSearchContentFtsSchema(null)).toBe(false);
+    });
+
+    it("rebuilds FTS rows from stored chunks without reintroducing hidden provider ids", () => {
+        expect(
+            buildFtsPayloadForStoredChunk({
+                rowid: 7,
+                entityType: "speaker",
+                entityId: "speaker-1",
+                recordingId: null,
+                title: "Alice",
+                body: "Alice",
+                speaker: "Alice",
+                tags: null,
+                source: "plaud-internal-id",
+            }),
+        ).toEqual({
+            rowid: 7,
+            title: "Alice",
+            body: "Alice",
+            speaker: "Alice",
+            tags: null,
+            source: null,
+            entityType: "speaker",
+            entityId: "speaker-1",
+            recordingId: null,
+        });
+
+        expect(
+            buildFtsPayloadForStoredChunk({
+                rowid: 8,
+                entityType: "tag",
+                entityId: "tag-1",
+                recordingId: null,
+                title: "Launch",
+                body: "Launch",
+                speaker: null,
+                tags: "Launch",
+                source: null,
+            }),
+        ).toMatchObject({
+            rowid: 8,
+            title: "Launch",
+            body: "Launch",
+            tags: "Launch",
+            entityType: "tag",
         });
     });
 });

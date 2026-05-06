@@ -139,6 +139,103 @@ describe("preview search segmenter", () => {
         expect(rows[0].contentHash).toHaveLength(64);
     });
 
+    it("keeps source transcript timestamps and speaker labels searchable", async () => {
+        const segmenter = await loadSegmenter();
+        if (!segmenter) return;
+
+        const rows = segmenter.buildTranscriptSegmentRowsFromSourceArtifact({
+            sourceArtifactId: "artifact-2",
+            recordingId: "recording-1",
+            userId: "user-1",
+            artifactType: "official-transcript",
+            payload: {
+                segments: [
+                    {
+                        speaker: " Alice ",
+                        startMs: 300,
+                        endMs: 900,
+                        text: " 对齐时间戳 ",
+                    },
+                    {
+                        speaker: "",
+                        startMs: Number.NaN,
+                        endMs: -1,
+                        text: "没有说话人",
+                    },
+                    {
+                        speaker: "Ignored",
+                        text: "   ",
+                    },
+                ],
+            },
+        });
+
+        expect(rows).toHaveLength(2);
+        expect(rows[0]).toMatchObject({
+            id: "artifact-2:source:segment-0",
+            sourceArtifactId: "artifact-2",
+            transcriptOrigin: "source",
+            rawSpeakerLabel: "Alice",
+            startMs: 300,
+            endMs: 900,
+            sortSeqMs: 300,
+            text: "对齐时间戳",
+        });
+        expect(rows[1]).toMatchObject({
+            id: "artifact-2:source:segment-1",
+            rawSpeakerLabel: null,
+            startMs: 0,
+            endMs: 0,
+            sortSeqMs: 0,
+            text: "没有说话人",
+        });
+    });
+
+    it("falls back to markdown source artifacts when provider segments are unavailable", async () => {
+        const segmenter = await loadSegmenter();
+        if (!segmenter) return;
+
+        const artifactRows = segmenter.buildSourceArtifactSegmentRows({
+            sourceArtifactId: "artifact-3",
+            recordingId: "recording-1",
+            userId: "user-1",
+            artifactType: "summary",
+            textContent: "ignored when markdown exists",
+            markdownContent: "## 摘要\n\n- 事项一\n- 事项二",
+            payload: { segments: "not-an-array" },
+        });
+        expect(artifactRows).toHaveLength(3);
+        expect(artifactRows.map((row) => row.segmentType)).toEqual([
+            "body",
+            "body",
+            "body",
+        ]);
+
+        const transcriptRows =
+            segmenter.buildTranscriptSegmentRowsFromSourceArtifact({
+                sourceArtifactId: "artifact-4",
+                recordingId: "recording-1",
+                userId: "user-1",
+                artifactType: "official-transcript",
+                textContent: "李雷：第一句\n没有说话人",
+                markdownContent: null,
+                payload: null,
+            });
+
+        expect(transcriptRows).toEqual([
+            expect.objectContaining({
+                id: "artifact-4:source:line-0",
+                rawSpeakerLabel: "李雷",
+                text: "第一句",
+            }),
+            expect.objectContaining({
+                id: "artifact-4:source:line-1",
+                rawSpeakerLabel: null,
+                text: "没有说话人",
+            }),
+        ]);
+    });
+
     it("chunks long searchable text without empty chunks", async () => {
         const segmenter = await loadSegmenter();
         if (!segmenter) return;
@@ -153,5 +250,9 @@ describe("preview search segmenter", () => {
             true,
         );
         expect(chunks.every((chunk) => chunk.text.length <= 24)).toBe(true);
+        expect(segmenter.chunkSearchText("   ")).toEqual([]);
+        expect(segmenter.hashSearchContent("same")).toBe(
+            segmenter.hashSearchContent("same"),
+        );
     });
 });
