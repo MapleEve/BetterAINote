@@ -4,7 +4,7 @@
 
 # BetterAINote 🎙️
 
-> *"Your recordings are scattered across platforms. You want one private workspace you can trust and keep."*
+> *"Bring recordings from different platforms back into a private workspace you control."*
 
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
@@ -28,18 +28,18 @@
 <br>
 <br>
 
-<img src="./docs/assets/betterainote-hero.gif" alt="BetterAINote private multi-platform voice workspace animation" width="100%" />
+<img src="./docs/assets/readme/hero.en.gif" alt="BetterAINote private multi-platform voice workspace animation" width="100%" />
 
 <br>
 
-Bring voice records from DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, and similar sources into one local workspace.<br>
-The focus is private aggregation and unified management across recording platforms, not one vendor identity.<br>
-Recordings, transcripts, speaker review, AI titles, source reports, and search-ready metadata stay around your own deployment first.<br>
+BetterAINote brings voice records from DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, and similar sources into one local workspace.<br>
+The focus is **private aggregation and unified management across voice platforms**, not one vendor identity.<br>
+Recordings, transcripts, speaker review, AI titles, tags, and search indexes stay around your own deployment first.<br>
 Current version: `0.6.1-preview`. Self-hosting first. No npm package or public Docker image is published.
 
 <br>
 
-[Quickstart](#get-started) · [AI install/deploy](./docs/AI_INSTALL_DEPLOYMENT.md) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md)
+[Get started](#get-started) · [AI install/deploy](./docs/AI_INSTALL_DEPLOYMENT.md) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md)
 
 </div>
 
@@ -47,15 +47,23 @@ Current version: `0.6.1-preview`. Self-hosting first. No npm package or public D
 
 ## Sound familiar?
 
-> Meeting recordings live in different vendor consoles. Titles are inconsistent, downloads work differently, and finding one meeting means jumping across several websites.
+<p align="center">
+  <img src="./docs/assets/readme/problem.en.gif" alt="Recordings scattered across platforms with inconsistent titles and unclear custody" width="100%" />
+</p>
 
-> Transcription, renaming, speaker cleanup, and source notes each use a different tool. You are not always sure where credentials, audio, database rows, and logs end up.
+Meeting recordings live in different vendor consoles. Titles are inconsistent, downloads work differently, and finding one meeting means jumping across several websites.
 
-BetterAINote fixes that. **It brings multi-source recordings into a private workspace where sync, archiving, private transcription, speaker review, AI renaming, and search preparation are built around your local data.**
+Transcription, renaming, speaker cleanup, and source notes often use different tools. It is not always clear where credentials, audio files, database rows, and logs end up.
+
+BetterAINote fixes that: **it brings multi-source recordings into a private workspace where sync, archiving, private transcription, speaker review, AI renaming, and search preparation are built around your local data.**
 
 ---
 
 ## Who it is for
+
+<p align="center">
+  <img src="./docs/assets/readme/audience.en.gif" alt="For multi-platform recording users, self-hosters, private transcription users, and developers" width="100%" />
+</p>
 
 - People already using DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, or similar recording platforms.
 - Users who want their recording library, SQLite databases, service credentials, and audio archive on machines or servers they control.
@@ -97,13 +105,15 @@ Open `http://localhost:3001`, create the first admin account, then configure:
 - `AI Rename`: configure title generation and source write-back behavior.
 - `Sync` / `Playback` / `Display`: tune sync, playback, and interface preferences.
 
-Do not commit `.env.local`, databases, audio archives, account screenshots, or real credentials.
-
-Full setup details: [Deployment](./docs/DEPLOYMENT.md)
+Do not commit `.env.local`, databases, audio archives, account screenshots, or real credentials. Full setup details: [Deployment](./docs/DEPLOYMENT.md).
 
 ---
 
 ## What you get
+
+<p align="center">
+  <img src="./docs/assets/readme/outcomes.en.gif" alt="Unified recording library, private transcription, and search-ready storage" width="100%" />
+</p>
 
 **Unified recording workspace**
 
@@ -119,14 +129,9 @@ Full setup details: [Deployment](./docs/DEPLOYMENT.md)
 
 **Search-ready storage baseline**
 
-- SQLite shards for core settings, recording library, transcripts, voiceprints, word timing, and a rebuildable search sidecar.
+- SQLite storage is separated for settings, recording library, transcripts, voiceprints, word timing, and search indexes.
 - Search baseline covers recordings, transcripts, speakers, and tags.
-- Preview migrations are squashed into shard baselines so future migrations have a stable source of truth.
-
-**Safe source report surface**
-
-- `source-report` returns a user-facing, sanitized shape for UI and troubleshooting.
-- It does not return upstream raw responses, auth fields, signed download URLs, cookies, user identifiers, or full request context.
+- Future versions will build search, filters, and automation on this baseline.
 
 ---
 
@@ -144,29 +149,11 @@ Providers do not expose identical fields or capabilities. See [Data Sources](./d
 
 ---
 
-## Local development
-
-```bash
-bun run dev          # Next.js app + background worker
-bun run dev:web      # Next.js app only
-bun run worker       # background worker only
-bun run type-check
-bun run format-and-lint
-bun run test
-```
-
-Runtime shape:
-
-- `app`: Next.js Web UI and API routes.
-- `worker`: background sync checks, transcription dispatch, and queue work.
-- `SQLite`: separated databases for core settings, library, transcripts, voiceprints, word timing, and search.
-- `storage`: local audio archive.
-
-Keep provider sync, transcription services, title generation, search, and UI preferences separated. No single recording source should become the default mental model for the whole app.
-
----
-
 ## Privacy and security
+
+<p align="center">
+  <img src="./docs/assets/readme/privacy.en.gif" alt="Local SQLite, audio archives, and credentials should be treated as private infrastructure" width="100%" />
+</p>
 
 BetterAINote can contain recording titles, source records, transcripts, speaker names, audio files, credentials, and service keys. Treat the deployment as private infrastructure.
 
@@ -174,7 +161,6 @@ BetterAINote can contain recording titles, source records, transcripts, speaker 
 - Provider credentials, VoScript credentials, AI title service keys, and session state should stay inside your private deployment.
 - Logs, issues, pull requests, screenshots, and recordings must be sanitized before public sharing.
 - Do not publish cookies, bearer tokens, org/user/recording IDs, meeting content, capture files, full environment files, or local private paths.
-- Before exposing the panel beyond your own machine, use strong random `BETTER_AUTH_SECRET` / `ENCRYPTION_KEY` values and put the app behind your own network boundary, TLS, and access control.
 
 See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 
@@ -193,7 +179,7 @@ See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 
-Detailed technical docs are currently kept under `docs/`. The public overview is available in four languages; never move private provider research, credentials, raw source responses, transcripts, or local test data into public docs.
+Keep real credentials, private recordings, full transcripts, databases, private source data, and local test data out of public docs.
 
 ---
 
@@ -211,6 +197,10 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) first.
 ---
 
 ## License
+
+<p align="center">
+  <img src="./docs/assets/readme/license.en.gif" alt="Free for personal use and commercial use requires prior written authorization" width="100%" />
+</p>
 
 Free for personal use. Commercial use requires prior written authorization.
 
