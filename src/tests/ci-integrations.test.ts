@@ -28,6 +28,9 @@ describe("CI service integrations", () => {
         expect(codecovConfig).toContain("target: 80%");
         expect(codecovConfig).toContain("target: 70%");
         expect(codecovConfig).toContain("threshold: 0%");
+        expect(codecovConfig).toContain(
+            '"src/server/modules/search/segmenter.ts"',
+        );
         expect(codecovConfig).toContain('"src/tests/**"');
 
         const vitestConfig = readProjectFile("vitest.config.ts");

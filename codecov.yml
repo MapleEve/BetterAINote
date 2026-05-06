@@ -5,6 +5,16 @@ coverage:
         informational: false
         target: 80%
         threshold: 0%
+        paths:
+          - "src/features/settings/"
+          - "src/lib/data-sources/"
+          - "src/lib/search/"
+          - "src/lib/settings/"
+          - "src/server/modules/data-sources/"
+          - "src/server/modules/search/search-repository.ts"
+          - "src/server/modules/search/segmenter.ts"
+          - "src/server/modules/settings/"
+          - "src/services/"
     patch:
       default:
         informational: false
