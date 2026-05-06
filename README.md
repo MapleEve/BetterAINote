@@ -4,7 +4,7 @@
 
 # BetterAINote 🎙️
 
-> *「录音散在不同平台，你想要的是一个自己的、安全的、可长期整理的录音工作台。」*
+> *「把散在不同平台的录音，收回到你自己的私有工作台。」*
 
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
@@ -28,18 +28,18 @@
 <br>
 <br>
 
-<img src="./docs/assets/betterainote-hero.gif" alt="BetterAINote 多平台语音资料私有化集合与统一管理动效" width="100%" />
+<img src="./docs/assets/readme/hero.zh-CN.gif" alt="BetterAINote 多平台语音资料私有化集合与统一管理动效" width="100%" />
 
 <br>
 
-把钉钉 / A1、TicNote、Plaud、飞书妙记、讯飞听见等多平台语音资料整理到一个本地工作台。<br>
-重点是多来源语音资料的私有化集合与统一管理，而不是绑定某一个厂商来源。<br>
-录音、转写、说话人审阅、AI 标题、来源报告和搜索索引优先围绕你自己的部署运行。<br>
+BetterAINote 把钉钉 / A1、TicNote、Plaud、飞书妙记、讯飞听见等多平台语音资料收进一个本地工作台。<br>
+重点是**多来源语音资料的私有化集合与统一管理**，不是绑定某一个厂商。<br>
+录音、转写、说话人审阅、AI 标题、标签和搜索索引优先围绕你自己的部署运行。<br>
 当前版本是 `0.6.1-preview`。自托管优先，不发布 npm 包或公开 Docker 镜像。
 
 <br>
 
-[快速开始](#开始用) · [AI 安装部署](./docs/AI_INSTALL_DEPLOYMENT.md) · [数据源](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [部署](./docs/DEPLOYMENT.md) · [隐私](./docs/PRIVACY.md)
+[开始用](#开始用) · [AI 安装部署](./docs/AI_INSTALL_DEPLOYMENT.md) · [数据源](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [部署](./docs/DEPLOYMENT.md) · [隐私](./docs/PRIVACY.md)
 
 </div>
 
@@ -47,15 +47,23 @@
 
 ## 你是不是也遇到过这个
 
-> 录音在不同厂商平台里，标题不统一，下载方式不一样，想查一次会议要在多个网页之间来回翻。
+<p align="center">
+  <img src="./docs/assets/readme/problem.zh-CN.gif" alt="录音散落在多个平台、标题时间不统一、数据归属不清晰" width="100%" />
+</p>
 
-> 转写、重命名、说话人整理各有一套工具，但凭据、音频、数据库和日志到底留在哪里并不清楚。
+录音在不同厂商平台里，标题不统一，下载方式不一样；想查一次会议，需要在多个网页之间来回翻。
 
-BetterAINote 解决的就是这个。**它把多来源录音收进一个私有工作台，让同步、归档、私有转写、说话人审阅、AI 重命名和搜索准备围绕你的本地数据运行。**
+转写、重命名、说话人整理各有一套工具，但凭据、音频、数据库和日志到底留在哪里并不清楚。
+
+BetterAINote 解决的是这个问题：**把多来源录音收进一个私有工作台，让同步、归档、私有转写、说话人审阅、AI 重命名和搜索准备围绕你的本地数据运行。**
 
 ---
 
 ## 适合谁
+
+<p align="center">
+  <img src="./docs/assets/readme/audience.zh-CN.gif" alt="适合多平台录音用户、自托管用户、私有转写用户和开发者" width="100%" />
+</p>
 
 - 已经在用钉钉 / A1、TicNote、Plaud、飞书妙记、讯飞听见等录音平台的人。
 - 想把录音库、SQLite 数据库、服务凭据和音频归档放在自己机器或服务器上的用户。
@@ -97,13 +105,15 @@ bun run dev
 - `AI Rename`：配置标题生成和重命名策略。
 - `Sync` / `Playback` / `Display`：控制同步、播放和界面偏好。
 
-不要把 `.env.local`、数据库、音频归档、截图里的账号状态或任何真实凭据提交到仓库。
-
-完整说明见 [部署文档](./docs/DEPLOYMENT.md)。
+不要把 `.env.local`、数据库、音频归档、截图里的账号状态或任何真实凭据提交到仓库。完整说明见 [部署文档](./docs/DEPLOYMENT.md)。
 
 ---
 
 ## 你会得到什么
+
+<p align="center">
+  <img src="./docs/assets/readme/outcomes.zh-CN.gif" alt="统一录音库、私有转写和搜索基线" width="100%" />
+</p>
 
 **统一录音工作台**
 
@@ -117,11 +127,11 @@ bun run dev
 - 支持转写状态、原文查看、说话人审阅和可复用说话人档案。
 - 来源记录、私有转写和 AI 标题生成相互独立，方便替换服务。
 
-**搜索准备好的数据库基线**
+**面向搜索的存储基线**
 
-- SQLite 拆分 core、library、transcripts、voiceprints、words 和可重建 search sidecar。
+- SQLite 存储按设置、录音库、转写、声纹、词级时间和搜索索引拆分。
 - 搜索基线覆盖录音、逐字稿、说话人和标签。
-- preview migration 已整理为分片 baseline，后续版本从这个 SOT 继续追加迁移。
+- 后续版本会在这个基线上继续追加搜索、筛选和自动化能力。
 
 ---
 
@@ -141,12 +151,16 @@ bun run dev
 
 ## 隐私和安全
 
+<p align="center">
+  <img src="./docs/assets/readme/privacy.zh-CN.gif" alt="本地 SQLite、音频归档和凭据需要按私有基础设施处理" width="100%" />
+</p>
+
 BetterAINote 可能包含录音标题、来源记录、转写文本、说话人名称、音频文件、凭据和服务密钥。默认请把它当成私有基础设施。
 
 - 本地 SQLite 和 `LOCAL_STORAGE_PATH` 可能包含敏感录音与转写数据。
 - Provider 凭据、VoScript 凭据、AI 标题服务密钥和会话状态只应存在于你的私有部署里。
 - 日志、Issue、PR、截图和录屏必须先脱敏。
-- 不要公开 cookie、bearer、组织 / 用户 / 录音 ID、会议内容、抓包文件、完整环境文件或本地私有路径。
+- 不要公开 cookie、bearer token、组织 / 用户 / 录音 ID、会议内容、抓包文件、完整环境文件或本地私有路径。
 
 更多说明见 [隐私文档](./docs/PRIVACY.md) 和 [安全策略](./SECURITY.md)。
 
@@ -165,11 +179,15 @@ BetterAINote 可能包含录音标题、来源记录、转写文本、说话人�
 | 隐私 | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | 更新日志 | [CHANGELOG.md](./CHANGELOG.md) |
 
-公开文档不要写入私有 provider 研究、真实凭据、原始来源响应、完整转写、数据库或本地测试数据。
+公开文档不要写入真实凭据、私有录音、完整转写、数据库、来源私有数据或本地测试数据。
 
 ---
 
 ## License
+
+<p align="center">
+  <img src="./docs/assets/readme/license.zh-CN.gif" alt="个人使用免费，商业使用需要事先书面授权" width="100%" />
+</p>
 
 个人使用免费。商业使用需要事先取得书面授权。
 

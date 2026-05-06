@@ -4,7 +4,7 @@
 
 # BetterAINote 🎙️
 
-> *"여러 플랫폼에 흩어진 녹음을 내가 관리하는 안전한 작업 공간으로 모읍니다."*
+> *"여러 플랫폼에 흩어진 녹음을 내가 관리하는 프라이빗 작업 공간으로 모읍니다."*
 
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
@@ -28,18 +28,18 @@
 <br>
 <br>
 
-<img src="./docs/assets/betterainote-hero.gif" alt="BetterAINote private multi-platform voice workspace animation" width="100%" />
+<img src="./docs/assets/readme/hero.ko.gif" alt="BetterAINote 여러 플랫폼 음성 자료의 프라이빗 통합 관리 애니메이션" width="100%" />
 
 <br>
 
-DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소스를 하나의 로컬 작업 공간으로 가져옵니다.<br>
-핵심은 특정 서비스 하나가 아니라 여러 음성 플랫폼 자료를 사설 환경에 모아 통합 관리하는 것입니다.<br>
-녹음, 전사, 화자 검토, AI 제목, 소스 리포트, 검색용 메타데이터는 우선 사용자가 제어하는 배포 환경에 남습니다.<br>
+BetterAINote는 DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소스를 하나의 로컬 작업 공간으로 가져옵니다.<br>
+핵심은 특정 서비스 하나가 아니라 **여러 음성 플랫폼 자료를 사설 환경에 모아 통합 관리하는 것**입니다.<br>
+녹음, 전사, 화자 검토, AI 제목, 태그, 검색 인덱스는 우선 사용자가 제어하는 배포 환경에 남습니다.<br>
 현재 버전은 `0.6.1-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
 
 <br>
 
-[Quickstart](#시작하기) · [AI install/deploy](./docs/AI_INSTALL_DEPLOYMENT.md) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md)
+[시작하기](#시작하기) · [AI install/deploy](./docs/AI_INSTALL_DEPLOYMENT.md) · [Data sources](./docs/DATA_SOURCES.md) · [API](./docs/API.md) · [Deployment](./docs/DEPLOYMENT.md) · [Privacy](./docs/PRIVACY.md)
 
 </div>
 
@@ -47,15 +47,23 @@ DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소
 
 ## 이런 문제가 있었나요?
 
-> 회의 녹음이 여러 벤더 콘솔에 흩어져 있고, 제목과 다운로드 방식도 제각각입니다. 회의 하나를 찾으려면 여러 웹사이트를 오가야 합니다.
+<p align="center">
+  <img src="./docs/assets/readme/problem.ko.gif" alt="녹음이 여러 플랫폼에 흩어지고 제목과 저장 위치가 일관되지 않음" width="100%" />
+</p>
 
-> 전사, 이름 변경, 화자 정리에 각각 다른 도구를 쓰지만 인증 정보, 오디오, 데이터베이스, 로그가 어디에 남는지 분명하지 않습니다.
+회의 녹음이 여러 벤더 콘솔에 흩어져 있고, 제목과 다운로드 방식도 제각각입니다. 회의 하나를 찾으려면 여러 웹사이트를 오가야 합니다.
+
+전사, 이름 변경, 화자 정리에 각각 다른 도구를 쓰면 인증 정보, 오디오, 데이터베이스, 로그가 어디에 남는지 분명하지 않습니다.
 
 BetterAINote는 이 문제를 해결합니다. **여러 소스의 녹음을 프라이빗 작업 공간으로 가져와 동기화, 보관, 비공개 전사, 화자 검토, AI 이름 변경, 검색 준비를 로컬 데이터 중심으로 처리합니다.**
 
 ---
 
 ## 누구에게 필요한가
+
+<p align="center">
+  <img src="./docs/assets/readme/audience.ko.gif" alt="여러 녹음 플랫폼 사용자, 셀프 호스팅 사용자, 비공개 전사 사용자, 개발자에게 적합" width="100%" />
+</p>
 
 - DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 플랫폼을 사용하는 사람.
 - 녹음 라이브러리, SQLite 데이터베이스, 서비스 인증 정보, 오디오 아카이브를 본인의 장비나 서버에 두고 싶은 사용자.
@@ -97,18 +105,33 @@ bun run dev
 - `AI Rename`: 제목 생성과 소스 쓰기 동작을 설정합니다.
 - `Sync` / `Playback` / `Display`: 동기화, 재생, UI 선호도를 조정합니다.
 
-`.env.local`, 데이터베이스, 오디오 아카이브, 로그인 상태 스크린샷, 실제 인증 정보는 커밋하지 마세요.
+`.env.local`, 데이터베이스, 오디오 아카이브, 로그인 상태 스크린샷, 실제 인증 정보는 커밋하지 마세요. 자세한 내용은 [Deployment](./docs/DEPLOYMENT.md)를 참고하세요.
 
 ---
 
-## 주요 기능
+## 얻을 수 있는 것
+
+<p align="center">
+  <img src="./docs/assets/readme/outcomes.ko.gif" alt="통합 녹음 라이브러리, 비공개 전사, 검색 baseline" width="100%" />
+</p>
+
+**통합 녹음 작업 공간**
 
 - 여러 소스의 녹음을 하나의 로컬 라이브러리로 모읍니다.
+- 소스, 제목, 시간, 전사 상태, 동기화 상태, 태그로 정리할 수 있습니다.
+- 로컬 디스크나 직접 관리하는 마운트 위치에 오디오 아카이브를 둘 수 있습니다.
+
+**비공개 전사와 화자 검토**
+
 - VoScript 같은 비공개 전사 서비스와 연결합니다.
 - 전사 상태, 로컬 전사 결과, 화자 라벨, 재사용 가능한 화자 프로필을 검토합니다.
-- core / library / transcripts / voiceprints / words / search로 나뉜 SQLite baseline을 사용합니다.
-- 녹음, 전사, 화자, 태그를 대상으로 하는 재구축 가능한 검색 sidecar를 제공합니다.
-- UI와 문제 해결에 적합한 sanitized source report만 노출합니다.
+- 소스 기록, 비공개 전사, AI 제목 생성을 분리해 서비스 교체가 쉽습니다.
+
+**검색을 위한 저장 baseline**
+
+- SQLite 저장소는 설정, 녹음 라이브러리, 전사, 성문, 단어 타이밍, 검색 인덱스로 나뉩니다.
+- 검색 baseline은 녹음, 전사, 화자, 태그를 대상으로 합니다.
+- 이후 검색, 필터, 자동화 기능은 이 기반 위에 추가됩니다.
 
 ---
 
@@ -128,12 +151,18 @@ bun run dev
 
 ## 개인정보와 보안
 
+<p align="center">
+  <img src="./docs/assets/readme/privacy.ko.gif" alt="SQLite, 오디오 아카이브, 인증 정보는 프라이빗 인프라로 다뤄야 함" width="100%" />
+</p>
+
 BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름, 오디오 파일, 인증 정보, 서비스 키가 들어갈 수 있습니다. 프라이빗 인프라로 다루세요.
 
 - 로컬 SQLite 파일과 `LOCAL_STORAGE_PATH`에는 민감한 녹음 및 전사 데이터가 포함될 수 있습니다.
 - Provider 인증 정보, VoScript 인증 정보, AI 제목 서비스 키, 세션 상태는 사설 배포 안에만 두세요.
 - 공개 Issue, PR, 스크린샷, 로그는 반드시 민감 정보를 제거한 뒤 공유하세요.
 - cookie, bearer token, 조직 / 사용자 / 녹음 ID, 회의 내용, 캡처 파일, 전체 환경 파일, 로컬 사설 경로를 공개하지 마세요.
+
+자세한 내용은 [Privacy](./docs/PRIVACY.md)와 [Security](./SECURITY.md)를 참고하세요.
 
 ---
 
@@ -147,10 +176,18 @@ BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름
 | 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
 | GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
+| Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
+| Changelog | [CHANGELOG.md](./CHANGELOG.md) |
+
+공개 문서에는 실제 인증 정보, 비공개 녹음, 전사 전문, 데이터베이스, 소스의 비공개 데이터, 로컬 테스트 데이터를 넣지 마세요.
 
 ---
 
 ## License
+
+<p align="center">
+  <img src="./docs/assets/readme/license.ko.gif" alt="개인 사용은 무료이고 상업적 사용은 사전 서면 허가가 필요함" width="100%" />
+</p>
 
 개인 사용은 무료입니다. 상업적 사용은 사전 서면 허가가 필요합니다.
 
