@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.0--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -29,7 +29,7 @@
 Bring voice records from DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, and similar sources into one local workspace.<br>
 The focus is private aggregation and unified management across recording platforms, not one vendor identity.<br>
 Recordings, transcripts, speaker review, AI titles, source reports, and search-ready metadata stay around your own deployment first.<br>
-Current version: `0.6.0-preview`. Self-hosting first. No npm package or public Docker image is published.
+Current version: `0.6.1-preview`. Self-hosting first. No npm package or public Docker image is published.
 
 <br>
 

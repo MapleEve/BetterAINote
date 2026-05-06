@@ -68,4 +68,41 @@ describe("search repository", () => {
         ).resolves.toEqual([]);
         expect(storage.search).not.toHaveBeenCalled();
     });
+
+    it("clamps limits and removes duplicate entity filters before querying storage", async () => {
+        const storage = {
+            search: vi.fn().mockResolvedValue([]),
+        };
+        const repository = createSearchRepository(storage);
+
+        await repository.search({
+            userId: "user-1",
+            query: "demo",
+            entityTypes: ["recording", "recording", "tag"],
+            limit: 999,
+        });
+
+        expect(storage.search).toHaveBeenCalledWith({
+            userId: "user-1",
+            matchQuery: "demo",
+            entityTypes: ["recording", "tag"],
+            limit: 100,
+        });
+    });
+
+    it("defends the repository against unsupported entity types if callers bypass the route", async () => {
+        const storage = {
+            search: vi.fn().mockResolvedValue([]),
+        };
+        const repository = createSearchRepository(storage);
+
+        await expect(
+            repository.search({
+                userId: "user-1",
+                query: "demo",
+                entityTypes: ["payload" as never],
+            }),
+        ).resolves.toEqual([]);
+        expect(storage.search).not.toHaveBeenCalled();
+    });
 });

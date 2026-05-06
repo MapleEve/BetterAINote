@@ -50,11 +50,11 @@ const ACTIVE_TRANSCRIPTION_JOB_STATUSES: TranscriptionJobStatus[] = [
     "submitted",
     "processing",
 ];
-const PRIVATE_JOB_POLL_MS = 5000;
+export const TRANSCRIPTION_JOB_POLL_MS = 5000;
 const MAX_PRIVATE_JOB_SUBMIT_ATTEMPTS = 3;
 
 function nextPrivatePollAt(from = new Date()) {
-    return new Date(from.getTime() + PRIVATE_JOB_POLL_MS);
+    return new Date(from.getTime() + TRANSCRIPTION_JOB_POLL_MS);
 }
 
 async function resolvePrivateTranscriptionApiKey(

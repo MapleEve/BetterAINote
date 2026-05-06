@@ -1,83 +1,117 @@
 import { spawn } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { loadLocalEnv } from "./local-env.mjs";
 
-loadLocalEnv();
+export function buildDevEnv(baseEnv = process.env) {
+    return {
+        ...baseEnv,
+        PORT: baseEnv.PORT || "3001",
+        WATCHPACK_POLLING: baseEnv.WATCHPACK_POLLING || "true",
+        CHOKIDAR_USEPOLLING: baseEnv.CHOKIDAR_USEPOLLING || "1",
+    };
+}
 
-const env = {
-    ...process.env,
-    PORT: process.env.PORT || "3001",
-    WATCHPACK_POLLING: process.env.WATCHPACK_POLLING || "true",
-    CHOKIDAR_USEPOLLING: process.env.CHOKIDAR_USEPOLLING || "1",
-};
+export function createDevSupervisor({
+    env = buildDevEnv(),
+    spawnImpl = spawn,
+    processImpl = process,
+    consoleImpl = console,
+    setTimeoutImpl = setTimeout,
+} = {}) {
+    const children = new Map();
+    let shuttingDown = false;
+    let shutdownExitCode = 0;
 
-const children = new Map();
-let shuttingDown = false;
+    function killChild(name, signal = "SIGTERM") {
+        const child = children.get(name);
+        if (!child || child.exitCode !== null) {
+            return;
+        }
 
-function killChild(name, signal = "SIGTERM") {
-    const child = children.get(name);
-    if (!child || child.exitCode !== null) {
-        return;
-    }
-
-    try {
-        if (child.pid) {
-            process.kill(-child.pid, signal);
-        } else {
+        try {
             child.kill(signal);
+        } catch {
+            // The child may have exited between the liveness check and kill().
         }
-    } catch {
-        child.kill(signal);
-    }
-}
-
-function shutdown(signal = "SIGTERM") {
-    if (shuttingDown) {
-        return;
-    }
-    shuttingDown = true;
-
-    for (const name of children.keys()) {
-        killChild(name, signal);
     }
 
-    setTimeout(() => {
-        for (const name of children.keys()) {
-            killChild(name, "SIGKILL");
+    function killChildren(signal = "SIGTERM") {
+        for (const name of Array.from(children.keys())) {
+            killChild(name, signal);
         }
-    }, 2000).unref();
-}
+    }
 
-function startProcess(name, command, args) {
-    const child = spawn(command, args, {
-        stdio: "inherit",
-        env,
-        detached: true,
-    });
-
-    children.set(name, child);
-
-    child.on("exit", (code, signal) => {
-        children.delete(name);
-
-        if (!shuttingDown) {
-            shutdown(signal || "SIGTERM");
-            process.exitCode = code ?? (signal ? 1 : 0);
-        } else if (children.size === 0) {
-            process.exit(code ?? 0);
+    function shutdown(signal = "SIGTERM") {
+        if (shuttingDown) {
+            return;
         }
-    });
+        shuttingDown = true;
 
-    child.on("error", (error) => {
-        console.error(`[dev] Failed to start ${name}:`, error);
-        process.exit(1);
+        killChildren(signal);
+
+        const forceKillTimer = setTimeoutImpl(() => {
+            killChildren("SIGKILL");
+        }, 2000);
+        forceKillTimer.unref?.();
+    }
+
+    function startProcess(name, command, args) {
+        const child = spawnImpl(command, args, {
+            stdio: "inherit",
+            env,
+            detached: false,
+        });
+
+        children.set(name, child);
+
+        child.on("exit", (code, signal) => {
+            children.delete(name);
+
+            if (!shuttingDown) {
+                shutdownExitCode = code ?? (signal ? 1 : 0);
+                shutdown(signal || "SIGTERM");
+                processImpl.exitCode = shutdownExitCode;
+            } else if (children.size === 0) {
+                processImpl.exit(shutdownExitCode);
+            }
+        });
+
+        child.on("error", (error) => {
+            consoleImpl.error(`[dev] Failed to start ${name}:`, error);
+            processImpl.exit(1);
+        });
+    }
+
+    function start() {
+        startProcess("app", "next", ["dev", "--webpack"]);
+        startProcess("worker", "bun", ["src/worker/index.ts"]);
+    }
+
+    return {
+        start,
+        shutdown,
+        killChildren,
+        get childCount() {
+            return children.size;
+        },
+    };
+}
+
+function registerSignalHandlers(supervisor, processImpl = process) {
+    for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+        processImpl.on(signal, () => {
+            supervisor.shutdown(signal);
+        });
+    }
+
+    processImpl.on("exit", () => {
+        supervisor.killChildren("SIGTERM");
     });
 }
 
-for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
-    process.on(signal, () => {
-        shutdown(signal);
-    });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+    loadLocalEnv();
+    const supervisor = createDevSupervisor({ env: buildDevEnv() });
+    registerSignalHandlers(supervisor);
+    supervisor.start();
 }
-
-startProcess("app", "next", ["dev", "--webpack"]);
-startProcess("worker", "bun", ["src/worker/index.ts"]);

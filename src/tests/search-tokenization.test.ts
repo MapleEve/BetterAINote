@@ -33,4 +33,20 @@ describe("search tokenization", () => {
         expect(buildFtsMatchQuery("E2E发布")).toBe("e2e 发布");
         expect(buildFtsIndexText("E2E发布")).toBe("E2E发布 e2e 发布");
     });
+
+    it("drops punctuation-only and emoji-only input before it reaches FTS MATCH", () => {
+        expect(buildSearchTerms('  " * ( ) : ^  ')).toEqual([]);
+        expect(buildFtsMatchQuery("🔥🎙️✨")).toBe("");
+        expect(buildFtsIndexText("🔥🎙️✨")).toBe("🔥🎙️✨");
+    });
+
+    it("keeps numeric and underscore tokens while stripping parser operators case-insensitively", () => {
+        expect(buildSearchTerms("NOT Project_42 and v2")).toEqual([
+            "project_42",
+            "v2",
+        ]);
+        expect(buildFtsMatchQuery("NOT Project_42 and v2")).toBe(
+            "project_42 v2",
+        );
+    });
 });

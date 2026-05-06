@@ -89,10 +89,14 @@ export function LibrarySearch({ onOpenRecording }: LibrarySearchProps) {
             return isZh ? "输入关键词开始搜索" : "Type to search";
         }
 
+        if (loading) {
+            return isZh ? "搜索中" : "Searching";
+        }
+
         return isZh
             ? `${results.length} 个结果`
             : `${results.length} result${results.length === 1 ? "" : "s"}`;
-    }, [isZh, results.length, trimmedQuery]);
+    }, [isZh, loading, results.length, trimmedQuery]);
 
     useEffect(() => {
         if (!trimmedQuery) {
@@ -101,6 +105,10 @@ export function LibrarySearch({ onOpenRecording }: LibrarySearchProps) {
             setLoading(false);
             return;
         }
+
+        setResults([]);
+        setError(null);
+        setLoading(true);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
@@ -111,9 +119,6 @@ export function LibrarySearch({ onOpenRecording }: LibrarySearchProps) {
             if (scope !== "all") {
                 params.set("type", scope);
             }
-
-            setLoading(true);
-            setError(null);
 
             fetch(`/api/search?${params.toString()}`, {
                 cache: "no-store",

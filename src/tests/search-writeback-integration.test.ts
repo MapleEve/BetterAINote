@@ -49,9 +49,10 @@ describe("search writeback integration", () => {
 
         expect(source).toContain("DELETE FROM search_content_fts");
         expect(source).toContain("WHERE rowid IN");
+        expect(source).toContain("ensureWritableSearchContentFtsTable");
+        expect(source).toContain("isContentlessSearchContentFtsSchema");
         expect(source).not.toContain("'delete'");
         expect(source).not.toContain("search_content_fts,");
-        expect(source).not.toContain("c.body AS body");
         expect(source).not.toContain("VALUES ${sql.join");
         expect(source).not.toContain("db.delete(searchContentFts)");
     });
@@ -66,10 +67,18 @@ describe("search writeback integration", () => {
         expect(source).not.toContain("db.insert(searchContentFts)");
     });
 
-    it("does not delete queued search jobs while rebuilding the read model", () => {
-        const source = readProjectFile("src/server/modules/search/rebuild.ts");
+    it("marks rebuild-owned jobs through the search job processor instead of the read-model rebuild", () => {
+        const processorSource = readProjectFile(
+            "src/server/modules/search/job-processor.ts",
+        );
+        const rebuildSource = readProjectFile(
+            "src/server/modules/search/rebuild.ts",
+        );
 
-        expect(source).not.toContain("searchIndexJobs");
-        expect(source).not.toContain("db.delete(searchIndexJobs)");
+        expect(processorSource).toContain("processTranscriptRebuildGroups");
+        expect(processorSource).toContain("markJobCompleted");
+        expect(processorSource).toContain("rebuildUser");
+        expect(rebuildSource).not.toContain("searchIndexJobs");
+        expect(rebuildSource).not.toContain("db.delete(searchIndexJobs)");
     });
 });

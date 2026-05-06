@@ -51,6 +51,11 @@ import type { Recording } from "@/types/recording";
 import { LibrarySearch } from "./components/library-search";
 import { RecordingList } from "./components/recording-list";
 import { TranscriptionPanel } from "./components/transcription-panel";
+import {
+    areDashboardTranscriptionJobsEqual,
+    getDashboardTranscriptionPollingKey,
+    resolveDashboardTranscriptionPoll,
+} from "./transcription-polling";
 
 interface TranscriptionData {
     hasTranscript?: boolean;
@@ -77,6 +82,18 @@ interface TranscriptionJobData {
     status: string;
     remoteStatus?: string | null;
     lastError?: string | null;
+}
+
+interface TranscriptionPollTranscriptData {
+    text?: string | null;
+    detectedLanguage?: string | null;
+    speakerMap?: Record<string, string> | null;
+    segments?: TranscriptSegmentData[] | null;
+}
+
+interface TranscriptionPollResponseData {
+    transcript?: TranscriptionPollTranscriptData | null;
+    job?: TranscriptionJobData | null;
 }
 
 interface WorkstationProps {
@@ -149,6 +166,11 @@ export function Workstation({
     const currentTranscriptionJob = currentRecording
         ? liveTranscriptionJobs.get(currentRecording.id)
         : undefined;
+    const currentRecordingId = currentRecording?.id ?? null;
+    const currentTranscriptionPollingKey = getDashboardTranscriptionPollingKey(
+        currentRecordingId,
+        currentTranscriptionJob,
+    );
     const currentHasTranscript = Boolean(
         currentTranscription?.text?.trim() ||
             currentTranscription?.hasTranscript,
@@ -370,11 +392,7 @@ export function Workstation({
     }, [currentTranscriptionJob]);
 
     useEffect(() => {
-        if (!currentRecording) {
-            return;
-        }
-
-        if (!isActiveTranscriptionJob(currentTranscriptionJob)) {
+        if (!currentRecordingId || !currentTranscriptionPollingKey) {
             return;
         }
 
@@ -382,7 +400,7 @@ export function Workstation({
         const poll = async () => {
             try {
                 const response = await fetch(
-                    `/api/recordings/${currentRecording.id}/transcribe`,
+                    `/api/recordings/${currentRecordingId}/transcribe`,
                     {
                         cache: "no-store",
                     },
@@ -391,39 +409,76 @@ export function Workstation({
                     return;
                 }
 
-                const data = await response.json();
+                const data =
+                    (await response.json()) as TranscriptionPollResponseData;
                 if (cancelled) {
                     return;
                 }
 
-                if (data?.transcript || data?.job?.status === "failed") {
-                    if (data?.transcript) {
-                        setLiveTranscriptions((previous) => {
-                            const next = new Map(previous);
-                            next.set(currentRecording.id, {
-                                text: data.transcript.text || "",
-                                language:
-                                    data.transcript.detectedLanguage ||
-                                    undefined,
-                                speakerMap:
-                                    data.transcript.speakerMap ?? undefined,
-                                segments: data.transcript.segments ?? null,
-                            });
-                            return next;
-                        });
-                    }
+                const result =
+                    resolveDashboardTranscriptionPoll<TranscriptionPollTranscriptData>(
+                        data,
+                    );
 
+                if (result.state === "active") {
                     setLiveTranscriptionJobs((previous) => {
-                        const next = new Map(previous);
-                        if (data?.job) {
-                            next.set(currentRecording.id, {
-                                status: data.job.status,
-                                remoteStatus: data.job.remoteStatus ?? null,
-                                lastError: data.job.lastError ?? null,
-                            });
-                        } else if (data?.transcript) {
-                            next.delete(currentRecording.id);
+                        const current = previous.get(currentRecordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
                         }
+
+                        const next = new Map(previous);
+                        next.set(currentRecordingId, result.job);
+                        return next;
+                    });
+                    return;
+                }
+
+                if (result.state === "completed") {
+                    setLiveTranscriptions((previous) => {
+                        const next = new Map(previous);
+                        next.set(currentRecordingId, {
+                            text: result.transcript.text || "",
+                            language:
+                                result.transcript.detectedLanguage || undefined,
+                            speakerMap:
+                                result.transcript.speakerMap ?? undefined,
+                            segments: result.transcript.segments ?? null,
+                        });
+                        return next;
+                    });
+                    setLiveTranscriptionJobs((previous) => {
+                        if (!previous.has(currentRecordingId)) {
+                            return previous;
+                        }
+
+                        const next = new Map(previous);
+                        next.delete(currentRecordingId);
+                        return next;
+                    });
+                    setIsTranscribing(false);
+                    return;
+                }
+
+                if (result.state === "failed") {
+                    setLiveTranscriptionJobs((previous) => {
+                        const current = previous.get(currentRecordingId);
+                        if (
+                            areDashboardTranscriptionJobsEqual(
+                                current,
+                                result.job,
+                            )
+                        ) {
+                            return previous;
+                        }
+
+                        const next = new Map(previous);
+                        next.set(currentRecordingId, result.job);
                         return next;
                     });
                     setIsTranscribing(false);
@@ -442,7 +497,7 @@ export function Workstation({
             cancelled = true;
             stopBrowserInterval(intervalId);
         };
-    }, [currentRecording, currentTranscriptionJob]);
+    }, [currentRecordingId, currentTranscriptionPollingKey]);
 
     const {
         autoSyncEnabled,

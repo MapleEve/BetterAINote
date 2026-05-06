@@ -7,7 +7,7 @@ import {
 } from "@/server/modules/recordings/search-read-model";
 
 describe("recording search read model", () => {
-    it("maps recordings into provider-neutral search documents", () => {
+    it("keeps recordings searchable by user-facing title, not provider or relationship metadata", () => {
         const document = buildRecordingSearchDocument(
             {
                 id: "recording-1",
@@ -34,9 +34,11 @@ describe("recording search read model", () => {
             sourceProvider: "ticnote",
             sortSeqMs: Date.parse("2026-04-24T10:00:00.000Z"),
         });
-        expect(document.body).toContain("04-24 工作进度沟通");
-        expect(document.body).toContain("source-1");
-        expect(document.body).toContain("Alice");
+        expect(document.body).toBe("04-24 工作进度沟通");
+        expect(document.body).not.toContain("ticnote");
+        expect(document.body).not.toContain("source-1");
+        expect(document.body).not.toContain("Alice");
+        expect(document.body).not.toContain("交付");
         expect(document.body).not.toContain("provider_payload");
     });
 

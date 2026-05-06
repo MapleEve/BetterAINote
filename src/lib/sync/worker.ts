@@ -1,5 +1,8 @@
 import { env } from "@/lib/env";
-import { processDueTranscriptionJobs } from "@/lib/transcription/jobs";
+import {
+    processDueTranscriptionJobs,
+    TRANSCRIPTION_JOB_POLL_MS,
+} from "@/lib/transcription/jobs";
 import { processPendingSearchIndexJobs } from "@/server/modules/search";
 import {
     getUserSyncSchedules,
@@ -20,9 +23,12 @@ export interface SyncWorkerStatus {
 
 class SyncWorker {
     private interval: NodeJS.Timeout | null = null;
+    private transcriptionInterval: NodeJS.Timeout | null = null;
     private inFlight = false;
+    private transcriptionInFlight = false;
     private queuedTrigger = false;
     private readonly tickMs = Math.max(env.SYNC_WORKER_TICK_MS, 10000);
+    private readonly transcriptionTickMs = TRANSCRIPTION_JOB_POLL_MS;
 
     private lastRunAt: number | null = null;
     private nextRunAt: number | null = null;
@@ -30,7 +36,7 @@ class SyncWorker {
     private lastSummary: SyncUsersResult | null = null;
 
     start(): void {
-        if (this.interval) return;
+        if (this.interval || this.transcriptionInterval) return;
 
         const runAndSchedule = (): void => {
             void this.runOnce().finally(() => {
@@ -38,15 +44,30 @@ class SyncWorker {
             });
         };
 
+        const runTranscription = (): void => {
+            void this.runTranscriptionOnce();
+        };
+
         runAndSchedule();
+        runTranscription();
         this.interval = setInterval(runAndSchedule, this.tickMs);
-        console.info(`[worker] sync worker started (tick=${this.tickMs}ms)`);
+        this.transcriptionInterval = setInterval(
+            runTranscription,
+            this.transcriptionTickMs,
+        );
+        console.info(
+            `[worker] sync worker started (tick=${this.tickMs}ms, transcriptionTick=${this.transcriptionTickMs}ms)`,
+        );
     }
 
     stop(): void {
         if (this.interval) {
             clearInterval(this.interval);
             this.interval = null;
+        }
+        if (this.transcriptionInterval) {
+            clearInterval(this.transcriptionInterval);
+            this.transcriptionInterval = null;
         }
         console.info("[worker] sync worker stopped");
     }
@@ -102,9 +123,6 @@ class SyncWorker {
             });
 
             const summary = await syncDueUsers(startedAt, runnableSchedules);
-            const transcriptionSummary = externalSyncRunning
-                ? { processed: 0, succeeded: 0, failed: 0 }
-                : await processDueTranscriptionJobs();
             const searchSummary = externalSyncRunning
                 ? { processed: 0, succeeded: 0, failed: 0 }
                 : await processPendingSearchIndexJobs();
@@ -148,7 +166,7 @@ class SyncWorker {
             );
 
             console.info(
-                `[worker] sync cycle done checked=${summary.checkedUsers} synced=${summary.syncedUsers} skipped=${summary.skippedUsers} errors=${summary.errors.length} transcriptionJobs=${transcriptionSummary.processed}/${transcriptionSummary.succeeded}/${transcriptionSummary.failed} searchJobs=${searchSummary.processed}/${searchSummary.succeeded}/${searchSummary.failed}`,
+                `[worker] sync cycle done checked=${summary.checkedUsers} synced=${summary.syncedUsers} skipped=${summary.skippedUsers} errors=${summary.errors.length} searchJobs=${searchSummary.processed}/${searchSummary.succeeded}/${searchSummary.failed}`,
             );
         } catch (error) {
             this.lastError =
@@ -173,6 +191,24 @@ class SyncWorker {
                 this.queuedTrigger = false;
                 void this.runOnce();
             }
+        }
+    }
+
+    private async runTranscriptionOnce(): Promise<void> {
+        if (this.transcriptionInFlight) return;
+
+        this.transcriptionInFlight = true;
+        try {
+            const summary = await processDueTranscriptionJobs();
+            if (summary.processed > 0 || summary.failed > 0) {
+                console.info(
+                    `[worker] transcription cycle done jobs=${summary.processed}/${summary.succeeded}/${summary.failed}`,
+                );
+            }
+        } catch (error) {
+            console.error("[worker] transcription cycle failed:", error);
+        } finally {
+            this.transcriptionInFlight = false;
         }
     }
 }

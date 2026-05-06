@@ -10,6 +10,7 @@ export const SEARCH_ENTITY_TYPES = [
 ] as const;
 
 export type SearchEntityType = (typeof SEARCH_ENTITY_TYPES)[number];
+const SEARCH_ENTITY_TYPE_SET = new Set<string>(SEARCH_ENTITY_TYPES);
 
 export type SearchResult = {
     entityType: SearchEntityType;
@@ -78,7 +79,9 @@ function splitTags(value: string | null) {
 
 function normalizeEntityTypes(entityTypes: SearchLibraryParams["entityTypes"]) {
     const values = entityTypes?.length ? entityTypes : SEARCH_ENTITY_TYPES;
-    return [...new Set(values)];
+    return [...new Set(values)].filter((value): value is SearchEntityType =>
+        SEARCH_ENTITY_TYPE_SET.has(value),
+    );
 }
 
 function mapSearchRow(row: SearchStorageRow): SearchResult {
@@ -115,11 +118,15 @@ export function createSearchRepository(
             if (!matchQuery) {
                 return [];
             }
+            const entityTypes = normalizeEntityTypes(params.entityTypes);
+            if (entityTypes.length === 0) {
+                return [];
+            }
 
             const rows = await storage.search({
                 userId: params.userId,
                 matchQuery,
-                entityTypes: normalizeEntityTypes(params.entityTypes),
+                entityTypes,
                 limit: clampLimit(params.limit),
             });
 

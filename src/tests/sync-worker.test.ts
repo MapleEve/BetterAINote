@@ -17,6 +17,7 @@ vi.mock("@/lib/sync/sync-recordings", () => ({
 
 vi.mock("@/lib/transcription/jobs", () => ({
     processDueTranscriptionJobs: mocks.processDueTranscriptionJobs,
+    TRANSCRIPTION_JOB_POLL_MS: 5000,
 }));
 
 vi.mock("@/server/modules/search", () => ({
@@ -68,5 +69,19 @@ describe("sync worker", () => {
         expect(mocks.syncDueUsers).toHaveBeenCalledWith(expect.any(Date), []);
         expect(mocks.processDueTranscriptionJobs).not.toHaveBeenCalled();
         expect(mocks.processPendingSearchIndexJobs).not.toHaveBeenCalled();
+    });
+
+    it("runs transcription jobs on a separate worker tick", async () => {
+        vi.useFakeTimers();
+
+        try {
+            syncWorker.start();
+            await vi.waitFor(() => {
+                expect(mocks.processDueTranscriptionJobs).toHaveBeenCalled();
+            });
+        } finally {
+            syncWorker.stop();
+            vi.useRealTimers();
+        }
     });
 });

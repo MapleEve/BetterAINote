@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.0--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -29,7 +29,7 @@
 DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소스를 하나의 로컬 작업 공간으로 가져옵니다.<br>
 핵심은 특정 서비스 하나가 아니라 여러 음성 플랫폼 자료를 사설 환경에 모아 통합 관리하는 것입니다.<br>
 녹음, 전사, 화자 검토, AI 제목, 소스 리포트, 검색용 메타데이터는 우선 사용자가 제어하는 배포 환경에 남습니다.<br>
-현재 버전은 `0.6.0-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
+현재 버전은 `0.6.1-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
 
 <br>
 

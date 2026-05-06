@@ -79,4 +79,22 @@ describe("search route", () => {
             error: "Unsupported search entity type: payload",
         });
     });
+
+    it("deduplicates comma-separated entity filters and clamps large limits", async () => {
+        (searchLibrary as Mock).mockResolvedValue([]);
+
+        const response = await GET(
+            new Request(
+                "http://localhost/api/search?q=demo&type=recording,transcript&type=recording&limit=9999",
+            ),
+        );
+
+        expect(response.status).toBe(200);
+        expect(searchLibrary).toHaveBeenCalledWith({
+            userId: "user-1",
+            query: "demo",
+            entityTypes: ["recording", "transcript"],
+            limit: 100,
+        });
+    });
 });

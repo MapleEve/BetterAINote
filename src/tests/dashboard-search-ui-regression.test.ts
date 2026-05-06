@@ -60,4 +60,15 @@ describe("dashboard search UI regression", () => {
         expect(searchComponent).toContain("ref={inputRef}");
         expect(searchComponent).toContain("{isOpen ? (");
     });
+
+    it("does not show an empty-result count while a debounced search is pending", () => {
+        const searchComponent = readFileSync(
+            path.join(ROOT, "features/dashboard/components/library-search.tsx"),
+            "utf8",
+        );
+
+        expect(searchComponent).toContain("if (loading) {");
+        expect(searchComponent).toContain("setLoading(true);");
+        expect(searchComponent).toContain("setResults([]);");
+    });
 });

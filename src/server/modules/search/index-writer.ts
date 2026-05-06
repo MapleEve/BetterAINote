@@ -23,6 +23,107 @@ type FtsUpsertRow = {
     recordingId: string | null;
 };
 
+type StoredSearchChunk = {
+    rowid: number;
+    entityType: SearchDocumentDraft["entityType"];
+    entityId: string;
+    recordingId: string | null;
+    title: string | null;
+    body: string;
+    speaker: string | null;
+    tags: string | null;
+    source: string | null;
+};
+
+export const SEARCH_CONTENT_FTS_CREATE_SQL = `
+    CREATE VIRTUAL TABLE search_content_fts USING fts5(
+        title,
+        body,
+        speaker,
+        tags,
+        source,
+        entity_type UNINDEXED,
+        entity_id UNINDEXED,
+        recording_id UNINDEXED
+    )
+`;
+
+export function isContentlessSearchContentFtsSchema(
+    createSql: string | null | undefined,
+) {
+    return /\bcontent\s*=\s*(['"]){2}/i.test(createSql ?? "");
+}
+
+export function buildFtsPayloadForChunk(
+    input: SearchDocumentDraft,
+    chunkText: string,
+): Omit<FtsUpsertRow, "rowid" | "entityType" | "entityId" | "recordingId"> {
+    if (input.entityType === "recording") {
+        return {
+            title: input.title ?? null,
+            body: chunkText,
+            speaker: null,
+            tags: null,
+            source: null,
+        };
+    }
+
+    if (input.entityType === "transcript") {
+        return {
+            title: null,
+            body: chunkText,
+            speaker: null,
+            tags: null,
+            source: null,
+        };
+    }
+
+    if (input.entityType === "speaker") {
+        return {
+            title: input.title ?? input.speaker ?? null,
+            body: chunkText,
+            speaker: input.speaker ?? input.title ?? null,
+            tags: null,
+            source: null,
+        };
+    }
+
+    return {
+        title: input.title ?? null,
+        body: chunkText,
+        speaker: null,
+        tags: input.tags?.join(" ") ?? null,
+        source: null,
+    };
+}
+
+export function buildFtsPayloadForStoredChunk(
+    row: StoredSearchChunk,
+): FtsUpsertRow {
+    const payload = buildFtsPayloadForChunk(
+        {
+            userId: "",
+            entityType: row.entityType,
+            entityId: row.entityId,
+            recordingId: row.recordingId,
+            title: row.title,
+            body: row.body,
+            speaker: row.speaker,
+            tags: row.tags ? [row.tags] : null,
+            source: row.source,
+        },
+        row.body,
+    );
+
+    return {
+        rowid: row.rowid,
+        ...payload,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        recordingId: row.recordingId,
+    };
+}
+
 function normalizeName(value: string) {
     return value.trim().toLocaleLowerCase();
 }
@@ -80,6 +181,8 @@ export async function deleteFtsRowsByChunkRowids(chunkRowids: number[]) {
         return;
     }
 
+    await ensureWritableSearchContentFtsTable();
+
     for (
         let index = 0;
         index < chunkRowids.length;
@@ -119,6 +222,54 @@ async function insertFtsRow(row: FtsUpsertRow) {
             ${row.recordingId}
         )
     `);
+}
+
+async function loadStoredSearchChunksForFts() {
+    return (await searchDb.all(sql`
+        SELECT
+            c.rowid AS rowid,
+            c.entity_type AS entityType,
+            c.entity_id AS entityId,
+            c.recording_id AS recordingId,
+            d.title AS title,
+            c.body AS body,
+            speaker_name.name AS speaker,
+            tag_name.name AS tags,
+            source_name.name AS source
+        FROM search_chunks c
+        INNER JOIN search_documents d
+            ON d.rowid = c.document_rowid
+        LEFT JOIN search_name2id speaker_name
+            ON speaker_name.id = d.speaker_name_id
+        LEFT JOIN search_name2id tag_name
+            ON tag_name.id = d.tag_name_id
+        LEFT JOIN search_name2id source_name
+            ON source_name.id = d.source_name_id
+        ORDER BY c.rowid ASC
+    `)) as StoredSearchChunk[];
+}
+
+async function ensureWritableSearchContentFtsTable() {
+    const [schemaRow] = (await searchDb.all(sql`
+        SELECT sql
+        FROM sqlite_master
+        WHERE type = 'table'
+            AND name = 'search_content_fts'
+        LIMIT 1
+    `)) as Array<{ sql: string | null }>;
+
+    if (schemaRow?.sql && !isContentlessSearchContentFtsSchema(schemaRow.sql)) {
+        return;
+    }
+
+    const storedChunks = await loadStoredSearchChunksForFts();
+
+    await searchDb.run(sql.raw("DROP TABLE IF EXISTS search_content_fts"));
+    await searchDb.run(sql.raw(SEARCH_CONTENT_FTS_CREATE_SQL));
+
+    for (const chunk of storedChunks) {
+        await insertFtsRow(buildFtsPayloadForStoredChunk(chunk));
+    }
 }
 
 async function deleteChunksForDocument(documentRowid: number) {
@@ -268,13 +419,10 @@ export async function upsertSearchDocument(input: SearchDocumentDraft) {
             })
             .returning({ rowid: searchChunks.rowid });
 
+        const ftsPayload = buildFtsPayloadForChunk(input, chunk.text);
         await insertFtsRow({
             rowid: insertedChunk.rowid,
-            title: input.title,
-            body: chunk.text,
-            speaker: input.speaker,
-            tags: input.tags?.join(" "),
-            source: input.source,
+            ...ftsPayload,
             entityType: input.entityType,
             entityId: input.entityId,
             recordingId: input.recordingId ?? null,

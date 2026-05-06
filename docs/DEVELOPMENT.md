@@ -74,7 +74,7 @@ E2E 发现过的稳定性边界：
 
 ## 架构 baseline
 
-`0.6.0-preview` 起，代码结构按 LobeHub 方向收敛为清晰的模块边界；`0.6.0-preview` 继续把业务 UI 从通用组件层迁入 feature 层：
+`0.6.0-preview` 起，代码结构按 LobeHub 方向收敛为清晰的模块边界；`0.6.1-preview` 继续把业务 UI 从通用组件层迁入 feature 层：
 
 - `src/app/api/**/route.ts` 只做 HTTP 输入输出、session 校验和状态码映射。
 - 业务 SOT 放在 `src/server/modules/*`，例如 recordings、recording-tags、speakers、search 和 data-sources。

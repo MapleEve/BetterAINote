@@ -357,7 +357,7 @@ export function createSearchIndexJobProcessor(
                     if (job.action === "delete") {
                         await deps.deleteEntity(entityRef);
                     } else if (job.action === "rebuild") {
-                        await rebuildSearchIndexForUser(job.userId);
+                        await deps.rebuildUser(job.userId);
                     } else {
                         await deps.upsertEntity(entityRef);
                     }

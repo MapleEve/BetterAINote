@@ -1,6 +1,6 @@
 {
     "name": "betterainote",
-  "version": "0.6.0-preview",
+    "version": "0.6.1-preview",
     "private": true,
     "packageManager": "bun@1.2.20",
     "description": "Private self-hosted workspace for multi-platform voice record aggregation and unified management",
