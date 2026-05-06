@@ -25,9 +25,8 @@ describe("CI service integrations", () => {
         expect(ciWorkflow).toContain("report_type: test_results");
 
         const codecovConfig = readProjectFile("codecov.yml");
-        expect(codecovConfig).toContain("target: auto");
-        expect(codecovConfig).toContain("threshold: 1%");
-        expect(codecovConfig).toContain("target: 60%");
+        expect(codecovConfig).toContain("target: 80%");
+        expect(codecovConfig).toContain("target: 70%");
         expect(codecovConfig).toContain('"src/tests/**"');
     });
 
