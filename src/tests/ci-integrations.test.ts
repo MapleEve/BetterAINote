@@ -56,4 +56,32 @@ describe("CI service integrations", () => {
         expect(settings).not.toContain("FOSSA_API_KEY=");
         expect(settings).not.toContain("CODECOV_TOKEN=");
     });
+
+    it("keeps the FOSSA scan surface free of unused browser transcription dependencies", () => {
+        const packageJson = JSON.parse(readProjectFile("package.json")) as {
+            dependencies?: Record<string, string>;
+        };
+
+        expect(packageJson.dependencies).not.toHaveProperty(
+            "@xenova/transformers",
+        );
+        expect(
+            existsSync(path.join(ROOT, "src/lib/transcription/worker.ts")),
+        ).toBe(false);
+    });
+
+    it("pins FOSSA security transitive dependency floors until direct packages catch up", () => {
+        const packageJson = JSON.parse(readProjectFile("package.json")) as {
+            overrides?: Record<string, string>;
+        };
+
+        expect(packageJson.overrides).toMatchObject({
+            defu: "6.1.5",
+            picomatch: "4.0.4",
+            postcss: "8.5.10",
+            protobufjs: "7.5.5",
+            rollup: "4.59.0",
+            vite: "7.3.2",
+        });
+    });
 });
