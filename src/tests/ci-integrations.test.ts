@@ -65,8 +65,17 @@ describe("CI service integrations", () => {
         expect(packageJson.dependencies).not.toHaveProperty(
             "@xenova/transformers",
         );
+        expect(packageJson.dependencies).not.toHaveProperty("@google/genai");
         expect(
             existsSync(path.join(ROOT, "src/lib/transcription/worker.ts")),
+        ).toBe(false);
+        expect(
+            existsSync(
+                path.join(
+                    ROOT,
+                    "src/lib/transcription/providers/google-speech-provider.ts",
+                ),
+            ),
         ).toBe(false);
     });
 
@@ -79,7 +88,6 @@ describe("CI service integrations", () => {
             defu: "6.1.5",
             picomatch: "4.0.4",
             postcss: "8.5.10",
-            protobufjs: "7.5.5",
             rollup: "4.59.0",
             vite: "7.3.2",
         });

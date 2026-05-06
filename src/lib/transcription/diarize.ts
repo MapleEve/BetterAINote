@@ -3,7 +3,7 @@
  *
  * Calls the Python `diarize` library via child_process to get
  * voice-fingerprint-based speaker segments. These segments are then
- * used to guide Gemini's transcription for accurate speaker attribution.
+ * used to guide model transcription for accurate speaker attribution.
  */
 import { execFile } from "node:child_process";
 import { access, constants } from "node:fs/promises";
@@ -108,9 +108,9 @@ export async function runDiarization(
 }
 
 /**
- * Format diarization segments into a prompt hint for Gemini.
+ * Format diarization segments into a prompt hint for model transcription.
  *
- * Produces a human-readable timeline that tells Gemini which speaker
+ * Produces a human-readable timeline that tells the transcription model which speaker
  * is active at which timestamps, based on voice fingerprint analysis.
  */
 export function formatDiarizeHint(result: DiarizeResult): string {

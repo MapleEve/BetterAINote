@@ -5,10 +5,7 @@ import { userSettings } from "@/db/schema/core";
 import { recordings } from "@/db/schema/library";
 import { transcriptions } from "@/db/schema/transcripts";
 import { generateTitleFromTranscription } from "@/lib/ai/generate-title";
-import {
-    getDefaultTranscriptionCredential,
-    listFallbackTranscriptionCredentials,
-} from "@/lib/api-credentials/default-transcription";
+import { getDefaultTranscriptionCredential } from "@/lib/api-credentials/default-transcription";
 import { decrypt } from "@/lib/encryption";
 import { resolveVoScriptSpeakerBoundsFromStoredSettings } from "@/lib/settings/voscript-provider-settings";
 import { syncRecordingSpeakers } from "@/lib/speakers";
@@ -41,37 +38,6 @@ const PRIVATE_TRANSCRIPTION_MODEL =
     "faster-whisper-large-v3+pyannote-3.1+ecapa";
 
 export { PRIVATE_TRANSCRIPTION_MODEL };
-
-function isGoogleInlineAudioLimitError(error: unknown): boolean {
-    if (!(error instanceof Error)) return false;
-    const message = error.message.toLowerCase();
-    return (
-        message.includes("inline audio exceeds duration limit") ||
-        message.includes("request payload size exceeds the limit") ||
-        message.includes("please use a gcs uri")
-    );
-}
-
-function fallbackPriority(
-    providerName: string,
-    baseUrl?: string | null,
-): number {
-    const providerType = inferProviderType(providerName, baseUrl);
-    switch (providerType) {
-        case "voice-transcribe":
-            return 0;
-        case "litellm":
-            return 1;
-        case "azure":
-            return 2;
-        case "openai":
-            return 3;
-        case "local":
-            return 4;
-        default:
-            return 9;
-    }
-}
 
 function formatTitleGenerationMetadata(recording: {
     startTime: Date;
@@ -322,13 +288,8 @@ export async function transcribeRecording(
             getConfiguredPrivateTranscriptionBaseUrl(settings);
         const defaultLanguage =
             settings?.defaultTranscriptionLanguage || undefined;
-        let primaryCredentials: Awaited<
-            ReturnType<typeof getDefaultTranscriptionCredential>
-        > = null;
         let effectiveProviderName = "voice-transcribe";
         let effectiveModel = PRIVATE_TRANSCRIPTION_MODEL;
-        let providerType: ReturnType<typeof inferProviderType> =
-            "voice-transcribe";
         let provider: TranscriptionProvider;
 
         if (privateTranscriptionBaseUrl) {
@@ -359,10 +320,9 @@ export async function transcribeRecording(
             }
 
             const apiKey = decrypt(credentials.apiKey);
-            primaryCredentials = credentials;
             effectiveProviderName = credentials.provider;
             effectiveModel = credentials.defaultModel || "whisper-1";
-            providerType = inferProviderType(
+            const providerType = inferProviderType(
                 credentials.provider,
                 credentials.baseUrl,
             );
@@ -385,67 +345,11 @@ export async function transcribeRecording(
                   model: effectiveModel,
               } satisfies TranscriptionOptions);
 
-        let result: TranscriptionResult;
-
-        try {
-            result = await provider.transcribe(
-                audioBuffer,
-                recording.filename,
-                transcriptionOptions,
-            );
-        } catch (error) {
-            if (
-                providerType === "google" &&
-                primaryCredentials &&
-                isGoogleInlineAudioLimitError(error)
-            ) {
-                const fallbackCredentials =
-                    await listFallbackTranscriptionCredentials(
-                        userId,
-                        primaryCredentials.id,
-                    );
-
-                const fallback = fallbackCredentials
-                    .filter(
-                        (cred) =>
-                            inferProviderType(cred.provider, cred.baseUrl) !==
-                            "google",
-                    )
-                    .sort(
-                        (a, b) =>
-                            fallbackPriority(a.provider, a.baseUrl) -
-                            fallbackPriority(b.provider, b.baseUrl),
-                    )[0];
-
-                if (!fallback) {
-                    throw error;
-                }
-
-                const fallbackProvider = createTranscriptionProvider(
-                    inferProviderType(fallback.provider, fallback.baseUrl),
-                    decrypt(fallback.apiKey),
-                    fallback.baseUrl || undefined,
-                );
-
-                result = await fallbackProvider.transcribe(
-                    audioBuffer,
-                    recording.filename,
-                    {
-                        ...transcriptionOptions,
-                        model: fallback.defaultModel || "whisper-1",
-                    },
-                );
-
-                effectiveProviderName = fallback.provider;
-                effectiveModel = fallback.defaultModel || "whisper-1";
-                console.warn(
-                    "Google transcription hit inline-audio limits; used fallback provider:",
-                    fallback.provider,
-                );
-            } else {
-                throw error;
-            }
-        }
+        const result: TranscriptionResult = await provider.transcribe(
+            audioBuffer,
+            recording.filename,
+            transcriptionOptions,
+        );
 
         await persistTranscriptionResult({
             userId,

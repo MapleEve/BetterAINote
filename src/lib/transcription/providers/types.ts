@@ -98,5 +98,4 @@ export type ProviderType =
     | "azure"
     | "litellm"
     | "local"
-    | "google"
     | "voice-transcribe";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { truncateRepetitionLoop } from "@/lib/transcription/providers/google-speech-provider";
+import { truncateRepetitionLoop } from "@/lib/transcription/transcript-text-guards";
 
 describe("truncateRepetitionLoop", () => {
     it("does not truncate normal text", () => {
