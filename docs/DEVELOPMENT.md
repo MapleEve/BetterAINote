@@ -40,6 +40,28 @@ bun run db:migrate
 
 文档改动至少要跑格式 / lint、类型检查和任务要求的敏感词扫描。`bun run type-check` 如果生成 `tsconfig.tsbuildinfo`，结束前删除。
 
+## 真实 Provider E2E
+
+发布前 E2E 不能只跑 mock。需要用本地配置的真实 provider 覆盖以下链路：
+
+1. 使用 `scripts/e2e-reset-data.mjs` 清空录音、转写、标签、来源 artifact、搜索 sidecar 和本地 storage；保留 `source_connections` 与 `api_credentials`。
+2. 启动 `bun run dev`，确认 Web 与 worker 都在 `3001` 上运行。
+3. 登录测试账号，确认 `/api/recordings` 初始为空。
+4. 在 `Data Sources` 设置页确认 Plaud 和 TicNote 都为已启用，飞书妙记、钉钉 A1 等入口可见。
+5. 从 UI 点击“同步设备”，等待 `/api/data-sources/sync` 完整返回；必须看到 Plaud 与 TicNote 都有真实录音落库。
+6. 检查至少一条来源报告的逐字稿 segments 带 `startMs` 或 `endMs`，并确认来源页签在首页转录区域可见。
+7. 选择一条有本地音频的短录音触发真实 VoScript / voice-transcribe 转写，等待 job 成功并读取 `/transcript/raw`。
+8. 用转写中派生的短查询词调用 `/api/search`，覆盖 `recording`、`transcript`、`speaker`、`tag` 四类搜索范围。
+9. 打开首页 `#transcription` 与设置 `#transcription` 做 UI smoke；不得在日志、文档或测试输出中打印真实标题、录音 ID、token 或逐字稿正文。
+
+本地 2026-04-28 的 3001 预发布检查结果：清空后真实同步导入 Plaud 37 条、TicNote 3 条；40 条都有本地音频；来源逐字稿 5/5 段带时间戳；真实转写 `voice-transcribe` 成功；搜索命中 `recording` 与 `transcript`。这类结果只能记录数量和状态，不能记录真实内容。
+
+E2E 发现过的稳定性边界：
+
+- 来源音频下载必须设置超时；临时下载 URL 卡死不能让 provider batch 永远 running。
+- 手动 provider 同步运行期间，后台 worker 不能同时处理 search jobs，否则 SQLite search shard 会出现 `SQLITE_BUSY`。
+- search job 写入需要识别顶层和 `cause` 内的 `SQLITE_BUSY` 并做短重试。
+
 ## 产品边界
 
 | 边界 | 要求 |
@@ -52,13 +74,17 @@ bun run db:migrate
 
 ## 架构 baseline
 
-`0.6.0-preview` 起，代码结构按 LobeHub 方向收敛为清晰的模块边界：
+`0.6.0-preview` 起，代码结构按 LobeHub 方向收敛为清晰的模块边界；`0.6.1-preview` 继续把业务 UI 从通用组件层迁入 feature 层：
 
 - `src/app/api/**/route.ts` 只做 HTTP 输入输出、session 校验和状态码映射。
 - 业务 SOT 放在 `src/server/modules/*`，例如 recordings、recording-tags、speakers、search 和 data-sources。
-- `src/features/*` 承担前端业务编排和 hook，`src/components/*` 承担可复用界面组件。
+- `src/features/dashboard/*` 承担首页录音工作台编排。
+- `src/features/recordings/*` 承担录音详情、播放、来源报告、标签和说话人审阅等业务 UI。
+- `src/features/settings/*` 与 `src/features/data-sources/*` 承担设置和数据源的前端状态/表单编排。
+- `src/components/*` 只承担可复用界面组件、通用布局组件、provider 和基础 UI，不再放 dashboard/recordings 业务目录。
 - Provider 专属协议、凭据归一化、来源错误和能力表达留在 `src/lib/data-sources/providers/*`。
 - API route 不直接访问 `@/db`、`@/db/schema` 或 `drizzle-orm`；这个边界由 preview architecture 测试守住。
+- 搜索按“领域读模型 -> search repository -> API route”分层：`src/server/modules/recordings/search-read-model.ts` 负责把 recordings/transcripts/speakers/tags 映射为搜索文档，`src/server/modules/search/*` 负责 FTS 查询、重建和索引队列，`/api/search` 只负责鉴权、参数校验和响应。
 
 ## 设置 IA
 

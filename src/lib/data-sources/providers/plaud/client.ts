@@ -141,6 +141,11 @@ function extractSummaryMarkdown(
         return content.content.trim().length > 0 ? content.content : null;
     }
 
+    const aiContent = (content as Record<string, unknown>)?.ai_content;
+    if (typeof aiContent === "string" && aiContent.trim().length > 0) {
+        return aiContent.trim();
+    }
+
     const markdown = content?.content?.markdown;
     return typeof markdown === "string" && markdown.trim().length > 0
         ? markdown

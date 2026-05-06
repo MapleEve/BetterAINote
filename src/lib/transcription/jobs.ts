@@ -50,11 +50,11 @@ const ACTIVE_TRANSCRIPTION_JOB_STATUSES: TranscriptionJobStatus[] = [
     "submitted",
     "processing",
 ];
-const PRIVATE_JOB_POLL_MS = 5000;
+export const TRANSCRIPTION_JOB_POLL_MS = 5000;
 const MAX_PRIVATE_JOB_SUBMIT_ATTEMPTS = 3;
 
 function nextPrivatePollAt(from = new Date()) {
-    return new Date(from.getTime() + PRIVATE_JOB_POLL_MS);
+    return new Date(from.getTime() + TRANSCRIPTION_JOB_POLL_MS);
 }
 
 async function resolvePrivateTranscriptionApiKey(
@@ -247,6 +247,62 @@ function isMissingRemoteVoiceTranscribeJob(error: unknown) {
     );
 }
 
+function isTransientPrivateTranscriptionNetworkError(error: unknown) {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+
+    const cause = (error as Error & { cause?: unknown }).cause;
+    const causeRecord =
+        cause && typeof cause === "object"
+            ? (cause as Record<string, unknown>)
+            : {};
+    const text = [
+        error.name,
+        error.message,
+        typeof causeRecord.message === "string" ? causeRecord.message : "",
+        typeof causeRecord.code === "string" ? causeRecord.code : "",
+    ]
+        .join(" ")
+        .toLowerCase();
+
+    return (
+        text.includes("socket connection was closed") ||
+        text.includes("client network socket disconnected") ||
+        text.includes("econnreset") ||
+        text.includes("fetch failed") ||
+        text.includes("network") ||
+        text.includes("timeout")
+    );
+}
+
+async function keepPrivateJobRetryable(params: {
+    job: typeof transcriptionJobs.$inferSelect;
+    now: Date;
+    lastError: string;
+    status?: Extract<
+        TranscriptionJobStatus,
+        "pending" | "submitted" | "processing"
+    >;
+    attempts?: number;
+}) {
+    await db
+        .update(transcriptionJobs)
+        .set({
+            status: params.status ?? params.job.status,
+            provider: "voice-transcribe",
+            model: PRIVATE_TRANSCRIPTION_MODEL,
+            remoteStatus: params.job.remoteStatus,
+            attempts: params.attempts ?? params.job.attempts,
+            lastPolledAt: params.now,
+            completedAt: null,
+            nextPollAt: nextPrivatePollAt(params.now),
+            lastError: params.lastError,
+            updatedAt: params.now,
+        })
+        .where(eq(transcriptionJobs.id, params.job.id));
+}
+
 async function requeueLostPrivateJob(
     job: typeof transcriptionJobs.$inferSelect,
     now: Date,
@@ -338,6 +394,20 @@ async function submitPrivateTranscriptionJob(
             })
             .where(eq(transcriptionJobs.id, job.id));
     } catch (error) {
+        if (
+            isTransientPrivateTranscriptionNetworkError(error) &&
+            job.attempts < MAX_PRIVATE_JOB_SUBMIT_ATTEMPTS
+        ) {
+            await keepPrivateJobRetryable({
+                job,
+                now,
+                status: "pending",
+                attempts: job.attempts + 1,
+                lastError: normalizeTranscriptionError(error),
+            });
+            return;
+        }
+
         await markJobFailed(job.id, now, normalizeTranscriptionError(error));
     }
 }
@@ -429,6 +499,17 @@ async function pollPrivateTranscriptionJob(
                 now,
                 `Remote queue lost the transcription job after ${job.attempts} submission attempts`,
             );
+            return;
+        }
+
+        if (isTransientPrivateTranscriptionNetworkError(error)) {
+            await keepPrivateJobRetryable({
+                job,
+                now,
+                status:
+                    job.status === "processing" ? "processing" : "submitted",
+                lastError: normalizeTranscriptionError(error),
+            });
             return;
         }
 

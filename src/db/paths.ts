@@ -27,6 +27,7 @@ function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
         const parsed = path.parse(url.pathname);
         return pathToFileURL(
             path.join(
+                /* turbopackIgnore: true */
                 parsed.dir,
                 `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
             ),
@@ -35,6 +36,7 @@ function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
 
     const parsed = path.parse(databasePath);
     return path.resolve(
+        /* turbopackIgnore: true */
         parsed.dir || ".",
         `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
     );
@@ -45,7 +47,8 @@ export function resolveDatabaseUrl(databasePath: string) {
         return databasePath;
     }
 
-    return pathToFileURL(path.resolve(databasePath)).href;
+    return pathToFileURL(path.resolve(/* turbopackIgnore: true */ databasePath))
+        .href;
 }
 
 export function getDatabaseLayout(databasePath: string): DatabaseLayout {

@@ -27,6 +27,7 @@ import {
     resolveUniqueRecordingArchiveKey,
     uploadArchivedRecordingAudio,
 } from "@/lib/storage/recording-archive";
+import { isPersistedSyncWorkerRunning } from "@/lib/sync/worker-state";
 import { enqueueTranscriptionJobs } from "@/lib/transcription/jobs";
 import { replaceSourceArtifactSegmentsForArtifact } from "@/server/modules/search/indexer";
 
@@ -34,12 +35,21 @@ const SYNC_CONFIG = {
     BATCH_CONCURRENCY: 5,
 } as const;
 
-interface SyncResult {
+export interface SyncResult {
     newRecordings: number;
     updatedRecordings: number;
     removedRecordings: number;
     errors: string[];
     pendingTranscriptionIds: string[];
+}
+
+export function hasSyncResultProgress(result: SyncResult) {
+    return (
+        result.newRecordings > 0 ||
+        result.updatedRecordings > 0 ||
+        result.removedRecordings > 0 ||
+        result.pendingTranscriptionIds.length > 0
+    );
 }
 
 interface SyncContext {
@@ -53,6 +63,7 @@ export interface SyncSchedule {
     syncInterval: number;
     autoSyncEnabled: boolean;
     manualTriggerRequestedAt: Date | null;
+    isRunning: boolean;
 }
 
 export interface SyncUsersResult {
@@ -197,6 +208,17 @@ function buildArtifactRows(
     return rows;
 }
 
+function hasUsableSourceArtifacts(
+    artifacts: SourceArtifacts | null | undefined,
+) {
+    return Boolean(
+        artifacts?.transcriptText?.trim() ||
+            (artifacts?.transcriptSegments?.length ?? 0) > 0 ||
+            artifacts?.summaryMarkdown?.trim() ||
+            artifacts?.detailPayload,
+    );
+}
+
 async function upsertSourceArtifacts(
     recordingId: string,
     userId: string,
@@ -297,10 +319,32 @@ async function resolveDownloadedAudio(
             ),
     });
 
-    const audioBuffer = await downloadSourceAudioBuffer(
-        sourceRecording.sourceProvider,
-        archivePlan,
-    );
+    let audioBuffer: Buffer;
+    try {
+        audioBuffer = await downloadSourceAudioBuffer(
+            sourceRecording.sourceProvider,
+            archivePlan,
+        );
+    } catch (error) {
+        if (!hasUsableSourceArtifacts(sourceRecording.artifacts)) {
+            throw error;
+        }
+
+        console.warn(
+            "Source audio unavailable; importing source artifacts only",
+            {
+                provider: sourceRecording.sourceProvider,
+                error: summarizeSyncError(error),
+            },
+        );
+        return {
+            storagePath: existingRecording?.storagePath ?? "",
+            downloadedAt: existingRecording?.downloadedAt ?? null,
+            filesize:
+                sourceRecording.filesize ?? existingRecording?.filesize ?? 0,
+        };
+    }
+
     await uploadArchivedRecordingAudio({
         storage,
         storageKey,
@@ -729,6 +773,10 @@ export async function syncRecordingsForUser(
 }
 
 export function isUserDueForSync(schedule: SyncSchedule, now: Date): boolean {
+    if (schedule.isRunning) {
+        return false;
+    }
+
     if (schedule.manualTriggerRequestedAt) {
         return true;
     }
@@ -806,6 +854,9 @@ export async function getUserSyncSchedules(): Promise<SyncSchedule[]> {
         db
             .select({
                 userId: syncWorkerState.userId,
+                isRunning: syncWorkerState.isRunning,
+                lastStartedAt: syncWorkerState.lastStartedAt,
+                lastFinishedAt: syncWorkerState.lastFinishedAt,
                 manualTriggerRequestedAt:
                     syncWorkerState.manualTriggerRequestedAt,
             })
@@ -825,6 +876,7 @@ export async function getUserSyncSchedules(): Promise<SyncSchedule[]> {
         lastSync: scheduleSeed.get(userId)?.lastSync ?? null,
         syncInterval: settingsByUser.get(userId)?.syncInterval ?? 300000,
         autoSyncEnabled: settingsByUser.get(userId)?.autoSyncEnabled ?? true,
+        isRunning: isPersistedSyncWorkerRunning(workerStatesByUser.get(userId)),
         manualTriggerRequestedAt:
             workerStatesByUser.get(userId)?.manualTriggerRequestedAt ?? null,
     }));

@@ -1,20 +1,12 @@
-import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
-import { db } from "@/db";
-import { sourceConnections } from "@/db/schema/core";
 import { requireAuth } from "@/lib/auth-server";
+import { hasCompletedOnboarding } from "@/server/modules/onboarding";
 
 export default async function OnboardingPage() {
     const session = await requireAuth();
 
-    const [existingConnection] = await db
-        .select()
-        .from(sourceConnections)
-        .where(eq(sourceConnections.userId, session.user.id))
-        .limit(1);
-
-    if (existingConnection) {
+    if (await hasCompletedOnboarding(session.user.id)) {
         redirect("/dashboard");
     }
 

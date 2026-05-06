@@ -34,4 +34,25 @@ describe("preview dashboard performance boundary", () => {
             /listRecordingRelationsForUser\(\s*userId,\s*recordingIds,\s*\{\s*includeTranscript:\s*false,\s*\}\s*\)/,
         );
     });
+
+    it("keeps runtime SQLite path derivation out of Turbopack broad file tracing", () => {
+        const pathsSource = readFileSync(
+            path.join(process.cwd(), "src/db/paths.ts"),
+            "utf8",
+        );
+        const wordArtifactsSource = readFileSync(
+            path.join(process.cwd(), "src/lib/transcription/word-artifacts.ts"),
+            "utf8",
+        );
+
+        expect(pathsSource).toMatch(
+            /path\.join\(\s*\/\* turbopackIgnore: true \*\//,
+        );
+        expect(pathsSource).toMatch(
+            /path\.resolve\(\s*\/\* turbopackIgnore: true \*\//,
+        );
+        expect(wordArtifactsSource).toContain(
+            "path.resolve(/* turbopackIgnore: true */ wordsPath)",
+        );
+    });
 });

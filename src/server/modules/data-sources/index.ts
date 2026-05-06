@@ -6,6 +6,7 @@ import {
     type DataSourcesRequestBody,
     SourceProviderSettingsError,
 } from "@/lib/data-sources/types";
+import { persistSourceDevicesForUser } from "./devices";
 import { serializeDataSources } from "./serialize";
 import { prepareSourceConnectionWrite } from "./settings";
 
@@ -87,6 +88,11 @@ export async function saveDataSourceForUser(
                 updatedAt: now,
             })
             .where(eq(sourceConnections.id, existing.id));
+        await persistSourceDevicesForUser({
+            userId,
+            provider: body.provider,
+            devices: next.sourceDevices,
+        });
         return;
     }
 
@@ -100,5 +106,10 @@ export async function saveDataSourceForUser(
         secretConfig: next.secretConfig,
         createdAt: now,
         updatedAt: now,
+    });
+    await persistSourceDevicesForUser({
+        userId,
+        provider: body.provider,
+        devices: next.sourceDevices,
     });
 }

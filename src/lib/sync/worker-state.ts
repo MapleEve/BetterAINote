@@ -20,6 +20,30 @@ interface SyncWorkerStatePatch {
     lastSummary?: PersistedSyncWorkerSummary | null;
 }
 
+interface PersistedRunningState {
+    isRunning?: boolean | null;
+    lastStartedAt?: Date | null;
+    lastFinishedAt?: Date | null;
+}
+
+export function isPersistedSyncWorkerRunning(
+    state: PersistedRunningState | null | undefined,
+) {
+    if (!state?.isRunning) {
+        return false;
+    }
+
+    if (
+        state.lastStartedAt &&
+        state.lastFinishedAt &&
+        state.lastFinishedAt.getTime() >= state.lastStartedAt.getTime()
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
 function serializeLastSummary(
     summary: PersistedSyncWorkerSummary | null | undefined,
 ): ReturnType<typeof sql> | null | undefined {

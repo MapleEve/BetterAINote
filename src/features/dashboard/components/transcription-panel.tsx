@@ -8,13 +8,13 @@ import {
     Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { SpeakerLabelEditor } from "@/components/dashboard/speaker-label-editor";
 import { useLanguage } from "@/components/language-provider";
-import { SourceReportPanel } from "@/components/recordings/source-report-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     canRecordingPrivateTranscribe,
     getLocalTranscriptHint,

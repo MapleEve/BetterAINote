@@ -1,5 +1,20 @@
 # 更新日志
 
+## 0.6.1-preview
+
+### 发布说明
+
+这个小版本继续推进 `0.6.0-preview` 之后的架构收敛和搜索能力，不再把 0.6.0 当作后续开发的终点。
+
+### 架构
+
+- 按 LobeHub 方向把 dashboard 和 recording detail 的业务 UI 编排层迁入 `src/features/dashboard` 与 `src/features/recordings`。
+- 保留 `src/components/*` 作为通用组件、布局组件和基础 UI 组件的归属层，避免业务工作台继续堆在 components。
+- 增加架构边界测试，要求 dashboard/recordings 业务 UI 不再回退到 `src/components/dashboard` 或 `src/components/recordings`。
+- 将搜索的查询入口收口到 `src/server/modules/search/search-repository.ts` 与 `queries.ts`，新增 `/api/search` 作为薄 HTTP 适配层。
+- 将 recordings/transcripts/speakers/tags 的搜索读模型拆到 `src/server/modules/recordings/search-read-model.ts`，搜索重建不再直接拼领域文档。
+- 增加本地 SQLite FTS 查询清洗和 CJK n-gram fallback，避免把用户输入直接交给 FTS parser，同时为中文/日韩文搜索做 baseline。
+
 ## 0.6.0-preview
 
 ### 当前状态

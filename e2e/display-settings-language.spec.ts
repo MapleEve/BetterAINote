@@ -29,10 +29,11 @@ test("display settings language switches copy immediately via the shared store",
     await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
 
     await expect(
-        page.getByRole("heading", { name: "显示设置", exact: true }),
+        page.getByRole("heading", { name: "外观", exact: true }),
     ).toBeVisible();
+    await expect(page.getByText("显示设置", { exact: true })).toBeVisible();
     await expect(page.locator("#ui-language")).toContainText("中文");
-    await expect(page).toHaveURL(/\/settings#display$/);
+    await expect(page).toHaveURL(/\/settings#appearance$/);
 
     await page.locator("#ui-language").click();
     await page.getByRole("option", { name: "英文", exact: true }).click();
@@ -40,9 +41,14 @@ test("display settings language switches copy immediately via the shared store",
     await updateStarted;
 
     await expect(
-        page.getByRole("heading", { name: "Display Settings", exact: true }),
+        page.getByRole("heading", { name: "Appearance", exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("UI language", { exact: true })).toBeVisible();
+    await expect(
+        page.getByText("Display Settings", { exact: true }),
+    ).toBeVisible();
+    await expect(
+        page.getByText("UI language", { exact: true }).first(),
+    ).toBeVisible();
     await expect(
         page.getByText(
             "Switch the interface between Chinese and English. Default is Chinese.",

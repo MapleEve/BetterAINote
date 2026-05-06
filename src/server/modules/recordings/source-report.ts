@@ -146,6 +146,44 @@ function sanitizeTranscriptText(text: string | null | undefined) {
         .trim();
 }
 
+function normalizeSourceSummaryMarkdown(text: string | null | undefined) {
+    const value = text?.trim() ?? "";
+    if (!value) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(value) as unknown;
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const source = parsed as Record<string, unknown>;
+            const aiContent = source.ai_content;
+            if (typeof aiContent === "string" && aiContent.trim()) {
+                return aiContent.trim();
+            }
+
+            const content = source.content;
+            if (typeof content === "string" && content.trim()) {
+                return content.trim();
+            }
+
+            if (
+                content &&
+                typeof content === "object" &&
+                !Array.isArray(content)
+            ) {
+                const markdown = (content as Record<string, unknown>).markdown;
+                if (typeof markdown === "string" && markdown.trim()) {
+                    return markdown.trim();
+                }
+            }
+        }
+    } catch {
+        return value;
+    }
+
+    return value;
+}
+
 function buildPublicDetail(
     artifact: SourceArtifact | null,
     fallbackProvider: string,
@@ -209,7 +247,10 @@ export async function getRecordingSourceReport(
     const transcriptReady = Boolean(
         transcriptText.trim() || transcriptSegments.length > 0,
     );
-    const summaryReady = Boolean(summaryArtifact?.markdownContent?.trim());
+    const summaryMarkdown = normalizeSourceSummaryMarkdown(
+        summaryArtifact?.markdownContent,
+    );
+    const summaryReady = Boolean(summaryMarkdown);
     const availableSections = [
         ...(transcriptReady ? ["transcript"] : []),
         ...(summaryReady ? ["summary"] : []),
@@ -233,7 +274,7 @@ export async function getRecordingSourceReport(
                   segments: transcriptSegments,
               }
             : null,
-        summaryMarkdown: summaryArtifact?.markdownContent ?? null,
+        summaryMarkdown,
         detail: buildPublicDetail(
             detailArtifact,
             recording.sourceProvider,

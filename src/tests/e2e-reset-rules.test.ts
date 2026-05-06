@@ -18,21 +18,22 @@ describe("E2E reset safety rules", () => {
         expect(script).toContain("DATABASE_PATH");
     });
 
-    it("preserves provider configuration while clearing local app/search state", () => {
+    it("preserves provider configuration and automatic sync while clearing local app/search state", () => {
         expect(existsSync(RESET_SCRIPT)).toBe(true);
 
         const script = readFileSync(RESET_SCRIPT, "utf8");
 
         expect(script).toContain("source_connections");
         expect(script).toContain("api_credentials");
-        expect(script).toContain("auto_sync_enabled = 0");
+        expect(script).not.toContain("auto_sync_enabled = 0");
+        expect(script).toContain("auto_transcribe = 0");
         expect(script).toContain("recordings");
         expect(script).toContain("transcriptions");
         expect(script).toContain("recording_tags");
         expect(script).toContain("search_documents");
         expect(script).toContain("search_content_fts");
-        expect(script).toContain("delete-all");
-        expect(script).not.toContain("DELETE FROM `search_content_fts`");
+        expect(script).toContain("DELETE FROM `search_content_fts`");
+        expect(script).not.toContain("delete-all");
     });
 
     it("never resets remote VoScript voiceprints through API calls", () => {

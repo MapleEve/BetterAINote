@@ -40,6 +40,11 @@ vi.mock("@/lib/voice-transcribe/client", () => ({
     },
 }));
 
+vi.mock("@/server/modules/search/indexer", () => ({
+    enqueueSearchDeleteJob: vi.fn(),
+    enqueueSearchIndexJob: vi.fn(),
+}));
+
 import { db } from "@/db";
 import {
     applySpeakerProfileToRecording,
@@ -53,6 +58,7 @@ import {
     RecordingSpeakersError,
     updateRecordingSpeakerReview,
 } from "@/server/modules/recordings/speakers-review";
+import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
 
 function mockSelectLimitResult(result: unknown[]) {
     (db.select as Mock).mockReturnValueOnce({
@@ -226,6 +232,11 @@ describe("recording speakers module", () => {
                 rawLabel: "SPEAKER_01",
                 profileId: null,
             });
+            expect(enqueueSearchIndexJob).toHaveBeenCalledWith({
+                userId: "user-1",
+                entityType: "recording",
+                entityId: "rec-1",
+            });
             expect(getVoiceTranscribeAccessForUser).not.toHaveBeenCalled();
         });
 
@@ -296,6 +307,16 @@ describe("recording speakers module", () => {
                 recordingId: "rec-1",
                 rawLabel: "SPEAKER_01",
                 profileId: "profile-2",
+            });
+            expect(enqueueSearchIndexJob).toHaveBeenCalledWith({
+                userId: "user-1",
+                entityType: "speaker",
+                entityId: "profile-2",
+            });
+            expect(enqueueSearchIndexJob).toHaveBeenCalledWith({
+                userId: "user-1",
+                entityType: "recording",
+                entityId: "rec-1",
             });
         });
 

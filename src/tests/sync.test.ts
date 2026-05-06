@@ -27,6 +27,15 @@ vi.mock("@/lib/data-sources", () => ({
                 connection.authMode === "web-reverse"
             ),
     ),
+    isSourceProvider: vi.fn((provider: string) =>
+        [
+            "plaud",
+            "ticnote",
+            "dingtalk-a1",
+            "feishu-minutes",
+            "iflyrec",
+        ].includes(provider),
+    ),
     canRecordingUsePrivateTranscribe: vi.fn(
         ({
             sourceProvider,
@@ -63,8 +72,19 @@ import {
     createSourceProviderClient,
     getEnabledSourceConnectionsForUser,
 } from "@/lib/data-sources";
-import { syncRecordingsForUser } from "@/lib/sync/sync-recordings";
+import {
+    getUserSyncSchedules,
+    syncRecordingsForUser,
+} from "@/lib/sync/sync-recordings";
 import { enqueueTranscriptionJobs } from "@/lib/transcription/jobs";
+
+function mockWhereSelect(value: unknown) {
+    return {
+        from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(value),
+        }),
+    };
+}
 
 describe("Sync", () => {
     const mockUserId = "user-123";
@@ -126,6 +146,49 @@ describe("Sync", () => {
         expect(result.errors).toContain("No sync-capable data source found");
         expect(result.newRecordings).toBe(0);
         expect(result.updatedRecordings).toBe(0);
+    });
+
+    it("does not keep a sync schedule running after a later finish timestamp is present", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        provider: "plaud",
+                        authMode: "bearer",
+                        lastSync: new Date("2026-04-18T10:00:00.000Z"),
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        syncInterval: 300000,
+                        autoSyncEnabled: true,
+                    },
+                ]),
+            )
+            .mockReturnValueOnce(
+                mockWhereSelect([
+                    {
+                        userId: mockUserId,
+                        isRunning: true,
+                        lastStartedAt: new Date("2026-04-18T10:00:00.000Z"),
+                        lastFinishedAt: new Date("2026-04-18T10:05:00.000Z"),
+                        manualTriggerRequestedAt: null,
+                    },
+                ]),
+            );
+
+        const [schedule] = await getUserSyncSchedules();
+
+        expect(schedule).toMatchObject({
+            userId: mockUserId,
+            isRunning: false,
+            autoSyncEnabled: true,
+            syncInterval: 300000,
+        });
     });
 
     it("skips already synced recordings with the same source version", async () => {
@@ -629,6 +692,111 @@ describe("Sync", () => {
             "https://vod-shanji.dingtalk.com",
         );
         expect(result.errors[0]).not.toContain("auth_key=secret-token");
+    });
+
+    it("imports source artifacts when audio download fails but transcript data is available", async () => {
+        const recordingValues = vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: "rec-source-only-1" }]),
+        });
+        const artifactValues = vi.fn().mockReturnValue({
+            onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        });
+
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: true }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([]),
+                    }),
+                }),
+            });
+
+        (db.insert as Mock).mockImplementation((table) => {
+            if (table === recordings) {
+                return { values: recordingValues };
+            }
+
+            if (table === sourceArtifacts) {
+                return { values: artifactValues };
+            }
+
+            return {
+                values: vi.fn().mockResolvedValue(undefined),
+            };
+        });
+
+        downloadSourceAudioBufferMock.mockRejectedValueOnce(
+            new Error(
+                "[plaud] Failed to download source audio from https://example.invalid/audio.mp3?token=secret",
+            ),
+        );
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            {
+                provider: "plaud",
+                userId: mockUserId,
+                enabled: true,
+                authMode: "bearer",
+            },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "plaud-source-only-1",
+                    filename: "Source Only.mp3",
+                    durationMs: 61000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:01Z"),
+                    version: "1713530200",
+                    filesize: 4096,
+                    audioDownload: {
+                        url: "https://example.invalid/audio.mp3?token=secret",
+                        fileExtension: "mp3",
+                    },
+                    artifacts: {
+                        transcriptText: "Speaker 1: source transcript",
+                        transcriptSegments: [
+                            {
+                                speaker: "Speaker 1",
+                                startMs: 0,
+                                endMs: 1800,
+                                text: "source transcript",
+                            },
+                        ],
+                        summaryMarkdown: "# Summary",
+                        detailPayload: { id: "plaud-source-only-1" },
+                    },
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId, {
+            awaitTranscriptionQueue: true,
+        });
+
+        expect(result.errors).toEqual([]);
+        expect(result.newRecordings).toBe(1);
+        expect(result.pendingTranscriptionIds).toEqual([]);
+        expect(uploadFileMock).not.toHaveBeenCalled();
+        expect(enqueueTranscriptionJobs).not.toHaveBeenCalled();
+        expect(recordingValues).toHaveBeenCalledWith(
+            expect.objectContaining({
+                sourceProvider: "plaud",
+                sourceRecordingId: "plaud-source-only-1",
+                storagePath: "",
+                filesize: 4096,
+            }),
+        );
+        expect(artifactValues).toHaveBeenCalledTimes(3);
     });
 
     it("persists legacy Plaud timing metadata inside sourceMetadata instead of top-level recording columns", async () => {

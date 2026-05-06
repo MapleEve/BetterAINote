@@ -10,14 +10,16 @@ test("playback settings update speed and autoplay, then persist after reload", a
 
     const playbackSpeedTrigger = page.locator("#playback-speed");
     const autoPlaySwitch = page.locator("#auto-play-next");
-    const playbackHeading = page.getByRole("heading", {
-        name: /^(播放设置|Playback Settings)$/,
+    const miscHeading = page.getByRole("heading", {
+        name: /^(杂项|Misc)$/,
     });
+    const playbackTitle = page.getByText(/^(播放设置|Playback Settings)$/);
 
-    await expect(playbackHeading).toBeVisible();
+    await expect(miscHeading).toBeVisible();
+    await expect(playbackTitle).toBeVisible();
     await expect(playbackSpeedTrigger).toContainText("1x");
     await expect(autoPlaySwitch).toHaveAttribute("data-state", "unchecked");
-    await expect(page).toHaveURL(/\/settings#playback$/);
+    await expect(page).toHaveURL(/\/settings#misc$/);
 
     let firstRequestBody: Record<string, unknown> | null = null;
     let releasePendingUpdate = () => {};
@@ -86,7 +88,8 @@ test("playback settings update speed and autoplay, then persist after reload", a
 
     await page.reload({ waitUntil: "domcontentloaded" });
 
-    await expect(playbackHeading).toBeVisible();
+    await expect(miscHeading).toBeVisible();
+    await expect(playbackTitle).toBeVisible();
     await expect(playbackSpeedTrigger).toContainText("1.5x");
     await expect(autoPlaySwitch).toHaveAttribute("data-state", "checked");
 });

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { recordings } from "@/db/schema/library";
 import { createUserStorageProvider } from "@/lib/storage/factory";
+import { enqueueSearchDeleteJob } from "@/server/modules/search/indexer";
 import { findOwnedRecording } from "./ownership";
 
 export class RecordingDeleteError extends Error {
@@ -37,6 +38,11 @@ export async function deleteRecordingForUser(
     }
 
     await db.delete(recordings).where(eq(recordings.id, recordingId));
+    await enqueueSearchDeleteJob({
+        userId,
+        entityType: "recording",
+        entityId: recordingId,
+    });
 
     return { success: true };
 }

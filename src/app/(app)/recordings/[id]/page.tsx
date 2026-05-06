@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { RecordingWorkstation } from "@/components/recordings/recording-workstation";
+import { RecordingWorkstation } from "@/features/recordings/workstation";
 import { requireAuth } from "@/lib/auth-server";
 import { getRecordingDetailPageData } from "@/server/modules/recordings";
 

@@ -22,12 +22,47 @@ vi.mock("@/lib/env", () => ({
 
 vi.mock("@/lib/sync/worker-state", () => ({
     getSyncWorkerStateForUser: vi.fn(),
+    isPersistedSyncWorkerRunning: vi.fn(
+        (
+            state?: {
+                isRunning?: boolean | null;
+                lastStartedAt?: Date | null;
+                lastFinishedAt?: Date | null;
+            } | null,
+        ) => {
+            if (!state?.isRunning) {
+                return false;
+            }
+
+            if (
+                state.lastStartedAt &&
+                state.lastFinishedAt &&
+                state.lastFinishedAt.getTime() >= state.lastStartedAt.getTime()
+            ) {
+                return false;
+            }
+
+            return true;
+        },
+    ),
     upsertSyncWorkerStateForUsers: vi.fn(),
 }));
 
 vi.mock("@/lib/sync/sync-recordings", () => ({
     syncRecordingsForUser: vi.fn(),
     getUserSyncSchedules: vi.fn(),
+    hasSyncResultProgress: vi.fn(
+        (result: {
+            newRecordings: number;
+            updatedRecordings: number;
+            removedRecordings: number;
+            pendingTranscriptionIds: string[];
+        }) =>
+            result.newRecordings > 0 ||
+            result.updatedRecordings > 0 ||
+            result.removedRecordings > 0 ||
+            result.pendingTranscriptionIds.length > 0,
+    ),
 }));
 
 vi.mock("@/lib/data-sources", () => ({
@@ -196,6 +231,43 @@ describe("Data sources sync route", () => {
             errors: [],
             error: null,
         });
+    });
+
+    it("treats imported recordings with provider errors as partial success", async () => {
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud" },
+            { provider: "ticnote" },
+        ]);
+        (syncRecordingsForUser as Mock).mockResolvedValue({
+            newRecordings: 2,
+            updatedRecordings: 0,
+            removedRecordings: 0,
+            pendingTranscriptionIds: [],
+            errors: [
+                "[plaud] Failed to download source audio from https://signed.example/audio.mp3?token=secret-token",
+            ],
+        });
+
+        const response = await POST(makeRequest("POST"));
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({
+            success: true,
+            partialSuccess: true,
+            newRecordings: 2,
+            errors: ["导入失败，请稍后重试"],
+            error: "导入失败，请稍后重试",
+        });
+        expect(upsertSyncWorkerStateForUsers).toHaveBeenLastCalledWith(
+            ["user-1"],
+            expect.objectContaining({
+                lastError: null,
+                lastSummary: expect.objectContaining({
+                    newRecordings: 2,
+                    errorCount: 1,
+                }),
+            }),
+        );
     });
 
     it("redacts provider errors from manual sync responses and public status", async () => {

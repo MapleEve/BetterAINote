@@ -400,6 +400,50 @@ describe("source-report route", () => {
         });
     });
 
+    it("normalizes Plaud JSON summary artifacts into readable markdown", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-plaud-summary",
+                                sourceProvider: "plaud",
+                                filename: "Planning Notes",
+                            },
+                        ]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockResolvedValue([
+                        {
+                            artifactType: "official-summary",
+                            markdownContent: JSON.stringify({
+                                ai_content: "## Summary\n- Follow up",
+                                category: "meeting",
+                            }),
+                        },
+                    ]),
+                }),
+            });
+
+        const response = await GETSourceReport(
+            makeRequest(
+                "http://localhost/api/recordings/rec-plaud-summary/source-report",
+            ),
+            makeParams("rec-plaud-summary"),
+        );
+
+        expect(response.status).toBe(200);
+
+        const body = await response.json();
+        expect(body.summaryMarkdown).toBe("## Summary\n- Follow up");
+        expect(JSON.stringify(body)).not.toContain("ai_content");
+        expect(JSON.stringify(body)).not.toContain('"category"');
+    });
+
     it("does not expose sensitive provider detail fields or values", async () => {
         const sensitivePayload = {
             provider: "ticnote",

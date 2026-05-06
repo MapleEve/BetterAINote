@@ -85,6 +85,7 @@ describe("preview database foundation", () => {
         expect(migration).toContain(
             "CREATE VIRTUAL TABLE `search_content_fts`",
         );
+        expect(migration).not.toContain("content=''");
         expect(migration).toContain("CREATE TABLE `search_index_jobs`");
         expect(migration).toContain("CREATE TABLE `search_tombstones`");
         expect(migration).toContain("`index_version` integer");

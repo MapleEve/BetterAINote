@@ -11,6 +11,7 @@ import {
     SelectItem,
     SelectTrigger,
 } from "@/components/ui/select";
+import { RecordingTagChip } from "@/features/recordings/components/recording-tag-visuals";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import { getUpstreamDeletedLabel } from "@/lib/data-sources/presentation";
 import { formatDateTime } from "@/lib/format-date";
@@ -21,7 +22,6 @@ import {
 } from "@/lib/transcription/job-display";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
-import { RecordingTagChip } from "./recording-tag-visuals";
 
 type TimelineFilter = "all" | "today" | "yesterday" | "last7" | "earlier";
 type RecordingListMode = "timeline" | "tags";

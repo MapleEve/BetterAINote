@@ -3,11 +3,11 @@
 import { FileText, Languages, RefreshCw, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { SpeakerLabelEditor } from "@/components/dashboard/speaker-label-editor";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     startBrowserInterval,
     stopBrowserInterval,

@@ -13,10 +13,12 @@ import { env } from "@/lib/env";
 import { AppError, ErrorCode } from "@/lib/errors";
 import {
     getUserSyncSchedules,
+    hasSyncResultProgress,
     syncRecordingsForUser,
 } from "@/lib/sync/sync-recordings";
 import {
     getSyncWorkerStateForUser,
+    isPersistedSyncWorkerRunning,
     upsertSyncWorkerStateForUsers,
 } from "@/lib/sync/worker-state";
 
@@ -69,7 +71,8 @@ export async function getDataSourceSyncStatusForUser(userId: string) {
     const workerHealthy = workerLastHeartbeatAt
         ? Date.now() - workerLastHeartbeatAt.getTime() <= healthyThresholdMs
         : false;
-    const workerIsRunning = workerHealthy && (workerState?.isRunning ?? false);
+    const workerIsRunning =
+        workerHealthy && isPersistedSyncWorkerRunning(workerState);
     const manualTriggerRequestedAt = workerHealthy
         ? (workerState?.manualTriggerRequestedAt ?? null)
         : null;
@@ -133,13 +136,16 @@ export async function runManualDataSourceSyncForUser(userId: string) {
             awaitTranscriptionQueue: true,
         });
         const finishedAt = new Date();
+        const partialSuccess =
+            result.errors.length > 0 && hasSyncResultProgress(result);
+        const success = result.errors.length === 0 || partialSuccess;
 
         await upsertSyncWorkerStateForUsers([userId], {
             lastHeartbeatAt: finishedAt,
             lastFinishedAt: finishedAt,
             manualTriggerRequestedAt: null,
             isRunning: false,
-            lastError: result.errors[0] ?? null,
+            lastError: partialSuccess ? null : (result.errors[0] ?? null),
             lastSummary: {
                 newRecordings: result.newRecordings,
                 updatedRecordings: result.updatedRecordings,
@@ -148,11 +154,11 @@ export async function runManualDataSourceSyncForUser(userId: string) {
             },
         });
 
-        const success = result.errors.length === 0;
         const publicErrors = sanitizePublicDataSourceErrors(result.errors);
 
         return {
             success,
+            ...(partialSuccess ? { partialSuccess: true } : {}),
             queued: false,
             newRecordings: result.newRecordings,
             updatedRecordings: result.updatedRecordings,

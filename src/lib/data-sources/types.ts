@@ -95,6 +95,14 @@ export type PreparedSourceConnectionWrite = {
     baseUrl: string | null;
     config: GenericSourceConfig;
     secretConfig: string | null;
+    sourceDevices?: PreparedSourceDeviceWrite[];
+};
+
+export type PreparedSourceDeviceWrite = {
+    providerDeviceId: string;
+    name: string;
+    model: string;
+    versionNumber?: number | null;
 };
 
 export class SourceProviderSettingsError extends Error {

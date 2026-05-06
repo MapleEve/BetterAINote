@@ -19,6 +19,11 @@ vi.mock("@/lib/speakers", () => ({
     createSpeakerProfile: vi.fn(),
 }));
 
+vi.mock("@/server/modules/search/indexer", () => ({
+    enqueueSearchDeleteJob: vi.fn(),
+    enqueueSearchIndexJob: vi.fn(),
+}));
+
 import { PATCH } from "@/app/api/speakers/profiles/[id]/route";
 import { GET, POST } from "@/app/api/speakers/profiles/route";
 import { db } from "@/db";
@@ -168,6 +173,11 @@ describe("Speaker profiles route", () => {
     });
 
     it("updates and serializes a speaker profile without leaking raw database fields", async () => {
+        (db.select as Mock).mockReturnValue({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockResolvedValue([]),
+            }),
+        });
         (db.update as Mock).mockReturnValue({
             set: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({

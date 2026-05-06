@@ -1,4 +1,4 @@
-import { Workstation } from "@/components/dashboard/workstation";
+import { Workstation } from "@/features/dashboard/workstation";
 import { requireAuth } from "@/lib/auth-server";
 import { getDashboardRecordingsPageData } from "@/server/modules/recordings";
 

@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.0--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -29,7 +29,7 @@
 把钉钉 / A1、TicNote、Plaud、飞书妙记、讯飞听见等多平台语音资料整理到一个本地工作台。<br>
 重点是多来源语音资料的私有化集合与统一管理，而不是绑定某一个厂商来源。<br>
 录音、转写、说话人审阅、AI 标题、来源报告和搜索索引优先围绕你自己的部署运行。<br>
-当前版本是 `0.6.0-preview`。自托管优先，不发布 npm 包或公开 Docker 镜像。
+当前版本是 `0.6.1-preview`。自托管优先，不发布 npm 包或公开 Docker 镜像。
 
 <br>
 
