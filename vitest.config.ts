@@ -20,5 +20,19 @@ export default defineConfig({
             "tmp/worktree-archive/**",
             "**/tmp/worktree-archive/**",
         ],
+        coverage: {
+            provider: "v8",
+            reporter: ["text", "lcov"],
+            reportsDirectory: "coverage",
+            include: ["src/**/*.{ts,tsx}"],
+            exclude: [
+                "src/tests/**",
+                "**/*.d.ts",
+                "**/.next/**",
+                "**/node_modules/**",
+                "e2e/**",
+                "tmp/**",
+            ],
+        },
     },
 });

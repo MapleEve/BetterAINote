@@ -1,5 +1,4 @@
 import { AzureTranscriptionProvider } from "./azure-provider";
-import { GoogleSpeechTranscriptionProvider } from "./google-speech-provider";
 import { LiteLLMTranscriptionProvider } from "./litellm-provider";
 import { OpenAITranscriptionProvider } from "./openai-provider";
 import type { ProviderType, TranscriptionProvider } from "./types";
@@ -23,8 +22,6 @@ export function createTranscriptionProvider(
             // Use fetch/FormData-based path for local OpenAI-compatible services
             // to keep behavior consistent with LiteLLM and support diarization fallback.
             return new LiteLLMTranscriptionProvider(apiKey, baseURL);
-        case "google":
-            return new GoogleSpeechTranscriptionProvider(apiKey, baseURL);
         case "voice-transcribe":
             if (!baseURL) {
                 throw new Error(
@@ -47,7 +44,6 @@ export function inferProviderType(
     baseUrl?: string | null,
 ): ProviderType {
     const p = provider.toLowerCase();
-    if (p.includes("google") || p.includes("gemini")) return "google";
     if (p.includes("voice-transcribe") || p.includes("private-transcription")) {
         return "voice-transcribe";
     }

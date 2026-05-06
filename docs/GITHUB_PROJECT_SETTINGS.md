@@ -37,6 +37,19 @@ meeting-notes
 ai-notes
 ```
 
+## Repository secrets
+
+这些值只配置在 GitHub Repository secrets，不写入文档、代码、日志或 issue。
+
+```text
+CODECOV_TOKEN
+FOSSA_API_KEY
+```
+
+- `CODECOV_TOKEN`：Codecov 上传令牌，用于 CI 上传覆盖率和测试结果。
+- `FOSSA_API_KEY`：FOSSA 扫描令牌，用于依赖 license / policy 检查。
+- 没有配置 `FOSSA_API_KEY` 时，FOSSA workflow 会跳过扫描，不阻塞普通 CI。
+
 ## GitHub CLI 设置命令
 
 ```bash

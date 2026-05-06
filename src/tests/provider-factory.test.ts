@@ -58,17 +58,6 @@ describe("createTranscriptionProvider", () => {
         expect(typeof provider.transcribe).toBe("function");
     });
 
-    it("creates a Google Speech provider", () => {
-        process.env.GOOGLE_PROJECT_ID = "test-project";
-        try {
-            const provider = createTranscriptionProvider("google", "api-key");
-            expect(provider).toBeDefined();
-            expect(typeof provider.transcribe).toBe("function");
-        } finally {
-            delete process.env.GOOGLE_PROJECT_ID;
-        }
-    });
-
     it("creates a voice-transcribe provider with base URL", () => {
         const provider = createTranscriptionProvider(
             "voice-transcribe",
@@ -96,9 +85,10 @@ describe("inferProviderType", () => {
         expect(inferProviderType("Azure OpenAI")).toBe("azure");
     });
 
-    it("infers google from provider name", () => {
-        expect(inferProviderType("google speech")).toBe("google");
-        expect(inferProviderType("Google")).toBe("google");
+    it("does not keep hidden Google or Gemini providers in the shared runtime", () => {
+        expect(inferProviderType("google speech")).toBe("openai");
+        expect(inferProviderType("Google")).toBe("openai");
+        expect(inferProviderType("Gemini")).toBe("openai");
     });
 
     it("infers litellm from provider name", () => {

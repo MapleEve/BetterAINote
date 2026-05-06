@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ensureSpeakerBlankLines } from "@/lib/transcription/providers/google-speech-provider";
+import { ensureSpeakerBlankLines } from "@/lib/transcription/transcript-text-guards";
 
 describe("ensureSpeakerBlankLines", () => {
     it("inserts blank line between speaker turns", () => {

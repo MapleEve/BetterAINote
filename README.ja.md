@@ -9,6 +9,12 @@
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
+<a href="https://codecov.io/gh/MapleEve/BetterAINote">
+  <img src="https://img.shields.io/codecov/c/github/MapleEve/BetterAINote?style=flat-square&logo=codecov" alt="Codecov" />
+</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FMapleEve%2FBetterAINote">
+  <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
+</a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
   <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
@@ -65,7 +71,7 @@ BetterAINote は独立したプロジェクトです。Plaud は対応ソース�
 | 項目 | 状態 |
 | --- | --- |
 | フェーズ | `preview`。セルフホスト利用者と早期フィードバック向け |
-| リリース | `0.6.0-preview` が preview baseline。安定版、npm パッケージ、公開 Docker イメージは未公開 |
+| リリース | `0.6.1-preview` が現在の preview release。安定版、npm パッケージ、公開 Docker イメージは未公開 |
 | パッケージ | `package.json` は `private: true` のまま |
 | デプロイ | 自分で管理するローカルマシン、ホームサーバー、私有サーバー、コンテナ環境 |
 | 互換性 | 初回安定版までは API、provider 機能、設定項目が変わる可能性があります |
