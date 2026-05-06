@@ -2,10 +2,14 @@ coverage:
   status:
     project:
       default:
+        informational: false
         target: 80%
+        threshold: 0%
     patch:
       default:
+        informational: false
         target: 70%
+        threshold: 0%
 
 ignore:
   - "src/tests/**"

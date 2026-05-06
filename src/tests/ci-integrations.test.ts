@@ -27,7 +27,15 @@ describe("CI service integrations", () => {
         const codecovConfig = readProjectFile("codecov.yml");
         expect(codecovConfig).toContain("target: 80%");
         expect(codecovConfig).toContain("target: 70%");
+        expect(codecovConfig).toContain("threshold: 0%");
         expect(codecovConfig).toContain('"src/tests/**"');
+
+        const vitestConfig = readProjectFile("vitest.config.ts");
+        expect(vitestConfig).toContain('"src/lib/data-sources/**/*.{ts,tsx}"');
+        expect(vitestConfig).toContain(
+            '"src/server/modules/search/segmenter.ts"',
+        );
+        expect(vitestConfig).toContain('"src/features/settings/**/*.{ts,tsx}"');
     });
 
     it("keeps FOSSA as a secret-backed workflow instead of hardcoding tokens", () => {
