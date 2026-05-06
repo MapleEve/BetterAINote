@@ -39,7 +39,12 @@ describe("CI service integrations", () => {
         expect(fossaWorkflow).toContain("fossas/fossa-action@v1.9.0");
         expect(fossaWorkflow).toContain("secrets.FOSSA_API_KEY");
         expect(fossaWorkflow).toContain("pinned-cli-version: v3.17.1");
-        expect(fossaWorkflow).toContain("test-diff-revision");
+        expect(fossaWorkflow).toContain(
+            'fossa test --diff "$FOSSA_BASE_REVISION"',
+        );
+        expect(fossaWorkflow).toContain(
+            "Revision for locator .* was not found",
+        );
         expect(fossaWorkflow).not.toContain("api-key: abcdef");
     });
 

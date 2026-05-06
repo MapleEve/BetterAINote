@@ -30,12 +30,21 @@ jobs:
           pinned-cli-version: v3.17.1
       - name: Run FOSSA diff test
         if: ${{ env.FOSSA_API_KEY != '' && github.event_name == 'pull_request' }}
-        uses: fossas/fossa-action@v1.9.0
-        with:
-          api-key: ${{ secrets.FOSSA_API_KEY }}
-          pinned-cli-version: v3.17.1
-          run-tests: true
-          test-diff-revision: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+        env:
+          FOSSA_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set +e
+          output="$(fossa test --diff "$FOSSA_BASE_REVISION" 2>&1)"
+          status=$?
+          printf '%s\n' "$output"
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          if printf '%s\n' "$output" | grep -q "Revision for locator .* was not found"; then
+            echo "FOSSA base revision is not available yet; allowing the initial project bootstrap scan to pass."
+            exit 0
+          fi
+          exit "$status"
       - name: Run FOSSA policy test
         if: ${{ env.FOSSA_API_KEY != '' && github.event_name != 'pull_request' }}
         uses: fossas/fossa-action@v1.9.0
