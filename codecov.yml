@@ -1,0 +1,19 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+    patch:
+      default:
+        target: 60%
+
+ignore:
+  - "src/tests/**"
+  - "e2e/**"
+  - "tmp/**"
+  - "storage/**"
+  - "audio/**"
+  - "data/**"
+  - ".next/**"
+  - "drizzle/**"
+  - "docs/assets/**"

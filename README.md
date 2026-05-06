@@ -9,6 +9,12 @@
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
+<a href="https://codecov.io/gh/MapleEve/BetterAINote">
+  <img src="https://img.shields.io/codecov/c/github/MapleEve/BetterAINote?style=flat-square&logo=codecov" alt="Codecov" />
+</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FMapleEve%2FBetterAINote">
+  <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
+</a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
   <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
@@ -65,7 +71,7 @@ BetterAINote 是独立项目。Plaud 只是其中一个支持的数据源，不�
 | 项目 | 说明 |
 | --- | --- |
 | 阶段 | `preview`，优先给愿意自托管和反馈的人试用 |
-| 发布 | `0.6.0-preview` 是预发布基线；正式稳定版、Docker 镜像和 npm 包仍不发布 |
+| 发布 | `0.6.1-preview` 是当前预发布版本；正式稳定版、Docker 镜像和 npm 包仍不发布 |
 | 包分发 | `package.json` 保持 `private: true` |
 | 部署方向 | 本机、家用服务器、私有服务器或你控制的容器环境 |
 | 兼容承诺 | 首个正式稳定版前，API、数据源能力和设置项仍可能调整 |

@@ -9,6 +9,12 @@
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
+<a href="https://codecov.io/gh/MapleEve/BetterAINote">
+  <img src="https://img.shields.io/codecov/c/github/MapleEve/BetterAINote?style=flat-square&logo=codecov" alt="Codecov" />
+</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FMapleEve%2FBetterAINote">
+  <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
+</a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
   <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
@@ -65,7 +71,7 @@ BetterAINote is an independent project. Plaud is one supported source, not the p
 | Area | Status |
 | --- | --- |
 | Stage | `preview`, built for self-hosters and early feedback |
-| Release | `0.6.0-preview` is the preview baseline; stable release, npm package, and public Docker image are not published |
+| Release | `0.6.1-preview` is the current preview release; stable release, npm package, and public Docker image are not published |
 | Package | `package.json` remains `private: true` |
 | Deployment | Local machine, home server, private server, or container environment you control |
 | Compatibility | API shape, provider capability, and settings may still change before the first stable release |

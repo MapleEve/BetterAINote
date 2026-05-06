@@ -9,6 +9,12 @@
 <a href="https://github.com/MapleEve/BetterAINote/actions/workflows/ci.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/MapleEve/BetterAINote/ci.yml?branch=main&style=flat-square" alt="CI" />
 </a>
+<a href="https://codecov.io/gh/MapleEve/BetterAINote">
+  <img src="https://img.shields.io/codecov/c/github/MapleEve/BetterAINote?style=flat-square&logo=codecov" alt="Codecov" />
+</a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FMapleEve%2FBetterAINote">
+  <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
+</a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
   <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
@@ -65,7 +71,7 @@ BetterAINote는 독립 프로젝트입니다. Plaud는 지원되는 소스 중 �
 | 항목 | 상태 |
 | --- | --- |
 | 단계 | `preview`, 셀프 호스팅 사용자와 초기 피드백용 |
-| 릴리스 | `0.6.0-preview`가 preview baseline입니다. 안정 버전, npm 패키지, 공개 Docker 이미지는 아직 배포하지 않습니다 |
+| 릴리스 | `0.6.1-preview`가 현재 preview release입니다. 안정 버전, npm 패키지, 공개 Docker 이미지는 아직 배포하지 않습니다 |
 | 패키지 | `package.json`은 `private: true`를 유지합니다 |
 | 배포 | 직접 제어하는 로컬 머신, 홈 서버, 사설 서버, 컨테이너 환경 |
 | 호환성 | 첫 안정 버전 전까지 API, provider 기능, 설정 항목이 바뀔 수 있습니다 |
