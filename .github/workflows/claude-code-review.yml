@@ -1,0 +1,59 @@
+name: Claude Code Review
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
+  GH_TOKEN_VALUE: ${{ secrets.GH_TOKEN }}
+  CLAUDE_MODEL: claude-sonnet-4-6
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  actions: read
+  id-token: write
+
+jobs:
+  claude-review:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip when Claude secrets are not configured
+        if: ${{ env.ANTHROPIC_API_KEY == '' || env.ANTHROPIC_BASE_URL == '' || env.GH_TOKEN_VALUE == '' }}
+        run: echo "Claude Code review secrets are not configured; skipping Claude Code Review."
+
+      - name: Checkout repository
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run Claude Code Review
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GH_TOKEN }}
+          claude_args: |
+            --model ${{ env.CLAUDE_MODEL }}
+          allowed_tools: "Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build),Bash(rg *),Bash(git diff *),Bash(git status *)"
+          custom_instructions: |
+            You are reviewing BetterAINote, a privacy-first self-hosted workspace for multi-platform voice recordings, source artifacts, private transcription, speaker review, and AI titles.
+            Use Bun as the package/runtime baseline. Flag pnpm, npm, Yarn, package-lock, or pnpm-lock regressions.
+            Watch for leaked tokens, cookies, HAR files, private recordings, private transcripts, provider identifiers, local private paths, and implementation-only provider wording.
+            Treat missing tests, broken provider contracts, unsafe database/search migrations, and UI regressions as high-signal findings.
+            Keep review comments concise, actionable, and grounded in changed lines.
+          prompt: |
+            Review this BetterAINote pull request and focus on:
+            - Code correctness, runtime safety, and provider boundary regressions
+            - Test coverage and whether verification is sufficient
+            - Secret hygiene and public documentation safety
+            - Bun/Next.js workflow consistency
+            - SQLite/search/schema compatibility
+
+            Prefer concrete file/line findings over broad summaries.

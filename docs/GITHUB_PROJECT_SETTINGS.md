@@ -44,11 +44,18 @@ ai-notes
 ```text
 CODECOV_TOKEN
 FOSSA_API_KEY
+ANTHROPIC_API_KEY
+ANTHROPIC_BASE_URL
+GH_TOKEN
 ```
 
 - `CODECOV_TOKEN`：Codecov 上传令牌，用于 CI 上传覆盖率和测试结果。
 - `FOSSA_API_KEY`：FOSSA 扫描令牌，用于依赖 license / policy 检查。
 - 没有配置 `FOSSA_API_KEY` 时，FOSSA workflow 会跳过扫描，不阻塞普通 CI。
+- `ANTHROPIC_API_KEY`：Claude Code Action 的 Anthropic API key。
+- `ANTHROPIC_BASE_URL`：Claude Code Action 使用的自定义 Anthropic 兼容服务地址。
+- `GH_TOKEN`：Claude Code Action 用于读取 PR / issue 上下文并回写评论的 GitHub token。
+- 没有配置 Claude 相关 secret 时，Claude workflow 会跳过执行，不阻塞普通 CI。
 
 ## GitHub CLI 设置命令
 

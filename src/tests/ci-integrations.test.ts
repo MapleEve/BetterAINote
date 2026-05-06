@@ -25,7 +25,8 @@ describe("CI service integrations", () => {
         expect(ciWorkflow).toContain("report_type: test_results");
 
         const codecovConfig = readProjectFile("codecov.yml");
-        expect(codecovConfig).toContain("target: 70%");
+        expect(codecovConfig).toContain("target: auto");
+        expect(codecovConfig).toContain("threshold: 1%");
         expect(codecovConfig).toContain("target: 60%");
         expect(codecovConfig).toContain('"src/tests/**"');
     });
@@ -48,13 +49,39 @@ describe("CI service integrations", () => {
         expect(fossaWorkflow).not.toContain("api-key: abcdef");
     });
 
+    it("keeps Claude Code CI secret-backed and project scoped", () => {
+        const claudeWorkflow = readProjectFile(".github/workflows/claude.yml");
+        const claudeReviewWorkflow = readProjectFile(
+            ".github/workflows/claude-code-review.yml",
+        );
+
+        for (const workflow of [claudeWorkflow, claudeReviewWorkflow]) {
+            expect(workflow).toContain("anthropics/claude-code-action@v1");
+            expect(workflow).toContain("secrets.ANTHROPIC_API_KEY");
+            expect(workflow).toContain("secrets.ANTHROPIC_BASE_URL");
+            expect(workflow).toContain("secrets.GH_TOKEN");
+            expect(workflow).toContain("claude-sonnet-4-6");
+            expect(workflow).toContain("BetterAINote");
+            expect(workflow).toContain("bun run format-and-lint");
+            expect(workflow).not.toContain("anthropic_api_key: sk-");
+            expect(workflow).not.toContain("ANTHROPIC_API_KEY=");
+            expect(workflow).not.toContain("GH_TOKEN=");
+        }
+    });
+
     it("documents the required repository secrets without exposing values", () => {
         const settings = readProjectFile("docs/GITHUB_PROJECT_SETTINGS.md");
 
         expect(settings).toContain("FOSSA_API_KEY");
         expect(settings).toContain("CODECOV_TOKEN");
+        expect(settings).toContain("ANTHROPIC_API_KEY");
+        expect(settings).toContain("ANTHROPIC_BASE_URL");
+        expect(settings).toContain("GH_TOKEN");
         expect(settings).not.toContain("FOSSA_API_KEY=");
         expect(settings).not.toContain("CODECOV_TOKEN=");
+        expect(settings).not.toContain("ANTHROPIC_API_KEY=");
+        expect(settings).not.toContain("ANTHROPIC_BASE_URL=");
+        expect(settings).not.toContain("GH_TOKEN=");
     });
 
     it("keeps the FOSSA scan surface free of unused browser transcription dependencies", () => {
