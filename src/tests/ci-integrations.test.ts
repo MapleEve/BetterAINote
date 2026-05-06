@@ -60,12 +60,19 @@ describe("CI service integrations", () => {
     it("keeps the FOSSA scan surface free of unused browser transcription dependencies", () => {
         const packageJson = JSON.parse(readProjectFile("package.json")) as {
             dependencies?: Record<string, string>;
+            devDependencies?: Record<string, string>;
         };
 
         expect(packageJson.dependencies).not.toHaveProperty(
             "@xenova/transformers",
         );
         expect(packageJson.dependencies).not.toHaveProperty("@google/genai");
+        expect(packageJson.dependencies).not.toHaveProperty(
+            "@radix-ui/react-progress",
+        );
+        expect(packageJson.dependencies).not.toHaveProperty("react-hook-form");
+        expect(packageJson.dependencies).not.toHaveProperty("vitest");
+        expect(packageJson.devDependencies).toHaveProperty("vitest", "4.1.5");
         expect(
             existsSync(path.join(ROOT, "src/lib/transcription/worker.ts")),
         ).toBe(false);
