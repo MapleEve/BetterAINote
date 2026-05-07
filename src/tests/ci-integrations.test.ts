@@ -69,11 +69,12 @@ describe("CI service integrations", () => {
             ".github/workflows/claude-code-review.yml",
         );
 
+        expect(claudeWorkflow).toContain("secrets.GH_TOKEN");
+
         for (const workflow of [claudeWorkflow, claudeReviewWorkflow]) {
             expect(workflow).toContain("anthropics/claude-code-action@v1");
             expect(workflow).toContain("secrets.ANTHROPIC_API_KEY");
             expect(workflow).toContain("secrets.ANTHROPIC_BASE_URL");
-            expect(workflow).toContain("secrets.GH_TOKEN");
             expect(workflow).toContain("claude-sonnet-4-6");
             expect(workflow).toContain("BetterAINote");
             expect(workflow).toContain("bun run format-and-lint");
@@ -81,6 +82,11 @@ describe("CI service integrations", () => {
             expect(workflow).not.toContain("ANTHROPIC_API_KEY=");
             expect(workflow).not.toContain("GH_TOKEN=");
         }
+
+        expect(claudeReviewWorkflow).not.toContain("secrets.GH_TOKEN");
+        expect(claudeReviewWorkflow).not.toContain("github_token");
+        expect(claudeReviewWorkflow).not.toContain("gh pr comment");
+        expect(claudeReviewWorkflow).toContain("use_sticky_comment: true");
     });
 
     it("documents the required repository secrets without exposing values", () => {
