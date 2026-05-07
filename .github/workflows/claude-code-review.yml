@@ -28,23 +28,24 @@ jobs:
 
       - name: Checkout repository
         if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           persist-credentials: false
 
       - name: Run Claude Code Review
-        id: claude-review
         if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
-        continue-on-error: true
         uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GH_TOKEN }}
-          claude_args: |
-            --model ${{ env.CLAUDE_MODEL }}
-            --allowedTools "Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build),Bash(rg *),Bash(git diff *),Bash(git status *)"
+          track_progress: true
           prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             Review this BetterAINote pull request and focus on:
             - Code correctness, runtime safety, and provider boundary regressions
             - Test coverage and whether verification is sufficient
@@ -58,40 +59,15 @@ jobs:
             private transcripts, provider identifiers, local private paths, and
             implementation-only provider wording.
             Treat missing tests, broken provider contracts, unsafe
-            database/search migrations, and UI regressions as high-signal
-            findings.
+            database/search migrations, and UI regressions as high-signal findings.
+
+            The PR branch is already checked out in the current working directory.
+            Always post one top-level review summary with `gh pr comment`, even when there are no actionable findings.
+            If there are no actionable findings, say that explicitly in the top-level comment.
+            Use `mcp__github_inline_comment__create_inline_comment` with `confirmed: true` for specific changed-line issues.
             Prefer concrete file/line findings over broad summaries.
+            Only post GitHub comments; do not leave review text only in the action transcript.
 
-      - name: Post Claude Code Review summary
-        if: ${{ always() && github.event_name == 'pull_request' && env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          CLAUDE_OUTCOME: ${{ steps.claude-review.outcome }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          MARKER: "<!-- claude-code-review-summary -->"
-        run: |
-          set -euo pipefail
-          short_sha="${HEAD_SHA:0:7}"
-          if [ "$CLAUDE_OUTCOME" = "success" ]; then
-            body="$(printf '%s\n### Claude Code Review\n\nClaude Code Review completed for `%s`.\n\nThis summary is posted even when Claude has no line-level findings. If no separate Claude inline comments are visible, there were no actionable line-level findings for this run.\n\nRun: %s' "$MARKER" "$short_sha" "$RUN_URL")"
-          else
-            body="$(printf '%s\n### Claude Code Review\n\nClaude Code Review did not complete successfully for `%s`.\n\nCheck the workflow run before merging. The check will remain failed so this cannot be missed.\n\nRun: %s' "$MARKER" "$short_sha" "$RUN_URL")"
-          fi
-
-          comment_id="$(
-            gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
-              --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | tail -n 1
-          )"
-          if [ -n "$comment_id" ]; then
-            jq -n --arg body "$body" '{body: $body}' \
-              | gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" --input -
-          else
-            jq -n --arg body "$body" '{body: $body}' \
-              | gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --input -
-          fi
-
-      - name: Fail when Claude Code Review failed
-        if: ${{ steps.claude-review.outcome == 'failure' }}
-        run: exit 1
+          claude_args: |
+            --model ${{ env.CLAUDE_MODEL }}
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Bash(rg:*),Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build)"
