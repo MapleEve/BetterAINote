@@ -3,7 +3,6 @@ name: Claude Code Review
 env:
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
-  GH_TOKEN_VALUE: ${{ secrets.GH_TOKEN }}
   CLAUDE_MODEL: claude-sonnet-4-6
 
 on:
@@ -23,24 +22,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Skip when Claude secrets are not configured
-        if: ${{ env.ANTHROPIC_API_KEY == '' || env.ANTHROPIC_BASE_URL == '' || env.GH_TOKEN_VALUE == '' }}
+        if: ${{ env.ANTHROPIC_API_KEY == '' || env.ANTHROPIC_BASE_URL == '' }}
         run: echo "Claude Code review secrets are not configured; skipping Claude Code Review."
 
       - name: Checkout repository
-        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' }}
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
           persist-credentials: false
 
       - name: Run Claude Code Review
-        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' && env.GH_TOKEN_VALUE != '' }}
+        if: ${{ env.ANTHROPIC_API_KEY != '' && env.ANTHROPIC_BASE_URL != '' }}
         uses: anthropics/claude-code-action@v1
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GH_TOKEN }}
           track_progress: true
           use_sticky_comment: true
           exclude_comments_by_actor: MapleEve,github-actions,codecov,sourcery-ai,copilot-pull-request-reviewer
@@ -64,14 +60,12 @@ jobs:
             database/search migrations, and UI regressions as high-signal findings.
 
             The PR branch is already checked out in the current working directory.
-            This workflow intentionally passes `github_token: secrets.GH_TOKEN` and exports `GH_TOKEN` because the official Claude GitHub App is not installed for this repository yet.
-            Do not treat `GH_TOKEN_VALUE`, `github_token: secrets.GH_TOKEN`, or `GH_TOKEN` as a migration bug unless the official Claude GitHub App has been installed and verified.
-            Always post one top-level review summary with `gh pr comment`, even when there are no actionable findings.
-            If there are no actionable findings, say that explicitly in the top-level comment.
-            Use `mcp__github_inline_comment__create_inline_comment` with `confirmed: true` for specific changed-line issues.
+            Post feedback only through the official Claude Code Action GitHub integration.
+            Do not use the GitHub CLI and do not use a user-owned GitHub token.
+            If the official Claude GitHub App integration is unavailable, fail instead of posting as the repository owner.
+            If there are no actionable findings, post the standard no-findings confirmation through the action integration.
             Prefer concrete file/line findings over broad summaries.
-            Only post GitHub comments; do not leave review text only in the action transcript.
 
           claude_args: |
             --model ${{ env.CLAUDE_MODEL }}
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Bash(rg:*),Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build)"
+            --allowedTools "Bash(bun install --frozen-lockfile --ignore-scripts),Bash(bun run format-and-lint),Bash(bun run type-check),Bash(bun run test),Bash(bun run build),Bash(rg:*),Bash(git diff:*)"
