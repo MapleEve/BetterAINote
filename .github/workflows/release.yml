@@ -52,7 +52,8 @@ jobs:
           model: gpt-4.1
           instructions: .github/release-notes-instructions.md
         env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN || github.token }}
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
