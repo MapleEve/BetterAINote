@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.2--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -35,7 +35,7 @@
 BetterAINote brings voice records from DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, and similar sources into one local workspace.<br>
 The focus is **private aggregation and unified management across voice platforms**, not one vendor identity.<br>
 Recordings, transcripts, speaker review, AI titles, tags, and search indexes stay around your own deployment first.<br>
-Current version: `0.6.1-preview`. Self-hosting first. No npm package or public Docker image is published.
+Current version: `0.6.2-preview`. Self-hosting first. No npm package or public Docker image is published.
 
 <br>
 
@@ -79,7 +79,7 @@ BetterAINote is an independent project. Plaud is one supported source, not the p
 | Area | Status |
 | --- | --- |
 | Stage | `preview`, built for self-hosters and early feedback |
-| Release | `0.6.1-preview` is the current preview release; stable release, npm package, and public Docker image are not published |
+| Release | `0.6.2-preview` is the current preview release; stable release, npm package, and public Docker image are not published |
 | Package | `package.json` remains `private: true` |
 | Deployment | Local machine, home server, private server, or container environment you control |
 | Compatibility | API shape, provider capability, and settings may still change before the first stable release |
@@ -141,7 +141,7 @@ Do not commit `.env.local`, databases, audio archives, account screenshots, or r
 | --- | --- |
 | DingTalk / A1 | Syncs accessible recordings with the credentials configured in settings. Source detail, audio, and summary availability depend on the account. |
 | TicNote | Supports China / international regions. Can sync records, archive available audio, and attempt title write-back when enabled. |
-| Plaud | Supported as a recording source. Can sync records, archive available audio, and attempt title write-back when enabled. |
+| Plaud | Supported as a recording source. Can sync visible records and archive available audio; later syncs can try to fill missing local audio for existing records when the source still provides it. |
 | Feishu Minutes | Can inspect or sync source metadata, transcripts, and summaries when account permissions allow. |
 | iFLYTEK iFlyrec | Focused on transcript record import and review. Audio and write-back depend on what the source exposes. |
 

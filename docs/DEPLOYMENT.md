@@ -11,7 +11,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 阶段 | `preview` |
-| 发布 | `0.6.0-preview` 是预发布基线；正式稳定版仍不发布 |
+| 发布 | `0.6.2-preview` 是当前预发布版本；正式稳定版仍不发布 |
 | Docker | 可以本地构建；发布工作流手动触发且默认关闭 |
 | Release | Release notes 工作流手动触发且默认关闭，只在预发布归档或正式发布计划批准后使用 |
 | CI | `bun run format-and-lint`、`bun run type-check`、测试和构建可在 CI 中运行 |
@@ -98,7 +98,7 @@ BetterAINote 默认使用本地 SQLite 和本地文件目录：
 | 词级时间数据 | `betterainote-words.db`，可用 `TRANSCRIPT_WORDS_DATABASE_PATH` 覆盖 |
 | 本地音频 | `LOCAL_STORAGE_PATH` |
 
-备份时请把数据库目录和音频归档目录一起处理，否则恢复后可能出现记录存在但音频缺失的情况。
+备份时请把数据库目录和音频归档目录一起处理，否则恢复后可能出现记录存在但音频缺失的情况。恢复后再次同步时，BetterAINote 会在来源仍提供音频的前提下尝试补齐缺失的本地归档，但不要把它当作备份替代方案。
 
 ## 配置分区
 

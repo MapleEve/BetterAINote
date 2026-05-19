@@ -1,10 +1,10 @@
 # 更新日志
 
-## 0.6.1-preview
+## 0.6.2-preview
 
 ### 发布说明
 
-这个小版本继续推进 `0.6.0-preview` 之后的架构收敛和搜索能力，不再把 0.6.0 当作后续开发的终点。
+这个小版本继续推进 `0.6.1-preview` 之后的数据源同步可靠性，不再把 0.6.0 当作后续开发的终点。
 
 ### 架构
 
@@ -14,6 +14,12 @@
 - 将搜索的查询入口收口到 `src/server/modules/search/search-repository.ts` 与 `queries.ts`，新增 `/api/search` 作为薄 HTTP 适配层。
 - 将 recordings/transcripts/speakers/tags 的搜索读模型拆到 `src/server/modules/recordings/search-read-model.ts`，搜索重建不再直接拼领域文档。
 - 增加本地 SQLite FTS 查询清洗和 CJK n-gram fallback，避免把用户输入直接交给 FTS parser，同时为中文/日韩文搜索做 baseline。
+
+### 数据源
+
+- Plaud 同步会连续读取账号可见记录列表，避免只处理首批记录。
+- 已有来源记录如果缺少本地音频，后续同步会在来源仍提供音频时尝试补齐本地归档。
+- 来源连接失败时的公开错误更稳定，避免把内部响应内容暴露给普通用户。
 
 ## 0.6.0-preview
 

@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.2--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -35,7 +35,7 @@
 BetterAINote 把钉钉 / A1、TicNote、Plaud、飞书妙记、讯飞听见等多平台语音资料收进一个本地工作台。<br>
 重点是**多来源语音资料的私有化集合与统一管理**，不是绑定某一个厂商。<br>
 录音、转写、说话人审阅、AI 标题、标签和搜索索引优先围绕你自己的部署运行。<br>
-当前版本是 `0.6.1-preview`。自托管优先，不发布 npm 包或公开 Docker 镜像。
+当前版本是 `0.6.2-preview`。自托管优先，不发布 npm 包或公开 Docker 镜像。
 
 <br>
 
@@ -79,7 +79,7 @@ BetterAINote 是独立项目。Plaud 只是其中一个支持的数据源，不�
 | 项目 | 说明 |
 | --- | --- |
 | 阶段 | `preview`，优先给愿意自托管和反馈的人试用 |
-| 发布 | `0.6.1-preview` 是当前预发布版本；正式稳定版、Docker 镜像和 npm 包仍不发布 |
+| 发布 | `0.6.2-preview` 是当前预发布版本；正式稳定版、Docker 镜像和 npm 包仍不发布 |
 | 包分发 | `package.json` 保持 `private: true` |
 | 部署方向 | 本机、家用服务器、私有服务器或你控制的容器环境 |
 | 兼容承诺 | 首个正式稳定版前，API、数据源能力和设置项仍可能调整 |
@@ -141,7 +141,7 @@ bun run dev
 | --- | --- |
 | 钉钉 / A1 | 使用设置页要求的账号凭据同步可访问记录；来源详情、音频和摘要能力取决于账号可见内容。 |
 | TicNote | 支持中国区 / 国际区站点；可同步记录、归档可获取音频，并在启用时尝试把重命名写回来源。 |
-| Plaud | 作为一个录音来源接入；可同步记录、归档可获取音频，并在启用时尝试把重命名写回来源。 |
+| Plaud | 作为一个录音来源接入；可同步账号可见记录、归档可获取音频；已有记录缺本地音频时，后续同步会在来源仍可获取时尝试补齐。 |
 | 飞书妙记 | 可在账号权限允许时同步或查看来源元数据、逐字稿和摘要。 |
 | 讯飞听见 | 偏转写记录导入 / 查看场景；音频和标题写回能力按来源实际可用情况处理。 |
 

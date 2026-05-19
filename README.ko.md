@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/FOSSA-scanning-lightgrey?style=flat-square" alt="FOSSA" />
 </a>
 <a href="https://github.com/MapleEve/BetterAINote/releases">
-  <img src="https://img.shields.io/badge/Release-0.6.1--preview-lightgrey?style=flat-square" alt="Release status" />
+  <img src="https://img.shields.io/badge/Release-0.6.2--preview-lightgrey?style=flat-square" alt="Release status" />
 </a>
 <a href="./docs/DEPLOYMENT.md">
   <img src="https://img.shields.io/badge/Self--hosting-first-blue?style=flat-square" alt="Self-hosting first" />
@@ -35,7 +35,7 @@
 BetterAINote는 DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec 같은 녹음 소스를 하나의 로컬 작업 공간으로 가져옵니다.<br>
 핵심은 특정 서비스 하나가 아니라 **여러 음성 플랫폼 자료를 사설 환경에 모아 통합 관리하는 것**입니다.<br>
 녹음, 전사, 화자 검토, AI 제목, 태그, 검색 인덱스는 우선 사용자가 제어하는 배포 환경에 남습니다.<br>
-현재 버전은 `0.6.1-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
+현재 버전은 `0.6.2-preview`입니다. 셀프 호스팅 우선이며 npm 패키지나 공개 Docker 이미지는 배포하지 않습니다.
 
 <br>
 
@@ -79,7 +79,7 @@ BetterAINote는 독립 프로젝트입니다. Plaud는 지원되는 소스 중 �
 | 항목 | 상태 |
 | --- | --- |
 | 단계 | `preview`, 셀프 호스팅 사용자와 초기 피드백용 |
-| 릴리스 | `0.6.1-preview`가 현재 preview release입니다. 안정 버전, npm 패키지, 공개 Docker 이미지는 아직 배포하지 않습니다 |
+| 릴리스 | `0.6.2-preview`가 현재 preview release입니다. 안정 버전, npm 패키지, 공개 Docker 이미지는 아직 배포하지 않습니다 |
 | 패키지 | `package.json`은 `private: true`를 유지합니다 |
 | 배포 | 직접 제어하는 로컬 머신, 홈 서버, 사설 서버, 컨테이너 환경 |
 | 호환성 | 첫 안정 버전 전까지 API, provider 기능, 설정 항목이 바뀔 수 있습니다 |
@@ -141,7 +141,7 @@ bun run dev
 | --- | --- |
 | DingTalk / A1 | 설정된 인증 정보로 접근 가능한 녹음을 동기화합니다. 상세 정보, 오디오, 요약은 계정 권한에 따라 달라집니다. |
 | TicNote | 중국 / 국제 리전을 지원합니다. 녹음 동기화, 가능한 오디오 보관, 활성화 시 제목 쓰기를 시도합니다. |
-| Plaud | 녹음 소스로 지원합니다. 녹음 동기화, 가능한 오디오 보관, 활성화 시 제목 쓰기를 시도합니다. |
+| Plaud | 녹음 소스로 지원합니다. 보이는 녹음을 동기화하고 가능한 오디오를 보관하며, 기존 기록에 로컬 오디오가 없으면 이후 동기화에서 보완을 시도합니다. |
 | Feishu Minutes | 권한이 있으면 소스 메타데이터, 전사, 요약을 확인하거나 동기화할 수 있습니다. |
 | iFLYTEK iFlyrec | 전사 기록 가져오기와 검토가 중심입니다. 오디오와 쓰기 기능은 소스가 제공하는 범위에 따릅니다. |
 

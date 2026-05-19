@@ -385,6 +385,16 @@ function sourceRecordingTimingMatchesExisting(
     );
 }
 
+function sourceRecordingNeedsAudioBackfill(
+    existingRecording: typeof recordings.$inferSelect,
+    sourceRecording: SourceRecordingData,
+) {
+    return (
+        existingRecording.storagePath.trim().length === 0 &&
+        Boolean(sourceRecording.audioDownload?.url)
+    );
+}
+
 async function processSourceRecording(
     sourceRecording: SourceRecordingData,
     context: SyncContext,
@@ -419,6 +429,10 @@ async function processSourceRecording(
             sourceRecording.version &&
             existingRecording.sourceVersion === sourceRecording.version &&
             sourceRecordingTimingMatchesExisting(
+                existingRecording,
+                sourceRecording,
+            ) &&
+            !sourceRecordingNeedsAudioBackfill(
                 existingRecording,
                 sourceRecording,
             ) &&

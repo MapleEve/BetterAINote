@@ -83,8 +83,12 @@ describe("PlaudClient", () => {
                 `${DEFAULT_PLAUD_API_BASE}/device/list`,
                 expect.objectContaining({
                     headers: expect.objectContaining({
+                        Accept: "application/json, text/plain, */*",
                         Authorization: `Bearer ${mockBearerToken}`,
                         "Content-Type": "application/json",
+                        Origin: "https://app.plaud.ai",
+                        Referer: "https://app.plaud.ai/",
+                        "User-Agent": expect.stringContaining("Mozilla/5.0"),
                     }),
                 }),
             );
@@ -116,6 +120,32 @@ describe("PlaudClient", () => {
     });
 
     describe("getRecordings", () => {
+        const makeRecording = (id: string, startTime = 1_700_000_000_000) => ({
+            id,
+            filename: `${id}.mp3`,
+            keywords: [],
+            filesize: 1024,
+            filetype: "mp3",
+            fullname: `${id}.mp3`,
+            file_md5: `md5-${id}`,
+            ori_ready: true,
+            version: 1,
+            version_ms: 1,
+            edit_time: 0,
+            edit_from: "",
+            is_trash: false,
+            start_time: startTime,
+            end_time: startTime + 60_000,
+            duration: 60_000,
+            timezone: 8,
+            zonemins: 480,
+            scene: 0,
+            filetag_id_list: [],
+            serial_number: "device-1",
+            is_trans: false,
+            is_summary: false,
+        });
+
         it("should make request with default parameters", async () => {
             const mockResponse = {
                 status: 0,
@@ -157,6 +187,107 @@ describe("PlaudClient", () => {
                 `${DEFAULT_PLAUD_API_BASE}/file/simple/web?skip=10&limit=50&is_trash=1&sort_by=create_time&is_desc=false`,
                 expect.any(Object),
             );
+        });
+
+        it("lists all recordings across skip/limit pages until the final short page", async () => {
+            const pageSize = 2;
+            mockFetch
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            msg: "success",
+                            data_file_total: 2,
+                            data_file_list: [
+                                makeRecording("page-1-a"),
+                                makeRecording("page-1-b"),
+                            ],
+                        }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            msg: "success",
+                            data_file_total: 1,
+                            data_file_list: [makeRecording("page-2-a")],
+                        }),
+                });
+
+            const recordings = await client.listAllRecordings({ pageSize });
+
+            expect(recordings.map((recording) => recording.id)).toEqual([
+                "page-1-a",
+                "page-1-b",
+                "page-2-a",
+            ]);
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                `${DEFAULT_PLAUD_API_BASE}/file/simple/web?skip=0&limit=2&is_trash=0&sort_by=start_time&is_desc=true`,
+                expect.any(Object),
+            );
+            expect(fetch).toHaveBeenNthCalledWith(
+                2,
+                `${DEFAULT_PLAUD_API_BASE}/file/simple/web?skip=2&limit=2&is_trash=0&sort_by=start_time&is_desc=true`,
+                expect.any(Object),
+            );
+        });
+
+        it("deduplicates repeated recordings while paginating", async () => {
+            mockFetch
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            msg: "success",
+                            data_file_total: 2,
+                            data_file_list: [
+                                makeRecording("shared"),
+                                makeRecording("first"),
+                            ],
+                        }),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            status: 0,
+                            msg: "success",
+                            data_file_total: 1,
+                            data_file_list: [makeRecording("shared")],
+                        }),
+                });
+
+            const recordings = await client.listAllRecordings({ pageSize: 2 });
+
+            expect(recordings.map((recording) => recording.id)).toEqual([
+                "shared",
+                "first",
+            ]);
+        });
+
+        it("stops paginating at the configured safety page limit", async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        status: 0,
+                        msg: "success",
+                        data_file_total: 1,
+                        data_file_list: [makeRecording("repeat")],
+                    }),
+            });
+
+            const recordings = await client.listAllRecordings({
+                pageSize: 1,
+                maxPages: 2,
+            });
+
+            expect(recordings).toHaveLength(1);
+            expect(fetch).toHaveBeenCalledTimes(2);
         });
     });
 
@@ -355,6 +486,19 @@ describe("PlaudClient", () => {
 
             await expect(client.listDevices()).rejects.toThrow(
                 "Unable to connect to Plaud (400): Invalid request",
+            );
+        });
+
+        it("falls back to the HTTP status text when the service returns a non-JSON error page", async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 403,
+                statusText: "Forbidden",
+                text: () => Promise.resolve("<!doctype html><html></html>"),
+            });
+
+            await expect(client.listDevices()).rejects.toThrow(
+                "Unable to connect to Plaud (403): Forbidden",
             );
         });
 

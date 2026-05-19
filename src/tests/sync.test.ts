@@ -243,6 +243,209 @@ describe("Sync", () => {
         expect(result.updatedRecordings).toBe(0);
     });
 
+    it("downloads audio for same-version recordings that were imported without local audio", async () => {
+        const updateSet = vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+                returning: vi.fn().mockResolvedValue([]),
+            }),
+        });
+        (db.update as Mock).mockReturnValue({ set: updateSet });
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "",
+                                downloadedAt: null,
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Recovered Audio.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:00Z"),
+                    version: "1000",
+                    filesize: 2048,
+                    audioDownload: {
+                        url: "https://example.test/audio.mp3",
+                        fileExtension: "mp3",
+                    },
+                    artifacts: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.errors).toEqual([]);
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(1);
+        expect(downloadSourceAudioBufferMock).toHaveBeenCalledWith(
+            "plaud",
+            expect.objectContaining({
+                url: "https://example.test/audio.mp3",
+                archiveBaseName: "Recovered Audio",
+                fileExtension: "mp3",
+                contentType: "audio/mpeg",
+            }),
+        );
+        expect(uploadFileMock).toHaveBeenCalledWith(
+            expect.stringContaining("/plaud/Recovered Audio.mp3"),
+            expect.any(Buffer),
+            "audio/mpeg",
+        );
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                storagePath: expect.stringContaining(
+                    "/plaud/Recovered Audio.mp3",
+                ),
+                downloadedAt: expect.any(Date),
+                filesize: 2048,
+            }),
+        );
+    });
+
+    it("keeps same-version recordings skipped when local audio already exists", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "user-123/plaud/existing.mp3",
+                                downloadedAt: new Date("2024-01-01T10:02:00Z"),
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Existing Audio.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:00Z"),
+                    version: "1000",
+                    audioDownload: {
+                        url: "https://example.test/audio.mp3",
+                        fileExtension: "mp3",
+                    },
+                    artifacts: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(0);
+        expect(downloadSourceAudioBufferMock).not.toHaveBeenCalled();
+        expect(uploadFileMock).not.toHaveBeenCalled();
+    });
+
+    it("does not force-download same-version recordings when the source has no audio URL", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "",
+                                downloadedAt: null,
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Source Only.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:00Z"),
+                    version: "1000",
+                    audioDownload: null,
+                    artifacts: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(0);
+        expect(downloadSourceAudioBufferMock).not.toHaveBeenCalled();
+        expect(uploadFileMock).not.toHaveBeenCalled();
+    });
+
     it("updates same-version recordings when normalized source timing changes", async () => {
         const updateReturning = vi.fn().mockResolvedValue([]);
         const updateWhere = vi.fn().mockReturnValue({
