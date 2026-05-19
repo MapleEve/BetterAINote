@@ -5,6 +5,7 @@ import type {
     PlaudFileDetailData,
     PlaudFileDetailResponse,
     PlaudFileListResponse,
+    PlaudRecording,
     PlaudRecordingsResponse,
     PlaudSummaryContent,
     PlaudTempUrlResponse,
@@ -19,9 +20,27 @@ export interface PlaudUpdateFilenameResponse {
     data_file?: unknown;
 }
 
+export interface ListAllPlaudRecordingsOptions {
+    skip?: number;
+    pageSize?: number;
+    maxPages?: number;
+    isTrash?: number;
+    sortBy?: string;
+    isDesc?: boolean;
+}
+
 export const DEFAULT_PLAUD_API_BASE = PLAUD_SERVERS[DEFAULT_SERVER_KEY].apiBase;
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
+const DEFAULT_PLAUD_RECORDINGS_PAGE_SIZE = 100;
+const MAX_PLAUD_RECORDINGS_PAGES = 500;
+const PLAUD_WEB_REQUEST_HEADERS = {
+    Accept: "application/json, text/plain, */*",
+    Origin: "https://app.plaud.ai",
+    Referer: "https://app.plaud.ai/",
+    "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+};
 
 export function normalizePlaudBearerToken(rawToken: string): string {
     return rawToken
@@ -171,6 +190,31 @@ async function fetchContentLinkText(url: string): Promise<string | null> {
     return text.length > 0 ? text : null;
 }
 
+async function readPlaudErrorMessage(response: Response): Promise<string> {
+    const fallback = response.statusText || "Request failed";
+
+    try {
+        if (typeof response.text === "function") {
+            const text = await response.text();
+            if (!text.trim()) {
+                return fallback;
+            }
+
+            try {
+                const parsed = JSON.parse(text) as PlaudApiError;
+                return parsed.msg || fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        const error = (await response.json()) as PlaudApiError;
+        return error.msg || fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 /**
  * Sleep for specified milliseconds
  */
@@ -205,9 +249,10 @@ export class PlaudClient {
             const response = await fetch(url, {
                 ...options,
                 headers: {
-                    ...options?.headers,
+                    ...PLAUD_WEB_REQUEST_HEADERS,
                     Authorization: `Bearer ${this.bearerToken}`,
                     "Content-Type": "application/json",
+                    ...options?.headers,
                 },
             });
 
@@ -221,8 +266,8 @@ export class PlaudClient {
             }
 
             if (!response.ok) {
-                const error = (await response.json()) as PlaudApiError;
-                const errorMessage = `Unable to connect to Plaud (${response.status}): ${error.msg || response.statusText}`;
+                const message = await readPlaudErrorMessage(response);
+                const errorMessage = `Unable to connect to Plaud (${response.status}): ${message}`;
 
                 if (
                     response.status >= 500 &&
@@ -288,6 +333,49 @@ export class PlaudClient {
         return this.request<PlaudRecordingsResponse>(
             `/file/simple/web?${params.toString()}`,
         );
+    }
+
+    async listAllRecordings(
+        options: ListAllPlaudRecordingsOptions = {},
+    ): Promise<PlaudRecording[]> {
+        const pageSize =
+            Number.isFinite(options.pageSize) && Number(options.pageSize) > 0
+                ? Math.floor(Number(options.pageSize))
+                : DEFAULT_PLAUD_RECORDINGS_PAGE_SIZE;
+        const maxPages =
+            Number.isFinite(options.maxPages) && Number(options.maxPages) > 0
+                ? Math.floor(Number(options.maxPages))
+                : MAX_PLAUD_RECORDINGS_PAGES;
+        let skip =
+            Number.isFinite(options.skip) && Number(options.skip) > 0
+                ? Math.floor(Number(options.skip))
+                : 0;
+        const recordingsById = new Map<string, PlaudRecording>();
+
+        for (let page = 0; page < maxPages; page += 1) {
+            const response = await this.getRecordings(
+                skip,
+                pageSize,
+                options.isTrash ?? 0,
+                options.sortBy ?? "start_time",
+                options.isDesc ?? true,
+            );
+            const items = response.data_file_list ?? [];
+
+            for (const item of items) {
+                if (!recordingsById.has(item.id)) {
+                    recordingsById.set(item.id, item);
+                }
+            }
+
+            if (items.length < pageSize) {
+                break;
+            }
+
+            skip += items.length;
+        }
+
+        return Array.from(recordingsById.values());
     }
 
     /**

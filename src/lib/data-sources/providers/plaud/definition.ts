@@ -243,8 +243,7 @@ export class PlaudSourceClient implements SourceProviderClient {
     }
 
     async listRecordings(): Promise<SourceRecordingData[]> {
-        const response = await this.client.getRecordings(0, 99999, 0);
-        const items = response.data_file_list ?? [];
+        const items = await this.client.listAllRecordings();
 
         return await mapWithConcurrency(
             items,
