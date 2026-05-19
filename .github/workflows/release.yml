@@ -45,15 +45,21 @@ jobs:
 
       - name: Generate release notes
         id: notes
-        uses: github/copilot-release-notes@main
-        with:
-          base-ref: ${{ steps.prev.outputs.tag }}
-          head-ref: ${{ steps.tag.outputs.current }}
-          model: gpt-4.1
-          instructions: .github/release-notes-instructions.md
         env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN || github.token }}
-          GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_TAG: ${{ steps.prev.outputs.tag }}
+          RELEASE_TAG: ${{ steps.tag.outputs.current }}
+        run: |
+          args=(--field "tag_name=$RELEASE_TAG")
+          if [[ "$PREVIOUS_TAG" == v* ]]; then
+            args+=(--field "previous_tag_name=$PREVIOUS_TAG")
+          fi
+          notes_json=$(gh api "repos/${{ github.repository }}/releases/generate-notes" "${args[@]}")
+          {
+            echo "release-notes<<RELEASE_NOTES"
+            echo "$notes_json" | jq -r ".body"
+            echo "RELEASE_NOTES"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
