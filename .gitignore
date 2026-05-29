@@ -52,7 +52,6 @@ next-env.d.ts
 # local storage
 /storage
 /audio
-plans/
 
 # local cloud credentials
 *service-account*.json
@@ -64,6 +63,22 @@ plans/
 # local audit / debug artifacts
 /tmp/
 /remotion/
+
+# local planning / research materials
+/plans/
+/meeting-notes/
+/specs/
+/roadmaps/
+/prd/
+/research/
+
+# 中文命名的本地规划 / 研究资料
+/计划/
+/会议纪要/
+/规格/
+/路线图/
+/需求/
+/研究/
 
 # local planning / internal continuity notes
 /todo.md
