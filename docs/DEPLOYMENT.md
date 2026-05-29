@@ -11,7 +11,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 阶段 | `preview` |
-| 发布 | `0.6.2-preview` 是当前预发布版本；正式稳定版仍不发布 |
+| 发布 | `0.6.2-preview` 是当前预发布版本；`0.6.0-preview` 是预发布基线；正式稳定版仍不发布 |
 | Docker | 可以本地构建；发布工作流手动触发且默认关闭 |
 | Release | Release notes 工作流手动触发且默认关闭，只在预发布归档或正式发布计划批准后使用 |
 | CI | `bun run format-and-lint`、`bun run type-check`、测试和构建可在 CI 中运行 |

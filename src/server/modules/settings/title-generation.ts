@@ -1,12 +1,12 @@
-import {
-    hasStoredTitleGenerationCredential,
-    upsertStoredTitleGenerationCredential,
-} from "@/lib/api-credentials/title-generation";
 import { getTitleGenerationSettingsResponse } from "@/lib/settings/defaults";
 import {
     buildTitleGenerationApiKeyUpdate,
     buildTitleGenerationSettingsUpdates,
 } from "@/lib/settings/title-generation-settings";
+import {
+    hasStoredTitleGenerationCredential,
+    upsertStoredTitleGenerationCredential,
+} from "@/server/modules/api-credentials/title-generation";
 
 async function loadUserSettingsOps() {
     return import("@/lib/settings/user-settings");

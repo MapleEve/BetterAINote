@@ -6,20 +6,23 @@ vi.mock("@/lib/settings/user-settings", () => ({
     upsertUserSettings: vi.fn(),
 }));
 
-vi.mock("@/lib/api-credentials/title-generation", async (importOriginal) => {
-    const actual =
-        await importOriginal<
-            typeof import("@/lib/api-credentials/title-generation")
-        >();
+vi.mock(
+    "@/server/modules/api-credentials/title-generation",
+    async (importOriginal) => {
+        const actual =
+            await importOriginal<
+                typeof import("@/server/modules/api-credentials/title-generation")
+            >();
 
-    return {
-        ...actual,
-        hasStoredTitleGenerationCredential: vi.fn(),
-        upsertStoredTitleGenerationCredential: vi.fn(),
-    };
-});
+        return {
+            ...actual,
+            hasStoredTitleGenerationCredential: vi.fn(),
+            upsertStoredTitleGenerationCredential: vi.fn(),
+        };
+    },
+);
 
-vi.mock("@/lib/api-credentials/private-transcription", () => ({
+vi.mock("@/server/modules/api-credentials/private-transcription", () => ({
     hasStoredPrivateTranscriptionCredential: vi.fn(),
     syncStoredPrivateTranscriptionBaseUrl: vi.fn(),
     upsertStoredPrivateTranscriptionCredential: vi.fn(),
@@ -89,19 +92,19 @@ import {
     PUT as putVoScript,
 } from "@/app/api/settings/voscript/route";
 import {
-    hasStoredPrivateTranscriptionCredential,
-    syncStoredPrivateTranscriptionBaseUrl,
-    upsertStoredPrivateTranscriptionCredential,
-} from "@/lib/api-credentials/private-transcription";
-import {
-    hasStoredTitleGenerationCredential,
-    upsertStoredTitleGenerationCredential,
-} from "@/lib/api-credentials/title-generation";
-import {
     getAuthenticatedUserId,
     getUserSettingsRow,
     upsertUserSettings,
 } from "@/lib/settings/user-settings";
+import {
+    hasStoredPrivateTranscriptionCredential,
+    syncStoredPrivateTranscriptionBaseUrl,
+    upsertStoredPrivateTranscriptionCredential,
+} from "@/server/modules/api-credentials/private-transcription";
+import {
+    hasStoredTitleGenerationCredential,
+    upsertStoredTitleGenerationCredential,
+} from "@/server/modules/api-credentials/title-generation";
 
 function makePutRequest(url: string, body: Record<string, unknown>) {
     return new Request(url, {

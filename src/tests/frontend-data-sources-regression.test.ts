@@ -46,7 +46,10 @@ describe("frontend data-source routing regression", () => {
 
     it("keeps onboarding on the unified data-sources flow", () => {
         const onboardingForm = readFileSync(
-            path.join(ROOT, "components/onboarding/onboarding-form.tsx"),
+            path.join(
+                ROOT,
+                "features/onboarding/components/onboarding-form.tsx",
+            ),
             "utf8",
         );
         const onboardingPage = readFileSync(
@@ -68,13 +71,16 @@ describe("frontend data-source routing regression", () => {
 
     it("keeps onboarding and settings free of Plaud-only main-flow branches", () => {
         const onboardingForm = readFileSync(
-            path.join(ROOT, "components/onboarding/onboarding-form.tsx"),
+            path.join(
+                ROOT,
+                "features/onboarding/components/onboarding-form.tsx",
+            ),
             "utf8",
         );
         const dataSourcesSection = readFileSync(
             path.join(
                 ROOT,
-                "components/settings-sections/data-sources-section.tsx",
+                "features/settings/components/sections/data-sources-section.tsx",
             ),
             "utf8",
         );
@@ -92,11 +98,14 @@ describe("frontend data-source routing regression", () => {
             "utf8",
         );
         const settingsDialog = readFileSync(
-            path.join(ROOT, "components/settings-dialog.tsx"),
+            path.join(ROOT, "features/settings/components/settings-dialog.tsx"),
             "utf8",
         );
         const settingsContent = readFileSync(
-            path.join(ROOT, "components/settings-content.tsx"),
+            path.join(
+                ROOT,
+                "features/settings/components/settings-content.tsx",
+            ),
             "utf8",
         );
         const workstation = readFileSync(
@@ -106,7 +115,7 @@ describe("frontend data-source routing regression", () => {
         const dataSourcesSection = readFileSync(
             path.join(
                 ROOT,
-                "components/settings-sections/data-sources-section.tsx",
+                "features/settings/components/sections/data-sources-section.tsx",
             ),
             "utf8",
         );
@@ -149,7 +158,10 @@ describe("frontend data-source routing regression", () => {
             "utf8",
         );
         const settingFieldControl = readFileSync(
-            path.join(ROOT, "components/settings/setting-field-control.tsx"),
+            path.join(
+                ROOT,
+                "features/settings/components/setting-field-control.tsx",
+            ),
             "utf8",
         );
 

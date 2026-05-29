@@ -29,6 +29,7 @@ ignore:
   - "src/features/dashboard/**"
   - "src/features/data-sources/**"
   - "src/features/recordings/**"
+  - "src/features/settings/components/**"
   - "src/hooks/**"
   - "src/lib/*.ts"
   - "src/lib/ai/**"

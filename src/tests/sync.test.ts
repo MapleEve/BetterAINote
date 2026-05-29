@@ -53,7 +53,7 @@ vi.mock("@/lib/storage/factory", () => ({
     }),
 }));
 
-vi.mock("@/lib/transcription/jobs", () => ({
+vi.mock("@/server/modules/transcription/jobs", () => ({
     enqueueTranscriptionJobs: vi.fn().mockResolvedValue({ queued: 0 }),
 }));
 
@@ -75,8 +75,8 @@ import {
 import {
     getUserSyncSchedules,
     syncRecordingsForUser,
-} from "@/lib/sync/sync-recordings";
-import { enqueueTranscriptionJobs } from "@/lib/transcription/jobs";
+} from "@/server/modules/sync/sync-recordings";
+import { enqueueTranscriptionJobs } from "@/server/modules/transcription/jobs";
 
 function mockWhereSelect(value: unknown) {
     return {

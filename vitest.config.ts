@@ -37,6 +37,7 @@ export default defineConfig({
             ],
             exclude: [
                 "src/tests/**",
+                "src/features/settings/components/**",
                 "**/*.d.ts",
                 "**/.next/**",
                 "**/node_modules/**",

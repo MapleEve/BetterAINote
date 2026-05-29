@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     deriveTranscriptWordsDatabasePath,
     splitVoiceTranscribePayloadWords,
-} from "@/lib/transcription/word-artifacts";
+} from "@/server/modules/transcription/word-artifacts";
 
 describe("transcription word artifacts", () => {
     it("derives a sidecar words database path next to the main SQLite database", () => {

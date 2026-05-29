@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
 import { getPublicVoiceTranscribeErrorMessage } from "@/lib/voice-transcribe/public-errors";
-import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
+import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
 
 function mapVoiceTranscribeError(error: VoiceTranscribeHttpError) {
     const status =

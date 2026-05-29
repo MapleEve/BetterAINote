@@ -15,7 +15,7 @@ vi.mock("@/lib/auth", () => ({
     },
 }));
 
-vi.mock("@/lib/speakers", () => ({
+vi.mock("@/server/modules/speakers/speaker-review", () => ({
     createSpeakerProfile: vi.fn(),
 }));
 
@@ -28,7 +28,7 @@ import { PATCH } from "@/app/api/speakers/profiles/[id]/route";
 import { GET, POST } from "@/app/api/speakers/profiles/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
-import { createSpeakerProfile } from "@/lib/speakers";
+import { createSpeakerProfile } from "@/server/modules/speakers/speaker-review";
 
 vi.spyOn(console, "error").mockImplementation(() => undefined);
 

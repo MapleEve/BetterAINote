@@ -14,7 +14,7 @@ import {
     applySpeakerProfileToRecording,
     createSpeakerProfile,
     syncRecordingSpeakers,
-} from "@/lib/speakers";
+} from "@/server/modules/speakers/speaker-review";
 
 describe("speakers helpers", () => {
     beforeEach(() => {

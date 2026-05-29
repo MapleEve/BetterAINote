@@ -2,11 +2,6 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { userSettings } from "@/db/schema/core";
 import {
-    hasStoredPrivateTranscriptionCredential,
-    syncStoredPrivateTranscriptionBaseUrl,
-    upsertStoredPrivateTranscriptionCredential,
-} from "@/lib/api-credentials/private-transcription";
-import {
     getTranscriptionSettingsResponse,
     getVoScriptSettingsResponse,
 } from "@/lib/settings/defaults";
@@ -15,6 +10,11 @@ import {
     buildVoScriptApiKeyUpdate,
     buildVoScriptSettingsUpdates,
 } from "@/lib/settings/voscript-settings";
+import {
+    hasStoredPrivateTranscriptionCredential,
+    syncStoredPrivateTranscriptionBaseUrl,
+    upsertStoredPrivateTranscriptionCredential,
+} from "@/server/modules/api-credentials/private-transcription";
 import type {
     TranscriptionRuntimeSettings,
     TranscriptionRuntimeSettingsRow,

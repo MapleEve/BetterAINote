@@ -11,7 +11,7 @@ vi.mock("@/lib/encryption", () => ({
 }));
 
 import { db } from "@/db";
-import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
+import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
 
 function mockWhereLimitSelect(value: unknown) {
     return {

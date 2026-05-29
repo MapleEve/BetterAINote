@@ -41,7 +41,10 @@ describe("preview dashboard performance boundary", () => {
             "utf8",
         );
         const wordArtifactsSource = readFileSync(
-            path.join(process.cwd(), "src/lib/transcription/word-artifacts.ts"),
+            path.join(
+                process.cwd(),
+                "src/server/modules/transcription/word-artifacts.ts",
+            ),
             "utf8",
         );
 

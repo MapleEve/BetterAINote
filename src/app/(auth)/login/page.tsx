@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/auth/login-form";
+import { LoginForm } from "@/features/auth/components/login-form";
 import { redirectIfAuthenticated } from "@/lib/auth-server";
 import { isRegistrationOpen } from "@/lib/registration";
 

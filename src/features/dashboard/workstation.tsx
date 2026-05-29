@@ -15,17 +15,17 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/icons/logo";
 import { useLanguage } from "@/components/language-provider";
-import {
-    normalizeSettingsSection,
-    SettingsDialog,
-} from "@/components/settings-dialog";
-import { SyncStatus } from "@/components/sync-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { SyncStatus } from "@/features/dashboard/components/sync-status";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
+import {
+    normalizeSettingsSection,
+    SettingsDialog,
+} from "@/features/settings/components/settings-dialog";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import {

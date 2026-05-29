@@ -14,7 +14,7 @@ vi.mock("@/lib/auth", () => ({
     },
 }));
 
-vi.mock("@/lib/transcription/jobs", () => ({
+vi.mock("@/server/modules/transcription/jobs", () => ({
     enqueueTranscriptionJobs: vi.fn(),
     getTranscriptionJobForRecording: vi.fn(),
     hasTranscriptionCapability: vi.fn(),
@@ -28,12 +28,12 @@ vi.mock("@/server/modules/recordings/ownership", () => ({
 import { GET, POST } from "@/app/api/recordings/[id]/transcribe/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
+import { findOwnedRecording } from "@/server/modules/recordings/ownership";
 import {
     enqueueTranscriptionJobs,
     getTranscriptionJobForRecording,
     hasTranscriptionCapability,
-} from "@/lib/transcription/jobs";
-import { findOwnedRecording } from "@/server/modules/recordings/ownership";
+} from "@/server/modules/transcription/jobs";
 
 function makeRequest(
     methodOrBody: string | Record<string, unknown> = "POST",

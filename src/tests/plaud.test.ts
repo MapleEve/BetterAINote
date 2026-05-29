@@ -531,33 +531,27 @@ describe("PlaudClient", () => {
 
     describe("normalizePlaudBearerToken", () => {
         it("strips a bearer prefix and line breaks", () => {
-            expect(
-                normalizePlaudBearerToken(
-                    "bearer\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-                ),
-            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+            expect(normalizePlaudBearerToken("bearer\nplaud_test_token")).toBe(
+                "plaud_test_token",
+            );
         });
 
         it("removes extra whitespace from the pasted token", () => {
             expect(
-                normalizePlaudBearerToken(
-                    "  Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9  ",
-                ),
-            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+                normalizePlaudBearerToken("  Bearer  plaud_test_token  "),
+            ).toBe("plaud_test_token");
         });
 
         it("accepts an Authorization header pasted with a bearer prefix", () => {
             expect(
                 normalizePlaudBearerToken(
-                    "  Authorization: Bearer\n eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9  ",
+                    "  Authorization: Bearer\n plaud_test_token  ",
                 ),
-            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+            ).toBe("plaud_test_token");
 
             expect(
-                normalizePlaudBearerToken(
-                    "Authorization：bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-                ),
-            ).toBe("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+                normalizePlaudBearerToken("Authorization：bearer plaud_token"),
+            ).toBe("plaud_token");
         });
     });
 });
