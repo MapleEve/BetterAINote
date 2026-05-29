@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { LibrarySearch } from "@/features/dashboard/components/library-search";
 import { RecordingList } from "@/features/dashboard/components/recording-list";
+import { SourceProviderRows } from "@/features/dashboard/components/source-provider-rows";
 import { SyncStatus } from "@/features/dashboard/components/sync-status";
 import { TranscriptionPanel } from "@/features/dashboard/components/transcription-panel";
 import { Workstation } from "@/features/dashboard/workstation";
@@ -235,6 +236,23 @@ describe("React surface SSR coverage", () => {
                 }),
                 React.createElement(LibrarySearch, {
                     onOpenRecording: vi.fn(),
+                }),
+                React.createElement(SourceProviderRows, {
+                    rows: [
+                        {
+                            provider: "ticnote",
+                            label: "TicNote",
+                            count: 1,
+                            active: true,
+                            connected: true,
+                            updating: false,
+                        },
+                    ],
+                    activeProvider: "ticnote",
+                    language: "en",
+                    onSelectProvider: vi.fn(),
+                    onConnectProvider: vi.fn(),
+                    onClearProvider: vi.fn(),
                 }),
                 React.createElement(TranscriptionPanel, {
                     recording,

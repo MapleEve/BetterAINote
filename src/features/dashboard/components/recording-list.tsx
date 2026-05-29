@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, CloudOff, HardDrive, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent } from "@/components/ui/card";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/select";
 import { RecordingTagChip } from "@/features/recordings/components/recording-tag-visuals";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
-import { getUpstreamDeletedLabel } from "@/lib/data-sources/presentation";
+import {
+    getSourceProviderLabel,
+    getUpstreamDeletedLabel,
+} from "@/lib/data-sources/presentation";
 import { formatDateTime } from "@/lib/format-date";
 import type { RecordingTag } from "@/lib/recording-tags";
 import {
@@ -24,7 +27,7 @@ import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 
 type TimelineFilter = "all" | "today" | "yesterday" | "last7" | "earlier";
-type RecordingListMode = "timeline" | "tags";
+export type RecordingListMode = "timeline" | "tags";
 type TagFilter = "all" | "untagged" | `tag:${string}`;
 
 interface RecordingListProps {
@@ -32,6 +35,9 @@ interface RecordingListProps {
     totalCount: number;
     currentRecording: Recording | null;
     transcriptionJobs?: Map<string, TranscriptionJobLike>;
+    contextLabel?: string;
+    mode?: RecordingListMode;
+    onModeChange?: (mode: RecordingListMode) => void;
     onSelect: (recording: Recording) => void;
 }
 
@@ -75,6 +81,9 @@ export function RecordingList({
     recordings,
     totalCount,
     currentRecording,
+    contextLabel,
+    mode: controlledMode,
+    onModeChange,
     transcriptionJobs,
     onSelect,
 }: RecordingListProps) {
@@ -83,10 +92,33 @@ export function RecordingList({
         settings: { dateTimeFormat, recordingListSortOrder, itemsPerPage },
     } = useDisplaySettingsStore();
     const [currentPage, setCurrentPage] = useState(1);
-    const [mode, setMode] = useState<RecordingListMode>("timeline");
+    const [internalMode, setInternalMode] =
+        useState<RecordingListMode>("timeline");
     const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>("all");
     const [tagFilter, setTagFilter] = useState<TagFilter>("all");
+    const mode = controlledMode ?? internalMode;
     const pageSize = Math.min(itemsPerPage, 8);
+
+    const updateMode = useCallback(
+        (nextMode: RecordingListMode) => {
+            if (controlledMode === undefined) {
+                setInternalMode(nextMode);
+            }
+            onModeChange?.(nextMode);
+            setTimelineFilter("all");
+            setTagFilter("all");
+            setCurrentPage(1);
+        },
+        [controlledMode, onModeChange],
+    );
+
+    useEffect(() => {
+        if (mode === "timeline" || mode === "tags") {
+            setTimelineFilter("all");
+            setTagFilter("all");
+            setCurrentPage(1);
+        }
+    }, [mode]);
 
     useEffect(() => {
         const nextTotalPages = Math.max(
@@ -288,12 +320,21 @@ export function RecordingList({
     }, [mode, tagFilter, tagOptions]);
 
     return (
-        <Card hasNoPadding className="h-[calc(100svh-13rem)] min-h-0 lg:h-full">
+        <Card
+            hasNoPadding
+            className="dashboard-list-panel h-[calc(100svh-13rem)] min-h-[28rem] lg:h-full lg:min-h-0"
+            data-testid="recording-list-panel"
+        >
             <CardContent className="flex h-full min-h-0 flex-col p-0">
-                <div className="border-b p-3">
+                <div className="border-b border-border/70 p-3">
+                    {contextLabel ? (
+                        <div className="mb-2 flex items-center gap-2 text-[0.68rem] font-medium text-muted-foreground">
+                            <span>{contextLabel}</span>
+                        </div>
+                    ) : null}
                     <div className="mb-2 flex items-center justify-between gap-2">
                         <div className="flex min-w-0 items-center gap-2">
-                            <p className="text-xs font-medium text-muted-foreground">
+                            <p className="text-xs font-semibold text-muted-foreground">
                                 {mode === "timeline"
                                     ? language === "zh-CN"
                                         ? "时间线"
@@ -307,6 +348,7 @@ export function RecordingList({
                             </span>
                         </div>
                         <SegmentedTabs
+                            className="min-w-[9rem] text-xs"
                             items={[
                                 {
                                     value: "timeline",
@@ -320,10 +362,9 @@ export function RecordingList({
                                 },
                             ]}
                             value={mode}
-                            onValueChange={(value) => {
-                                setMode(value as RecordingListMode);
-                                setCurrentPage(1);
-                            }}
+                            onValueChange={(value) =>
+                                updateMode(value as RecordingListMode)
+                            }
                         />
                     </div>
                     {mode === "timeline" ? (
@@ -386,14 +427,15 @@ export function RecordingList({
 
                 <div
                     key={`${mode}-${timelineFilter}-${tagFilter}-${currentPage}`}
-                    className="content-fade-in min-h-0 flex-1 overflow-y-auto"
+                    className="content-fade-in min-h-0 flex-1 overflow-y-auto px-1 py-1"
                 >
                     {groupedRecordings.map((group) => (
                         <div key={group.id}>
-                            <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-2 text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase backdrop-blur">
-                                {group.label}
+                            <div className="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-3 py-2 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase backdrop-blur">
+                                <span>{group.label}</span>
+                                <span className="h-px flex-1 bg-border/70" />
                             </div>
-                            <div className="divide-y">
+                            <div className="flex flex-col gap-1">
                                 {group.recordings.map((recording) => {
                                     const isSelected =
                                         currentRecording?.id === recording.id;
@@ -410,13 +452,13 @@ export function RecordingList({
                                             type="button"
                                             onClick={() => onSelect(recording)}
                                             className={cn(
-                                                "relative w-full border-l-2 border-l-transparent px-4 py-4 text-left transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] hover:bg-accent/35",
+                                                "relative w-full rounded-xl border border-transparent px-3 py-3 text-left transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] hover:bg-accent/35",
                                                 isSelected &&
-                                                    "border-l-primary bg-accent/42",
+                                                    "border-primary/35 bg-accent/45 shadow-xs",
                                             )}
                                         >
                                             {isTranscribing ? (
-                                                <span className="pointer-events-none absolute left-3 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary shadow-[0_0_18px_rgb(245_158_11_/_0.22)]">
+                                                <span className="pointer-events-none absolute top-1/2 left-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
                                                     <span className="absolute inset-0 animate-ping rounded-full bg-primary/20 opacity-70" />
                                                     <Loader2 className="relative size-3.5 animate-spin" />
                                                 </span>
@@ -434,7 +476,17 @@ export function RecordingList({
                                                         </h3>
                                                     </div>
 
-                                                    <div className="flex items-center gap-4 text-sm leading-5 text-muted-foreground">
+                                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm leading-5 text-muted-foreground">
+                                                        {recording.sourceProvider ? (
+                                                            <div className="flex min-w-0 items-center gap-1">
+                                                                <span className="max-w-24 truncate">
+                                                                    {getSourceProviderLabel(
+                                                                        recording.sourceProvider,
+                                                                        language,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        ) : null}
                                                         <div className="flex items-center gap-1">
                                                             <Clock className="h-3 w-3" />
                                                             <span>
@@ -517,14 +569,21 @@ export function RecordingList({
                         </div>
                     ))}
                     {groupedRecordings.length === 0 ? (
-                        <div className="p-6 text-sm text-muted-foreground">
-                            {language === "zh-CN"
-                                ? mode === "timeline"
-                                    ? "当前时间线没有录音。"
-                                    : "当前标签没有录音。"
-                                : mode === "timeline"
-                                  ? "No recordings in this timeline."
-                                  : "No recordings for this tag."}
+                        <div className="m-2 flex flex-col items-center gap-2 rounded-xl border border-dashed border-border/80 bg-background/35 px-6 py-10 text-center">
+                            <p className="text-sm font-semibold">
+                                {language === "zh-CN"
+                                    ? mode === "timeline"
+                                        ? "当前时间线没有录音"
+                                        : "当前标签没有录音"
+                                    : mode === "timeline"
+                                      ? "No recordings in this timeline"
+                                      : "No recordings for this tag"}
+                            </p>
+                            <p className="max-w-72 text-xs leading-5 text-muted-foreground">
+                                {language === "zh-CN"
+                                    ? "切换筛选或更新来源后，匹配的录音会显示在这里。"
+                                    : "Change filters or update a source to show matching recordings here."}
+                            </p>
                         </div>
                     ) : null}
                 </div>

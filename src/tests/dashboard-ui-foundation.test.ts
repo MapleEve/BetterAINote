@@ -1,0 +1,69 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function readSource(relativePath: string) {
+    return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
+
+describe("dashboard UI foundation", () => {
+    it("keeps the web index shell scoped to the three foundation columns", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
+
+        expect(workstation).toContain("dashboard-workstation-grid");
+        expect(workstation).toContain(
+            "lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)]",
+        );
+        expect(workstation).toContain('data-testid="dashboard-source-rail"');
+        expect(workstation).toContain("<SourceProviderRows");
+        expect(workstation).toContain("filteredRecordings");
+        expect(workstation).toContain("recordingListMode");
+        expect(globals).toContain(".dashboard-workstation");
+        expect(globals).toContain(".dashboard-list-panel");
+    });
+
+    it("renders supported source providers as local client rows without remote assets", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const sourceRows = readSource(
+            "features/dashboard/components/source-provider-rows.tsx",
+        );
+
+        for (const provider of [
+            "dingtalk-a1",
+            "ticnote",
+            "plaud",
+            "feishu-minutes",
+            "iflyrec",
+        ]) {
+            expect(workstation).toContain(provider);
+        }
+
+        expect(sourceRows).toContain('data-testid="source-provider-rows"');
+        expect(sourceRows).toContain("data-connected");
+        expect(sourceRows).toContain("onSelectProvider");
+        expect(sourceRows).not.toContain("fetch(");
+        expect(sourceRows).not.toContain("process.");
+        expect(sourceRows).not.toContain("window.");
+        expect(sourceRows).not.toContain("http://");
+        expect(sourceRows).not.toContain("https://");
+    });
+
+    it("keeps recording list timeline and tag modes controlled by the shell", () => {
+        const recordingList = readSource(
+            "features/dashboard/components/recording-list.tsx",
+        );
+
+        expect(recordingList).toContain(
+            'export type RecordingListMode = "timeline" | "tags"',
+        );
+        expect(recordingList).toContain("mode?: RecordingListMode");
+        expect(recordingList).toContain("onModeChange?");
+        expect(recordingList).toContain("contextLabel?");
+        expect(recordingList).toContain("getSourceProviderLabel");
+        expect(recordingList).toContain('data-testid="recording-list-panel"');
+    });
+});

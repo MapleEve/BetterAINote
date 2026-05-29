@@ -3,15 +3,23 @@
 import {
     CheckCircle,
     CloudOff,
+    FileText,
     Mic,
     Pencil,
     RefreshCw,
     Settings,
     Sparkles,
+    Tags,
     Trash2,
     X,
 } from "lucide-react";
-import { startTransition, useCallback, useEffect, useState } from "react";
+import {
+    startTransition,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/icons/logo";
 import { useLanguage } from "@/components/language-provider";
@@ -29,10 +37,16 @@ import {
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import {
+    DATA_SOURCE_PROVIDERS,
+    isSourceProvider,
+    type SourceProvider,
+} from "@/lib/data-sources/catalog";
+import {
     canRecordingPrivateTranscribe,
     canRecordingRename,
     getPrivateTranscriptionUnavailableMessage,
     getRecordingRenameActionKey,
+    getSourceProviderLabel,
 } from "@/lib/data-sources/presentation";
 import {
     refreshBrowserRoute,
@@ -49,7 +63,14 @@ import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import type { Recording } from "@/types/recording";
 import { LibrarySearch } from "./components/library-search";
-import { RecordingList } from "./components/recording-list";
+import {
+    RecordingList,
+    type RecordingListMode,
+} from "./components/recording-list";
+import {
+    type SourceProviderRowModel,
+    SourceProviderRows,
+} from "./components/source-provider-rows";
 import { TranscriptionPanel } from "./components/transcription-panel";
 import {
     areDashboardTranscriptionJobsEqual,
@@ -102,6 +123,24 @@ interface WorkstationProps {
     transcriptionJobs: Map<string, TranscriptionJobData>;
 }
 
+type DashboardFavorite = "all" | "transcribed" | "tags";
+
+const DASHBOARD_SOURCE_ORDER = [
+    "dingtalk-a1",
+    "ticnote",
+    "plaud",
+    "feishu-minutes",
+    "iflyrec",
+] satisfies SourceProvider[];
+
+const DASHBOARD_SOURCES = DASHBOARD_SOURCE_ORDER.filter((provider) =>
+    DATA_SOURCE_PROVIDERS.includes(provider),
+);
+
+function recordingHasTranscript(transcription: TranscriptionData | undefined) {
+    return Boolean(transcription?.text?.trim() || transcription?.hasTranscript);
+}
+
 export function Workstation({
     recordings,
     transcriptions,
@@ -117,6 +156,12 @@ export function Workstation({
         recordings[0] ?? null,
     );
     const [liveRecordings, setLiveRecordings] = useState(recordings);
+    const [activeFavorite, setActiveFavorite] =
+        useState<DashboardFavorite>("all");
+    const [activeSourceProvider, setActiveSourceProvider] =
+        useState<SourceProvider | null>(null);
+    const [recordingListMode, setRecordingListMode] =
+        useState<RecordingListMode>("timeline");
     const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(() =>
         Array.from(
             new Map(
@@ -535,6 +580,111 @@ export function Workstation({
         },
     });
 
+    const providerCounts = useMemo(() => {
+        const counts = new Map<SourceProvider, number>();
+        for (const provider of DASHBOARD_SOURCES) {
+            counts.set(provider, 0);
+        }
+
+        for (const recording of liveRecordings) {
+            if (isSourceProvider(recording.sourceProvider)) {
+                counts.set(
+                    recording.sourceProvider,
+                    (counts.get(recording.sourceProvider) ?? 0) + 1,
+                );
+            }
+        }
+
+        return counts;
+    }, [liveRecordings]);
+
+    const sourceRows = useMemo<SourceProviderRowModel[]>(
+        () =>
+            DASHBOARD_SOURCES.map((provider) => {
+                const count = providerCounts.get(provider) ?? 0;
+
+                return {
+                    provider,
+                    label: getSourceProviderLabel(provider, language),
+                    count,
+                    active: activeSourceProvider === provider,
+                    connected: count > 0,
+                    updating: isAutoSyncing && count > 0,
+                };
+            }),
+        [activeSourceProvider, isAutoSyncing, language, providerCounts],
+    );
+
+    const filteredRecordings = useMemo(() => {
+        return liveRecordings.filter((recording) => {
+            if (
+                activeSourceProvider &&
+                recording.sourceProvider !== activeSourceProvider
+            ) {
+                return false;
+            }
+
+            if (activeFavorite === "transcribed") {
+                return recordingHasTranscript(
+                    liveTranscriptions.get(recording.id),
+                );
+            }
+
+            return true;
+        });
+    }, [
+        activeFavorite,
+        activeSourceProvider,
+        liveRecordings,
+        liveTranscriptions,
+    ]);
+
+    const activeFavoriteLabel =
+        activeFavorite === "transcribed"
+            ? language === "zh-CN"
+                ? "转写记录"
+                : "Transcribed"
+            : activeFavorite === "tags"
+              ? language === "zh-CN"
+                  ? "标签"
+                  : "Tags"
+              : language === "zh-CN"
+                ? "全部录音"
+                : "All recordings";
+    const activeSourceLabel = activeSourceProvider
+        ? getSourceProviderLabel(activeSourceProvider, language)
+        : null;
+    const listContextLabel = activeSourceLabel
+        ? `${activeFavoriteLabel} / ${activeSourceLabel}`
+        : activeFavoriteLabel;
+
+    useEffect(() => {
+        setCurrentRecording((previous) => {
+            if (!previous) return filteredRecordings[0] ?? null;
+            return filteredRecordings.some(
+                (recording) => recording.id === previous.id,
+            )
+                ? previous
+                : (filteredRecordings[0] ?? null);
+        });
+    }, [filteredRecordings]);
+
+    const handleFavoriteSelect = useCallback((favorite: DashboardFavorite) => {
+        setActiveFavorite(favorite);
+        setRecordingListMode(favorite === "tags" ? "tags" : "timeline");
+    }, []);
+
+    const handleRecordingListModeChange = useCallback(
+        (nextMode: RecordingListMode) => {
+            setRecordingListMode(nextMode);
+            setActiveFavorite((previous) => {
+                if (nextMode === "tags") return "tags";
+                return previous === "tags" ? "all" : previous;
+            });
+        },
+        [],
+    );
+
     const handleSync = useCallback(async () => {
         await manualSync();
     }, [manualSync]);
@@ -851,16 +1001,111 @@ export function Workstation({
 
     return (
         <>
-            <div className="bg-transparent">
-                <div className="container mx-auto max-w-7xl px-4 py-6">
-                    <div className="mb-5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Logo className="size-10 shrink-0 text-primary" />
-                            <h1 className="text-2xl font-semibold tracking-tight">
-                                BetterAINote
-                            </h1>
+            <div className="dashboard-workstation min-h-screen px-3 py-3 sm:px-4 lg:px-5">
+                <div className="dashboard-workstation-grid mx-auto grid max-w-[1280px] gap-3 lg:h-[calc(100svh-2rem)] lg:min-h-[680px] lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)] lg:grid-rows-[3.5rem_minmax(0,1fr)] lg:overflow-hidden">
+                    <aside
+                        className="glass-surface flex min-h-[24rem] flex-col rounded-2xl p-3 lg:row-span-2 lg:min-h-0"
+                        data-testid="dashboard-source-rail"
+                    >
+                        <div className="mb-4 flex items-center gap-3 px-1 pt-1">
+                            <Logo className="size-9 shrink-0 text-primary" />
+                            <div className="min-w-0">
+                                <h1 className="truncate text-base font-semibold tracking-tight">
+                                    BetterAINote
+                                </h1>
+                                <p className="text-xs text-muted-foreground">
+                                    {language === "zh-CN"
+                                        ? "私人工作空间"
+                                        : "Private workspace"}
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
+
+                        <div className="mb-4 flex flex-col gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleFavoriteSelect("all")}
+                                data-active={
+                                    activeFavorite === "all" ? "true" : "false"
+                                }
+                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                            >
+                                <Mic className="size-4 shrink-0" />
+                                <span className="min-w-0 flex-1 truncate">
+                                    {language === "zh-CN"
+                                        ? "全部录音"
+                                        : "All recordings"}
+                                </span>
+                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                    {liveRecordings.length}
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    handleFavoriteSelect("transcribed")
+                                }
+                                data-active={
+                                    activeFavorite === "transcribed"
+                                        ? "true"
+                                        : "false"
+                                }
+                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                            >
+                                <FileText className="size-4 shrink-0" />
+                                <span className="min-w-0 flex-1 truncate">
+                                    {language === "zh-CN"
+                                        ? "转写记录"
+                                        : "Transcribed"}
+                                </span>
+                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                    {
+                                        liveRecordings.filter((recording) =>
+                                            recordingHasTranscript(
+                                                liveTranscriptions.get(
+                                                    recording.id,
+                                                ),
+                                            ),
+                                        ).length
+                                    }
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleFavoriteSelect("tags")}
+                                data-active={
+                                    activeFavorite === "tags" ? "true" : "false"
+                                }
+                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                            >
+                                <Tags className="size-4 shrink-0" />
+                                <span className="min-w-0 flex-1 truncate">
+                                    {language === "zh-CN" ? "标签" : "Tags"}
+                                </span>
+                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                    {tagCatalog.length}
+                                </span>
+                            </button>
+                        </div>
+
+                        <SourceProviderRows
+                            rows={sourceRows}
+                            activeProvider={activeSourceProvider}
+                            language={language}
+                            onSelectProvider={(provider) =>
+                                setActiveSourceProvider((previous) =>
+                                    previous === provider ? null : provider,
+                                )
+                            }
+                            onConnectProvider={(provider) =>
+                                setActiveSourceProvider(provider)
+                            }
+                            onClearProvider={() =>
+                                setActiveSourceProvider(null)
+                            }
+                        />
+
+                        <div className="mt-auto flex flex-col gap-3 pt-4">
                             <SyncStatus
                                 autoSyncEnabled={autoSyncEnabled}
                                 lastSyncTime={lastSyncTime}
@@ -868,14 +1113,47 @@ export function Workstation({
                                 isAutoSyncing={isAutoSyncing}
                                 lastSyncResult={lastSyncResult}
                                 workerStatus={workerStatus}
-                                className="hidden md:flex"
                             />
                             <Button
                                 onClick={handleSync}
                                 disabled={isAutoSyncing}
                                 variant="outline"
                                 size="sm"
-                                className="h-9"
+                                className="h-9 justify-center rounded-xl"
+                            >
+                                {isAutoSyncing ? (
+                                    <>
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        {t("dashboard.syncing")}
+                                    </>
+                                ) : (
+                                    <>
+                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                        {t("dashboard.syncDevice")}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </aside>
+
+                    <header className="glass-surface flex min-h-14 items-center justify-between gap-3 rounded-2xl px-3 py-2">
+                        <div className="min-w-0">
+                            <p className="truncate text-xs font-medium text-muted-foreground">
+                                {listContextLabel}
+                            </p>
+                            <p className="truncate text-sm font-semibold">
+                                {currentRecording
+                                    ? currentRecording.filename
+                                    : t("dashboard.noRecordings")}
+                            </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            <Button
+                                onClick={handleSync}
+                                disabled={isAutoSyncing}
+                                variant="outline"
+                                size="sm"
+                                className="hidden h-9 rounded-xl sm:inline-flex"
                             >
                                 {isAutoSyncing ? (
                                     <>
@@ -897,289 +1175,238 @@ export function Workstation({
                                 variant="outline"
                                 size="icon"
                                 aria-label={t("settingsDialog.title")}
+                                className="rounded-xl"
                             >
                                 <Settings className="h-4 w-4" />
                             </Button>
                         </div>
-                    </div>
+                    </header>
 
-                    {liveRecordings.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center py-16">
-                                <Mic className="mb-4 h-16 w-16 text-muted-foreground" />
-                                <h3 className="mb-2 text-lg font-semibold">
-                                    {t("dashboard.noRecordings")}
-                                </h3>
-                                <p className="mb-6 max-w-md text-center text-sm text-muted-foreground">
-                                    {t("dashboard.noRecordingsDescription")}
-                                </p>
-                                <Button
-                                    onClick={handleSync}
-                                    disabled={isAutoSyncing}
-                                >
-                                    {isAutoSyncing ? (
-                                        <>
-                                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                            {t("dashboard.syncing")}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <RefreshCw className="mr-2 h-4 w-4" />
-                                            {t("dashboard.syncDevice")}
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-6 lg:h-[calc(100svh-13rem)] lg:min-h-[640px] lg:grid-cols-3 lg:overflow-hidden">
-                            <div className="min-h-0 lg:col-span-1">
-                                <RecordingList
-                                    recordings={liveRecordings}
-                                    totalCount={liveRecordings.length}
-                                    currentRecording={currentRecording}
-                                    transcriptionJobs={liveTranscriptionJobs}
-                                    onSelect={(recording) => {
-                                        setTagManagerOpen(false);
-                                        setCurrentRecording(recording);
-                                    }}
-                                />
-                            </div>
+                    <section className="min-h-0">
+                        <RecordingList
+                            recordings={filteredRecordings}
+                            totalCount={filteredRecordings.length}
+                            currentRecording={currentRecording}
+                            contextLabel={listContextLabel}
+                            mode={recordingListMode}
+                            onModeChange={handleRecordingListModeChange}
+                            transcriptionJobs={liveTranscriptionJobs}
+                            onSelect={(recording) => {
+                                setTagManagerOpen(false);
+                                setCurrentRecording(recording);
+                            }}
+                        />
+                    </section>
 
-                            <div className="flex min-h-0 flex-col gap-4 lg:col-span-2">
-                                {currentRecording ? (
-                                    <>
-                                        <div className="shrink-0 flex flex-col gap-3">
-                                            <div className="flex items-center gap-3">
-                                                {isRenaming ? (
-                                                    <div className="flex flex-1 items-center gap-2">
-                                                        <Input
-                                                            value={renameValue}
-                                                            onChange={(event) =>
-                                                                setRenameValue(
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            onKeyDown={(
-                                                                event,
-                                                            ) => {
-                                                                if (
-                                                                    event.key ===
-                                                                    "Enter"
-                                                                ) {
-                                                                    handleRenameSave();
-                                                                }
-                                                                if (
-                                                                    event.key ===
-                                                                    "Escape"
-                                                                ) {
-                                                                    handleRenameCancel();
-                                                                }
-                                                            }}
-                                                            className="h-auto py-1 text-lg font-semibold"
-                                                            autoFocus
-                                                            disabled={
-                                                                isSavingRename
-                                                            }
-                                                        />
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={
-                                                                handleAutoRename
-                                                            }
-                                                            disabled={
-                                                                !canAutoRenameCurrentRecording
-                                                            }
-                                                            title={
-                                                                autoRenameDisabledReason ??
-                                                                t(
-                                                                    "transcription.aiRename",
-                                                                )
-                                                            }
-                                                            className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
-                                                        >
-                                                            <Sparkles
-                                                                className={
-                                                                    isAutoRenaming
-                                                                        ? "h-4 w-4 animate-pulse"
-                                                                        : "h-4 w-4"
-                                                                }
-                                                            />
-                                                            <span className="hidden sm:inline">
-                                                                {t(
-                                                                    "transcription.aiRename",
-                                                                )}
-                                                            </span>
-                                                        </Button>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="outline"
-                                                            onClick={
-                                                                handleRenameSave
-                                                            }
-                                                            disabled={
-                                                                isSavingRename
-                                                            }
-                                                            title={t(
-                                                                "recording.saveRename",
-                                                            )}
-                                                            className="h-10 w-10 shrink-0 rounded-full border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
-                                                        >
-                                                            <CheckCircle className="h-5 w-5" />
-                                                        </Button>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="outline"
-                                                            onClick={
-                                                                handleRenameCancel
-                                                            }
-                                                            disabled={
-                                                                isSavingRename
-                                                            }
-                                                            title={t(
-                                                                "recording.cancelRename",
-                                                            )}
-                                                            className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
-                                                        >
-                                                            <X className="h-5 w-5" />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <h2 className="flex-1 truncate text-lg font-semibold">
-                                                            {
-                                                                currentRecording.filename
-                                                            }
-                                                        </h2>
-                                                        {currentRecording.upstreamDeleted && (
-                                                            <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-400">
-                                                                <CloudOff className="h-3 w-3" />
-                                                                {t(
-                                                                    "dashboard.localOnly",
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                        {canRenameCurrentRecording ? (
-                                                            <Button
-                                                                size="icon"
-                                                                variant="outline"
-                                                                onClick={
-                                                                    handleRenameStart
-                                                                }
-                                                                title={
-                                                                    currentRenameActionLabel
-                                                                }
-                                                                className="shrink-0"
-                                                            >
-                                                                <Pencil className="h-4 w-4" />
-                                                            </Button>
-                                                        ) : null}
-                                                        {currentRecording.upstreamDeleted && (
-                                                            <Button
-                                                                size="icon"
-                                                                variant="outline"
-                                                                onClick={
-                                                                    handleDelete
-                                                                }
-                                                                title={t(
-                                                                    "dashboard.deleteLocalRecording",
-                                                                )}
-                                                                className="shrink-0 text-destructive hover:text-destructive"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                            <RecordingPlayer
-                                                recording={currentRecording}
-                                                tags={currentRecording.tags}
-                                                isTagManagerOpen={
-                                                    tagManagerOpen
-                                                }
-                                                onToggleTagManager={() =>
-                                                    setTagManagerOpen(
-                                                        (open) => !open,
-                                                    )
-                                                }
-                                                tagManagerPanel={
-                                                    <RecordingTagManager
-                                                        variant="popover"
-                                                        recording={
-                                                            currentRecording
+                    <section className="flex min-h-0 flex-col gap-4 overflow-hidden">
+                        {currentRecording ? (
+                            <>
+                                <div className="shrink-0 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        {isRenaming ? (
+                                            <div className="flex flex-1 items-center gap-2">
+                                                <Input
+                                                    value={renameValue}
+                                                    onChange={(event) =>
+                                                        setRenameValue(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    onKeyDown={(event) => {
+                                                        if (
+                                                            event.key ===
+                                                            "Enter"
+                                                        ) {
+                                                            handleRenameSave();
                                                         }
-                                                        availableTags={
-                                                            tagCatalog
+                                                        if (
+                                                            event.key ===
+                                                            "Escape"
+                                                        ) {
+                                                            handleRenameCancel();
                                                         }
-                                                        onAvailableTagsChange={
-                                                            setTagCatalog
-                                                        }
-                                                        onRecordingTagsChange={
-                                                            applyRecordingTags
+                                                    }}
+                                                    className="h-auto py-1 text-lg font-semibold"
+                                                    autoFocus
+                                                    disabled={isSavingRename}
+                                                />
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={handleAutoRename}
+                                                    disabled={
+                                                        !canAutoRenameCurrentRecording
+                                                    }
+                                                    title={
+                                                        autoRenameDisabledReason ??
+                                                        t(
+                                                            "transcription.aiRename",
+                                                        )
+                                                    }
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                >
+                                                    <Sparkles
+                                                        className={
+                                                            isAutoRenaming
+                                                                ? "h-4 w-4 animate-pulse"
+                                                                : "h-4 w-4"
                                                         }
                                                     />
-                                                }
-                                                onEnded={() => {
-                                                    const index =
-                                                        liveRecordings.findIndex(
-                                                            (recording) =>
-                                                                recording.id ===
-                                                                currentRecording.id,
-                                                        );
-                                                    if (
-                                                        index >= 0 &&
-                                                        index <
-                                                            liveRecordings.length -
-                                                                1
-                                                    ) {
-                                                        setTagManagerOpen(
-                                                            false,
-                                                        );
-                                                        setCurrentRecording(
-                                                            liveRecordings[
-                                                                index + 1
-                                                            ],
-                                                        );
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="flex min-h-0 flex-1 flex-col">
-                                            <TranscriptionPanel
+                                                    <span className="hidden sm:inline">
+                                                        {t(
+                                                            "transcription.aiRename",
+                                                        )}
+                                                    </span>
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="outline"
+                                                    onClick={handleRenameSave}
+                                                    disabled={isSavingRename}
+                                                    title={t(
+                                                        "recording.saveRename",
+                                                    )}
+                                                    className="h-10 w-10 shrink-0 rounded-full border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
+                                                >
+                                                    <CheckCircle className="h-5 w-5" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="outline"
+                                                    onClick={handleRenameCancel}
+                                                    disabled={isSavingRename}
+                                                    title={t(
+                                                        "recording.cancelRename",
+                                                    )}
+                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                >
+                                                    <X className="h-5 w-5" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <h2 className="flex-1 truncate text-lg font-semibold">
+                                                    {currentRecording.filename}
+                                                </h2>
+                                                {currentRecording.upstreamDeleted && (
+                                                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-400">
+                                                        <CloudOff className="h-3 w-3" />
+                                                        {t(
+                                                            "dashboard.localOnly",
+                                                        )}
+                                                    </span>
+                                                )}
+                                                {canRenameCurrentRecording ? (
+                                                    <Button
+                                                        size="icon"
+                                                        variant="outline"
+                                                        onClick={
+                                                            handleRenameStart
+                                                        }
+                                                        title={
+                                                            currentRenameActionLabel
+                                                        }
+                                                        className="shrink-0"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                ) : null}
+                                                {currentRecording.upstreamDeleted && (
+                                                    <Button
+                                                        size="icon"
+                                                        variant="outline"
+                                                        onClick={handleDelete}
+                                                        title={t(
+                                                            "dashboard.deleteLocalRecording",
+                                                        )}
+                                                        className="shrink-0 text-destructive hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                    <RecordingPlayer
+                                        recording={currentRecording}
+                                        tags={currentRecording.tags}
+                                        isTagManagerOpen={tagManagerOpen}
+                                        onToggleTagManager={() =>
+                                            setTagManagerOpen((open) => !open)
+                                        }
+                                        tagManagerPanel={
+                                            <RecordingTagManager
+                                                variant="popover"
                                                 recording={currentRecording}
-                                                transcription={
-                                                    currentTranscription
+                                                availableTags={tagCatalog}
+                                                onAvailableTagsChange={
+                                                    setTagCatalog
                                                 }
-                                                transcriptionJob={
-                                                    currentTranscriptionJob
+                                                onRecordingTagsChange={
+                                                    applyRecordingTags
                                                 }
-                                                isTranscriptLoading={
-                                                    isCurrentTranscriptLoading
-                                                }
-                                                onTranscribe={handleTranscribe}
-                                                onRetranscribe={
-                                                    handleRetranscribe
-                                                }
-                                                className="min-h-0 flex-1"
                                             />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <Card>
-                                        <CardContent className="py-16 text-center">
-                                            <p className="text-muted-foreground">
-                                                {t("dashboard.selectRecording")}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                                        }
+                                        onEnded={() => {
+                                            const index =
+                                                liveRecordings.findIndex(
+                                                    (recording) =>
+                                                        recording.id ===
+                                                        currentRecording.id,
+                                                );
+                                            if (
+                                                index >= 0 &&
+                                                index <
+                                                    liveRecordings.length - 1
+                                            ) {
+                                                setTagManagerOpen(false);
+                                                setCurrentRecording(
+                                                    liveRecordings[index + 1],
+                                                );
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="flex min-h-0 flex-1 flex-col">
+                                    <TranscriptionPanel
+                                        recording={currentRecording}
+                                        transcription={currentTranscription}
+                                        transcriptionJob={
+                                            currentTranscriptionJob
+                                        }
+                                        isTranscriptLoading={
+                                            isCurrentTranscriptLoading
+                                        }
+                                        onTranscribe={handleTranscribe}
+                                        onRetranscribe={handleRetranscribe}
+                                        className="min-h-0 flex-1"
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <Card
+                                hasNoPadding
+                                className="glass-surface flex min-h-[26rem] flex-1 items-center justify-center rounded-2xl"
+                            >
+                                <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                                    <Mic className="mb-4 h-12 w-12 text-muted-foreground" />
+                                    <h3 className="mb-2 text-base font-semibold">
+                                        {liveRecordings.length === 0
+                                            ? t("dashboard.noRecordings")
+                                            : t("dashboard.selectRecording")}
+                                    </h3>
+                                    <p className="max-w-md text-sm text-muted-foreground">
+                                        {liveRecordings.length === 0
+                                            ? t(
+                                                  "dashboard.noRecordingsDescription",
+                                              )
+                                            : listContextLabel}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </section>
                 </div>
             </div>
 
