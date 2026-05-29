@@ -51,3 +51,11 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - 本仓库提交必须使用 SSH 签名，保留 `commit.gpgsign=true` 和 `gpg.format=ssh`。
 - 不 push `origin/main`，审查工作使用 `mini/` 前缀分支。
 - staged 范围必须只包含任务相关文件；不要把 ignored 本地资料、依赖产物、数据库或日志加入提交。
+
+## PR 审查流程
+
+- 涉及审查的分支必须推送到远端并创建 PR；默认不得直接 push `origin/main`。
+- PR 创建后等待用户人工审查，不得擅自合并或创建 merge commit。
+- 后续修正继续推送到同一审查分支并更新同一个 PR。
+- 提交、author、committer 和 SSH 签名必须使用本人身份。
+- 如果重做审查分支，必须保留已确认的前置提交，除非用户明确要求丢弃。

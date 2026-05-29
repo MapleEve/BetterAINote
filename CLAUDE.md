@@ -4,3 +4,4 @@
 - CLAUDE.md 只做工具桥接，不覆盖 AGENTS.md。
 - 面向用户的解释优先中文；路径、命令、branch name、API、CI、E2E、PR 等固定词保持原样。
 - 不把本地研究、设计证据、私有录音、私有转写或 provider 私有材料写入公开文件。
+- 需要审查的分支必须推送远端并创建 PR；等待用户审查，不得直接 push `origin/main` 或擅自合并。
