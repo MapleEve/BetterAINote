@@ -7,7 +7,7 @@
 ## 当前状态
 
 - BetterAINote 是独立的多来源私有录音工作台。
-- `0.6.2-preview` 是当前预发布版本；`0.6.0-preview` 仍是架构、数据库和 E2E 流程的 baseline SOT。
+- `0.6.2-preview` 是当前预发布版本；`0.6.0-preview` 是架构、数据库和 E2E 流程的 baseline SOT，不再把核心分层和 SQLite 形状当作后续可选优化。
 - 当前优先级是自托管、数据安全、文档清晰和可维护的 provider 边界。
 - 首个正式 release 前，API、设置项、数据源能力和 UI 细节仍可能调整。
 - 不发布 npm 包；`package.json` 保持 `private: true`。
@@ -70,7 +70,7 @@ E2E 发现过的稳定性边界：
 | 私有部署 | 默认用户是自己控制实例、数据库、音频和服务凭据的人。 |
 | 服务分层 | 数据源、私有转写、AI 标题生成、播放和显示设置相互独立。 |
 | preview | 不承诺所有字段和 API 在首个正式 release 前稳定。 |
-| 文档 | README.md 默认使用简体中文，并维护英文、日文、韩文版本；技术 docs 可逐步补齐。 |
+| 文档 | README.md 默认使用简体中文，并维护英文、日文、韩文切换版本；技术 docs 可逐步补齐。 |
 
 ## 架构 baseline
 
@@ -78,11 +78,15 @@ E2E 发现过的稳定性边界：
 
 - `src/app/api/**/route.ts` 只做 HTTP 输入输出、session 校验和状态码映射。
 - 业务 SOT 放在 `src/server/modules/*`，例如 recordings、recording-tags、speakers、search 和 data-sources。
+- `src/features/auth/*` 承担登录和注册 UI。
+- `src/features/onboarding/*` 承担初始数据源连接 UI。
 - `src/features/dashboard/*` 承担首页录音工作台编排。
 - `src/features/recordings/*` 承担录音详情、播放、来源报告、标签和说话人审阅等业务 UI。
 - `src/features/settings/*` 与 `src/features/data-sources/*` 承担设置和数据源的前端状态/表单编排。
 - `src/components/*` 只承担可复用界面组件、通用布局组件、provider 和基础 UI，不再放 dashboard/recordings 业务目录。
-- Provider 专属协议、凭据归一化、来源错误和能力表达留在 `src/lib/data-sources/providers/*`。
+- Provider 专属协议、来源错误和能力表达留在 `src/lib/data-sources/providers/*`。
+- 转录 provider、VoScript HTTP client、浏览器/存储/格式化等可复用工具可以留在 `src/lib/*`。
+- Sync worker、provider sync 编排、transcription jobs、API credential 选择、VoScript 访问编排、speaker review、AI rename 生成标题和词级转写落盘归属 `src/server/modules/*`；`src/lib/*` 不再作为这些业务流程的 SOT。
 - API route 不直接访问 `@/db`、`@/db/schema` 或 `drizzle-orm`；这个边界由 preview architecture 测试守住。
 - 搜索按“领域读模型 -> search repository -> API route”分层：`src/server/modules/recordings/search-read-model.ts` 负责把 recordings/transcripts/speakers/tags 映射为搜索文档，`src/server/modules/search/*` 负责 FTS 查询、重建和索引队列，`/api/search` 只负责鉴权、参数校验和响应。
 
@@ -151,8 +155,8 @@ Issue 和 PR 模板应提醒贡献者只提供脱敏日志、字段名、HTTP �
 
 ## 公开文档规则
 
-- README.md 默认使用简体中文，并维护英文、日文、韩文版本。
-- 必须说明 `preview`、自托管优先、当前预发布版本，以及不发布 npm 包或公开镜像。
+- README.md 默认使用简体中文，并维护英文、日文、韩文切换版本。
+- 必须说明 `preview`、自托管优先、当前预发布版本、`0.6.0-preview` baseline，以及不发布 npm 包或公开镜像。
 - License 口径统一为“个人免费，商业使用须事先取得书面授权；条款为 BetterAINote Additional Terms on top of Apache License 2.0”。
 - 不写会让 BetterAINote 像某个来源派生项目的措辞。
 - 不记录来源内部协议、未公开计划或本地研究材料。

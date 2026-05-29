@@ -1,4 +1,4 @@
-import { SettingFieldControl } from "@/components/settings/setting-field-control";
+import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
 import type { DataSourceFormField } from "@/lib/data-sources/presentation";
 
 const SENSITIVE_FIELD_PATTERN =

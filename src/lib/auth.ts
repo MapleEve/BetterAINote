@@ -8,6 +8,7 @@ import { env } from "./env";
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 const BUILD_ONLY_AUTH_SECRET =
     "betterainote-build-only-secret-not-used-at-runtime";
+const BUILD_ONLY_AUTH_BASE_URL = "http://localhost:3001";
 
 function resolveAuthSecret() {
     if (env.BETTER_AUTH_SECRET) {
@@ -16,6 +17,18 @@ function resolveAuthSecret() {
 
     if (isBuildRuntime()) {
         return BUILD_ONLY_AUTH_SECRET;
+    }
+
+    return undefined;
+}
+
+function resolveAuthBaseUrl() {
+    if (env.APP_URL) {
+        return env.APP_URL;
+    }
+
+    if (isBuildRuntime()) {
+        return BUILD_ONLY_AUTH_BASE_URL;
     }
 
     return undefined;
@@ -129,7 +142,7 @@ export const auth = betterAuth({
         requireEmailVerification: false,
     },
     secret: resolveAuthSecret(),
-    baseURL: env.APP_URL,
+    baseURL: resolveAuthBaseUrl(),
     trustedOrigins: resolveTrustedOrigins,
 });
 

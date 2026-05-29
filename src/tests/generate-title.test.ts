@@ -35,7 +35,7 @@ vi.mock("@/lib/encryption", () => ({
 }));
 
 import { db } from "@/db";
-import { generateTitleFromTranscription } from "@/lib/ai/generate-title";
+import { generateTitleFromTranscription } from "@/server/modules/title-generation/generate-title";
 
 describe("generateTitleFromTranscription", () => {
     beforeEach(() => {

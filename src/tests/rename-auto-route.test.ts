@@ -15,7 +15,7 @@ vi.mock("@/lib/auth", () => ({
     },
 }));
 
-vi.mock("@/lib/ai/generate-title", () => ({
+vi.mock("@/server/modules/title-generation/generate-title", () => ({
     generateTitleFromTranscription: vi.fn(),
 }));
 
@@ -34,12 +34,12 @@ vi.mock("@/lib/data-sources/source-title-writeback", () => ({
 
 import { POST } from "@/app/api/recordings/[id]/rename/auto/route";
 import { db } from "@/db";
-import { generateTitleFromTranscription } from "@/lib/ai/generate-title";
 import { auth } from "@/lib/auth";
 import {
     SourceTitleWritebackError,
     writeRecordingTitleToSourceOrThrow,
 } from "@/lib/data-sources/source-title-writeback";
+import { generateTitleFromTranscription } from "@/server/modules/title-generation/generate-title";
 
 vi.spyOn(console, "error").mockImplementation(() => undefined);
 

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { SettingsDialog } from "@/components/settings-dialog";
 import {
     navigateBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
+import { SettingsDialog } from "./settings-dialog";
 
 export function SettingsPageContent() {
     const router = useBrowserRouteController();

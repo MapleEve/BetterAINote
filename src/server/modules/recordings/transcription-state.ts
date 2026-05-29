@@ -8,15 +8,15 @@ import {
     sourceProviderSupportsCapability,
 } from "@/lib/data-sources/catalog";
 import {
+    buildDisplaySegments,
+    mergeSpeakerMaps,
+} from "@/lib/transcription/voice-transcribe-metadata";
+import {
     enqueueTranscriptionJobs,
     getTranscriptionJobForRecording,
     hasTranscriptionCapability,
     serializeTranscriptionJob,
-} from "@/lib/transcription/jobs";
-import {
-    buildDisplaySegments,
-    mergeSpeakerMaps,
-} from "@/lib/transcription/voice-transcribe-metadata";
+} from "@/server/modules/transcription/jobs";
 import { findOwnedRecording } from "./ownership";
 
 export class RecordingTranscriptionError extends Error {

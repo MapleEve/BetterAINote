@@ -7,7 +7,7 @@ describe("preview search write path contract", () => {
         const source = readFileSync(
             path.join(
                 process.cwd(),
-                "src/lib/transcription/transcribe-recording.ts",
+                "src/server/modules/transcription/transcribe-recording.ts",
             ),
             "utf8",
         );
@@ -19,7 +19,10 @@ describe("preview search write path contract", () => {
 
     it("persists source artifact segments and queues source transcript search indexing", () => {
         const source = readFileSync(
-            path.join(process.cwd(), "src/lib/sync/sync-recordings.ts"),
+            path.join(
+                process.cwd(),
+                "src/server/modules/sync/sync-recordings.ts",
+            ),
             "utf8",
         );
 

@@ -24,7 +24,7 @@ vi.mock("@/db", () => ({
     },
 }));
 
-import { upsertSyncWorkerStateForUsers } from "@/lib/sync/worker-state";
+import { upsertSyncWorkerStateForUsers } from "@/server/modules/sync/worker-state";
 
 describe("worker-state", () => {
     beforeEach(() => {

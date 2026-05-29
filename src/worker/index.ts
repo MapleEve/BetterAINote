@@ -1,4 +1,4 @@
-import { syncWorker } from "@/lib/sync/worker";
+import { syncWorker } from "@/server/modules/sync/worker";
 
 async function main() {
     console.info("[worker] starting BetterAINote sync worker");

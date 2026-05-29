@@ -3,15 +3,15 @@ import { db } from "@/db";
 import { recordings } from "@/db/schema/library";
 import { transcriptions } from "@/db/schema/transcripts";
 import { recordingSpeakers, speakerProfiles } from "@/db/schema/voiceprints";
+import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
+import { getPublicVoiceTranscribeErrorMessage } from "@/lib/voice-transcribe/public-errors";
+import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
 import {
     applySpeakerProfileToRecording,
     buildSpeakerReviewSnapshot,
     createSpeakerProfile,
-} from "@/lib/speakers";
-import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
-import { getPublicVoiceTranscribeErrorMessage } from "@/lib/voice-transcribe/public-errors";
-import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
-import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
+} from "@/server/modules/speakers/speaker-review";
+import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
 import { findOwnedRecording } from "./ownership";
 
 export class RecordingSpeakersError extends Error {

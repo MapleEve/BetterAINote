@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { OnboardingForm } from "@/components/onboarding/onboarding-form";
+import { OnboardingForm } from "@/features/onboarding/components/onboarding-form";
 import { requireAuth } from "@/lib/auth-server";
 import { hasCompletedOnboarding } from "@/server/modules/onboarding";
 

@@ -5,10 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import {
-    SettingsCardSkeleton,
-    SettingsSectionSkeleton,
-} from "@/components/settings/settings-skeletons";
-import {
     Card,
     CardContent,
     CardDescription,
@@ -26,6 +22,10 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import {
+    SettingsCardSkeleton,
+    SettingsSectionSkeleton,
+} from "@/features/settings/components/settings-skeletons";
 import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
 import {
     type BrowserTimeoutHandle,

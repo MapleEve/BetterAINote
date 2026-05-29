@@ -6,14 +6,6 @@ import { Logo } from "@/components/icons/logo";
 import { LanguageProvider } from "@/components/language-provider";
 import { MetalButton } from "@/components/metal-button";
 import { Panel } from "@/components/panel";
-import { SettingsPageContent } from "@/components/settings/settings-page-content";
-import {
-    SettingsCardSkeleton,
-    SettingsSectionSkeleton,
-} from "@/components/settings/settings-skeletons";
-import { SettingsContent } from "@/components/settings-content";
-import { SettingsDialog } from "@/components/settings-dialog";
-import { SyncStatus } from "@/components/sync-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
@@ -25,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { LibrarySearch } from "@/features/dashboard/components/library-search";
 import { RecordingList } from "@/features/dashboard/components/recording-list";
+import { SyncStatus } from "@/features/dashboard/components/sync-status";
 import { TranscriptionPanel } from "@/features/dashboard/components/transcription-panel";
 import { Workstation } from "@/features/dashboard/workstation";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
@@ -42,6 +35,13 @@ import {
     TranscriptReviewSkeleton,
 } from "@/features/recordings/components/transcription-skeletons";
 import { RecordingWorkstation } from "@/features/recordings/workstation";
+import { SettingsContent } from "@/features/settings/components/settings-content";
+import { SettingsDialog } from "@/features/settings/components/settings-dialog";
+import { SettingsPageContent } from "@/features/settings/components/settings-page-content";
+import {
+    SettingsCardSkeleton,
+    SettingsSectionSkeleton,
+} from "@/features/settings/components/settings-skeletons";
 import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
 

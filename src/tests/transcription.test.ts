@@ -59,7 +59,7 @@ import { createTranscriptionProvider } from "@/lib/transcription/providers";
 import {
     buildPrivateTranscriptionOptions,
     transcribeRecording,
-} from "@/lib/transcription/transcribe-recording";
+} from "@/server/modules/transcription/transcribe-recording";
 
 describe("Transcription", () => {
     const mockUserId = "user-123";

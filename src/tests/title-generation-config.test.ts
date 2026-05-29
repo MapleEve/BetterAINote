@@ -12,10 +12,8 @@ vi.mock("@/lib/encryption", () => ({
 }));
 
 import { db } from "@/db";
-import {
-    getDecryptedTitleGenerationProviderConfig,
-    getTitleGenerationProviderSettingsResponse,
-} from "@/lib/ai/title-generation-config";
+import { getTitleGenerationProviderSettingsResponse } from "@/lib/ai/title-generation-config";
+import { getDecryptedTitleGenerationProviderConfig } from "@/server/modules/title-generation/config";
 
 describe("title-generation-config", () => {
     beforeEach(() => {

@@ -4,10 +4,10 @@ import { Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import type { SettingFieldDefinition } from "@/components/settings/setting-field-control";
-import { SettingFieldControl } from "@/components/settings/setting-field-control";
-import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import { Button } from "@/components/ui/button";
+import type { SettingFieldDefinition } from "@/features/settings/components/setting-field-control";
+import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
+import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useVoScriptSettingsStore } from "@/features/settings/voscript-settings-store";
 import type {
     VoScriptDenoiseModel,

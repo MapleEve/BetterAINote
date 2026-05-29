@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/icons/logo";
+import { useLanguage } from "@/components/language-provider";
 import { MetalButton } from "@/components/metal-button";
 import { Panel } from "@/components/panel";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import { useLanguage } from "../language-provider";
 
 type LoginFormProps = {
     registrationOpen?: boolean;

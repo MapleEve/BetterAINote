@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { transcriptions } from "@/db/schema/transcripts";
-import { generateTitleFromTranscription } from "@/lib/ai/generate-title";
+import { generateTitleFromTranscription } from "@/server/modules/title-generation/generate-title";
 import {
     applyRecordingRename,
     assertRecordingCanRenameLocally,

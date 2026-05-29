@@ -36,7 +36,7 @@ describe("search writeback integration", () => {
     });
 
     it("runs queued search indexing from the background worker", () => {
-        const source = readProjectFile("src/lib/sync/worker.ts");
+        const source = readProjectFile("src/server/modules/sync/worker.ts");
 
         expect(source).toContain("processPendingSearchIndexJobs");
         expect(source).toContain("searchJobs=");

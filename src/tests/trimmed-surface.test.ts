@@ -18,7 +18,7 @@ vi.mock("@/lib/registration", () => ({
     hasRegisteredUser: vi.fn(),
 }));
 
-vi.mock("@/components/auth/register-form", () => ({
+vi.mock("@/features/auth/components/register-form", () => ({
     RegisterForm: () => "REGISTER_FORM",
 }));
 

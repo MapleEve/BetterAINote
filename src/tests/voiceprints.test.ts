@@ -8,7 +8,7 @@ vi.mock("@/lib/auth", () => ({
     },
 }));
 
-vi.mock("@/lib/voice-transcribe/service", () => ({
+vi.mock("@/server/modules/voice-transcribe/access", () => ({
     getVoiceTranscribeAccessForUser: vi.fn(),
 }));
 
@@ -28,7 +28,7 @@ import { DELETE, PATCH } from "@/app/api/voiceprints/[id]/route";
 import { GET } from "@/app/api/voiceprints/route";
 import { auth } from "@/lib/auth";
 import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
-import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
+import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
 
 function makeRequest(method: string, body?: unknown) {
     return new Request("http://localhost/api/voiceprints/vp-1", {

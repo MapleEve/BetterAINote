@@ -84,8 +84,10 @@ describe("preview architecture boundary", () => {
         );
 
         expect(source).toContain("BUILD_ONLY_AUTH_SECRET");
+        expect(source).toContain("BUILD_ONLY_AUTH_BASE_URL");
         expect(source).toContain("isBuildRuntime()");
         expect(source).toContain("secret: resolveAuthSecret()");
+        expect(source).toContain("baseURL: resolveAuthBaseUrl()");
     });
 
     it("does not import display-segment builders as type-only value symbols", () => {
@@ -123,5 +125,54 @@ describe("preview architecture boundary", () => {
         expect(
             existsSync(path.join(process.cwd(), "src/components/recordings")),
         ).toBe(false);
+    });
+
+    it("keeps settings business UI under the settings feature module", () => {
+        expect(
+            existsSync(
+                path.join(process.cwd(), "src/features/settings/components"),
+            ),
+        ).toBe(true);
+
+        const legacySettingsSurfaces = [
+            "src/components/settings-dialog.tsx",
+            "src/components/settings-content.tsx",
+            "src/components/settings-sections",
+            "src/components/settings/settings-page-content.tsx",
+            "src/components/settings/settings-skeletons.tsx",
+        ];
+
+        const offenders = legacySettingsSurfaces.filter((relativePath) =>
+            existsSync(path.join(process.cwd(), relativePath)),
+        );
+
+        expect(offenders).toEqual([]);
+    });
+
+    it("keeps domain UI out of the shared components tree", () => {
+        const expectedFeatureComponents = [
+            "src/features/auth/components",
+            "src/features/dashboard/components",
+            "src/features/onboarding/components",
+            "src/features/settings/components",
+        ];
+        const legacyComponentSurfaces = [
+            "src/components/auth",
+            "src/components/onboarding",
+            "src/components/sync-status.tsx",
+            "src/components/settings/setting-field-control.tsx",
+        ];
+
+        expect(
+            expectedFeatureComponents.filter(
+                (relativePath) =>
+                    !existsSync(path.join(process.cwd(), relativePath)),
+            ),
+        ).toEqual([]);
+        expect(
+            legacyComponentSurfaces.filter((relativePath) =>
+                existsSync(path.join(process.cwd(), relativePath)),
+            ),
+        ).toEqual([]);
     });
 });

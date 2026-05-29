@@ -15,12 +15,12 @@ import {
     getUserSyncSchedules,
     hasSyncResultProgress,
     syncRecordingsForUser,
-} from "@/lib/sync/sync-recordings";
+} from "@/server/modules/sync/sync-recordings";
 import {
     getSyncWorkerStateForUser,
     isPersistedSyncWorkerRunning,
     upsertSyncWorkerStateForUsers,
-} from "@/lib/sync/worker-state";
+} from "@/server/modules/sync/worker-state";
 
 function computeNextSyncTime(
     autoSyncEnabled: boolean,

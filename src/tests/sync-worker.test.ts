@@ -8,14 +8,14 @@ const mocks = vi.hoisted(() => ({
     upsertSyncWorkerStateForUsers: vi.fn(),
 }));
 
-vi.mock("@/lib/sync/sync-recordings", () => ({
+vi.mock("@/server/modules/sync/sync-recordings", () => ({
     getUserSyncSchedules: mocks.getUserSyncSchedules,
     hasSyncResultProgress: vi.fn(() => false),
     isUserDueForSync: vi.fn(() => true),
     syncDueUsers: mocks.syncDueUsers,
 }));
 
-vi.mock("@/lib/transcription/jobs", () => ({
+vi.mock("@/server/modules/transcription/jobs", () => ({
     processDueTranscriptionJobs: mocks.processDueTranscriptionJobs,
     TRANSCRIPTION_JOB_POLL_MS: 5000,
 }));
@@ -24,11 +24,11 @@ vi.mock("@/server/modules/search", () => ({
     processPendingSearchIndexJobs: mocks.processPendingSearchIndexJobs,
 }));
 
-vi.mock("@/lib/sync/worker-state", () => ({
+vi.mock("@/server/modules/sync/worker-state", () => ({
     upsertSyncWorkerStateForUsers: mocks.upsertSyncWorkerStateForUsers,
 }));
 
-import { syncWorker } from "@/lib/sync/worker";
+import { syncWorker } from "@/server/modules/sync/worker";
 
 describe("sync worker", () => {
     beforeEach(() => {

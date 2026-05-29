@@ -20,7 +20,7 @@ vi.mock("@/lib/env", () => ({
     },
 }));
 
-vi.mock("@/lib/sync/worker-state", () => ({
+vi.mock("@/server/modules/sync/worker-state", () => ({
     getSyncWorkerStateForUser: vi.fn(),
     isPersistedSyncWorkerRunning: vi.fn(
         (
@@ -48,7 +48,7 @@ vi.mock("@/lib/sync/worker-state", () => ({
     upsertSyncWorkerStateForUsers: vi.fn(),
 }));
 
-vi.mock("@/lib/sync/sync-recordings", () => ({
+vi.mock("@/server/modules/sync/sync-recordings", () => ({
     syncRecordingsForUser: vi.fn(),
     getUserSyncSchedules: vi.fn(),
     hasSyncResultProgress: vi.fn(
@@ -83,11 +83,11 @@ import { getEnabledSourceConnectionsForUser } from "@/lib/data-sources";
 import {
     getUserSyncSchedules,
     syncRecordingsForUser,
-} from "@/lib/sync/sync-recordings";
+} from "@/server/modules/sync/sync-recordings";
 import {
     getSyncWorkerStateForUser,
     upsertSyncWorkerStateForUsers,
-} from "@/lib/sync/worker-state";
+} from "@/server/modules/sync/worker-state";
 
 function makeRequest(method: "GET" | "POST") {
     return new Request("http://localhost/api/data-sources/sync", {

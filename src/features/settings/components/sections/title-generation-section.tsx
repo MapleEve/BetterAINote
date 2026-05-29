@@ -4,11 +4,11 @@ import { Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 
 export function TitleGenerationSection() {

@@ -4,7 +4,6 @@ import { Monitor } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import {
     Card,
     CardContent,
@@ -22,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import type { UiLanguage } from "@/lib/i18n";
 import {

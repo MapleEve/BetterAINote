@@ -8,7 +8,7 @@
 
 ## 当前边界
 
-<!-- BetterAINote 当前是 preview、自托管优先；0.6.0-preview 可做预发布归档，但不发布 npm 包或公开镜像。若本 PR 改变这些边界，请说明原因。 -->
+<!-- BetterAINote 当前是 preview、自托管优先；0.6.2-preview 是当前预发布版本，0.6.0-preview 是架构、数据库和 E2E baseline；不发布 npm 包或公开镜像。若本 PR 改变这些边界，请说明原因。 -->
 
 ## 变更类型
 

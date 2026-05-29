@@ -1,12 +1,12 @@
 "use client";
 
 import type { SettingsSection } from "@/types/settings";
-import { DataSourcesSection } from "./settings-sections/data-sources-section";
-import { DisplaySection } from "./settings-sections/display-section";
-import { MiscSection } from "./settings-sections/misc-section";
-import { TitleGenerationSection } from "./settings-sections/title-generation-section";
-import { TranscriptionSection } from "./settings-sections/transcription-section";
-import { VoScriptSection } from "./settings-sections/voscript-section";
+import { DataSourcesSection } from "./sections/data-sources-section";
+import { DisplaySection } from "./sections/display-section";
+import { MiscSection } from "./sections/misc-section";
+import { TitleGenerationSection } from "./sections/title-generation-section";
+import { TranscriptionSection } from "./sections/transcription-section";
+import { VoScriptSection } from "./sections/voscript-section";
 
 interface SettingsContentProps {
     activeSection: SettingsSection;

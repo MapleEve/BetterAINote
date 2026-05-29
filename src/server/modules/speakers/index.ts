@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { recordingSpeakers, speakerProfiles } from "@/db/schema/voiceprints";
-import { createSpeakerProfile } from "@/lib/speakers";
 import {
     enqueueSearchDeleteJob,
     enqueueSearchIndexJob,
 } from "@/server/modules/search/indexer";
+import { createSpeakerProfile } from "./speaker-review";
 
 export class SpeakerProfileError extends Error {
     constructor(

@@ -11,11 +11,10 @@ vi.mock("@/server/modules/recordings/ownership", () => ({
     findOwnedRecording: vi.fn(),
 }));
 
-vi.mock("@/lib/speakers", async () => {
-    const actual =
-        await vi.importActual<typeof import("@/lib/speakers")>(
-            "@/lib/speakers",
-        );
+vi.mock("@/server/modules/speakers/speaker-review", async () => {
+    const actual = await vi.importActual<
+        typeof import("@/server/modules/speakers/speaker-review")
+    >("@/server/modules/speakers/speaker-review");
 
     return {
         ...actual,
@@ -24,7 +23,7 @@ vi.mock("@/lib/speakers", async () => {
     };
 });
 
-vi.mock("@/lib/voice-transcribe/service", () => ({
+vi.mock("@/server/modules/voice-transcribe/access", () => ({
     getVoiceTranscribeAccessForUser: vi.fn(),
 }));
 
@@ -46,12 +45,7 @@ vi.mock("@/server/modules/search/indexer", () => ({
 }));
 
 import { db } from "@/db";
-import {
-    applySpeakerProfileToRecording,
-    createSpeakerProfile,
-} from "@/lib/speakers";
 import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
-import { getVoiceTranscribeAccessForUser } from "@/lib/voice-transcribe/service";
 import { findOwnedRecording } from "@/server/modules/recordings/ownership";
 import {
     getRecordingSpeakersReview,
@@ -59,6 +53,11 @@ import {
     updateRecordingSpeakerReview,
 } from "@/server/modules/recordings/speakers-review";
 import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
+import {
+    applySpeakerProfileToRecording,
+    createSpeakerProfile,
+} from "@/server/modules/speakers/speaker-review";
+import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
 
 function mockSelectLimitResult(result: unknown[]) {
     (db.select as Mock).mockReturnValueOnce({

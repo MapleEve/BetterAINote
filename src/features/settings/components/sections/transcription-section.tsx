@@ -3,7 +3,6 @@
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { SettingsSectionSkeleton } from "@/components/settings/settings-skeletons";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -13,6 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTranscriptionSettingsStore } from "@/features/settings/transcription-settings-store";
 
 export function TranscriptionSection() {

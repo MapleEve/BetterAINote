@@ -5,10 +5,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import {
-    SettingsCardSkeleton,
-    SettingsSectionSkeleton,
-} from "@/components/settings/settings-skeletons";
-import {
     Card,
     CardContent,
     CardDescription,
@@ -18,6 +14,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+    SettingsCardSkeleton,
+    SettingsSectionSkeleton,
+} from "@/features/settings/components/settings-skeletons";
 import { useSyncSettingsStore } from "@/features/settings/sync-settings-store";
 import { MIN_SYNC_INTERVAL_SECONDS } from "@/services/sync-settings";
 

@@ -18,7 +18,7 @@ vi.mock("@/lib/storage/factory", () => ({
     }),
 }));
 
-vi.mock("@/lib/transcription/transcribe-recording", () => ({
+vi.mock("@/server/modules/transcription/transcribe-recording", () => ({
     PRIVATE_TRANSCRIPTION_MODEL:
         "voice-transcribe:whisper-large-v3+pyannote-3.1",
     normalizeTranscriptionError: vi.fn((error: Error) => error.message),
@@ -39,16 +39,16 @@ vi.mock("@/lib/transcription/providers/voice-transcribe-provider", () => ({
 
 import { db } from "@/db";
 import {
+    pollVoiceTranscribeJob,
+    submitVoiceTranscribeJob,
+} from "@/lib/transcription/providers/voice-transcribe-provider";
+import {
     enqueueTranscriptionJobs,
     hasTranscriptionCapability,
     processDueTranscriptionJobs,
     serializeTranscriptionJob,
-} from "@/lib/transcription/jobs";
-import {
-    pollVoiceTranscribeJob,
-    submitVoiceTranscribeJob,
-} from "@/lib/transcription/providers/voice-transcribe-provider";
-import { transcribeRecording } from "@/lib/transcription/transcribe-recording";
+} from "@/server/modules/transcription/jobs";
+import { transcribeRecording } from "@/server/modules/transcription/transcribe-recording";
 
 function mockOrderedSelect(value: unknown) {
     return {

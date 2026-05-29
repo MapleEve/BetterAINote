@@ -8,7 +8,8 @@
 
 ### 架构
 
-- 按 LobeHub 方向把 dashboard 和 recording detail 的业务 UI 编排层迁入 `src/features/dashboard` 与 `src/features/recordings`。
+- 按 LobeHub 方向把 auth、onboarding、dashboard、recording detail 和 settings 的业务 UI 编排层迁入 `src/features/*`。
+- 将 sync worker、provider sync 编排、transcription job 编排、speaker review、AI rename 生成标题、API credential 选择、VoScript 访问编排和词级转写落盘的业务 SOT 迁入 `src/server/modules/*`，`src/lib/*` 只保留 provider、工具、展示 helper 和兼容 facade。
 - 保留 `src/components/*` 作为通用组件、布局组件和基础 UI 组件的归属层，避免业务工作台继续堆在 components。
 - 增加架构边界测试，要求 dashboard/recordings 业务 UI 不再回退到 `src/components/dashboard` 或 `src/components/recordings`。
 - 将搜索的查询入口收口到 `src/server/modules/search/search-repository.ts` 与 `queries.ts`，新增 `/api/search` 作为薄 HTTP 适配层。

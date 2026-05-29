@@ -4,11 +4,11 @@ import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { SettingsListSkeleton } from "@/components/settings/settings-skeletons";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
 
 interface SpeakerProfile {
