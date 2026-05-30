@@ -1,19 +1,70 @@
 "use client";
 
-import { Cpu } from "lucide-react";
+import {
+    CheckCircle2,
+    Cpu,
+    Info,
+    KeyRound,
+    SlidersHorizontal,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import type { SettingFieldDefinition } from "@/features/settings/components/setting-field-control";
 import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useVoScriptSettingsStore } from "@/features/settings/voscript-settings-store";
+import { cn } from "@/lib/utils";
 import type {
     VoScriptDenoiseModel,
     VoScriptSettingsUpdate,
 } from "@/services/voscript-settings";
 import { SpeakerProfilesPanel } from "./speaker-profiles-panel";
+
+function VoScriptStatusBanner({
+    description,
+    isReady,
+    title,
+}: {
+    description: string;
+    isReady: boolean;
+    title: string;
+}) {
+    const Icon = isReady ? CheckCircle2 : Info;
+
+    return (
+        <div
+            className={cn(
+                "grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 rounded-xl border px-4 py-3 text-sm",
+                isReady
+                    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                    : "border-sky-400/25 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+            )}
+            data-voscript-service-state={isReady ? "configured" : "empty"}
+        >
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+                <Icon className="size-4" aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+                <span className="block font-semibold text-foreground">
+                    {title}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {description}
+                </span>
+            </span>
+        </div>
+    );
+}
 
 export function VoScriptSection() {
     const {
@@ -224,6 +275,8 @@ export function VoScriptSection() {
         return <SettingsSectionSkeleton cards={2} fieldsPerCard={3} />;
     }
 
+    const serviceConfigured = Boolean(privateTranscriptionBaseUrlInput.trim());
+
     const serviceConnectionFields: SettingFieldDefinition[] = [
         {
             id: "base-url",
@@ -369,58 +422,134 @@ export function VoScriptSection() {
     };
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Cpu className="w-5 h-5" />
-                {isZh ? "VoScript 服务" : "VoScript Service"}
-            </h2>
+        <div
+            className="flex min-h-0 flex-col gap-5"
+            data-settings-section="voscript"
+        >
+            <div className="flex flex-col gap-2">
+                <h2 className="flex items-center gap-2 text-lg font-semibold">
+                    <Cpu className="size-5" />
+                    {isZh ? "VoScript 服务" : "VoScript Service"}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                    {isZh
+                        ? "配置私有转写服务、任务参数和说话人资料；录音平台仍在数据源里管理。"
+                        : "Configure the private transcription service, job options, and speaker records. Recording platforms stay in Data Sources."}
+                </p>
+            </div>
 
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                <div className="space-y-1">
-                    <h3 className="text-base font-semibold">
-                        {isZh ? "服务连接" : "Service connection"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {isZh
-                            ? "这里配置 BetterAINote 与 VoScript 的连接方式。录音平台在数据源里管理；通用语言偏好在转录设置里管理。"
-                            : "Configure how BetterAINote connects to VoScript. Recording platforms are managed in Data Sources; shared language preference is managed in Transcription."}
-                    </p>
-                </div>
-
-                {serviceConnectionFields.map((field) => (
-                    <SettingFieldControl
-                        key={field.id}
-                        field={field}
-                        fieldId={`private-transcription-${field.id}`}
-                        onValueChange={handleConnectionFieldChange}
-                        disabled={isSaving}
-                        variant="settings"
-                    />
-                ))}
-
-                <h3 className="pt-2 text-sm font-semibold text-muted-foreground">
-                    {isZh ? "转录参数" : "Transcription options"}
-                </h3>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                    {transcriptionOptionFields.map((field) => (
-                        <SettingFieldControl
-                            key={field.id}
-                            field={field}
-                            fieldId={`private-transcription-${field.id}`}
-                            onValueChange={handleOptionFieldChange}
-                            disabled={isSaving}
-                            variant="settings"
+            <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <Card className="gap-5 border-border/75 py-5">
+                    <CardHeader className="gap-2 px-5">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <KeyRound className="size-4" />
+                            {isZh ? "服务连接" : "Service connection"}
+                        </CardTitle>
+                        <CardDescription>
+                            {isZh
+                                ? "BetterAINote 会把录音提交到这里，并使用当前账号保存的鉴权信息。"
+                                : "BetterAINote submits recordings here and uses the credentials saved for the current account."}
+                        </CardDescription>
+                        <CardAction>
+                            <span
+                                className={cn(
+                                    "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
+                                    serviceConfigured
+                                        ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
+                                        : "border-border/70 bg-muted/35 text-muted-foreground",
+                                )}
+                            >
+                                {serviceConfigured
+                                    ? isZh
+                                        ? "已配置"
+                                        : "Configured"
+                                    : isZh
+                                      ? "待配置"
+                                      : "Not configured"}
+                            </span>
+                        </CardAction>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4 px-5">
+                        <VoScriptStatusBanner
+                            isReady={serviceConfigured}
+                            title={
+                                serviceConfigured
+                                    ? isZh
+                                        ? "服务地址已保存"
+                                        : "Service URL ready"
+                                    : isZh
+                                      ? "尚未连接 VoScript"
+                                      : "VoScript not connected"
+                            }
+                            description={
+                                serviceConfigured
+                                    ? privateTranscriptionApiKeySet
+                                        ? isZh
+                                            ? "服务地址和 API Key 均已在当前账号配置。"
+                                            : "A service URL and API key are configured for the current account."
+                                        : isZh
+                                          ? "服务地址已配置；如果服务启用鉴权，请补充 API Key。"
+                                          : "The service URL is configured. Add an API key if the service requires authentication."
+                                    : isZh
+                                      ? "保存服务地址后，声纹库和私有转写任务会使用该连接。"
+                                      : "Save a service URL so voiceprints and private transcription jobs can use it."
+                            }
                         />
-                    ))}
-                </div>
 
+                        {serviceConnectionFields.map((field) => (
+                            <SettingFieldControl
+                                key={field.id}
+                                field={field}
+                                fieldId={`private-transcription-${field.id}`}
+                                onValueChange={handleConnectionFieldChange}
+                                disabled={isSaving}
+                                variant="settings"
+                            />
+                        ))}
+                    </CardContent>
+                </Card>
+
+                <Card className="gap-5 border-border/75 py-5">
+                    <CardHeader className="gap-2 px-5">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <SlidersHorizontal className="size-4" />
+                            {isZh ? "转录参数" : "Transcription options"}
+                        </CardTitle>
+                        <CardDescription>
+                            {isZh
+                                ? "这些值只影响 BetterAINote 发起的新 VoScript 任务。"
+                                : "These values only affect new VoScript jobs started by BetterAINote."}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 px-5 md:grid-cols-2">
+                        {transcriptionOptionFields.map((field) => (
+                            <SettingFieldControl
+                                key={field.id}
+                                field={field}
+                                fieldId={`private-transcription-${field.id}`}
+                                onValueChange={handleOptionFieldChange}
+                                disabled={isSaving}
+                                variant="settings"
+                            />
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="sticky bottom-0 z-10 flex justify-end border-border/70 border-t bg-background/85 py-3 backdrop-blur">
                 <Button
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={isSaving}
+                    aria-busy={isSaving}
                 >
-                    {isZh ? "保存 VoScript 配置" : "Save VoScript"}
+                    {isSaving
+                        ? isZh
+                            ? "保存中..."
+                            : "Saving..."
+                        : isZh
+                          ? "保存 VoScript 配置"
+                          : "Save VoScript"}
                 </Button>
             </div>
 

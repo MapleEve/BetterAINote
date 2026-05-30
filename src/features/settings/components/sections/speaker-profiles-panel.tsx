@@ -1,6 +1,7 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
+import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -44,6 +46,62 @@ function formatTimestamp(value: string | null, locale: string) {
     );
 }
 
+function StatePill({
+    children,
+    tone = "neutral",
+}: {
+    children: ReactNode;
+    tone?: "success" | "neutral" | "warning";
+}) {
+    return (
+        <span
+            className={cn(
+                "inline-flex h-6 max-w-full shrink-0 items-center gap-1 rounded-full border px-2 text-[0.68rem] font-semibold whitespace-nowrap",
+                tone === "success" &&
+                    "border-emerald-400/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200",
+                tone === "warning" &&
+                    "border-amber-400/35 bg-amber-500/15 text-amber-700 dark:text-amber-200",
+                tone === "neutral" &&
+                    "border-border/70 bg-background/45 text-muted-foreground",
+            )}
+        >
+            <span className="size-1.5 rounded-full bg-current" />
+            {children}
+        </span>
+    );
+}
+
+function PanelNotice({
+    action,
+    children,
+    tone = "neutral",
+}: {
+    action?: ReactNode;
+    children: ReactNode;
+    tone?: "danger" | "neutral";
+}) {
+    const Icon = tone === "danger" ? AlertCircle : CheckCircle2;
+
+    return (
+        <div
+            className={cn(
+                "grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-dashed px-4 py-3 text-sm",
+                tone === "danger"
+                    ? "border-destructive/35 bg-destructive/10 text-destructive dark:text-red-200"
+                    : "border-border/75 bg-muted/20 text-muted-foreground",
+            )}
+        >
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+                <Icon className="size-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 space-y-3">
+                <p className="text-sm text-muted-foreground">{children}</p>
+                {action ? <div>{action}</div> : null}
+            </div>
+        </div>
+    );
+}
+
 export function SpeakerProfilesPanel() {
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
@@ -63,28 +121,34 @@ export function SpeakerProfilesPanel() {
     const [voiceprintsReason, setVoiceprintsReason] = useState<string | null>(
         null,
     );
+    const [profilesError, setProfilesError] = useState<string | null>(null);
     const [voiceprintsError, setVoiceprintsError] = useState<string | null>(
         null,
     );
 
     const refreshProfiles = useCallback(async () => {
         setIsProfilesLoading(true);
+        setProfilesError(null);
         try {
             const response = await fetch("/api/speakers/profiles", {
                 cache: "no-store",
             });
             const data = await response.json();
             if (!response.ok) {
-                toast.error(
+                const message =
                     data.error ||
-                        (isZh
-                            ? "加载说话人档案失败"
-                            : "Failed to load speaker profiles"),
-                );
+                    (isZh
+                        ? "加载说话人档案失败"
+                        : "Failed to load speaker profiles");
+                setProfilesError(message);
+                toast.error(message);
                 return;
             }
             setProfiles(data.profiles ?? []);
         } catch {
+            setProfilesError(
+                isZh ? "加载说话人档案失败" : "Failed to load speaker profiles",
+            );
             toast.error(
                 isZh ? "加载说话人档案失败" : "Failed to load speaker profiles",
             );
@@ -374,9 +438,32 @@ export function SpeakerProfilesPanel() {
         [confirm, isZh, refreshVoiceprints],
     );
 
+    const profilesState = isProfilesLoading
+        ? "loading"
+        : profilesError
+          ? "error"
+          : profiles.length === 0
+            ? "empty"
+            : "ready";
+    const voiceprintsState = isVoiceprintsLoading
+        ? "loading"
+        : voiceprintsError
+          ? "error"
+          : !voiceprintsAvailable
+            ? "disabled"
+            : voiceprints.length === 0
+              ? "empty"
+              : "ready";
+
     return (
-        <div className="space-y-6 rounded-lg border p-4">
-            <div className="space-y-4">
+        <div
+            className="flex min-h-0 flex-col gap-5 rounded-2xl border border-border/75 bg-background/25 p-4"
+            data-speaker-profiles-panel=""
+        >
+            <div
+                className="flex min-h-0 flex-col gap-4"
+                data-profiles-state={profilesState}
+            >
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                         <p className="text-sm font-medium">
@@ -427,68 +514,101 @@ export function SpeakerProfilesPanel() {
 
                 {isProfilesLoading ? (
                     <SettingsListSkeleton rows={2} />
+                ) : profilesError ? (
+                    <PanelNotice
+                        tone="danger"
+                        action={
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => void refreshProfiles()}
+                            >
+                                {isZh ? "重试" : "Retry"}
+                            </Button>
+                        }
+                    >
+                        {profilesError}
+                    </PanelNotice>
                 ) : profiles.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">
+                    <PanelNotice>
                         {isZh
                             ? "还没有已保存的说话人。"
                             : "No saved speakers yet."}
-                    </div>
+                    </PanelNotice>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
                         {profiles.map((profile) => (
                             <div
                                 key={profile.id}
-                                className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
+                                className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
+                                data-speaker-profile-row=""
                             >
-                                <div className="md:col-span-full flex flex-wrap gap-3 text-xs text-muted-foreground">
-                                    <span>
-                                        {isZh
-                                            ? `已用于 ${profile.assignmentCount} 条录音`
-                                            : `Used in ${profile.assignmentCount} recording${profile.assignmentCount === 1 ? "" : "s"}`}
-                                    </span>
-                                    <span>
-                                        {profile.voiceprintRef
-                                            ? isZh
-                                                ? "已关联声纹"
-                                                : "Linked to a voiceprint"
-                                            : isZh
-                                              ? "未关联声纹"
-                                              : "No voiceprint linked"}
-                                    </span>
-                                    {formatTimestamp(
-                                        profile.updatedAt,
-                                        locale,
-                                    ) ? (
-                                        <span>
-                                            {isZh ? "更新于 " : "Updated "}
-                                            {formatTimestamp(
-                                                profile.updatedAt,
-                                                locale,
-                                            )}
+                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                    {profile.displayName
+                                        .trim()
+                                        .slice(0, 1)
+                                        .toUpperCase() || "#"}
+                                </span>
+                                <div className="min-w-0 space-y-2">
+                                    <Input
+                                        value={profile.displayName}
+                                        onChange={(event) =>
+                                            setProfiles((prev) =>
+                                                prev.map((item) =>
+                                                    item.id === profile.id
+                                                        ? {
+                                                              ...item,
+                                                              displayName:
+                                                                  event.target
+                                                                      .value,
+                                                          }
+                                                        : item,
+                                                ),
+                                            )
+                                        }
+                                        className="min-w-0 truncate [word-break:keep-all]"
+                                    />
+                                    <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
+                                        <span className="min-w-0 truncate">
+                                            {isZh
+                                                ? `已用于 ${profile.assignmentCount} 条录音`
+                                                : `Used in ${profile.assignmentCount} recording${profile.assignmentCount === 1 ? "" : "s"}`}
                                         </span>
-                                    ) : null}
+                                        <StatePill
+                                            tone={
+                                                profile.voiceprintRef
+                                                    ? "success"
+                                                    : "neutral"
+                                            }
+                                        >
+                                            {profile.voiceprintRef
+                                                ? isZh
+                                                    ? "已关联声纹"
+                                                    : "Voiceprint linked"
+                                                : isZh
+                                                  ? "未关联声纹"
+                                                  : "No voiceprint"}
+                                        </StatePill>
+                                        {formatTimestamp(
+                                            profile.updatedAt,
+                                            locale,
+                                        ) ? (
+                                            <span className="min-w-0 truncate">
+                                                {isZh ? "更新于 " : "Updated "}
+                                                {formatTimestamp(
+                                                    profile.updatedAt,
+                                                    locale,
+                                                )}
+                                            </span>
+                                        ) : null}
+                                    </div>
                                 </div>
-                                <Input
-                                    value={profile.displayName}
-                                    onChange={(event) =>
-                                        setProfiles((prev) =>
-                                            prev.map((item) =>
-                                                item.id === profile.id
-                                                    ? {
-                                                          ...item,
-                                                          displayName:
-                                                              event.target
-                                                                  .value,
-                                                      }
-                                                    : item,
-                                            ),
-                                        )
-                                    }
-                                />
                                 <Button
                                     type="button"
                                     size="sm"
                                     variant="outline"
+                                    className="shrink-0 whitespace-nowrap max-sm:col-start-2"
                                     onClick={() => handleUpdate(profile)}
                                     disabled={localSavingId === profile.id}
                                 >
@@ -498,7 +618,7 @@ export function SpeakerProfilesPanel() {
                                     type="button"
                                     size="sm"
                                     variant="outline"
-                                    className="text-destructive hover:text-destructive"
+                                    className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
                                     onClick={() => handleDelete(profile.id)}
                                     disabled={localSavingId === profile.id}
                                 >
@@ -510,7 +630,10 @@ export function SpeakerProfilesPanel() {
                 )}
             </div>
 
-            <div className="space-y-4 border-t pt-4">
+            <div
+                className="flex min-h-0 flex-col gap-4 border-t border-border/70 pt-4"
+                data-vs-state={voiceprintsState}
+            >
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                         <p className="text-sm font-medium">
@@ -539,31 +662,52 @@ export function SpeakerProfilesPanel() {
                 {isVoiceprintsLoading ? (
                     <SettingsListSkeleton rows={2} />
                 ) : voiceprintsError ? (
-                    <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                    <PanelNotice
+                        tone="danger"
+                        action={
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => void refreshVoiceprints()}
+                            >
+                                {isZh ? "重试" : "Retry"}
+                            </Button>
+                        }
+                    >
                         {voiceprintsError}
-                    </div>
+                    </PanelNotice>
                 ) : !voiceprintsAvailable ? (
-                    <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                    <PanelNotice>
                         {voiceprintsReason ||
                             (isZh
                                 ? "请先在 VoScript 保存可用的服务连接。"
                                 : "Save a working VoScript connection first.")}
-                    </div>
+                    </PanelNotice>
                 ) : voiceprints.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">
+                    <PanelNotice>
                         {isZh
                             ? "没有找到远端声纹。"
                             : "No remote voiceprints found."}
-                    </div>
+                    </PanelNotice>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
                         {voiceprints.map((voiceprint) => (
                             <div
                                 key={voiceprint.id}
-                                className="grid gap-3 rounded-lg border bg-muted/20 p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,240px)_auto_auto]"
+                                className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
+                                data-vs-profile-row=""
                             >
-                                <div className="space-y-2">
+                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                    {voiceprint.displayName
+                                        .trim()
+                                        .slice(0, 1)
+                                        .toUpperCase() || "V"}
+                                </span>
+
+                                <div className="min-w-0 space-y-2">
                                     <Label
+                                        className="sr-only"
                                         htmlFor={`voiceprint-${voiceprint.id}`}
                                     >
                                         {isZh ? "声纹名称" : "Voiceprint name"}
@@ -585,46 +729,46 @@ export function SpeakerProfilesPanel() {
                                                 ),
                                             )
                                         }
+                                        className="min-w-0 truncate [word-break:keep-all]"
                                     />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        {isZh ? "声纹编号" : "Voiceprint ID"}
-                                    </p>
-                                    <div className="rounded-md border bg-background px-3 py-2 font-mono text-xs break-all">
-                                        {voiceprint.id}
+                                    <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
+                                        <StatePill tone="success">
+                                            {isZh ? "远端声纹" : "Remote"}
+                                        </StatePill>
+                                        <span className="min-w-0 truncate font-mono">
+                                            {voiceprint.id}
+                                        </span>
+                                        {formatTimestamp(
+                                            voiceprint.updatedAt,
+                                            locale,
+                                        ) ? (
+                                            <span className="min-w-0 truncate">
+                                                {isZh ? "更新于 " : "Updated "}
+                                                {formatTimestamp(
+                                                    voiceprint.updatedAt,
+                                                    locale,
+                                                )}
+                                            </span>
+                                        ) : formatTimestamp(
+                                              voiceprint.createdAt,
+                                              locale,
+                                          ) ? (
+                                            <span className="min-w-0 truncate">
+                                                {isZh ? "创建于 " : "Created "}
+                                                {formatTimestamp(
+                                                    voiceprint.createdAt,
+                                                    locale,
+                                                )}
+                                            </span>
+                                        ) : null}
                                     </div>
-                                    {formatTimestamp(
-                                        voiceprint.updatedAt,
-                                        locale,
-                                    ) ? (
-                                        <p className="text-xs text-muted-foreground">
-                                            {isZh ? "更新于 " : "Updated "}
-                                            {formatTimestamp(
-                                                voiceprint.updatedAt,
-                                                locale,
-                                            )}
-                                        </p>
-                                    ) : formatTimestamp(
-                                          voiceprint.createdAt,
-                                          locale,
-                                      ) ? (
-                                        <p className="text-xs text-muted-foreground">
-                                            {isZh ? "创建于 " : "Created "}
-                                            {formatTimestamp(
-                                                voiceprint.createdAt,
-                                                locale,
-                                            )}
-                                        </p>
-                                    ) : null}
                                 </div>
 
                                 <Button
                                     type="button"
                                     size="sm"
                                     variant="outline"
-                                    className="self-end"
+                                    className="shrink-0 whitespace-nowrap max-sm:col-start-2"
                                     onClick={() =>
                                         handleRenameVoiceprint(voiceprint)
                                     }
@@ -638,7 +782,7 @@ export function SpeakerProfilesPanel() {
                                     type="button"
                                     size="sm"
                                     variant="outline"
-                                    className="self-end text-destructive hover:text-destructive"
+                                    className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
                                     onClick={() =>
                                         handleDeleteVoiceprint(voiceprint)
                                     }

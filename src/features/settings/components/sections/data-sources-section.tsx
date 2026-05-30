@@ -1,6 +1,15 @@
 "use client";
 
-import { Database, ExternalLink, RotateCw } from "lucide-react";
+import {
+    AlertCircle,
+    CheckCircle2,
+    Database,
+    ExternalLink,
+    Info,
+    PauseCircle,
+    RotateCw,
+    XCircle,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
@@ -50,20 +59,226 @@ function hasSavedSetup(source: DataSourceDisplayState) {
     );
 }
 
-function getProviderStatusLabel(source: DataSourceDisplayState, isZh: boolean) {
-    if (hasSavedSetup(source) && source.enabled) {
-        return isZh ? "已启用" : "Enabled";
+function isAdvancedOptionalField(field: DataSourceFormField) {
+    return field.id === "source-org-id";
+}
+
+type ProviderTone = "success" | "info" | "warning" | "danger" | "neutral";
+
+type ProviderActionState =
+    | "idle"
+    | "testing"
+    | "test-success"
+    | "test-error"
+    | "saving"
+    | "saved"
+    | "save-error";
+
+interface ProviderActionMessage {
+    description: string;
+    state: ProviderActionState;
+    title: string;
+}
+
+interface ProviderStatusDisplay {
+    description: string;
+    label: string;
+    tone: ProviderTone;
+}
+
+const providerStatusClasses: Record<ProviderTone, string> = {
+    success:
+        "border-emerald-400/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200",
+    info: "border-sky-400/30 bg-sky-500/15 text-sky-700 dark:text-sky-200",
+    warning:
+        "border-amber-400/35 bg-amber-500/15 text-amber-700 dark:text-amber-200",
+    danger: "border-destructive/35 bg-destructive/15 text-destructive dark:text-red-200",
+    neutral: "border-border/70 bg-background/45 text-muted-foreground",
+};
+
+const providerBannerClasses: Record<ProviderTone, string> = {
+    success:
+        "border-emerald-400/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200",
+    info: "border-sky-400/25 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+    warning:
+        "border-amber-400/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+    danger: "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-200",
+    neutral: "border-border/70 bg-muted/25 text-muted-foreground",
+};
+
+function getProviderInitial(source: DataSourceDisplayState) {
+    if (source.provider === "iflyrec") {
+        return "讯";
+    }
+
+    return source.displayName.trim().slice(0, 1).toUpperCase();
+}
+
+function getProviderStatusDisplay(
+    source: DataSourceDisplayState,
+    isZh: boolean,
+    actionState: ProviderActionState = "idle",
+): ProviderStatusDisplay {
+    if (actionState === "saving") {
+        return {
+            label: isZh ? "保存中" : "Saving",
+            description: isZh
+                ? "正在保存当前来源的连接信息。"
+                : "Saving this source connection.",
+            tone: "info",
+        };
+    }
+
+    if (actionState === "testing") {
+        return {
+            label: isZh ? "测试中" : "Testing",
+            description: isZh
+                ? "正在检查当前表单中的连接信息。"
+                : "Checking the connection details in this form.",
+            tone: "info",
+        };
+    }
+
+    if (actionState === "save-error" || actionState === "test-error") {
+        return {
+            label: isZh ? "需要处理" : "Needs action",
+            description: isZh
+                ? "当前连接信息还没有通过检查。"
+                : "The current connection details need attention.",
+            tone: "danger",
+        };
+    }
+
+    if (actionState === "saved" || actionState === "test-success") {
+        return {
+            label: isZh ? "连接信息正常" : "Connection ready",
+            description: isZh
+                ? "当前连接信息已通过本地检查。"
+                : "The current connection details passed local checks.",
+            tone: "success",
+        };
+    }
+
+    if (hasSavedSetup(source) && !source.enabled) {
+        return {
+            label: isZh ? "同步已暂停" : "Import paused",
+            description: isZh
+                ? "连接信息已保留，但 BetterAINote 暂不读取新录音。"
+                : "Connection details are kept, but new recordings are not imported.",
+            tone: "warning",
+        };
+    }
+
+    if (source.connected && source.enabled) {
+        return {
+            label: isZh ? "已连接" : "Connected",
+            description: isZh
+                ? "该来源已保存连接信息，可用于导入录音。"
+                : "This source has saved connection details and can import recordings.",
+            tone: "success",
+        };
     }
 
     if (hasSavedSetup(source)) {
-        return isZh ? "已配置" : "Configured";
+        return {
+            label: isZh ? "已配置" : "Configured",
+            description: isZh
+                ? "已保存部分连接信息，保存后可继续用于导入。"
+                : "Some connection details are saved and can continue after saving.",
+            tone: "info",
+        };
     }
 
-    return isZh ? "待配置" : "Not configured";
+    if (source.runtimeStatus === "planned") {
+        return {
+            label: isZh ? "即将支持" : "Planned",
+            description: isZh
+                ? "该来源还在准备中。"
+                : "This source is still being prepared.",
+            tone: "neutral",
+        };
+    }
+
+    return {
+        label: isZh ? "待设置" : "Not configured",
+        description: isZh
+            ? "补齐登录信息后即可保存。"
+            : "Add sign-in details, then save.",
+        tone: "neutral",
+    };
 }
 
-function isAdvancedOptionalField(field: DataSourceFormField) {
-    return field.id === "source-org-id";
+function getActionTone(state: ProviderActionState): ProviderTone {
+    switch (state) {
+        case "testing":
+        case "saving":
+            return "info";
+        case "test-success":
+        case "saved":
+            return "success";
+        case "test-error":
+        case "save-error":
+            return "danger";
+        default:
+            return "neutral";
+    }
+}
+
+function getProviderActionMessage(
+    status: ProviderStatusDisplay,
+    source: DataSourceDisplayState,
+    message: ProviderActionMessage | null,
+    isZh: boolean,
+) {
+    if (message) {
+        return {
+            description: message.description,
+            title: message.title,
+            tone: getActionTone(message.state),
+        };
+    }
+
+    if (!source.enabled && hasSavedSetup(source)) {
+        return {
+            description: status.description,
+            title: status.label,
+            tone: status.tone,
+        };
+    }
+
+    if (!hasSavedSetup(source)) {
+        return {
+            description: status.description,
+            title: isZh ? "尚未连接" : "Not connected",
+            tone: "info" as const,
+        };
+    }
+
+    return null;
+}
+
+function getMissingConnectionFields(
+    source: DataSourceDisplayState,
+    fields: DataSourceFormField[],
+) {
+    return fields.filter((field) => {
+        if (isAdvancedOptionalField(field)) {
+            return false;
+        }
+
+        if (field.kind === "switch" || field.kind === "select") {
+            return false;
+        }
+
+        if (field.target === "secret") {
+            return (
+                !source.secretsConfigured[field.key] &&
+                !String(field.value ?? "").trim()
+            );
+        }
+
+        return !String(field.value ?? "").trim();
+    });
 }
 
 const SOURCE_LIST_SKELETON_ITEMS = [
@@ -232,6 +447,7 @@ function DataSourcesSectionSkeleton({ isZh }: { isZh: boolean }) {
 }
 
 interface ProviderCardProps {
+    actionState?: ProviderActionState;
     isSelected: boolean;
     isZh: boolean;
     language: "zh-CN" | "en";
@@ -240,6 +456,7 @@ interface ProviderCardProps {
 }
 
 function ProviderCard({
+    actionState = "idle",
     isSelected,
     isZh,
     language,
@@ -252,74 +469,66 @@ function ProviderCard({
         language,
     );
     const saved = hasSavedSetup(source);
+    const status = getProviderStatusDisplay(source, isZh, actionState);
 
     return (
-        <Card
-            role="button"
-            tabIndex={0}
+        <button
+            type="button"
             onClick={onSelect}
-            onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect();
-                }
-            }}
+            data-provider={source.provider}
+            data-provider-state={status.label}
             className={cn(
-                "cursor-pointer gap-4 transition-all duration-200 hover:border-primary/45",
-                saved && "border-emerald-400/25 bg-emerald-500/10",
+                "grid w-full grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:grid-cols-[2rem_minmax(0,1fr)_auto]",
+                saved && "border-emerald-400/20 bg-emerald-500/10",
                 saved &&
                     isSelected &&
-                    "border-emerald-300/45 bg-emerald-500/15",
-                !saved && isSelected && "border-primary/60 bg-accent/40",
+                    "border-emerald-300/45 bg-emerald-500/15 shadow-xs",
+                !saved &&
+                    isSelected &&
+                    "border-primary/45 bg-background/65 shadow-xs",
             )}
         >
-            <CardHeader className="gap-2">
-                <CardTitle className="text-base">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                {getProviderInitial(source)}
+            </span>
+            <span className="flex min-w-0 flex-col gap-1">
+                <span className="truncate text-sm font-semibold">
                     {source.displayName}
-                </CardTitle>
-                <CardDescription>
+                </span>
+                <span className="line-clamp-2 text-xs text-muted-foreground">
                     {maturity ?? (isZh ? "录音来源" : "Recording source")}
-                </CardDescription>
-                <CardAction>
-                    <span
-                        className={cn(
-                            "rounded-full border px-2.5 py-1 text-xs font-medium text-muted-foreground",
-                            saved &&
-                                "border-emerald-300/30 bg-emerald-500/15 text-emerald-100",
-                        )}
-                    >
-                        {getProviderStatusLabel(source, isZh)}
-                    </span>
-                </CardAction>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-                <p className="line-clamp-3 text-sm text-muted-foreground">
+                </span>
+                <span className="line-clamp-2 text-xs text-muted-foreground/85">
                     {maturityHint ??
                         (isZh
                             ? "配置鉴权后即可作为录音来源使用。"
                             : "Configure credentials to use this as a recording source.")}
-                </p>
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {source.lastSync ? (
-                        <span className="rounded-full border px-2.5 py-1">
-                            {isZh ? "上次导入" : "Last import"} ·{" "}
-                            {formatDateTime(
-                                source.lastSync,
-                                "absolute",
-                                language,
-                            )}
-                        </span>
-                    ) : null}
-                </div>
-            </CardContent>
-        </Card>
+                </span>
+                {source.lastSync ? (
+                    <span className="text-[0.68rem] text-muted-foreground">
+                        {isZh ? "上次导入" : "Last import"} ·{" "}
+                        {formatDateTime(source.lastSync, "absolute", language)}
+                    </span>
+                ) : null}
+            </span>
+            <span
+                className={cn(
+                    "col-start-2 inline-flex h-6 w-fit shrink-0 items-center gap-1 rounded-full border px-2 text-[0.68rem] font-semibold sm:col-start-auto",
+                    providerStatusClasses[status.tone],
+                )}
+            >
+                <span className="size-1.5 rounded-full bg-current" />
+                {status.label}
+            </span>
+        </button>
     );
 }
 
 interface ProviderDetailProps {
+    actionMessage: ProviderActionMessage | null;
     isZh: boolean;
     language: "zh-CN" | "en";
-    onSave: (source: DataSourceDisplayState) => void;
+    onSave: (source: DataSourceDisplayState) => Promise<void>;
     onTest: (source: DataSourceDisplayState) => void;
     savingProvider: SourceProvider | null;
     secretDrafts: ReturnType<typeof useDataSourcesSettings>["secretDrafts"];
@@ -328,7 +537,50 @@ interface ProviderDetailProps {
     updateSource: ReturnType<typeof useDataSourcesSettings>["updateSource"];
 }
 
+function ProviderStateBanner({
+    description,
+    title,
+    tone,
+}: {
+    description: string;
+    title: string;
+    tone: ProviderTone;
+}) {
+    const Icon =
+        tone === "success"
+            ? CheckCircle2
+            : tone === "warning"
+              ? AlertCircle
+              : tone === "danger"
+                ? XCircle
+                : tone === "info"
+                  ? Info
+                  : PauseCircle;
+
+    return (
+        <div
+            className={cn(
+                "grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 rounded-xl border px-4 py-3 text-sm",
+                providerBannerClasses[tone],
+            )}
+        >
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+                <Icon className="size-4" aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+                <span className="block font-semibold text-foreground">
+                    {title}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {description}
+                </span>
+            </span>
+        </div>
+    );
+}
+
 function ProviderDetail({
+    actionMessage,
     isZh,
     language,
     onSave,
@@ -340,6 +592,10 @@ function ProviderDetail({
     updateSource,
 }: ProviderDetailProps) {
     const isSaving = savingProvider === source.provider;
+    const actionState: ProviderActionState = isSaving
+        ? "saving"
+        : (actionMessage?.state ?? "idle");
+    const status = getProviderStatusDisplay(source, isZh, actionState);
     const helpUrl = getDataSourceHelpDocUrl(source.provider);
     const serviceAddress = getProviderServiceAddressDisplay(source, language);
     const providerFields = getProviderFormFields(
@@ -352,9 +608,16 @@ function ProviderDetail({
         (field) => !isAdvancedOptionalField(field),
     );
     const advancedFields = providerFields.filter(isAdvancedOptionalField);
+    const missingFields = getMissingConnectionFields(source, primaryFields);
+    const banner = getProviderActionMessage(
+        status,
+        source,
+        actionMessage,
+        isZh,
+    );
     const footerHint = isZh
-        ? "底部操作只影响当前来源；保存后会用于同步、导入和标题回写。"
-        : "Actions below only affect this source. Saved settings are used for sync, import, and title write-back.";
+        ? "底部操作只影响当前来源；保存后会用于导入、更新和标题回写。"
+        : "Actions below only affect this source. Saved settings are used for import, updates, and title write-back.";
     const authModeControl =
         source.authModes.length > 1 ? (
             <div className="flex flex-col gap-2">
@@ -402,8 +665,9 @@ function ProviderDetail({
     return (
         <div className="flex flex-col gap-4">
             <Card
+                data-provider-detail={source.provider}
                 className={cn(
-                    "gap-5",
+                    "gap-5 border-border/75",
                     hasSavedSetup(source) &&
                         "border-emerald-300/25 bg-emerald-500/10",
                 )}
@@ -414,18 +678,23 @@ function ProviderDetail({
                     </CardTitle>
                     <CardDescription>
                         {isZh
-                            ? "按下方字段名粘贴对应请求头、Cookie 或存储值，保存后启用该来源。"
-                            : "Paste the named request header, Cookie, or storage value below, then save to enable this source."}
+                            ? "按下方提示补充登录信息，保存后启用该来源。"
+                            : "Add the sign-in details below, then save to enable this source."}
                     </CardDescription>
                     <CardAction className="flex items-center gap-3">
                         <span
                             className={cn(
-                                "rounded-full border px-2.5 py-1 text-xs font-medium text-muted-foreground",
-                                hasSavedSetup(source) &&
-                                    "border-emerald-300/30 bg-emerald-500/15 text-emerald-100",
+                                "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
+                                providerStatusClasses[status.tone],
                             )}
                         >
-                            {getProviderStatusLabel(source, isZh)}
+                            {actionState === "testing" ||
+                            actionState === "saving" ? (
+                                <RotateCw className="size-3 animate-spin" />
+                            ) : (
+                                <span className="size-1.5 rounded-full bg-current" />
+                            )}
+                            {status.label}
                         </span>
                         <div className="flex items-center gap-2">
                             <Label
@@ -452,6 +721,8 @@ function ProviderDetail({
                 </CardHeader>
 
                 <CardContent className="flex flex-col gap-5">
+                    {banner ? <ProviderStateBanner {...banner} /> : null}
+
                     {authModeControl}
 
                     {!providerUsesCustomServerSelector(source.provider) ? (
@@ -497,6 +768,14 @@ function ProviderDetail({
                         ))}
                     </div>
 
+                    {missingFields.length > 0 ? (
+                        <div className="rounded-xl border border-dashed border-border/75 bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
+                            {isZh
+                                ? `还有 ${missingFields.length} 项登录信息待填写。`
+                                : `${missingFields.length} sign-in field${missingFields.length === 1 ? "" : "s"} still need attention.`}
+                        </div>
+                    ) : null}
+
                     {advancedFields.length > 0 ? (
                         <div className="flex flex-col gap-4 rounded-2xl border bg-muted/20 p-4">
                             <div className="flex flex-col gap-1">
@@ -541,21 +820,27 @@ function ProviderDetail({
                             type="button"
                             variant="outline"
                             onClick={() => onTest(source)}
-                            disabled={isSaving}
+                            disabled={isSaving || actionState === "testing"}
+                            aria-busy={actionState === "testing"}
                         >
                             <RotateCw data-icon="inline-start" />
-                            {isSaving
+                            {actionState === "testing"
                                 ? isZh
                                     ? "测试中..."
                                     : "Testing..."
-                                : isZh
-                                  ? "测试连接"
-                                  : "Test"}
+                                : actionState === "test-success"
+                                  ? isZh
+                                      ? "连接正常"
+                                      : "Ready"
+                                  : isZh
+                                    ? "测试连接"
+                                    : "Test"}
                         </Button>
                         <Button
                             type="button"
-                            onClick={() => onSave(source)}
+                            onClick={() => void onSave(source)}
                             disabled={isSaving}
+                            aria-busy={isSaving}
                         >
                             {isSaving
                                 ? isZh
@@ -586,6 +871,9 @@ export function DataSourcesSection() {
     } = useDataSourcesSettings(language);
     const [selectedProvider, setSelectedProvider] =
         useState<SourceProvider | null>(null);
+    const [providerActionMessages, setProviderActionMessages] = useState<
+        Partial<Record<SourceProvider, ProviderActionMessage>>
+    >({});
 
     const selectedSource = orderedSources.find(
         (source) => source.provider === selectedProvider,
@@ -609,6 +897,100 @@ export function DataSourcesSection() {
             setSelectedProvider(null);
         }
     }, [orderedSources, selectedProvider]);
+
+    const setProviderActionMessage = (
+        provider: SourceProvider,
+        message: ProviderActionMessage | null,
+    ) => {
+        setProviderActionMessages((current) => {
+            if (!message) {
+                const { [provider]: _removed, ...rest } = current;
+                return rest;
+            }
+
+            return {
+                ...current,
+                [provider]: message,
+            };
+        });
+    };
+
+    const scheduleProviderActionMessageReset = (provider: SourceProvider) => {
+        window.setTimeout(() => setProviderActionMessage(provider, null), 2600);
+    };
+
+    const handleSaveSource = async (source: DataSourceDisplayState) => {
+        setProviderActionMessage(source.provider, {
+            description: isZh
+                ? "正在保存当前来源的连接信息。"
+                : "Saving this source connection.",
+            state: "saving",
+            title: isZh ? "保存中" : "Saving",
+        });
+
+        const saved = await saveSourceSettings(source);
+        setProviderActionMessage(source.provider, {
+            description: saved
+                ? isZh
+                    ? "连接信息已保存，稍后导入会使用最新设置。"
+                    : "Connection details are saved and will be used for future imports."
+                : isZh
+                  ? "保存失败，请检查连接信息后重试。"
+                  : "Save failed. Check the connection details and try again.",
+            state: saved ? "saved" : "save-error",
+            title: saved
+                ? isZh
+                    ? "已保存"
+                    : "Saved"
+                : isZh
+                  ? "保存失败"
+                  : "Save failed",
+        });
+        scheduleProviderActionMessageReset(source.provider);
+    };
+
+    const handleTestSource = (source: DataSourceDisplayState) => {
+        setProviderActionMessage(source.provider, {
+            description: isZh
+                ? "正在检查当前表单中的连接信息。"
+                : "Checking the connection details in this form.",
+            state: "testing",
+            title: isZh ? "测试中" : "Testing",
+        });
+
+        window.setTimeout(() => {
+            const fields = getProviderFormFields(
+                source,
+                secretDrafts,
+                language,
+                "settings",
+            ).filter((field) => !isAdvancedOptionalField(field));
+            const missingFields = getMissingConnectionFields(source, fields);
+            const hasMissingBaseUrl =
+                !providerUsesCustomServerSelector(source.provider) &&
+                !String(source.baseUrl ?? "").trim();
+            const failed = missingFields.length > 0 || hasMissingBaseUrl;
+
+            setProviderActionMessage(source.provider, {
+                description: failed
+                    ? isZh
+                        ? "请先补齐登录信息，再保存或测试连接。"
+                        : "Add the required sign-in details before saving or testing."
+                    : isZh
+                      ? "当前连接信息完整。若上游账号过期，保存或下次导入时会提示。"
+                      : "Connection details look complete. Expired upstream sessions will be reported on save or the next import.",
+                state: failed ? "test-error" : "test-success",
+                title: failed
+                    ? isZh
+                        ? "信息不完整"
+                        : "Missing details"
+                    : isZh
+                      ? "连接信息正常"
+                      : "Connection ready",
+            });
+            scheduleProviderActionMessageReset(source.provider);
+        }, 700);
+    };
 
     if (isLoading) {
         return <DataSourcesSectionSkeleton isZh={isZh} />;
@@ -683,89 +1065,105 @@ export function DataSourcesSection() {
     );
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
+        <div
+            className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:h-full lg:p-5"
+            data-settings-section="data-sources"
+        >
+            <div className="flex shrink-0 flex-col gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
-                    <Database />
+                    <Database className="size-5" />
                     {isZh ? "数据源" : "Data Sources"}
                 </h2>
                 <p className="text-sm text-muted-foreground">
                     {isZh
-                        ? "连接录音来源，按字段名管理导入所需的请求头、Cookie 和存储值。"
-                        : "Connect recording sources and manage the named headers, cookies, and storage values required for import."}
+                        ? "连接录音来源，管理导入所需的登录信息和更新状态。"
+                        : "Connect recording sources and manage the sign-in details and update state used for imports."}
                 </p>
             </div>
 
-            <div className="grid min-h-0 gap-4 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-                <Card className="gap-3 self-start py-4">
-                    <CardHeader className="px-4">
-                        <CardTitle className="text-sm">
-                            {isZh ? "来源列表" : "Sources"}
-                        </CardTitle>
-                        <CardDescription>
-                            {isZh
-                                ? "选择一个来源进入详情。"
-                                : "Choose a source to edit details."}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-2 px-4">
+            <div className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-border/75 bg-background/20 lg:grid-cols-[280px_minmax(0,1fr)]">
+                <aside
+                    className="flex min-h-[16rem] flex-col gap-3 border-border/70 border-b bg-muted/20 p-3 lg:min-h-0 lg:border-r lg:border-b-0"
+                    data-settings-inner-scroll=""
+                    data-ds-scroll=""
+                >
+                    <div className="flex shrink-0 items-center justify-between gap-3 px-1">
+                        <div>
+                            <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+                                {isZh ? "来源" : "Sources"} ·{" "}
+                                {orderedSources.length}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {isZh
+                                    ? "选择来源进入详情。"
+                                    : "Choose a source to edit details."}
+                            </p>
+                        </div>
                         <Button
                             type="button"
+                            size="sm"
                             variant={selectedProvider ? "ghost" : "secondary"}
-                            className="justify-start"
+                            className="h-8 rounded-lg px-2 text-xs"
                             onClick={() => setSelectedProvider(null)}
                         >
-                            {isZh ? "全部来源" : "All sources"}
+                            {isZh ? "总览" : "Overview"}
                         </Button>
-                        {orderedSources.map((source) => (
-                            <Button
-                                key={source.provider}
-                                type="button"
-                                variant={
-                                    selectedProvider === source.provider
-                                        ? "secondary"
-                                        : "ghost"
-                                }
-                                className={cn(
-                                    "h-auto justify-start py-3",
-                                    hasSavedSetup(source) &&
-                                        "border border-emerald-300/20 bg-emerald-500/10 hover:bg-emerald-500/15",
-                                    selectedProvider === source.provider &&
-                                        hasSavedSetup(source) &&
-                                        "border-emerald-300/35 bg-emerald-500/15",
-                                )}
-                                onClick={() =>
-                                    setSelectedProvider(source.provider)
-                                }
-                            >
-                                <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-                                    <span className="truncate">
-                                        {source.displayName}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {getProviderStatusLabel(source, isZh)}
-                                    </span>
-                                </span>
-                            </Button>
-                        ))}
-                    </CardContent>
-                </Card>
+                    </div>
 
-                {selectedSource ? (
-                    <ProviderDetail
-                        isZh={isZh}
-                        language={language}
-                        onSave={(source) => void saveSourceSettings(source)}
-                        onTest={(source) => void saveSourceSettings(source)}
-                        savingProvider={savingProvider}
-                        secretDrafts={secretDrafts}
-                        source={selectedSource}
-                        updateField={updateField}
-                        updateSource={updateSource}
-                    />
-                ) : (
-                    renderProviderOverview()
-                )}
+                    <div className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1">
+                        {orderedSources.map((source) => {
+                            const message =
+                                providerActionMessages[source.provider];
+                            const actionState =
+                                savingProvider === source.provider
+                                    ? "saving"
+                                    : (message?.state ?? "idle");
+
+                            return (
+                                <ProviderCard
+                                    actionState={actionState}
+                                    key={source.provider}
+                                    isSelected={
+                                        source.provider === selectedProvider
+                                    }
+                                    isZh={isZh}
+                                    language={language}
+                                    onSelect={() =>
+                                        setSelectedProvider(source.provider)
+                                    }
+                                    source={source}
+                                />
+                            );
+                        })}
+                    </div>
+                </aside>
+
+                <section
+                    className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5"
+                    data-settings-inner-scroll=""
+                    data-ds-scroll=""
+                >
+                    {selectedSource ? (
+                        <ProviderDetail
+                            actionMessage={
+                                providerActionMessages[
+                                    selectedSource.provider
+                                ] ?? null
+                            }
+                            isZh={isZh}
+                            language={language}
+                            onSave={handleSaveSource}
+                            onTest={handleTestSource}
+                            savingProvider={savingProvider}
+                            secretDrafts={secretDrafts}
+                            source={selectedSource}
+                            updateField={updateField}
+                            updateSource={updateSource}
+                        />
+                    ) : (
+                        renderProviderOverview()
+                    )}
+                </section>
             </div>
         </div>
     );

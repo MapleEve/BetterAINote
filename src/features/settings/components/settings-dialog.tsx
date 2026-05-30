@@ -54,6 +54,7 @@ import {
     writeBrowserHash,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
+import { cn } from "@/lib/utils";
 import type { CanonicalSettingsSection } from "@/types/settings";
 import { SettingsContent } from "./settings-content";
 
@@ -168,10 +169,14 @@ export function SettingsDialog(props: SettingsDialogProps) {
     const [keyboardSelectedIndex, setKeyboardSelectedIndex] =
         React.useState<number>(0);
     const navBoundaryRef = React.useRef<HTMLElement | null>(null);
+    const scrollBodyRef = React.useRef<HTMLDivElement | null>(null);
+    const returnFocusRef = React.useRef<HTMLElement | null>(null);
+    const previousOpenRef = React.useRef(false);
 
     const activeNavItem = orderedSettingsNav.find(
         (item) => item.id === activeSection,
     );
+    const isDataSourcesSection = activeSection === "data-sources";
 
     React.useEffect(() => {
         if (!props.open) return;
@@ -214,6 +219,29 @@ export function SettingsDialog(props: SettingsDialogProps) {
     }, [activeSection, props.open]);
 
     React.useEffect(() => {
+        if (props.open && !previousOpenRef.current) {
+            const activeElement = document.activeElement;
+            returnFocusRef.current =
+                activeElement instanceof HTMLElement ? activeElement : null;
+        }
+
+        if (!props.open && previousOpenRef.current) {
+            const target = returnFocusRef.current;
+            const timer = startBrowserTimeout(() => {
+                if (target && document.contains(target)) {
+                    target.focus({ preventScroll: true });
+                }
+                returnFocusRef.current = null;
+            }, 0);
+
+            previousOpenRef.current = props.open;
+            return () => stopBrowserTimeout(timer);
+        }
+
+        previousOpenRef.current = props.open;
+    }, [props.open]);
+
+    React.useEffect(() => {
         if (!props.open) return;
 
         const timer = startBrowserTimeout(() => {
@@ -225,6 +253,22 @@ export function SettingsDialog(props: SettingsDialogProps) {
 
         return () => stopBrowserTimeout(timer);
     }, [props.open]);
+
+    React.useEffect(() => {
+        if (!props.open) return;
+
+        scrollBodyRef.current?.setAttribute(
+            "data-settings-active-section",
+            activeSection,
+        );
+        scrollBodyRef.current?.scrollTo({ top: 0, left: 0 });
+        scrollBodyRef.current
+            ?.querySelectorAll<HTMLElement>("[data-settings-inner-scroll]")
+            .forEach((node) => {
+                node.scrollTop = 0;
+                node.scrollLeft = 0;
+            });
+    }, [activeSection, props.open]);
 
     const handleKeyDown = React.useCallback(
         (event: KeyboardEvent) => {
@@ -290,7 +334,13 @@ export function SettingsDialog(props: SettingsDialogProps) {
         <Dialog open={props.open} onOpenChange={props.onOpenChange}>
             <DialogContent
                 showCloseButton={false}
-                className="h-[calc(100svh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:h-[min(94svh,980px)] sm:w-[min(96vw,1560px)] sm:max-w-none"
+                className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
+                style={
+                    {
+                        "--tw-enter-scale": "1",
+                        "--tw-exit-scale": "1",
+                    } as React.CSSProperties
+                }
             >
                 <DialogTitle className="sr-only">
                     {t("settingsDialog.title")}
@@ -454,10 +504,23 @@ export function SettingsDialog(props: SettingsDialogProps) {
                             </DialogClose>
                         </header>
 
-                        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 pt-6">
+                        <div
+                            ref={scrollBodyRef}
+                            data-settings-scroll-body=""
+                            className={cn(
+                                "flex min-h-0 flex-1 flex-col overscroll-contain",
+                                isDataSourcesSection
+                                    ? "overflow-y-auto p-4 lg:overflow-hidden lg:p-0"
+                                    : "gap-4 overflow-y-auto p-4 pt-6",
+                            )}
+                        >
                             <div
                                 key={activeSection}
-                                className="animate-in fade-in-0 duration-200"
+                                className={cn(
+                                    "animate-in fade-in-0 min-h-0 duration-200",
+                                    isDataSourcesSection &&
+                                        "flex flex-1 flex-col",
+                                )}
                             >
                                 <SettingsContent
                                     activeSection={activeSection}

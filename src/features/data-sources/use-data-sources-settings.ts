@@ -144,9 +144,11 @@ export function useDataSourcesSettings(language: UiLanguage) {
                         ? `${source.displayName} 设置已保存`
                         : `${source.displayName} settings saved`,
                 );
+                return true;
             } catch (error) {
                 console.error("Failed to save data source settings:", error);
                 toast.error(getSettingsSaveErrorMessage(error, language));
+                return false;
             } finally {
                 setSavingProvider(null);
             }
