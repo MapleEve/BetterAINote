@@ -10,6 +10,7 @@ function resolveConfiguredBaseUrl() {
 const configuredBaseUrl = resolveConfiguredBaseUrl();
 const baseURL = configuredBaseUrl || "http://127.0.0.1:3201";
 const appUrl = new URL(baseURL);
+const useSystemChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1";
 const isLoopbackHost = ["127.0.0.1", "localhost", "::1"].includes(
     appUrl.hostname,
 );
@@ -79,6 +80,7 @@ export default defineConfig({
     use: {
         ...devices["Desktop Chrome"],
         baseURL,
+        ...(useSystemChrome ? { channel: "chrome" as const } : {}),
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
     },

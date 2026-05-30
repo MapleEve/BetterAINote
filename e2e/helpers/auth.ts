@@ -7,32 +7,49 @@ const PLAYWRIGHT_ACCOUNT = {
 };
 
 async function login(page: Page) {
-    await fillControlledInput(page.locator("#email"), PLAYWRIGHT_ACCOUNT.email);
+    const emailInput = page.locator("#email");
+    const passwordInput = page.locator("#password");
+
+    await fillControlledInput(emailInput, PLAYWRIGHT_ACCOUNT.email);
     await fillControlledInput(
-        page.locator("#password"),
+        passwordInput,
         PLAYWRIGHT_ACCOUNT.password,
     );
-    await page.getByRole("button", { name: "登录" }).click();
-    await page.waitForURL("**/dashboard", { waitUntil: "commit" });
+    await ensureControlledInputValue(emailInput, PLAYWRIGHT_ACCOUNT.email);
+    await ensureControlledInputValue(passwordInput, PLAYWRIGHT_ACCOUNT.password);
+    await Promise.all([
+        page.waitForURL("**/dashboard", { waitUntil: "commit" }),
+        page.getByRole("button", { name: "登录" }).click(),
+    ]);
 }
 
 export async function ensureSignedIn(page: Page) {
+    const authPageHydration = waitForAuthPageHydration(page);
     await page.goto("/register", { waitUntil: "domcontentloaded" });
+    await authPageHydration;
 
     if (page.url().includes("/login")) {
         await login(page);
         return;
     }
 
-    await fillControlledInput(page.locator("#name"), PLAYWRIGHT_ACCOUNT.name);
-    await fillControlledInput(page.locator("#email"), PLAYWRIGHT_ACCOUNT.email);
+    const nameInput = page.locator("#name");
+    const emailInput = page.locator("#email");
+    const passwordInput = page.locator("#password");
+
+    await fillControlledInput(nameInput, PLAYWRIGHT_ACCOUNT.name);
+    await fillControlledInput(emailInput, PLAYWRIGHT_ACCOUNT.email);
     await fillControlledInput(
-        page.locator("#password"),
+        passwordInput,
         PLAYWRIGHT_ACCOUNT.password,
     );
-    await page.getByRole("button", { name: "创建账号" }).click();
-
-    await page.waitForURL("**/dashboard", { waitUntil: "commit" });
+    await ensureControlledInputValue(nameInput, PLAYWRIGHT_ACCOUNT.name);
+    await ensureControlledInputValue(emailInput, PLAYWRIGHT_ACCOUNT.email);
+    await ensureControlledInputValue(passwordInput, PLAYWRIGHT_ACCOUNT.password);
+    await Promise.all([
+        page.waitForURL("**/dashboard", { waitUntil: "commit" }),
+        page.getByRole("button", { name: "创建账号" }).click(),
+    ]);
 }
 
 async function fillControlledInput(
@@ -40,9 +57,25 @@ async function fillControlledInput(
     value: string,
 ) {
     await expect(locator).toBeEditable();
-    await locator.click();
-    await locator.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
-    await locator.press("Backspace");
-    await locator.pressSequentially(value);
+    await locator.fill(value);
     await expect(locator).toHaveValue(value);
+}
+
+async function ensureControlledInputValue(locator: Locator, value: string) {
+    await expect(locator).toBeEditable();
+    if ((await locator.inputValue()) !== value) {
+        await locator.fill(value);
+    }
+    await expect(locator).toHaveValue(value);
+}
+
+async function waitForAuthPageHydration(page: Page) {
+    await page
+        .waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/display") &&
+                response.request().method() === "GET",
+            { timeout: 15_000 },
+        )
+        .catch(() => null);
 }
