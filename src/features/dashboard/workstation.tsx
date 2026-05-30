@@ -62,6 +62,7 @@ import {
 import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import type { Recording } from "@/types/recording";
+import { ActivityOverlay } from "./components/activity-overlay";
 import { LibrarySearch } from "./components/library-search";
 import {
     RecordingList,
@@ -124,6 +125,7 @@ interface WorkstationProps {
 }
 
 type DashboardFavorite = "all" | "transcribed" | "tags";
+type TopbarOverlay = "search" | "activity";
 
 const DASHBOARD_SOURCE_ORDER = [
     "dingtalk-a1",
@@ -177,6 +179,8 @@ export function Workstation({
     const [isSavingRename, setIsSavingRename] = useState(false);
     const [isAutoRenaming, setIsAutoRenaming] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [activeTopbarOverlay, setActiveTopbarOverlay] =
+        useState<TopbarOverlay | null>(null);
     const [tagManagerOpen, setTagManagerOpen] = useState(false);
     const [liveTranscriptions, setLiveTranscriptions] = useState(
         () => new Map(transcriptions),
@@ -275,6 +279,12 @@ export function Workstation({
             setTagManagerOpen(false);
         }
     }, [isRenaming]);
+
+    useEffect(() => {
+        if (settingsOpen) {
+            setActiveTopbarOverlay(null);
+        }
+    }, [settingsOpen]);
 
     useEffect(() => {
         const recordingId = currentRecording?.id;
@@ -688,6 +698,31 @@ export function Workstation({
     const handleSync = useCallback(async () => {
         await manualSync();
     }, [manualSync]);
+
+    const setSearchOverlayOpen = useCallback((open: boolean) => {
+        setActiveTopbarOverlay((previous) => {
+            if (open) {
+                return "search";
+            }
+
+            return previous === "search" ? null : previous;
+        });
+    }, []);
+
+    const setActivityOverlayOpen = useCallback((open: boolean) => {
+        setActiveTopbarOverlay((previous) => {
+            if (open) {
+                return "activity";
+            }
+
+            return previous === "activity" ? null : previous;
+        });
+    }, []);
+
+    const handleOpenSettings = useCallback(() => {
+        setActiveTopbarOverlay(null);
+        setSettingsOpen(true);
+    }, []);
 
     const handleOpenSearchResult = useCallback(
         (recordingId: string) => {
@@ -1136,7 +1171,7 @@ export function Workstation({
                         </div>
                     </aside>
 
-                    <header className="glass-surface flex min-h-14 items-center justify-between gap-3 rounded-2xl px-3 py-2">
+                    <header className="glass-surface relative z-30 flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2">
                         <div className="min-w-0">
                             <p className="truncate text-xs font-medium text-muted-foreground">
                                 {listContextLabel}
@@ -1168,10 +1203,26 @@ export function Workstation({
                                 )}
                             </Button>
                             <LibrarySearch
+                                open={activeTopbarOverlay === "search"}
+                                onOpenChange={setSearchOverlayOpen}
+                                onOpenRecording={handleOpenSearchResult}
+                            />
+                            <ActivityOverlay
+                                open={activeTopbarOverlay === "activity"}
+                                onOpenChange={setActivityOverlayOpen}
+                                autoSyncEnabled={autoSyncEnabled}
+                                isAutoSyncing={isAutoSyncing}
+                                lastSyncTime={lastSyncTime}
+                                nextSyncTime={nextSyncTime}
+                                lastSyncResult={lastSyncResult}
+                                workerStatus={workerStatus}
+                                recordings={liveRecordings}
+                                transcriptionJobs={liveTranscriptionJobs}
+                                onSyncNow={handleSync}
                                 onOpenRecording={handleOpenSearchResult}
                             />
                             <Button
-                                onClick={() => setSettingsOpen(true)}
+                                onClick={handleOpenSettings}
                                 variant="outline"
                                 size="icon"
                                 aria-label={t("settingsDialog.title")}

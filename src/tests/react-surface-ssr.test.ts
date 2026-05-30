@@ -235,6 +235,8 @@ describe("React surface SSR coverage", () => {
                     onSelect: vi.fn(),
                 }),
                 React.createElement(LibrarySearch, {
+                    open: false,
+                    onOpenChange: vi.fn(),
                     onOpenRecording: vi.fn(),
                 }),
                 React.createElement(SourceProviderRows, {
