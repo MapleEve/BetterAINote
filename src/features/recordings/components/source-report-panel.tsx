@@ -1,6 +1,7 @@
 "use client";
 
 import { CloudDownload, Copy, FileText, LoaderCircle } from "lucide-react";
+import type { ReactElement } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -174,6 +175,8 @@ function formatDetailLabel(key: string, language: UiLanguage) {
         language: "语言",
         createdAt: "创建时间",
         updatedAt: "更新时间",
+        startedAt: "开始时间",
+        endedAt: "结束时间",
     };
     const enLabels: Record<string, string> = {
         provider: "Source",
@@ -182,6 +185,8 @@ function formatDetailLabel(key: string, language: UiLanguage) {
         language: "Language",
         createdAt: "Created",
         updatedAt: "Updated",
+        startedAt: "Started",
+        endedAt: "Ended",
     };
     const labels = isZh(language) ? zhLabels : enLabels;
     const knownLabel = labels[key];
@@ -224,7 +229,12 @@ function formatDetailValue(
             return value === "available" ? t("sourceReport.ready") : value;
         }
 
-        if (key === "createdAt" || key === "updatedAt") {
+        if (
+            key === "createdAt" ||
+            key === "updatedAt" ||
+            key === "startedAt" ||
+            key === "endedAt"
+        ) {
             return formatPublicDate(value, language);
         }
 
@@ -333,6 +343,39 @@ function renderDetailEntries(
                                   formatDetailLabel(nestedKey, language),
                                   nestedValue,
                               ]);
+                const renderedNestedEntries = nestedEntries
+                    .map(([nestedKey, nestedLabel, nestedValue]) => {
+                        const nestedDisplayValue = formatDetailValue(
+                            nestedKey,
+                            nestedValue,
+                            language,
+                            sourceProvider,
+                            t,
+                        );
+
+                        if (nestedDisplayValue === null) {
+                            return null;
+                        }
+
+                        return (
+                            <div
+                                key={`${key}-${nestedLabel}`}
+                                className="grid gap-1 sm:grid-cols-3 sm:gap-3"
+                            >
+                                <dt className="text-muted-foreground">
+                                    {nestedLabel}
+                                </dt>
+                                <dd className="sm:col-span-2">
+                                    {nestedDisplayValue}
+                                </dd>
+                            </div>
+                        );
+                    })
+                    .filter((entry): entry is ReactElement => entry !== null);
+
+                if (renderedNestedEntries.length === 0) {
+                    return null;
+                }
 
                 return (
                     <section key={key} className="space-y-2">
@@ -340,43 +383,15 @@ function renderDetailEntries(
                             {formatDetailLabel(key, language)}
                         </h4>
                         <dl className="space-y-2 rounded-lg bg-muted/70 p-3">
-                            {nestedEntries.map(
-                                ([nestedKey, nestedLabel, nestedValue]) => {
-                                    const nestedDisplayValue =
-                                        formatDetailValue(
-                                            nestedKey,
-                                            nestedValue,
-                                            language,
-                                            sourceProvider,
-                                            t,
-                                        );
-
-                                    if (nestedDisplayValue === null) {
-                                        return null;
-                                    }
-
-                                    return (
-                                        <div
-                                            key={`${key}-${nestedLabel}`}
-                                            className="grid gap-1 sm:grid-cols-3 sm:gap-3"
-                                        >
-                                            <dt className="text-muted-foreground">
-                                                {nestedLabel}
-                                            </dt>
-                                            <dd className="sm:col-span-2">
-                                                {nestedDisplayValue}
-                                            </dd>
-                                        </div>
-                                    );
-                                },
-                            )}
+                            {renderedNestedEntries}
                         </dl>
                     </section>
                 );
             }
 
             return null;
-        });
+        })
+        .filter((entry): entry is ReactElement => entry !== null);
 }
 
 export function SourceReportPanel({
@@ -474,6 +489,10 @@ export function SourceReportPanel({
             setCopyingKey(null);
         }
     }, [data?.summaryMarkdown, t]);
+
+    const detailEntries = data?.detail
+        ? renderDetailEntries(data.detail, language, sourceProvider, t)
+        : [];
 
     const header = (
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -722,18 +741,13 @@ export function SourceReportPanel({
                         )}
                     </div>
 
-                    {data.detail ? (
+                    {data.detail && detailEntries.length > 0 ? (
                         <div className="rounded-xl border border-white/10 bg-background/25 p-4">
                             <p className="text-sm font-medium">
                                 {t("sourceReport.sourceDetails")}
                             </p>
                             <dl className="mt-3 max-h-80 space-y-3 overflow-auto rounded-lg bg-muted p-4 text-xs leading-relaxed">
-                                {renderDetailEntries(
-                                    data.detail,
-                                    language,
-                                    sourceProvider,
-                                    t,
-                                )}
+                                {detailEntries}
                             </dl>
                         </div>
                     ) : null}

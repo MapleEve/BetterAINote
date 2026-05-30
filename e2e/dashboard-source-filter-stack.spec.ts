@@ -1,8 +1,63 @@
 import { expect, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
-async function openDashboard(page: Parameters<typeof ensureSignedIn>[0]) {
+async function openDashboard(
+    page: Parameters<typeof ensureSignedIn>[0],
+    options: { connectIflyrec?: boolean } = {},
+) {
     await ensureSignedIn(page);
+
+    if (options.connectIflyrec) {
+        await page.route("**/api/data-sources", async (route) => {
+            if (route.request().method() !== "GET") {
+                await route.continue();
+                return;
+            }
+
+            const capabilities = {
+                audioDownload: false,
+                localRename: true,
+                officialSummary: true,
+                officialTranscript: true,
+                privateTranscribe: false,
+                upstreamTitleWriteback: false,
+                workerSync: true,
+            };
+
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    sources: [
+                        "plaud",
+                        "ticnote",
+                        "feishu-minutes",
+                        "dingtalk-a1",
+                        "iflyrec",
+                    ].map((provider) => ({
+                        authMode:
+                            provider === "iflyrec" ? "session-header" : "bearer",
+                        authModes:
+                            provider === "iflyrec"
+                                ? ["session-header"]
+                                : ["bearer"],
+                        baseUrl: "https://example.invalid",
+                        capabilities,
+                        config: {},
+                        connected: provider === "iflyrec",
+                        connectionStatus: "ready",
+                        displayName:
+                            provider === "iflyrec" ? "讯飞听见" : provider,
+                        enabled: provider === "iflyrec",
+                        lastSync: null,
+                        provider,
+                        runtimeStatus: "active",
+                        secretsConfigured:
+                            provider === "iflyrec" ? { sessionId: true } : {},
+                    })),
+                }),
+            });
+        });
+    }
 
     const resetDisplay = await page.request.put("/api/settings/display", {
         data: {
@@ -35,13 +90,13 @@ async function openDashboard(page: Parameters<typeof ensureSignedIn>[0]) {
 test("dashboard source filter stack exposes clear and setup actions", async ({
     page,
 }) => {
-    await openDashboard(page);
+    await openDashboard(page, { connectIflyrec: true });
 
     const iflyrecRow = page.locator('[data-provider="iflyrec"]');
     await expect(iflyrecRow).toBeVisible();
     await expect(iflyrecRow).toHaveAttribute(
         "data-source-status",
-        /needs-setup|planned|paused|connected-empty|no-results|connected|sync-error/,
+        /needs-setup|planned|paused|expired|connected-empty|no-results|connected|sync-error/,
     );
     await iflyrecRow.click();
     await expect(iflyrecRow).toHaveAttribute("data-active", "true");
@@ -50,7 +105,7 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
     await expect(stack).toBeVisible();
     await expect(stack).toHaveAttribute(
         "data-source-status",
-        /needs-setup|planned|paused|connected-empty|no-results|connected|sync-error/,
+        /needs-setup|planned|paused|expired|connected-empty|no-results|connected|sync-error/,
     );
     await expect(stack).toContainText("讯飞听见");
 
@@ -73,11 +128,27 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
     }
 });
 
+test("dashboard source setup rows open Data Sources settings", async ({ page }) => {
+    await openDashboard(page);
+
+    const iflyrecRow = page.locator('[data-provider="iflyrec"]');
+    await expect(iflyrecRow).toBeVisible();
+    await iflyrecRow.click();
+    await expect(page.locator("[data-settings-shell]")).toBeVisible();
+    await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
+        "data-settings-active-section",
+        "data-sources",
+    );
+    await expect(
+        page.locator('[data-provider-detail="iflyrec"]'),
+    ).toBeVisible();
+});
+
 test("dashboard responsive source rail opens as a mobile drawer and collapses on desktop", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await openDashboard(page);
+    await openDashboard(page, { connectIflyrec: true });
 
     const workstation = page.getByTestId("dashboard-workstation");
     await expect(workstation).toHaveAttribute("data-source-drawer", "closed");

@@ -43,6 +43,14 @@ const PROVIDER_ICONS: Record<SourceProviderRowModel["provider"], LucideIcon> = {
     "feishu-minutes": MessageSquare,
     iflyrec: Database,
 };
+const PROVIDER_ASSET_CLASSES: Partial<
+    Record<SourceProviderRowModel["provider"], string>
+> = {
+    "dingtalk-a1": "bg-[url('/assets/sources/dingtalk.svg')]",
+    ticnote: "bg-[url('/assets/sources/ticnote.png')]",
+    plaud: "bg-[url('/assets/sources/plaud.png')]",
+    "feishu-minutes": "bg-[url('/assets/sources/feishu.jpeg')]",
+};
 
 function getStripState(
     status: SourceProviderRowStatus,
@@ -56,6 +64,7 @@ function getStripState(
     if (
         status === "needs-setup" ||
         status === "paused" ||
+        status === "expired" ||
         status === "planned"
     ) {
         return "needs-setup";
@@ -96,6 +105,7 @@ export function SourceFilterStackStrip({
             ? totalCount
             : Math.max(sourceTotalCount, filteredCount);
     const ProviderIcon = PROVIDER_ICONS[sourceRow.provider];
+    const providerAssetClass = PROVIDER_ASSET_CLASSES[sourceRow.provider];
 
     return (
         <div
@@ -123,7 +133,16 @@ export function SourceFilterStackStrip({
                     )}
                     aria-hidden="true"
                 >
-                    <ProviderIcon className="size-3" />
+                    {providerAssetClass ? (
+                        <span
+                            className={cn(
+                                "size-3.5 rounded-[0.25rem] bg-cover bg-center",
+                                providerAssetClass,
+                            )}
+                        />
+                    ) : (
+                        <ProviderIcon className="size-3" />
+                    )}
                 </span>
                 <span className="truncate">{sourceRow.label}</span>
                 <button
@@ -201,17 +220,21 @@ export function SourceFilterStackStrip({
                                 ? isZh
                                     ? `${sourceRow.label} 已暂停，重新启用后这里会出现录音。`
                                     : `${sourceRow.label} is paused. Enable it to show recordings here.`
-                                : sourceRow.status === "planned"
+                                : sourceRow.status === "expired"
                                   ? isZh
-                                      ? `${sourceRow.label} 仍在规划中，当前不会同步录音。`
-                                      : `${sourceRow.label} is planned and does not sync recordings yet.`
-                                  : isZh
-                                    ? `${sourceRow.label} 尚未连接，完成设置后这里会出现录音。`
-                                    : `${sourceRow.label} is not connected. Finish setup to show recordings here.`}
+                                      ? `${sourceRow.label} 登录已过期，重新登录后这里会恢复同步。`
+                                      : `${sourceRow.label} needs re-authentication before syncing resumes.`
+                                  : sourceRow.status === "planned"
+                                    ? isZh
+                                        ? `${sourceRow.label} 仍在规划中，当前不会同步录音。`
+                                        : `${sourceRow.label} is planned and does not sync recordings yet.`
+                                    : isZh
+                                      ? `${sourceRow.label} 尚未连接，完成设置后这里会出现录音。`
+                                      : `${sourceRow.label} is not connected. Finish setup to show recordings here.`}
                         </span>
                         <button
                             type="button"
-                            onClick={onOpenDataSourcesSettings}
+                            onClick={() => onOpenDataSourcesSettings()}
                             className="rounded-md border border-primary/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
                         >
                             {isZh ? "前往设置" : "Open settings"}

@@ -102,6 +102,7 @@ export interface DataSourceDisplayState {
     provider: SourceProvider;
     displayName: string;
     runtimeStatus: "active" | "planned";
+    connectionStatus?: "ready" | "expired";
     authModes: SourceAuthMode[];
     enabled: boolean;
     connected: boolean;

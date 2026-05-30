@@ -498,10 +498,10 @@ export function TranscriptionPanel({
 
     const tabs: Array<{ id: WorkspaceTab; label: string }> = [
         { id: "transcript", label: t("transcription.outputTitle") },
+        { id: "speakers", label: t("speakerReview.title") },
         ...(recording.sourceProvider
             ? [{ id: "source" as const, label: t("sourceReport.tabLabel") }]
             : []),
-        { id: "speakers", label: t("speakerReview.title") },
     ];
 
     return (

@@ -10,8 +10,8 @@ export function Footer() {
     const { t } = useLanguage();
 
     return (
-        <footer className="border-t border-white/10 bg-background/55 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35">
-            <div className="container mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4 py-4 text-center text-xs text-muted-foreground sm:text-sm">
+        <footer className="border-border/70 border-t bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/30">
+            <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4 py-4 text-center text-xs text-muted-foreground sm:text-sm">
                 <span className="flex items-center gap-2 font-medium text-foreground/80">
                     {t("footer.madeWith")}
                     <GithubIcon className="h-3.5 w-3.5 text-primary" />

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
@@ -141,6 +142,7 @@ export function RecordingWorkstation({
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
         null,
     );
+    const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
     const [activeTranscriptTab, setActiveTranscriptTab] = useState<
         "source" | "local" | "speakers"
     >("source");
@@ -199,6 +201,7 @@ export function RecordingWorkstation({
             setFilename(recording.filename);
             setRenameValue(recording.filename);
             setAutoRenamePreview(null);
+            setAutoRenameError(null);
         }
     }, [recording.filename, recording.id]);
 
@@ -267,6 +270,7 @@ export function RecordingWorkstation({
             return;
         }
 
+        setAutoRenameError(null);
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
@@ -279,16 +283,22 @@ export function RecordingWorkstation({
             );
             const data = await response.json();
             if (!response.ok) {
-                toast.error(data.error || t("transcription.autoRenameFailed"));
+                const message =
+                    data.error || t("transcription.autoRenameFailed");
+                setAutoRenameError(message);
+                toast.error(message);
                 return;
             }
 
             if (typeof data.filename === "string" && data.filename.trim()) {
                 setAutoRenamePreview(data.filename);
+                setAutoRenameError(null);
                 toast.success(t("transcription.aiRenamePreviewReady"));
             }
         } catch {
-            toast.error(t("transcription.autoRenameFailed"));
+            const message = t("transcription.autoRenameFailed");
+            setAutoRenameError(message);
+            toast.error(message);
         } finally {
             setIsAutoRenaming(false);
         }
@@ -296,6 +306,7 @@ export function RecordingWorkstation({
 
     const handleAutoRenamePreviewCancel = useCallback(() => {
         setAutoRenamePreview(null);
+        setAutoRenameError(null);
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -324,6 +335,7 @@ export function RecordingWorkstation({
             setFilename(nextFilename);
             setRenameValue(nextFilename);
             setAutoRenamePreview(null);
+            setAutoRenameError(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
                     filename: nextFilename,
@@ -562,6 +574,8 @@ export function RecordingWorkstation({
                     </div>
                 </header>
 
+                <SystemBanner />
+
                 <div
                     className="glass-surface-subtle flex flex-wrap items-center gap-2 rounded-2xl p-2"
                     data-testid="recording-detail-copy-strip"
@@ -626,7 +640,31 @@ export function RecordingWorkstation({
                     </Button>
                 </div>
 
-                {autoRenamePreview ? (
+                {isAutoRenaming && !autoRenamePreview ? (
+                    <AiRenamePreviewCard
+                        className="mx-0"
+                        isApplying={false}
+                        isRegenerating={isAutoRenaming}
+                        message={
+                            language === "zh-CN"
+                                ? "正在根据当前转写生成可预览的标题。"
+                                : "Generating a preview title from the current transcript."
+                        }
+                        state="loading"
+                        title={t("transcription.aiRename")}
+                    />
+                ) : autoRenameError ? (
+                    <AiRenamePreviewCard
+                        className="mx-0"
+                        isApplying={false}
+                        isRegenerating={isAutoRenaming}
+                        message={autoRenameError}
+                        onRegenerate={handleAutoRename}
+                        regenerateLabel={t("transcription.aiRenameRegenerate")}
+                        state="error"
+                        title={t("transcription.autoRenameFailed")}
+                    />
+                ) : autoRenamePreview ? (
                     <AiRenamePreviewCard
                         applyLabel={t("transcription.aiRenameApply")}
                         cancelLabel={t("transcription.aiRenameCancelPreview")}
@@ -639,6 +677,15 @@ export function RecordingWorkstation({
                         onRegenerate={handleAutoRename}
                         regenerateLabel={t("transcription.aiRenameRegenerate")}
                         title={t("transcription.aiRenamePreview")}
+                    />
+                ) : autoRenameDisabledReason ? (
+                    <AiRenamePreviewCard
+                        className="mx-0"
+                        isApplying={false}
+                        isRegenerating={false}
+                        message={autoRenameDisabledReason}
+                        state="unavailable"
+                        title={t("transcription.aiRename")}
                     />
                 ) : null}
 

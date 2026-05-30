@@ -55,6 +55,7 @@ export function RecordingPlayer({
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
+    const playbackDisabled = !recording.hasAudio || !audioSrc;
 
     return (
         <Card
@@ -109,7 +110,7 @@ export function RecordingPlayer({
                 </div>
 
                 {isTagManagerOpen && tagManagerPanel ? (
-                    <div className="animate-in fade-in-0 zoom-in-95 absolute top-12 right-5 z-[1000] max-h-[min(28rem,calc(100vh-12rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border/65 bg-popover/95 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.18)] backdrop-blur-2xl duration-200">
+                    <div className="animate-in fade-in-0 zoom-in-95 absolute top-12 right-5 z-[220] max-h-[min(28rem,calc(100vh-12rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border/65 bg-popover/95 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.18)] backdrop-blur-2xl duration-200">
                         {tagManagerPanel}
                     </div>
                 ) : null}
@@ -122,12 +123,15 @@ export function RecordingPlayer({
                     </div>
                 )}
 
-                <div className="grid items-center gap-4 rounded-2xl border border-border/40 bg-background/14 px-4 py-4 backdrop-blur-xl md:grid-cols-[4rem_minmax(0,1fr)_12.5rem]">
+                <div
+                    className="grid items-center gap-4 rounded-2xl border border-border/40 bg-background/14 px-4 py-4 backdrop-blur-xl md:grid-cols-[4rem_minmax(0,1fr)_12.5rem]"
+                    data-player-state={playbackDisabled ? "disabled" : "ready"}
+                >
                     <Button
                         onClick={togglePlayPause}
                         size="lg"
                         className="h-12 w-12 rounded-full shadow-none"
-                        disabled={!recording.hasAudio}
+                        disabled={playbackDisabled}
                     >
                         {isPlaying ? (
                             <Pause className="h-5 w-5" />
@@ -148,7 +152,9 @@ export function RecordingPlayer({
                             max={100}
                             step={0.1}
                             className="w-full"
-                            disabled={!duration || duration === 0}
+                            disabled={
+                                playbackDisabled || !duration || duration === 0
+                            }
                         />
                     </div>
 
@@ -159,6 +165,7 @@ export function RecordingPlayer({
                             size="sm"
                             className="h-8 w-12 rounded-xl px-2 font-mono text-[11px] shadow-none"
                             title="Click to cycle playback speed"
+                            disabled={playbackDisabled}
                         >
                             {playbackSpeedLabel}
                         </Button>
@@ -172,6 +179,7 @@ export function RecordingPlayer({
                                 }
                                 max={100}
                                 className="flex-1"
+                                disabled={playbackDisabled}
                             />
                         </div>
                     </div>

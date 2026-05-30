@@ -35,6 +35,7 @@ export type SerializedSourceState = {
     provider: SourceProvider;
     displayName: string;
     runtimeStatus: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["runtimeStatus"];
+    connectionStatus: "ready" | "expired";
     authModes: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["authModes"];
     capabilities: (typeof DATA_SOURCE_CATALOG)[SourceProvider]["capabilities"];
     enabled: boolean;
@@ -77,6 +78,21 @@ function getSerializedDefaults(provider: SourceProvider) {
     };
 }
 
+function resolveConnectionStatus(config: Record<string, unknown>) {
+    for (const key of [
+        "connectionStatus",
+        "authStatus",
+        "sessionStatus",
+        "uiStatus",
+    ]) {
+        if (config[key] === "expired") {
+            return "expired" as const;
+        }
+    }
+
+    return "ready" as const;
+}
+
 function serializeSourceState(
     provider: SourceProvider,
     row: SourceConnectionRow | null,
@@ -98,6 +114,7 @@ function serializeSourceState(
         provider,
         displayName: catalog.displayName,
         runtimeStatus: catalog.runtimeStatus,
+        connectionStatus: resolveConnectionStatus(persistedConfig),
         authModes: catalog.authModes,
         capabilities: getSourceCapabilitiesForAuthMode(provider, authMode),
         enabled: row?.enabled ?? false,

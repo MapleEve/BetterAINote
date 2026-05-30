@@ -98,6 +98,12 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain('"testing"');
         expect(section).toContain('"test-success"');
         expect(section).toContain('"save-error"');
+        expect(section).toContain("connectionStatus");
+        expect(section).toContain('"expired"');
+        expect(section).toContain("isProviderInteractionDisabled");
+        expect(section).toContain("data-auth-mode-picker");
+        expect(section).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
+        expect(section).toContain("PROVIDER_ASSET_CLASSES");
         expect(section).toContain("handleTestSource");
         expect(section).toContain("handleSaveSource");
         expect(section).not.toContain("/api/data-sources/test");

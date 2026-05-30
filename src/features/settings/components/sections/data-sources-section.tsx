@@ -29,19 +29,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";
-import type { SourceProvider } from "@/lib/data-sources/catalog";
+import {
+    isSourceProvider,
+    type SourceProvider,
+} from "@/lib/data-sources/catalog";
 import {
     type DataSourceDisplayState,
     type DataSourceFormField,
@@ -55,7 +50,14 @@ import {
     providerUsesCustomServerSelector,
 } from "@/lib/data-sources/presentation";
 import { formatDateTime } from "@/lib/format-date";
+import {
+    readBrowserStorage,
+    writeBrowserStorage,
+} from "@/lib/platform/browser-shell";
 import { cn } from "@/lib/utils";
+
+const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
+    "settings-data-source-provider";
 
 function hasSavedSetup(source: DataSourceDisplayState) {
     return (
@@ -118,6 +120,12 @@ const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     "feishu-minutes": MessageSquare,
     iflyrec: Database,
 };
+const PROVIDER_ASSET_CLASSES: Partial<Record<SourceProvider, string>> = {
+    "dingtalk-a1": "bg-[url('/assets/sources/dingtalk.svg')]",
+    ticnote: "bg-[url('/assets/sources/ticnote.png')]",
+    plaud: "bg-[url('/assets/sources/plaud.png')]",
+    "feishu-minutes": "bg-[url('/assets/sources/feishu.jpeg')]",
+};
 
 function getProviderStatusDisplay(
     source: DataSourceDisplayState,
@@ -164,6 +172,26 @@ function getProviderStatusDisplay(
         };
     }
 
+    if (source.connectionStatus === "expired") {
+        return {
+            label: isZh ? "需要重新登录" : "Re-auth required",
+            description: isZh
+                ? "上游登录状态已过期，请更新登录信息后保存。"
+                : "The upstream sign-in has expired. Update the sign-in details, then save.",
+            tone: "warning",
+        };
+    }
+
+    if (source.runtimeStatus === "planned") {
+        return {
+            label: isZh ? "即将支持" : "Planned",
+            description: isZh
+                ? "该来源还在准备中，当前不能启用、测试或保存。"
+                : "This source is still being prepared and cannot be enabled, tested, or saved yet.",
+            tone: "neutral",
+        };
+    }
+
     if (hasSavedSetup(source) && !source.enabled) {
         return {
             label: isZh ? "同步已暂停" : "Import paused",
@@ -191,16 +219,6 @@ function getProviderStatusDisplay(
                 ? "已保存部分连接信息，保存后可继续用于导入。"
                 : "Some connection details are saved and can continue after saving.",
             tone: "info",
-        };
-    }
-
-    if (source.runtimeStatus === "planned") {
-        return {
-            label: isZh ? "即将支持" : "Planned",
-            description: isZh
-                ? "该来源还在准备中。"
-                : "This source is still being prepared.",
-            tone: "neutral",
         };
     }
 
@@ -240,6 +258,22 @@ function getProviderActionMessage(
             description: message.description,
             title: message.title,
             tone: getActionTone(message.state),
+        };
+    }
+
+    if (source.connectionStatus === "expired") {
+        return {
+            description: status.description,
+            title: isZh ? "登录已过期" : "Sign-in expired",
+            tone: "warning" as const,
+        };
+    }
+
+    if (source.runtimeStatus === "planned") {
+        return {
+            description: status.description,
+            title: status.label,
+            tone: "neutral" as const,
         };
     }
 
@@ -474,8 +508,10 @@ function ProviderCard({
         language,
     );
     const saved = hasSavedSetup(source);
+    const expired = source.connectionStatus === "expired";
     const status = getProviderStatusDisplay(source, isZh, actionState);
     const ProviderIcon = PROVIDER_ICONS[source.provider];
+    const providerAssetClass = PROVIDER_ASSET_CLASSES[source.provider];
 
     return (
         <button
@@ -485,17 +521,31 @@ function ProviderCard({
             data-provider-state={status.label}
             className={cn(
                 "grid w-full grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:grid-cols-[2rem_minmax(0,1fr)_auto]",
-                saved && "border-emerald-400/20 bg-emerald-500/10",
+                saved && !expired && "border-emerald-400/20 bg-emerald-500/10",
                 saved &&
+                    !expired &&
                     isSelected &&
                     "border-emerald-300/45 bg-emerald-500/15 shadow-xs",
+                expired && "border-amber-400/25 bg-amber-500/10",
+                expired &&
+                    isSelected &&
+                    "border-amber-300/45 bg-amber-500/15 shadow-xs",
                 !saved &&
                     isSelected &&
                     "border-primary/45 bg-background/65 shadow-xs",
             )}
         >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
-                <ProviderIcon className="size-4" />
+                {providerAssetClass ? (
+                    <span
+                        className={cn(
+                            "size-5 rounded-[0.32rem] bg-cover bg-center",
+                            providerAssetClass,
+                        )}
+                    />
+                ) : (
+                    <ProviderIcon className="size-4" />
+                )}
             </span>
             <span className="flex min-w-0 flex-col gap-1">
                 <span className="truncate text-sm font-semibold">
@@ -601,6 +651,7 @@ function ProviderDetail({
     const actionState: ProviderActionState = isSaving
         ? "saving"
         : (actionMessage?.state ?? "idle");
+    const isProviderInteractionDisabled = source.runtimeStatus === "planned";
     const status = getProviderStatusDisplay(source, isZh, actionState);
     const helpUrl = getDataSourceHelpDocUrl(source.provider);
     const serviceAddress = getProviderServiceAddressDisplay(source, language);
@@ -626,39 +677,56 @@ function ProviderDetail({
         : "Actions below only affect this source. Saved settings are used for import, updates, and title write-back.";
     const authModeControl =
         source.authModes.length > 1 ? (
-            <div className="flex flex-col gap-2">
-                <Label htmlFor={`${source.provider}-auth`}>
+            <fieldset className="flex flex-col gap-2">
+                <legend className="text-sm font-medium">
                     {isZh ? "登录方式" : "Sign-in method"}
-                </Label>
-                <Select
-                    value={source.authMode}
-                    onValueChange={(value) =>
-                        updateSource(source.provider, (current) => ({
-                            ...current,
-                            authMode: value,
-                        }))
-                    }
+                </legend>
+                <div
+                    className="grid gap-2 sm:grid-cols-2"
+                    data-auth-mode-picker=""
                 >
-                    <SelectTrigger
-                        id={`${source.provider}-auth`}
-                        className="w-full"
-                    >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            {source.authModes.map((mode) => (
-                                <SelectItem key={mode} value={mode}>
+                    {source.authModes.map((mode) => {
+                        const active = source.authMode === mode;
+
+                        return (
+                            <button
+                                key={mode}
+                                type="button"
+                                aria-pressed={active}
+                                data-active={active ? "true" : "false"}
+                                data-auth-mode={mode}
+                                disabled={isProviderInteractionDisabled}
+                                onClick={() =>
+                                    updateSource(
+                                        source.provider,
+                                        (current) => ({
+                                            ...current,
+                                            authMode: mode,
+                                        }),
+                                    )
+                                }
+                                className="rounded-xl border border-border/70 bg-background/35 px-3 py-3 text-left transition-colors hover:bg-background/55 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                            >
+                                <span className="block text-sm font-semibold">
                                     {getSourceAuthModeDisplayLabel(
                                         mode,
                                         language,
                                     )}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            </div>
+                                </span>
+                                <span className="mt-1 block text-xs text-muted-foreground">
+                                    {mode === "web-reverse"
+                                        ? isZh
+                                            ? "网页登录会话，适合从网页导入来源内容。"
+                                            : "Web session credentials for source-side imports."
+                                        : isZh
+                                          ? "开放平台或服务端凭据，适合稳定导入。"
+                                          : "Open-platform or server credentials for stable imports."}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </fieldset>
         ) : (
             <div className="flex flex-col gap-1">
                 <Label>{isZh ? "登录方式" : "Sign-in method"}</Label>
@@ -712,6 +780,7 @@ function ProviderDetail({
                             <Switch
                                 id={`${source.provider}-enabled`}
                                 checked={source.enabled}
+                                disabled={isProviderInteractionDisabled}
                                 onCheckedChange={(checked) =>
                                     updateSource(
                                         source.provider,
@@ -740,6 +809,7 @@ function ProviderDetail({
                                 id={`${source.provider}-base-url`}
                                 value={serviceAddress.value}
                                 readOnly={serviceAddress.readOnly}
+                                disabled={isProviderInteractionDisabled}
                                 onChange={(event) =>
                                     serviceAddress.readOnly
                                         ? undefined
@@ -766,6 +836,7 @@ function ProviderDetail({
                                 key={field.id}
                                 field={field}
                                 fieldId={`${source.provider}-${field.id}`}
+                                disabled={isProviderInteractionDisabled}
                                 onValueChange={(nextField, value) =>
                                     updateField(source, nextField, value)
                                 }
@@ -796,6 +867,7 @@ function ProviderDetail({
                                     key={field.id}
                                     field={field}
                                     fieldId={`${source.provider}-${field.id}`}
+                                    disabled={isProviderInteractionDisabled}
                                     onValueChange={(nextField, value) =>
                                         updateField(source, nextField, value)
                                     }
@@ -826,7 +898,11 @@ function ProviderDetail({
                             type="button"
                             variant="outline"
                             onClick={() => onTest(source)}
-                            disabled={isSaving || actionState === "testing"}
+                            disabled={
+                                isProviderInteractionDisabled ||
+                                isSaving ||
+                                actionState === "testing"
+                            }
                             aria-busy={actionState === "testing"}
                         >
                             <RotateCw data-icon="inline-start" />
@@ -845,7 +921,7 @@ function ProviderDetail({
                         <Button
                             type="button"
                             onClick={() => void onSave(source)}
-                            disabled={isSaving}
+                            disabled={isProviderInteractionDisabled || isSaving}
                             aria-busy={isSaving}
                         >
                             {isSaving
@@ -902,6 +978,22 @@ export function DataSourcesSection() {
             return;
         }
 
+        const preferredProvider = readBrowserStorage(
+            SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+        );
+        if (
+            isSourceProvider(preferredProvider) &&
+            orderedSources.some(
+                (source) => source.provider === preferredProvider,
+            )
+        ) {
+            if (selectedProvider !== preferredProvider) {
+                setSelectedProvider(preferredProvider);
+            }
+            writeBrowserStorage(SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY, "");
+            return;
+        }
+
         if (
             !selectedProvider ||
             !orderedSources.some(
@@ -934,6 +1026,18 @@ export function DataSourcesSection() {
     };
 
     const handleSaveSource = async (source: DataSourceDisplayState) => {
+        if (source.runtimeStatus === "planned") {
+            setProviderActionMessage(source.provider, {
+                description: isZh
+                    ? "该来源还在准备中，当前不能保存配置。"
+                    : "This source is still being prepared and cannot be saved yet.",
+                state: "save-error",
+                title: isZh ? "暂不可保存" : "Save unavailable",
+            });
+            scheduleProviderActionMessageReset(source.provider);
+            return;
+        }
+
         setProviderActionMessage(source.provider, {
             description: isZh
                 ? "正在保存当前来源的连接信息。"
@@ -964,6 +1068,18 @@ export function DataSourcesSection() {
     };
 
     const handleTestSource = (source: DataSourceDisplayState) => {
+        if (source.runtimeStatus === "planned") {
+            setProviderActionMessage(source.provider, {
+                description: isZh
+                    ? "该来源还在准备中，当前不能测试连接。"
+                    : "This source is still being prepared and cannot be tested yet.",
+                state: "test-error",
+                title: isZh ? "暂不可测试" : "Test unavailable",
+            });
+            scheduleProviderActionMessageReset(source.provider);
+            return;
+        }
+
         setProviderActionMessage(source.provider, {
             description: isZh
                 ? "正在检查当前表单中的连接信息。"

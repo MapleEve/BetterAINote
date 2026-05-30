@@ -66,6 +66,7 @@ import {
     startBrowserInterval,
     stopBrowserInterval,
     writeBrowserHash,
+    writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
@@ -83,6 +84,7 @@ import {
     type SourceProviderRowStatus,
     SourceProviderRows,
 } from "./components/source-provider-rows";
+import { SystemBanner } from "./components/system-banner";
 import { TranscriptionPanel } from "./components/transcription-panel";
 import {
     areDashboardTranscriptionJobsEqual,
@@ -137,6 +139,8 @@ interface WorkstationProps {
 
 type DashboardFavorite = "all" | "transcribed" | "tags";
 type TopbarOverlay = "search" | "activity";
+const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
+    "settings-data-source-provider";
 
 const DASHBOARD_SOURCE_ORDER = [
     "dingtalk-a1",
@@ -175,6 +179,7 @@ function getDashboardSourceStatus(params: {
     hasCount: boolean;
     hasSyncError: boolean;
     isSyncing: boolean;
+    isExpired: boolean;
 }): SourceProviderRowStatus {
     if (params.isLoading) {
         return "loading";
@@ -190,6 +195,10 @@ function getDashboardSourceStatus(params: {
 
     if (!params.enabled) {
         return "paused";
+    }
+
+    if (params.isExpired) {
+        return "expired";
     }
 
     if (params.isSyncing) {
@@ -251,6 +260,7 @@ export function Workstation({
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
         null,
     );
+    const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [activeTopbarOverlay, setActiveTopbarOverlay] =
         useState<TopbarOverlay | null>(null);
@@ -802,6 +812,7 @@ export function Workstation({
                         activeFavorite === "all" || currentFilterCount > 0,
                     hasCount: count > 0,
                     hasSyncError: hasSyncError && configured,
+                    isExpired: source?.connectionStatus === "expired",
                     isLoading: areDataSourcesLoading && !source,
                     isPlanned: source?.runtimeStatus === "planned",
                     isSyncing: isAutoSyncing && configured,
@@ -935,10 +946,19 @@ export function Workstation({
         setSettingsOpen(true);
     }, []);
 
-    const handleOpenDataSourcesSettings = useCallback(() => {
-        writeBrowserHash("data-sources");
-        handleOpenSettings();
-    }, [handleOpenSettings]);
+    const handleOpenDataSourcesSettings = useCallback(
+        (provider?: SourceProvider) => {
+            if (provider) {
+                writeBrowserStorage(
+                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                    provider,
+                );
+            }
+            writeBrowserHash("data-sources");
+            handleOpenSettings();
+        },
+        [handleOpenSettings],
+    );
 
     const handleClearDashboardFilters = useCallback(() => {
         setActiveFavorite("all");
@@ -1166,6 +1186,7 @@ export function Workstation({
             return;
         }
 
+        setAutoRenameError(null);
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
@@ -1179,16 +1200,22 @@ export function Workstation({
 
             const data = await response.json();
             if (!response.ok) {
-                toast.error(data.error || t("transcription.autoRenameFailed"));
+                const message =
+                    data.error || t("transcription.autoRenameFailed");
+                setAutoRenameError(message);
+                toast.error(message);
                 return;
             }
 
             if (typeof data.filename === "string" && data.filename.trim()) {
                 setAutoRenamePreview(data.filename);
+                setAutoRenameError(null);
                 toast.success(t("transcription.aiRenamePreviewReady"));
             }
         } catch {
-            toast.error(t("transcription.autoRenameFailed"));
+            const message = t("transcription.autoRenameFailed");
+            setAutoRenameError(message);
+            toast.error(message);
         } finally {
             setIsAutoRenaming(false);
         }
@@ -1201,6 +1228,7 @@ export function Workstation({
 
     const handleAutoRenamePreviewCancel = useCallback(() => {
         setAutoRenamePreview(null);
+        setAutoRenameError(null);
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -1238,6 +1266,7 @@ export function Workstation({
             );
             setRenameValue(filename);
             setAutoRenamePreview(null);
+            setAutoRenameError(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
                     filename,
@@ -1470,7 +1499,7 @@ export function Workstation({
                                 setSourceDrawerOpen(false);
                             }}
                             onConnectProvider={(provider) => {
-                                setActiveSourceProvider(provider);
+                                handleOpenDataSourcesSettings(provider);
                                 setSourceDrawerOpen(false);
                             }}
                             onClearProvider={() => {
@@ -1583,6 +1612,7 @@ export function Workstation({
                                 </p>
                             </div>
                         </div>
+                        <SystemBanner className="hidden min-w-[15rem] flex-1 lg:flex" />
                         <div className="flex shrink-0 items-center gap-2">
                             <Button
                                 onClick={handleSync}
@@ -1926,7 +1956,33 @@ export function Workstation({
                                             </>
                                         )}
                                     </div>
-                                    {autoRenamePreview ? (
+                                    {isAutoRenaming && !autoRenamePreview ? (
+                                        <AiRenamePreviewCard
+                                            isApplying={false}
+                                            isRegenerating={isAutoRenaming}
+                                            message={
+                                                language === "zh-CN"
+                                                    ? "正在根据当前转写生成可预览的标题。"
+                                                    : "Generating a preview title from the current transcript."
+                                            }
+                                            state="loading"
+                                            title={t("transcription.aiRename")}
+                                        />
+                                    ) : autoRenameError ? (
+                                        <AiRenamePreviewCard
+                                            isApplying={false}
+                                            isRegenerating={isAutoRenaming}
+                                            message={autoRenameError}
+                                            onRegenerate={handleAutoRename}
+                                            regenerateLabel={t(
+                                                "transcription.aiRenameRegenerate",
+                                            )}
+                                            state="error"
+                                            title={t(
+                                                "transcription.autoRenameFailed",
+                                            )}
+                                        />
+                                    ) : autoRenamePreview ? (
                                         <AiRenamePreviewCard
                                             applyLabel={t(
                                                 "transcription.aiRenameApply",
@@ -1950,6 +2006,14 @@ export function Workstation({
                                             title={t(
                                                 "transcription.aiRenamePreview",
                                             )}
+                                        />
+                                    ) : autoRenameDisabledReason ? (
+                                        <AiRenamePreviewCard
+                                            isApplying={false}
+                                            isRegenerating={false}
+                                            message={autoRenameDisabledReason}
+                                            state="unavailable"
+                                            title={t("transcription.aiRename")}
                                         />
                                     ) : null}
                                     <RecordingPlayer

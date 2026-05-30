@@ -14,5 +14,10 @@ describe("dashboard recording player regressions", () => {
 
         expect(source).not.toContain("src={audioSrc}");
         expect(source).toContain("src={audioSrc || undefined}");
+        expect(source).toContain("playbackDisabled");
+        expect(source).toContain("data-player-state");
+        expect(source).toContain("disabled={playbackDisabled}");
+        expect(source).toContain("z-[220]");
+        expect(source).not.toContain("z-[1000]");
     });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    AlertCircle,
     CheckCircle2,
     CircleDashed,
     Cloud,
@@ -25,6 +26,7 @@ export type SourceProviderRowStatus =
     | "no-results"
     | "paused"
     | "needs-setup"
+    | "expired"
     | "planned";
 
 export interface SourceProviderRowModel {
@@ -53,6 +55,12 @@ const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     plaud: Cloud,
     "feishu-minutes": MessageSquare,
     iflyrec: Database,
+};
+const PROVIDER_ASSET_CLASSES: Partial<Record<SourceProvider, string>> = {
+    "dingtalk-a1": "bg-[url('/assets/sources/dingtalk.svg')]",
+    ticnote: "bg-[url('/assets/sources/ticnote.png')]",
+    plaud: "bg-[url('/assets/sources/plaud.png')]",
+    "feishu-minutes": "bg-[url('/assets/sources/feishu.jpeg')]",
 };
 
 function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
@@ -86,6 +94,10 @@ function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
         return isZh ? "已暂停" : "Paused";
     }
 
+    if (row.status === "expired") {
+        return isZh ? "需要重新登录" : "Re-auth required";
+    }
+
     if (row.status === "planned") {
         return isZh ? "待开放" : "Planned";
     }
@@ -107,6 +119,12 @@ function getStatusIcon(row: SourceProviderRowModel) {
     if (row.status === "sync-error") {
         return (
             <CircleDashed className="size-3 text-amber-600 dark:text-amber-300" />
+        );
+    }
+
+    if (row.status === "expired") {
+        return (
+            <AlertCircle className="size-3 text-amber-600 dark:text-amber-300" />
         );
     }
 
@@ -164,9 +182,12 @@ export function SourceProviderRows({
                 {rows.map((row) => {
                     const statusCopy = getStatusCopy(row, language);
                     const ProviderIcon = PROVIDER_ICONS[row.provider];
+                    const providerAssetClass =
+                        PROVIDER_ASSET_CLASSES[row.provider];
                     const shouldOpenSettings =
                         row.status === "needs-setup" ||
                         row.status === "paused" ||
+                        row.status === "expired" ||
                         row.status === "planned";
 
                     return (
@@ -201,7 +222,16 @@ export function SourceProviderRows({
                                 )}
                                 aria-hidden="true"
                             >
-                                <ProviderIcon className="size-3.5" />
+                                {providerAssetClass ? (
+                                    <span
+                                        className={cn(
+                                            "size-4 rounded-[0.3rem] bg-cover bg-center",
+                                            providerAssetClass,
+                                        )}
+                                    />
+                                ) : (
+                                    <ProviderIcon className="size-3.5" />
+                                )}
                             </span>
 
                             <span
@@ -242,6 +272,12 @@ export function SourceProviderRows({
                                         "待开放"
                                     ) : (
                                         "Soon"
+                                    )
+                                ) : row.status === "expired" ? (
+                                    isZh ? (
+                                        "重登"
+                                    ) : (
+                                        "Re-auth"
                                     )
                                 ) : isZh ? (
                                     "连接"

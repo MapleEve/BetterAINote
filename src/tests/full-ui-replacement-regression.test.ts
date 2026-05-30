@@ -17,10 +17,32 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("--graphite-100");
         expect(globals).toContain("--steel-500");
         expect(globals).toContain("BetterAINote Graphite Glass design system");
-        expect(globals).toContain("Graphite Glass compatibility utilities");
+        expect(globals).toContain("--page-background");
         expect(globals).not.toContain("Hardware Design System");
         expect(globals).not.toContain("Graphite, Paper, Brass");
         expect(globals).not.toContain("warm beige");
+        for (const forbidden of [
+            "--rack-background",
+            "--accent-purple",
+            "--accent-cyan",
+            "--metal-base",
+            "--warm-beige",
+            "--neomorph-raised",
+            "--glow-cyan",
+            ".rack-container",
+            ".knob",
+            ".record-button",
+            ".info-card",
+            ".circular-progress",
+            ".rack-module",
+            ".settings-panel",
+            ".settings-backdrop",
+            ".xy-pad",
+            ".cassette-indicator",
+            ".tape-deck",
+        ]) {
+            expect(globals).not.toContain(forbidden);
+        }
         expect(rootLayout).not.toContain("next/font");
         expect(rootLayout).toContain("<Toaster />");
         expect(appLayout).not.toContain("<Footer");
@@ -69,6 +91,11 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("connected-empty");
         expect(workstation).toContain("favoriteScopedProviderCounts");
         expect(workstation).toContain("sync-error");
+        expect(workstation).toContain('"expired"');
+        expect(workstation).toContain("connectionStatus");
+        expect(workstation).toContain(
+            "SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY",
+        );
         expect(workstation).toContain("no-results");
         expect(workstation).toContain("<SourceFilterStackStrip");
         expect(workstation).not.toContain("connected: count > 0");
@@ -77,8 +104,11 @@ describe("full UI replacement regression coverage", () => {
         expect(rows).not.toContain("PROVIDER_MARKS");
         expect(rows).toContain('"paused"');
         expect(rows).toContain('"needs-setup"');
+        expect(rows).toContain('"expired"');
         expect(rows).toContain('"planned"');
         expect(rows).toContain('"no-results"');
+        expect(rows).toContain("PROVIDER_ASSET_CLASSES");
+        expect(rows).toContain("/assets/sources/dingtalk.svg");
     });
 
     it("keeps the stacked source filter strip wired to real dashboard actions", () => {
@@ -94,6 +124,7 @@ describe("full UI replacement regression coverage", () => {
         expect(strip).toContain('state === "sync-error"');
         expect(strip).toContain('state === "no-results"');
         expect(strip).toContain('state === "needs-setup"');
+        expect(strip).toContain('status === "expired"');
         expect(strip).toContain("onClearSource");
         expect(strip).toContain("onClearAll");
         expect(strip).toContain("onRetrySync");
@@ -107,6 +138,7 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingList).toContain('"tag-empty"');
         expect(workstation).toContain("handleClearDashboardFilters");
         expect(workstation).toContain("handleOpenDataSourcesSettings");
+        expect(workstation).toContain("writeBrowserStorage");
     });
 
     it("keeps dashboard responsive drawer and desktop collapse controls wired", () => {
@@ -139,6 +171,8 @@ describe("full UI replacement regression coverage", () => {
         expect(search).toContain("aria-activedescendant");
         expect(search).toContain("data-active");
         expect(search).toContain("getTargetRecordingId");
+        expect(search).toContain("handleRetrySearch");
+        expect(search).toContain("data-ls-retry");
     });
 
     it("keeps source detail public-field filtered before rendering nested values", () => {
@@ -152,6 +186,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             ".filter(([key]) => isSafeSourceDetailField(key))",
         );
+        expect(sourceReport).toContain("detailEntries.length > 0");
+        expect(sourceReport).toContain("startedAt");
+        expect(sourceReport).toContain("endedAt");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });
 
@@ -174,6 +211,34 @@ describe("full UI replacement regression coverage", () => {
             expect(source).toContain("handleAutoRenamePreviewApply");
             expect(source).toContain("AiRenamePreviewCard");
             expect(source).toContain('JSON.stringify({ mode: "preview" })');
+            expect(source).toContain("autoRenameError");
+            expect(source).toContain('state="loading"');
+            expect(source).toContain('state="error"');
+            expect(source).toContain('state="unavailable"');
         }
+    });
+
+    it("keeps system banners and source logo assets in the React surface", () => {
+        const systemBanner = readSource(
+            "features/dashboard/components/system-banner.tsx",
+        );
+        const dashboard = readSource("features/dashboard/workstation.tsx");
+        const detail = readSource("features/recordings/workstation.tsx");
+
+        for (const state of [
+            "offline",
+            "permission-denied",
+            "db-locked",
+            "update-available",
+            "import-progress",
+            "export-progress",
+        ]) {
+            expect(systemBanner).toContain(state);
+        }
+
+        expect(systemBanner).toContain("data-system-banner-state");
+        expect(systemBanner).toContain("betterainote:system-banner");
+        expect(dashboard).toContain("<SystemBanner");
+        expect(detail).toContain("<SystemBanner");
     });
 });

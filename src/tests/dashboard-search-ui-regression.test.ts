@@ -94,6 +94,9 @@ describe("dashboard search and activity overlay regression", () => {
             'data-testid="library-search-no-results"',
         );
         expect(searchComponent).toContain('data-testid="library-search-error"');
+        expect(searchComponent).toContain("handleRetrySearch");
+        expect(searchComponent).toContain("data-ls-retry");
+        expect(searchComponent).toContain("retryCount");
         expect(searchComponent).toContain('setQuery("")');
     });
 

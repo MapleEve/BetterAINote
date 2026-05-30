@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, RefreshCw, Search, X } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -83,6 +83,7 @@ export function LibrarySearch({
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
     const [activeResultIndex, setActiveResultIndex] = useState(0);
 
     const trimmedQuery = query.trim();
@@ -163,6 +164,8 @@ export function LibrarySearch({
     }, [closeAndReturnFocus, open]);
 
     useEffect(() => {
+        void retryCount;
+
         if (!trimmedQuery) {
             setResults([]);
             setActiveResultIndex(0);
@@ -225,7 +228,16 @@ export function LibrarySearch({
             clearTimeout(timeoutId);
             controller.abort();
         };
-    }, [scope, trimmedQuery]);
+    }, [retryCount, scope, trimmedQuery]);
+
+    const handleRetrySearch = useCallback(() => {
+        if (!trimmedQuery) {
+            return;
+        }
+        setError(null);
+        setRetryCount((current) => current + 1);
+        inputRef.current?.focus({ preventScroll: true });
+    }, [trimmedQuery]);
 
     const handleResultOpen = useCallback(
         (recordingId: string | null) => {
@@ -382,12 +394,21 @@ export function LibrarySearch({
 
                         {error ? (
                             <div
-                                className="px-4 py-8 text-center"
+                                className="flex flex-col items-center gap-3 px-4 py-8 text-center"
                                 data-testid="library-search-error"
                             >
                                 <p className="text-destructive text-sm">
                                     检索失败，请稍后重试。
                                 </p>
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-background"
+                                    data-ls-retry=""
+                                    onClick={handleRetrySearch}
+                                >
+                                    <RefreshCw className="size-3" />
+                                    重试
+                                </button>
                             </div>
                         ) : null}
 
