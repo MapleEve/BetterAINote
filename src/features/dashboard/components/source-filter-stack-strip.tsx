@@ -2,6 +2,12 @@
 
 import {
     AlertCircle,
+    Cloud,
+    Database,
+    type LucideIcon,
+    MessageSquare,
+    Mic2,
+    Radio,
     RefreshCw,
     Search,
     Settings,
@@ -30,12 +36,12 @@ interface SourceFilterStackStripProps {
     onWidenFilters: () => void;
 }
 
-const PROVIDER_MARKS: Record<SourceProviderRowModel["provider"], string> = {
-    "dingtalk-a1": "钉",
-    ticnote: "T",
-    plaud: "P",
-    "feishu-minutes": "飞",
-    iflyrec: "讯",
+const PROVIDER_ICONS: Record<SourceProviderRowModel["provider"], LucideIcon> = {
+    "dingtalk-a1": Radio,
+    ticnote: Mic2,
+    plaud: Cloud,
+    "feishu-minutes": MessageSquare,
+    iflyrec: Database,
 };
 
 function getStripState(
@@ -89,6 +95,7 @@ export function SourceFilterStackStrip({
         activeFavoriteLabel === (isZh ? "全部录音" : "All recordings")
             ? totalCount
             : Math.max(sourceTotalCount, filteredCount);
+    const ProviderIcon = PROVIDER_ICONS[sourceRow.provider];
 
     return (
         <div
@@ -116,7 +123,7 @@ export function SourceFilterStackStrip({
                     )}
                     aria-hidden="true"
                 >
-                    {PROVIDER_MARKS[sourceRow.provider]}
+                    <ProviderIcon className="size-3" />
                 </span>
                 <span className="truncate">{sourceRow.label}</span>
                 <button

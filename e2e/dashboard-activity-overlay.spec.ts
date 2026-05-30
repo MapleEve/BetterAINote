@@ -70,7 +70,7 @@ test("activity overlay retries and dismisses source notifications", async ({
     await trigger.click();
     const panel = page.getByTestId("dashboard-activity-panel");
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "40");
+    await expect(panel).toHaveCSS("z-index", "220");
 
     const item = panel.locator('[data-activity-id="worker-unavailable"]');
     await expect(item).toBeVisible();

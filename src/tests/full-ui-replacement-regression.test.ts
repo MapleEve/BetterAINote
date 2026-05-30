@@ -11,6 +11,8 @@ function readSource(relativePath: string) {
 describe("full UI replacement regression coverage", () => {
     it("keeps global tokens on the graphite glass system instead of the old warm chrome", () => {
         const globals = readSource("app/globals.css");
+        const rootLayout = readSource("app/layout.tsx");
+        const appLayout = readSource("app/(app)/layout.tsx");
 
         expect(globals).toContain("--graphite-100");
         expect(globals).toContain("--steel-500");
@@ -19,6 +21,10 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain("Hardware Design System");
         expect(globals).not.toContain("Graphite, Paper, Brass");
         expect(globals).not.toContain("warm beige");
+        expect(rootLayout).not.toContain("next/font");
+        expect(rootLayout).toContain("<Toaster />");
+        expect(appLayout).not.toContain("<Footer");
+        expect(appLayout).not.toContain("<Toaster");
     });
 
     it("keeps auth and onboarding on shared graphite primitives without product MetalButton usage", () => {
@@ -40,10 +46,16 @@ describe("full UI replacement regression coverage", () => {
             expect(source).not.toContain("text-accent-cyan");
         }
 
+        expect(login).toContain("data-auth-form-state");
+        expect(login).toContain("aria-busy={isLoading}");
+        expect(register).toContain("data-auth-form-state");
+        expect(register).toContain("aria-busy={isLoading}");
         expect(authLayout).toContain("dashboard-workstation");
         expect(onboardingPage).toContain("dashboard-workstation");
         expect(onboarding).toContain("data-onboarding-surface");
         expect(onboarding).toContain("glass-nav-item");
+        expect(onboarding).toContain("PROVIDER_ICONS");
+        expect(onboarding).not.toContain("item.label.slice(0, 1)");
     });
 
     it("bridges dashboard provider rows to data-source configuration states", () => {
@@ -61,6 +73,8 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<SourceFilterStackStrip");
         expect(workstation).not.toContain("connected: count > 0");
         expect(rows).toContain("data-source-status");
+        expect(rows).toContain("PROVIDER_ICONS");
+        expect(rows).not.toContain("PROVIDER_MARKS");
         expect(rows).toContain('"paused"');
         expect(rows).toContain('"needs-setup"');
         expect(rows).toContain('"planned"');

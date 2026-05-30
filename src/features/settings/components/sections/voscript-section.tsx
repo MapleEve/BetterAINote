@@ -30,6 +30,8 @@ import type {
 } from "@/services/voscript-settings";
 import { SpeakerProfilesPanel } from "./speaker-profiles-panel";
 
+type VoScriptSaveState = "idle" | "saving" | "saved" | "error";
+
 function VoScriptStatusBanner({
     description,
     isReady,
@@ -113,6 +115,8 @@ export function VoScriptSection() {
         privateTranscriptionMaxInflightJobsInput,
         setPrivateTranscriptionMaxInflightJobs,
     ] = useState("1");
+    const [saveState, setSaveState] = useState<VoScriptSaveState>("idle");
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
     useEffect(() => {
         setPrivateTranscriptionBaseUrl(privateTranscriptionBaseUrl ?? "");
@@ -155,6 +159,10 @@ export function VoScriptSection() {
     }, [privateTranscriptionMaxInflightJobs]);
 
     const handleSave = async () => {
+        setSaveState("saving");
+        setSaveMessage(
+            isZh ? "正在保存 VoScript 配置。" : "Saving VoScript settings.",
+        );
         const normalizedBaseUrl = privateTranscriptionBaseUrlInput.trim();
         const minSpeakers = Number.parseInt(
             privateTranscriptionMinSpeakersInput || "0",
@@ -181,29 +189,32 @@ export function VoScriptSection() {
             !Number.isInteger(maxSpeakers) ||
             maxSpeakers < 0
         ) {
-            toast.error(
-                isZh
-                    ? "最少/最多说话人数必须是非负整数"
-                    : "Min and max speakers must be non-negative integers",
-            );
+            const message = isZh
+                ? "最少/最多说话人数必须是非负整数"
+                : "Min and max speakers must be non-negative integers";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
             return;
         }
 
         if (minSpeakers > 0 && maxSpeakers > 0 && maxSpeakers < minSpeakers) {
-            toast.error(
-                isZh
-                    ? "最大说话人数必须大于等于最少说话人数，或填 0 代表自动"
-                    : "Max speakers must be greater than or equal to min speakers, or 0 for auto",
-            );
+            const message = isZh
+                ? "最大说话人数必须大于等于最少说话人数，或填 0 代表自动"
+                : "Max speakers must be greater than or equal to min speakers, or 0 for auto";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
             return;
         }
 
         if (!Number.isInteger(maxInflightJobs) || maxInflightJobs < 0) {
-            toast.error(
-                isZh
-                    ? "本地调度活跃任务上限必须是非负整数"
-                    : "Local scheduler inflight job limit must be a non-negative integer",
-            );
+            const message = isZh
+                ? "本地调度活跃任务上限必须是非负整数"
+                : "Local scheduler inflight job limit must be a non-negative integer";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
             return;
         }
 
@@ -212,11 +223,12 @@ export function VoScriptSection() {
             noRepeatNgramSize < 0 ||
             (noRepeatNgramSize > 0 && noRepeatNgramSize < 3)
         ) {
-            toast.error(
-                isZh
-                    ? "重复抑制长度必须为 0，或大于等于 3 的整数"
-                    : "Repeat suppression must be 0 or an integer greater than or equal to 3",
-            );
+            const message = isZh
+                ? "重复抑制长度必须为 0，或大于等于 3 的整数"
+                : "Repeat suppression must be 0 or an integer greater than or equal to 3";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
             return;
         }
 
@@ -224,11 +236,12 @@ export function VoScriptSection() {
             normalizedSnrThreshold &&
             !Number.isFinite(Number(normalizedSnrThreshold))
         ) {
-            toast.error(
-                isZh
-                    ? "SNR 阈值必须是数字，留空则使用服务默认值"
-                    : "SNR threshold must be a number, or leave blank to use the service default",
-            );
+            const message = isZh
+                ? "SNR 阈值必须是数字，留空则使用服务默认值"
+                : "SNR threshold must be a number, or leave blank to use the service default";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
             return;
         }
 
@@ -255,19 +268,27 @@ export function VoScriptSection() {
             if (trimmedPrivateApiKey) {
                 setPrivateTranscriptionApiKey("");
             }
-            toast.success(
-                normalizedBaseUrl
-                    ? isZh
-                        ? "VoScript 服务配置已保存"
-                        : "VoScript settings saved"
-                    : isZh
-                      ? "VoScript 服务地址已清空"
-                      : "VoScript URL cleared",
-            );
+            const message = normalizedBaseUrl
+                ? isZh
+                    ? "VoScript 服务配置已保存"
+                    : "VoScript settings saved"
+                : isZh
+                  ? "VoScript 服务地址已清空"
+                  : "VoScript URL cleared";
+            setSaveState("saved");
+            setSaveMessage(message);
+            window.setTimeout(() => {
+                setSaveState("idle");
+                setSaveMessage(null);
+            }, 2600);
+            toast.success(message);
         } catch {
-            toast.error(
-                isZh ? "保存 VoScript 配置失败" : "Failed to save VoScript",
-            );
+            const message = isZh
+                ? "保存 VoScript 配置失败"
+                : "Failed to save VoScript";
+            setSaveState("error");
+            setSaveMessage(message);
+            toast.error(message);
         }
     };
 
@@ -425,6 +446,10 @@ export function VoScriptSection() {
         <div
             className="flex min-h-0 flex-col gap-5"
             data-settings-section="voscript"
+            data-voscript-availability={
+                serviceConfigured ? "configured" : "unavailable"
+            }
+            data-voscript-save-state={isSaving ? "saving" : saveState}
         >
             <div className="flex flex-col gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
@@ -528,7 +553,7 @@ export function VoScriptSection() {
                                 field={field}
                                 fieldId={`private-transcription-${field.id}`}
                                 onValueChange={handleOptionFieldChange}
-                                disabled={isSaving}
+                                disabled={isSaving || !serviceConfigured}
                                 variant="settings"
                             />
                         ))}
@@ -536,7 +561,32 @@ export function VoScriptSection() {
                 </Card>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex justify-end border-border/70 border-t bg-background/85 py-3 backdrop-blur">
+            <div className="sticky bottom-0 z-10 flex flex-col gap-2 border-border/70 border-t bg-background/85 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+                {saveMessage ? (
+                    <div
+                        role={saveState === "error" ? "alert" : "status"}
+                        className={cn(
+                            "rounded-xl border px-3 py-2 text-sm",
+                            saveState === "error"
+                                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                                : saveState === "saved"
+                                  ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                                  : "border-sky-400/25 bg-sky-500/10 text-sky-700 dark:text-sky-200",
+                        )}
+                    >
+                        {saveMessage}
+                    </div>
+                ) : (
+                    <span className="text-sm text-muted-foreground">
+                        {serviceConfigured
+                            ? isZh
+                                ? "服务可用于新的私有转写任务。"
+                                : "The service can be used for new private transcription jobs."
+                            : isZh
+                              ? "保存服务地址后才会启用转写参数。"
+                              : "Save a service URL before transcription options become active."}
+                    </span>
+                )}
                 <Button
                     type="button"
                     onClick={() => void handleSave()}

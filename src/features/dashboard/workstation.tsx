@@ -1526,7 +1526,7 @@ export function Workstation({
                         </div>
                     </aside>
 
-                    <header className="glass-surface relative z-30 flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
+                    <header className="glass-surface relative z-[210] flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
                         <div className="flex min-w-0 items-center gap-2">
                             <Button
                                 type="button"
@@ -1862,7 +1862,7 @@ export function Workstation({
                                                                     ? "true"
                                                                     : "false"
                                                             }
-                                                            className="absolute top-11 right-0 z-40 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                                                            className="absolute top-11 right-0 z-[220] w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                                                         >
                                                             <header className="border-border/70 border-b px-3.5 py-2.5">
                                                                 <p className="font-semibold text-sm">

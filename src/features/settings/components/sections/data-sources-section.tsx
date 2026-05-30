@@ -3,10 +3,15 @@
 import {
     AlertCircle,
     CheckCircle2,
+    Cloud,
     Database,
     ExternalLink,
     Info,
+    type LucideIcon,
+    MessageSquare,
+    Mic2,
     PauseCircle,
+    Radio,
     RotateCw,
     XCircle,
 } from "lucide-react";
@@ -106,13 +111,13 @@ const providerBannerClasses: Record<ProviderTone, string> = {
     neutral: "border-border/70 bg-muted/25 text-muted-foreground",
 };
 
-function getProviderInitial(source: DataSourceDisplayState) {
-    if (source.provider === "iflyrec") {
-        return "讯";
-    }
-
-    return source.displayName.trim().slice(0, 1).toUpperCase();
-}
+const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
+    "dingtalk-a1": Radio,
+    ticnote: Mic2,
+    plaud: Cloud,
+    "feishu-minutes": MessageSquare,
+    iflyrec: Database,
+};
 
 function getProviderStatusDisplay(
     source: DataSourceDisplayState,
@@ -470,6 +475,7 @@ function ProviderCard({
     );
     const saved = hasSavedSetup(source);
     const status = getProviderStatusDisplay(source, isZh, actionState);
+    const ProviderIcon = PROVIDER_ICONS[source.provider];
 
     return (
         <button
@@ -489,7 +495,7 @@ function ProviderCard({
             )}
         >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
-                {getProviderInitial(source)}
+                <ProviderIcon className="size-4" />
             </span>
             <span className="flex min-w-0 flex-col gap-1">
                 <span className="truncate text-sm font-semibold">
@@ -875,9 +881,10 @@ export function DataSourcesSection() {
         Partial<Record<SourceProvider, ProviderActionMessage>>
     >({});
 
-    const selectedSource = orderedSources.find(
-        (source) => source.provider === selectedProvider,
-    );
+    const selectedSource =
+        orderedSources.find((source) => source.provider === selectedProvider) ??
+        orderedSources[0] ??
+        null;
     const groupedSources = useMemo(
         () => groupDataSourceProvidersByStage(orderedSources, language),
         [language, orderedSources],
@@ -888,13 +895,20 @@ export function DataSourcesSection() {
     ).length;
 
     useEffect(() => {
+        if (orderedSources.length === 0) {
+            if (selectedProvider) {
+                setSelectedProvider(null);
+            }
+            return;
+        }
+
         if (
-            selectedProvider &&
+            !selectedProvider ||
             !orderedSources.some(
                 (source) => source.provider === selectedProvider,
             )
         ) {
-            setSelectedProvider(null);
+            setSelectedProvider(orderedSources[0].provider);
         }
     }, [orderedSources, selectedProvider]);
 
@@ -1099,15 +1113,10 @@ export function DataSourcesSection() {
                                     : "Choose a source to edit details."}
                             </p>
                         </div>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={selectedProvider ? "ghost" : "secondary"}
-                            className="h-8 rounded-lg px-2 text-xs"
-                            onClick={() => setSelectedProvider(null)}
-                        >
-                            {isZh ? "总览" : "Overview"}
-                        </Button>
+                        <span className="rounded-lg border border-border/60 bg-background/35 px-2 py-1 text-xs font-medium text-muted-foreground">
+                            {selectedSource?.displayName ??
+                                (isZh ? "未选择" : "No source")}
+                        </span>
                     </div>
 
                     <div className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart } from "lucide-react";
+import { GithubIcon } from "lucide-react";
 import Link from "next/link";
 import { Github } from "@/components/icons/icons";
 import { useLanguage } from "@/components/language-provider";
@@ -14,7 +14,7 @@ export function Footer() {
             <div className="container mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4 py-4 text-center text-xs text-muted-foreground sm:text-sm">
                 <span className="flex items-center gap-2 font-medium text-foreground/80">
                     {t("footer.madeWith")}
-                    <Heart className="h-3.5 w-3.5 fill-destructive text-destructive" />
+                    <GithubIcon className="h-3.5 w-3.5 text-primary" />
                 </span>
                 <span className="hidden h-3 w-px bg-border/70 sm:block" />
                 <span>

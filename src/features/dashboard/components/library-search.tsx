@@ -305,7 +305,7 @@ export function LibrarySearch({
                     aria-label="搜索库"
                     data-state={panelState}
                     data-testid="library-search-panel"
-                    className="absolute top-11 right-0 z-40 flex max-h-[min(calc(100svh-6rem),34rem)] w-[min(calc(100vw-1.5rem),28.75rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                    className="absolute top-11 right-0 z-[220] flex max-h-[min(calc(100svh-6rem),34rem)] w-[min(calc(100vw-1.5rem),28.75rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                 >
                     <div className="flex items-center gap-2 border-border/70 border-b px-3 py-2.5">
                         <Search className="h-4 w-4 shrink-0 text-muted-foreground" />

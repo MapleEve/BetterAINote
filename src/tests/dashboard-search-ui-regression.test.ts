@@ -181,8 +181,8 @@ describe("dashboard search and activity overlay regression", () => {
         expect(workstation).toContain("setActiveTopbarOverlay(null);");
         expect(workstation).toContain("overflow-visible");
 
-        expect(searchComponent).toContain("z-40");
-        expect(activityOverlay).toContain("z-40");
+        expect(searchComponent).toContain("z-[220]");
+        expect(activityOverlay).toContain("z-[220]");
         expect(searchComponent).toContain("max-h-[min(calc(100svh-6rem)");
         expect(activityOverlay).toContain("max-h-[min(calc(100svh-6rem)");
         expect(activityOverlay).toContain("triggerRef.current?.focus");

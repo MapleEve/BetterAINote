@@ -4,10 +4,15 @@ import {
     ArrowLeft,
     ArrowRight,
     CheckCircle2,
+    Cloud,
     Database,
     KeyRound,
     Loader2,
     LockKeyhole,
+    type LucideIcon,
+    MessageSquare,
+    Mic2,
+    Radio,
     ServerCog,
     ShieldCheck,
 } from "lucide-react";
@@ -26,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useOnboardingDataSource } from "@/features/data-sources/use-onboarding-data-source";
+import type { SourceProvider } from "@/lib/data-sources/catalog";
 import { getSourceAuthModeDisplayLabel } from "@/lib/data-sources/presentation";
 import {
     navigateAndRefreshBrowserRoute,
@@ -71,6 +77,14 @@ const ONBOARDING_STEPS = [
 ] as const;
 
 type OnboardingStepId = (typeof ONBOARDING_STEPS)[number]["id"];
+
+const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
+    "dingtalk-a1": Radio,
+    ticnote: Mic2,
+    plaud: Cloud,
+    "feishu-minutes": MessageSquare,
+    iflyrec: Database,
+};
 
 function getStepIndex(step: OnboardingStepId) {
     return ONBOARDING_STEPS.findIndex((item) => item.id === step);
@@ -354,6 +368,8 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                     {providerOptions.map((item) => {
                                         const isActive =
                                             item.provider === provider;
+                                        const ProviderIcon =
+                                            PROVIDER_ICONS[item.provider];
 
                                         return (
                                             <button
@@ -376,7 +392,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                                 }
                                             >
                                                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background text-sm font-semibold">
-                                                    {item.label.slice(0, 1)}
+                                                    <ProviderIcon className="size-5" />
                                                 </span>
                                                 <span className="min-w-0 flex-1">
                                                     <span className="block truncate font-semibold">

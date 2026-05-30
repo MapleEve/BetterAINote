@@ -50,6 +50,20 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain("returnFocusRef");
         expect(dialog).toContain("focus({ preventScroll: true })");
         expect(dialog).toContain('event.key === "Escape"');
+
+        const select = readSource("components/ui/select.tsx");
+        const baseDialog = readSource("components/ui/dialog.tsx");
+        const search = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+        const activity = readSource(
+            "features/dashboard/components/activity-overlay.tsx",
+        );
+
+        expect(baseDialog).toContain("z-[600]");
+        expect(select).toContain("z-[650]");
+        expect(search).toContain("z-[220]");
+        expect(activity).toContain("z-[220]");
     });
 
     it("keeps data-source settings on provider rows with detail status, save, and test lanes", () => {
@@ -77,6 +91,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
         );
         expect(section).toContain("data-provider=");
         expect(section).toContain("data-provider-detail");
+        expect(section).toContain("PROVIDER_ICONS");
+        expect(section).not.toContain("getProviderInitial");
+        expect(section).not.toContain('isZh ? "总览" : "Overview"');
         expect(section).toContain("ProviderActionMessage");
         expect(section).toContain('"testing"');
         expect(section).toContain('"test-success"');
@@ -97,6 +114,10 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(voscript).toContain('data-settings-section="voscript"');
         expect(voscript).toContain("VoScriptStatusBanner");
         expect(voscript).toContain("data-voscript-service-state");
+        expect(voscript).toContain("data-voscript-availability");
+        expect(voscript).toContain("data-voscript-save-state");
+        expect(voscript).toContain("VoScriptSaveState");
+        expect(voscript).toContain("setSaveMessage");
         expect(voscript).toContain("privateTranscriptionBaseUrl");
         expect(voscript).toContain("privateTranscriptionMaxInflightJobs");
 

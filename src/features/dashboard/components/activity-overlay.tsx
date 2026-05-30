@@ -845,7 +845,7 @@ export function ActivityOverlay({
                     aria-label="最近动态"
                     data-state={panelState}
                     data-testid="dashboard-activity-panel"
-                    className="absolute top-11 right-0 z-40 flex max-h-[min(calc(100svh-6rem),32.5rem)] w-[min(calc(100vw-1.5rem),24rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                    className="absolute top-11 right-0 z-[220] flex max-h-[min(calc(100svh-6rem),32.5rem)] w-[min(calc(100vw-1.5rem),24rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                 >
                     <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
                         <div className="min-w-0 flex-1">

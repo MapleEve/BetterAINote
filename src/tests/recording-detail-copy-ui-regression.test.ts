@@ -52,6 +52,45 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });
 
+    it("keeps standalone recording detail on the full Graphite Glass shell with top-level copy actions", () => {
+        const detailWorkstation = readSource(
+            "features/recordings/workstation.tsx",
+        );
+
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-detail-workstation"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-detail-copy-strip"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-copy-local-transcript"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-copy-source-transcript"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-copy-source-report"',
+        );
+        expect(detailWorkstation).toContain("handleCopySourceMaterial");
+        expect(detailWorkstation).toContain("buildSourceTranscriptCopyText");
+        expect(detailWorkstation).toContain("<SourceReportPanel");
+        expect(detailWorkstation).toContain("autoLoad");
+        expect(detailWorkstation).not.toContain("container mx-auto max-w-4xl");
+        expect(detailWorkstation).not.toContain(">←<");
+    });
+
+    it("keeps standalone recording route fallback states in the new shell", () => {
+        const loading = readSource("app/(app)/recordings/[id]/loading.tsx");
+        const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
+        const error = readSource("app/(app)/recordings/[id]/error.tsx");
+
+        for (const source of [loading, notFound, error]) {
+            expect(source).toContain("dashboard-workstation");
+            expect(source).toContain("glass-surface");
+        }
+    });
+
     it("keeps speaker review raw transcript copy available from the review toolbar", () => {
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
@@ -79,6 +118,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("showSpeakerReview={false}");
         expect(detailWorkstation).toContain("<SpeakerLabelEditor");
         expect(detailWorkstation).toContain("/rename/auto");
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-copy-source-report"',
+        );
 
         expect(dashboardWorkstation).toContain("handleAutoRename");
         expect(dashboardWorkstation).toContain("/rename/auto");

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,11 +25,16 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [formState, setFormState] = useState<{
+        kind: "error" | "success";
+        message: string;
+    } | null>(null);
     const router = useBrowserRouteController();
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         setIsLoading(true);
+        setFormState(null);
 
         try {
             const result = await signIn.email({
@@ -37,12 +43,14 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
             });
 
             if (result.error) {
-                toast.error(
-                    result.error.message || t("auth.invalidCredentials"),
-                );
+                const message =
+                    result.error.message || t("auth.invalidCredentials");
+                setFormState({ kind: "error", message });
+                toast.error(message);
                 return;
             }
 
+            setFormState({ kind: "success", message: t("auth.loginSuccess") });
             toast.success(t("auth.loginSuccess"));
             navigateAndRefreshBrowserRoute(router, "/dashboard");
         } catch (error) {
@@ -50,6 +58,7 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                 error instanceof Error
                     ? error.message
                     : t("auth.invalidCredentials");
+            setFormState({ kind: "error", message });
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -80,6 +89,27 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {formState ? (
+                        <div
+                            role={
+                                formState.kind === "error" ? "alert" : "status"
+                            }
+                            data-auth-form-state={formState.kind}
+                            className={
+                                formState.kind === "error"
+                                    ? "glass-surface-subtle flex items-start gap-2 rounded-xl border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive"
+                                    : "glass-surface-subtle flex items-start gap-2 rounded-xl border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-200"
+                            }
+                        >
+                            {formState.kind === "error" ? (
+                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                            ) : (
+                                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                            )}
+                            <span>{formState.message}</span>
+                        </div>
+                    ) : null}
+
                     <div className="space-y-2">
                         <Label htmlFor="email">{t("auth.email")}</Label>
                         <Input
@@ -91,6 +121,7 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                             required
                             disabled={isLoading}
                             autoComplete="email"
+                            aria-invalid={formState?.kind === "error"}
                         />
                     </div>
 
@@ -107,6 +138,7 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                             required
                             disabled={isLoading}
                             autoComplete="current-password"
+                            aria-invalid={formState?.kind === "error"}
                         />
                     </div>
 
@@ -114,8 +146,16 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                         type="submit"
                         className="w-full"
                         disabled={isLoading}
+                        aria-busy={isLoading}
                     >
-                        {isLoading ? t("auth.signingIn") : t("auth.signIn")}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                {t("auth.signingIn")}
+                            </>
+                        ) : (
+                            t("auth.signIn")
+                        )}
                     </Button>
                 </form>
 

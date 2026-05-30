@@ -1,6 +1,17 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, Loader2, RefreshCw } from "lucide-react";
+import {
+    CheckCircle2,
+    CircleDashed,
+    Cloud,
+    Database,
+    Loader2,
+    type LucideIcon,
+    MessageSquare,
+    Mic2,
+    Radio,
+    RefreshCw,
+} from "lucide-react";
 import type { SourceProvider } from "@/lib/data-sources/catalog";
 import type { UiLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -36,12 +47,12 @@ interface SourceProviderRowsProps {
     onClearProvider: () => void;
 }
 
-const PROVIDER_MARKS: Record<SourceProvider, string> = {
-    "dingtalk-a1": "钉",
-    ticnote: "T",
-    plaud: "P",
-    "feishu-minutes": "飞",
-    iflyrec: "讯",
+const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
+    "dingtalk-a1": Radio,
+    ticnote: Mic2,
+    plaud: Cloud,
+    "feishu-minutes": MessageSquare,
+    iflyrec: Database,
 };
 
 function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
@@ -152,6 +163,7 @@ export function SourceProviderRows({
             <div className="flex flex-col gap-1">
                 {rows.map((row) => {
                     const statusCopy = getStatusCopy(row, language);
+                    const ProviderIcon = PROVIDER_ICONS[row.provider];
                     const shouldOpenSettings =
                         row.status === "needs-setup" ||
                         row.status === "paused" ||
@@ -189,7 +201,7 @@ export function SourceProviderRows({
                                 )}
                                 aria-hidden="true"
                             >
-                                {PROVIDER_MARKS[row.provider]}
+                                <ProviderIcon className="size-3.5" />
                             </span>
 
                             <span
