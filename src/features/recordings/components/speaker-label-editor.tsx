@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
+import { Copy, FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -13,6 +13,7 @@ import {
 } from "@/features/recordings/components/transcription-skeletons";
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
@@ -151,6 +152,7 @@ export function SpeakerLabelEditor({
     );
     const [speakerTranscript, setSpeakerTranscript] =
         useState<TranscriptReview | null>(null);
+    const [isCopyingRawTranscript, setIsCopyingRawTranscript] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const speakerMapRef = useRef<Record<string, string>>(speakerMap ?? {});
 
@@ -163,6 +165,8 @@ export function SpeakerLabelEditor({
     );
     const activeReview =
         reviewMode === "speaker" ? speakerTranscript : rawTranscript;
+
+    const canCopyRawTranscript = Boolean(rawTranscript?.text.trim());
 
     useEffect(() => {
         speakerMapRef.current = speakerMap ?? {};
@@ -401,6 +405,24 @@ export function SpeakerLabelEditor({
         ],
     );
 
+    const handleCopyRawTranscript = useCallback(async () => {
+        const copyText = rawTranscript?.text ?? "";
+        if (!copyText.trim()) {
+            toast.error(t("speakerReview.failedToLoadTranscriptReview"));
+            return;
+        }
+
+        setIsCopyingRawTranscript(true);
+        try {
+            await writeBrowserClipboardText(copyText);
+            toast.success(t("speakerReview.rawTranscriptCopied"));
+        } catch {
+            toast.error(t("speakerReview.copyRawTranscriptFailed"));
+        } finally {
+            setIsCopyingRawTranscript(false);
+        }
+    }, [rawTranscript?.text, t]);
+
     if (isLoading) {
         return <SpeakerReviewSkeleton />;
     }
@@ -440,6 +462,23 @@ export function SpeakerLabelEditor({
                             onClick={() => setReviewMode("raw")}
                         >
                             {t("speakerReview.rawLabelsMode")}
+                        </Button>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCopyRawTranscript}
+                            disabled={
+                                isCopyingRawTranscript ||
+                                isReviewLoading ||
+                                !canCopyRawTranscript
+                            }
+                            aria-busy={isCopyingRawTranscript}
+                        >
+                            <Copy className="mr-2 h-3.5 w-3.5" />
+                            {isCopyingRawTranscript
+                                ? t("common.copying")
+                                : t("speakerReview.copyRawTranscript")}
                         </Button>
                         <Button
                             type="button"

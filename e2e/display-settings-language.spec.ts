@@ -6,6 +6,17 @@ test("display settings language switches copy immediately via the shared store",
 }) => {
     await ensureSignedIn(page);
 
+    const resetResponse = await page.request.put("/api/settings/display", {
+        data: {
+            dateTimeFormat: "relative",
+            itemsPerPage: 50,
+            recordingListSortOrder: "newest",
+            theme: "system",
+            uiLanguage: "zh-CN",
+        },
+    });
+    expect(resetResponse.ok()).toBe(true);
+
     let resolvePendingUpdate = () => {};
     let notifyUpdateStarted = () => {};
     const updateStarted = new Promise<void>((resolve) => {

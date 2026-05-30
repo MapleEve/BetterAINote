@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/icons/logo";
 import { LanguageProvider } from "@/components/language-provider";
-import { MetalButton } from "@/components/metal-button";
 import { Panel } from "@/components/panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,7 +120,6 @@ describe("React surface SSR coverage", () => {
                 null,
                 React.createElement(Footer),
                 React.createElement(Logo),
-                React.createElement(MetalButton, null, "Sync"),
                 React.createElement(Panel, { variant: "glass" }, "Panel"),
                 React.createElement(
                     Card,
@@ -134,6 +132,7 @@ describe("React surface SSR coverage", () => {
                     React.createElement(CardContent, null, "Body"),
                 ),
                 React.createElement(Button, { variant: "outline" }, "Save"),
+                React.createElement(Button, null, "Sync"),
                 React.createElement(Input, { defaultValue: "input" }),
                 React.createElement(Label, null, "Label"),
                 React.createElement(Textarea, { defaultValue: "note" }),
@@ -248,6 +247,7 @@ describe("React surface SSR coverage", () => {
                             active: true,
                             connected: true,
                             updating: false,
+                            status: "connected",
                         },
                     ],
                     activeProvider: "ticnote",

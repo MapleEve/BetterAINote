@@ -28,7 +28,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain('"--tw-enter-scale": "1"');
         expect(dialog).toContain('"--tw-exit-scale": "1"');
         expect(dialog).toContain("overflow-hidden p-0");
+        expect(dialog).toContain("data-settings-shell");
         expect(dialog).toContain("data-settings-scroll-body");
+        expect(dialog).toContain(
+            "data-settings-active-section={activeSection}",
+        );
         expect(dialog).toContain(
             "flex min-h-0 flex-1 flex-col overscroll-contain",
         );

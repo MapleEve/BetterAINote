@@ -6,7 +6,6 @@
 ## 真实文件
 - `footer.tsx`
 - `language-provider.tsx`
-- `metal-button.tsx`
 - `panel.tsx`
 - `theme-provider.tsx`
 

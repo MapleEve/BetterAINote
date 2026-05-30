@@ -11,7 +11,7 @@ export default async function RegisterPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex min-h-svh items-center justify-center px-4 py-8 md:py-12">
             <div className="w-full max-w-md">
                 <RegisterForm />
             </div>

@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import {
@@ -52,7 +54,6 @@ export function RecordingWorkstation({
     transcriptionJob,
 }: RecordingWorkstationProps) {
     const { language, t } = useLanguage();
-    const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
     const { settings: titleGenerationSettings } =
         useTitleGenerationSettingsStore();
@@ -61,9 +62,16 @@ export function RecordingWorkstation({
     const [renameValue, setRenameValue] = useState(recording.filename);
     const [isSavingRename, setIsSavingRename] = useState(false);
     const [isAutoRenaming, setIsAutoRenaming] = useState(false);
+    const [isApplyingAutoRename, setIsApplyingAutoRename] = useState(false);
+    const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
+        null,
+    );
     const [activeTranscriptTab, setActiveTranscriptTab] = useState<
-        "source" | "local"
+        "source" | "local" | "speakers"
     >("source");
+    const [liveSpeakerMap, setLiveSpeakerMap] = useState(
+        transcription?.speakerMap ?? null,
+    );
     const previousRecordingIdRef = useRef(recording.id);
     const canRenameRecording = canRecordingRename(recording.sourceProvider);
     const renameActionLabel = t(
@@ -92,7 +100,8 @@ export function RecordingWorkstation({
             transcription?.text?.trim() &&
             titleGenerationProviderConfigured &&
             !isSavingRename &&
-            !isAutoRenaming,
+            !isAutoRenaming &&
+            !isApplyingAutoRename,
     );
     const showLocalTranscriptTab =
         !recording.sourceProvider ||
@@ -109,14 +118,21 @@ export function RecordingWorkstation({
         if (previousRecordingIdRef.current !== recording.id) {
             previousRecordingIdRef.current = recording.id;
             setActiveTranscriptTab("source");
+            setFilename(recording.filename);
+            setRenameValue(recording.filename);
+            setAutoRenamePreview(null);
         }
-    }, [recording.id]);
+    }, [recording.filename, recording.id]);
 
     useEffect(() => {
         if (!showLocalTranscriptTab && activeTranscriptTab === "local") {
             setActiveTranscriptTab("source");
         }
     }, [activeTranscriptTab, showLocalTranscriptTab]);
+
+    useEffect(() => {
+        setLiveSpeakerMap(transcription?.speakerMap ?? null);
+    }, [transcription?.speakerMap]);
 
     const handleRenameStart = useCallback(() => {
         if (!canRenameRecording) {
@@ -173,21 +189,15 @@ export function RecordingWorkstation({
             return;
         }
 
-        const confirmed = await confirm({
-            title: t("common.confirmAction"),
-            description: t("transcription.aiRenameConfirm"),
-            confirmLabel: t("common.confirm"),
-            cancelLabel: t("common.cancel"),
-        });
-        if (!confirmed) {
-            return;
-        }
-
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
                 `/api/recordings/${recording.id}/rename/auto`,
-                { method: "POST" },
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mode: "preview" }),
+                },
             );
             const data = await response.json();
             if (!response.ok) {
@@ -195,10 +205,47 @@ export function RecordingWorkstation({
                 return;
             }
 
-            const nextFilename =
-                typeof data.filename === "string" ? data.filename : filename;
+            if (typeof data.filename === "string" && data.filename.trim()) {
+                setAutoRenamePreview(data.filename);
+                toast.success(t("transcription.aiRenamePreviewReady"));
+            }
+        } catch {
+            toast.error(t("transcription.autoRenameFailed"));
+        } finally {
+            setIsAutoRenaming(false);
+        }
+    }, [autoRenameDisabledReason, canAutoRenameRecording, recording.id, t]);
+
+    const handleAutoRenamePreviewCancel = useCallback(() => {
+        setAutoRenamePreview(null);
+    }, []);
+
+    const handleAutoRenamePreviewApply = useCallback(async () => {
+        const nextFilename = autoRenamePreview?.trim();
+        if (!nextFilename) {
+            return;
+        }
+
+        setIsApplyingAutoRename(true);
+        try {
+            const response = await fetch(
+                `/api/recordings/${recording.id}/rename`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filename: nextFilename }),
+                },
+            );
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                toast.error(error.error || t("transcription.autoRenameFailed"));
+                return;
+            }
+
             setFilename(nextFilename);
             setRenameValue(nextFilename);
+            setAutoRenamePreview(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
                     filename: nextFilename,
@@ -207,16 +254,9 @@ export function RecordingWorkstation({
         } catch {
             toast.error(t("transcription.autoRenameFailed"));
         } finally {
-            setIsAutoRenaming(false);
+            setIsApplyingAutoRename(false);
         }
-    }, [
-        autoRenameDisabledReason,
-        canAutoRenameRecording,
-        confirm,
-        filename,
-        recording.id,
-        t,
-    ]);
+    }, [autoRenamePreview, recording.id, t]);
 
     return (
         <div className="bg-transparent">
@@ -307,6 +347,29 @@ export function RecordingWorkstation({
                                         {t("recording.localOnly")}
                                     </span>
                                 )}
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleAutoRename}
+                                    disabled={!canAutoRenameRecording}
+                                    aria-busy={isAutoRenaming}
+                                    title={
+                                        autoRenameDisabledReason ??
+                                        t("transcription.aiRename")
+                                    }
+                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                >
+                                    <Sparkles
+                                        className={
+                                            isAutoRenaming
+                                                ? "h-4 w-4 animate-pulse"
+                                                : "h-4 w-4"
+                                        }
+                                    />
+                                    <span className="hidden sm:inline">
+                                        {t("transcription.aiRename")}
+                                    </span>
+                                </Button>
                                 {canRenameRecording ? (
                                     <Button
                                         size="icon"
@@ -328,6 +391,25 @@ export function RecordingWorkstation({
                                 language,
                             )}
                         </p>
+                        {autoRenamePreview ? (
+                            <AiRenamePreviewCard
+                                applyLabel={t("transcription.aiRenameApply")}
+                                cancelLabel={t(
+                                    "transcription.aiRenameCancelPreview",
+                                )}
+                                className="mt-4"
+                                filename={autoRenamePreview}
+                                isApplying={isApplyingAutoRename}
+                                isRegenerating={isAutoRenaming}
+                                onApply={handleAutoRenamePreviewApply}
+                                onCancel={handleAutoRenamePreviewCancel}
+                                onRegenerate={handleAutoRename}
+                                regenerateLabel={t(
+                                    "transcription.aiRenameRegenerate",
+                                )}
+                                title={t("transcription.aiRenamePreview")}
+                            />
+                        ) : null}
                     </div>
                 </div>
 
@@ -359,41 +441,34 @@ export function RecordingWorkstation({
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mt-4 flex flex-wrap items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant={
-                                            activeTranscriptTab === "source"
-                                                ? "default"
-                                                : "outline"
-                                        }
-                                        onClick={() =>
-                                            setActiveTranscriptTab("source")
-                                        }
-                                    >
-                                        {getSourceTabLabel(
-                                            recording.sourceProvider,
-                                            language,
-                                        )}
-                                    </Button>
-                                    {showLocalTranscriptTab ? (
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant={
-                                                activeTranscriptTab === "local"
-                                                    ? "default"
-                                                    : "outline"
-                                            }
-                                            onClick={() =>
-                                                setActiveTranscriptTab("local")
-                                            }
-                                        >
-                                            {t("recording.localTranscript")}
-                                        </Button>
-                                    ) : null}
-                                </div>
+                                <SegmentedTabs
+                                    className="mt-4"
+                                    items={[
+                                        {
+                                            value: "source",
+                                            label: getSourceTabLabel(
+                                                recording.sourceProvider,
+                                                language,
+                                            ),
+                                        },
+                                        ...(showLocalTranscriptTab
+                                            ? [
+                                                  {
+                                                      value: "local" as const,
+                                                      label: t(
+                                                          "recording.localTranscript",
+                                                      ),
+                                                  },
+                                              ]
+                                            : []),
+                                        {
+                                            value: "speakers",
+                                            label: t("speakerReview.title"),
+                                        },
+                                    ]}
+                                    value={activeTranscriptTab}
+                                    onValueChange={setActiveTranscriptTab}
+                                />
                                 <p className="mt-3 text-sm text-muted-foreground">
                                     {showLocalTranscriptTab
                                         ? t("recording.transcriptTabsHint")
@@ -406,7 +481,7 @@ export function RecordingWorkstation({
                                     recordingId={recording.id}
                                     sourceProvider={recording.sourceProvider}
                                 />
-                            ) : (
+                            ) : activeTranscriptTab === "local" ? (
                                 <TranscriptionSection
                                     recordingId={recording.id}
                                     canTranscribe={canPrivateTranscribe}
@@ -420,9 +495,7 @@ export function RecordingWorkstation({
                                     initialType={
                                         transcription?.transcriptionType
                                     }
-                                    initialSpeakerMap={
-                                        transcription?.speakerMap
-                                    }
+                                    initialSpeakerMap={liveSpeakerMap}
                                     initialJobStatus={transcriptionJob?.status}
                                     initialJobRemoteStatus={
                                         transcriptionJob?.remoteStatus
@@ -430,7 +503,20 @@ export function RecordingWorkstation({
                                     initialJobError={
                                         transcriptionJob?.lastError
                                     }
+                                    showSpeakerReview={false}
                                 />
+                            ) : transcription?.text?.trim() ? (
+                                <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                                    <SpeakerLabelEditor
+                                        recordingId={recording.id}
+                                        speakerMap={liveSpeakerMap}
+                                        onSpeakerMapChanged={setLiveSpeakerMap}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                                    {t("transcription.noTranscriptAvailable")}
+                                </div>
                             )}
                         </div>
                     ) : (
@@ -443,7 +529,7 @@ export function RecordingWorkstation({
                             initialTranscription={transcription?.text}
                             initialLanguage={transcription?.detectedLanguage}
                             initialType={transcription?.transcriptionType}
-                            initialSpeakerMap={transcription?.speakerMap}
+                            initialSpeakerMap={liveSpeakerMap}
                             initialJobStatus={transcriptionJob?.status}
                             initialJobRemoteStatus={
                                 transcriptionJob?.remoteStatus

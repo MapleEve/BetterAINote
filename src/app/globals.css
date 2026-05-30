@@ -3,40 +3,60 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* BetterAINote Color System - Graphite, Paper, Brass */
+/* BetterAINote Graphite Glass design system */
 :root {
-    --background: oklch(0.975 0.006 85);
-    --foreground: oklch(0.245 0.018 262);
-    --card: oklch(0.988 0.003 90);
-    --card-foreground: oklch(0.245 0.018 262);
-    --popover: oklch(0.996 0.002 90);
-    --popover-foreground: oklch(0.245 0.018 262);
-    --primary: oklch(0.655 0.135 67);
-    --primary-foreground: oklch(0.985 0.004 95);
-    --secondary: oklch(0.945 0.01 80);
-    --secondary-foreground: oklch(0.31 0.018 260);
-    --muted: oklch(0.953 0.008 82);
-    --muted-foreground: oklch(0.54 0.014 260);
-    --accent: oklch(0.932 0.016 248);
-    --accent-foreground: oklch(0.265 0.02 260);
+    --graphite-50: oklch(0.985 0.002 250);
+    --graphite-100: oklch(0.965 0.003 250);
+    --graphite-150: oklch(0.945 0.004 250);
+    --graphite-200: oklch(0.915 0.005 250);
+    --graphite-300: oklch(0.86 0.006 250);
+    --graphite-400: oklch(0.745 0.008 250);
+    --graphite-500: oklch(0.605 0.01 250);
+    --graphite-600: oklch(0.47 0.012 252);
+    --graphite-700: oklch(0.345 0.014 254);
+    --graphite-800: oklch(0.245 0.014 256);
+    --graphite-900: oklch(0.165 0.012 258);
+    --graphite-950: oklch(0.11 0.01 258);
+    --steel-50: oklch(0.965 0.014 235);
+    --steel-100: oklch(0.925 0.026 232);
+    --steel-200: oklch(0.86 0.044 230);
+    --steel-300: oklch(0.77 0.062 228);
+    --steel-400: oklch(0.66 0.078 226);
+    --steel-500: oklch(0.555 0.09 224);
+    --steel-600: oklch(0.47 0.095 222);
+    --steel-700: oklch(0.385 0.085 222);
+    --background: var(--graphite-100);
+    --foreground: var(--graphite-800);
+    --card: var(--graphite-50);
+    --card-foreground: var(--graphite-800);
+    --popover: oklch(0.99 0.003 250);
+    --popover-foreground: var(--graphite-800);
+    --primary: var(--steel-500);
+    --primary-foreground: var(--graphite-50);
+    --secondary: var(--graphite-150);
+    --secondary-foreground: var(--graphite-700);
+    --muted: var(--graphite-150);
+    --muted-foreground: var(--graphite-500);
+    --accent: color-mix(in srgb, var(--steel-500) 12%, transparent);
+    --accent-foreground: var(--graphite-800);
     --destructive: oklch(0.59 0.19 28);
-    --destructive-foreground: oklch(0.99 0.004 90);
-    --border: oklch(0.885 0.012 82);
-    --input: oklch(0.9 0.012 82);
-    --ring: oklch(0.655 0.135 67);
-    --chart-1: oklch(0.655 0.135 67);
-    --chart-2: oklch(0.63 0.11 214);
+    --destructive-foreground: var(--graphite-50);
+    --border: color-mix(in srgb, var(--graphite-300) 62%, transparent);
+    --input: color-mix(in srgb, var(--graphite-300) 66%, transparent);
+    --ring: var(--steel-500);
+    --chart-1: var(--steel-500);
+    --chart-2: oklch(0.62 0.09 224);
     --chart-3: oklch(0.58 0.09 170);
-    --chart-4: oklch(0.71 0.085 17);
-    --chart-5: oklch(0.48 0.07 285);
-    --sidebar: oklch(0.963 0.008 84);
-    --sidebar-foreground: oklch(0.265 0.02 260);
-    --sidebar-primary: oklch(0.655 0.135 67);
-    --sidebar-primary-foreground: oklch(0.985 0.004 95);
-    --sidebar-accent: oklch(0.93 0.016 248);
-    --sidebar-accent-foreground: oklch(0.265 0.02 260);
-    --sidebar-border: oklch(0.89 0.012 82);
-    --sidebar-ring: oklch(0.655 0.135 67);
+    --chart-4: oklch(0.73 0.14 78);
+    --chart-5: oklch(0.585 0.18 25);
+    --sidebar: color-mix(in srgb, var(--graphite-50) 70%, transparent);
+    --sidebar-foreground: var(--graphite-800);
+    --sidebar-primary: var(--steel-500);
+    --sidebar-primary-foreground: var(--graphite-50);
+    --sidebar-accent: color-mix(in srgb, var(--steel-500) 12%, transparent);
+    --sidebar-accent-foreground: var(--graphite-800);
+    --sidebar-border: color-mix(in srgb, var(--graphite-300) 62%, transparent);
+    --sidebar-ring: var(--steel-500);
     --font-sans:
         ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -49,42 +69,40 @@
     --shadow-blur: 3px;
     --shadow-spread: 0px;
     --shadow-opacity: 0.1;
-    --shadow-color: oklch(0 0 0);
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm:
-        0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow:
-        0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-color: rgb(20 22 28);
+    --shadow-2xs: 0 1px 1px rgb(20 22 28 / 0.04);
+    --shadow-xs: 0 1px 1px rgb(20 22 28 / 0.04), 0 1px 2px rgb(20 22 28 / 0.04);
+    --shadow-sm: 0 1px 2px rgb(20 22 28 / 0.05), 0 2px 6px rgb(20 22 28 / 0.05);
+    --shadow: 0 1px 2px rgb(20 22 28 / 0.05), 0 2px 6px rgb(20 22 28 / 0.05);
     --shadow-md:
-        0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+        0 2px 4px rgb(20 22 28 / 0.05), 0 6px 14px rgb(20 22 28 / 0.07);
     --shadow-lg:
-        0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+        0 4px 10px rgb(20 22 28 / 0.06), 0 14px 32px rgb(20 22 28 / 0.1);
     --shadow-xl:
-        0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+        0 8px 18px rgb(20 22 28 / 0.08), 0 26px 60px rgb(20 22 28 / 0.14);
+    --shadow-2xl: 0 28px 64px rgb(20 22 28 / 0.16);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
     --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
     --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
 
-    /* Hardware Design System */
+    /* Legacy component aliases now render Graphite Glass. */
     --app-background:
         radial-gradient(
-            circle at top left,
-            oklch(0.985 0.008 70 / 0.9),
-            transparent 34%
-        ), linear-gradient(180deg, oklch(0.985 0.004 88), oklch(0.965 0.007 82));
-    --rack-background: var(--card);
-    --panel-surface: var(--secondary);
-    --panel-border: var(--border);
-    --panel-inset: var(--muted);
+            circle at 16% 0%,
+            color-mix(in srgb, var(--steel-500) 3%, transparent),
+            transparent 32%
+        ), linear-gradient(180deg, var(--graphite-100), var(--graphite-150));
+    --rack-background: color-mix(in srgb, var(--graphite-50) 70%, transparent);
+    --panel-surface: color-mix(in srgb, var(--graphite-50) 58%, transparent);
+    --panel-border: color-mix(in srgb, white 38%, transparent);
+    --panel-inset: color-mix(in srgb, var(--graphite-100) 48%, transparent);
     --accent-primary: var(--primary);
     --accent-primary-fg: var(--primary-foreground);
     --accent-green: oklch(0.68 0.16 154);
-    --accent-blue: oklch(0.63 0.12 224);
-    --accent-purple: oklch(0.61 0.11 300);
-    --accent-cyan: oklch(0.7 0.1 215);
+    --accent-blue: var(--steel-500);
+    --accent-purple: var(--steel-500);
+    --accent-cyan: var(--steel-500);
     --led-active: var(--accent-green);
     --led-warning: oklch(0.77 0.16 83);
     --led-error: var(--destructive);
@@ -92,81 +110,77 @@
     --text-primary: var(--foreground);
     --text-secondary: var(--muted-foreground);
     --text-muted: var(--muted-foreground);
-    --metal-base: oklch(0.9 0.01 84);
-    --metal-light: oklch(0.96 0.006 88);
-    --metal-dark: oklch(0.78 0.014 72);
-    --metal-highlight: oklch(0.995 0.001 92);
-    --warm-beige: oklch(0.95 0.012 78);
-    --warm-text: oklch(0.29 0.018 262);
+    --metal-base: var(--graphite-150);
+    --metal-light: var(--graphite-50);
+    --metal-dark: var(--graphite-300);
+    --metal-highlight: var(--graphite-50);
+    --warm-beige: var(--graphite-150);
+    --warm-text: var(--graphite-800);
     --shadow-inset:
-        inset 0 1px 1px rgb(255 255 255 / 0.55), inset 0 -1px 2px
-        rgb(53 39 18 / 0.06);
-    --shadow-medium: 0 8px 24px rgb(24 23 28 / 0.08);
+        inset 0 1px 0 rgb(255 255 255 / 0.55), inset 0 -1px 0
+        rgb(20 22 28 / 0.04);
+    --shadow-medium: var(--shadow-md);
     --neomorph-raised:
-        0 10px 26px rgb(24 23 28 / 0.08), 0 2px 0 rgb(255 255 255 / 0.45) inset;
+        0 12px 32px rgb(20 22 28 / 0.1), 0 1px 0 rgb(255 255 255 / 0.55) inset;
     --neomorph-pressed:
-        inset 0 2px 4px rgb(24 23 28 / 0.08), inset 0 1px 0
-        rgb(255 255 255 / 0.35);
+        inset 0 2px 4px rgb(20 22 28 / 0.08), inset 0 1px 0
+        rgb(255 255 255 / 0.32);
     --neomorph-flat:
-        0 1px 0 rgb(255 255 255 / 0.5) inset, 0 10px 22px rgb(24 23 28 / 0.05);
-    --glow-cyan: 0 0 20px oklch(0.7 0.1 215 / 0.25);
+        0 1px 0 rgb(255 255 255 / 0.45) inset, 0 8px 22px rgb(20 22 28 / 0.06);
+    --glow-cyan: 0 0 0 3px color-mix(in srgb, var(--steel-500) 18%, transparent);
     --glow-red: 0 0 22px oklch(0.59 0.19 28 / 0.22);
 }
 
 .dark {
-    --background: oklch(0.205 0.014 258);
-    --foreground: oklch(0.92 0.008 84);
-    --card: oklch(0.245 0.012 258);
-    --card-foreground: oklch(0.94 0.008 84);
-    --popover: oklch(0.225 0.012 258);
-    --popover-foreground: oklch(0.94 0.008 84);
-    --primary: oklch(0.735 0.14 68);
-    --primary-foreground: oklch(0.97 0.004 92);
-    --secondary: oklch(0.285 0.012 258);
-    --secondary-foreground: oklch(0.9 0.008 84);
-    --muted: oklch(0.26 0.012 258);
-    --muted-foreground: oklch(0.72 0.01 84);
-    --accent: oklch(0.31 0.016 246);
-    --accent-foreground: oklch(0.95 0.006 86);
+    --background: oklch(0.185 0.004 250);
+    --foreground: oklch(0.965 0.003 250);
+    --card: oklch(0.215 0.004 250);
+    --card-foreground: oklch(0.965 0.003 250);
+    --popover: oklch(0.215 0.004 250);
+    --popover-foreground: oklch(0.965 0.003 250);
+    --primary: oklch(0.7 0.092 226);
+    --primary-foreground: oklch(0.11 0.004 250);
+    --secondary: oklch(0.245 0.006 250);
+    --secondary-foreground: oklch(0.91 0.004 250);
+    --muted: oklch(0.245 0.006 250);
+    --muted-foreground: oklch(0.745 0.005 250);
+    --accent: color-mix(in srgb, var(--primary) 16%, transparent);
+    --accent-foreground: oklch(0.965 0.003 250);
     --destructive: oklch(0.66 0.19 28);
-    --destructive-foreground: oklch(0.96 0.006 86);
-    --border: oklch(0.355 0.016 255);
-    --input: oklch(0.34 0.014 255);
-    --ring: oklch(0.735 0.14 68);
-    --chart-1: oklch(0.735 0.14 68);
+    --destructive-foreground: oklch(0.96 0.006 250);
+    --border: rgb(255 255 255 / 0.09);
+    --input: rgb(255 255 255 / 0.1);
+    --ring: oklch(0.7 0.092 226);
+    --chart-1: oklch(0.7 0.092 226);
     --chart-2: oklch(0.7 0.12 214);
     --chart-3: oklch(0.72 0.11 154);
-    --chart-4: oklch(0.7 0.08 18);
-    --chart-5: oklch(0.65 0.09 302);
-    --sidebar: oklch(0.19 0.012 258);
-    --sidebar-foreground: oklch(0.92 0.008 84);
-    --sidebar-primary: oklch(0.735 0.14 68);
-    --sidebar-primary-foreground: oklch(0.97 0.004 92);
-    --sidebar-accent: oklch(0.29 0.016 246);
-    --sidebar-accent-foreground: oklch(0.93 0.006 86);
-    --sidebar-border: oklch(0.32 0.014 255);
-    --sidebar-ring: oklch(0.735 0.14 68);
+    --chart-4: oklch(0.8 0.16 83);
+    --chart-5: oklch(0.66 0.19 28);
+    --sidebar: rgb(255 255 255 / 0.08);
+    --sidebar-foreground: oklch(0.965 0.003 250);
+    --sidebar-primary: oklch(0.7 0.092 226);
+    --sidebar-primary-foreground: oklch(0.11 0.004 250);
+    --sidebar-accent: color-mix(in srgb, var(--primary) 16%, transparent);
+    --sidebar-accent-foreground: oklch(0.965 0.003 250);
+    --sidebar-border: rgb(255 255 255 / 0.08);
+    --sidebar-ring: oklch(0.7 0.092 226);
     --app-background:
         radial-gradient(
-            circle at top left,
-            oklch(0.34 0.03 250 / 0.45),
-            transparent 24%
+            circle at 16% 0%,
+            oklch(0.7 0.092 226 / 0.08),
+            transparent 30%
         ),
-        radial-gradient(
-            circle at top right,
-            oklch(0.42 0.03 70 / 0.18),
-            transparent 22%
-        ), linear-gradient(180deg, oklch(0.22 0.014 258), oklch(0.18 0.012 258));
-    --rack-background: var(--card);
-    --panel-surface: var(--accent);
-    --panel-border: var(--border);
-    --panel-inset: var(--muted);
+        linear-gradient(180deg, oklch(0.185 0.004 250), oklch(0.16 0.004 250));
+    --rack-background: rgb(255 255 255 / 0.08);
+    --panel-surface: rgb(255 255 255 / 0.05);
+    --panel-border: rgb(255 255 255 / 0.1);
+    --panel-inset: rgb(255 255 255 / 0.03);
     --accent-primary: var(--primary);
     --accent-primary-fg: var(--primary-foreground);
     --accent-green: oklch(0.74 0.15 154);
     --accent-blue: oklch(0.71 0.12 222);
-    --accent-purple: oklch(0.7 0.1 301);
-    --accent-cyan: oklch(0.76 0.11 212);
+    --accent-purple: var(--primary);
+    --accent-cyan: var(--primary);
     --led-active: var(--accent-green);
     --led-warning: oklch(0.8 0.16 83);
     --led-error: var(--destructive);
@@ -174,22 +188,22 @@
     --text-primary: var(--foreground);
     --text-secondary: var(--muted-foreground);
     --text-muted: var(--muted-foreground);
-    --metal-base: oklch(0.27 0.014 258);
-    --metal-light: oklch(0.39 0.018 252);
-    --metal-dark: oklch(0.16 0.012 258);
-    --metal-highlight: oklch(0.48 0.02 248);
-    --warm-beige: oklch(0.32 0.02 74);
-    --warm-text: oklch(0.92 0.008 84);
+    --metal-base: oklch(0.245 0.006 250);
+    --metal-light: oklch(0.31 0.006 250);
+    --metal-dark: oklch(0.16 0.004 250);
+    --metal-highlight: oklch(0.39 0.006 250);
+    --warm-beige: oklch(0.245 0.006 250);
+    --warm-text: oklch(0.965 0.003 250);
     --shadow-inset:
         inset 0 2px 4px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.04);
-    --shadow-medium: 0 16px 36px rgb(0 0 0 / 0.36);
+    --shadow-medium: var(--shadow-md);
     --neomorph-raised:
         0 18px 42px rgb(0 0 0 / 0.34), 0 1px 0 rgb(255 255 255 / 0.03) inset;
     --neomorph-pressed:
         inset 0 2px 4px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.05);
     --neomorph-flat:
         0 1px 0 rgb(255 255 255 / 0.05) inset, 0 12px 28px rgb(0 0 0 / 0.28);
-    --glow-cyan: 0 0 24px oklch(0.76 0.11 212 / 0.22);
+    --glow-cyan: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
     --glow-red: 0 0 24px oklch(0.66 0.19 28 / 0.25);
 }
 
@@ -348,23 +362,18 @@
         pointer-events: none;
         background:
             radial-gradient(
-                circle at 15% 20%,
-                color-mix(in srgb, var(--primary) 14%, transparent) 0%,
-                transparent 28%
-            ),
-            radial-gradient(
-                circle at 82% 14%,
-                color-mix(in srgb, var(--accent-cyan) 10%, transparent) 0%,
-                transparent 24%
+                circle at 18% 0%,
+                color-mix(in srgb, var(--primary) 4%, transparent) 0%,
+                transparent 32%
             ),
             linear-gradient(
                 180deg,
-                rgb(255 255 255 / 0.04),
+                rgb(255 255 255 / 0.035),
                 transparent 18%,
                 transparent 82%,
-                rgb(255 255 255 / 0.02)
+                rgb(255 255 255 / 0.015)
             );
-        opacity: 0.95;
+        opacity: 0.8;
         z-index: -1;
     }
 
@@ -630,44 +639,36 @@
             0 14px 28px rgb(0 0 0 / 0.16);
     }
 
-    /* Hardware Rack Module Utilities */
+    /* Graphite Glass compatibility utilities */
     .rack-container {
         background: var(--rack-background);
         border: 1px solid var(--panel-border);
-        border-radius: var(--radius-lg);
+        border-radius: 1.1rem;
         box-shadow: var(--shadow-lg);
         position: relative;
+        backdrop-filter: blur(24px) saturate(140%);
     }
 
     .panel {
-        background: var(--panel-surface);
+        background:
+            linear-gradient(
+                180deg,
+                rgb(255 255 255 / 0.12),
+                rgb(255 255 255 / 0.03)
+            ), var(--panel-surface);
         border: 1px solid var(--panel-border);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
+        border-radius: 1.1rem;
+        box-shadow: var(--shadow-md), var(--shadow-inset);
         position: relative;
+        backdrop-filter: blur(24px) saturate(140%);
     }
 
     .panel-inset {
         background: var(--panel-inset);
         border: 1px solid var(--panel-border);
-        border-radius: var(--radius-md);
-    }
-
-    .metal-button {
-        background: var(--panel-surface);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--panel-border);
-        transition: all 0.2s ease;
-    }
-
-    .metal-button:hover {
-        background: var(--accent);
-        border-color: var(--primary);
-        box-shadow: var(--shadow-md);
-    }
-
-    .metal-button:active {
-        box-shadow: var(--shadow-xs);
+        border-radius: 0.875rem;
+        box-shadow: var(--shadow-inset);
+        backdrop-filter: blur(14px) saturate(120%);
     }
 
     .text-label {
@@ -679,12 +680,18 @@
     }
 
     .glass-panel {
-        background: rgba(26, 26, 29, 0.8);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background:
+            linear-gradient(
+                180deg,
+                rgb(255 255 255 / 0.12),
+                rgb(255 255 255 / 0.03)
+            ), var(--panel-surface);
+        backdrop-filter: blur(24px) saturate(140%);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--shadow-lg), var(--shadow-inset);
     }
 
-    /* Hardware Knob Styling */
+    /* Legacy control compatibility */
     .knob {
         position: relative;
         width: 72px;
@@ -692,7 +699,6 @@
         border-radius: 50%;
         background: var(--panel-surface);
         box-shadow: var(--shadow-md);
-        cursor: grab;
         border: 2px solid var(--panel-border);
         transition: all 0.2s ease;
     }
@@ -703,7 +709,6 @@
     }
 
     .knob:active {
-        cursor: grabbing;
         box-shadow: var(--shadow-sm);
     }
 
@@ -719,7 +724,7 @@
         z-index: 2;
     }
 
-    /* Neumorphic Components */
+    /* Raised surface compatibility */
     .neomorph-raised {
         box-shadow: var(--neomorph-raised);
     }
@@ -732,8 +737,7 @@
         box-shadow: var(--neomorph-flat);
     }
 
-    /* Toggle Switch */
-    /* Record Button */
+    /* Recording control compatibility */
     .record-button {
         position: relative;
         width: 64px;
@@ -773,7 +777,7 @@
         animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
-    /* Info Card (warm theme) */
+    /* Info card compatibility */
     .info-card {
         background: var(--warm-beige);
         color: var(--warm-text);
@@ -791,7 +795,7 @@
         margin-bottom: 1rem;
     }
 
-    /* Circular Progress Ring */
+    /* Circular progress ring */
     .circular-progress {
         position: relative;
         width: 120px;
@@ -814,7 +818,7 @@
         transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Knob Tick Marks */
+    /* Dial tick marks */
     .knob-ticks {
         position: absolute;
         inset: -12px;
@@ -832,7 +836,7 @@
         transform-origin: center 60px;
     }
 
-    /* Enhanced Slider */
+    /* Enhanced slider */
     .slider-track {
         height: 6px;
         background: var(--metal-dark);
@@ -845,11 +849,11 @@
         height: 100%;
         background: linear-gradient(
             90deg,
-            var(--accent-cyan),
-            var(--accent-purple)
+            color-mix(in srgb, var(--primary) 75%, white 8%),
+            var(--primary)
         );
         border-radius: 3px;
-        box-shadow: 0 0 10px rgba(0, 229, 204, 0.3);
+        box-shadow: none;
     }
 
     .slider-thumb {
@@ -863,7 +867,7 @@
         border-radius: 50%;
         box-shadow:
             var(--shadow-medium),
-            0 0 0 2px var(--accent-cyan);
+            0 0 0 2px color-mix(in srgb, var(--primary) 34%, transparent);
         cursor: grab;
         transition: all 0.2s ease;
     }
@@ -871,7 +875,7 @@
     .slider-thumb:hover {
         box-shadow:
             var(--shadow-medium),
-            0 0 0 3px var(--accent-cyan),
+            0 0 0 3px color-mix(in srgb, var(--primary) 38%, transparent),
             var(--glow-cyan);
     }
 
@@ -879,7 +883,7 @@
         cursor: grabbing;
         box-shadow:
             var(--neomorph-pressed),
-            0 0 0 2px var(--accent-cyan);
+            0 0 0 2px color-mix(in srgb, var(--primary) 34%, transparent);
     }
 
     /* Animations */
@@ -924,7 +928,7 @@
         box-shadow: var(--shadow-sm);
     }
 
-    /* Rack Module */
+    /* Module surface */
     .rack-module {
         padding: 1.5rem;
         background: var(--panel-surface);
@@ -934,7 +938,7 @@
         position: relative;
     }
 
-    /* Rack Screw (mounting holes) */
+    /* Module anchor dot */
     .rack-screw {
         width: 6px;
         height: 6px;
@@ -989,7 +993,7 @@
         color: var(--primary);
     }
 
-    /* Hardware Meter Scale */
+    /* Meter scale */
     .meter-scale {
         display: flex;
         justify-content: space-between;
@@ -1038,7 +1042,7 @@
         position: absolute;
         width: 12px;
         height: 12px;
-        background: var(--accent-cyan);
+        background: var(--primary);
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
         box-shadow: var(--glow-cyan);
@@ -1046,7 +1050,7 @@
         pointer-events: none;
     }
 
-    /* Enhanced Info Card with Warm Theme */
+    /* Enhanced info card */
     .info-card {
         background: linear-gradient(
             135deg,
@@ -1075,7 +1079,7 @@
         pointer-events: none;
     }
 
-    /* Cassette-style indicator */
+    /* Compact mono indicator */
     .cassette-indicator {
         display: inline-flex;
         align-items: center;
@@ -1096,11 +1100,6 @@
             height: 80px;
         }
 
-        .metal-button {
-            min-height: 44px;
-            padding: 0.75rem 1.5rem;
-        }
-
         .record-button {
             width: 72px;
             height: 72px;
@@ -1111,7 +1110,7 @@
         }
     }
 
-    /* Print styles (disable hardware effects) */
+    /* Print styles */
     @media print {
         .rack-container,
         .panel {

@@ -5,6 +5,16 @@ import type { SourceProvider } from "@/lib/data-sources/catalog";
 import type { UiLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+export type SourceProviderRowStatus =
+    | "loading"
+    | "syncing"
+    | "sync-error"
+    | "connected"
+    | "connected-empty"
+    | "paused"
+    | "needs-setup"
+    | "planned";
+
 export interface SourceProviderRowModel {
     provider: SourceProvider;
     label: string;
@@ -12,6 +22,7 @@ export interface SourceProviderRowModel {
     active: boolean;
     connected: boolean;
     updating: boolean;
+    status: SourceProviderRowStatus;
 }
 
 interface SourceProviderRowsProps {
@@ -34,15 +45,59 @@ const PROVIDER_MARKS: Record<SourceProvider, string> = {
 function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
     const isZh = language === "zh-CN";
 
-    if (row.updating) {
+    if (row.status === "loading") {
+        return isZh ? "检查中" : "Checking";
+    }
+
+    if (row.status === "syncing" || row.updating) {
         return isZh ? "更新中" : "Updating";
     }
 
-    if (row.connected) {
+    if (row.status === "sync-error") {
+        return isZh ? "同步异常" : "Sync issue";
+    }
+
+    if (row.status === "connected") {
         return isZh ? "已连接" : "Connected";
     }
 
+    if (row.status === "connected-empty") {
+        return isZh ? "已连接 · 暂无录音" : "Connected · Empty";
+    }
+
+    if (row.status === "paused") {
+        return isZh ? "已暂停" : "Paused";
+    }
+
+    if (row.status === "planned") {
+        return isZh ? "待开放" : "Planned";
+    }
+
     return isZh ? "待连接" : "Connect";
+}
+
+function getStatusIcon(row: SourceProviderRowModel) {
+    if (row.status === "loading" || row.status === "syncing" || row.updating) {
+        return <Loader2 className="size-3 animate-spin text-primary" />;
+    }
+
+    if (row.status === "connected") {
+        return (
+            <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-300" />
+        );
+    }
+
+    if (row.status === "sync-error") {
+        return (
+            <CircleDashed className="size-3 text-amber-600 dark:text-amber-300" />
+        );
+    }
+
+    if (row.status === "connected-empty") {
+        return <CircleDashed className="size-3 text-primary" />;
+    }
+
+    return <CircleDashed className="size-3" />;
 }
 
 export function SourceProviderRows({
@@ -75,7 +130,10 @@ export function SourceProviderRows({
             <div className="flex flex-col gap-1">
                 {rows.map((row) => {
                     const statusCopy = getStatusCopy(row, language);
-                    const shouldOpenSettings = !row.connected;
+                    const shouldOpenSettings =
+                        row.status === "needs-setup" ||
+                        row.status === "paused" ||
+                        row.status === "planned";
 
                     return (
                         <button
@@ -84,6 +142,7 @@ export function SourceProviderRows({
                             data-provider={row.provider}
                             data-active={row.active ? "true" : "false"}
                             data-connected={row.connected ? "true" : "false"}
+                            data-source-status={row.status}
                             aria-pressed={row.active}
                             aria-label={`${row.label} · ${statusCopy}`}
                             onClick={() =>
@@ -115,13 +174,7 @@ export function SourceProviderRows({
                                     {row.label}
                                 </span>
                                 <span className="mt-0.5 flex items-center gap-1.5 text-[0.68rem] text-muted-foreground">
-                                    {row.updating ? (
-                                        <Loader2 className="size-3 animate-spin text-primary" />
-                                    ) : row.connected ? (
-                                        <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-300" />
-                                    ) : (
-                                        <CircleDashed className="size-3" />
-                                    )}
+                                    {getStatusIcon(row)}
                                     {statusCopy}
                                 </span>
                             </span>
@@ -135,10 +188,18 @@ export function SourceProviderRows({
                                         "border-border/60 bg-transparent",
                                 )}
                             >
-                                {row.updating ? (
+                                {row.status === "syncing" || row.updating ? (
                                     <RefreshCw className="size-3 animate-spin" />
-                                ) : row.connected ? (
+                                ) : row.connected && row.count > 0 ? (
                                     row.count
+                                ) : row.status === "connected-empty" ? (
+                                    0
+                                ) : row.status === "planned" ? (
+                                    isZh ? (
+                                        "待开放"
+                                    ) : (
+                                        "Soon"
+                                    )
                                 ) : isZh ? (
                                     "连接"
                                 ) : (

@@ -333,6 +333,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
     return (
         <Dialog open={props.open} onOpenChange={props.onOpenChange}>
             <DialogContent
+                data-settings-shell=""
                 showCloseButton={false}
                 className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
                 style={
@@ -507,6 +508,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         <div
                             ref={scrollBodyRef}
                             data-settings-scroll-body=""
+                            data-settings-active-section={activeSection}
                             className={cn(
                                 "flex min-h-0 flex-1 flex-col overscroll-contain",
                                 isDataSourcesSection

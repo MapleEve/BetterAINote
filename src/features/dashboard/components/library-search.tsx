@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Search, X } from "lucide-react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,14 @@ function getTypeLabel(type: SearchEntityType) {
     }
 }
 
+function getTargetRecordingId(result: SearchResult) {
+    if (result.recordingId) {
+        return result.recordingId;
+    }
+
+    return result.entityType === "recording" ? result.entityId : null;
+}
+
 export function LibrarySearch({
     open,
     onOpenChange,
@@ -74,6 +83,7 @@ export function LibrarySearch({
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeResultIndex, setActiveResultIndex] = useState(0);
 
     const trimmedQuery = query.trim();
     const panelState = !trimmedQuery
@@ -155,12 +165,14 @@ export function LibrarySearch({
     useEffect(() => {
         if (!trimmedQuery) {
             setResults([]);
+            setActiveResultIndex(0);
             setError(null);
             setLoading(false);
             return;
         }
 
         setResults([]);
+        setActiveResultIndex(0);
         setError(null);
         setLoading(true);
 
@@ -189,6 +201,7 @@ export function LibrarySearch({
                         );
                     }
                     setResults(Array.isArray(data.results) ? data.results : []);
+                    setActiveResultIndex(0);
                 })
                 .catch((searchError) => {
                     if (controller.signal.aborted) {
@@ -214,14 +227,47 @@ export function LibrarySearch({
         };
     }, [scope, trimmedQuery]);
 
-    const handleResultOpen = (recordingId: string | null) => {
-        if (!recordingId) {
-            return;
-        }
+    const handleResultOpen = useCallback(
+        (recordingId: string | null) => {
+            if (!recordingId) {
+                return;
+            }
 
-        onOpenRecording(recordingId);
-        closeAndReturnFocus();
-    };
+            onOpenRecording(recordingId);
+            closeAndReturnFocus();
+        },
+        [closeAndReturnFocus, onOpenRecording],
+    );
+
+    const handleInputKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLInputElement>) => {
+            if (results.length === 0) {
+                return;
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setActiveResultIndex((current) =>
+                    Math.min(current + 1, results.length - 1),
+                );
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setActiveResultIndex((current) => Math.max(current - 1, 0));
+                return;
+            }
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                handleResultOpen(
+                    getTargetRecordingId(results[activeResultIndex]),
+                );
+            }
+        },
+        [activeResultIndex, handleResultOpen, results],
+    );
 
     return (
         <search
@@ -270,7 +316,13 @@ export function LibrarySearch({
                             placeholder="搜索录音、逐字稿、说话人、标签"
                             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                             aria-label="搜索录音、逐字稿、说话人、标签"
+                            aria-activedescendant={
+                                results.length > 0
+                                    ? `library-search-result-${activeResultIndex}`
+                                    : undefined
+                            }
                             autoComplete="off"
+                            onKeyDown={handleInputKeyDown}
                         />
                         {query ? (
                             <button
@@ -298,7 +350,10 @@ export function LibrarySearch({
                                 aria-pressed={scope === item.value}
                                 data-active={scope === item.value}
                                 className="inline-flex h-7 items-center rounded-full border border-border/70 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
-                                onClick={() => setScope(item.value)}
+                                onClick={() => {
+                                    setScope(item.value);
+                                    setActiveResultIndex(0);
+                                }}
                             >
                                 {item.label}
                             </button>
@@ -343,7 +398,7 @@ export function LibrarySearch({
                                     <span>最多显示 12 条</span>
                                 </div>
                                 <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
-                                    {results.map((result) => {
+                                    {results.map((result, index) => {
                                         const start = formatTime(
                                             result.startMs,
                                         );
@@ -353,21 +408,34 @@ export function LibrarySearch({
                                                 ? `${start} - ${end}`
                                                 : null;
                                         const targetRecordingId =
-                                            result.recordingId ??
-                                            (result.entityType === "recording"
-                                                ? result.entityId
-                                                : null);
+                                            getTargetRecordingId(result);
+                                        const isActive =
+                                            index === activeResultIndex;
 
                                         return (
                                             <button
                                                 key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
+                                                id={`library-search-result-${index}`}
                                                 type="button"
+                                                role="option"
+                                                aria-selected={isActive}
+                                                aria-disabled={
+                                                    targetRecordingId
+                                                        ? undefined
+                                                        : true
+                                                }
+                                                data-active={
+                                                    isActive ? "true" : "false"
+                                                }
                                                 className={cn(
                                                     "grid w-full grid-cols-[auto_minmax(0,1fr)] gap-2 border-border/60 border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
                                                     targetRecordingId
-                                                        ? "hover:bg-accent/45"
+                                                        ? "hover:bg-accent/45 data-[active=true]:bg-accent/60"
                                                         : "cursor-default opacity-70",
                                                 )}
+                                                onMouseEnter={() =>
+                                                    setActiveResultIndex(index)
+                                                }
                                                 onClick={() =>
                                                     handleResultOpen(
                                                         targetRecordingId,

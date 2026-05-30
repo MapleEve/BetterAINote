@@ -28,6 +28,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { SyncStatus } from "@/features/dashboard/components/sync-status";
+import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";
+import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import {
@@ -70,6 +72,7 @@ import {
 } from "./components/recording-list";
 import {
     type SourceProviderRowModel,
+    type SourceProviderRowStatus,
     SourceProviderRows,
 } from "./components/source-provider-rows";
 import { TranscriptionPanel } from "./components/transcription-panel";
@@ -143,6 +146,42 @@ function recordingHasTranscript(transcription: TranscriptionData | undefined) {
     return Boolean(transcription?.text?.trim() || transcription?.hasTranscript);
 }
 
+function getDashboardSourceStatus(params: {
+    configured: boolean;
+    enabled: boolean;
+    isLoading: boolean;
+    isPlanned: boolean;
+    hasCount: boolean;
+    hasSyncError: boolean;
+    isSyncing: boolean;
+}): SourceProviderRowStatus {
+    if (params.isLoading) {
+        return "loading";
+    }
+
+    if (params.isPlanned) {
+        return "planned";
+    }
+
+    if (!params.configured) {
+        return "needs-setup";
+    }
+
+    if (!params.enabled) {
+        return "paused";
+    }
+
+    if (params.isSyncing) {
+        return "syncing";
+    }
+
+    if (params.hasSyncError) {
+        return "sync-error";
+    }
+
+    return params.hasCount ? "connected" : "connected-empty";
+}
+
 export function Workstation({
     recordings,
     transcriptions,
@@ -151,6 +190,8 @@ export function Workstation({
     const { language, t } = useLanguage();
     const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
+    const { isLoading: areDataSourcesLoading, sources: dataSourceStates } =
+        useDataSourcesSettings(language);
     const { settings: titleGenerationSettings } =
         useTitleGenerationSettingsStore();
 
@@ -178,6 +219,10 @@ export function Workstation({
     const [renameValue, setRenameValue] = useState("");
     const [isSavingRename, setIsSavingRename] = useState(false);
     const [isAutoRenaming, setIsAutoRenaming] = useState(false);
+    const [isApplyingAutoRename, setIsApplyingAutoRename] = useState(false);
+    const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
+        null,
+    );
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [activeTopbarOverlay, setActiveTopbarOverlay] =
         useState<TopbarOverlay | null>(null);
@@ -250,7 +295,8 @@ export function Workstation({
             currentHasTranscript &&
             titleGenerationProviderConfigured &&
             !isSavingRename &&
-            !isAutoRenaming,
+            !isAutoRenaming &&
+            !isApplyingAutoRename,
     );
     const currentCanPrivateTranscribe = currentRecording
         ? canRecordingPrivateTranscribe({
@@ -273,6 +319,16 @@ export function Workstation({
     useEffect(() => {
         setLiveTranscriptionJobs(new Map(transcriptionJobs));
     }, [transcriptionJobs]);
+
+    useEffect(() => {
+        setAutoRenamePreview(null);
+        setIsRenaming(false);
+        setRenameValue(currentRecording?.filename ?? "");
+        if (!currentRecording?.id) {
+            setIsApplyingAutoRename(false);
+            setIsAutoRenaming(false);
+        }
+    }, [currentRecording?.filename, currentRecording?.id]);
 
     useEffect(() => {
         if (isRenaming) {
@@ -608,21 +664,56 @@ export function Workstation({
         return counts;
     }, [liveRecordings]);
 
+    const dataSourceStateByProvider = useMemo(
+        () =>
+            new Map(
+                dataSourceStates.map((source) => [source.provider, source]),
+            ),
+        [dataSourceStates],
+    );
+
+    const hasSyncError = Boolean(
+        lastSyncResult?.success === false ||
+            workerStatus?.lastError ||
+            (workerStatus?.lastSummary?.errorCount ?? 0) > 0,
+    );
+
     const sourceRows = useMemo<SourceProviderRowModel[]>(
         () =>
             DASHBOARD_SOURCES.map((provider) => {
                 const count = providerCounts.get(provider) ?? 0;
+                const source = dataSourceStateByProvider.get(provider);
+                const configured = Boolean(source?.connected);
+                const enabled = source?.enabled ?? false;
+                const status = getDashboardSourceStatus({
+                    configured,
+                    enabled,
+                    hasCount: count > 0,
+                    hasSyncError: hasSyncError && configured,
+                    isLoading: areDataSourcesLoading && !source,
+                    isPlanned: source?.runtimeStatus === "planned",
+                    isSyncing: isAutoSyncing && configured,
+                });
 
                 return {
                     provider,
                     label: getSourceProviderLabel(provider, language),
                     count,
                     active: activeSourceProvider === provider,
-                    connected: count > 0,
-                    updating: isAutoSyncing && count > 0,
+                    connected: configured,
+                    updating: status === "syncing",
+                    status,
                 };
             }),
-        [activeSourceProvider, isAutoSyncing, language, providerCounts],
+        [
+            activeSourceProvider,
+            areDataSourcesLoading,
+            dataSourceStateByProvider,
+            hasSyncError,
+            isAutoSyncing,
+            language,
+            providerCounts,
+        ],
     );
 
     const filteredRecordings = useMemo(() => {
@@ -937,21 +1028,15 @@ export function Workstation({
             return;
         }
 
-        const confirmed = await confirm({
-            title: t("common.confirmAction"),
-            description: t("transcription.aiRenameConfirm"),
-            confirmLabel: t("common.confirm"),
-            cancelLabel: t("common.cancel"),
-        });
-        if (!confirmed) {
-            return;
-        }
-
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
                 `/api/recordings/${currentRecording.id}/rename/auto`,
-                { method: "POST" },
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mode: "preview" }),
+                },
             );
 
             const data = await response.json();
@@ -960,10 +1045,48 @@ export function Workstation({
                 return;
             }
 
-            const filename =
-                typeof data.filename === "string"
-                    ? data.filename
-                    : currentRecording.filename;
+            if (typeof data.filename === "string" && data.filename.trim()) {
+                setAutoRenamePreview(data.filename);
+                toast.success(t("transcription.aiRenamePreviewReady"));
+            }
+        } catch {
+            toast.error(t("transcription.autoRenameFailed"));
+        } finally {
+            setIsAutoRenaming(false);
+        }
+    }, [
+        autoRenameDisabledReason,
+        canAutoRenameCurrentRecording,
+        currentRecording,
+        t,
+    ]);
+
+    const handleAutoRenamePreviewCancel = useCallback(() => {
+        setAutoRenamePreview(null);
+    }, []);
+
+    const handleAutoRenamePreviewApply = useCallback(async () => {
+        if (!currentRecording) return;
+
+        const filename = autoRenamePreview?.trim();
+        if (!filename) return;
+
+        setIsApplyingAutoRename(true);
+        try {
+            const response = await fetch(
+                `/api/recordings/${currentRecording.id}/rename`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filename }),
+                },
+            );
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                toast.error(data.error || t("transcription.autoRenameFailed"));
+                return;
+            }
 
             setCurrentRecording((previous) =>
                 previous ? { ...previous, filename } : previous,
@@ -976,6 +1099,7 @@ export function Workstation({
                 ),
             );
             setRenameValue(filename);
+            setAutoRenamePreview(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
                     filename,
@@ -987,16 +1111,9 @@ export function Workstation({
         } catch {
             toast.error(t("transcription.autoRenameFailed"));
         } finally {
-            setIsAutoRenaming(false);
+            setIsApplyingAutoRename(false);
         }
-    }, [
-        autoRenameDisabledReason,
-        canAutoRenameCurrentRecording,
-        confirm,
-        currentRecording,
-        router,
-        t,
-    ]);
+    }, [autoRenamePreview, currentRecording, router, t]);
 
     const handleDelete = useCallback(async () => {
         if (!currentRecording) return;
@@ -1347,6 +1464,35 @@ export function Workstation({
                                                         )}
                                                     </span>
                                                 )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={handleAutoRename}
+                                                    disabled={
+                                                        !canAutoRenameCurrentRecording
+                                                    }
+                                                    aria-busy={isAutoRenaming}
+                                                    title={
+                                                        autoRenameDisabledReason ??
+                                                        t(
+                                                            "transcription.aiRename",
+                                                        )
+                                                    }
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                >
+                                                    <Sparkles
+                                                        className={
+                                                            isAutoRenaming
+                                                                ? "h-4 w-4 animate-pulse"
+                                                                : "h-4 w-4"
+                                                        }
+                                                    />
+                                                    <span className="hidden sm:inline">
+                                                        {t(
+                                                            "transcription.aiRename",
+                                                        )}
+                                                    </span>
+                                                </Button>
                                                 {canRenameCurrentRecording ? (
                                                     <Button
                                                         size="icon"
@@ -1378,6 +1524,32 @@ export function Workstation({
                                             </>
                                         )}
                                     </div>
+                                    {autoRenamePreview ? (
+                                        <AiRenamePreviewCard
+                                            applyLabel={t(
+                                                "transcription.aiRenameApply",
+                                            )}
+                                            cancelLabel={t(
+                                                "transcription.aiRenameCancelPreview",
+                                            )}
+                                            filename={autoRenamePreview}
+                                            isApplying={isApplyingAutoRename}
+                                            isRegenerating={isAutoRenaming}
+                                            onApply={
+                                                handleAutoRenamePreviewApply
+                                            }
+                                            onCancel={
+                                                handleAutoRenamePreviewCancel
+                                            }
+                                            onRegenerate={handleAutoRename}
+                                            regenerateLabel={t(
+                                                "transcription.aiRenameRegenerate",
+                                            )}
+                                            title={t(
+                                                "transcription.aiRenamePreview",
+                                            )}
+                                        />
+                                    ) : null}
                                     <RecordingPlayer
                                         recording={currentRecording}
                                         tags={currentRecording.tags}

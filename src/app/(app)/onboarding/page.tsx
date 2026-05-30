@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
     }
 
     return (
-        <div className="flex min-h-full items-center justify-center p-4">
+        <div className="dashboard-workstation flex min-h-svh items-center justify-center px-4 py-8 md:py-12">
             <OnboardingForm />
         </div>
     );

@@ -9,15 +9,15 @@ const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
     ({ className, variant = "default", ...props }, ref) => {
         const variantClass =
             variant === "inset"
-                ? "panel-inset"
+                ? "glass-surface-subtle"
                 : variant === "glass"
-                  ? "glass-panel"
-                  : "panel";
+                  ? "glass-surface glass-lift"
+                  : "glass-surface";
 
         return (
             <div
                 ref={ref}
-                className={cn(variantClass, "rounded-lg p-6", className)}
+                className={cn(variantClass, "rounded-[1.1rem] p-6", className)}
                 {...props}
             />
         );

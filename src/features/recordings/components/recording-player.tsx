@@ -3,7 +3,6 @@
 import { Pause, Play, Tag, Volume2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { MetalButton } from "@/components/metal-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -154,15 +153,15 @@ export function RecordingPlayer({
                     </div>
 
                     <div className="flex items-center justify-end gap-3">
-                        <MetalButton
+                        <Button
                             onClick={cyclePlaybackSpeed}
-                            variant="default"
+                            variant="outline"
                             size="sm"
                             className="h-8 w-12 rounded-xl px-2 font-mono text-[11px] shadow-none"
                             title="Click to cycle playback speed"
                         >
                             {playbackSpeedLabel}
-                        </MetalButton>
+                        </Button>
 
                         <div className="flex w-28 items-center gap-2">
                             <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/75" />

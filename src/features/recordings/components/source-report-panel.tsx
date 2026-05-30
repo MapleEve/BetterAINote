@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudDownload, FileText, LoaderCircle } from "lucide-react";
+import { CloudDownload, Copy, FileText, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -13,6 +13,7 @@ import {
     getSourceTabLabel,
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import { cn } from "@/lib/utils";
 
 interface SourceReportData {
@@ -43,6 +44,32 @@ interface SourceReportPanelProps {
     className?: string;
     variant?: "card" | "embedded";
 }
+
+const SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN =
+    /auth|bearer|cookie|credential|header|key|password|payload|raw|request|response|secret|session|token/i;
+const SAFE_SOURCE_DETAIL_KEYS = new Set([
+    "provider",
+    "status",
+    "sections",
+    "createdAt",
+    "updatedAt",
+    "startedAt",
+    "endedAt",
+    "durationMs",
+    "duration",
+    "language",
+    "title",
+    "name",
+    "source",
+    "sourceTitle",
+    "sourceName",
+    "sourceType",
+    "speakerCount",
+    "wordCount",
+    "segmentCount",
+    "summaryReady",
+    "transcriptReady",
+]);
 
 function isZh(language: UiLanguage) {
     return language === "zh-CN";
@@ -109,6 +136,36 @@ function formatTranscriptTimeRange(
     return startLabel ?? endLabel;
 }
 
+function buildSourceTranscriptCopyText(
+    transcript: SourceReportData["transcript"],
+    language: UiLanguage,
+) {
+    if (!transcript) {
+        return "";
+    }
+
+    if (transcript.segments.length > 0) {
+        return transcript.segments
+            .map((segment) => {
+                const timeRange = formatTranscriptTimeRange(
+                    segment.startMs,
+                    segment.endMs,
+                );
+                const speaker = formatTranscriptSpeaker(
+                    segment.speaker,
+                    language,
+                );
+                const heading = [timeRange, speaker]
+                    .filter(Boolean)
+                    .join(" · ");
+                return heading ? `${heading}\n${segment.text}` : segment.text;
+            })
+            .join("\n\n");
+    }
+
+    return formatTranscriptText(transcript.text, language);
+}
+
 function formatDetailLabel(key: string, language: UiLanguage) {
     const zhLabels: Record<string, string> = {
         provider: "来源",
@@ -138,6 +195,13 @@ function formatDetailLabel(key: string, language: UiLanguage) {
         .replace(/\s+/g, " ")
         .trim()
         .replace(/^./, (first) => first.toUpperCase());
+}
+
+function isSafeSourceDetailField(key: string) {
+    return (
+        SAFE_SOURCE_DETAIL_KEYS.has(key) &&
+        !SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN.test(key)
+    );
 }
 
 function formatDetailValue(
@@ -208,91 +272,111 @@ function renderDetailEntries(
     sourceProvider: string,
     t: (key: string) => string,
 ) {
-    return Object.entries(detail).map(([key, value]) => {
-        const displayValue = formatDetailValue(
-            key,
-            value,
-            language,
-            sourceProvider,
-            t,
-        );
-
-        if (displayValue !== null) {
-            return (
-                <div key={key} className="grid gap-1 sm:grid-cols-3 sm:gap-3">
-                    <dt className="text-muted-foreground">
-                        {formatDetailLabel(key, language)}
-                    </dt>
-                    <dd className="sm:col-span-2">{displayValue}</dd>
-                </div>
+    return Object.entries(detail)
+        .filter(([key]) => isSafeSourceDetailField(key))
+        .map(([key, value]) => {
+            const displayValue = formatDetailValue(
+                key,
+                value,
+                language,
+                sourceProvider,
+                t,
             );
-        }
 
-        if (value && typeof value === "object") {
-            const nestedEntries: Array<[string, unknown]> = Array.isArray(value)
-                ? value.flatMap((item, index) =>
-                      item && typeof item === "object"
-                          ? Object.entries(item as Record<string, unknown>).map(
-                                ([nestedKey, nestedValue]): [
-                                    string,
-                                    unknown,
-                                ] => [
-                                    `${index + 1}. ${formatDetailLabel(
-                                        nestedKey,
-                                        language,
-                                    )}`,
-                                    nestedValue,
-                                ],
-                            )
-                          : [],
-                  )
-                : Object.entries(value as Record<string, unknown>).map(
-                      ([nestedKey, nestedValue]) => [
-                          formatDetailLabel(nestedKey, language),
-                          nestedValue,
-                      ],
-                  );
+            if (displayValue !== null) {
+                return (
+                    <div
+                        key={key}
+                        className="grid gap-1 sm:grid-cols-3 sm:gap-3"
+                    >
+                        <dt className="text-muted-foreground">
+                            {formatDetailLabel(key, language)}
+                        </dt>
+                        <dd className="sm:col-span-2">{displayValue}</dd>
+                    </div>
+                );
+            }
 
-            return (
-                <section key={key} className="space-y-2">
-                    <h4 className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                        {formatDetailLabel(key, language)}
-                    </h4>
-                    <dl className="space-y-2 rounded-lg bg-muted/70 p-3">
-                        {nestedEntries.map(([nestedLabel, nestedValue]) => {
-                            const nestedDisplayValue = formatDetailValue(
-                                key,
-                                nestedValue,
-                                language,
-                                sourceProvider,
-                                t,
-                            );
+            if (value && typeof value === "object") {
+                const nestedEntries: Array<[string, string, unknown]> =
+                    Array.isArray(value)
+                        ? value.flatMap((item, index) =>
+                              item && typeof item === "object"
+                                  ? Object.entries(
+                                        item as Record<string, unknown>,
+                                    )
+                                        .filter(([nestedKey]) =>
+                                            isSafeSourceDetailField(nestedKey),
+                                        )
+                                        .map(
+                                            ([nestedKey, nestedValue]): [
+                                                string,
+                                                string,
+                                                unknown,
+                                            ] => [
+                                                nestedKey,
+                                                `${index + 1}. ${formatDetailLabel(
+                                                    nestedKey,
+                                                    language,
+                                                )}`,
+                                                nestedValue,
+                                            ],
+                                        )
+                                  : [],
+                          )
+                        : Object.entries(value as Record<string, unknown>)
+                              .filter(([nestedKey]) =>
+                                  isSafeSourceDetailField(nestedKey),
+                              )
+                              .map(([nestedKey, nestedValue]) => [
+                                  nestedKey,
+                                  formatDetailLabel(nestedKey, language),
+                                  nestedValue,
+                              ]);
 
-                            if (nestedDisplayValue === null) {
-                                return null;
-                            }
+                return (
+                    <section key={key} className="space-y-2">
+                        <h4 className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                            {formatDetailLabel(key, language)}
+                        </h4>
+                        <dl className="space-y-2 rounded-lg bg-muted/70 p-3">
+                            {nestedEntries.map(
+                                ([nestedKey, nestedLabel, nestedValue]) => {
+                                    const nestedDisplayValue =
+                                        formatDetailValue(
+                                            nestedKey,
+                                            nestedValue,
+                                            language,
+                                            sourceProvider,
+                                            t,
+                                        );
 
-                            return (
-                                <div
-                                    key={`${key}-${nestedLabel}`}
-                                    className="grid gap-1 sm:grid-cols-3 sm:gap-3"
-                                >
-                                    <dt className="text-muted-foreground">
-                                        {nestedLabel}
-                                    </dt>
-                                    <dd className="sm:col-span-2">
-                                        {nestedDisplayValue}
-                                    </dd>
-                                </div>
-                            );
-                        })}
-                    </dl>
-                </section>
-            );
-        }
+                                    if (nestedDisplayValue === null) {
+                                        return null;
+                                    }
 
-        return null;
-    });
+                                    return (
+                                        <div
+                                            key={`${key}-${nestedLabel}`}
+                                            className="grid gap-1 sm:grid-cols-3 sm:gap-3"
+                                        >
+                                            <dt className="text-muted-foreground">
+                                                {nestedLabel}
+                                            </dt>
+                                            <dd className="sm:col-span-2">
+                                                {nestedDisplayValue}
+                                            </dd>
+                                        </div>
+                                    );
+                                },
+                            )}
+                        </dl>
+                    </section>
+                );
+            }
+
+            return null;
+        });
 }
 
 export function SourceReportPanel({
@@ -306,6 +390,9 @@ export function SourceReportPanel({
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<SourceReportData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [copyingKey, setCopyingKey] = useState<
+        "source-transcript" | "source-report" | null
+    >(null);
 
     const loadReport = useCallback(async () => {
         setIsLoading(true);
@@ -349,6 +436,45 @@ export function SourceReportPanel({
         void loadReport();
     }, [autoLoad, loadReport]);
 
+    const handleCopySourceTranscript = useCallback(async () => {
+        const copyText = buildSourceTranscriptCopyText(
+            data?.transcript ?? null,
+            language,
+        );
+        if (!copyText.trim()) {
+            toast.error(t("sourceReport.missingSourceTranscript"));
+            return;
+        }
+
+        setCopyingKey("source-transcript");
+        try {
+            await writeBrowserClipboardText(copyText);
+            toast.success(t("sourceReport.sourceTranscriptCopied"));
+        } catch {
+            toast.error(t("sourceReport.copyFailed"));
+        } finally {
+            setCopyingKey(null);
+        }
+    }, [data?.transcript, language, t]);
+
+    const handleCopySourceReport = useCallback(async () => {
+        const copyText = data?.summaryMarkdown ?? "";
+        if (!copyText.trim()) {
+            toast.error(t("sourceReport.missingSourceReport"));
+            return;
+        }
+
+        setCopyingKey("source-report");
+        try {
+            await writeBrowserClipboardText(copyText);
+            toast.success(t("sourceReport.sourceReportCopied"));
+        } catch {
+            toast.error(t("sourceReport.copyFailed"));
+        } finally {
+            setCopyingKey(null);
+        }
+    }, [data?.summaryMarkdown, t]);
+
     const header = (
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -387,10 +513,44 @@ export function SourceReportPanel({
     const content = (
         <div className="space-y-4">
             {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                    {error}
+                <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between">
+                    <span>{error}</span>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={loadReport}
+                        disabled={isLoading}
+                        className="shrink-0"
+                    >
+                        {t("sourceReport.refresh")}
+                    </Button>
                 </div>
             )}
+
+            {isLoading && !data && !error ? (
+                <div className="space-y-4" data-source-report-state="loading">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        {[0, 1, 2, 3].map((item) => (
+                            <div
+                                key={item}
+                                className="rounded-xl border border-white/10 bg-background/25 px-4 py-3"
+                            >
+                                <div className="skeleton-shimmer h-3 w-20 rounded" />
+                                <div className="skeleton-shimmer mt-3 h-5 w-28 rounded-md" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                        <div className="skeleton-shimmer h-4 w-32 rounded" />
+                        <div className="mt-4 space-y-3 rounded-lg bg-muted p-4">
+                            <div className="skeleton-shimmer h-3 w-11/12 rounded" />
+                            <div className="skeleton-shimmer h-3 w-4/5 rounded" />
+                            <div className="skeleton-shimmer h-3 w-2/3 rounded" />
+                        </div>
+                    </div>
+                </div>
+            ) : null}
 
             {data && (
                 <>
@@ -410,7 +570,14 @@ export function SourceReportPanel({
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("sourceReport.transcriptReady")}
                             </p>
-                            <p className="mt-2 text-sm font-medium">
+                            <p
+                                className={cn(
+                                    "mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-xs font-semibold",
+                                    data.transcriptReady
+                                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                                        : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+                                )}
+                            >
                                 {data.transcriptReady
                                     ? t("sourceReport.ready")
                                     : t("sourceReport.missing")}
@@ -420,7 +587,14 @@ export function SourceReportPanel({
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("sourceReport.summaryReady")}
                             </p>
-                            <p className="mt-2 text-sm font-medium">
+                            <p
+                                className={cn(
+                                    "mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-xs font-semibold",
+                                    data.summaryReady
+                                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                                        : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
+                                )}
+                            >
                                 {data.summaryReady
                                     ? t("sourceReport.ready")
                                     : t("sourceReport.missing")}
@@ -436,69 +610,117 @@ export function SourceReportPanel({
                         </div>
                     </div>
 
-                    {data.summaryMarkdown ? (
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <p className="text-sm font-medium">
                                 {t("sourceReport.officialReport")}
                             </p>
-                            <pre className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
-                                {data.summaryMarkdown}
-                            </pre>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCopySourceReport}
+                                disabled={
+                                    copyingKey === "source-report" ||
+                                    !data.summaryMarkdown?.trim()
+                                }
+                                aria-busy={copyingKey === "source-report"}
+                                className="shrink-0"
+                            >
+                                <Copy className="h-4 w-4" />
+                                {copyingKey === "source-report"
+                                    ? t("common.copying")
+                                    : t("sourceReport.copySourceReport")}
+                            </Button>
                         </div>
-                    ) : null}
+                        {data.summaryMarkdown ? (
+                            <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
+                                {data.summaryMarkdown}
+                            </div>
+                        ) : (
+                            <div className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                                {t("sourceReport.missingSourceReport")}
+                            </div>
+                        )}
+                    </div>
 
-                    {data.transcript?.text ? (
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <p className="flex items-center gap-2 text-sm font-medium">
                                 <FileText className="h-4 w-4" />
                                 {t("sourceReport.officialTranscript")}
                             </p>
-                            {data.transcript.segments.length > 0 ? (
-                                <div className="mt-3 max-h-80 space-y-3 overflow-auto rounded-lg bg-muted p-3 text-sm">
-                                    {data.transcript.segments.map(
-                                        (segment, index) => {
-                                            const timeRange =
-                                                formatTranscriptTimeRange(
-                                                    segment.startMs,
-                                                    segment.endMs,
-                                                );
-
-                                            return (
-                                                <article
-                                                    key={`${segment.startMs ?? "na"}-${index}`}
-                                                    className="rounded-lg bg-background/45 px-3 py-2"
-                                                >
-                                                    <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                                                        {timeRange ? (
-                                                            <span className="rounded-md border border-white/10 bg-background/60 px-2 py-1 font-mono text-muted-foreground">
-                                                                {timeRange}
-                                                            </span>
-                                                        ) : null}
-                                                        <span className="font-medium text-muted-foreground">
-                                                            {formatTranscriptSpeaker(
-                                                                segment.speaker,
-                                                                language,
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <p className="whitespace-pre-wrap leading-relaxed">
-                                                        {segment.text}
-                                                    </p>
-                                                </article>
-                                            );
-                                        },
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {formatTranscriptText(
-                                        data.transcript.text,
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCopySourceTranscript}
+                                disabled={
+                                    copyingKey === "source-transcript" ||
+                                    !buildSourceTranscriptCopyText(
+                                        data.transcript,
                                         language,
-                                    )}
-                                </div>
-                            )}
+                                    ).trim()
+                                }
+                                aria-busy={copyingKey === "source-transcript"}
+                                className="shrink-0"
+                            >
+                                <Copy className="h-4 w-4" />
+                                {copyingKey === "source-transcript"
+                                    ? t("common.copying")
+                                    : t("sourceReport.copySourceTranscript")}
+                            </Button>
                         </div>
-                    ) : null}
+                        {data.transcript?.text &&
+                        data.transcript.segments.length > 0 ? (
+                            <div className="mt-3 max-h-80 space-y-3 overflow-auto rounded-lg bg-muted p-3 text-sm">
+                                {data.transcript.segments.map(
+                                    (segment, index) => {
+                                        const timeRange =
+                                            formatTranscriptTimeRange(
+                                                segment.startMs,
+                                                segment.endMs,
+                                            );
+
+                                        return (
+                                            <article
+                                                key={`${segment.startMs ?? "na"}-${index}`}
+                                                className="rounded-lg bg-background/45 px-3 py-2"
+                                            >
+                                                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                                                    {timeRange ? (
+                                                        <span className="rounded-md border border-white/10 bg-background/60 px-2 py-1 font-mono text-muted-foreground">
+                                                            {timeRange}
+                                                        </span>
+                                                    ) : null}
+                                                    <span className="font-medium text-muted-foreground">
+                                                        {formatTranscriptSpeaker(
+                                                            segment.speaker,
+                                                            language,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <p className="whitespace-pre-wrap leading-relaxed">
+                                                    {segment.text}
+                                                </p>
+                                            </article>
+                                        );
+                                    },
+                                )}
+                            </div>
+                        ) : data.transcript?.text ? (
+                            <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
+                                {formatTranscriptText(
+                                    data.transcript.text,
+                                    language,
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                                {t("sourceReport.missingSourceTranscript")}
+                            </div>
+                        )}
+                    </div>
 
                     {data.detail ? (
                         <div className="rounded-xl border border-white/10 bg-background/25 p-4">
@@ -519,8 +741,21 @@ export function SourceReportPanel({
             )}
 
             {!data && !error && !isLoading && (
-                <div className="text-sm text-muted-foreground">
-                    {getSourceRecordEmptyHint(sourceProvider, language)}
+                <div
+                    className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground"
+                    data-source-report-state="empty"
+                >
+                    <CloudDownload className="mx-auto mb-3 h-9 w-9 text-muted-foreground/70" />
+                    <p>{getSourceRecordEmptyHint(sourceProvider, language)}</p>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={loadReport}
+                        className="mt-4"
+                    >
+                        {t("sourceReport.loadDetail")}
+                    </Button>
                 </div>
             )}
         </div>

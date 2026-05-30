@@ -5,6 +5,16 @@ import {
     RecordingRenameError,
 } from "@/server/modules/recordings";
 
+async function readAutoRenameMode(request: Request) {
+    const contentType = request.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+        return "apply";
+    }
+
+    const body = await request.json().catch(() => null);
+    return body?.mode === "preview" ? "preview" : "apply";
+}
+
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> },
@@ -22,7 +32,10 @@ export async function POST(
         }
 
         const { id } = await params;
-        const result = await autoRenameRecording(session.user.id, id);
+        const mode = await readAutoRenameMode(request);
+        const result = await autoRenameRecording(session.user.id, id, {
+            apply: mode !== "preview",
+        });
 
         return NextResponse.json(result);
     } catch (error) {

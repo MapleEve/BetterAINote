@@ -18,6 +18,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             confirm: "确认",
             confirmAction: "确认操作",
             loading: "加载中...",
+            copying: "复制中...",
             saveFailed: "保存设置失败，已回滚。",
         },
         auth: {
@@ -139,6 +140,9 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             localDescription: "私有转录结果保存在本地，与来源逐字稿/报告分离。",
             outputTitle: "转录输出",
             outputDescription: "查看当前本地文本结果、语言信息和基础统计。",
+            copyTranscript: "复制转录",
+            transcriptCopied: "转录已复制",
+            copyTranscriptFailed: "复制转录失败，请检查浏览器剪贴板权限。",
             transcribe: "开始转录",
             retranscribe: "重新转录",
             aiRename: "AI 重命名",
@@ -146,6 +150,11 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             aiRenameNeedsTranscript: "需要先生成本地转录",
             aiRenameConfirm:
                 "AI 重命名会调用已配置的标题生成服务，并改写当前录音标题。继续吗？",
+            aiRenamePreview: "AI 标题预览",
+            aiRenamePreviewReady: "已生成标题预览",
+            aiRenameRegenerate: "重新生成",
+            aiRenameApply: "应用标题",
+            aiRenameCancelPreview: "取消预览",
             retranscribeConfirm:
                 "重新转录会再次调用 GPU 资源，并覆盖当前本地转录结果。继续吗？",
             renaming: "重命名中...",
@@ -235,6 +244,10 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             createNewSpeaker: "新建说话人",
             newSpeakerPlaceholder: "例如：Alex",
             create: "创建",
+            copyRawTranscript: "复制原始转录",
+            rawTranscriptCopied: "原始转录已复制",
+            copyRawTranscriptFailed:
+                "复制原始转录失败，请检查浏览器剪贴板权限。",
         },
         sourceReport: {
             tabLabel: "来源",
@@ -252,6 +265,13 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             officialReport: "来源摘要/报告",
             officialTranscript: "来源逐字稿",
             sourceDetails: "来源详情",
+            copySourceTranscript: "复制原始转录",
+            copySourceReport: "复制原始报告",
+            sourceTranscriptCopied: "原始转录已复制",
+            sourceReportCopied: "原始报告已复制",
+            copyFailed: "复制失败，请检查浏览器剪贴板权限。",
+            missingSourceTranscript: "这个来源暂时没有可复制的原始转录。",
+            missingSourceReport: "这个来源暂时没有可复制的原始报告。",
             contentEntries: "来源内容条目",
             emptyHint:
                 "加载来源原始记录后，可查看来源侧 transcript 与报告产物，不会影响本地转录链路。",
@@ -290,6 +310,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             confirm: "Confirm",
             confirmAction: "Confirm action",
             loading: "Loading...",
+            copying: "Copying...",
             saveFailed: "Failed to save settings. Changes reverted.",
         },
         auth: {
@@ -417,6 +438,10 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             outputTitle: "Transcript Output",
             outputDescription:
                 "Review the current local text result with language and basic statistics.",
+            copyTranscript: "Copy transcript",
+            transcriptCopied: "Transcript copied",
+            copyTranscriptFailed:
+                "Failed to copy transcript. Check browser clipboard permission.",
             transcribe: "Transcribe",
             retranscribe: "Re-transcribe",
             aiRename: "AI Rename",
@@ -424,6 +449,11 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             aiRenameNeedsTranscript: "Generate a local transcript first",
             aiRenameConfirm:
                 "AI rename will call the configured title generation service and update this recording title. Continue?",
+            aiRenamePreview: "AI title preview",
+            aiRenamePreviewReady: "Title preview generated",
+            aiRenameRegenerate: "Regenerate",
+            aiRenameApply: "Apply title",
+            aiRenameCancelPreview: "Cancel preview",
             retranscribeConfirm:
                 "Re-transcription will use GPU resources again and replace the current local transcript. Continue?",
             renaming: "Renaming...",
@@ -514,6 +544,10 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             createNewSpeaker: "Create a new speaker",
             newSpeakerPlaceholder: "e.g. Alex",
             create: "Create",
+            copyRawTranscript: "Copy raw transcript",
+            rawTranscriptCopied: "Raw transcript copied",
+            copyRawTranscriptFailed:
+                "Failed to copy raw transcript. Check browser clipboard permission.",
         },
         sourceReport: {
             tabLabel: "Source",
@@ -531,6 +565,15 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             officialReport: "Source Summary/Report",
             officialTranscript: "Source Transcript",
             sourceDetails: "Source details",
+            copySourceTranscript: "Copy raw transcript",
+            copySourceReport: "Copy raw report",
+            sourceTranscriptCopied: "Raw transcript copied",
+            sourceReportCopied: "Raw report copied",
+            copyFailed: "Copy failed. Check browser clipboard permission.",
+            missingSourceTranscript:
+                "This source does not have a raw transcript to copy yet.",
+            missingSourceReport:
+                "This source does not have a raw report to copy yet.",
             contentEntries: "Source Content Entries",
             emptyHint:
                 "Load the source record to inspect source-side transcript and report artifacts without affecting the local transcript pipeline.",

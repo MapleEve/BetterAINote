@@ -6,6 +6,7 @@
 ## 真实文件
 - `browser-router.ts`
 - `browser-shell.ts`
+- `clipboard.ts`
 - `runtime.ts`
 
 ## 下级入口

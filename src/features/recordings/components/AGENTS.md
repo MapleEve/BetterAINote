@@ -7,6 +7,7 @@
 - `recording-player.tsx`
 - `recording-tag-manager.tsx`
 - `recording-tag-visuals.tsx`
+- `ai-rename-preview-card.tsx`
 - `source-report-panel.tsx`
 - `speaker-label-editor.tsx`
 - `transcription-section.tsx`

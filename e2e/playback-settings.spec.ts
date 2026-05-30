@@ -6,6 +6,15 @@ test("playback settings update speed and autoplay, then persist after reload", a
 }) => {
     await ensureSignedIn(page);
 
+    const resetResponse = await page.request.put("/api/settings/playback", {
+        data: {
+            autoPlayNext: false,
+            defaultPlaybackSpeed: 1,
+            defaultVolume: 75,
+        },
+    });
+    expect(resetResponse.ok()).toBe(true);
+
     await page.goto("/settings#playback", { waitUntil: "domcontentloaded" });
 
     const playbackSpeedTrigger = page.locator("#playback-speed");

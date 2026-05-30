@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    Copy,
     FileText,
     Languages,
     Loader2,
@@ -8,6 +9,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -20,6 +22,7 @@ import {
     getLocalTranscriptHint,
     getPrivateTranscriptionUnavailableMessage,
 } from "@/lib/data-sources/presentation";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import { getTranscriptionJobDisplayState } from "@/lib/transcription/job-display";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
@@ -198,6 +201,7 @@ export function TranscriptionPanel({
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         transcription?.speakerMap ?? null,
     );
+    const [isCopyingTranscript, setIsCopyingTranscript] = useState(false);
 
     useEffect(() => {
         setLiveSpeakerMap(transcription?.speakerMap ?? null);
@@ -252,6 +256,23 @@ export function TranscriptionPanel({
         recording.sourceProvider,
         language,
     );
+
+    const handleCopyTranscript = useCallback(async () => {
+        if (!displayText.trim()) {
+            toast.error(t("transcription.noTranscriptAvailable"));
+            return;
+        }
+
+        setIsCopyingTranscript(true);
+        try {
+            await writeBrowserClipboardText(displayText);
+            toast.success(t("transcription.transcriptCopied"));
+        } catch {
+            toast.error(t("transcription.copyTranscriptFailed"));
+        } finally {
+            setIsCopyingTranscript(false);
+        }
+    }, [displayText, t]);
 
     const handleConfirmRetranscribe = useCallback(async () => {
         if (!canPrivateTranscribe) return;
@@ -316,24 +337,42 @@ export function TranscriptionPanel({
                                             )}
                                         </p>
                                     </div>
-                                    <Button
-                                        onClick={handleConfirmRetranscribe}
-                                        size="sm"
-                                        variant="destructive"
-                                        disabled={!canPrivateTranscribe}
-                                        title={
-                                            !canPrivateTranscribe
-                                                ? (transcriptionUnavailableReason ??
-                                                  undefined)
+                                    <div className="flex shrink-0 flex-wrap gap-2">
+                                        <Button
+                                            onClick={handleCopyTranscript}
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                isCopyingTranscript ||
+                                                !displayText.trim()
+                                            }
+                                            aria-busy={isCopyingTranscript}
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                            {isCopyingTranscript
+                                                ? t("common.copying")
                                                 : t(
-                                                      "transcription.retranscribeConfirm",
-                                                  )
-                                        }
-                                        className="shrink-0"
-                                    >
-                                        <RefreshCw className="h-4 w-4" />
-                                        {t("transcription.retranscribe")}
-                                    </Button>
+                                                      "transcription.copyTranscript",
+                                                  )}
+                                        </Button>
+                                        <Button
+                                            onClick={handleConfirmRetranscribe}
+                                            size="sm"
+                                            variant="destructive"
+                                            disabled={!canPrivateTranscribe}
+                                            title={
+                                                !canPrivateTranscribe
+                                                    ? (transcriptionUnavailableReason ??
+                                                      undefined)
+                                                    : t(
+                                                          "transcription.retranscribeConfirm",
+                                                      )
+                                            }
+                                        >
+                                            <RefreshCw className="h-4 w-4" />
+                                            {t("transcription.retranscribe")}
+                                        </Button>
+                                    </div>
                                 </div>
                                 {localTranscriptHint ? (
                                     <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200">

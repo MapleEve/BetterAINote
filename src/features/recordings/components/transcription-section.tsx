@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Languages, RefreshCw, Sparkles } from "lucide-react";
+import { Copy, FileText, Languages, RefreshCw, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -12,6 +12,7 @@ import {
     startBrowserInterval,
     stopBrowserInterval,
 } from "@/lib/platform/browser-shell";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
@@ -28,6 +29,7 @@ interface TranscriptionSectionProps {
     initialJobStatus?: string;
     initialJobRemoteStatus?: string | null;
     initialJobError?: string | null;
+    showSpeakerReview?: boolean;
 }
 
 function applySpeakerMap(
@@ -61,6 +63,7 @@ export function TranscriptionSection({
     initialJobStatus,
     initialJobRemoteStatus,
     initialJobError,
+    showSpeakerReview = true,
 }: TranscriptionSectionProps) {
     const { language: uiLanguage, t } = useLanguage();
     const confirm = useConfirmDialog();
@@ -78,6 +81,7 @@ export function TranscriptionSection({
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         initialSpeakerMap ?? null,
     );
+    const [isCopyingTranscript, setIsCopyingTranscript] = useState(false);
 
     useEffect(() => {
         setTranscription(initialTranscription ?? "");
@@ -232,6 +236,22 @@ export function TranscriptionSection({
         () => applySpeakerMap(transcription, liveSpeakerMap),
         [liveSpeakerMap, transcription],
     );
+    const handleCopyTranscript = useCallback(async () => {
+        if (!displayText.trim()) {
+            toast.error(t("transcription.noTranscript"));
+            return;
+        }
+
+        setIsCopyingTranscript(true);
+        try {
+            await writeBrowserClipboardText(displayText);
+            toast.success(t("transcription.transcriptCopied"));
+        } catch {
+            toast.error(t("transcription.copyTranscriptFailed"));
+        } finally {
+            setIsCopyingTranscript(false);
+        }
+    }, [displayText, t]);
     const jobDisplayState = getTranscriptionJobDisplayState({
         status: jobStatus,
         remoteStatus: jobRemoteStatus,
@@ -294,24 +314,42 @@ export function TranscriptionSection({
                                         {t("transcription.outputDescription")}
                                     </p>
                                 </div>
-                                <Button
-                                    onClick={handleConfirmRetranscribe}
-                                    size="sm"
-                                    variant="destructive"
-                                    disabled={!canTranscribe || isTranscribing}
-                                    title={
-                                        !canTranscribe
-                                            ? (transcribeUnavailableReason ??
-                                              undefined)
-                                            : t(
-                                                  "transcription.retranscribeConfirm",
-                                              )
-                                    }
-                                    className="shrink-0"
-                                >
-                                    <RefreshCw className="h-4 w-4" />
-                                    {t("transcription.retranscribe")}
-                                </Button>
+                                <div className="flex shrink-0 flex-wrap gap-2">
+                                    <Button
+                                        onClick={handleCopyTranscript}
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={
+                                            isCopyingTranscript ||
+                                            !displayText.trim()
+                                        }
+                                        aria-busy={isCopyingTranscript}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        {isCopyingTranscript
+                                            ? t("common.copying")
+                                            : t("transcription.copyTranscript")}
+                                    </Button>
+                                    <Button
+                                        onClick={handleConfirmRetranscribe}
+                                        size="sm"
+                                        variant="destructive"
+                                        disabled={
+                                            !canTranscribe || isTranscribing
+                                        }
+                                        title={
+                                            !canTranscribe
+                                                ? (transcribeUnavailableReason ??
+                                                  undefined)
+                                                : t(
+                                                      "transcription.retranscribeConfirm",
+                                                  )
+                                        }
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                        {t("transcription.retranscribe")}
+                                    </Button>
+                                </div>
                             </div>
                             <div className="mt-4 max-h-[28rem] overflow-y-auto rounded-lg bg-muted p-4">
                                 <p className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -343,23 +381,25 @@ export function TranscriptionSection({
                                 </div>
                             </div>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
-                            <div className="flex flex-col gap-1">
-                                <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                    {t("speakerReview.title")}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    {t("speakerReview.description")}
-                                </p>
+                        {showSpeakerReview ? (
+                            <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                                        {t("speakerReview.title")}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {t("speakerReview.description")}
+                                    </p>
+                                </div>
+                                <div className="mt-4">
+                                    <SpeakerLabelEditor
+                                        recordingId={recordingId}
+                                        speakerMap={liveSpeakerMap}
+                                        onSpeakerMapChanged={setLiveSpeakerMap}
+                                    />
+                                </div>
                             </div>
-                            <div className="mt-4">
-                                <SpeakerLabelEditor
-                                    recordingId={recordingId}
-                                    speakerMap={liveSpeakerMap}
-                                    onSpeakerMapChanged={setLiveSpeakerMap}
-                                />
-                            </div>
-                        </div>
+                        ) : null}
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
