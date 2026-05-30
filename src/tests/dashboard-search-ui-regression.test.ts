@@ -128,9 +128,37 @@ describe("dashboard search and activity overlay regression", () => {
         expect(activityOverlay).toContain(
             'data-testid="dashboard-activity-empty"',
         );
+        expect(activityOverlay).toContain(
+            'data-testid="dashboard-activity-dismiss"',
+        );
+        expect(activityOverlay).toContain(
+            'data-testid="dashboard-activity-action"',
+        );
+        expect(activityOverlay).toContain("data-activity-id");
+        expect(activityOverlay).toContain("data-action-state");
         expect(activityOverlay).toContain('"dashboard-activity-loading"');
         expect(activityOverlay).toContain('"dashboard-activity-error"');
         expect(activityOverlay).not.toContain("fetch(");
+    });
+
+    it("keeps activity dismiss, retry, and keyboard states explicit", () => {
+        const activityOverlay = readSource(
+            "features/dashboard/components/activity-overlay.tsx",
+        );
+
+        expect(activityOverlay).toContain("dismissedItemIds");
+        expect(activityOverlay).toContain("setDismissedItemIds");
+        expect(activityOverlay).toContain('"busy" | "done" | "failed"');
+        expect(activityOverlay).toContain("aria-busy={actionIsBusy}");
+        expect(activityOverlay).toContain("已加入更新");
+        expect(activityOverlay).toContain("全部已处理");
+        expect(activityOverlay).toContain("没有新的动态");
+        expect(activityOverlay).toContain("role={isRecordingAction");
+        expect(activityOverlay).toContain("tabIndex={isRecordingAction");
+        expect(activityOverlay).toContain('event.key !== "Enter"');
+        expect(activityOverlay).toContain('event.key !== " "');
+        expect(activityOverlay).toContain("onSyncNow");
+        expect(activityOverlay).not.toContain("settings:open");
     });
 
     it("keeps search and activity mutually exclusive and below modal-level surfaces", () => {

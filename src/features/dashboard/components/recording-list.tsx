@@ -1,6 +1,16 @@
 "use client";
 
-import { Clock, CloudOff, HardDrive, Loader2 } from "lucide-react";
+import {
+    CalendarX2,
+    Clock,
+    CloudOff,
+    FolderOpen,
+    HardDrive,
+    Loader2,
+    SearchX,
+    Tags,
+} from "lucide-react";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,11 +43,16 @@ type TagFilter = "all" | "untagged" | `tag:${string}`;
 interface RecordingListProps {
     recordings: Recording[];
     totalCount: number;
+    libraryTotalCount?: number;
     currentRecording: Recording | null;
     transcriptionJobs?: Map<string, TranscriptionJobLike>;
     contextLabel?: string;
+    filterStack?: ReactNode;
+    isLoading?: boolean;
     mode?: RecordingListMode;
     onModeChange?: (mode: RecordingListMode) => void;
+    onClearFilters?: () => void;
+    onOpenDataSourcesSettings?: () => void;
     onSelect: (recording: Recording) => void;
 }
 
@@ -80,10 +95,15 @@ function getTimelineLabel(bucket: TimelineFilter, language: "zh-CN" | "en") {
 export function RecordingList({
     recordings,
     totalCount,
+    libraryTotalCount = totalCount,
     currentRecording,
     contextLabel,
+    filterStack,
+    isLoading = false,
     mode: controlledMode,
     onModeChange,
+    onClearFilters,
+    onOpenDataSourcesSettings,
     transcriptionJobs,
     onSelect,
 }: RecordingListProps) {
@@ -298,6 +318,31 @@ export function RecordingList({
         1,
         Math.ceil(filteredSortedRecordings.length / pageSize),
     );
+    const hasVisibleRows = groupedRecordings.length > 0;
+    const isLibraryEmpty = !isLoading && libraryTotalCount === 0;
+    const isDashboardFilterEmpty =
+        !isLoading && libraryTotalCount > 0 && recordings.length === 0;
+    const isInnerFilterEmpty =
+        !isLoading &&
+        recordings.length > 0 &&
+        filteredSortedRecordings.length === 0;
+    const listState = isLoading
+        ? "loading"
+        : isLibraryEmpty
+          ? "empty"
+          : isDashboardFilterEmpty
+            ? "no-match"
+            : isInnerFilterEmpty
+              ? mode === "tags"
+                  ? "tag-empty"
+                  : "timeline-empty"
+              : "ready";
+
+    const resetInnerFilters = useCallback(() => {
+        setTimelineFilter("all");
+        setTagFilter("all");
+        setCurrentPage(1);
+    }, []);
 
     const formatDuration = (ms: number) => {
         const minutes = Math.floor(ms / 60000);
@@ -323,6 +368,7 @@ export function RecordingList({
         <Card
             hasNoPadding
             className="dashboard-list-panel h-[calc(100svh-13rem)] min-h-[28rem] lg:h-full lg:min-h-0"
+            data-list-state={listState}
             data-testid="recording-list-panel"
         >
             <CardContent className="flex h-full min-h-0 flex-col p-0">
@@ -331,6 +377,9 @@ export function RecordingList({
                         <div className="mb-2 flex items-center gap-2 text-[0.68rem] font-medium text-muted-foreground">
                             <span>{contextLabel}</span>
                         </div>
+                    ) : null}
+                    {filterStack ? (
+                        <div className="-mx-3 mb-3">{filterStack}</div>
                     ) : null}
                     <div className="mb-2 flex items-center justify-between gap-2">
                         <div className="flex min-w-0 items-center gap-2">
@@ -429,161 +478,268 @@ export function RecordingList({
                     key={`${mode}-${timelineFilter}-${tagFilter}-${currentPage}`}
                     className="content-fade-in min-h-0 flex-1 overflow-y-auto px-1 py-1"
                 >
-                    {groupedRecordings.map((group) => (
-                        <div key={group.id}>
-                            <div className="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-3 py-2 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase backdrop-blur">
-                                <span>{group.label}</span>
-                                <span className="h-px flex-1 bg-border/70" />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                {group.recordings.map((recording) => {
-                                    const isSelected =
-                                        currentRecording?.id === recording.id;
-                                    const isTranscribing =
-                                        isActiveTranscriptionJob(
-                                            transcriptionJobs?.get(
-                                                recording.id,
-                                            ),
-                                        );
+                    {isLoading ? (
+                        <div
+                            className="space-y-3 p-3"
+                            data-testid="recording-list-loading"
+                        >
+                            {[0, 1, 2, 3].map((item) => (
+                                <div
+                                    key={item}
+                                    className="rounded-xl border border-border/45 bg-background/30 px-3 py-3"
+                                >
+                                    <div className="mb-3 h-3 w-24 animate-pulse rounded bg-muted" />
+                                    <div className="mb-2 h-4 w-4/5 animate-pulse rounded bg-muted" />
+                                    <div className="flex gap-2">
+                                        <div className="h-3 w-14 animate-pulse rounded bg-muted" />
+                                        <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : null}
+                    {!isLoading &&
+                        groupedRecordings.map((group) => (
+                            <div key={group.id}>
+                                <div className="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-3 py-2 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase backdrop-blur">
+                                    <span>{group.label}</span>
+                                    <span className="h-px flex-1 bg-border/70" />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    {group.recordings.map((recording) => {
+                                        const isSelected =
+                                            currentRecording?.id ===
+                                            recording.id;
+                                        const isTranscribing =
+                                            isActiveTranscriptionJob(
+                                                transcriptionJobs?.get(
+                                                    recording.id,
+                                                ),
+                                            );
 
-                                    return (
-                                        <button
-                                            key={recording.id}
-                                            type="button"
-                                            onClick={() => onSelect(recording)}
-                                            className={cn(
-                                                "relative w-full rounded-xl border border-transparent px-3 py-3 text-left transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] hover:bg-accent/35",
-                                                isSelected &&
-                                                    "border-primary/35 bg-accent/45 shadow-xs",
-                                            )}
-                                        >
-                                            {isTranscribing ? (
-                                                <span className="pointer-events-none absolute top-1/2 left-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
-                                                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/20 opacity-70" />
-                                                    <Loader2 className="relative size-3.5 animate-spin" />
-                                                </span>
-                                            ) : null}
-                                            <div
+                                        return (
+                                            <button
+                                                key={recording.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    onSelect(recording)
+                                                }
                                                 className={cn(
-                                                    "flex items-start justify-between gap-3",
-                                                    isTranscribing && "pl-8",
+                                                    "relative w-full rounded-xl border border-transparent px-3 py-3 text-left transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] hover:bg-accent/35",
+                                                    isSelected &&
+                                                        "border-primary/35 bg-accent/45 shadow-xs",
                                                 )}
                                             >
-                                                <div className="min-w-0 flex-1 space-y-1.5">
-                                                    <div className="min-w-0">
-                                                        <h3 className="truncate text-[0.95rem] leading-6 font-medium">
-                                                            {recording.filename}
-                                                        </h3>
-                                                    </div>
+                                                {isTranscribing ? (
+                                                    <span className="pointer-events-none absolute top-1/2 left-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+                                                        <span className="absolute inset-0 animate-ping rounded-full bg-primary/20 opacity-70" />
+                                                        <Loader2 className="relative size-3.5 animate-spin" />
+                                                    </span>
+                                                ) : null}
+                                                <div
+                                                    className={cn(
+                                                        "flex items-start justify-between gap-3",
+                                                        isTranscribing &&
+                                                            "pl-8",
+                                                    )}
+                                                >
+                                                    <div className="min-w-0 flex-1 space-y-1.5">
+                                                        <div className="min-w-0">
+                                                            <h3 className="truncate text-[0.95rem] leading-6 font-medium">
+                                                                {
+                                                                    recording.filename
+                                                                }
+                                                            </h3>
+                                                        </div>
 
-                                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm leading-5 text-muted-foreground">
-                                                        {recording.sourceProvider ? (
-                                                            <div className="flex min-w-0 items-center gap-1">
-                                                                <span className="max-w-24 truncate">
-                                                                    {getSourceProviderLabel(
-                                                                        recording.sourceProvider,
-                                                                        language,
+                                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm leading-5 text-muted-foreground">
+                                                            {recording.sourceProvider ? (
+                                                                <div className="flex min-w-0 items-center gap-1">
+                                                                    <span className="max-w-24 truncate">
+                                                                        {getSourceProviderLabel(
+                                                                            recording.sourceProvider,
+                                                                            language,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                            ) : null}
+                                                            <div className="flex items-center gap-1">
+                                                                <Clock className="h-3 w-3" />
+                                                                <span>
+                                                                    {formatDuration(
+                                                                        recording.duration,
                                                                     )}
                                                                 </span>
                                                             </div>
-                                                        ) : null}
-                                                        <div className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            <span>
-                                                                {formatDuration(
-                                                                    recording.duration,
-                                                                )}
-                                                            </span>
+                                                            <div className="flex items-center gap-1">
+                                                                <HardDrive className="h-3 w-3" />
+                                                                <span>
+                                                                    {(
+                                                                        recording.filesize /
+                                                                        (1024 *
+                                                                            1024)
+                                                                    ).toFixed(
+                                                                        1,
+                                                                    )}{" "}
+                                                                    MB
+                                                                </span>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <HardDrive className="h-3 w-3" />
-                                                            <span>
-                                                                {(
-                                                                    recording.filesize /
-                                                                    (1024 *
-                                                                        1024)
-                                                                ).toFixed(
-                                                                    1,
-                                                                )}{" "}
-                                                                MB
-                                                            </span>
-                                                        </div>
-                                                    </div>
 
-                                                    <p
-                                                        className="text-xs leading-5 text-muted-foreground"
-                                                        suppressHydrationWarning
-                                                    >
-                                                        {formatDateTime(
-                                                            recording.startTime,
-                                                            dateTimeFormat,
-                                                            language,
-                                                        )}
-                                                    </p>
-                                                    {recording.upstreamDeleted && (
-                                                        <div
-                                                            className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-500"
-                                                            title={getUpstreamDeletedLabel(
+                                                        <p
+                                                            className="text-xs leading-5 text-muted-foreground"
+                                                            suppressHydrationWarning
+                                                        >
+                                                            {formatDateTime(
+                                                                recording.startTime,
+                                                                dateTimeFormat,
                                                                 language,
                                                             )}
-                                                        >
-                                                            <CloudOff className="h-2.5 w-2.5" />
-                                                            {t(
-                                                                "dashboard.localOnly",
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    {recording.tags.length >
-                                                    0 ? (
-                                                        <div className="flex flex-wrap gap-1.5 pt-0.5">
-                                                            {recording.tags
-                                                                .slice(0, 2)
-                                                                .map((tag) => (
-                                                                    <RecordingTagChip
-                                                                        key={
-                                                                            tag.id
-                                                                        }
-                                                                        tag={
-                                                                            tag
-                                                                        }
-                                                                    />
-                                                                ))}
-                                                            {recording.tags
-                                                                .length > 2 ? (
-                                                                <span className="rounded-full border border-border/70 px-2 py-0.5 text-[10px] text-muted-foreground">
-                                                                    +
-                                                                    {recording
-                                                                        .tags
-                                                                        .length -
-                                                                        2}
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
-                                                    ) : null}
+                                                        </p>
+                                                        {recording.upstreamDeleted && (
+                                                            <div
+                                                                className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-500"
+                                                                title={getUpstreamDeletedLabel(
+                                                                    language,
+                                                                )}
+                                                            >
+                                                                <CloudOff className="h-2.5 w-2.5" />
+                                                                {t(
+                                                                    "dashboard.localOnly",
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {recording.tags.length >
+                                                        0 ? (
+                                                            <div className="flex flex-wrap gap-1.5 pt-0.5">
+                                                                {recording.tags
+                                                                    .slice(0, 2)
+                                                                    .map(
+                                                                        (
+                                                                            tag,
+                                                                        ) => (
+                                                                            <RecordingTagChip
+                                                                                key={
+                                                                                    tag.id
+                                                                                }
+                                                                                tag={
+                                                                                    tag
+                                                                                }
+                                                                            />
+                                                                        ),
+                                                                    )}
+                                                                {recording.tags
+                                                                    .length >
+                                                                2 ? (
+                                                                    <span className="rounded-full border border-border/70 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                                                        +
+                                                                        {recording
+                                                                            .tags
+                                                                            .length -
+                                                                            2}
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                        ) : null}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                    {groupedRecordings.length === 0 ? (
-                        <div className="m-2 flex flex-col items-center gap-2 rounded-xl border border-dashed border-border/80 bg-background/35 px-6 py-10 text-center">
-                            <p className="text-sm font-semibold">
-                                {language === "zh-CN"
-                                    ? mode === "timeline"
-                                        ? "当前时间线没有录音"
-                                        : "当前标签没有录音"
-                                    : mode === "timeline"
-                                      ? "No recordings in this timeline"
-                                      : "No recordings for this tag"}
-                            </p>
-                            <p className="max-w-72 text-xs leading-5 text-muted-foreground">
-                                {language === "zh-CN"
-                                    ? "切换筛选或更新来源后，匹配的录音会显示在这里。"
-                                    : "Change filters or update a source to show matching recordings here."}
-                            </p>
+                        ))}
+                    {!isLoading && !hasVisibleRows ? (
+                        <div
+                            className="m-2 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border/80 bg-background/35 px-6 py-10 text-center"
+                            data-testid={`recording-list-${listState}`}
+                        >
+                            <span className="glass-control inline-flex size-11 items-center justify-center rounded-2xl text-muted-foreground">
+                                {listState === "empty" ? (
+                                    <FolderOpen className="size-5" />
+                                ) : listState === "tag-empty" ? (
+                                    <Tags className="size-5" />
+                                ) : listState === "timeline-empty" ? (
+                                    <CalendarX2 className="size-5" />
+                                ) : (
+                                    <SearchX className="size-5" />
+                                )}
+                            </span>
+                            <div className="space-y-1.5">
+                                <p className="text-sm font-semibold">
+                                    {language === "zh-CN"
+                                        ? listState === "empty"
+                                            ? "还没有录音"
+                                            : listState === "no-match"
+                                              ? "当前筛选下没有录音"
+                                              : listState === "timeline-empty"
+                                                ? "所选时间段内没有录音"
+                                                : "该标签下还没有录音"
+                                        : listState === "empty"
+                                          ? "No recordings yet"
+                                          : listState === "no-match"
+                                            ? "No recordings match these filters"
+                                            : listState === "timeline-empty"
+                                              ? "No recordings in this timeline"
+                                              : "No recordings for this tag"}
+                                </p>
+                                <p className="max-w-72 text-xs leading-5 text-muted-foreground">
+                                    {language === "zh-CN"
+                                        ? listState === "empty"
+                                            ? "连接一个数据源后，会议、1:1 和外部音频会出现在这里。"
+                                            : listState === "no-match"
+                                              ? "尝试清除收藏、来源或搜索筛选，或重新更新来源。"
+                                              : listState === "timeline-empty"
+                                                ? "放宽时间筛选后，匹配的录音会回到列表。"
+                                                : "清除标签筛选，或在详情页给录音添加该标签。"
+                                        : listState === "empty"
+                                          ? "Connect a data source and recordings will appear here."
+                                          : listState === "no-match"
+                                            ? "Clear favorites, source, or search filters, then sync again."
+                                            : listState === "timeline-empty"
+                                              ? "Widen the timeline filter to bring matching recordings back."
+                                              : "Clear the tag filter or add this tag from the detail panel."}
+                                </p>
+                            </div>
+                            {listState === "empty" &&
+                            onOpenDataSourcesSettings ? (
+                                <button
+                                    type="button"
+                                    className="rounded-lg bg-primary px-3 py-1.5 text-primary-foreground text-xs font-medium transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    onClick={onOpenDataSourcesSettings}
+                                >
+                                    {language === "zh-CN"
+                                        ? "前往数据源"
+                                        : "Open data sources"}
+                                </button>
+                            ) : null}
+                            {listState === "no-match" && onClearFilters ? (
+                                <button
+                                    type="button"
+                                    className="rounded-lg border border-border/70 bg-background/45 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background/65 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    onClick={onClearFilters}
+                                >
+                                    {language === "zh-CN"
+                                        ? "清除筛选"
+                                        : "Clear filters"}
+                                </button>
+                            ) : null}
+                            {(listState === "timeline-empty" ||
+                                listState === "tag-empty") && (
+                                <button
+                                    type="button"
+                                    className="rounded-lg border border-border/70 bg-background/45 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background/65 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    onClick={resetInnerFilters}
+                                >
+                                    {language === "zh-CN"
+                                        ? listState === "timeline-empty"
+                                            ? "清除时间筛选"
+                                            : "清除标签筛选"
+                                        : listState === "timeline-empty"
+                                          ? "Clear timeline"
+                                          : "Clear tag"}
+                                </button>
+                            )}
                         </div>
                     ) : null}
                 </div>

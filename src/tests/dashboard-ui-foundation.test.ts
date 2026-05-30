@@ -15,15 +15,31 @@ describe("dashboard UI foundation", () => {
         const globals = readSource("app/globals.css");
 
         expect(workstation).toContain("dashboard-workstation-grid");
+        expect(workstation).toContain('data-testid="dashboard-workstation"');
         expect(workstation).toContain(
             "lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)]",
         );
+        expect(workstation).toContain("lg:col-span-2");
+        expect(workstation).toContain("lg:col-start-2 lg:row-start-2");
+        expect(workstation).toContain("lg:col-start-3 lg:row-start-2");
         expect(workstation).toContain('data-testid="dashboard-source-rail"');
+        expect(workstation).toContain(
+            'data-testid="dashboard-source-drawer-trigger"',
+        );
+        expect(workstation).toContain(
+            'data-testid="dashboard-sidebar-collapse-trigger"',
+        );
         expect(workstation).toContain("<SourceProviderRows");
+        expect(workstation).toContain("<SourceFilterStackStrip");
+        expect(workstation).toContain("isSourceDrawerOpen");
+        expect(workstation).toContain("isSidebarCollapsed");
         expect(workstation).toContain("filteredRecordings");
         expect(workstation).toContain("recordingListMode");
         expect(globals).toContain(".dashboard-workstation");
         expect(globals).toContain(".dashboard-list-panel");
+        expect(globals).toContain(
+            '.dashboard-workstation-grid[data-sidebar-collapsed="true"]',
+        );
     });
 
     it("renders supported source providers as local client rows without remote assets", () => {
@@ -43,6 +59,10 @@ describe("dashboard UI foundation", () => {
         }
 
         expect(sourceRows).toContain('data-testid="source-provider-rows"');
+        expect(sourceRows).toContain("compact?: boolean");
+        expect(sourceRows).toContain(
+            'data-compact={compact ? "true" : "false"}',
+        );
         expect(sourceRows).toContain("data-connected");
         expect(sourceRows).toContain("onSelectProvider");
         expect(sourceRows).not.toContain("fetch(");
@@ -63,6 +83,12 @@ describe("dashboard UI foundation", () => {
         expect(recordingList).toContain("mode?: RecordingListMode");
         expect(recordingList).toContain("onModeChange?");
         expect(recordingList).toContain("contextLabel?");
+        expect(recordingList).toContain("filterStack?");
+        expect(recordingList).toContain("libraryTotalCount?");
+        expect(recordingList).toContain("isLoading?");
+        expect(recordingList).toContain("data-list-state={listState}");
+        expect(recordingList).toContain('data-testid="recording-list-loading"');
+        expect(recordingList).toContain("recording-list-");
         expect(recordingList).toContain("getSourceProviderLabel");
         expect(recordingList).toContain('data-testid="recording-list-panel"');
     });

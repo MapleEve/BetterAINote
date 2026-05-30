@@ -340,6 +340,16 @@
         color: var(--foreground);
     }
 
+    @media (min-width: 1024px) {
+        .dashboard-workstation-grid[data-sidebar-collapsed="true"] {
+            grid-template-columns: 4.75rem minmax(22rem, 24rem) minmax(0, 1fr);
+        }
+
+        .dashboard-source-sidebar[data-collapsed="true"] {
+            align-items: stretch;
+        }
+    }
+
     .dashboard-list-panel {
         background:
             linear-gradient(

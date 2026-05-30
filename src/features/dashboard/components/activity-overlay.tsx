@@ -9,7 +9,11 @@ import {
     RefreshCw,
     X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import type {
+    KeyboardEvent as ReactKeyboardEvent,
+    MouseEvent as ReactMouseEvent,
+} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatRelativeDistance } from "@/lib/format-date";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
@@ -18,6 +22,11 @@ import type { Recording } from "@/types/recording";
 
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityAction = "sync" | "recording";
+type ActivityActionState = "idle" | "busy" | "done" | "failed";
+
+const STATUS_SYNC_ACTION_ID = "source-status-sync";
+const ACTION_DONE_VISIBLE_MS = 1600;
+const ACTION_FALLBACK_DONE_MS = 1800;
 
 type ActivitySyncResult = {
     success: boolean;
@@ -187,6 +196,39 @@ function ActivityIcon({ tone }: { tone: ActivityTone }) {
     return <Clock className="h-3.5 w-3.5" />;
 }
 
+function getActionLabel(item: ActivityItem, state: ActivityActionState) {
+    if (item.action === "recording") {
+        return item.actionLabel ?? "查看";
+    }
+
+    if (state === "busy") {
+        return "正在更新...";
+    }
+    if (state === "done") {
+        return "已加入更新";
+    }
+    if (state === "failed") {
+        return "重试更新";
+    }
+
+    return item.actionLabel ?? "重试更新";
+}
+
+function isNestedInteractiveTarget(
+    target: EventTarget | null,
+    currentTarget: HTMLElement,
+) {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    const nestedInteractive = target.closest("button,a,input,select,textarea");
+
+    return (
+        nestedInteractive !== null && currentTarget.contains(nestedInteractive)
+    );
+}
+
 export function ActivityOverlay({
     open,
     onOpenChange,
@@ -203,6 +245,21 @@ export function ActivityOverlay({
 }: ActivityOverlayProps) {
     const rootRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const syncBaselineRef = useRef<Record<string, ActivitySyncResult>>({});
+    const actionTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(
+        new Set(),
+    );
+    const [dismissedItemIds, setDismissedItemIds] = useState<Set<string>>(
+        () => new Set(),
+    );
+    const [actionStates, setActionStates] = useState<
+        Record<string, ActivityActionState>
+    >({});
+    const [isInteractive, setIsInteractive] = useState(false);
+
+    useEffect(() => {
+        setIsInteractive(true);
+    }, []);
 
     const closeAndReturnFocus = useCallback(
         (options: { returnFocus?: boolean } = {}) => {
@@ -215,6 +272,57 @@ export function ActivityOverlay({
             }, 0);
         },
         [onOpenChange],
+    );
+
+    const clearActionState = useCallback((actionId: string) => {
+        setActionStates((previous) => {
+            if (!(actionId in previous)) {
+                return previous;
+            }
+
+            const next = { ...previous };
+            delete next[actionId];
+            return next;
+        });
+    }, []);
+
+    const scheduleTimer = useCallback((callback: () => void, delay: number) => {
+        const timer = setTimeout(() => {
+            actionTimersRef.current.delete(timer);
+            callback();
+        }, delay);
+        actionTimersRef.current.add(timer);
+    }, []);
+
+    const resolveSyncAction = useCallback(
+        (actionId: string, nextState: Exclude<ActivityActionState, "idle">) => {
+            setActionStates((previous) => {
+                if (previous[actionId] !== "busy") {
+                    return previous;
+                }
+
+                return {
+                    ...previous,
+                    [actionId]: nextState,
+                };
+            });
+
+            if (nextState !== "done") {
+                return;
+            }
+
+            scheduleTimer(() => {
+                if (actionId !== STATUS_SYNC_ACTION_ID) {
+                    setDismissedItemIds((previous) => {
+                        const next = new Set(previous);
+                        next.add(actionId);
+                        return next;
+                    });
+                }
+                clearActionState(actionId);
+            }, ACTION_DONE_VISIBLE_MS);
+        },
+        [clearActionState, scheduleTimer],
     );
 
     useEffect(() => {
@@ -247,6 +355,16 @@ export function ActivityOverlay({
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, [closeAndReturnFocus, open]);
+
+    useEffect(
+        () => () => {
+            for (const timer of actionTimersRef.current) {
+                clearTimeout(timer);
+            }
+            actionTimersRef.current.clear();
+        },
+        [],
+    );
 
     const recordingNames = useMemo(
         () =>
@@ -377,6 +495,30 @@ export function ActivityOverlay({
         workerStatus,
     ]);
 
+    useEffect(() => {
+        const activeIds = new Set(activityItems.map((item) => item.id));
+        activeIds.add(STATUS_SYNC_ACTION_ID);
+
+        setDismissedItemIds((previous) => {
+            const next = new Set(
+                [...previous].filter((itemId) => activeIds.has(itemId)),
+            );
+            return next.size === previous.size ? previous : next;
+        });
+
+        setActionStates((previous) => {
+            const next = Object.fromEntries(
+                Object.entries(previous).filter(([itemId]) =>
+                    activeIds.has(itemId),
+                ),
+            ) as Record<string, ActivityActionState>;
+
+            return Object.keys(next).length === Object.keys(previous).length
+                ? previous
+                : next;
+        });
+    }, [activityItems]);
+
     const statusCopy = getStatusCopy({
         autoSyncEnabled,
         isAutoSyncing,
@@ -385,31 +527,274 @@ export function ActivityOverlay({
         nextSyncTime,
         workerStatus,
     });
-    const actionableCount = activityItems.filter(
-        (item) => item.actionable,
+
+    const statusActionState = actionStates[STATUS_SYNC_ACTION_ID] ?? "idle";
+    const displayedStatusCopy = useMemo(() => {
+        if (statusActionState === "busy") {
+            return {
+                state: "loading" as const,
+                line: "正在更新来源",
+                sub: "正在检查已连接来源的新录音",
+            };
+        }
+        if (statusActionState === "done") {
+            return {
+                state: "idle" as const,
+                line: "已加入更新",
+                sub: "来源更新会在后台继续。",
+            };
+        }
+        if (statusActionState === "failed") {
+            return {
+                state: "error" as const,
+                line: "更新请求失败",
+                sub: "请稍后重试。",
+            };
+        }
+
+        return statusCopy;
+    }, [statusActionState, statusCopy]);
+
+    const visibleActivityItems = useMemo(
+        () => activityItems.filter((item) => !dismissedItemIds.has(item.id)),
+        [activityItems, dismissedItemIds],
+    );
+
+    const actionableCount = visibleActivityItems.filter(
+        (item) =>
+            item.actionable && (actionStates[item.id] ?? "idle") !== "done",
     ).length;
-    const hasLoading = activityItems.some((item) => item.tone === "loading");
+    const hasLoading =
+        statusActionState === "busy" ||
+        visibleActivityItems.some(
+            (item) =>
+                item.tone === "loading" ||
+                (actionStates[item.id] ?? "idle") === "busy",
+        );
     const hasError = activityItems.some(
-        (item) => item.tone === "error" || item.tone === "warn",
+        (item) =>
+            !dismissedItemIds.has(item.id) &&
+            (item.tone === "error" ||
+                item.tone === "warn" ||
+                (actionStates[item.id] ?? "idle") === "failed"),
     );
     const panelState = hasLoading
         ? "loading"
         : hasError
           ? "error"
-          : activityItems.length > 0
+          : visibleActivityItems.length > 0
             ? "list"
             : "empty";
 
-    const handleAction = (item: ActivityItem) => {
-        if (item.action === "sync") {
-            void onSyncNow();
+    const runSyncAction = useCallback(
+        async (actionId: string) => {
+            syncBaselineRef.current[actionId] = lastSyncResult;
+            setActionStates((previous) => ({
+                ...previous,
+                [actionId]: "busy",
+            }));
+
+            try {
+                await onSyncNow();
+                scheduleTimer(() => {
+                    resolveSyncAction(actionId, "done");
+                }, ACTION_FALLBACK_DONE_MS);
+            } catch {
+                resolveSyncAction(actionId, "failed");
+            }
+        },
+        [lastSyncResult, onSyncNow, resolveSyncAction, scheduleTimer],
+    );
+
+    useEffect(() => {
+        if (isAutoSyncing) {
             return;
         }
 
-        if (item.action === "recording" && item.recordingId) {
-            onOpenRecording(item.recordingId);
-            closeAndReturnFocus();
+        for (const [actionId, actionState] of Object.entries(actionStates)) {
+            if (
+                actionState !== "busy" ||
+                syncBaselineRef.current[actionId] === lastSyncResult
+            ) {
+                continue;
+            }
+
+            resolveSyncAction(
+                actionId,
+                lastSyncResult?.success === false ? "failed" : "done",
+            );
         }
+    }, [actionStates, isAutoSyncing, lastSyncResult, resolveSyncAction]);
+
+    const handleAction = useCallback(
+        (item: ActivityItem) => {
+            if (item.action === "sync") {
+                void runSyncAction(item.id);
+                return;
+            }
+
+            if (item.action === "recording" && item.recordingId) {
+                onOpenRecording(item.recordingId);
+                closeAndReturnFocus();
+            }
+        },
+        [closeAndReturnFocus, onOpenRecording, runSyncAction],
+    );
+
+    const handleRecordingItemClick = useCallback(
+        (item: ActivityItem, event: ReactMouseEvent<HTMLLIElement>) => {
+            if (
+                item.action !== "recording" ||
+                isNestedInteractiveTarget(event.target, event.currentTarget)
+            ) {
+                return;
+            }
+
+            handleAction(item);
+        },
+        [handleAction],
+    );
+
+    const handleRecordingItemKeyDown = useCallback(
+        (item: ActivityItem, event: ReactKeyboardEvent<HTMLLIElement>) => {
+            if (
+                item.action !== "recording" ||
+                event.currentTarget !== event.target ||
+                (event.key !== "Enter" && event.key !== " ")
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            handleAction(item);
+        },
+        [handleAction],
+    );
+
+    const dismissItem = useCallback((itemId: string) => {
+        setDismissedItemIds((previous) => {
+            const next = new Set(previous);
+            next.add(itemId);
+            return next;
+        });
+    }, []);
+
+    const handleStatusSync = () => {
+        void runSyncAction(STATUS_SYNC_ACTION_ID);
+    };
+
+    const statusButtonLabel =
+        statusActionState === "busy"
+            ? "更新中"
+            : statusActionState === "done"
+              ? "已完成"
+              : statusActionState === "failed"
+                ? "重试"
+                : "更新";
+
+    const renderActivityItem = (item: ActivityItem) => {
+        const actionState = actionStates[item.id] ?? "idle";
+        const actionIsBusy = actionState === "busy";
+        const actionIsDone = actionState === "done";
+        const isRecordingAction = item.action === "recording";
+
+        return (
+            <li
+                key={item.id}
+                aria-label={
+                    isRecordingAction
+                        ? `${item.title}，${item.actionLabel ?? "查看"}`
+                        : undefined
+                }
+                data-action-state={actionState}
+                data-activity-id={item.id}
+                data-activity-action={item.action ?? "none"}
+                data-clickable={isRecordingAction ? "true" : "false"}
+                data-tone={item.tone}
+                data-testid={
+                    item.tone === "loading"
+                        ? "dashboard-activity-loading"
+                        : item.tone === "error" || item.tone === "warn"
+                          ? "dashboard-activity-error"
+                          : "dashboard-activity-item"
+                }
+                role={isRecordingAction ? "button" : undefined}
+                tabIndex={isRecordingAction ? 0 : undefined}
+                className={cn(
+                    "grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-2 rounded-lg px-2.5 py-2.5 transition-colors hover:bg-muted/50",
+                    isRecordingAction &&
+                        "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                )}
+                onClick={(event) => handleRecordingItemClick(item, event)}
+                onKeyDown={(event) => handleRecordingItemKeyDown(item, event)}
+            >
+                <span
+                    className={cn(
+                        "inline-flex h-7 w-7 items-center justify-center rounded-lg border",
+                        item.tone === "loading" &&
+                            "border-primary/25 bg-primary/10 text-primary",
+                        item.tone === "error" &&
+                            "border-destructive/25 bg-destructive/10 text-destructive",
+                        item.tone === "warn" &&
+                            "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                        item.tone === "success" &&
+                            "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+                        item.tone === "info" &&
+                            "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+                    )}
+                >
+                    <ActivityIcon tone={item.tone} />
+                </span>
+                <div className="min-w-0">
+                    <p className="truncate font-medium text-sm">{item.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-muted-foreground text-xs leading-5">
+                        {item.body}
+                    </p>
+                    {item.meta ? (
+                        <p className="mt-1 text-muted-foreground text-[0.68rem]">
+                            {item.meta}
+                        </p>
+                    ) : null}
+                </div>
+                <div className="flex items-start gap-1">
+                    {item.action ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            aria-busy={actionIsBusy}
+                            data-action-state={actionState}
+                            data-activity-action-button=""
+                            data-testid="dashboard-activity-action"
+                            disabled={actionIsBusy || actionIsDone}
+                            className="h-7 rounded-lg px-2 text-xs"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                handleAction(item);
+                            }}
+                        >
+                            {item.action === "recording" ? (
+                                <FileText className="mr-1 h-3 w-3" />
+                            ) : null}
+                            {getActionLabel(item, actionState)}
+                        </Button>
+                    ) : null}
+                    <button
+                        type="button"
+                        aria-label={`忽略 ${item.title}`}
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        data-activity-dismiss=""
+                        data-testid="dashboard-activity-dismiss"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            dismissItem(item.id);
+                        }}
+                    >
+                        <X className="h-3.5 w-3.5" />
+                    </button>
+                </div>
+            </li>
+        );
     };
 
     return (
@@ -433,6 +818,7 @@ export function ActivityOverlay({
                 }
                 className="relative h-9 w-9 rounded-xl border-border/70 bg-background/45"
                 data-testid="dashboard-activity-trigger"
+                disabled={!isInteractive}
                 onClick={() => {
                     if (open) {
                         closeAndReturnFocus();
@@ -469,8 +855,8 @@ export function ActivityOverlay({
                             <p className="truncate text-muted-foreground text-xs">
                                 {actionableCount > 0
                                     ? `${actionableCount} 项待处理`
-                                    : activityItems.length > 0
-                                      ? `最近有 ${activityItems.length} 项动态`
+                                    : visibleActivityItems.length > 0
+                                      ? `最近有 ${visibleActivityItems.length} 项动态`
                                       : "全部已处理"}
                             </p>
                         </div>
@@ -486,15 +872,16 @@ export function ActivityOverlay({
 
                     <div
                         className="flex items-center gap-2 border-border/70 border-b bg-muted/35 px-3.5 py-2.5"
-                        data-state={statusCopy.state}
+                        data-action-state={statusActionState}
+                        data-state={displayedStatusCopy.state}
                         data-testid="dashboard-activity-status"
                     >
                         <span
                             className={cn(
                                 "h-2 w-2 shrink-0 rounded-full",
-                                statusCopy.state === "loading"
+                                displayedStatusCopy.state === "loading"
                                     ? "animate-pulse bg-primary"
-                                    : statusCopy.state === "error"
+                                    : displayedStatusCopy.state === "error"
                                       ? "bg-destructive"
                                       : "bg-emerald-500",
                             )}
@@ -502,20 +889,24 @@ export function ActivityOverlay({
                         />
                         <div className="min-w-0 flex-1">
                             <p className="truncate font-medium text-xs">
-                                {statusCopy.line}
+                                {displayedStatusCopy.line}
                             </p>
                             <p className="truncate text-muted-foreground text-[0.68rem]">
-                                {statusCopy.sub}
+                                {displayedStatusCopy.sub}
                             </p>
                         </div>
                         <Button
                             type="button"
                             size="sm"
                             variant="ghost"
+                            aria-busy={statusActionState === "busy"}
+                            data-action-state={statusActionState}
+                            data-testid="dashboard-activity-sync-action"
+                            disabled={statusActionState === "busy"}
                             className="h-7 shrink-0 rounded-lg px-2 text-xs"
-                            onClick={() => void onSyncNow()}
+                            onClick={handleStatusSync}
                         >
-                            更新
+                            {statusButtonLabel}
                         </Button>
                     </div>
 
@@ -527,75 +918,15 @@ export function ActivityOverlay({
                             <CheckCircle2 className="mb-3 h-9 w-9 text-emerald-500" />
                             <p className="font-medium text-sm">没有新的动态</p>
                             <p className="mt-1 text-muted-foreground text-xs">
-                                来源更新与转写任务都在正常运行。
+                                全部已处理，来源更新与转写任务都在正常运行。
                             </p>
                         </div>
                     ) : (
-                        <ul className="min-h-0 flex-1 overflow-y-auto p-1.5">
-                            {activityItems.map((item) => (
-                                <li
-                                    key={item.id}
-                                    data-tone={item.tone}
-                                    data-testid={
-                                        item.tone === "loading"
-                                            ? "dashboard-activity-loading"
-                                            : item.tone === "error" ||
-                                                item.tone === "warn"
-                                              ? "dashboard-activity-error"
-                                              : "dashboard-activity-item"
-                                    }
-                                    className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-2 rounded-lg px-2.5 py-2.5 transition-colors hover:bg-muted/50"
-                                >
-                                    <span
-                                        className={cn(
-                                            "inline-flex h-7 w-7 items-center justify-center rounded-lg border",
-                                            item.tone === "loading" &&
-                                                "border-primary/25 bg-primary/10 text-primary",
-                                            item.tone === "error" &&
-                                                "border-destructive/25 bg-destructive/10 text-destructive",
-                                            item.tone === "warn" &&
-                                                "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-                                            item.tone === "success" &&
-                                                "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
-                                            item.tone === "info" &&
-                                                "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-                                        )}
-                                    >
-                                        <ActivityIcon tone={item.tone} />
-                                    </span>
-                                    <div className="min-w-0">
-                                        <p className="truncate font-medium text-sm">
-                                            {item.title}
-                                        </p>
-                                        <p className="mt-0.5 line-clamp-2 text-muted-foreground text-xs leading-5">
-                                            {item.body}
-                                        </p>
-                                        {item.meta ? (
-                                            <p className="mt-1 text-muted-foreground text-[0.68rem]">
-                                                {item.meta}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                    <div className="flex items-start">
-                                        {item.action ? (
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-7 rounded-lg px-2 text-xs"
-                                                onClick={() =>
-                                                    handleAction(item)
-                                                }
-                                            >
-                                                {item.action === "recording" ? (
-                                                    <FileText className="mr-1 h-3 w-3" />
-                                                ) : null}
-                                                {item.actionLabel ?? "查看"}
-                                            </Button>
-                                        ) : null}
-                                    </div>
-                                </li>
-                            ))}
+                        <ul
+                            className="min-h-0 flex-1 overflow-y-auto p-1.5"
+                            data-testid="dashboard-activity-list"
+                        >
+                            {visibleActivityItems.map(renderActivityItem)}
                         </ul>
                     )}
                 </section>

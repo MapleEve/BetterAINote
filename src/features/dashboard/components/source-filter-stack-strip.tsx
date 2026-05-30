@@ -1,0 +1,217 @@
+"use client";
+
+import {
+    AlertCircle,
+    RefreshCw,
+    Search,
+    Settings,
+    SlidersHorizontal,
+    X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { UiLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import type {
+    SourceProviderRowModel,
+    SourceProviderRowStatus,
+} from "./source-provider-rows";
+
+interface SourceFilterStackStripProps {
+    activeFavoriteLabel: string;
+    filteredCount: number;
+    language: UiLanguage;
+    sourceRow: SourceProviderRowModel | null;
+    sourceTotalCount: number;
+    totalCount: number;
+    onClearAll: () => void;
+    onClearSource: () => void;
+    onOpenDataSourcesSettings: () => void;
+    onRetrySync: () => void;
+    onWidenFilters: () => void;
+}
+
+const PROVIDER_MARKS: Record<SourceProviderRowModel["provider"], string> = {
+    "dingtalk-a1": "钉",
+    ticnote: "T",
+    plaud: "P",
+    "feishu-minutes": "飞",
+    iflyrec: "讯",
+};
+
+function getStripState(
+    status: SourceProviderRowStatus,
+    filteredCount: number,
+    sourceTotalCount: number,
+) {
+    if (status === "sync-error") {
+        return "sync-error";
+    }
+
+    if (
+        status === "needs-setup" ||
+        status === "paused" ||
+        status === "planned"
+    ) {
+        return "needs-setup";
+    }
+
+    if (sourceTotalCount > 0 && filteredCount === 0) {
+        return "no-results";
+    }
+
+    return "active";
+}
+
+export function SourceFilterStackStrip({
+    activeFavoriteLabel,
+    filteredCount,
+    language,
+    onClearAll,
+    onClearSource,
+    onOpenDataSourcesSettings,
+    onRetrySync,
+    onWidenFilters,
+    sourceRow,
+    sourceTotalCount,
+    totalCount,
+}: SourceFilterStackStripProps) {
+    if (!sourceRow) {
+        return null;
+    }
+
+    const isZh = language === "zh-CN";
+    const state = getStripState(
+        sourceRow.status,
+        filteredCount,
+        sourceTotalCount,
+    );
+    const visibleDenominator =
+        activeFavoriteLabel === (isZh ? "全部录音" : "All recordings")
+            ? totalCount
+            : Math.max(sourceTotalCount, filteredCount);
+
+    return (
+        <div
+            aria-live="polite"
+            data-state={state}
+            data-source-status={sourceRow.status}
+            data-testid="dashboard-source-filter-stack"
+            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-background/28 px-3 py-2 text-[0.72rem] text-muted-foreground"
+        >
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+                <SlidersHorizontal className="size-3.5 shrink-0" />
+                <span>{isZh ? "筛选" : "Filter"}</span>
+                <span className="truncate font-semibold text-foreground">
+                    {activeFavoriteLabel}
+                </span>
+            </span>
+            <span className="text-muted-foreground/55" aria-hidden="true">
+                /
+            </span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-background/65 px-2 py-1 font-medium text-foreground shadow-xs">
+                <span
+                    className={cn(
+                        "inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-[0.66rem] font-semibold",
+                        sourceRow.active && "border-primary/30 text-primary",
+                    )}
+                    aria-hidden="true"
+                >
+                    {PROVIDER_MARKS[sourceRow.provider]}
+                </span>
+                <span className="truncate">{sourceRow.label}</span>
+                <button
+                    type="button"
+                    onClick={onClearSource}
+                    aria-label={isZh ? "清除来源筛选" : "Clear source filter"}
+                    className="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none"
+                >
+                    <X className="size-3" />
+                </button>
+            </span>
+            <span className="font-mono text-[0.68rem]">
+                {isZh ? "显示" : "Showing"}{" "}
+                <b className="text-foreground">{filteredCount}</b> /{" "}
+                {visibleDenominator}
+            </span>
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onClearAll}
+                className="ml-auto h-7 rounded-lg px-2 text-[0.72rem]"
+            >
+                {isZh ? "清除全部" : "Clear all"}
+            </Button>
+
+            {state === "sync-error" ? (
+                <div className="basis-full rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-700 dark:text-amber-200">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <AlertCircle className="size-3.5 shrink-0" />
+                        <span className="min-w-0 flex-1">
+                            <b>{sourceRow.label}</b>{" "}
+                            {isZh
+                                ? "同步异常，列表仍显示已缓存的录音。"
+                                : "has a sync issue. Cached recordings remain visible."}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={onRetrySync}
+                            className="inline-flex items-center gap-1 rounded-md border border-amber-500/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                        >
+                            <RefreshCw className="size-3" />
+                            {isZh ? "重试同步" : "Retry sync"}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+
+            {state === "no-results" ? (
+                <div className="basis-full rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 py-2 text-sky-700 dark:text-sky-200">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Search className="size-3.5 shrink-0" />
+                        <span className="min-w-0 flex-1">
+                            {isZh
+                                ? `${sourceRow.label} 在当前筛选下没有匹配项，共 ${sourceTotalCount} 条录音。`
+                                : `${sourceRow.label} has no matches in the current filter, with ${sourceTotalCount} recordings total.`}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={onWidenFilters}
+                            className="rounded-md border border-sky-500/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                        >
+                            {isZh ? "放宽筛选" : "Widen filter"}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+
+            {state === "needs-setup" ? (
+                <div className="basis-full rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-primary">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Settings className="size-3.5 shrink-0" />
+                        <span className="min-w-0 flex-1">
+                            {sourceRow.status === "paused"
+                                ? isZh
+                                    ? `${sourceRow.label} 已暂停，重新启用后这里会出现录音。`
+                                    : `${sourceRow.label} is paused. Enable it to show recordings here.`
+                                : sourceRow.status === "planned"
+                                  ? isZh
+                                      ? `${sourceRow.label} 仍在规划中，当前不会同步录音。`
+                                      : `${sourceRow.label} is planned and does not sync recordings yet.`
+                                  : isZh
+                                    ? `${sourceRow.label} 尚未连接，完成设置后这里会出现录音。`
+                                    : `${sourceRow.label} is not connected. Finish setup to show recordings here.`}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={onOpenDataSourcesSettings}
+                            className="rounded-md border border-primary/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                        >
+                            {isZh ? "前往设置" : "Open settings"}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+        </div>
+    );
+}

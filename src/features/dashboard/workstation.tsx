@@ -4,7 +4,11 @@ import {
     CheckCircle,
     CloudOff,
     FileText,
+    Menu,
     Mic,
+    MoreHorizontal,
+    PanelLeftClose,
+    PanelLeftOpen,
     Pencil,
     RefreshCw,
     Settings,
@@ -18,6 +22,7 @@ import {
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import { toast } from "sonner";
@@ -60,9 +65,11 @@ import {
     removeBrowserWindowEventListener,
     startBrowserInterval,
     stopBrowserInterval,
+    writeBrowserHash,
 } from "@/lib/platform/browser-shell";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
+import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import { ActivityOverlay } from "./components/activity-overlay";
 import { LibrarySearch } from "./components/library-search";
@@ -70,6 +77,7 @@ import {
     RecordingList,
     type RecordingListMode,
 } from "./components/recording-list";
+import { SourceFilterStackStrip } from "./components/source-filter-stack-strip";
 import {
     type SourceProviderRowModel,
     type SourceProviderRowStatus,
@@ -146,9 +154,22 @@ function recordingHasTranscript(transcription: TranscriptionData | undefined) {
     return Boolean(transcription?.text?.trim() || transcription?.hasTranscript);
 }
 
+function recordingMatchesDashboardFavorite(
+    recording: Recording,
+    favorite: DashboardFavorite,
+    transcriptions: Map<string, TranscriptionData>,
+) {
+    if (favorite === "transcribed") {
+        return recordingHasTranscript(transcriptions.get(recording.id));
+    }
+
+    return true;
+}
+
 function getDashboardSourceStatus(params: {
     configured: boolean;
     enabled: boolean;
+    hasCurrentFilterMatch: boolean;
     isLoading: boolean;
     isPlanned: boolean;
     hasCount: boolean;
@@ -179,6 +200,10 @@ function getDashboardSourceStatus(params: {
         return "sync-error";
     }
 
+    if (params.hasCount && !params.hasCurrentFilterMatch) {
+        return "no-results";
+    }
+
     return params.hasCount ? "connected" : "connected-empty";
 }
 
@@ -190,6 +215,7 @@ export function Workstation({
     const { language, t } = useLanguage();
     const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
+    const moreActionsRef = useRef<HTMLDivElement | null>(null);
     const { isLoading: areDataSourcesLoading, sources: dataSourceStates } =
         useDataSourcesSettings(language);
     const { settings: titleGenerationSettings } =
@@ -203,6 +229,8 @@ export function Workstation({
         useState<DashboardFavorite>("all");
     const [activeSourceProvider, setActiveSourceProvider] =
         useState<SourceProvider | null>(null);
+    const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [isSourceDrawerOpen, setSourceDrawerOpen] = useState(false);
     const [recordingListMode, setRecordingListMode] =
         useState<RecordingListMode>("timeline");
     const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(() =>
@@ -226,6 +254,7 @@ export function Workstation({
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [activeTopbarOverlay, setActiveTopbarOverlay] =
         useState<TopbarOverlay | null>(null);
+    const [isMoreActionsOpen, setMoreActionsOpen] = useState(false);
     const [tagManagerOpen, setTagManagerOpen] = useState(false);
     const [liveTranscriptions, setLiveTranscriptions] = useState(
         () => new Map(transcriptions),
@@ -324,11 +353,43 @@ export function Workstation({
         setAutoRenamePreview(null);
         setIsRenaming(false);
         setRenameValue(currentRecording?.filename ?? "");
+        setMoreActionsOpen(false);
         if (!currentRecording?.id) {
             setIsApplyingAutoRename(false);
             setIsAutoRenaming(false);
         }
     }, [currentRecording?.filename, currentRecording?.id]);
+
+    useEffect(() => {
+        if (!isMoreActionsOpen) {
+            return;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) {
+                return;
+            }
+            if (!moreActionsRef.current?.contains(target)) {
+                setMoreActionsOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                setMoreActionsOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isMoreActionsOpen]);
 
     useEffect(() => {
         if (isRenaming) {
@@ -339,8 +400,25 @@ export function Workstation({
     useEffect(() => {
         if (settingsOpen) {
             setActiveTopbarOverlay(null);
+            setSourceDrawerOpen(false);
         }
     }, [settingsOpen]);
+
+    useEffect(() => {
+        if (!isSourceDrawerOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                setSourceDrawerOpen(false);
+            }
+        };
+
+        addBrowserWindowEventListener("keydown", handleKeyDown);
+        return () => removeBrowserWindowEventListener("keydown", handleKeyDown);
+    }, [isSourceDrawerOpen]);
 
     useEffect(() => {
         const recordingId = currentRecording?.id;
@@ -664,6 +742,36 @@ export function Workstation({
         return counts;
     }, [liveRecordings]);
 
+    const favoriteScopedProviderCounts = useMemo(() => {
+        const counts = new Map<SourceProvider, number>();
+        for (const provider of DASHBOARD_SOURCES) {
+            counts.set(provider, 0);
+        }
+
+        for (const recording of liveRecordings) {
+            if (!isSourceProvider(recording.sourceProvider)) {
+                continue;
+            }
+
+            if (
+                !recordingMatchesDashboardFavorite(
+                    recording,
+                    activeFavorite,
+                    liveTranscriptions,
+                )
+            ) {
+                continue;
+            }
+
+            counts.set(
+                recording.sourceProvider,
+                (counts.get(recording.sourceProvider) ?? 0) + 1,
+            );
+        }
+
+        return counts;
+    }, [activeFavorite, liveRecordings, liveTranscriptions]);
+
     const dataSourceStateByProvider = useMemo(
         () =>
             new Map(
@@ -682,12 +790,16 @@ export function Workstation({
         () =>
             DASHBOARD_SOURCES.map((provider) => {
                 const count = providerCounts.get(provider) ?? 0;
+                const currentFilterCount =
+                    favoriteScopedProviderCounts.get(provider) ?? 0;
                 const source = dataSourceStateByProvider.get(provider);
                 const configured = Boolean(source?.connected);
                 const enabled = source?.enabled ?? false;
                 const status = getDashboardSourceStatus({
                     configured,
                     enabled,
+                    hasCurrentFilterMatch:
+                        activeFavorite === "all" || currentFilterCount > 0,
                     hasCount: count > 0,
                     hasSyncError: hasSyncError && configured,
                     isLoading: areDataSourcesLoading && !source,
@@ -707,8 +819,10 @@ export function Workstation({
             }),
         [
             activeSourceProvider,
+            activeFavorite,
             areDataSourcesLoading,
             dataSourceStateByProvider,
+            favoriteScopedProviderCounts,
             hasSyncError,
             isAutoSyncing,
             language,
@@ -725,13 +839,11 @@ export function Workstation({
                 return false;
             }
 
-            if (activeFavorite === "transcribed") {
-                return recordingHasTranscript(
-                    liveTranscriptions.get(recording.id),
-                );
-            }
-
-            return true;
+            return recordingMatchesDashboardFavorite(
+                recording,
+                activeFavorite,
+                liveTranscriptions,
+            );
         });
     }, [
         activeFavorite,
@@ -758,6 +870,13 @@ export function Workstation({
     const listContextLabel = activeSourceLabel
         ? `${activeFavoriteLabel} / ${activeSourceLabel}`
         : activeFavoriteLabel;
+    const activeSourceRow =
+        activeSourceProvider !== null
+            ? (sourceRows.find(
+                  (row) => row.provider === activeSourceProvider,
+              ) ?? null)
+            : null;
+    const activeSourceTotalCount = activeSourceRow?.count ?? 0;
 
     useEffect(() => {
         setCurrentRecording((previous) => {
@@ -773,6 +892,7 @@ export function Workstation({
     const handleFavoriteSelect = useCallback((favorite: DashboardFavorite) => {
         setActiveFavorite(favorite);
         setRecordingListMode(favorite === "tags" ? "tags" : "timeline");
+        setSourceDrawerOpen(false);
     }, []);
 
     const handleRecordingListModeChange = useCallback(
@@ -813,6 +933,24 @@ export function Workstation({
     const handleOpenSettings = useCallback(() => {
         setActiveTopbarOverlay(null);
         setSettingsOpen(true);
+    }, []);
+
+    const handleOpenDataSourcesSettings = useCallback(() => {
+        writeBrowserHash("data-sources");
+        handleOpenSettings();
+    }, [handleOpenSettings]);
+
+    const handleClearDashboardFilters = useCallback(() => {
+        setActiveFavorite("all");
+        setActiveSourceProvider(null);
+        setRecordingListMode("timeline");
+        setSourceDrawerOpen(false);
+    }, []);
+
+    const handleWidenSourceFilters = useCallback(() => {
+        setActiveFavorite("all");
+        setRecordingListMode("timeline");
+        setSourceDrawerOpen(false);
     }, []);
 
     const handleOpenSearchResult = useCallback(
@@ -1117,6 +1255,7 @@ export function Workstation({
 
     const handleDelete = useCallback(async () => {
         if (!currentRecording) return;
+        if (!currentRecording.upstreamDeleted) return;
 
         const confirmed = await confirm({
             title: t("common.confirmAction"),
@@ -1153,15 +1292,52 @@ export function Workstation({
 
     return (
         <>
-            <div className="dashboard-workstation min-h-screen px-3 py-3 sm:px-4 lg:px-5">
-                <div className="dashboard-workstation-grid mx-auto grid max-w-[1280px] gap-3 lg:h-[calc(100svh-2rem)] lg:min-h-[680px] lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)] lg:grid-rows-[3.5rem_minmax(0,1fr)] lg:overflow-hidden">
+            <div
+                className="dashboard-workstation min-h-screen px-3 py-3 sm:px-4 lg:px-5"
+                data-sidebar-collapsed={isSidebarCollapsed ? "true" : "false"}
+                data-source-drawer={isSourceDrawerOpen ? "open" : "closed"}
+                data-testid="dashboard-workstation"
+            >
+                <button
+                    type="button"
+                    aria-label={
+                        language === "zh-CN" ? "关闭筛选抽屉" : "Close filters"
+                    }
+                    data-testid="dashboard-source-drawer-scrim"
+                    className={cn(
+                        "fixed inset-0 z-[70] bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
+                        isSourceDrawerOpen
+                            ? "pointer-events-auto opacity-100"
+                            : "pointer-events-none",
+                    )}
+                    onClick={() => setSourceDrawerOpen(false)}
+                />
+                <div
+                    className="dashboard-workstation-grid mx-auto grid max-w-[1280px] gap-3 lg:h-[calc(100svh-2rem)] lg:min-h-[680px] lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)] lg:grid-rows-[3.5rem_minmax(0,1fr)] lg:overflow-hidden"
+                    data-sidebar-collapsed={
+                        isSidebarCollapsed ? "true" : "false"
+                    }
+                >
                     <aside
-                        className="glass-surface flex min-h-[24rem] flex-col rounded-2xl p-3 lg:row-span-2 lg:min-h-0"
+                        className={cn(
+                            "dashboard-source-sidebar glass-surface fixed top-3 bottom-3 left-3 z-[80] flex w-[min(18rem,calc(100vw-2rem))] min-h-0 flex-col rounded-2xl p-3 transition-transform duration-300 ease-[var(--ease-sine)] lg:static lg:row-span-2 lg:w-auto lg:min-h-0 lg:translate-x-0",
+                            isSourceDrawerOpen
+                                ? "translate-x-0"
+                                : "-translate-x-[calc(100%+1rem)]",
+                            isSidebarCollapsed && "lg:p-2",
+                        )}
+                        data-collapsed={isSidebarCollapsed ? "true" : "false"}
+                        data-drawer-open={isSourceDrawerOpen ? "true" : "false"}
                         data-testid="dashboard-source-rail"
                     >
                         <div className="mb-4 flex items-center gap-3 px-1 pt-1">
                             <Logo className="size-9 shrink-0 text-primary" />
-                            <div className="min-w-0">
+                            <div
+                                className={cn(
+                                    "dashboard-sidebar-brand min-w-0",
+                                    isSidebarCollapsed && "lg:sr-only",
+                                )}
+                            >
                                 <h1 className="truncate text-base font-semibold tracking-tight">
                                     BetterAINote
                                 </h1>
@@ -1180,15 +1356,29 @@ export function Workstation({
                                 data-active={
                                     activeFavorite === "all" ? "true" : "false"
                                 }
-                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                                className={cn(
+                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    isSidebarCollapsed &&
+                                        "lg:justify-center lg:px-2",
+                                )}
                             >
                                 <Mic className="size-4 shrink-0" />
-                                <span className="min-w-0 flex-1 truncate">
+                                <span
+                                    className={cn(
+                                        "min-w-0 flex-1 truncate",
+                                        isSidebarCollapsed && "lg:sr-only",
+                                    )}
+                                >
                                     {language === "zh-CN"
                                         ? "全部录音"
                                         : "All recordings"}
                                 </span>
-                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                <span
+                                    className={cn(
+                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        isSidebarCollapsed && "lg:hidden",
+                                    )}
+                                >
                                     {liveRecordings.length}
                                 </span>
                             </button>
@@ -1202,15 +1392,29 @@ export function Workstation({
                                         ? "true"
                                         : "false"
                                 }
-                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                                className={cn(
+                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    isSidebarCollapsed &&
+                                        "lg:justify-center lg:px-2",
+                                )}
                             >
                                 <FileText className="size-4 shrink-0" />
-                                <span className="min-w-0 flex-1 truncate">
+                                <span
+                                    className={cn(
+                                        "min-w-0 flex-1 truncate",
+                                        isSidebarCollapsed && "lg:sr-only",
+                                    )}
+                                >
                                     {language === "zh-CN"
                                         ? "转写记录"
                                         : "Transcribed"}
                                 </span>
-                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                <span
+                                    className={cn(
+                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        isSidebarCollapsed && "lg:hidden",
+                                    )}
+                                >
                                     {
                                         liveRecordings.filter((recording) =>
                                             recordingHasTranscript(
@@ -1228,44 +1432,64 @@ export function Workstation({
                                 data-active={
                                     activeFavorite === "tags" ? "true" : "false"
                                 }
-                                className="group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
+                                className={cn(
+                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    isSidebarCollapsed &&
+                                        "lg:justify-center lg:px-2",
+                                )}
                             >
                                 <Tags className="size-4 shrink-0" />
-                                <span className="min-w-0 flex-1 truncate">
+                                <span
+                                    className={cn(
+                                        "min-w-0 flex-1 truncate",
+                                        isSidebarCollapsed && "lg:sr-only",
+                                    )}
+                                >
                                     {language === "zh-CN" ? "标签" : "Tags"}
                                 </span>
-                                <span className="rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]">
+                                <span
+                                    className={cn(
+                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        isSidebarCollapsed && "lg:hidden",
+                                    )}
+                                >
                                     {tagCatalog.length}
                                 </span>
                             </button>
                         </div>
 
                         <SourceProviderRows
+                            compact={isSidebarCollapsed && !isSourceDrawerOpen}
                             rows={sourceRows}
                             activeProvider={activeSourceProvider}
                             language={language}
-                            onSelectProvider={(provider) =>
+                            onSelectProvider={(provider) => {
                                 setActiveSourceProvider((previous) =>
                                     previous === provider ? null : provider,
-                                )
-                            }
-                            onConnectProvider={(provider) =>
-                                setActiveSourceProvider(provider)
-                            }
-                            onClearProvider={() =>
-                                setActiveSourceProvider(null)
-                            }
+                                );
+                                setSourceDrawerOpen(false);
+                            }}
+                            onConnectProvider={(provider) => {
+                                setActiveSourceProvider(provider);
+                                setSourceDrawerOpen(false);
+                            }}
+                            onClearProvider={() => {
+                                setActiveSourceProvider(null);
+                                setSourceDrawerOpen(false);
+                            }}
                         />
 
                         <div className="mt-auto flex flex-col gap-3 pt-4">
-                            <SyncStatus
-                                autoSyncEnabled={autoSyncEnabled}
-                                lastSyncTime={lastSyncTime}
-                                nextSyncTime={nextSyncTime}
-                                isAutoSyncing={isAutoSyncing}
-                                lastSyncResult={lastSyncResult}
-                                workerStatus={workerStatus}
-                            />
+                            {!isSidebarCollapsed ? (
+                                <SyncStatus
+                                    autoSyncEnabled={autoSyncEnabled}
+                                    lastSyncTime={lastSyncTime}
+                                    nextSyncTime={nextSyncTime}
+                                    isAutoSyncing={isAutoSyncing}
+                                    lastSyncResult={lastSyncResult}
+                                    workerStatus={workerStatus}
+                                />
+                            ) : null}
                             <Button
                                 onClick={handleSync}
                                 disabled={isAutoSyncing}
@@ -1276,28 +1500,88 @@ export function Workstation({
                                 {isAutoSyncing ? (
                                     <>
                                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                        {t("dashboard.syncing")}
+                                        <span
+                                            className={cn(
+                                                isSidebarCollapsed &&
+                                                    "lg:sr-only",
+                                            )}
+                                        >
+                                            {t("dashboard.syncing")}
+                                        </span>
                                     </>
                                 ) : (
                                     <>
                                         <RefreshCw className="mr-2 h-4 w-4" />
-                                        {t("dashboard.syncDevice")}
+                                        <span
+                                            className={cn(
+                                                isSidebarCollapsed &&
+                                                    "lg:sr-only",
+                                            )}
+                                        >
+                                            {t("dashboard.syncDevice")}
+                                        </span>
                                     </>
                                 )}
                             </Button>
                         </div>
                     </aside>
 
-                    <header className="glass-surface relative z-30 flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2">
-                        <div className="min-w-0">
-                            <p className="truncate text-xs font-medium text-muted-foreground">
-                                {listContextLabel}
-                            </p>
-                            <p className="truncate text-sm font-semibold">
-                                {currentRecording
-                                    ? currentRecording.filename
-                                    : t("dashboard.noRecordings")}
-                            </p>
+                    <header className="glass-surface relative z-30 flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                aria-label={
+                                    language === "zh-CN"
+                                        ? "打开筛选抽屉"
+                                        : "Open filters"
+                                }
+                                aria-expanded={isSourceDrawerOpen}
+                                data-testid="dashboard-source-drawer-trigger"
+                                className="relative h-9 w-9 shrink-0 rounded-xl lg:hidden"
+                                onClick={() => setSourceDrawerOpen(true)}
+                            >
+                                <Menu className="h-4 w-4" />
+                                {activeSourceProvider ? (
+                                    <span
+                                        className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-primary"
+                                        aria-hidden="true"
+                                    />
+                                ) : null}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                aria-label={
+                                    language === "zh-CN"
+                                        ? "折叠或展开侧边栏"
+                                        : "Collapse or expand sidebar"
+                                }
+                                aria-pressed={isSidebarCollapsed}
+                                data-testid="dashboard-sidebar-collapse-trigger"
+                                className="hidden h-9 w-9 shrink-0 rounded-xl lg:inline-flex"
+                                onClick={() =>
+                                    setSidebarCollapsed((previous) => !previous)
+                                }
+                            >
+                                {isSidebarCollapsed ? (
+                                    <PanelLeftOpen className="h-4 w-4" />
+                                ) : (
+                                    <PanelLeftClose className="h-4 w-4" />
+                                )}
+                            </Button>
+                            <div className="min-w-0">
+                                <p className="truncate text-xs font-medium text-muted-foreground">
+                                    {listContextLabel}
+                                </p>
+                                <p className="truncate text-sm font-semibold">
+                                    {currentRecording
+                                        ? currentRecording.filename
+                                        : t("dashboard.noRecordings")}
+                                </p>
+                            </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                             <Button
@@ -1350,14 +1634,42 @@ export function Workstation({
                         </div>
                     </header>
 
-                    <section className="min-h-0">
+                    <section className="min-h-0 lg:col-start-2 lg:row-start-2">
                         <RecordingList
                             recordings={filteredRecordings}
                             totalCount={filteredRecordings.length}
+                            libraryTotalCount={liveRecordings.length}
                             currentRecording={currentRecording}
                             contextLabel={listContextLabel}
+                            filterStack={
+                                <SourceFilterStackStrip
+                                    activeFavoriteLabel={activeFavoriteLabel}
+                                    filteredCount={filteredRecordings.length}
+                                    language={language}
+                                    onClearAll={handleClearDashboardFilters}
+                                    onClearSource={() =>
+                                        setActiveSourceProvider(null)
+                                    }
+                                    onOpenDataSourcesSettings={
+                                        handleOpenDataSourcesSettings
+                                    }
+                                    onRetrySync={handleSync}
+                                    onWidenFilters={handleWidenSourceFilters}
+                                    sourceRow={activeSourceRow}
+                                    sourceTotalCount={activeSourceTotalCount}
+                                    totalCount={liveRecordings.length}
+                                />
+                            }
                             mode={recordingListMode}
+                            isLoading={
+                                areDataSourcesLoading &&
+                                liveRecordings.length === 0
+                            }
                             onModeChange={handleRecordingListModeChange}
+                            onClearFilters={handleClearDashboardFilters}
+                            onOpenDataSourcesSettings={
+                                handleOpenDataSourcesSettings
+                            }
                             transcriptionJobs={liveTranscriptionJobs}
                             onSelect={(recording) => {
                                 setTagManagerOpen(false);
@@ -1366,7 +1678,7 @@ export function Workstation({
                         />
                     </section>
 
-                    <section className="flex min-h-0 flex-col gap-4 overflow-hidden">
+                    <section className="flex min-h-0 flex-col gap-4 overflow-hidden lg:col-start-3 lg:row-start-2">
                         {currentRecording ? (
                             <>
                                 <div className="shrink-0 flex flex-col gap-3">
@@ -1508,19 +1820,109 @@ export function Workstation({
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
                                                 ) : null}
-                                                {currentRecording.upstreamDeleted && (
+                                                <div
+                                                    ref={moreActionsRef}
+                                                    className="relative shrink-0"
+                                                    data-testid="dashboard-detail-more-actions"
+                                                >
                                                     <Button
+                                                        type="button"
                                                         size="icon"
                                                         variant="outline"
-                                                        onClick={handleDelete}
-                                                        title={t(
-                                                            "dashboard.deleteLocalRecording",
-                                                        )}
-                                                        className="shrink-0 text-destructive hover:text-destructive"
+                                                        aria-haspopup="menu"
+                                                        aria-expanded={
+                                                            isMoreActionsOpen
+                                                        }
+                                                        aria-label={
+                                                            language === "zh-CN"
+                                                                ? "更多操作"
+                                                                : "More actions"
+                                                        }
+                                                        className="shrink-0"
+                                                        onClick={() =>
+                                                            setMoreActionsOpen(
+                                                                (open) => !open,
+                                                            )
+                                                        }
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
-                                                )}
+                                                    {isMoreActionsOpen ? (
+                                                        <div
+                                                            role="menu"
+                                                            aria-label={
+                                                                language ===
+                                                                "zh-CN"
+                                                                    ? "更多操作"
+                                                                    : "More actions"
+                                                            }
+                                                            data-testid="dashboard-detail-more-menu"
+                                                            data-local-delete-available={
+                                                                currentRecording.upstreamDeleted
+                                                                    ? "true"
+                                                                    : "false"
+                                                            }
+                                                            className="absolute top-11 right-0 z-40 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                                                        >
+                                                            <header className="border-border/70 border-b px-3.5 py-2.5">
+                                                                <p className="font-semibold text-sm">
+                                                                    {language ===
+                                                                    "zh-CN"
+                                                                        ? "更多操作"
+                                                                        : "More actions"}
+                                                                </p>
+                                                            </header>
+                                                            {!currentRecording.upstreamDeleted ? (
+                                                                <p className="px-3.5 py-2.5 text-muted-foreground text-xs leading-5">
+                                                                    {language ===
+                                                                    "zh-CN"
+                                                                        ? "当前录音暂无额外本地操作。"
+                                                                        : "No additional local actions are available for this recording."}
+                                                                </p>
+                                                            ) : null}
+                                                            <div className="p-1.5">
+                                                                <button
+                                                                    type="button"
+                                                                    role="menuitem"
+                                                                    disabled={
+                                                                        !currentRecording.upstreamDeleted
+                                                                    }
+                                                                    aria-disabled={
+                                                                        !currentRecording.upstreamDeleted
+                                                                    }
+                                                                    data-testid="dashboard-delete-local-recording"
+                                                                    className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                                                                    onClick={() => {
+                                                                        setMoreActionsOpen(
+                                                                            false,
+                                                                        );
+                                                                        void handleDelete();
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="mt-0.5 h-4 w-4 shrink-0" />
+                                                                    <span className="min-w-0">
+                                                                        <span className="block font-medium">
+                                                                            {t(
+                                                                                "dashboard.deleteLocalRecording",
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="mt-0.5 block text-muted-foreground text-xs leading-5">
+                                                                            {currentRecording.upstreamDeleted
+                                                                                ? language ===
+                                                                                  "zh-CN"
+                                                                                    ? "仅删除本地副本，不会影响来源端。"
+                                                                                    : "Deletes the local copy only and leaves the upstream source untouched."
+                                                                                : language ===
+                                                                                    "zh-CN"
+                                                                                  ? "仅来源已删除的本地副本可删除。"
+                                                                                  : "Only local copies whose upstream source was deleted can be removed."}
+                                                                        </span>
+                                                                    </span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
                                             </>
                                         )}
                                     </div>

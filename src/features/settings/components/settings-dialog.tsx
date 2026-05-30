@@ -334,6 +334,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
         <Dialog open={props.open} onOpenChange={props.onOpenChange}>
             <DialogContent
                 data-settings-shell=""
+                data-settings-active-section={activeSection}
                 showCloseButton={false}
                 className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
                 style={

@@ -84,5 +84,30 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("/rename/auto");
         expect(dashboardWorkstation).toContain("canAutoRenameCurrentRecording");
         expect(dashboardWorkstation).toContain("aria-busy={");
+        expect(dashboardWorkstation).toContain("dashboard-detail-more-actions");
+        expect(dashboardWorkstation).toContain("dashboard-detail-more-menu");
+        expect(dashboardWorkstation).toContain(
+            "dashboard-delete-local-recording",
+        );
+        expect(dashboardWorkstation).toContain(
+            "currentRecording.upstreamDeleted",
+        );
+    });
+
+    it("keeps dashboard retranscription states inline without hiding the existing transcript", () => {
+        const dashboardTranscript = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
+
+        expect(dashboardTranscript).toContain("RetranscriptionBanner");
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-retranscription-banner"',
+        );
+        expect(dashboardTranscript).toContain("data-retx-state={retxState}");
+        expect(dashboardTranscript).toContain("completedRetxAt");
+        expect(dashboardTranscript).toContain("previousJobDisplayStateRef");
+        expect(dashboardTranscript).toContain("!canReadExistingTranscript");
+        expect(dashboardTranscript).toContain("data-retx-retry");
+        expect(dashboardTranscript).toContain("data-retx-dismiss");
     });
 });

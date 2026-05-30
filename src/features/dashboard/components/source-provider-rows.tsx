@@ -11,6 +11,7 @@ export type SourceProviderRowStatus =
     | "sync-error"
     | "connected"
     | "connected-empty"
+    | "no-results"
     | "paused"
     | "needs-setup"
     | "planned";
@@ -26,6 +27,7 @@ export interface SourceProviderRowModel {
 }
 
 interface SourceProviderRowsProps {
+    compact?: boolean;
     rows: SourceProviderRowModel[];
     activeProvider: SourceProvider | null;
     language: UiLanguage;
@@ -65,6 +67,10 @@ function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
         return isZh ? "已连接 · 暂无录音" : "Connected · Empty";
     }
 
+    if (row.status === "no-results") {
+        return isZh ? "无匹配" : "No matches";
+    }
+
     if (row.status === "paused") {
         return isZh ? "已暂停" : "Paused";
     }
@@ -93,6 +99,12 @@ function getStatusIcon(row: SourceProviderRowModel) {
         );
     }
 
+    if (row.status === "no-results") {
+        return (
+            <CircleDashed className="size-3 text-sky-600 dark:text-sky-300" />
+        );
+    }
+
     if (row.status === "connected-empty") {
         return <CircleDashed className="size-3 text-primary" />;
     }
@@ -102,6 +114,7 @@ function getStatusIcon(row: SourceProviderRowModel) {
 
 export function SourceProviderRows({
     activeProvider,
+    compact = false,
     language,
     onClearProvider,
     onConnectProvider,
@@ -111,12 +124,21 @@ export function SourceProviderRows({
     const isZh = language === "zh-CN";
 
     return (
-        <div className="flex flex-col gap-2" data-testid="source-provider-rows">
-            <div className="flex items-center justify-between gap-2 px-1">
+        <div
+            className="flex flex-col gap-2"
+            data-compact={compact ? "true" : "false"}
+            data-testid="source-provider-rows"
+        >
+            <div
+                className={cn(
+                    "flex items-center justify-between gap-2 px-1",
+                    compact && "justify-center px-0",
+                )}
+            >
                 <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {isZh ? "来源" : "Sources"}
+                    {compact ? "SRC" : isZh ? "来源" : "Sources"}
                 </p>
-                {activeProvider ? (
+                {activeProvider && !compact ? (
                     <button
                         type="button"
                         onClick={onClearProvider}
@@ -153,6 +175,7 @@ export function SourceProviderRows({
                             className={cn(
                                 "group flex w-full items-center gap-2 rounded-[0.7rem] border border-transparent px-2.5 py-2 text-left text-sm transition-[background-color,border-color,color,box-shadow] duration-200",
                                 "hover:border-border/70 hover:bg-background/45 focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none",
+                                compact && "justify-center px-1.5",
                                 row.active
                                     ? "border-border/80 bg-background/70 text-foreground shadow-xs"
                                     : "text-muted-foreground",
@@ -169,7 +192,12 @@ export function SourceProviderRows({
                                 {PROVIDER_MARKS[row.provider]}
                             </span>
 
-                            <span className="min-w-0 flex-1">
+                            <span
+                                className={cn(
+                                    "min-w-0 flex-1",
+                                    compact && "sr-only",
+                                )}
+                            >
                                 <span className="block truncate font-medium">
                                     {row.label}
                                 </span>
@@ -182,6 +210,7 @@ export function SourceProviderRows({
                             <span
                                 className={cn(
                                     "inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-background/50 px-2 text-[0.68rem] font-semibold text-muted-foreground",
+                                    compact && "hidden",
                                     row.active &&
                                         "border-primary/30 bg-primary/10 text-primary",
                                     !row.connected &&
@@ -190,6 +219,8 @@ export function SourceProviderRows({
                             >
                                 {row.status === "syncing" || row.updating ? (
                                     <RefreshCw className="size-3 animate-spin" />
+                                ) : row.status === "no-results" ? (
+                                    0
                                 ) : row.connected && row.count > 0 ? (
                                     row.count
                                 ) : row.status === "connected-empty" ? (

@@ -55,12 +55,62 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("useDataSourcesSettings(language)");
         expect(workstation).toContain("getDashboardSourceStatus");
         expect(workstation).toContain("connected-empty");
+        expect(workstation).toContain("favoriteScopedProviderCounts");
         expect(workstation).toContain("sync-error");
+        expect(workstation).toContain("no-results");
+        expect(workstation).toContain("<SourceFilterStackStrip");
         expect(workstation).not.toContain("connected: count > 0");
         expect(rows).toContain("data-source-status");
         expect(rows).toContain('"paused"');
         expect(rows).toContain('"needs-setup"');
         expect(rows).toContain('"planned"');
+        expect(rows).toContain('"no-results"');
+    });
+
+    it("keeps the stacked source filter strip wired to real dashboard actions", () => {
+        const strip = readSource(
+            "features/dashboard/components/source-filter-stack-strip.tsx",
+        );
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const recordingList = readSource(
+            "features/dashboard/components/recording-list.tsx",
+        );
+
+        expect(strip).toContain('data-testid="dashboard-source-filter-stack"');
+        expect(strip).toContain('state === "sync-error"');
+        expect(strip).toContain('state === "no-results"');
+        expect(strip).toContain('state === "needs-setup"');
+        expect(strip).toContain("onClearSource");
+        expect(strip).toContain("onClearAll");
+        expect(strip).toContain("onRetrySync");
+        expect(strip).toContain("onWidenFilters");
+        expect(strip).toContain("onOpenDataSourcesSettings");
+        expect(workstation).toContain('writeBrowserHash("data-sources")');
+        expect(recordingList).toContain("filterStack?");
+        expect(recordingList).toContain('"loading"');
+        expect(recordingList).toContain('"no-match"');
+        expect(recordingList).toContain('"timeline-empty"');
+        expect(recordingList).toContain('"tag-empty"');
+        expect(workstation).toContain("handleClearDashboardFilters");
+        expect(workstation).toContain("handleOpenDataSourcesSettings");
+    });
+
+    it("keeps dashboard responsive drawer and desktop collapse controls wired", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
+
+        expect(workstation).toContain("isSourceDrawerOpen");
+        expect(workstation).toContain("setSourceDrawerOpen(false)");
+        expect(workstation).toContain("dashboard-source-drawer-trigger");
+        expect(workstation).toContain("dashboard-source-drawer-scrim");
+        expect(workstation).toContain("dashboard-sidebar-collapse-trigger");
+        expect(workstation).toContain("PanelLeftClose");
+        expect(workstation).toContain("PanelLeftOpen");
+        expect(workstation).toContain("data-source-drawer");
+        expect(workstation).toContain("data-sidebar-collapsed");
+        expect(globals).toContain(
+            '.dashboard-workstation-grid[data-sidebar-collapsed="true"]',
+        );
     });
 
     it("keeps search overlay keyboard activation and active result state wired", () => {
