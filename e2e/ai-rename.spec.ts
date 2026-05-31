@@ -71,7 +71,11 @@ async function cleanupAiRenameSeed() {
     }
 }
 
-async function seedAiRenameRecording(userId: string) {
+async function seedAiRenameRecording(
+    userId: string,
+    options: { includeTranscript?: boolean } = {},
+) {
+    const { includeTranscript = true } = options;
     const now = Date.now();
     const start = now - 3_600_000;
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
@@ -111,29 +115,31 @@ async function seedAiRenameRecording(userId: string) {
                 now,
             ],
         });
-        await transcripts.execute({
-            sql: `
-                INSERT OR REPLACE INTO transcriptions (
-                    id, recording_id, user_id, text, detected_language,
-                    transcription_type, provider, model, provider_job_id,
-                    speaker_map, provider_payload, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            args: [
-                AI_RENAME_TRANSCRIPT_ID,
-                AI_RENAME_RECORDING_ID,
-                userId,
-                "Speaker 1: AI rename review gate must not overwrite before confirmation.",
-                "en",
-                "server",
-                "voice-transcribe",
-                "e2e",
-                "remote-e2e-ai-rename",
-                "{}",
-                "{}",
-                now - 60_000,
-            ],
-        });
+        if (includeTranscript) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO transcriptions (
+                        id, recording_id, user_id, text, detected_language,
+                        transcription_type, provider, model, provider_job_id,
+                        speaker_map, provider_payload, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    AI_RENAME_TRANSCRIPT_ID,
+                    AI_RENAME_RECORDING_ID,
+                    userId,
+                    "Speaker 1: AI rename review gate must not overwrite before confirmation.",
+                    "en",
+                    "server",
+                    "voice-transcribe",
+                    "e2e",
+                    "remote-e2e-ai-rename",
+                    "{}",
+                    "{}",
+                    now - 60_000,
+                ],
+            });
+        }
     } finally {
         await library.close();
         await transcripts.close();
@@ -276,6 +282,143 @@ test("AI rename keeps generated titles behind review, cancel, regenerate, and ap
     }
 });
 
+test("AI rename exposes loading, error, retry, and apply failure states", async ({
+    page,
+}) => {
+    type DeferredAutoRenameResponse = {
+        body: { error: string };
+        status: number;
+    };
+    let resolveFirstPreview: (response: DeferredAutoRenameResponse) => void =
+        () => {};
+    const firstPreviewResponse = new Promise<DeferredAutoRenameResponse>(
+        (resolve) => {
+            resolveFirstPreview = resolve;
+        },
+    );
+    let previewAttempts = 0;
+    let applyAttempts = 0;
+    const retryTitle = "2026-05-31 1200 Retry Generated Title";
+
+    await mockTitleGenerationSettings(page, true);
+    await page.route(
+        `**/api/recordings/${AI_RENAME_RECORDING_ID}/rename/auto`,
+        async (route) => {
+            expect(route.request().method()).toBe("POST");
+            previewAttempts += 1;
+
+            if (route.request().postDataJSON()?.mode !== "preview") {
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 400,
+                    body: JSON.stringify({ error: "preview mode required" }),
+                });
+                return;
+            }
+
+            if (previewAttempts === 1) {
+                const response = await firstPreviewResponse;
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: response.status,
+                    body: JSON.stringify(response.body),
+                });
+                return;
+            }
+
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ filename: retryTitle, applied: false }),
+            });
+        },
+    );
+    await page.route(
+        `**/api/recordings/${AI_RENAME_RECORDING_ID}/rename`,
+        async (route) => {
+            expect(route.request().method()).toBe("PATCH");
+            applyAttempts += 1;
+
+            if (applyAttempts === 1) {
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 500,
+                    body: JSON.stringify({
+                        error: "Title writeback is temporarily unavailable",
+                    }),
+                });
+                return;
+            }
+
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    recording: {
+                        id: AI_RENAME_RECORDING_ID,
+                        filename: retryTitle,
+                    },
+                }),
+            });
+        },
+    );
+
+    try {
+        await ensureSignedIn(page);
+        await resetDisplayToChinese(page);
+        await seedAiRenameRecording(await getPlaywrightUserId());
+
+        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
+            .toBeVisible();
+
+        await page.getByTestId("recording-ai-rename").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "loading");
+        await expect(page.getByText("正在根据当前转写生成可预览的标题。"))
+            .toBeVisible();
+
+        resolveFirstPreview({
+            status: 503,
+            body: { error: "AI rename service temporarily unavailable" },
+        });
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "error");
+        await expect(
+            page
+                .getByTestId("ai-rename-preview-card")
+                .getByText("AI rename service temporarily unavailable"),
+        ).toBeVisible();
+        await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
+            .toBeVisible();
+
+        await page.getByTestId("ai-rename-regenerate").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByText(retryTitle)).toBeVisible();
+        await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
+            .toBeVisible();
+
+        await page.getByTestId("ai-rename-apply").click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("Title writeback is temporarily unavailable"),
+        ).toBeVisible();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByRole("heading", { name: ORIGINAL_TITLE }))
+            .toBeVisible();
+
+        await page.getByTestId("ai-rename-apply").click();
+        await expect(page.getByRole("heading", { name: retryTitle }))
+            .toBeVisible();
+        expect(applyAttempts).toBe(2);
+    } finally {
+        await cleanupAiRenameSeed();
+    }
+});
+
 test("AI rename unavailable service state opens title generation settings", async ({
     page,
 }) => {
@@ -298,6 +441,38 @@ test("AI rename unavailable service state opens title generation settings", asyn
             "title-generation",
         );
         await expect(page).toHaveURL(/\/settings#title-generation$/);
+    } finally {
+        await cleanupAiRenameSeed();
+    }
+});
+
+test("AI rename configured service still blocks recordings without transcripts", async ({
+    page,
+}) => {
+    await mockTitleGenerationSettings(page, true);
+
+    try {
+        await ensureSignedIn(page);
+        await resetDisplayToChinese(page);
+        await seedAiRenameRecording(await getPlaywrightUserId(), {
+            includeTranscript: false,
+        });
+
+        await page.goto(`/recordings/${AI_RENAME_RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "unavailable");
+        await expect(
+            page
+                .getByTestId("ai-rename-preview-card")
+                .getByText("需要先生成本地转录"),
+        ).toBeVisible();
+        await expect(page.getByTestId("ai-rename-open-settings")).toHaveCount(
+            0,
+        );
+        await expect(page.getByTestId("recording-ai-rename")).toBeDisabled();
     } finally {
         await cleanupAiRenameSeed();
     }

@@ -116,7 +116,7 @@ async function seedRetranscriptionScenario(
         status: RetranscriptionSeedStatus;
         remoteStatus?: string | null;
         lastError?: string | null;
-        oldText?: string;
+        oldText?: string | null;
     },
 ) {
     const now = Date.now();
@@ -203,30 +203,32 @@ async function seedRetranscriptionScenario(
                 ],
             });
         }
-        await transcripts.execute({
-            sql: `
-                INSERT OR REPLACE INTO transcriptions (
-                    id, recording_id, user_id, text, detected_language,
-                    transcription_type, provider, model, provider_job_id,
-                    speaker_map, provider_payload, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            args: [
-                RETX_TRANSCRIPT_ID,
-                RETX_RECORDING_ID,
-                userId,
-                options.oldText ??
-                    "Speaker 1: 这是一段旧版本转写。重新转写运行时不能隐藏它。",
-                "zh",
-                "server",
-                "voice-transcribe",
-                "e2e",
-                "remote-e2e-retx-old",
-                "{}",
-                "{}",
-                now - 120_000,
-            ],
-        });
+        if (options.oldText !== null) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO transcriptions (
+                        id, recording_id, user_id, text, detected_language,
+                        transcription_type, provider, model, provider_job_id,
+                        speaker_map, provider_payload, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    RETX_TRANSCRIPT_ID,
+                    RETX_RECORDING_ID,
+                    userId,
+                    options.oldText ??
+                        "Speaker 1: 这是一段旧版本转写。重新转写运行时不能隐藏它。",
+                    "zh",
+                    "server",
+                    "voice-transcribe",
+                    "e2e",
+                    "remote-e2e-retx-old",
+                    "{}",
+                    "{}",
+                    now - 120_000,
+                ],
+            });
+        }
     } finally {
         await library.close();
         await transcripts.close();
@@ -340,6 +342,71 @@ test("dashboard keeps the old transcript visible while retranscription is runnin
         expect(stateResponse.ok()).toBe(true);
     } finally {
         await cleanupRunningRetranscriptionSeed();
+    }
+});
+
+test("dashboard queues initial private transcription from the empty transcript state", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await enablePrivateTranscriptionCapability(userId);
+        await seedRetranscriptionScenario(userId, {
+            filename: "E2E initial transcription queued",
+            oldText: null,
+            status: null,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: /E2E initial transcription queued/ })
+            .click();
+
+        const panel = page.getByTestId("dashboard-transcription-panel");
+        await expect(panel).toHaveAttribute(
+            "data-transcription-panel-state",
+            "idle",
+        );
+        await expect(panel).toContainText("暂无转录结果");
+
+        const postRequest = page.waitForRequest(
+            (request) =>
+                request
+                    .url()
+                    .includes(`/api/recordings/${RETX_RECORDING_ID}/transcribe`) &&
+                request.method() === "POST",
+        );
+        const postResponse = page.waitForResponse(
+            (response) =>
+                response
+                    .url()
+                    .includes(`/api/recordings/${RETX_RECORDING_ID}/transcribe`) &&
+                response.request().method() === "POST",
+        );
+        await page.getByTestId("dashboard-generate-transcription").click();
+
+        const request = await postRequest;
+        expect(request.postData()).toBeNull();
+        const response = await postResponse;
+        expect(response.status()).toBe(202);
+        expect(response.ok()).toBe(true);
+
+        await expect(panel).toHaveAttribute(
+            "data-transcription-panel-state",
+            "queued",
+        );
+        await expect(
+            page.getByTestId("dashboard-retranscription-banner"),
+        ).toHaveAttribute("data-retx-state", "queued");
+        await expect(panel).toContainText("转写任务已加入队列");
+        await expect(panel).toContainText("已在本地排队");
+    } finally {
+        await cleanupRunningRetranscriptionSeed();
+        if (userId) {
+            await resetPrivateTranscriptionCapability(userId);
+        }
     }
 });
 

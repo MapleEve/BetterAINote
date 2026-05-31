@@ -700,6 +700,7 @@ export function TranscriptionPanel({
                                         onClick={onTranscribe}
                                         size="sm"
                                         disabled={!canPrivateTranscribe}
+                                        data-testid="dashboard-generate-transcription"
                                     >
                                         <Sparkles className="w-4 h-4 mr-2" />
                                         {t(
