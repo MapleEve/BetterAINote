@@ -345,6 +345,9 @@ export function Workstation({
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
         null,
     );
+    const [autoRenameAcceptedTitle, setAutoRenameAcceptedTitle] = useState<
+        string | null
+    >(null);
     const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [activeTopbarOverlay, setActiveTopbarOverlay] =
@@ -439,6 +442,24 @@ export function Workstation({
         currentRecordingId,
         currentTranscriptionJob,
     );
+
+    useEffect(() => {
+        setAutoRenameAcceptedTitle((current) =>
+            current || currentRecordingId === null ? null : current,
+        );
+    }, [currentRecordingId]);
+
+    useEffect(() => {
+        if (!autoRenameAcceptedTitle) {
+            return;
+        }
+
+        const timer = startBrowserTimeout(() => {
+            setAutoRenameAcceptedTitle(null);
+        }, 6000);
+
+        return () => stopBrowserTimeout(timer);
+    }, [autoRenameAcceptedTitle]);
     const currentHasTranscript = Boolean(
         currentTranscription?.text?.trim() ||
             currentTranscription?.hasTranscript,
@@ -1376,6 +1397,7 @@ export function Workstation({
         }
 
         setAutoRenameError(null);
+        setAutoRenameAcceptedTitle(null);
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
@@ -1418,6 +1440,7 @@ export function Workstation({
     const handleAutoRenamePreviewCancel = useCallback(() => {
         setAutoRenamePreview(null);
         setAutoRenameError(null);
+        setAutoRenameAcceptedTitle(null);
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -1456,6 +1479,7 @@ export function Workstation({
             setRenameValue(filename);
             setAutoRenamePreview(null);
             setAutoRenameError(null);
+            setAutoRenameAcceptedTitle(filename);
             toast.success(
                 t("transcription.autoRenameSuccess", {
                     filename,
@@ -2264,6 +2288,19 @@ export function Workstation({
                                             state="review"
                                             title={t(
                                                 "transcription.aiRenamePreview",
+                                            )}
+                                        />
+                                    ) : autoRenameAcceptedTitle ? (
+                                        <AiRenamePreviewCard
+                                            filename={autoRenameAcceptedTitle}
+                                            isApplying={false}
+                                            isRegenerating={false}
+                                            message={t(
+                                                "transcription.aiRenameAcceptedHint",
+                                            )}
+                                            state="accepted"
+                                            title={t(
+                                                "transcription.aiRenameAccepted",
                                             )}
                                         />
                                     ) : autoRenameDisabledReason ? (

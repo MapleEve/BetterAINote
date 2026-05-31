@@ -66,6 +66,25 @@ async function resetOnboardingConnections(userId: string) {
     }
 }
 
+async function resetAuthUsers() {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        for (const sql of [
+            "DELETE FROM sessions",
+            "DELETE FROM accounts",
+            "DELETE FROM verifications",
+            "DELETE FROM api_credentials",
+            "DELETE FROM source_connections",
+            "DELETE FROM user_settings",
+            "DELETE FROM users",
+        ]) {
+            await client.execute({ sql });
+        }
+    } finally {
+        await client.close();
+    }
+}
+
 async function goToOnboardingState(
     page: Page,
     wizard: ReturnType<Page["getByTestId"]>,
@@ -149,6 +168,79 @@ test("auth login keeps graphite shell, disabled controls, and error feedback sta
     await expect(page.getByRole("button", { name: "登录" })).toHaveAttribute(
         "aria-busy",
         "false",
+    );
+});
+
+test("auth register keeps graphite shell, loading state, and error feedback stable", async ({
+    page,
+}) => {
+    await resetAuthUsers();
+
+    let signUpPayload: Record<string, unknown> | null = null;
+    let releaseSignUpResponse: (() => void) | null = null;
+    let resolveSignUpRequest: () => void = () => {};
+    const signUpRequest = new Promise<void>((resolve) => {
+        resolveSignUpRequest = resolve;
+    });
+
+    await page.route("**/api/auth/sign-up/email", async (route) => {
+        if (route.request().method() !== "POST") {
+            await route.continue();
+            return;
+        }
+
+        signUpPayload = route.request().postDataJSON() as Record<string, unknown>;
+        resolveSignUpRequest();
+        await new Promise<void>((resolve) => {
+            releaseSignUpResponse = resolve;
+        });
+        await route.fulfill({
+            status: 403,
+            contentType: "application/json",
+            body: JSON.stringify({ error: "Registration is disabled" }),
+        });
+    });
+
+    const authPageHydration = waitForAuthPageHydration(page);
+    await page.goto("/register", { waitUntil: "domcontentloaded" });
+    await authPageHydration;
+
+    const form = page.locator('[data-auth-surface="register"]');
+    await expect(form).toBeVisible();
+    await expect(page.locator(".dashboard-workstation")).toBeVisible();
+    await expect(page.locator("#name")).toBeEditable();
+    await expect(page.locator("#email")).toBeEditable();
+    await expect(page.locator("#password")).toBeEditable();
+
+    await page.locator("#name").fill("Playwright Register");
+    await page.locator("#email").fill("register-ui@example.com");
+    await page.locator("#password").fill("RegisterPassword123!");
+
+    const submitButton = form.locator('button[type="submit"]');
+    await submitButton.click();
+    await signUpRequest;
+
+    expect(signUpPayload).toMatchObject({
+        name: "Playwright Register",
+        email: "register-ui@example.com",
+        password: "RegisterPassword123!",
+    });
+    await expect(submitButton).toHaveAttribute("aria-busy", "true");
+    await expect(page.locator("#name")).toBeDisabled();
+    await expect(page.locator("#email")).toBeDisabled();
+    await expect(page.locator("#password")).toBeDisabled();
+
+    releaseSignUpResponse?.();
+
+    await expect(form.locator('[data-auth-form-state="error"]')).toBeVisible();
+    await expect(form.locator('[data-auth-form-state="error"]')).toContainText(
+        /Registration is disabled|创建账号失败/,
+    );
+    await expect(submitButton).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator("#email")).toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator("#password")).toHaveAttribute(
+        "aria-invalid",
+        "true",
     );
 });
 

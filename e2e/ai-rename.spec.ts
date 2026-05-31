@@ -271,6 +271,12 @@ test("AI rename keeps generated titles behind review, cancel, regenerate, and ap
         await page.getByTestId("ai-rename-apply").click();
         await expect(page.getByRole("heading", { name: generatedTitles[2] }))
             .toBeVisible();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "accepted");
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toContainText("标题已应用");
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toContainText(generatedTitles[2]);
         expect(previewPayloads).toEqual([
             { mode: "preview" },
             { mode: "preview" },
@@ -413,6 +419,10 @@ test("AI rename exposes loading, error, retry, and apply failure states", async 
         await page.getByTestId("ai-rename-apply").click();
         await expect(page.getByRole("heading", { name: retryTitle }))
             .toBeVisible();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "accepted");
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toContainText("标题已应用");
         expect(applyAttempts).toBe(2);
     } finally {
         await cleanupAiRenameSeed();

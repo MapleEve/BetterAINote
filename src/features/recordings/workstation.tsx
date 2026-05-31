@@ -45,6 +45,10 @@ import {
     navigateBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
+import {
+    startBrowserTimeout,
+    stopBrowserTimeout,
+} from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
@@ -180,6 +184,9 @@ export function RecordingWorkstation({
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
         null,
     );
+    const [autoRenameAcceptedTitle, setAutoRenameAcceptedTitle] = useState<
+        string | null
+    >(null);
     const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
     const [activeTranscriptTab, setActiveTranscriptTab] = useState<
         "source" | "local" | "speakers"
@@ -259,6 +266,7 @@ export function RecordingWorkstation({
             setFilename(recording.filename);
             setRenameValue(recording.filename);
             setAutoRenamePreview(null);
+            setAutoRenameAcceptedTitle(null);
             setAutoRenameError(null);
             setRecordingTags(recording.tags);
             setTagManagerOpen(false);
@@ -272,6 +280,18 @@ export function RecordingWorkstation({
         recording.sourceProvider,
         recording.tags,
     ]);
+
+    useEffect(() => {
+        if (!autoRenameAcceptedTitle) {
+            return;
+        }
+
+        const timer = startBrowserTimeout(() => {
+            setAutoRenameAcceptedTitle(null);
+        }, 6000);
+
+        return () => stopBrowserTimeout(timer);
+    }, [autoRenameAcceptedTitle]);
 
     useEffect(() => {
         setRecordingTags(recording.tags);
@@ -399,6 +419,7 @@ export function RecordingWorkstation({
         }
 
         setAutoRenameError(null);
+        setAutoRenameAcceptedTitle(null);
         setIsAutoRenaming(true);
         try {
             const response = await fetch(
@@ -434,6 +455,7 @@ export function RecordingWorkstation({
 
     const handleAutoRenamePreviewCancel = useCallback(() => {
         setAutoRenamePreview(null);
+        setAutoRenameAcceptedTitle(null);
         setAutoRenameError(null);
     }, []);
 
@@ -463,6 +485,7 @@ export function RecordingWorkstation({
             setFilename(nextFilename);
             setRenameValue(nextFilename);
             setAutoRenamePreview(null);
+            setAutoRenameAcceptedTitle(nextFilename);
             setAutoRenameError(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
@@ -820,11 +843,7 @@ export function RecordingWorkstation({
                         className="mx-0"
                         isApplying={false}
                         isRegenerating={isAutoRenaming}
-                        message={
-                            language === "zh-CN"
-                                ? "正在根据当前转写生成可预览的标题。"
-                                : "Generating a preview title from the current transcript."
-                        }
+                        message={t("dashboardChrome.aiRenamePreviewLoading")}
                         state="loading"
                         title={t("transcription.aiRename")}
                     />
@@ -854,6 +873,16 @@ export function RecordingWorkstation({
                         regenerateLabel={t("transcription.aiRenameRegenerate")}
                         state="review"
                         title={t("transcription.aiRenamePreview")}
+                    />
+                ) : autoRenameAcceptedTitle ? (
+                    <AiRenamePreviewCard
+                        className="mx-0"
+                        filename={autoRenameAcceptedTitle}
+                        isApplying={false}
+                        isRegenerating={false}
+                        message={t("transcription.aiRenameAcceptedHint")}
+                        state="accepted"
+                        title={t("transcription.aiRenameAccepted")}
                     />
                 ) : autoRenameDisabledReason ? (
                     <AiRenamePreviewCard

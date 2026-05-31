@@ -247,6 +247,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sharedCard).toContain('data-testid="ai-rename-cancel"');
         expect(sharedCard).toContain('data-testid="ai-rename-regenerate"');
         expect(sharedCard).toContain("ai-rename-card-action");
+        expect(sharedCard).toContain('"accepted"');
 
         expect(dashboard).toContain("handleOpenTitleGenerationSettings");
         expect(detail).toContain("actionHref={");
@@ -263,8 +264,10 @@ describe("full UI replacement regression coverage", () => {
             expect(source).toContain("autoRenameError");
             expect(source).toContain('state="loading"');
             expect(source).toContain('state="review"');
+            expect(source).toContain('state="accepted"');
             expect(source).toContain('state="error"');
             expect(source).toContain('state="unavailable"');
+            expect(source).toContain("aiRenameAccepted");
         }
     });
 

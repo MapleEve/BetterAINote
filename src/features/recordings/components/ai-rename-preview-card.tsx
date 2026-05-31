@@ -27,7 +27,13 @@ interface AiRenamePreviewCardProps {
     onCancel?: () => void;
     onRegenerate?: () => void;
     regenerateLabel?: string;
-    state?: "loading" | "preview" | "review" | "error" | "unavailable";
+    state?:
+        | "accepted"
+        | "loading"
+        | "preview"
+        | "review"
+        | "error"
+        | "unavailable";
     className?: string;
 }
 
@@ -60,7 +66,9 @@ export function AiRenamePreviewCard({
             ? Loader2
             : state === "error" || state === "unavailable"
               ? AlertCircle
-              : Sparkles;
+              : state === "accepted"
+                ? Check
+                : Sparkles;
 
     return (
         <div
@@ -70,7 +78,9 @@ export function AiRenamePreviewCard({
                     ? "border-destructive/30 bg-destructive/10"
                     : state === "unavailable"
                       ? "border-amber-500/25 bg-amber-500/10"
-                      : "border-primary/22 bg-primary/8",
+                      : state === "accepted"
+                        ? "border-emerald-500/30 bg-emerald-500/10"
+                        : "border-primary/22 bg-primary/8",
                 className,
             )}
             data-ai-rename-preview=""
@@ -86,7 +96,9 @@ export function AiRenamePreviewCard({
                                 ? "text-destructive"
                                 : state === "unavailable"
                                   ? "text-amber-700 dark:text-amber-200"
-                                  : "text-primary",
+                                  : state === "accepted"
+                                    ? "text-emerald-700 dark:text-emerald-200"
+                                    : "text-primary",
                         )}
                     >
                         <StatusIcon

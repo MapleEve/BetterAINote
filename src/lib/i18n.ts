@@ -343,6 +343,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 "AI 重命名会调用已配置的标题生成服务，并改写当前录音标题。继续吗？",
             aiRenamePreview: "AI 标题预览",
             aiRenamePreviewReady: "已生成标题预览",
+            aiRenameAccepted: "标题已应用",
+            aiRenameAcceptedHint: "新标题已保存到当前录音。",
             aiRenameRegenerate: "重新生成",
             aiRenameApply: "应用标题",
             aiRenameCancelPreview: "取消预览",
@@ -860,6 +862,9 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 "AI rename will call the configured title generation service and update this recording title. Continue?",
             aiRenamePreview: "AI title preview",
             aiRenamePreviewReady: "Title preview generated",
+            aiRenameAccepted: "Title applied",
+            aiRenameAcceptedHint:
+                "The new title has been saved to this recording.",
             aiRenameRegenerate: "Regenerate",
             aiRenameApply: "Apply title",
             aiRenameCancelPreview: "Cancel preview",
