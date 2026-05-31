@@ -501,7 +501,9 @@ test("recording detail uses the new workstation shell and keeps all copy actions
     try {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
-        recordingId = await seedRecordingDetail(userId);
+        recordingId = await seedRecordingDetail(userId, {
+            includeSpeakerReview: true,
+        });
 
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
@@ -533,7 +535,19 @@ test("recording detail uses the new workstation shell and keeps all copy actions
                         ).__betterainoteCopiedTexts.at(-1) ?? "",
                 ),
             )
-            .toContain("本地转写复制内容");
+            .toContain(SPEAKER_REVIEW_PROFILE_ZH_NAME);
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .not.toContain("SPEAKER_ALPHA_00");
 
         await page.getByTestId("recording-copy-source-transcript").click();
         await expect
@@ -562,6 +576,34 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             .toContain("0:00 - 0:15 · Speaker 1");
 
         await page.getByTestId("recording-copy-source-report").click();
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("E2E 源报告摘要");
+
+        await page.getByTestId("source-report-copy-transcript").click();
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("来源逐字稿复制内容");
+
+        await page.getByTestId("source-report-copy-report").click();
         await expect
             .poll(() =>
                 page.evaluate(

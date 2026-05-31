@@ -13,7 +13,7 @@ import {
     Sparkles,
     X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,28 @@ function formatCopyTimestamp(valueMs: number | null | undefined) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function applySpeakerMap(
+    text: string,
+    speakerMap: Record<string, string> | null | undefined,
+) {
+    if (!speakerMap || Object.keys(speakerMap).length === 0) {
+        return text;
+    }
+
+    let result = text;
+    const entries = Object.entries(speakerMap).sort(
+        ([a], [b]) => b.length - a.length,
+    );
+
+    for (const [label, name] of entries) {
+        if (!name.trim()) continue;
+        const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        result = result.replace(new RegExp(escaped, "gi"), name);
+    }
+
+    return result;
+}
+
 function buildSourceTranscriptCopyText(payload: SourceReportCopyPayload) {
     const transcript = payload.transcript;
     if (!transcript) {
@@ -154,6 +176,10 @@ export function RecordingWorkstation({
     >(null);
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         transcription?.speakerMap ?? null,
+    );
+    const localTranscriptCopyText = useMemo(
+        () => applySpeakerMap(transcription?.text ?? "", liveSpeakerMap),
+        [liveSpeakerMap, transcription?.text],
     );
     const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(
         recording.tags,
@@ -420,7 +446,7 @@ export function RecordingWorkstation({
     }, [autoRenamePreview, recording.id, t]);
 
     const handleCopyLocalTranscript = useCallback(async () => {
-        const copyText = transcription?.text ?? "";
+        const copyText = localTranscriptCopyText;
         if (!copyText.trim()) {
             toast.error(t("transcription.noTranscript"));
             return;
@@ -435,7 +461,7 @@ export function RecordingWorkstation({
         } finally {
             setCopyingAction(null);
         }
-    }, [t, transcription?.text]);
+    }, [localTranscriptCopyText, t]);
 
     const handleCopySourceMaterial = useCallback(
         async (kind: "source-transcript" | "source-report") => {
@@ -660,7 +686,7 @@ export function RecordingWorkstation({
                         onClick={handleCopyLocalTranscript}
                         disabled={
                             copyingAction === "local" ||
-                            !transcription?.text?.trim()
+                            !localTranscriptCopyText.trim()
                         }
                         aria-busy={copyingAction === "local"}
                         data-testid="recording-copy-local-transcript"

@@ -92,6 +92,8 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(detailWorkstation).toContain("handleCopySourceMaterial");
         expect(detailWorkstation).toContain("buildSourceTranscriptCopyText");
+        expect(detailWorkstation).toContain("localTranscriptCopyText");
+        expect(detailWorkstation).toContain("applySpeakerMap");
         expect(detailWorkstation).toContain("<SourceReportPanel");
         expect(detailWorkstation).toContain("autoLoad");
         expect(detailWorkstation).not.toContain("container mx-auto max-w-4xl");

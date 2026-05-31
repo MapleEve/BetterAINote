@@ -61,6 +61,10 @@ async function expectShellHeightStable(page: Page, baseline: number) {
     expect(Math.abs(current - baseline)).toBeLessThan(2);
 }
 
+async function elementScrollTop(locator: ReturnType<Page["locator"]>) {
+    return locator.evaluate((node) => node.scrollTop);
+}
+
 test("settings shell closes sibling overlays, locks height, bounds wheel scroll, and returns focus", async ({
     page,
 }) => {
@@ -104,9 +108,17 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         "data-settings-active-section",
         "voscript",
     );
+    const settingsScrollBody = page.locator("[data-settings-scroll-body]");
+    await settingsScrollBody.hover();
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => elementScrollTop(settingsScrollBody)).toBeGreaterThan(0);
+    await expect
+        .poll(() => page.evaluate(() => window.scrollY))
+        .toBe(0);
 
     await page.locator('[data-settings-nav-item="appearance"]').click();
     await expectShellHeightStable(page, baselineHeight);
+    await expect.poll(() => elementScrollTop(settingsScrollBody)).toBe(0);
     await expect(page.locator('[data-settings-section="data-sources"]')).toBeHidden();
 
     await page.locator('[data-settings-nav-item="data-sources"]').click();
@@ -119,6 +131,9 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await dataSourceDetailScroll.hover();
     await page.mouse.wheel(0, 900);
     await expect
+        .poll(() => elementScrollTop(dataSourceDetailScroll))
+        .toBeGreaterThan(0);
+    await expect
         .poll(() => page.evaluate(() => window.scrollY))
         .toBe(0);
     await expectShellHeightStable(page, baselineHeight);
@@ -129,6 +144,9 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
 
     await page.locator('[data-settings-nav-item="appearance"]').click();
     await page.locator('[data-settings-nav-item="data-sources"]').click();
+    await expect
+        .poll(() => elementScrollTop(page.locator("[data-ds-scroll]").last()))
+        .toBe(0);
     await expectShellHeightStable(page, baselineHeight);
 
     await page.keyboard.press("Escape");
