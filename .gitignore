@@ -64,17 +64,27 @@ next-env.d.ts
 /remotion/
 
 /plans/
+/plan/
 /meeting-notes/
+/meetings/
+/meeting-records/
 /specs/
+/spec/
 /roadmaps/
+/roadmap/
 /prd/
 /research/
+/tasks/
+/task/
 /计划/
 /会议纪要/
+/会议记录/
 /规格/
 /路线图/
 /需求/
 /研究/
+/任务/
+/功能切片/
 /todo.md
 /docs/.DS_Store
 /.github/.DS_Store
