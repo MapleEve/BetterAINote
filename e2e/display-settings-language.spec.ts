@@ -1,11 +1,10 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
-test("display settings language switches copy immediately via the shared store", async ({
-    page,
-}) => {
-    await ensureSignedIn(page);
-
+async function resetDisplaySettings(
+    page: Page,
+    overrides: Record<string, unknown> = {},
+) {
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
             dateTimeFormat: "relative",
@@ -13,9 +12,18 @@ test("display settings language switches copy immediately via the shared store",
             recordingListSortOrder: "newest",
             theme: "system",
             uiLanguage: "zh-CN",
+            ...overrides,
         },
     });
     expect(resetResponse.ok()).toBe(true);
+}
+
+test("display settings language switches copy immediately via the shared store", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+
+    await resetDisplaySettings(page);
 
     let resolvePendingUpdate = () => {};
     let notifyUpdateStarted = () => {};
@@ -78,4 +86,72 @@ test("display settings language switches copy immediately via the shared store",
             response.ok(),
     );
     await expect(page.locator("#ui-language")).toContainText("English");
+});
+
+test("display settings theme switches light and dark without waiting for persistence", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page, { theme: "light" });
+
+    const updatePayloads: Record<string, unknown>[] = [];
+    let resolveFirstUpdate = () => {};
+    let notifyFirstUpdateStarted = () => {};
+    const firstUpdateStarted = new Promise<void>((resolve) => {
+        notifyFirstUpdateStarted = resolve;
+    });
+    const firstUpdatePending = new Promise<void>((resolve) => {
+        resolveFirstUpdate = resolve;
+    });
+
+    await page.route("**/api/settings/display", async (route) => {
+        if (route.request().method() !== "PUT") {
+            await route.continue();
+            return;
+        }
+
+        updatePayloads.push(route.request().postDataJSON());
+        if (updatePayloads.length === 1) {
+            notifyFirstUpdateStarted();
+            await firstUpdatePending;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+
+    const html = page.locator("html");
+    await expect(page.locator("#theme")).toContainText("浅色");
+    await expect(html).not.toHaveClass(/dark/);
+
+    await page.locator("#theme").click();
+    const themeLayer = page.locator('[data-slot="select-content"]');
+    await expect(themeLayer).toHaveCSS("z-index", "650");
+    await page.getByRole("option", { name: /深色/ }).click();
+
+    await firstUpdateStarted;
+    await expect(html).toHaveClass(/dark/);
+    expect(updatePayloads[0]).toMatchObject({ theme: "dark" });
+
+    resolveFirstUpdate();
+    await page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok(),
+    );
+    await expect(page.locator("#theme")).toContainText("深色");
+
+    await page.locator("#theme").click();
+    await page.getByRole("option", { name: /浅色/ }).click();
+
+    await expect(html).not.toHaveClass(/dark/);
+    await expect
+        .poll(() => updatePayloads.at(-1))
+        .toMatchObject({ theme: "light" });
+    await expect(page.locator("#theme")).toContainText("浅色");
 });

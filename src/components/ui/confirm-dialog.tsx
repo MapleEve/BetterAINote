@@ -87,7 +87,8 @@ export function ConfirmDialogProvider({
                 }}
             >
                 <DialogContent
-                    className="max-w-[min(92vw,28rem)] gap-5"
+                    overlayClassName="z-[700]"
+                    className="z-[710] max-w-[min(92vw,28rem)] gap-5"
                     showCloseButton={false}
                 >
                     {state ? (

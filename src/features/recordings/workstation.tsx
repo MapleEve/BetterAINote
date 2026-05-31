@@ -23,6 +23,7 @@ import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
+import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
@@ -42,6 +43,7 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
 
 interface Transcription {
@@ -153,6 +155,13 @@ export function RecordingWorkstation({
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         transcription?.speakerMap ?? null,
     );
+    const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(
+        recording.tags,
+    );
+    const [recordingTags, setRecordingTags] = useState<RecordingTag[]>(
+        recording.tags,
+    );
+    const [tagManagerOpen, setTagManagerOpen] = useState(false);
     const previousRecordingIdRef = useRef(recording.id);
     const canRenameRecording = canRecordingRename(recording.sourceProvider);
     const renameActionLabel = t(
@@ -208,8 +217,23 @@ export function RecordingWorkstation({
             setRenameValue(recording.filename);
             setAutoRenamePreview(null);
             setAutoRenameError(null);
+            setRecordingTags(recording.tags);
+            setTagManagerOpen(false);
         }
-    }, [recording.filename, recording.id]);
+    }, [recording.filename, recording.id, recording.tags]);
+
+    useEffect(() => {
+        setRecordingTags(recording.tags);
+        setTagCatalog((previous) => {
+            const tagsById = new Map(previous.map((tag) => [tag.id, tag]));
+            for (const tag of recording.tags) {
+                tagsById.set(tag.id, tag);
+            }
+            return Array.from(tagsById.values()).sort((a, b) =>
+                a.name.localeCompare(b.name),
+            );
+        });
+    }, [recording.tags]);
 
     useEffect(() => {
         if (!showLocalTranscriptTab && activeTranscriptTab === "local") {
@@ -220,6 +244,47 @@ export function RecordingWorkstation({
     useEffect(() => {
         setLiveSpeakerMap(transcription?.speakerMap ?? null);
     }, [transcription?.speakerMap]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadTags = async () => {
+            try {
+                const response = await fetch("/api/recording-tags", {
+                    cache: "no-store",
+                });
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json();
+                if (!cancelled && Array.isArray(data.tags)) {
+                    setTagCatalog(data.tags);
+                }
+            } catch {
+                // The current recording still carries assigned tags if the catalog load fails.
+            }
+        };
+
+        void loadTags();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const taggedRecording = {
+        ...recording,
+        tags: recordingTags,
+    };
+
+    const applyRecordingTags = useCallback(
+        (recordingId: string, tags: RecordingTag[]) => {
+            if (recordingId === recording.id) {
+                setRecordingTags(tags);
+            }
+        },
+        [recording.id],
+    );
 
     const handleRenameStart = useCallback(() => {
         if (!canRenameRecording) {
@@ -712,7 +777,23 @@ export function RecordingWorkstation({
 
                 <main className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,1.08fr)]">
                     <section className="min-h-0 space-y-4 overflow-y-auto overscroll-contain pr-0 lg:pr-1">
-                        <RecordingPlayer recording={recording} />
+                        <RecordingPlayer
+                            recording={taggedRecording}
+                            tags={recordingTags}
+                            isTagManagerOpen={tagManagerOpen}
+                            onToggleTagManager={() =>
+                                setTagManagerOpen((open) => !open)
+                            }
+                            tagManagerPanel={
+                                <RecordingTagManager
+                                    variant="popover"
+                                    recording={taggedRecording}
+                                    availableTags={tagCatalog}
+                                    onAvailableTagsChange={setTagCatalog}
+                                    onRecordingTagsChange={applyRecordingTags}
+                                />
+                            }
+                        />
 
                         <Card>
                             <CardHeader>

@@ -166,3 +166,107 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
         "voscript",
     );
 });
+
+test("VoScript remote voiceprint delete confirmation stays above the settings shell", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let deleteCalls = 0;
+    let remoteVoiceprints = [
+        {
+            createdAt: "2026-05-01T00:00:00.000Z",
+            displayName: "Remote Voiceprint Pending Delete",
+            id: "vp-delete-001",
+            updatedAt: "2026-05-02T00:00:00.000Z",
+        },
+    ];
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+                privateTranscriptionDenoiseModel: "none",
+                privateTranscriptionMaxInflightJobs: 1,
+                privateTranscriptionMaxSpeakers: 0,
+                privateTranscriptionMinSpeakers: 0,
+                privateTranscriptionNoRepeatNgramSize: 0,
+                privateTranscriptionSnrThreshold: null,
+            }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: [] }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: remoteVoiceprints,
+            }),
+        });
+    });
+
+    await page.route("**/api/voiceprints/vp-delete-001", async (route) => {
+        if (route.request().method() !== "DELETE") {
+            await route.continue();
+            return;
+        }
+
+        deleteCalls += 1;
+        remoteVoiceprints = [];
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const shell = page.locator("[data-settings-shell]");
+    const row = page.locator("[data-vs-profile-row]");
+    await expect(shell).toHaveCSS("z-index", "600");
+    await expect(row).toBeVisible();
+
+    await row.getByRole("button", { name: "删除" }).click();
+
+    const confirmDialog = page.getByRole("dialog", {
+        name: "确认操作",
+        exact: true,
+    });
+    await expect(confirmDialog).toBeVisible();
+    await expect(confirmDialog).toHaveCSS("z-index", "710");
+    await expect(page.locator('[data-slot="dialog-overlay"]').last()).toHaveCSS(
+        "z-index",
+        "700",
+    );
+
+    await confirmDialog.getByRole("button", { name: "取消" }).click();
+    await expect(confirmDialog).not.toBeVisible();
+    expect(deleteCalls).toBe(0);
+    await expect(row).toBeVisible();
+
+    await row.getByRole("button", { name: "删除" }).click();
+    await page
+        .getByRole("dialog", { name: "确认操作", exact: true })
+        .getByRole("button", { name: "确认" })
+        .click();
+
+    await expect.poll(() => deleteCalls).toBe(1);
+    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
+        "data-vs-state",
+        "empty",
+    );
+    await expect(row).toHaveCount(0);
+});

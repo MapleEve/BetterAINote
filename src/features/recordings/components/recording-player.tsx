@@ -83,6 +83,7 @@ export function RecordingPlayer({
                             size="sm"
                             onClick={onToggleTagManager}
                             aria-expanded={isTagManagerOpen}
+                            data-testid="recording-tag-manager-trigger"
                             className={cn(
                                 "h-7 max-w-[14rem] rounded-xl border-border/55 bg-background/20 px-2.5 text-xs shadow-none backdrop-blur-xl transition-[background-color,border-color] duration-300 ease-[var(--ease-sine)] hover:bg-background/35",
                                 isTagManagerOpen &&

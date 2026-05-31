@@ -13,6 +13,7 @@ const SPEAKER_REVIEW_PROFILE_LATIN_ID = "e2e-speaker-profile-latin";
 const SPEAKER_REVIEW_PROFILE_ZH_NAME = "张三丰产品评审会议长名字 Alpha";
 const SPEAKER_REVIEW_PROFILE_LATIN_NAME = "Long Latin Reviewer Name Example";
 const SPEAKER_REVIEW_CREATED_NAME = "新建说话人 Alpha Beta 超长名字";
+const DETAIL_TAG_NAME = "E2E详情标签";
 
 function resolveDatabasePath() {
     return process.env.DATABASE_PATH
@@ -99,6 +100,14 @@ async function cleanupRecordingDetailSeed() {
         await library.execute({
             sql: "DELETE FROM transcription_jobs WHERE recording_id = ?",
             args: [DETAIL_RECORDING_ID],
+        });
+        await library.execute({
+            sql: "DELETE FROM recording_tag_assignments WHERE recording_id = ?",
+            args: [DETAIL_RECORDING_ID],
+        });
+        await library.execute({
+            sql: "DELETE FROM recording_tags WHERE name = ?",
+            args: [DETAIL_TAG_NAME],
         });
         await library.execute({
             sql: "DELETE FROM recordings WHERE id = ?",
@@ -657,6 +666,69 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
 
         expect(mappedBox?.width ?? 0).toBeGreaterThan(300);
         expect(inputBox?.width ?? 0).toBeGreaterThan(240);
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail exposes the tag manager and persists tag toggles", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        const trigger = page.getByTestId("recording-tag-manager-trigger");
+        await expect(trigger).toBeVisible();
+        await expect(trigger).toContainText("标签");
+
+        await trigger.click();
+        await expect(page.getByText("录音标签", { exact: true })).toBeVisible();
+        await page.getByPlaceholder("新标签，最多 12 字").fill(DETAIL_TAG_NAME);
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes("/api/recording-tags") &&
+                    response.request().method() === "POST" &&
+                    response.ok(),
+            ),
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes(`/api/recordings/${recordingId}/tags`) &&
+                    response.request().method() === "PUT" &&
+                    response.ok(),
+            ),
+            page.getByRole("button", { name: "添加" }).click(),
+        ]);
+
+        await expect(trigger).toContainText(DETAIL_TAG_NAME);
+        const tagToggle = page
+            .locator('button[aria-pressed="true"]')
+            .filter({ hasText: DETAIL_TAG_NAME });
+        await expect(tagToggle).toBeVisible();
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response.url().includes(`/api/recordings/${recordingId}/tags`) &&
+                    response.request().method() === "PUT" &&
+                    response.ok(),
+            ),
+            tagToggle.click(),
+        ]);
+
+        await expect(trigger).toContainText("标签");
+        await expect(
+            page.locator('button[aria-pressed="false"]').filter({
+                hasText: DETAIL_TAG_NAME,
+            }),
+        ).toBeVisible();
     } finally {
         await cleanupRecordingDetailSeed();
     }
