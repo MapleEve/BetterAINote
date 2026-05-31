@@ -153,6 +153,7 @@ function Slider({
                     commitValue(Number(event.currentTarget.value))
                 }
                 step={step}
+                suppressHydrationWarning
                 type="range"
                 value={currentValue}
             />
