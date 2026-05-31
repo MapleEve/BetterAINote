@@ -491,6 +491,13 @@ async function readCopiedTexts(page: Page) {
     );
 }
 
+async function waitForRecordingDetailReady(page: Page) {
+    await expect(
+        page.getByTestId("recording-detail-workstation"),
+    ).toBeVisible();
+    await expect(page.getByTestId("source-report-loaded")).toBeVisible();
+}
+
 test("recording detail uses the new workstation shell and keeps all copy actions live", async ({
     page,
 }) => {
@@ -522,6 +529,12 @@ test("recording detail uses the new workstation shell and keeps all copy actions
         await expect(
             page.getByTestId("source-report-segment-timestamp"),
         ).toContainText("0:00 - 0:15");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
 
         await page.getByTestId("recording-copy-local-transcript").click();
         await expect
@@ -621,6 +634,75 @@ test("recording detail uses the new workstation shell and keeps all copy actions
     }
 });
 
+test("recording detail source copy strip mirrors partial artifact availability", async ({
+    page,
+}) => {
+    await installClipboardCapture(page);
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId, {
+            includeSourceSummary: false,
+        });
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await expect(
+            page.getByTestId("source-report-loaded"),
+        ).toHaveAttribute("data-source-report-state", "loaded");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "missing");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toBeEnabled();
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toBeDisabled();
+
+        await page.getByTestId("recording-copy-source-transcript").click();
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("来源逐字稿复制内容");
+
+        await seedRecordingDetail(userId, {
+            includeSourceTranscript: false,
+        });
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await expect(
+            page.getByTestId("source-report-loaded"),
+        ).toHaveAttribute("data-source-report-state", "loaded");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "missing");
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toBeEnabled();
+
+        await page.getByTestId("recording-copy-source-report").click();
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("E2E 源报告摘要");
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
 test("recording detail manual rename supports cancel and save states", async ({
     page,
 }) => {
@@ -632,6 +714,7 @@ test("recording detail manual rename supports cancel and save states", async ({
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
         });
+        await waitForRecordingDetailReady(page);
 
         await page.getByTestId("recording-rename-start").click();
         const renameInput = page.getByTestId("recording-rename-input");
@@ -921,6 +1004,7 @@ test("recording detail speaker review covers empty and refresh failure states", 
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
         });
+        await waitForRecordingDetailReady(page);
 
         await page
             .getByRole("button", { name: "说话人标签", exact: true })
@@ -929,7 +1013,9 @@ test("recording detail speaker review covers empty and refresh failure states", 
         const panel = page.getByTestId("speaker-review-panel");
         await expect(panel).toBeVisible();
         await expect(panel.getByTestId("speaker-review-empty")).toBeVisible();
-        await expect(panel.getByTestId("speaker-review-copy-raw")).toBeEnabled();
+        await expect(
+            panel.getByTestId("speaker-review-copy-raw"),
+        ).toBeEnabled();
 
         await page.route(
             `**/api/recordings/${recordingId}/transcript/raw`,
@@ -978,6 +1064,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
         });
+        await waitForRecordingDetailReady(page);
 
         const trigger = page.getByTestId("recording-tag-manager-trigger");
         await expect(trigger).toBeVisible();
@@ -1072,21 +1159,18 @@ test("recording detail source copy guards missing artifacts without writing empt
         await expect(
             page.getByTestId("source-report-copy-report"),
         ).toBeDisabled();
-
-        await page.getByTestId("recording-copy-source-transcript").click();
         await expect(
-            page
-                .getByLabel("Notifications alt+T")
-                .getByText("这个来源暂时没有可复制的原始转录。"),
-        ).toBeVisible();
-        expect(await readCopiedTexts(page)).toEqual([]);
-
-        await page.getByTestId("recording-copy-source-report").click();
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toBeDisabled();
         await expect(
-            page
-                .getByLabel("Notifications alt+T")
-                .getByText("这个来源暂时没有可复制的原始报告。"),
-        ).toBeVisible();
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "missing");
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "missing");
         expect(await readCopiedTexts(page)).toEqual([]);
 
         await expect(

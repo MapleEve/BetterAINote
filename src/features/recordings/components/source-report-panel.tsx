@@ -44,7 +44,16 @@ interface SourceReportPanelProps {
     autoLoad?: boolean;
     className?: string;
     hasAudio?: boolean;
+    onAvailabilityChange?: (
+        availability: SourceReportAvailabilitySnapshot,
+    ) => void;
     variant?: "card" | "embedded";
+}
+
+export interface SourceReportAvailabilitySnapshot {
+    state: "idle" | "loading" | "loaded" | "missing" | "error";
+    transcriptAvailable: boolean;
+    reportAvailable: boolean;
 }
 
 const SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN =
@@ -399,6 +408,7 @@ export function SourceReportPanel({
     autoLoad = false,
     className,
     hasAudio = true,
+    onAvailabilityChange,
     recordingId,
     sourceProvider,
     variant = "card",
@@ -499,44 +509,69 @@ export function SourceReportPanel({
         void loadReport();
     }, [autoLoad, loadReport]);
 
+    const sourceTranscriptCopyText = buildSourceTranscriptCopyText(
+        data?.transcript ?? null,
+        language,
+    );
+    const sourceReportCopyText = data?.summaryMarkdown ?? "";
+    const transcriptAvailable = Boolean(sourceTranscriptCopyText.trim());
+    const reportAvailable = Boolean(sourceReportCopyText.trim());
+    const sourceReportState: SourceReportAvailabilitySnapshot["state"] = data
+        ? transcriptAvailable || reportAvailable
+            ? "loaded"
+            : "missing"
+        : isLoading
+          ? "loading"
+          : error
+            ? "error"
+            : "idle";
+
+    useEffect(() => {
+        onAvailabilityChange?.({
+            state: sourceReportState,
+            transcriptAvailable,
+            reportAvailable,
+        });
+    }, [
+        onAvailabilityChange,
+        reportAvailable,
+        sourceReportState,
+        transcriptAvailable,
+    ]);
+
     const handleCopySourceTranscript = useCallback(async () => {
-        const copyText = buildSourceTranscriptCopyText(
-            data?.transcript ?? null,
-            language,
-        );
-        if (!copyText.trim()) {
+        if (!sourceTranscriptCopyText.trim()) {
             toast.error(t("sourceReport.missingSourceTranscript"));
             return;
         }
 
         setCopyingKey("source-transcript");
         try {
-            await writeBrowserClipboardText(copyText);
+            await writeBrowserClipboardText(sourceTranscriptCopyText);
             toast.success(t("sourceReport.sourceTranscriptCopied"));
         } catch {
             toast.error(t("sourceReport.copyFailed"));
         } finally {
             setCopyingKey(null);
         }
-    }, [data?.transcript, language, t]);
+    }, [sourceTranscriptCopyText, t]);
 
     const handleCopySourceReport = useCallback(async () => {
-        const copyText = data?.summaryMarkdown ?? "";
-        if (!copyText.trim()) {
+        if (!sourceReportCopyText.trim()) {
             toast.error(t("sourceReport.missingSourceReport"));
             return;
         }
 
         setCopyingKey("source-report");
         try {
-            await writeBrowserClipboardText(copyText);
+            await writeBrowserClipboardText(sourceReportCopyText);
             toast.success(t("sourceReport.sourceReportCopied"));
         } catch {
             toast.error(t("sourceReport.copyFailed"));
         } finally {
             setCopyingKey(null);
         }
-    }, [data?.summaryMarkdown, t]);
+    }, [sourceReportCopyText, t]);
 
     const detailEntries = data?.detail
         ? renderDetailEntries(data.detail, language, sourceProvider, t)
@@ -628,11 +663,7 @@ export function SourceReportPanel({
             {data && (
                 <div
                     className="space-y-4"
-                    data-source-report-state={
-                        data.transcriptReady || data.summaryReady
-                            ? "loaded"
-                            : "missing"
-                    }
+                    data-source-report-state={sourceReportState}
                     data-testid="source-report-loaded"
                 >
                     {!hasAudio ? (
@@ -714,7 +745,7 @@ export function SourceReportPanel({
                                 onClick={handleCopySourceReport}
                                 disabled={
                                     copyingKey === "source-report" ||
-                                    !data.summaryMarkdown?.trim()
+                                    !reportAvailable
                                 }
                                 data-testid="source-report-copy-report"
                                 aria-busy={copyingKey === "source-report"}
@@ -753,10 +784,7 @@ export function SourceReportPanel({
                                 onClick={handleCopySourceTranscript}
                                 disabled={
                                     copyingKey === "source-transcript" ||
-                                    !buildSourceTranscriptCopyText(
-                                        data.transcript,
-                                        language,
-                                    ).trim()
+                                    !transcriptAvailable
                                 }
                                 data-testid="source-report-copy-transcript"
                                 aria-busy={copyingKey === "source-transcript"}

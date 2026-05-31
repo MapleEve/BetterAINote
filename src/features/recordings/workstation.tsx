@@ -24,7 +24,10 @@ import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
-import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import {
+    type SourceReportAvailabilitySnapshot,
+    SourceReportPanel,
+} from "@/features/recordings/components/source-report-panel";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
@@ -77,6 +80,16 @@ interface SourceReportCopyPayload {
     } | null;
     summaryMarkdown?: string | null;
     error?: string;
+}
+
+function createSourceReportAvailability(
+    sourceProvider: string | null | undefined,
+): SourceReportAvailabilitySnapshot {
+    return {
+        state: sourceProvider ? "loading" : "missing",
+        transcriptAvailable: false,
+        reportAvailable: false,
+    };
 }
 
 function formatCopyTimestamp(valueMs: number | null | undefined) {
@@ -174,6 +187,10 @@ export function RecordingWorkstation({
     const [copyingAction, setCopyingAction] = useState<
         "local" | "source-transcript" | "source-report" | null
     >(null);
+    const [sourceReportAvailability, setSourceReportAvailability] =
+        useState<SourceReportAvailabilitySnapshot>(() =>
+            createSourceReportAvailability(recording.sourceProvider),
+        );
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         transcription?.speakerMap ?? null,
     );
@@ -245,8 +262,16 @@ export function RecordingWorkstation({
             setAutoRenameError(null);
             setRecordingTags(recording.tags);
             setTagManagerOpen(false);
+            setSourceReportAvailability(
+                createSourceReportAvailability(recording.sourceProvider),
+            );
         }
-    }, [recording.filename, recording.id, recording.tags]);
+    }, [
+        recording.filename,
+        recording.id,
+        recording.sourceProvider,
+        recording.tags,
+    ]);
 
     useEffect(() => {
         setRecordingTags(recording.tags);
@@ -270,6 +295,12 @@ export function RecordingWorkstation({
     useEffect(() => {
         setLiveSpeakerMap(transcription?.speakerMap ?? null);
     }, [transcription?.speakerMap]);
+
+    useEffect(() => {
+        setSourceReportAvailability(
+            createSourceReportAvailability(recording.sourceProvider),
+        );
+    }, [recording.sourceProvider]);
 
     useEffect(() => {
         let cancelled = false;
@@ -513,6 +544,48 @@ export function RecordingWorkstation({
         [recording.id, recording.sourceProvider, t],
     );
 
+    const sourceTranscriptCopyState =
+        !recording.sourceProvider || sourceReportAvailability.state === "idle"
+            ? "missing"
+            : sourceReportAvailability.state === "loading"
+              ? "loading"
+              : sourceReportAvailability.state === "error"
+                ? "error"
+                : sourceReportAvailability.transcriptAvailable
+                  ? "ready"
+                  : "missing";
+    const sourceReportCopyState =
+        !recording.sourceProvider || sourceReportAvailability.state === "idle"
+            ? "missing"
+            : sourceReportAvailability.state === "loading"
+              ? "loading"
+              : sourceReportAvailability.state === "error"
+                ? "error"
+                : sourceReportAvailability.reportAvailable
+                  ? "ready"
+                  : "missing";
+    const sourceTranscriptCopyDisabled =
+        copyingAction === "source-transcript" ||
+        sourceTranscriptCopyState !== "ready";
+    const sourceReportCopyDisabled =
+        copyingAction === "source-report" || sourceReportCopyState !== "ready";
+    const sourceTranscriptCopyTitle =
+        sourceTranscriptCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceTranscriptCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceTranscriptCopyState === "missing"
+                ? t("sourceReport.missingSourceTranscript")
+                : t("sourceReport.copySourceTranscript");
+    const sourceReportCopyTitle =
+        sourceReportCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceReportCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceReportCopyState === "missing"
+                ? t("sourceReport.missingSourceReport")
+                : t("sourceReport.copySourceReport");
+
     const durationLabel = `${Math.floor(recording.duration / 60000)}:${(
         (recording.duration % 60000) /
         1000
@@ -709,11 +782,10 @@ export function RecordingWorkstation({
                         onClick={() =>
                             handleCopySourceMaterial("source-transcript")
                         }
-                        disabled={
-                            copyingAction === "source-transcript" ||
-                            !recording.sourceProvider
-                        }
+                        disabled={sourceTranscriptCopyDisabled}
                         aria-busy={copyingAction === "source-transcript"}
+                        title={sourceTranscriptCopyTitle}
+                        data-source-copy-state={sourceTranscriptCopyState}
                         data-testid="recording-copy-source-transcript"
                         className="h-9 rounded-xl"
                     >
@@ -729,11 +801,10 @@ export function RecordingWorkstation({
                         onClick={() =>
                             handleCopySourceMaterial("source-report")
                         }
-                        disabled={
-                            copyingAction === "source-report" ||
-                            !recording.sourceProvider
-                        }
+                        disabled={sourceReportCopyDisabled}
                         aria-busy={copyingAction === "source-report"}
+                        title={sourceReportCopyTitle}
+                        data-source-copy-state={sourceReportCopyState}
                         data-testid="recording-copy-source-report"
                         className="h-9 rounded-xl"
                     >
@@ -952,6 +1023,9 @@ export function RecordingWorkstation({
                                             recording.sourceProvider
                                         }
                                         autoLoad
+                                        onAvailabilityChange={
+                                            setSourceReportAvailability
+                                        }
                                     />
                                 ) : activeTranscriptTab === "local" ? (
                                     <TranscriptionSection

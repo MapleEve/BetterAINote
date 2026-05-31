@@ -64,6 +64,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("sourceReport.copySourceReport");
         expect(sourceReport).toContain("sourceReport.missingSourceTranscript");
         expect(sourceReport).toContain("sourceReport.missingSourceReport");
+        expect(sourceReport).toContain("SourceReportAvailabilitySnapshot");
+        expect(sourceReport).toContain("onAvailabilityChange");
+        expect(sourceReport).toContain("transcriptAvailable");
+        expect(sourceReport).toContain("reportAvailable");
         expect(sourceReport).toContain('data-source-report-state="loading"');
         expect(sourceReport).toContain('data-source-report-state="empty"');
         expect(sourceReport).toContain("activeReportRequestRef");
@@ -96,8 +100,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("handleCopySourceMaterial");
         expect(detailWorkstation).toContain("buildSourceTranscriptCopyText");
         expect(detailWorkstation).toContain("localTranscriptCopyText");
+        expect(detailWorkstation).toContain("sourceReportAvailability");
+        expect(detailWorkstation).toContain("data-source-copy-state");
+        expect(detailWorkstation).toContain("sourceTranscriptCopyDisabled");
+        expect(detailWorkstation).toContain("sourceReportCopyDisabled");
         expect(detailWorkstation).toContain("applySpeakerMap");
         expect(detailWorkstation).toContain("<SourceReportPanel");
+        expect(detailWorkstation).toContain("onAvailabilityChange");
         expect(detailWorkstation).toContain("autoLoad");
         expect(detailWorkstation).not.toContain("container mx-auto max-w-4xl");
         expect(detailWorkstation).not.toContain(">←<");
