@@ -257,7 +257,10 @@ async function seedTimelineFilterRecordings(userId: string) {
 
 async function resetDisplay(
     page: Page,
-    options: { theme?: "system" | "light" | "dark" } = {},
+    options: {
+        theme?: "system" | "light" | "dark";
+        uiLanguage?: "zh-CN" | "en";
+    } = {},
 ) {
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
@@ -265,7 +268,7 @@ async function resetDisplay(
             itemsPerPage: 50,
             recordingListSortOrder: "newest",
             theme: options.theme ?? "system",
-            uiLanguage: "zh-CN",
+            uiLanguage: options.uiLanguage ?? "zh-CN",
         },
     });
     expect(resetResponse.ok()).toBe(true);
@@ -482,4 +485,39 @@ test("recording list exposes empty setup and no-match recovery states", async ({
     await expect(plaudRow).toHaveAttribute("data-active", "false");
 
     await cleanupListSeeds(userId);
+});
+
+test("recording list follows display language for empty and pagination copy", async ({
+    page,
+}) => {
+    await mockConnectedDataSources(page);
+    await ensureSignedIn(page);
+    await resetDisplay(page, { uiLanguage: "en" });
+
+    const userId = await getPlaywrightUserId();
+    try {
+        await seedListRecordings(userId);
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        await expect(page.getByText("Timeline", { exact: true })).toBeVisible();
+        await expect(page.getByTestId("recording-list-next-page")).toHaveText(
+            "Next",
+        );
+        await expect(page.getByTestId("recording-list-page-status")).toContainText(
+            "Page 1 of 2",
+        );
+
+        await cleanupAllUserRecordings(userId);
+        await page.reload({ waitUntil: "domcontentloaded" });
+
+        await expect(page.getByTestId("recording-list-empty")).toContainText(
+            "No recordings yet",
+        );
+        await expect(
+            page.getByRole("button", { name: "Open data sources" }),
+        ).toBeVisible();
+    } finally {
+        await resetDisplay(page);
+        await cleanupListSeeds(userId);
+    }
 });

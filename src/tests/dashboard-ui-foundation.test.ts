@@ -76,6 +76,7 @@ describe("dashboard UI foundation", () => {
         const recordingList = readSource(
             "features/dashboard/components/recording-list.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         expect(recordingList).toContain(
             'export type RecordingListMode = "timeline" | "tags"',
@@ -91,5 +92,14 @@ describe("dashboard UI foundation", () => {
         expect(recordingList).toContain("recording-list-");
         expect(recordingList).toContain("getSourceProviderLabel");
         expect(recordingList).toContain('data-testid="recording-list-panel"');
+        expect(recordingList).toContain("@/components/ui/button");
+        expect(recordingList).toContain("recordingList.openDataSources");
+        expect(recordingList).toContain("recordingList.pageStatus");
+        expect(recordingList).not.toContain("前往数据源");
+        expect(recordingList).not.toContain("清除筛选");
+        expect(recordingList).not.toContain("上一页");
+        expect(recordingList).not.toContain("下一页");
+        expect(translations).toContain("前往数据源");
+        expect(translations).toContain("Open data sources");
     });
 });

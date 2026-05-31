@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import {
@@ -39,6 +40,10 @@ import type { Recording } from "@/types/recording";
 type TimelineFilter = "all" | "today" | "yesterday" | "last7" | "earlier";
 export type RecordingListMode = "timeline" | "tags";
 type TagFilter = "all" | "untagged" | `tag:${string}`;
+type Translate = (
+    key: string,
+    replacements?: Record<string, string | number>,
+) => string;
 
 interface RecordingListProps {
     recordings: Recording[];
@@ -75,20 +80,18 @@ function getTimelineBucket(value: string): Exclude<TimelineFilter, "all"> {
     return "earlier";
 }
 
-function getTimelineLabel(bucket: TimelineFilter, language: "zh-CN" | "en") {
-    const isZh = language === "zh-CN";
-
+function getTimelineLabel(bucket: TimelineFilter, t: Translate) {
     switch (bucket) {
         case "today":
-            return isZh ? "今天" : "Today";
+            return t("recordingList.timeline.today");
         case "yesterday":
-            return isZh ? "昨天" : "Yesterday";
+            return t("recordingList.timeline.yesterday");
         case "last7":
-            return isZh ? "近 7 天" : "Last 7 days";
+            return t("recordingList.timeline.last7");
         case "earlier":
-            return isZh ? "更早" : "Earlier";
+            return t("recordingList.timeline.earlier");
         default:
-            return isZh ? "全部" : "All";
+            return t("recordingList.timeline.all");
     }
 }
 
@@ -161,11 +164,11 @@ export function RecordingList({
         return (["all", "today", "yesterday", "last7", "earlier"] as const)
             .map((value) => ({
                 value,
-                label: getTimelineLabel(value, language),
+                label: getTimelineLabel(value, t),
                 count: counts[value],
             }))
             .filter((option) => option.value === "all" || option.count > 0);
-    }, [language, recordings]);
+    }, [recordings, t]);
 
     const tagOptions = useMemo(() => {
         const tagCounts = new Map<
@@ -192,7 +195,7 @@ export function RecordingList({
         return [
             {
                 value: "all" as const,
-                label: language === "zh-CN" ? "全部" : "All",
+                label: t("recordingList.timeline.all"),
                 count: recordings.length,
             },
             ...Array.from(tagCounts.values())
@@ -206,13 +209,13 @@ export function RecordingList({
                 ? [
                       {
                           value: "untagged" as const,
-                          label: language === "zh-CN" ? "未标记" : "Untagged",
+                          label: t("recordingList.untagged"),
                           count: untaggedCount,
                       },
                   ]
                 : []),
         ];
-    }, [language, recordings]);
+    }, [recordings, t]);
 
     const filteredSortedRecordings = useMemo(() => {
         const sorted = [...recordings];
@@ -291,15 +294,13 @@ export function RecordingList({
                 mode === "tags"
                     ? {
                           id: tag?.id ?? "untagged",
-                          label:
-                              tag?.name ??
-                              (language === "zh-CN" ? "未标记" : "Untagged"),
+                          label: tag?.name ?? t("recordingList.untagged"),
                       }
                     : {
                           id: getTimelineBucket(recording.startTime),
                           label: getTimelineLabel(
                               getTimelineBucket(recording.startTime),
-                              language,
+                              t,
                           ),
                       };
             const existing = groups.find((item) => item.id === group.id);
@@ -312,7 +313,7 @@ export function RecordingList({
         }
 
         return groups;
-    }, [language, mode, sortedAndPaginatedRecordings]);
+    }, [mode, sortedAndPaginatedRecordings, t]);
 
     const totalPages = Math.max(
         1,
@@ -349,11 +350,30 @@ export function RecordingList({
         const seconds = Math.floor((ms % 60000) / 1000);
         return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     };
-    const totalLabel =
-        language === "zh-CN" ? `${totalCount} 条` : `${totalCount} items`;
+    const totalLabel = t("recordingList.totalCount", { count: totalCount });
     const selectedTagOption =
         tagOptions.find((option) => option.value === tagFilter) ??
         tagOptions[0];
+    const emptyTitle =
+        listState === "empty"
+            ? t("recordingList.emptyTitle")
+            : listState === "no-match"
+              ? t("recordingList.noMatchTitle")
+              : listState === "timeline-empty"
+                ? t("recordingList.timelineEmptyTitle")
+                : t("recordingList.tagEmptyTitle");
+    const emptyDescription =
+        listState === "empty"
+            ? t("recordingList.emptyDescription")
+            : listState === "no-match"
+              ? t("recordingList.noMatchDescription")
+              : listState === "timeline-empty"
+                ? t("recordingList.timelineEmptyDescription")
+                : t("recordingList.tagEmptyDescription");
+    const resetInnerFilterLabel =
+        listState === "timeline-empty"
+            ? t("recordingList.clearTimeline")
+            : t("recordingList.clearTag");
 
     useEffect(() => {
         if (
@@ -388,12 +408,8 @@ export function RecordingList({
                         <div className="flex min-w-0 items-center gap-2">
                             <p className="text-xs font-semibold text-muted-foreground">
                                 {mode === "timeline"
-                                    ? language === "zh-CN"
-                                        ? "时间线"
-                                        : "Timeline"
-                                    : language === "zh-CN"
-                                      ? "标签"
-                                      : "Tags"}
+                                    ? t("recordingList.timelineTitle")
+                                    : t("recordingList.tagsTitle")}
                             </p>
                             <span className="rounded-full border border-border/70 bg-background/45 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                                 {totalLabel}
@@ -404,13 +420,11 @@ export function RecordingList({
                             items={[
                                 {
                                     value: "timeline",
-                                    label:
-                                        language === "zh-CN" ? "时间" : "Time",
+                                    label: t("recordingList.timeTab"),
                                 },
                                 {
                                     value: "tags",
-                                    label:
-                                        language === "zh-CN" ? "标签" : "Tags",
+                                    label: t("recordingList.tagsTab"),
                                 },
                             ]}
                             value={mode}
@@ -443,9 +457,7 @@ export function RecordingList({
                                 <span className="flex min-w-0 flex-1 items-center gap-2">
                                     <span className="min-w-0 truncate text-left text-sm font-medium">
                                         {selectedTagOption?.label ??
-                                            (language === "zh-CN"
-                                                ? "全部"
-                                                : "All")}
+                                            t("recordingList.timeline.all")}
                                     </span>
                                     <span className="shrink-0 rounded-xl border border-border/60 bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground">
                                         {selectedTagOption?.count ?? 0}
@@ -677,111 +689,84 @@ export function RecordingList({
                             </span>
                             <div className="space-y-1.5">
                                 <p className="text-sm font-semibold">
-                                    {language === "zh-CN"
-                                        ? listState === "empty"
-                                            ? "还没有录音"
-                                            : listState === "no-match"
-                                              ? "当前筛选下没有录音"
-                                              : listState === "timeline-empty"
-                                                ? "所选时间段内没有录音"
-                                                : "该标签下还没有录音"
-                                        : listState === "empty"
-                                          ? "No recordings yet"
-                                          : listState === "no-match"
-                                            ? "No recordings match these filters"
-                                            : listState === "timeline-empty"
-                                              ? "No recordings in this timeline"
-                                              : "No recordings for this tag"}
+                                    {emptyTitle}
                                 </p>
                                 <p className="max-w-72 text-xs leading-5 text-muted-foreground">
-                                    {language === "zh-CN"
-                                        ? listState === "empty"
-                                            ? "连接一个数据源后，会议、1:1 和外部音频会出现在这里。"
-                                            : listState === "no-match"
-                                              ? "尝试清除收藏、来源或搜索筛选，或重新更新来源。"
-                                              : listState === "timeline-empty"
-                                                ? "放宽时间筛选后，匹配的录音会回到列表。"
-                                                : "清除标签筛选，或在详情页给录音添加该标签。"
-                                        : listState === "empty"
-                                          ? "Connect a data source and recordings will appear here."
-                                          : listState === "no-match"
-                                            ? "Clear favorites, source, or search filters, then sync again."
-                                            : listState === "timeline-empty"
-                                              ? "Widen the timeline filter to bring matching recordings back."
-                                              : "Clear the tag filter or add this tag from the detail panel."}
+                                    {emptyDescription}
                                 </p>
                             </div>
                             {listState === "empty" &&
                             onOpenDataSourcesSettings ? (
-                                <button
+                                <Button
                                     type="button"
-                                    className="rounded-lg bg-primary px-3 py-1.5 text-primary-foreground text-xs font-medium transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-3 text-xs"
                                     onClick={onOpenDataSourcesSettings}
                                 >
-                                    {language === "zh-CN"
-                                        ? "前往数据源"
-                                        : "Open data sources"}
-                                </button>
+                                    {t("recordingList.openDataSources")}
+                                </Button>
                             ) : null}
                             {listState === "no-match" && onClearFilters ? (
-                                <button
+                                <Button
                                     type="button"
-                                    className="rounded-lg border border-border/70 bg-background/45 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background/65 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-3 text-xs"
                                     onClick={onClearFilters}
                                 >
-                                    {language === "zh-CN"
-                                        ? "清除筛选"
-                                        : "Clear filters"}
-                                </button>
+                                    {t("recordingList.clearFilters")}
+                                </Button>
                             ) : null}
                             {(listState === "timeline-empty" ||
                                 listState === "tag-empty") && (
-                                <button
+                                <Button
                                     type="button"
-                                    className="rounded-lg border border-border/70 bg-background/45 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background/65 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-3 text-xs"
                                     onClick={resetInnerFilters}
                                 >
-                                    {language === "zh-CN"
-                                        ? listState === "timeline-empty"
-                                            ? "清除时间筛选"
-                                            : "清除标签筛选"
-                                        : listState === "timeline-empty"
-                                          ? "Clear timeline"
-                                          : "Clear tag"}
-                                </button>
+                                    {resetInnerFilterLabel}
+                                </Button>
                             )}
                         </div>
                     ) : null}
                 </div>
 
                 <div className="flex items-center justify-between border-t p-4">
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         data-testid="recording-list-prev-page"
                         onClick={() =>
                             setCurrentPage((page) => Math.max(1, page - 1))
                         }
                         disabled={currentPage === 1}
-                        className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+                        className="h-8 rounded-lg px-2 text-muted-foreground text-xs"
                     >
-                        {language === "zh-CN" ? "上一页" : "Previous"}
-                    </button>
+                        {t("recordingList.previous")}
+                    </Button>
                     <div
                         className="text-center text-sm text-muted-foreground"
                         data-testid="recording-list-page-status"
                     >
                         <span>
-                            {language === "zh-CN"
-                                ? `${currentPage} / ${totalPages} 页`
-                                : `Page ${currentPage} of ${totalPages}`}
+                            {t("recordingList.pageStatus", {
+                                current: currentPage,
+                                total: totalPages,
+                            })}
                         </span>
                         <span className="ml-2 text-xs opacity-70">
-                            {filteredSortedRecordings.length}
-                            {language === "zh-CN" ? " 条" : " items"}
+                            {t("recordingList.visibleCount", {
+                                count: filteredSortedRecordings.length,
+                            })}
                         </span>
                     </div>
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         data-testid="recording-list-next-page"
                         onClick={() =>
                             setCurrentPage((page) =>
@@ -789,10 +774,10 @@ export function RecordingList({
                             )
                         }
                         disabled={currentPage === totalPages}
-                        className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+                        className="h-8 rounded-lg px-2 text-muted-foreground text-xs"
                     >
-                        {language === "zh-CN" ? "下一页" : "Next"}
-                    </button>
+                        {t("recordingList.next")}
+                    </Button>
                 </div>
             </CardContent>
         </Card>
