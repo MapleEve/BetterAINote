@@ -18,6 +18,23 @@ coverage/
 
 /tmp/
 tmp/
+/plans/
+/plan/
+/meeting-notes/
+/meetings/
+/meeting-records/
+/specs/
+/spec/
+/roadmaps/
+/roadmap/
+/prd/
+/research/
+/tasks/
+/task/
+/计划/
+/会议纪要/
+/会议记录/
+/规格/
 /.full-review/
 .full-review/
 /.full-review-archive/
