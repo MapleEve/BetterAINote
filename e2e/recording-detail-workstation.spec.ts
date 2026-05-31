@@ -1,4 +1,5 @@
 import path from "node:path";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, test } from "@playwright/test";
@@ -6,8 +7,12 @@ import type { Page } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+const E2E_STORAGE_DIR = process.env.PLAYWRIGHT_E2E_STORAGE_DIR
+    ? path.resolve(process.cwd(), process.env.PLAYWRIGHT_E2E_STORAGE_DIR)
+    : path.resolve(process.cwd(), "tmp/e2e/storage");
 const DETAIL_RECORDING_ID = "e2e-detail-recording";
 const DETAIL_TRANSCRIPT_ID = "e2e-detail-transcript";
+const DETAIL_AUDIO_KEY = "recordings/e2e-detail-player.wav";
 const SPEAKER_REVIEW_PROFILE_ZH_ID = "e2e-speaker-profile-zh";
 const SPEAKER_REVIEW_PROFILE_LATIN_ID = "e2e-speaker-profile-latin";
 const SPEAKER_REVIEW_PROFILE_ZH_NAME = "张三丰产品评审会议长名字 Alpha";
@@ -49,6 +54,59 @@ function assertE2EDatabasePath(filePath: string) {
 
 for (const databasePath of [CORE_DB, LIBRARY_DB, TRANSCRIPTS_DB, VOICEPRINTS_DB]) {
     assertE2EDatabasePath(databasePath);
+}
+
+function assertE2EStoragePath(filePath: string) {
+    const e2eRoot = path.resolve(process.cwd(), "tmp/e2e");
+    const resolved = path.resolve(filePath);
+
+    if (!resolved.startsWith(`${e2eRoot}${path.sep}`)) {
+        throw new Error(`Refusing to mutate non-E2E storage path: ${resolved}`);
+    }
+}
+
+function createSineWaveWavBuffer() {
+    const sampleRate = 8000;
+    const durationSeconds = 2;
+    const sampleCount = sampleRate * durationSeconds;
+    const bytesPerSample = 2;
+    const dataSize = sampleCount * bytesPerSample;
+    const buffer = Buffer.alloc(44 + dataSize);
+
+    buffer.write("RIFF", 0);
+    buffer.writeUInt32LE(36 + dataSize, 4);
+    buffer.write("WAVE", 8);
+    buffer.write("fmt ", 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20);
+    buffer.writeUInt16LE(1, 22);
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(sampleRate * bytesPerSample, 28);
+    buffer.writeUInt16LE(bytesPerSample, 32);
+    buffer.writeUInt16LE(16, 34);
+    buffer.write("data", 36);
+    buffer.writeUInt32LE(dataSize, 40);
+
+    for (let index = 0; index < sampleCount; index += 1) {
+        const sample = Math.sin((index / sampleRate) * 440 * Math.PI * 2);
+        buffer.writeInt16LE(Math.round(sample * 12_000), 44 + index * 2);
+    }
+
+    return buffer;
+}
+
+async function writeAudioFixture() {
+    const audioPath = path.join(E2E_STORAGE_DIR, DETAIL_AUDIO_KEY);
+    assertE2EStoragePath(audioPath);
+    await mkdir(path.dirname(audioPath), { recursive: true });
+    await writeFile(audioPath, createSineWaveWavBuffer());
+    return DETAIL_AUDIO_KEY;
+}
+
+async function removeAudioFixture() {
+    const audioPath = path.join(E2E_STORAGE_DIR, DETAIL_AUDIO_KEY);
+    assertE2EStoragePath(audioPath);
+    await rm(audioPath, { force: true });
 }
 
 async function getPlaywrightUserId() {
@@ -517,6 +575,76 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             )
             .toContain("E2E 源报告摘要");
     } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail keeps the player controls live with local audio", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const storagePath = await writeAudioFixture();
+        const recordingId = await seedRecordingDetail(userId, { storagePath });
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        const player = page.getByTestId("recording-player");
+        const toggle = page.getByTestId("recording-player-toggle");
+        const speed = page.getByTestId("recording-player-speed");
+        const seek = page.getByTestId("recording-player-seek");
+        const volume = page.getByTestId("recording-player-volume");
+        const audio = page.getByTestId("recording-player-audio");
+
+        await expect(player).toBeVisible();
+        await expect(player.locator("[data-player-state]")).toHaveAttribute(
+            "data-player-state",
+            "ready",
+        );
+        await expect(toggle).toBeEnabled();
+        await expect(toggle).toHaveAttribute("aria-label", "播放录音");
+        await expect(speed).toContainText("1x");
+
+        await expect
+            .poll(() =>
+                audio.evaluate((node) => (node as HTMLAudioElement).duration),
+            )
+            .toBeGreaterThan(1);
+        await expect(seek).toBeEnabled();
+
+        await seek.fill("50");
+        await expect
+            .poll(() =>
+                audio.evaluate((node) => (node as HTMLAudioElement).currentTime),
+            )
+            .toBeGreaterThan(0.8);
+
+        await volume.fill("35");
+        await expect
+            .poll(() =>
+                audio.evaluate((node) => (node as HTMLAudioElement).volume),
+            )
+            .toBeCloseTo(0.35, 1);
+
+        await speed.click();
+        await expect(speed).toContainText("1.25x");
+        await expect
+            .poll(() =>
+                audio.evaluate(
+                    (node) => (node as HTMLAudioElement).playbackRate,
+                ),
+            )
+            .toBeCloseTo(1.25, 1);
+
+        await toggle.click();
+        await expect(toggle).toHaveAttribute("aria-label", "暂停录音");
+        await toggle.click();
+        await expect(toggle).toHaveAttribute("aria-label", "播放录音");
+    } finally {
+        await removeAudioFixture();
         await cleanupRecordingDetailSeed();
     }
 });

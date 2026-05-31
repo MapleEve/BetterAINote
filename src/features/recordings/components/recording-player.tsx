@@ -59,6 +59,7 @@ export function RecordingPlayer({
 
     return (
         <Card
+            data-testid="recording-player"
             className={cn(
                 "overflow-visible",
                 isTagManagerOpen && "relative z-[80]",
@@ -129,10 +130,21 @@ export function RecordingPlayer({
                     data-player-state={playbackDisabled ? "disabled" : "ready"}
                 >
                     <Button
+                        type="button"
                         onClick={togglePlayPause}
                         size="lg"
                         className="h-12 w-12 rounded-full shadow-none"
                         disabled={playbackDisabled}
+                        aria-label={
+                            isPlaying
+                                ? language === "zh-CN"
+                                    ? "暂停录音"
+                                    : "Pause recording"
+                                : language === "zh-CN"
+                                  ? "播放录音"
+                                  : "Play recording"
+                        }
+                        data-testid="recording-player-toggle"
                     >
                         {isPlaying ? (
                             <Pause className="h-5 w-5" />
@@ -143,8 +155,12 @@ export function RecordingPlayer({
 
                     <div className="min-w-0 space-y-3">
                         <div className="flex justify-between font-mono text-[11px] font-medium text-muted-foreground/75 tabular-nums">
-                            <span>{formatTime(currentTime)}</span>
-                            <span>{formatTime(duration)}</span>
+                            <span data-testid="recording-player-current-time">
+                                {formatTime(currentTime)}
+                            </span>
+                            <span data-testid="recording-player-duration">
+                                {formatTime(duration)}
+                            </span>
                         </div>
                         <Slider
                             value={[progress]}
@@ -156,17 +172,30 @@ export function RecordingPlayer({
                             disabled={
                                 playbackDisabled || !duration || duration === 0
                             }
+                            aria-label={
+                                language === "zh-CN"
+                                    ? "播放进度"
+                                    : "Playback progress"
+                            }
+                            data-testid="recording-player-seek"
                         />
                     </div>
 
                     <div className="flex items-center justify-end gap-3">
                         <Button
+                            type="button"
                             onClick={cyclePlaybackSpeed}
                             variant="outline"
                             size="sm"
                             className="h-8 w-12 rounded-xl px-2 font-mono text-[11px] shadow-none"
                             title="Click to cycle playback speed"
                             disabled={playbackDisabled}
+                            aria-label={
+                                language === "zh-CN"
+                                    ? "切换播放倍速"
+                                    : "Cycle playback speed"
+                            }
+                            data-testid="recording-player-speed"
                         >
                             {playbackSpeedLabel}
                         </Button>
@@ -181,6 +210,10 @@ export function RecordingPlayer({
                                 max={100}
                                 className="flex-1"
                                 disabled={playbackDisabled}
+                                aria-label={
+                                    language === "zh-CN" ? "音量" : "Volume"
+                                }
+                                data-testid="recording-player-volume"
                             />
                         </div>
                     </div>
@@ -191,6 +224,7 @@ export function RecordingPlayer({
                     src={audioSrc || undefined}
                     preload="metadata"
                     className="hidden"
+                    data-testid="recording-player-audio"
                 >
                     <track kind="captions" />
                 </audio>

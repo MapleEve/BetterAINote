@@ -445,4 +445,37 @@ describe("useRecordingPlayback", () => {
         audio.dispatch("ended");
         expect(onEnded).toHaveBeenCalledTimes(1);
     });
+
+    it("does not surface browser playback aborts as user-facing failures", async () => {
+        const consoleError = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        const audio = createAudioElementStub();
+        audio.play.mockRejectedValueOnce(
+            Object.assign(new Error("The play request was interrupted"), {
+                name: "AbortError",
+            }),
+        );
+
+        hookHarness.render(
+            () =>
+                useRecordingPlayback({
+                    audioUrl: "https://example.com/audio.mp3",
+                }),
+            {
+                beforeEffects(playback) {
+                    playback.audioRef.current =
+                        audio as unknown as HTMLAudioElement;
+                },
+            },
+        );
+
+        const playback =
+            hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
+        playback.togglePlayPause();
+        await Promise.resolve();
+
+        expect(consoleError).not.toHaveBeenCalled();
+        expect(toastError).not.toHaveBeenCalled();
+    });
 });

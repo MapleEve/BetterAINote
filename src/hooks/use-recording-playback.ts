@@ -18,6 +18,15 @@ interface UseRecordingPlaybackOptions {
     onEnded?: () => void;
 }
 
+function isPlaybackAbort(error: unknown) {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "name" in error &&
+        error.name === "AbortError"
+    );
+}
+
 export function useRecordingPlayback({
     audioUrl,
     onEnded,
@@ -139,6 +148,9 @@ export function useRecordingPlayback({
         } else {
             audio.playbackRate = playbackSpeed;
             audio.play().catch((error) => {
+                if (isPlaybackAbort(error)) {
+                    return;
+                }
                 console.error("Error playing audio:", error);
                 toast.error("Failed to play audio");
             });
