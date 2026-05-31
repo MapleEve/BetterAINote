@@ -192,7 +192,10 @@ export function serializeRecordingDetailTranscriptionJob(
     return {
         status: transcriptionJob.status,
         remoteStatus: transcriptionJob.remoteStatus,
-        lastError: transcriptionJob.lastError,
+        lastError: sanitizeTranscriptionJobLastError(
+            transcriptionJob.lastError,
+            transcriptionJob.status,
+        ),
     };
 }
 

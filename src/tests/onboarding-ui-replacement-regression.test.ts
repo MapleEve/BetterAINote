@@ -57,5 +57,8 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("aria-busy={isSaving}");
         expect(source).toContain("disabled={isSaving}");
         expect(source).toContain("保存中...");
+        expect(source).toContain('<SelectContent className="z-[650]">');
+        expect(source).toContain('selectContentClassName="z-[650]"');
+        expect(source).not.toContain("z-[200]");
     });
 });

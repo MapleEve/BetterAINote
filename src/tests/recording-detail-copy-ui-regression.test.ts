@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recordings/serialize";
 
 const ROOT = path.join(process.cwd(), "src");
 
@@ -9,6 +10,23 @@ function readSource(relativePath: string) {
 }
 
 describe("recording detail copy and title action UI regressions", () => {
+    it("redacts failed transcription job errors before they reach recording detail UI", () => {
+        expect(
+            serializeRecordingDetailTranscriptionJob({
+                recordingId: "rec-1",
+                status: "failed",
+                remoteStatus: "failed",
+                lastError:
+                    "upstream 500 token=secret-token cookie=session recording id rec-raw",
+                updatedAt: new Date("2026-05-31T00:00:00.000Z"),
+            }),
+        ).toEqual({
+            status: "failed",
+            remoteStatus: "failed",
+            lastError: "Transcription failed. Check server logs for details.",
+        });
+    });
+
     it("keeps browser clipboard writes behind the platform helper with a non-secure fallback", () => {
         const clipboard = readSource("lib/platform/clipboard.ts");
 

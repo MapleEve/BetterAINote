@@ -348,7 +348,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                         >
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent className="z-[200]">
+                                        <SelectContent className="z-[650]">
                                             {providerOptions.map((item) => (
                                                 <SelectItem
                                                     key={item.provider}
@@ -467,7 +467,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                                 >
                                                     <SelectValue />
                                                 </SelectTrigger>
-                                                <SelectContent className="z-[200]">
+                                                <SelectContent className="z-[650]">
                                                     {currentProviderCatalog.authModes.map(
                                                         (mode) => (
                                                             <SelectItem
@@ -533,7 +533,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                             field={field}
                                             fieldId={field.id}
                                             onValueChange={updateField}
-                                            selectContentClassName="z-[200]"
+                                            selectContentClassName="z-[650]"
                                             variant="settings"
                                         />
                                     ))}
