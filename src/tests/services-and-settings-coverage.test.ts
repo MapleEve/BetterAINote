@@ -39,7 +39,11 @@ import {
     parseSourceSecretConfig,
     resolveSourceConnectionConfig,
 } from "@/server/modules/data-sources/connections";
-import { getDataSources, saveDataSource } from "@/services/data-sources";
+import {
+    getDataSources,
+    saveDataSource,
+    testDataSource,
+} from "@/services/data-sources";
 
 describe("data source utility coverage", () => {
     afterEach(() => {
@@ -276,6 +280,11 @@ describe("data source service and connection coverage", () => {
                 )
                 .mockResolvedValueOnce(Response.json({}, { status: 200 }))
                 .mockResolvedValueOnce(Response.json({ ok: true }))
+                .mockResolvedValueOnce(new Response("{bad", { status: 500 }))
+                .mockResolvedValueOnce(Response.json({ success: true }))
+                .mockResolvedValueOnce(
+                    Response.json({ error: "test failed" }, { status: 502 }),
+                )
                 .mockResolvedValueOnce(new Response("{bad", { status: 500 })),
         );
 
@@ -305,6 +314,45 @@ describe("data source service and connection coverage", () => {
                 { endpoint: "/data", fallbackMessage: "save failed" },
             ),
         ).rejects.toThrow("save failed");
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                { endpoint: "/data/test" },
+            ),
+        ).resolves.toEqual({ success: true });
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                { endpoint: "/data/test" },
+            ),
+        ).rejects.toThrow("test failed");
+        await expect(
+            testDataSource(
+                {
+                    provider: "ticnote",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                },
+                {
+                    endpoint: "/data/test",
+                    fallbackMessage: "test fallback",
+                },
+            ),
+        ).rejects.toThrow("test fallback");
     });
 
     it("parses source connection secrets and provider config defaults", () => {

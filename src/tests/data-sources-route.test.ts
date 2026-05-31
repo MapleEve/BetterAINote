@@ -848,6 +848,30 @@ describe("data sources route", () => {
         expect(db.update).not.toHaveBeenCalled();
     });
 
+    it("rejects testing an unsupported data source provider", async () => {
+        const response = await TEST(
+            new Request("http://localhost/api/data-sources/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "unknown",
+                    enabled: true,
+                    authMode: "bearer",
+                    config: {},
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "provider must be one of the supported data sources",
+        });
+        expect(db.select).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+    });
+
     it("rejects saving TicNote with a sanitized validation failure reason", async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             ok: false,
