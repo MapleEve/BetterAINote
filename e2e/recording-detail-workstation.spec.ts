@@ -621,6 +621,55 @@ test("recording detail uses the new workstation shell and keeps all copy actions
     }
 });
 
+test("recording detail manual rename supports cancel and save states", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await page.getByTestId("recording-rename-start").click();
+        const renameInput = page.getByTestId("recording-rename-input");
+        await expect(renameInput).toHaveValue("E2E source detail review");
+        await renameInput.fill("E2E detail cancelled rename");
+        await page.getByTestId("recording-rename-cancel").click();
+        await expect(
+            page.getByRole("heading", { name: "E2E source detail review" }),
+        ).toBeVisible();
+
+        await page.getByTestId("recording-rename-start").click();
+        await renameInput.fill("E2E detail manual rename");
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/rename`) &&
+                    response.request().method() === "PATCH" &&
+                    response.ok(),
+            ),
+            page.getByTestId("recording-rename-save").click(),
+        ]);
+
+        await expect(
+            page.getByRole("heading", { name: "E2E detail manual rename" }),
+        ).toBeVisible();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("录音已重命名"),
+        ).toBeVisible();
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
 test("recording detail keeps the player controls live with local audio", async ({
     page,
 }) => {
@@ -699,8 +748,10 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
     try {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
+        const storagePath = await writeAudioFixture();
         const recordingId = await seedRecordingDetail(userId, {
             includeSpeakerReview: true,
+            storagePath,
         });
 
         await page.goto(`/recordings/${recordingId}`, {
@@ -739,6 +790,11 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(
             mappedCard.getByTestId("speaker-review-card-status"),
         ).toContainText("已关联声纹");
+        const playSampleButton = mappedCard
+            .getByTestId("speaker-review-play-sample")
+            .first();
+        await playSampleButton.click();
+        await expect(playSampleButton).toContainText("播放中");
         await expect(unmappedCard).toHaveAttribute(
             "data-speaker-mapped",
             "false",
@@ -836,6 +892,64 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
 
         expect(mappedBox?.width ?? 0).toBeGreaterThan(300);
         expect(inputBox?.width ?? 0).toBeGreaterThan(240);
+    } finally {
+        await removeAudioFixture();
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail speaker review covers empty and refresh failure states", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await page
+            .getByRole("button", { name: "说话人标签", exact: true })
+            .click();
+
+        const panel = page.getByTestId("speaker-review-panel");
+        await expect(panel).toBeVisible();
+        await expect(panel.getByTestId("speaker-review-empty")).toBeVisible();
+        await expect(panel.getByTestId("speaker-review-copy-raw")).toBeEnabled();
+
+        await page.route(
+            `**/api/recordings/${recordingId}/transcript/raw`,
+            async (route) => {
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 503,
+                    body: JSON.stringify({
+                        error: "转写复核暂时不可用",
+                    }),
+                });
+            },
+        );
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(
+                            `/api/recordings/${recordingId}/transcript/raw`,
+                        ) && response.status() === 503,
+            ),
+            panel.getByTestId("speaker-review-refresh").click(),
+        ]);
+
+        await expect(panel.getByTestId("speaker-review-error")).toContainText(
+            "转写复核暂时不可用",
+        );
+        await expect(
+            panel.getByTestId("speaker-review-copy-raw"),
+        ).toBeDisabled();
     } finally {
         await cleanupRecordingDetailSeed();
     }

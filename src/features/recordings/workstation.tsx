@@ -568,6 +568,7 @@ export function RecordingWorkstation({
                                     className="h-10 min-w-0 flex-1 rounded-xl py-1 text-base font-semibold sm:text-lg"
                                     autoFocus
                                     disabled={isSavingRename}
+                                    data-testid="recording-rename-input"
                                 />
                                 <Button
                                     size="sm"
@@ -597,8 +598,10 @@ export function RecordingWorkstation({
                                     variant="outline"
                                     onClick={handleRenameSave}
                                     disabled={isSavingRename}
+                                    aria-busy={isSavingRename}
                                     aria-label={t("recording.saveRename")}
                                     className="h-10 w-10 shrink-0 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
+                                    data-testid="recording-rename-save"
                                 >
                                     <CheckCircle className="h-5 w-5" />
                                 </Button>
@@ -609,6 +612,7 @@ export function RecordingWorkstation({
                                     disabled={isSavingRename}
                                     aria-label={t("recording.cancelRename")}
                                     className="h-10 w-10 shrink-0 rounded-xl border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
+                                    data-testid="recording-rename-cancel"
                                 >
                                     <X className="h-5 w-5" />
                                 </Button>
@@ -656,6 +660,7 @@ export function RecordingWorkstation({
                                         aria-label={renameActionLabel}
                                         title={renameActionLabel}
                                         className="shrink-0"
+                                        data-testid="recording-rename-start"
                                     >
                                         <Pencil className="h-4 w-4" />
                                     </Button>
