@@ -147,6 +147,21 @@ export function SyncStatus({
     };
 
     const nextSyncText = getNextSyncText();
+    const statusState = workerStatus?.manualTriggerRequestedAt
+        ? "queued"
+        : workerStatus?.isRunning || isAutoSyncing
+          ? "running"
+          : autoSyncEnabled && workerStatus && !workerStatus.healthy
+            ? "unavailable"
+            : lastSyncResult?.success === false
+              ? "failed"
+              : lastSyncResult?.success
+                ? "success"
+                : lastSyncTime
+                  ? "checked"
+                  : autoSyncEnabled
+                    ? "waiting"
+                    : "paused";
 
     return (
         <div
@@ -154,6 +169,8 @@ export function SyncStatus({
                 "flex items-center gap-2 text-xs text-muted-foreground",
                 className,
             )}
+            data-sync-status-state={statusState}
+            data-testid="dashboard-sync-status"
         >
             {getStatusIcon()}
             <div className="flex flex-col">
