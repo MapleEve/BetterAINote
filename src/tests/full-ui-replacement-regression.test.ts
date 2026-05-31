@@ -205,14 +205,26 @@ describe("full UI replacement regression coverage", () => {
         expect(route).toContain("readAutoRenameMode");
         expect(route).toContain('body?.mode === "preview"');
         expect(sharedCard).toContain("data-ai-rename-preview");
+        expect(sharedCard).toContain('data-testid="ai-rename-apply"');
+        expect(sharedCard).toContain('data-testid="ai-rename-cancel"');
+        expect(sharedCard).toContain('data-testid="ai-rename-regenerate"');
+        expect(sharedCard).toContain("ai-rename-card-action");
+
+        expect(dashboard).toContain("handleOpenTitleGenerationSettings");
+        expect(detail).toContain("actionHref={");
+        expect(detail).toContain("/settings#title-generation");
 
         for (const source of [dashboard, detail]) {
             expect(source).toContain("autoRenamePreview");
             expect(source).toContain("handleAutoRenamePreviewApply");
             expect(source).toContain("AiRenamePreviewCard");
             expect(source).toContain('JSON.stringify({ mode: "preview" })');
+            expect(source).toContain("aiRenameLocalOnlyHint");
+            expect(source).toContain("aiRenameWritebackHint");
+            expect(source).toContain("aiRenameOpenSettings");
             expect(source).toContain("autoRenameError");
             expect(source).toContain('state="loading"');
+            expect(source).toContain('state="review"');
             expect(source).toContain('state="error"');
             expect(source).toContain('state="unavailable"');
         }

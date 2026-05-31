@@ -27,6 +27,7 @@ import { SourceReportPanel } from "@/features/recordings/components/source-repor
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
+import { canRecordingSyncTitleUpstream } from "@/lib/data-sources/catalog";
 import {
     canRecordingPrivateTranscribe,
     canRecordingRename,
@@ -183,6 +184,11 @@ export function RecordingWorkstation({
             !isAutoRenaming &&
             !isApplyingAutoRename,
     );
+    const autoRenamePreviewMessage = canRecordingSyncTitleUpstream(
+        recording.sourceProvider,
+    )
+        ? t("transcription.aiRenameWritebackHint")
+        : t("transcription.aiRenameLocalOnlyHint");
     const showLocalTranscriptTab =
         !recording.sourceProvider ||
         canPrivateTranscribe ||
@@ -477,6 +483,7 @@ export function RecordingWorkstation({
                                     variant="outline"
                                     onClick={handleAutoRename}
                                     disabled={!canAutoRenameRecording}
+                                    data-testid="recording-ai-rename"
                                     title={
                                         autoRenameDisabledReason ??
                                         t("transcription.aiRename")
@@ -532,6 +539,7 @@ export function RecordingWorkstation({
                                     onClick={handleAutoRename}
                                     disabled={!canAutoRenameRecording}
                                     aria-busy={isAutoRenaming}
+                                    data-testid="recording-ai-rename"
                                     title={
                                         autoRenameDisabledReason ??
                                         t("transcription.aiRename")
@@ -672,14 +680,27 @@ export function RecordingWorkstation({
                         filename={autoRenamePreview}
                         isApplying={isApplyingAutoRename}
                         isRegenerating={isAutoRenaming}
+                        message={autoRenamePreviewMessage}
                         onApply={handleAutoRenamePreviewApply}
                         onCancel={handleAutoRenamePreviewCancel}
                         onRegenerate={handleAutoRename}
                         regenerateLabel={t("transcription.aiRenameRegenerate")}
+                        state="review"
                         title={t("transcription.aiRenamePreview")}
                     />
                 ) : autoRenameDisabledReason ? (
                     <AiRenamePreviewCard
+                        actionLabel={
+                            !titleGenerationProviderConfigured
+                                ? t("transcription.aiRenameOpenSettings")
+                                : undefined
+                        }
+                        actionHref={
+                            !titleGenerationProviderConfigured
+                                ? "/settings#title-generation"
+                                : undefined
+                        }
+                        actionTestId="ai-rename-open-settings"
                         className="mx-0"
                         isApplying={false}
                         isRegenerating={false}

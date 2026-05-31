@@ -14,11 +14,15 @@ import { cn } from "@/lib/utils";
 interface AiRenamePreviewCardProps {
     title: string;
     filename?: string | null;
+    actionLabel?: string;
+    actionHref?: string;
+    actionTestId?: string;
     applyLabel?: string;
     cancelLabel?: string;
     isApplying: boolean;
     isRegenerating: boolean;
     message?: string | null;
+    onAction?: () => void;
     onApply?: () => void;
     onCancel?: () => void;
     onRegenerate?: () => void;
@@ -28,6 +32,9 @@ interface AiRenamePreviewCardProps {
 }
 
 export function AiRenamePreviewCard({
+    actionLabel,
+    actionHref,
+    actionTestId,
     applyLabel,
     cancelLabel,
     className,
@@ -35,6 +42,7 @@ export function AiRenamePreviewCard({
     isApplying,
     isRegenerating,
     message,
+    onAction,
     onApply,
     onCancel,
     onRegenerate,
@@ -67,6 +75,7 @@ export function AiRenamePreviewCard({
             )}
             data-ai-rename-preview=""
             data-ai-rename-state={state}
+            data-testid="ai-rename-preview-card"
         >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
@@ -110,6 +119,7 @@ export function AiRenamePreviewCard({
                             aria-busy={isRegenerating}
                             aria-label={regenerateLabel}
                             title={regenerateLabel}
+                            data-testid="ai-rename-regenerate"
                         >
                             {isRegenerating ? (
                                 <Loader2 className="size-3.5 animate-spin" />
@@ -127,6 +137,7 @@ export function AiRenamePreviewCard({
                             disabled={isBusy}
                             aria-label={cancelLabel}
                             title={cancelLabel}
+                            data-testid="ai-rename-cancel"
                         >
                             <X className="size-3.5" />
                         </Button>
@@ -140,11 +151,31 @@ export function AiRenamePreviewCard({
                             aria-busy={isApplying}
                             aria-label={applyLabel}
                             title={applyLabel}
+                            data-testid="ai-rename-apply"
                         >
                             {isApplying ? (
                                 <Loader2 className="size-3.5 animate-spin" />
                             ) : (
                                 <Check className="size-3.5" />
+                            )}
+                        </Button>
+                    ) : null}
+                    {(onAction || actionHref) && actionLabel ? (
+                        <Button
+                            asChild={Boolean(actionHref)}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={actionHref ? undefined : onAction}
+                            disabled={isBusy}
+                            data-testid={
+                                actionTestId ?? "ai-rename-card-action"
+                            }
+                        >
+                            {actionHref ? (
+                                <a href={actionHref}>{actionLabel}</a>
+                            ) : (
+                                actionLabel
                             )}
                         </Button>
                     ) : null}

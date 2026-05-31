@@ -45,6 +45,7 @@ import {
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 import {
+    canRecordingSyncTitleUpstream,
     DATA_SOURCE_PROVIDERS,
     isSourceProvider,
     type SourceProvider,
@@ -391,6 +392,11 @@ export function Workstation({
             !isAutoRenaming &&
             !isApplyingAutoRename,
     );
+    const autoRenamePreviewMessage =
+        currentRecording &&
+        canRecordingSyncTitleUpstream(currentRecording.sourceProvider)
+            ? t("transcription.aiRenameWritebackHint")
+            : t("transcription.aiRenameLocalOnlyHint");
     const currentCanPrivateTranscribe = currentRecording
         ? canRecordingPrivateTranscribe({
               sourceProvider: currentRecording.sourceProvider,
@@ -1026,6 +1032,11 @@ export function Workstation({
         },
         [handleOpenSettings],
     );
+
+    const handleOpenTitleGenerationSettings = useCallback(() => {
+        writeBrowserHash("title-generation");
+        handleOpenSettings();
+    }, [handleOpenSettings]);
 
     const handleClearDashboardFilters = useCallback(() => {
         setActiveFavorite("all");
@@ -1872,6 +1883,7 @@ export function Workstation({
                                                     disabled={
                                                         !canAutoRenameCurrentRecording
                                                     }
+                                                    data-testid="dashboard-ai-rename"
                                                     title={
                                                         autoRenameDisabledReason ??
                                                         t(
@@ -1939,6 +1951,7 @@ export function Workstation({
                                                         !canAutoRenameCurrentRecording
                                                     }
                                                     aria-busy={isAutoRenaming}
+                                                    data-testid="dashboard-ai-rename"
                                                     title={
                                                         autoRenameDisabledReason ??
                                                         t(
@@ -2118,6 +2131,7 @@ export function Workstation({
                                             filename={autoRenamePreview}
                                             isApplying={isApplyingAutoRename}
                                             isRegenerating={isAutoRenaming}
+                                            message={autoRenamePreviewMessage}
                                             onApply={
                                                 handleAutoRenamePreviewApply
                                             }
@@ -2128,15 +2142,29 @@ export function Workstation({
                                             regenerateLabel={t(
                                                 "transcription.aiRenameRegenerate",
                                             )}
+                                            state="review"
                                             title={t(
                                                 "transcription.aiRenamePreview",
                                             )}
                                         />
                                     ) : autoRenameDisabledReason ? (
                                         <AiRenamePreviewCard
+                                            actionLabel={
+                                                !titleGenerationProviderConfigured
+                                                    ? t(
+                                                          "transcription.aiRenameOpenSettings",
+                                                      )
+                                                    : undefined
+                                            }
+                                            actionTestId="ai-rename-open-settings"
                                             isApplying={false}
                                             isRegenerating={false}
                                             message={autoRenameDisabledReason}
+                                            onAction={
+                                                !titleGenerationProviderConfigured
+                                                    ? handleOpenTitleGenerationSettings
+                                                    : undefined
+                                            }
                                             state="unavailable"
                                             title={t("transcription.aiRename")}
                                         />

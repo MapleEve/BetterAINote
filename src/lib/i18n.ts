@@ -155,6 +155,9 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             aiRenameRegenerate: "重新生成",
             aiRenameApply: "应用标题",
             aiRenameCancelPreview: "取消预览",
+            aiRenameOpenSettings: "去设置",
+            aiRenameLocalOnlyHint: "应用后只更新 BetterAINote 本地标题。",
+            aiRenameWritebackHint: "应用后会更新本地标题，并同步到支持的来源。",
             retranscribeConfirm:
                 "重新转录会再次调用 GPU 资源，并覆盖当前本地转录结果。继续吗？",
             renaming: "重命名中...",
@@ -454,6 +457,11 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             aiRenameRegenerate: "Regenerate",
             aiRenameApply: "Apply title",
             aiRenameCancelPreview: "Cancel preview",
+            aiRenameOpenSettings: "Open settings",
+            aiRenameLocalOnlyHint:
+                "Applying updates the BetterAINote local title only.",
+            aiRenameWritebackHint:
+                "Applying updates the local title and syncs it to supported sources.",
             retranscribeConfirm:
                 "Re-transcription will use GPU resources again and replace the current local transcript. Continue?",
             renaming: "Renaming...",
