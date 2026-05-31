@@ -64,23 +64,18 @@ next-env.d.ts
 /tmp/
 /remotion/
 
-# local planning / research materials
 /plans/
 /meeting-notes/
 /specs/
 /roadmaps/
 /prd/
 /research/
-
-# 中文命名的本地规划 / 研究资料
 /计划/
 /会议纪要/
 /规格/
 /路线图/
 /需求/
 /研究/
-
-# local planning / internal continuity notes
 /todo.md
 /docs/.DS_Store
 /.github/.DS_Store
@@ -118,7 +113,6 @@ pnpm-debug.log*
 *.har.gz
 *.trace.zip
 
-# local-only environment overrides
 .env.*.local
 .env.local
 AGENTS.local.md
