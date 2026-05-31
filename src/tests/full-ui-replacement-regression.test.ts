@@ -178,6 +178,23 @@ describe("full UI replacement regression coverage", () => {
         expect(search).toContain("data-ls-retry");
     });
 
+    it("keeps dashboard transcript hints on graphite tokens instead of source-blue panels", () => {
+        const transcriptionPanel = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
+
+        expect(transcriptionPanel).toContain(
+            'data-testid="dashboard-local-transcript-hint"',
+        );
+        expect(transcriptionPanel).toContain("border-primary/20");
+        expect(transcriptionPanel).toContain("bg-primary/8");
+        expect(transcriptionPanel).not.toContain("border-blue-");
+        expect(transcriptionPanel).not.toContain("bg-blue-");
+        expect(transcriptionPanel).not.toContain("text-blue-");
+        expect(transcriptionPanel).not.toContain("dark:border-blue");
+        expect(transcriptionPanel).not.toContain("dark:bg-blue");
+    });
+
     it("keeps source detail public-field filtered before rendering nested values", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",

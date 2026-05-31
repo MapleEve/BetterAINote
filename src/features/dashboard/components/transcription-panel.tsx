@@ -615,7 +615,10 @@ export function TranscriptionPanel({
                                         </div>
                                     </div>
                                     {localTranscriptHint ? (
-                                        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
+                                        <div
+                                            className="mt-4 rounded-lg border border-primary/20 bg-primary/8 px-4 py-3 text-foreground text-sm shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] dark:bg-primary/10"
+                                            data-testid="dashboard-local-transcript-hint"
+                                        >
                                             {localTranscriptHint}
                                         </div>
                                     ) : null}

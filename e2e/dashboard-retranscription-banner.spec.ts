@@ -599,6 +599,9 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
 
         const panel = page.getByTestId("dashboard-transcription-panel");
         await expect(panel).toContainText("复制这段转录");
+        await expect(page.getByTestId("dashboard-local-transcript-hint")).toContainText(
+            "这里只展示本地转录",
+        );
         await page.getByRole("button", { name: "复制转录" }).click();
         await expect
             .poll(() => copiedText)
