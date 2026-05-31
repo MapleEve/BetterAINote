@@ -167,6 +167,157 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
     );
 });
 
+test("VoScript settings validates connection, save, and unavailable states", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let connectionTestCalls = 0;
+    const settingsSavePayloads: Record<string, unknown>[] = [];
+    let releaseSettingsSave = () => {};
+    let notifySettingsSaveStarted = () => {};
+    const settingsSaveStarted = new Promise<void>((resolve) => {
+        notifySettingsSaveStarted = resolve;
+    });
+    const pendingSettingsSave = new Promise<void>((resolve) => {
+        releaseSettingsSave = resolve;
+    });
+
+    await page.route("**/api/settings/voscript/test", async (route) => {
+        connectionTestCalls += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 502,
+            body: JSON.stringify({ error: "VoScript test rejected" }),
+        });
+    });
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    privateTranscriptionApiKeySet: false,
+                    privateTranscriptionBaseUrl: null,
+                    privateTranscriptionDenoiseModel: "none",
+                    privateTranscriptionMaxInflightJobs: 1,
+                    privateTranscriptionMaxSpeakers: 0,
+                    privateTranscriptionMinSpeakers: 0,
+                    privateTranscriptionNoRepeatNgramSize: 0,
+                    privateTranscriptionSnrThreshold: null,
+                }),
+            });
+            return;
+        }
+
+        settingsSavePayloads.push(route.request().postDataJSON());
+        notifySettingsSaveStarted();
+        await pendingSettingsSave;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: [] }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: false,
+                reason: "请先保存可用的 VoScript 服务连接。",
+                voiceprints: [],
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const section = page.locator('[data-settings-section="voscript"]');
+    const baseUrlInput = page.locator("#private-transcription-base-url");
+    const maxInflightInput = page.locator(
+        "#private-transcription-max-inflight-jobs",
+    );
+    const repeatInput = page.locator(
+        "#private-transcription-no-repeat-ngram-size",
+    );
+    const snrInput = page.locator("#private-transcription-snr-threshold");
+    const saveButton = page.getByTestId("voscript-save");
+
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "unavailable",
+    );
+    await expect(maxInflightInput).toBeDisabled();
+    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
+        "data-vs-state",
+        "disabled",
+    );
+    await expect(page.locator("[data-vs-state]")).toContainText(
+        "请先保存可用的 VoScript 服务连接。",
+    );
+
+    await page.getByTestId("voscript-test-connection").click();
+    await expect(section).toHaveAttribute("data-voscript-test-state", "error");
+    await expect(page.getByTestId("voscript-connection-message")).toContainText(
+        "请先填写 VoScript 服务地址",
+    );
+    expect(connectionTestCalls).toBe(0);
+
+    await baseUrlInput.fill("https://bad-voscript.e2e.example");
+    await expect(maxInflightInput).toBeEnabled();
+    await page.getByTestId("voscript-test-connection").click();
+    await expect(section).toHaveAttribute("data-voscript-test-state", "error");
+    await expect(page.getByTestId("voscript-connection-message")).toContainText(
+        "VoScript test rejected",
+    );
+    expect(connectionTestCalls).toBe(1);
+
+    await maxInflightInput.fill("-1");
+    await saveButton.click();
+    await expect(section).toHaveAttribute("data-voscript-save-state", "error");
+    await expect(page.getByTestId("voscript-save-message")).toContainText(
+        "本地调度活跃任务上限必须是非负整数",
+    );
+    expect(settingsSavePayloads).toEqual([]);
+
+    await maxInflightInput.fill("2");
+    await repeatInput.fill("2");
+    await saveButton.click();
+    await expect(section).toHaveAttribute("data-voscript-save-state", "error");
+    await expect(page.getByTestId("voscript-save-message")).toContainText(
+        "重复抑制长度必须为 0，或大于等于 3 的整数",
+    );
+    expect(settingsSavePayloads).toEqual([]);
+
+    await repeatInput.fill("3");
+    await snrInput.fill("");
+    await baseUrlInput.fill("");
+    await expect(maxInflightInput).toBeDisabled();
+    await Promise.all([settingsSaveStarted, saveButton.click()]);
+    await expect(section).toHaveAttribute("data-voscript-save-state", "saving");
+    await expect(saveButton).toHaveAttribute("aria-busy", "true");
+
+    releaseSettingsSave();
+    await expect(section).toHaveAttribute("data-voscript-save-state", "saved");
+    await expect(page.getByTestId("voscript-save-message")).toContainText(
+        "VoScript 服务地址已清空",
+    );
+    expect(settingsSavePayloads.at(-1)).toMatchObject({
+        privateTranscriptionBaseUrl: null,
+        privateTranscriptionMaxInflightJobs: 2,
+        privateTranscriptionSnrThreshold: null,
+    });
+});
+
 test("VoScript remote voiceprint delete confirmation stays above the settings shell", async ({
     page,
 }) => {
