@@ -21,6 +21,32 @@ async function openLibrarySearch(page: Page) {
     return panel;
 }
 
+function healthySyncStatus() {
+    const now = new Date();
+
+    return {
+        autoSyncEnabled: true,
+        lastSyncTime: now.toISOString(),
+        nextSyncTime: new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
+        workerStatus: {
+            healthy: true,
+            isRunning: false,
+            lastHeartbeatAt: now.toISOString(),
+            lastStartedAt: null,
+            lastFinishedAt: now.toISOString(),
+            nextRunAt: new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
+            manualTriggerRequestedAt: null,
+            lastError: null,
+            lastSummary: {
+                newRecordings: 0,
+                updatedRecordings: 0,
+                removedRecordings: 0,
+                errorCount: 0,
+            },
+        },
+    };
+}
+
 test("library search keeps error retry and keyboard focus paths live", async ({
     page,
 }) => {
@@ -190,4 +216,71 @@ test("library search groups highlights and applies global speaker tag filters", 
 
     await searchFilter.getByRole("button", { name: "清除" }).click();
     await expect(searchFilter).toBeHidden();
+});
+
+test("topbar overlays stay layered, mutually exclusive, and close across outside click and settings", async ({
+    page,
+}) => {
+    await page.route("**/api/search?**", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ results: [] }),
+        });
+    });
+    await page.route("**/api/data-sources/sync", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(healthySyncStatus()),
+            });
+            return;
+        }
+
+        await route.continue();
+    });
+
+    await ensureSignedIn(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const searchTrigger = page.getByTestId("library-search-trigger");
+    const searchPanel = page.getByTestId("library-search-panel");
+    const activityTrigger = page.getByTestId("dashboard-activity-trigger");
+    const activityPanel = page.getByTestId("dashboard-activity-panel");
+    const settingsTrigger = page.getByTestId("dashboard-settings-trigger");
+
+    await openLibrarySearch(page);
+    await expect(searchPanel).toBeVisible();
+    await expect(searchPanel).toHaveCSS("z-index", "220");
+
+    await page.mouse.click(16, 220);
+    await expect(searchPanel).toBeHidden();
+
+    await openLibrarySearch(page);
+    await expect(searchPanel).toBeVisible();
+    await activityTrigger.click();
+    await expect(searchPanel).toBeHidden();
+    await expect(activityPanel).toBeVisible();
+    await expect(activityPanel).toHaveCSS("z-index", "220");
+    await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
+    await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
+
+    await openLibrarySearch(page);
+    await expect(activityPanel).toBeHidden();
+    await expect(searchPanel).toBeVisible();
+    await expect(searchTrigger).toHaveAttribute("aria-expanded", "true");
+    await expect(activityTrigger).toHaveAttribute("aria-expanded", "false");
+
+    await settingsTrigger.click();
+    await expect(searchPanel).toBeHidden();
+    await expect(activityPanel).toBeHidden();
+    await expect(page.locator("[data-settings-shell]")).toBeVisible();
+
+    await page.getByTestId("settings-close").click();
+    await expect(page.locator("[data-settings-shell]")).toBeHidden();
+
+    await activityTrigger.click();
+    await expect(activityPanel).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(activityPanel).toBeHidden();
+    await expect(activityTrigger).toBeFocused();
 });

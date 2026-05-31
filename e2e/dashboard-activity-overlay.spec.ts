@@ -24,6 +24,32 @@ function unhealthyWorkerStatus() {
     };
 }
 
+function healthyWorkerStatus(options: { running?: boolean } = {}) {
+    const now = new Date();
+
+    return {
+        autoSyncEnabled: true,
+        lastSyncTime: now.toISOString(),
+        nextSyncTime: new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
+        workerStatus: {
+            healthy: true,
+            isRunning: options.running ?? false,
+            lastHeartbeatAt: now.toISOString(),
+            lastStartedAt: options.running ? now.toISOString() : null,
+            lastFinishedAt: options.running ? null : now.toISOString(),
+            nextRunAt: new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
+            manualTriggerRequestedAt: null,
+            lastError: null,
+            lastSummary: {
+                newRecordings: 0,
+                updatedRecordings: 0,
+                removedRecordings: 0,
+                errorCount: 0,
+            },
+        },
+    };
+}
+
 async function mockSyncEndpoint(page: Page, releasePost: Promise<void>) {
     await page.route("**/api/data-sources/sync", async (route) => {
         if (route.request().method() === "POST") {
@@ -108,4 +134,59 @@ test("activity overlay retries and dismisses source notifications", async ({
     await expect(page.getByTestId("dashboard-activity-empty")).toBeVisible();
     await expect(panel).toContainText("全部已处理");
     await expect(panel).toContainText("没有新的动态");
+});
+
+test("activity overlay exposes default empty and syncing states without layout jumps", async ({
+    page,
+}) => {
+    let statusMode: "empty" | "syncing" = "empty";
+    await page.route("**/api/data-sources/sync", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify(
+                healthyWorkerStatus({ running: statusMode === "syncing" }),
+            ),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const trigger = page.getByTestId("dashboard-activity-trigger");
+    const panel = page.getByTestId("dashboard-activity-panel");
+
+    await trigger.click();
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-state", "empty");
+    const emptyBox = page.getByTestId("dashboard-activity-empty");
+    await expect(emptyBox).toBeVisible();
+    const emptyBoxHeight = await emptyBox.evaluate((node) =>
+        node.getBoundingClientRect().height,
+    );
+    expect(emptyBoxHeight).toBeGreaterThan(120);
+
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
+    await expect(trigger).toBeFocused();
+
+    statusMode = "syncing";
+    await page.reload({ waitUntil: "domcontentloaded" });
+
+    const syncingTrigger = page.getByTestId("dashboard-activity-trigger");
+    await syncingTrigger.click();
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-state", "loading");
+    await expect(page.getByTestId("dashboard-activity-status")).toHaveAttribute(
+        "data-state",
+        "loading",
+    );
+    await expect(page.getByTestId("dashboard-activity-loading")).toContainText(
+        "正在更新来源",
+    );
+    await expect(panel).toHaveCSS("z-index", "220");
 });
