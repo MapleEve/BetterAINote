@@ -2,7 +2,7 @@
 
 import { CloudDownload, Copy, FileText, LoaderCircle } from "lucide-react";
 import type { ReactElement } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
@@ -410,32 +410,71 @@ export function SourceReportPanel({
     const [copyingKey, setCopyingKey] = useState<
         "source-transcript" | "source-report" | null
     >(null);
+    const activeReportRequestRef = useRef<{
+        controller: AbortController;
+        id: number;
+    } | null>(null);
+    const reportRequestIdRef = useRef(0);
 
     const loadReport = useCallback(async () => {
+        activeReportRequestRef.current?.controller.abort();
+        const requestId = reportRequestIdRef.current + 1;
+        reportRequestIdRef.current = requestId;
+        const controller = new AbortController();
+        activeReportRequestRef.current = { controller, id: requestId };
+
         setIsLoading(true);
         setError(null);
         try {
             const response = await fetch(
                 `/api/recordings/${recordingId}/source-report`,
-                { cache: "no-store" },
+                { cache: "no-store", signal: controller.signal },
             );
             const payload = await response.json();
+            if (
+                controller.signal.aborted ||
+                activeReportRequestRef.current?.id !== requestId
+            ) {
+                return;
+            }
+
             if (!response.ok) {
                 setError(payload.error ?? t("sourceReport.failedFetch"));
                 return;
             }
 
             setData(payload);
-        } catch {
+        } catch (fetchError) {
+            if (
+                controller.signal.aborted ||
+                activeReportRequestRef.current?.id !== requestId
+            ) {
+                return;
+            }
+
+            if (
+                fetchError instanceof DOMException &&
+                fetchError.name === "AbortError"
+            ) {
+                return;
+            }
+
             const nextError = t("sourceReport.failedFetch");
             setError(nextError);
             toast.error(nextError);
         } finally {
-            setIsLoading(false);
+            if (activeReportRequestRef.current?.id === requestId) {
+                activeReportRequestRef.current = null;
+                setIsLoading(false);
+            }
         }
     }, [recordingId, t]);
 
     useEffect(() => {
+        activeReportRequestRef.current?.controller.abort();
+        activeReportRequestRef.current = null;
+        reportRequestIdRef.current += 1;
+
         if (!recordingId || !sourceProvider) {
             return;
         }
@@ -444,6 +483,13 @@ export function SourceReportPanel({
         setError(null);
         setIsLoading(false);
     }, [recordingId, sourceProvider]);
+
+    useEffect(() => {
+        return () => {
+            activeReportRequestRef.current?.controller.abort();
+            activeReportRequestRef.current = null;
+        };
+    }, []);
 
     useEffect(() => {
         if (!autoLoad) {

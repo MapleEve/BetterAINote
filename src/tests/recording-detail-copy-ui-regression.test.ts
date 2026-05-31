@@ -66,6 +66,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("sourceReport.missingSourceReport");
         expect(sourceReport).toContain('data-source-report-state="loading"');
         expect(sourceReport).toContain('data-source-report-state="empty"');
+        expect(sourceReport).toContain("activeReportRequestRef");
+        expect(sourceReport).toContain("AbortController");
+        expect(sourceReport).toContain("reportRequestIdRef");
         expect(sourceReport).toContain("renderDetailEntries");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });

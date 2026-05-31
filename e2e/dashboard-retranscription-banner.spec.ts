@@ -30,6 +30,7 @@ const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
 const RETX_RECORDING_ID = "e2e-retx-recording";
 const RETX_JOB_ID = "e2e-retx-job";
 const RETX_TRANSCRIPT_ID = "e2e-retx-transcript";
+const SOURCE_RACE_PREFIX = "e2e-source-report-race-";
 
 type RetranscriptionSeedStatus =
     | "processing"
@@ -306,6 +307,144 @@ async function cleanupRunningRetranscriptionSeed() {
         await library.close();
         await transcripts.close();
     }
+}
+
+async function cleanupSourceReportRaceSeeds(userId: string) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
+
+    try {
+        await transcripts.execute({
+            sql: "DELETE FROM source_artifacts WHERE user_id = ? AND recording_id LIKE ?",
+            args: [userId, `${SOURCE_RACE_PREFIX}%`],
+        });
+        await transcripts.execute({
+            sql: "DELETE FROM transcriptions WHERE user_id = ? AND recording_id LIKE ?",
+            args: [userId, `${SOURCE_RACE_PREFIX}%`],
+        });
+        await library.execute({
+            sql: "DELETE FROM transcription_jobs WHERE user_id = ? AND recording_id LIKE ?",
+            args: [userId, `${SOURCE_RACE_PREFIX}%`],
+        });
+        await library.execute({
+            sql: "DELETE FROM recordings WHERE user_id = ? AND id LIKE ?",
+            args: [userId, `${SOURCE_RACE_PREFIX}%`],
+        });
+    } finally {
+        await library.close();
+        await transcripts.close();
+    }
+}
+
+async function seedSourceReportRaceRecordings(userId: string) {
+    const now = Date.now();
+    const start = now - 2_400_000;
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
+    const recordings = [
+        {
+            id: `${SOURCE_RACE_PREFIX}alpha`,
+            title: "E2E stale source Alpha",
+            startTime: start,
+        },
+        {
+            id: `${SOURCE_RACE_PREFIX}beta`,
+            title: "E2E stale source Beta",
+            startTime: start + 60_000,
+        },
+    ];
+
+    try {
+        await cleanupSourceReportRaceSeeds(userId);
+        for (const recording of recordings) {
+            await library.execute({
+                sql: `
+                    INSERT OR REPLACE INTO recordings (
+                        id, user_id, source_provider, source_recording_id, source_version,
+                        source_metadata, provider_device_id, filename, duration, start_time,
+                        end_time, filesize, file_md5, storage_type, storage_path,
+                        downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    recording.id,
+                    userId,
+                    "ticnote",
+                    `${recording.id}-source`,
+                    "1",
+                    "{}",
+                    `${recording.id}-device`,
+                    recording.title,
+                    180_000,
+                    recording.startTime,
+                    recording.startTime + 180_000,
+                    1024,
+                    recording.id,
+                    "local",
+                    "",
+                    now,
+                    0,
+                    0,
+                    now,
+                    now,
+                ],
+            });
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO transcriptions (
+                        id, recording_id, user_id, text, detected_language,
+                        transcription_type, provider, model, provider_job_id,
+                        speaker_map, provider_payload, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    `${recording.id}-transcript`,
+                    recording.id,
+                    userId,
+                    `Speaker 1: ${recording.title} local transcript.`,
+                    "zh",
+                    "server",
+                    "voice-transcribe",
+                    "e2e",
+                    `${recording.id}-remote`,
+                    "{}",
+                    "{}",
+                    now - 60_000,
+                ],
+            });
+        }
+    } finally {
+        await library.close();
+        await transcripts.close();
+    }
+
+    return recordings;
+}
+
+function makeSourceRaceReport(title: string) {
+    return {
+        sourceProvider: "ticnote",
+        filename: title,
+        transcriptReady: true,
+        summaryReady: true,
+        transcript: {
+            text: `Speaker 1: ${title} source transcript.`,
+            segmentCount: 1,
+            segments: [
+                {
+                    speaker: "Speaker 1",
+                    startMs: 0,
+                    endMs: 1200,
+                    text: `${title} source transcript.`,
+                },
+            ],
+        },
+        summaryMarkdown: `## ${title} source report`,
+        detail: {
+            provider: "ticnote",
+            title,
+        },
+    };
 }
 
 test("dashboard keeps the old transcript visible while retranscription is running", async ({
@@ -615,5 +754,87 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
         await expect(page.getByTestId("source-report-copy-transcript")).toBeEnabled();
     } finally {
         await cleanupRunningRetranscriptionSeed();
+    }
+});
+
+test("dashboard source report ignores stale auto-load responses after recording changes", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    let releaseAlphaReport = () => {};
+    let resolveAlphaStarted = () => {};
+    let resolveAlphaSettled = () => {};
+    const alphaStarted = new Promise<void>((resolve) => {
+        resolveAlphaStarted = resolve;
+    });
+    const alphaSettled = new Promise<void>((resolve) => {
+        resolveAlphaSettled = resolve;
+    });
+    const alphaCanRespond = new Promise<void>((resolve) => {
+        releaseAlphaReport = resolve;
+    });
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        const [alphaRecording, betaRecording] =
+            await seedSourceReportRaceRecordings(userId);
+
+        await page.route(
+            `**/api/recordings/${alphaRecording.id}/source-report`,
+            async (route) => {
+                resolveAlphaStarted();
+                await alphaCanRespond;
+                await route
+                    .fulfill({
+                        contentType: "application/json",
+                        body: JSON.stringify(
+                            makeSourceRaceReport(alphaRecording.title),
+                        ),
+                    })
+                    .catch(() => null);
+                resolveAlphaSettled();
+            },
+        );
+        await page.route(
+            `**/api/recordings/${betaRecording.id}/source-report`,
+            async (route) => {
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify(makeSourceRaceReport(betaRecording.title)),
+                });
+            },
+        );
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(alphaRecording.title) })
+            .click();
+        await page.getByRole("button", { name: "来源", exact: true }).click();
+        await alphaStarted;
+
+        await page
+            .getByRole("button", { name: new RegExp(betaRecording.title) })
+            .click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            betaRecording.title,
+        );
+        await expect(page.getByTestId("source-report-loaded")).toContainText(
+            `${betaRecording.title} source report`,
+        );
+
+        releaseAlphaReport();
+        await alphaSettled;
+        await expect(page.getByTestId("source-report-loaded")).toContainText(
+            `${betaRecording.title} source report`,
+        );
+        await expect(page.getByTestId("source-report-loaded")).not.toContainText(
+            `${alphaRecording.title} source report`,
+        );
+    } finally {
+        releaseAlphaReport();
+        if (userId) {
+            await cleanupSourceReportRaceSeeds(userId);
+        }
     }
 });
