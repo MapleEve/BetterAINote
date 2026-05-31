@@ -756,3 +756,91 @@ test("data sources settings keeps provider select layered and private fields sco
     await expect(page.getByText("user_access_token")).toHaveCount(0);
     await expect(page.getByText("X-Feishu-Minutes-Token")).toHaveCount(0);
 });
+
+test("data sources settings restores external provider selection and shows test backend failures", async ({
+    page,
+}) => {
+    const sources = [
+        makeSource("plaud", {
+            connected: true,
+            displayName: "Plaud",
+            enabled: true,
+            secretsConfigured: { bearerToken: true },
+        }),
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+        }),
+        makeSource("feishu-minutes", {
+            authMode: "oauth-device-flow",
+            authModes: ["oauth-device-flow", "web-reverse"],
+            displayName: "飞书妙记",
+        }),
+        makeSource("dingtalk-a1", {
+            authMode: "device-signin",
+            authModes: ["device-signin"],
+            displayName: "钉钉闪记",
+        }),
+        makeSource("iflyrec", {
+            authMode: "session-header",
+            authModes: ["session-header"],
+            config: { bizId: "tjzs" },
+            displayName: "讯飞听见",
+        }),
+    ];
+
+    await page.route("**/api/data-sources/test", async (route) => {
+        await route.fulfill({
+            status: 503,
+            contentType: "application/json",
+            body: JSON.stringify({ error: "连接服务暂不可用" }),
+        });
+    });
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ sources }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.evaluate(() => {
+        localStorage.removeItem("settings-last-section");
+        localStorage.setItem("settings-data-source-provider", "iflyrec");
+    });
+    await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
+
+    const section = page.locator('[data-settings-section="data-sources"]');
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-ds-selected-provider", "iflyrec");
+    await expect
+        .poll(() =>
+            page.evaluate(() =>
+                localStorage.getItem("settings-data-source-provider"),
+            ),
+        )
+        .toBe("");
+
+    const detail = section.locator('[data-provider-detail="iflyrec"]');
+    await expect(detail).toHaveAttribute("data-provider-status", "needs-setup");
+    await page.locator("#iflyrec-source-secret").fill("iflyrec-session-e2e");
+    await detail.getByTestId("data-source-test-connection").click();
+    await expect(detail).toHaveAttribute(
+        "data-provider-action-state",
+        "test-error",
+    );
+    await expect(
+        detail.getByTestId("data-source-provider-state-banner"),
+    ).toContainText("连接服务暂不可用");
+});

@@ -193,3 +193,73 @@ test("settings route aliases and mobile selector keep the shell fixed", async ({
     await expect(shell).toBeHidden();
     await expect(page).toHaveURL(/\/dashboard$/);
 });
+
+test("settings shell restores the last section and supports keyboard section selection", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await clearSettingsPersistence(page);
+    await page.evaluate(() => {
+        localStorage.setItem("settings-last-section", "title-generation");
+    });
+
+    const settingsTrigger = page.getByTestId("dashboard-settings-trigger");
+    await settingsTrigger.click();
+
+    const shell = page.locator("[data-settings-shell]");
+    await expect(shell).toBeVisible();
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "title-generation",
+    );
+    await expect(
+        page.locator('[data-settings-nav-item="title-generation"]'),
+    ).toHaveAttribute("data-keyboard-selected", "true");
+
+    await page.keyboard.press("ArrowDown");
+    await expect(
+        page.locator('[data-settings-nav-item="voscript"]'),
+    ).toHaveAttribute("data-keyboard-selected", "true");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "title-generation",
+    );
+
+    await page.keyboard.press("Enter");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "voscript",
+    );
+    await expect
+        .poll(() =>
+            page.evaluate(() => localStorage.getItem("settings-last-section")),
+        )
+        .toBe("voscript");
+
+    await page.keyboard.press("ArrowDown");
+    await expect(
+        page.locator('[data-settings-nav-item="data-sources"]'),
+    ).toHaveAttribute("data-keyboard-selected", "true");
+    await page.keyboard.press("Space");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "data-sources",
+    );
+
+    await page.keyboard.press("ArrowUp");
+    await expect(
+        page.locator('[data-settings-nav-item="voscript"]'),
+    ).toHaveAttribute("data-keyboard-selected", "true");
+    await page.keyboard.press("Enter");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "voscript",
+    );
+
+    await page.keyboard.press("Escape");
+    await expect(shell).toBeHidden();
+    await expect(settingsTrigger).toBeFocused();
+});
