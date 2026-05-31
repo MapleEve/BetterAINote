@@ -44,10 +44,13 @@ const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
 const VOICEPRINTS_DB = deriveSiblingDatabasePath(CORE_DB, "voiceprints");
 
 function assertE2EDatabasePath(filePath: string) {
-    const e2eRoot = path.resolve(process.cwd(), "tmp/e2e");
+    const e2eRoot = path.resolve(
+        process.env.PLAYWRIGHT_E2E_ROOT ??
+            path.join(process.cwd(), "tmp/e2e"),
+    );
     const resolved = path.resolve(filePath);
 
-    if (!resolved.startsWith(`${e2eRoot}${path.sep}`)) {
+    if (resolved !== e2eRoot && !resolved.startsWith(`${e2eRoot}${path.sep}`)) {
         throw new Error(`Refusing to mutate non-E2E database path: ${resolved}`);
     }
 }
@@ -57,10 +60,13 @@ for (const databasePath of [CORE_DB, LIBRARY_DB, TRANSCRIPTS_DB, VOICEPRINTS_DB]
 }
 
 function assertE2EStoragePath(filePath: string) {
-    const e2eRoot = path.resolve(process.cwd(), "tmp/e2e");
+    const e2eRoot = path.resolve(
+        process.env.PLAYWRIGHT_E2E_ROOT ??
+            path.join(process.cwd(), "tmp/e2e"),
+    );
     const resolved = path.resolve(filePath);
 
-    if (!resolved.startsWith(`${e2eRoot}${path.sep}`)) {
+    if (resolved !== e2eRoot && !resolved.startsWith(`${e2eRoot}${path.sep}`)) {
         throw new Error(`Refusing to mutate non-E2E storage path: ${resolved}`);
     }
 }
