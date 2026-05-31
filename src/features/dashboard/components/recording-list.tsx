@@ -525,6 +525,11 @@ export function RecordingList({
                                                 key={recording.id}
                                                 type="button"
                                                 data-recording-id={recording.id}
+                                                data-selected={
+                                                    isSelected
+                                                        ? "true"
+                                                        : "false"
+                                                }
                                                 data-testid="recording-list-item"
                                                 onClick={() =>
                                                     onSelect(recording)

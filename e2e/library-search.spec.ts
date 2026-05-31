@@ -1,5 +1,173 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { createClient } from "@libsql/client";
 import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+
+const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+const SEARCH_RECORDING_ID = "e2e-library-search-target";
+const SEARCH_OTHER_RECORDING_ID = "e2e-library-search-other";
+
+function resolveDatabasePath() {
+    return process.env.DATABASE_PATH
+        ? path.resolve(process.cwd(), process.env.DATABASE_PATH)
+        : path.join(E2E_DATA_DIR, "betterainote-e2e.db");
+}
+
+function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
+    const parsed = path.parse(databasePath);
+    return path.resolve(
+        parsed.dir || ".",
+        `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
+    );
+}
+
+function assertE2EDatabasePath(filePath: string) {
+    const e2eRoot = path.resolve(
+        process.env.PLAYWRIGHT_E2E_ROOT ??
+            path.join(process.cwd(), "tmp/e2e"),
+    );
+    const resolvedPath = path.resolve(filePath);
+
+    if (
+        resolvedPath !== e2eRoot &&
+        !resolvedPath.startsWith(`${e2eRoot}${path.sep}`)
+    ) {
+        throw new Error(
+            `Refusing to touch non-E2E database path: ${resolvedPath}`,
+        );
+    }
+}
+
+function databaseUrl(filePath: string) {
+    assertE2EDatabasePath(filePath);
+    return pathToFileURL(filePath).href;
+}
+
+const CORE_DB = resolveDatabasePath();
+const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
+
+async function getPlaywrightUserId() {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        const result = await client.execute({
+            sql: "SELECT id FROM `users` WHERE email = ? LIMIT 1",
+            args: ["playwright-admin@example.com"],
+        });
+        const id = result.rows[0]?.id;
+        if (typeof id !== "string") {
+            throw new Error("Playwright user not found");
+        }
+        return id;
+    } finally {
+        await client.close();
+    }
+}
+
+async function seedLibrarySearchRecording(userId: string) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const now = Date.now();
+    const seeds = [
+        {
+            id: SEARCH_OTHER_RECORDING_ID,
+            filename: "E2E library search other",
+            start: now - 60_000,
+        },
+        {
+            id: SEARCH_RECORDING_ID,
+            filename: "E2E library search target",
+            start: now - 180_000,
+        },
+    ];
+
+    try {
+        await library.execute({
+            sql: "DELETE FROM recordings WHERE user_id = ? AND id IN (?, ?)",
+            args: [userId, SEARCH_RECORDING_ID, SEARCH_OTHER_RECORDING_ID],
+        });
+
+        for (const seed of seeds) {
+            await library.execute({
+                sql: `
+                    INSERT OR REPLACE INTO recordings (
+                        id, user_id, source_provider, source_recording_id, source_version,
+                        source_metadata, provider_device_id, filename, duration, start_time,
+                        end_time, filesize, file_md5, storage_type, storage_path,
+                        downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    seed.id,
+                    userId,
+                    "ticnote",
+                    `${seed.id}-source`,
+                    "1",
+                    "{}",
+                    "e2e-library-search-device",
+                    seed.filename,
+                    180_000,
+                    seed.start,
+                    seed.start + 180_000,
+                    4096,
+                    seed.id,
+                    "local",
+                    "",
+                    now,
+                    0,
+                    0,
+                    now,
+                    now,
+                ],
+            });
+        }
+    } finally {
+        await library.close();
+    }
+}
+
+function buildSearchResult(overrides: Record<string, unknown>) {
+    return {
+        entityType: "tag",
+        entityId: "tag-alpha",
+        recordingId: null,
+        title: "Alpha tag",
+        body: "Alpha search result",
+        speaker: null,
+        tags: ["Alpha"],
+        source: null,
+        startMs: null,
+        endMs: null,
+        ...overrides,
+    };
+}
+
+async function mockLibrarySearchResults(
+    page: Page,
+    results: Array<Record<string, unknown>>,
+    onRequest?: (url: URL) => void,
+) {
+    await page.route("**/api/search?**", async (route) => {
+        onRequest?.(new URL(route.request().url()));
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ results }),
+        });
+    });
+}
+
+async function mockSyncEndpoint(page: Page) {
+    await page.route("**/api/data-sources/sync", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify(healthySyncStatus()),
+        });
+    });
+}
 
 async function openLibrarySearch(page: Page) {
     const trigger = page.getByTestId("library-search-trigger");
@@ -84,7 +252,7 @@ test("library search keeps error retry and keyboard focus paths live", async ({
     await expect(panel).toBeVisible();
     await expect(panel).toHaveCSS("z-index", "220");
 
-    const input = panel.getByRole("textbox", {
+    const input = panel.getByRole("combobox", {
         name: "搜索录音、逐字稿、说话人、标签",
     });
     await input.fill("retry-check");
@@ -185,7 +353,7 @@ test("library search groups highlights and applies global speaker tag filters", 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
 
-    const input = panel.getByRole("textbox", {
+    const input = panel.getByRole("combobox", {
         name: "搜索录音、逐字稿、说话人、标签",
     });
     await input.fill("Alpha");
@@ -216,6 +384,131 @@ test("library search groups highlights and applies global speaker tag filters", 
 
     await searchFilter.getByRole("button", { name: "清除" }).click();
     await expect(searchFilter).toBeHidden();
+});
+
+test("library search keeps keyboard active results visible before Enter actions", async ({
+    page,
+}) => {
+    await mockLibrarySearchResults(
+        page,
+        Array.from({ length: 12 }, (_, index) => {
+            const suffix = String(index + 1).padStart(2, "0");
+            return buildSearchResult({
+                entityId: `tag-alpha-${suffix}`,
+                title: `Alpha tag ${suffix}`,
+                body: `Alpha keyboard result ${suffix}`,
+                tags: [`Alpha tag ${suffix}`],
+            });
+        }),
+    );
+
+    await ensureSignedIn(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const panel = await openLibrarySearch(page);
+    await expect(panel.getByRole("combobox")).toHaveAttribute(
+        "aria-controls",
+        "library-search-results-listbox",
+    );
+    const input = panel.getByRole("combobox", {
+        name: "搜索录音、逐字稿、说话人、标签",
+    });
+    await input.fill("Alpha");
+    await expect(page.getByTestId("library-search-results")).toHaveAttribute(
+        "role",
+        "listbox",
+    );
+
+    for (let index = 0; index < 11; index += 1) {
+        await page.keyboard.press("ArrowDown");
+    }
+
+    const activeResult = page.getByTestId("library-search-result-tag-11");
+    await expect(activeResult).toHaveAttribute("data-active", "true");
+    await expect(activeResult).toBeInViewport();
+
+    const activeResultIsInsideScroller = await activeResult.evaluate((node) => {
+        const scrollRegion = node.closest(
+            '[data-testid="library-search-scroll-region"]',
+        );
+        if (!scrollRegion) {
+            return false;
+        }
+        const itemRect = node.getBoundingClientRect();
+        const scrollRect = scrollRegion.getBoundingClientRect();
+
+        return (
+            itemRect.top >= scrollRect.top - 1 &&
+            itemRect.bottom <= scrollRect.bottom + 1
+        );
+    });
+    expect(activeResultIsInsideScroller).toBe(true);
+
+    await page.keyboard.press("Enter");
+
+    await expect(panel).toBeHidden();
+    const searchFilter = page.getByTestId("dashboard-library-search-filter");
+    await expect(searchFilter).toBeVisible();
+    await expect(searchFilter).toHaveAttribute("data-library-search-filter", "tag");
+    await expect(searchFilter).toContainText("Alpha tag 12");
+});
+
+test("library search sends scoped requests and opens transcript hits", async ({
+    page,
+}) => {
+    const requestedTypes: string[] = [];
+    await mockLibrarySearchResults(
+        page,
+        [
+            buildSearchResult({
+                entityType: "transcript",
+                entityId: "segment-alpha",
+                recordingId: SEARCH_RECORDING_ID,
+                title: "E2E library search target",
+                body: "Alpha transcript keyboard target",
+                speaker: "Speaker Alpha",
+                source: "ticnote",
+                startMs: 1000,
+                endMs: 3000,
+            }),
+        ],
+        (url) => requestedTypes.push(url.searchParams.get("type") ?? "all"),
+    );
+    await mockSyncEndpoint(page);
+
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    await seedLibrarySearchRecording(userId);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const otherRecording = page.locator(
+        `[data-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
+    );
+    const targetRecording = page.locator(
+        `[data-recording-id="${SEARCH_RECORDING_ID}"]`,
+    );
+    await expect(otherRecording).toHaveAttribute("data-selected", "true");
+    await expect(targetRecording).toHaveAttribute("data-selected", "false");
+
+    const panel = await openLibrarySearch(page);
+    const input = panel.getByRole("combobox", {
+        name: "搜索录音、逐字稿、说话人、标签",
+    });
+    await input.fill("Alpha");
+    await expect(page.getByTestId("library-search-results")).toBeVisible();
+
+    await panel.getByRole("button", { name: "逐字稿" }).click();
+    await expect
+        .poll(() => requestedTypes)
+        .toContain("transcript");
+    await expect(page.getByTestId("library-search-result-transcript-0")).toBeVisible();
+
+    await input.focus();
+    await page.keyboard.press("Enter");
+
+    await expect(panel).toBeHidden();
+    await expect(targetRecording).toHaveAttribute("data-selected", "true");
+    await expect(otherRecording).toHaveAttribute("data-selected", "false");
 });
 
 test("topbar overlays stay layered, mutually exclusive, and close across outside click and settings", async ({

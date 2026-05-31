@@ -168,7 +168,10 @@ describe("full UI replacement regression coverage", () => {
         expect(search).toContain('event.key === "ArrowDown"');
         expect(search).toContain('event.key === "ArrowUp"');
         expect(search).toContain('event.key === "Enter"');
+        expect(search).toContain('role="combobox"');
+        expect(search).toContain('role="listbox"');
         expect(search).toContain("aria-activedescendant");
+        expect(search).toContain("scrollIntoView");
         expect(search).toContain("data-active");
         expect(search).toContain("getTargetRecordingId");
         expect(search).toContain("handleRetrySearch");

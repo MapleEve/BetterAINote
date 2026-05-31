@@ -111,6 +111,13 @@ describe("dashboard search and activity overlay regression", () => {
         expect(searchComponent).toContain("SEARCH_RESULT_GROUPS");
         expect(searchComponent).toContain("displayResults");
         expect(searchComponent).toContain("activeResultIndex");
+        expect(searchComponent).toContain("scrollIntoView");
+        expect(searchComponent).toContain(
+            'data-testid="library-search-scroll-region"',
+        );
+        expect(searchComponent).toContain('role="combobox"');
+        expect(searchComponent).toContain('role="listbox"');
+        expect(searchComponent).toContain("aria-autocomplete");
         expect(searchComponent).toContain("renderHighlightedText");
         expect(searchComponent).toContain(
             'data-testid="library-search-highlight"',

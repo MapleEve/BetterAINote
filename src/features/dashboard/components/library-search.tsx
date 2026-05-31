@@ -229,6 +229,17 @@ export function LibrarySearch({
         [displayResults],
     );
 
+    useEffect(() => {
+        if (!open || displayResults.length === 0) {
+            return;
+        }
+
+        const activeElement = document.getElementById(
+            `library-search-result-${activeResultIndex}`,
+        );
+        activeElement?.scrollIntoView({ block: "nearest" });
+    }, [activeResultIndex, displayResults.length, open]);
+
     const closeAndReturnFocus = useCallback(
         (options: { returnFocus?: boolean } = {}) => {
             onOpenChange(false);
@@ -457,13 +468,17 @@ export function LibrarySearch({
                             placeholder="搜索录音、逐字稿、说话人、标签"
                             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                             aria-label="搜索录音、逐字稿、说话人、标签"
+                            aria-autocomplete="list"
                             aria-activedescendant={
                                 displayResults.length > 0
                                     ? `library-search-result-${activeResultIndex}`
                                     : undefined
                             }
+                            aria-controls="library-search-results-listbox"
+                            aria-expanded={open}
                             autoComplete="off"
                             onKeyDown={handleInputKeyDown}
+                            role="combobox"
                         />
                         {query ? (
                             <button
@@ -501,7 +516,10 @@ export function LibrarySearch({
                         ))}
                     </fieldset>
 
-                    <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
+                    <div
+                        className="min-h-0 flex-1 overflow-y-auto p-1.5"
+                        data-testid="library-search-scroll-region"
+                    >
                         {!trimmedQuery ? (
                             <div
                                 className="px-4 py-8 text-center text-muted-foreground text-sm"
@@ -542,7 +560,12 @@ export function LibrarySearch({
                         ) : null}
 
                         {!loading && !error && groupedResults.length > 0 ? (
-                            <div data-testid="library-search-results">
+                            <div
+                                id="library-search-results-listbox"
+                                aria-label="搜索结果"
+                                data-testid="library-search-results"
+                                role="listbox"
+                            >
                                 <div className="flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs">
                                     <span>{resultCountLabel}</span>
                                     <span>最多显示 12 条</span>
@@ -551,6 +574,7 @@ export function LibrarySearch({
                                     {groupedResults.map((group) => (
                                         <section
                                             key={group.value}
+                                            aria-label={group.label}
                                             data-testid={`library-search-group-${group.value}`}
                                         >
                                             <div className="px-2 py-1 text-[0.66rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
