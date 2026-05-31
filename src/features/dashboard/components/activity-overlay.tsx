@@ -27,6 +27,7 @@ type ActivityActionState = "idle" | "busy" | "done" | "failed";
 const STATUS_SYNC_ACTION_ID = "source-status-sync";
 const ACTION_DONE_VISIBLE_MS = 1600;
 const ACTION_FALLBACK_DONE_MS = 1800;
+const ACTIVITY_ID_DELIMITER = "\u001f";
 
 type ActivitySyncResult = {
     success: boolean;
@@ -495,9 +496,20 @@ export function ActivityOverlay({
         workerStatus,
     ]);
 
+    const activeItemIdsKey = useMemo(
+        () =>
+            [...activityItems.map((item) => item.id), STATUS_SYNC_ACTION_ID]
+                .sort()
+                .join(ACTIVITY_ID_DELIMITER),
+        [activityItems],
+    );
+
     useEffect(() => {
-        const activeIds = new Set(activityItems.map((item) => item.id));
-        activeIds.add(STATUS_SYNC_ACTION_ID);
+        const activeIds = new Set(
+            activeItemIdsKey
+                .split(ACTIVITY_ID_DELIMITER)
+                .filter((itemId) => itemId.length > 0),
+        );
 
         setDismissedItemIds((previous) => {
             const next = new Set(
@@ -512,12 +524,14 @@ export function ActivityOverlay({
                     activeIds.has(itemId),
                 ),
             ) as Record<string, ActivityActionState>;
+            const nextKeys = Object.keys(next);
 
-            return Object.keys(next).length === Object.keys(previous).length
+            return nextKeys.length === Object.keys(previous).length &&
+                nextKeys.every((itemId) => itemId in previous)
                 ? previous
                 : next;
         });
-    }, [activityItems]);
+    }, [activeItemIdsKey]);
 
     const statusCopy = getStatusCopy({
         autoSyncEnabled,

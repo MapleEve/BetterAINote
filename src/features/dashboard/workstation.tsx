@@ -963,15 +963,22 @@ export function Workstation({
     const activeSourceTotalCount = activeSourceRow?.count ?? 0;
 
     useEffect(() => {
-        setCurrentRecording((previous) => {
-            if (!previous) return filteredRecordings[0] ?? null;
-            return filteredRecordings.some(
-                (recording) => recording.id === previous.id,
+        if (
+            currentRecording &&
+            filteredRecordings.some(
+                (recording) => recording.id === currentRecording.id,
             )
-                ? previous
-                : (filteredRecordings[0] ?? null);
-        });
-    }, [filteredRecordings]);
+        ) {
+            return;
+        }
+
+        const nextRecording = filteredRecordings[0] ?? null;
+        if ((currentRecording?.id ?? null) === (nextRecording?.id ?? null)) {
+            return;
+        }
+
+        setCurrentRecording(nextRecording);
+    }, [currentRecording, filteredRecordings]);
 
     const handleFavoriteSelect = useCallback((favorite: DashboardFavorite) => {
         setActiveFavorite(favorite);
