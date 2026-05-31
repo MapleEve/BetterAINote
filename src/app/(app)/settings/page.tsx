@@ -2,6 +2,13 @@ import { SettingsPageContent } from "@/features/settings/components/settings-pag
 import { requireAuth } from "@/lib/auth-server";
 
 export default async function SettingsPage() {
-    await requireAuth();
-    return <SettingsPageContent />;
+    const session = await requireAuth();
+    return (
+        <SettingsPageContent
+            user={{
+                email: session.user.email ?? null,
+                name: session.user.name ?? null,
+            }}
+        />
+    );
 }

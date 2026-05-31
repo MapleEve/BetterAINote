@@ -12,7 +12,6 @@ import {
     Pencil,
     RefreshCw,
     Search,
-    Settings,
     Sparkles,
     Tags,
     Trash2,
@@ -140,6 +139,10 @@ interface WorkstationProps {
     recordings: Recording[];
     transcriptions: Map<string, TranscriptionData>;
     transcriptionJobs: Map<string, TranscriptionJobData>;
+    user?: {
+        email?: string | null;
+        name?: string | null;
+    };
 }
 
 type DashboardFavorite = "all" | "transcribed" | "tags";
@@ -177,6 +180,27 @@ function recordingMatchesDashboardFavorite(
 
 function normalizeSearchFilterText(value: string | null | undefined) {
     return value?.trim().toLocaleLowerCase() ?? "";
+}
+
+function getUserDisplayName(
+    user: WorkstationProps["user"],
+    t: (key: string) => string,
+) {
+    const name = user?.name?.trim();
+    if (name) {
+        return name;
+    }
+
+    const email = user?.email?.trim();
+    if (email) {
+        return email.split("@")[0] || email;
+    }
+
+    return t("settingsDialog.localDeployment");
+}
+
+function getUserInitial(displayName: string) {
+    return Array.from(displayName.trim())[0]?.toLocaleUpperCase() ?? "B";
 }
 
 function recordingMatchesLibrarySearchFilter(
@@ -273,6 +297,7 @@ export function Workstation({
     recordings,
     transcriptions,
     transcriptionJobs,
+    user,
 }: WorkstationProps) {
     const { language, t } = useLanguage();
     const confirm = useConfirmDialog();
@@ -321,6 +346,8 @@ export function Workstation({
         useState<TopbarOverlay | null>(null);
     const [isMoreActionsOpen, setMoreActionsOpen] = useState(false);
     const [tagManagerOpen, setTagManagerOpen] = useState(false);
+    const dashboardUserName = getUserDisplayName(user, t);
+    const dashboardUserInitial = getUserInitial(dashboardUserName);
     const [liveTranscriptions, setLiveTranscriptions] = useState(
         () => new Map(transcriptions),
     );
@@ -1778,11 +1805,18 @@ export function Workstation({
                                 onClick={handleOpenSettings}
                                 variant="outline"
                                 size="icon"
-                                aria-label={t("settingsDialog.title")}
+                                aria-label={`${t("settingsDialog.title")} · ${dashboardUserName}`}
                                 data-testid="dashboard-settings-trigger"
-                                className="rounded-xl"
+                                className="glass-control h-9 w-9 overflow-hidden rounded-full p-0 text-sm font-semibold"
+                                title={dashboardUserName}
                             >
-                                <Settings className="h-4 w-4" />
+                                <span
+                                    className="flex size-full items-center justify-center"
+                                    data-testid="dashboard-settings-avatar"
+                                    aria-hidden="true"
+                                >
+                                    {dashboardUserInitial}
+                                </span>
                             </Button>
                         </div>
                     </header>
@@ -2291,6 +2325,7 @@ export function Workstation({
             <SettingsDialog
                 open={settingsOpen}
                 onOpenChange={setSettingsOpen}
+                user={user}
             />
         </>
     );

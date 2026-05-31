@@ -6,7 +6,6 @@ import {
     FileText,
     type LucideIcon,
     Monitor,
-    Settings as SettingsIcon,
     SlidersHorizontal,
     Sparkles,
     X,
@@ -61,6 +60,12 @@ import { SettingsContent } from "./settings-content";
 interface SettingsDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    user?: SettingsUserSummary;
+}
+
+interface SettingsUserSummary {
+    email?: string | null;
+    name?: string | null;
 }
 
 interface SettingsNavItem {
@@ -145,6 +150,34 @@ const legacySectionAliases: Record<string, CanonicalSettingsSection> = {
     playback: "misc",
 };
 
+function getSettingsUserDisplayName(
+    user: SettingsUserSummary | undefined,
+    t: (key: string) => string,
+) {
+    const name = user?.name?.trim();
+    if (name) {
+        return name;
+    }
+
+    const email = user?.email?.trim();
+    if (email) {
+        return email.split("@")[0] || email;
+    }
+
+    return t("settingsDialog.localDeployment");
+}
+
+function getSettingsUserSubtitle(
+    user: SettingsUserSummary | undefined,
+    t: (key: string) => string,
+) {
+    return user?.email?.trim() || t("settingsDialog.singleUserSelfHosted");
+}
+
+function getSettingsUserInitial(displayName: string) {
+    return Array.from(displayName.trim())[0]?.toLocaleUpperCase() ?? "B";
+}
+
 export function normalizeSettingsSection(
     value: string | null | undefined,
 ): CanonicalSettingsSection | null {
@@ -177,6 +210,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
         (item) => item.id === activeSection,
     );
     const isDataSourcesSection = activeSection === "data-sources";
+    const settingsUserName = getSettingsUserDisplayName(props.user, t);
+    const settingsUserSubtitle = getSettingsUserSubtitle(props.user, t);
+    const settingsUserInitial = getSettingsUserInitial(settingsUserName);
 
     React.useEffect(() => {
         if (!props.open) return;
@@ -354,11 +390,25 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 <SidebarProvider className="min-h-0 flex-1 items-stretch">
                     <Sidebar className="hidden md:flex border-r border-border/65 shadow-none before:hidden after:hidden backdrop-blur-none">
                         <SidebarContent className="gap-0 p-0">
-                            <div className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 px-4">
-                                <SettingsIcon className="h-5 w-5" />
-                                <h2 className="text-lg font-semibold">
-                                    {t("settingsDialog.title")}
-                                </h2>
+                            <div
+                                className="flex h-16 shrink-0 items-center gap-3 border-b border-border/65 px-4"
+                                data-testid="settings-user-summary"
+                            >
+                                <span
+                                    className="glass-control flex size-10 shrink-0 items-center justify-center rounded-full font-semibold text-primary text-sm"
+                                    aria-hidden="true"
+                                    data-testid="settings-user-avatar"
+                                >
+                                    {settingsUserInitial}
+                                </span>
+                                <div className="min-w-0">
+                                    <h2 className="truncate text-sm font-semibold">
+                                        {settingsUserName}
+                                    </h2>
+                                    <p className="truncate text-muted-foreground text-xs">
+                                        {settingsUserSubtitle}
+                                    </p>
+                                </div>
                             </div>
                             <SidebarGroup className="p-4">
                                 <SidebarGroupContent>

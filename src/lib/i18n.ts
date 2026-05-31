@@ -44,6 +44,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             title: "设置",
             description:
                 "在这里调整系统设置。可用方向键切换分组，回车或空格选择，Esc 关闭。",
+            localDeployment: "本地部署",
+            singleUserSelfHosted: "单用户 · self-hosted",
             groups: {
                 transcriptionServices: "转录与服务",
                 dataConnections: "数据源与连接",
@@ -342,6 +344,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             title: "Settings",
             description:
                 "Customize your settings here. Use arrow keys to navigate sections, Enter or Space to select, and Escape to close.",
+            localDeployment: "Local deployment",
+            singleUserSelfHosted: "Single-user · self-hosted",
             groups: {
                 transcriptionServices: "Transcription & Services",
                 dataConnections: "Data Sources & Connections",

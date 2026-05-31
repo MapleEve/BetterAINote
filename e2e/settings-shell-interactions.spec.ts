@@ -93,6 +93,10 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await settingsTrigger.click();
     await expect(activityPanel).toBeHidden();
     await expect(page.locator("[data-settings-shell]")).toBeVisible();
+    await expect(page.getByTestId("settings-user-summary")).toContainText(
+        "playwright-admin@example.com",
+    );
+    await expect(page.getByTestId("dashboard-settings-avatar")).toHaveText("P");
 
     const baselineHeight = await settingsShellHeight(page);
     expect(baselineHeight).toBeGreaterThan(590);

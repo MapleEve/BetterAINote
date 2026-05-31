@@ -29,6 +29,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain('"--tw-exit-scale": "1"');
         expect(dialog).toContain("overflow-hidden p-0");
         expect(dialog).toContain("data-settings-shell");
+        expect(dialog).toContain("SettingsUserSummary");
+        expect(dialog).toContain('data-testid="settings-user-summary"');
+        expect(dialog).toContain('data-testid="settings-user-avatar"');
+        expect(dialog).toContain("settingsDialog.localDeployment");
+        expect(dialog).toContain("settingsDialog.singleUserSelfHosted");
         expect(dialog).toContain("data-settings-scroll-body");
         expect(dialog).toContain(
             "data-settings-active-section={activeSection}",
