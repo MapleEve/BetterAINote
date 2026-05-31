@@ -70,7 +70,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
     }
 
     const content = (
-        <Card className="gap-5">
+        <Card className="gap-5" data-settings-section="sync">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <RefreshCw />
@@ -103,6 +103,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
                             });
                         }}
                         disabled={isSaving}
+                        data-testid="sync-auto-toggle"
                     />
                 </div>
 
@@ -141,6 +142,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
                                 });
                             }}
                             disabled={isSaving}
+                            data-testid="sync-interval"
                         />
                         <p className="text-xs text-muted-foreground">
                             {isZh

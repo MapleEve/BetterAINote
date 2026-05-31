@@ -71,7 +71,7 @@ export function TranscriptionSection() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" data-settings-section="transcription">
             <h2 className="text-lg font-semibold flex items-center gap-2">
                 <FileText className="w-5 h-5" />
                 {isZh ? "转录设置" : "Transcription Settings"}
@@ -109,6 +109,7 @@ export function TranscriptionSection() {
                         checked={autoTranscribe}
                         onCheckedChange={handleAutoTranscribeChange}
                         disabled={isSaving}
+                        data-testid="transcription-auto-toggle"
                     />
                 </div>
 
@@ -131,6 +132,7 @@ export function TranscriptionSection() {
                         <SelectTrigger
                             id="transcription-language"
                             className="w-full"
+                            data-testid="transcription-language"
                         >
                             <SelectValue>
                                 {languageOptions.find(

@@ -103,7 +103,7 @@ export function TitleGenerationSection() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" data-settings-section="title-generation">
             <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
                 {isZh ? "AI 重命名服务" : "AI Rename Service"}
@@ -144,6 +144,7 @@ export function TitleGenerationSection() {
                             void handleAutoGenerateTitleChange(checked)
                         }
                         disabled={isSaving}
+                        data-testid="title-generation-auto-toggle"
                     />
                 </div>
 
@@ -226,6 +227,8 @@ export function TitleGenerationSection() {
                         type="button"
                         onClick={() => void handleTitleGenerationConfigSave()}
                         disabled={isSaving}
+                        aria-busy={isSaving}
+                        data-testid="title-generation-save"
                     >
                         {isZh ? "保存 AI 重命名配置" : "Save AI rename"}
                     </Button>

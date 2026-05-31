@@ -673,6 +673,7 @@ export function VoScriptSection() {
             <div className="sticky bottom-0 z-10 flex flex-col gap-2 border-border/70 border-t bg-background/85 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
                 {saveMessage ? (
                     <div
+                        data-testid="voscript-save-message"
                         role={saveState === "error" ? "alert" : "status"}
                         className={cn(
                             "rounded-xl border px-3 py-2 text-sm",
@@ -701,6 +702,7 @@ export function VoScriptSection() {
                     onClick={() => void handleSave()}
                     disabled={isSaving}
                     aria-busy={isSaving}
+                    data-testid="voscript-save"
                 >
                     {isSaving
                         ? isZh
