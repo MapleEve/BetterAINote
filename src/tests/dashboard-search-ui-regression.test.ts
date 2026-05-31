@@ -195,14 +195,22 @@ describe("dashboard search and activity overlay regression", () => {
         const activityOverlay = readSource(
             "features/dashboard/components/activity-overlay.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         expect(activityOverlay).toContain("dismissedItemIds");
         expect(activityOverlay).toContain("setDismissedItemIds");
         expect(activityOverlay).toContain('"busy" | "done" | "failed"');
         expect(activityOverlay).toContain("aria-busy={actionIsBusy}");
-        expect(activityOverlay).toContain("已加入更新");
-        expect(activityOverlay).toContain("全部已处理");
-        expect(activityOverlay).toContain("没有新的动态");
+        expect(activityOverlay).toContain("useLanguage");
+        expect(activityOverlay).toContain("activityOverlay.actions.queued");
+        expect(activityOverlay).toContain("activityOverlay.allHandled");
+        expect(activityOverlay).toContain("activityOverlay.emptyTitle");
+        expect(activityOverlay).not.toContain("已加入更新");
+        expect(activityOverlay).not.toContain("全部已处理");
+        expect(activityOverlay).not.toContain("没有新的动态");
+        expect(translations).toContain("已加入更新");
+        expect(translations).toContain("All handled");
+        expect(translations).toContain("No new activity");
         expect(activityOverlay).toContain("role={isRecordingAction");
         expect(activityOverlay).toContain("tabIndex={isRecordingAction");
         expect(activityOverlay).toContain('event.key !== "Enter"');

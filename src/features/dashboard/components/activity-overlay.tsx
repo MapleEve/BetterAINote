@@ -14,8 +14,10 @@ import type {
     MouseEvent as ReactMouseEvent,
 } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { formatRelativeDistance } from "@/lib/format-date";
+import { formatDateTime } from "@/lib/format-date";
+import type { UiLanguage } from "@/lib/i18n";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
@@ -23,6 +25,10 @@ import type { Recording } from "@/types/recording";
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityAction = "sync" | "recording";
 type ActivityActionState = "idle" | "busy" | "done" | "failed";
+type Translate = (
+    key: string,
+    replacements?: Record<string, string | number>,
+) => string;
 
 const STATUS_SYNC_ACTION_ID = "source-status-sync";
 const ACTION_DONE_VISIBLE_MS = 1600;
@@ -86,44 +92,34 @@ interface ActivityOverlayProps {
     onOpenRecording: (recordingId: string) => void;
 }
 
-function formatAgo(date: Date | null) {
+function formatRelative(date: Date | null, language: UiLanguage) {
     if (!date) {
         return null;
     }
 
     try {
-        return `${formatRelativeDistance(date, "zh-CN")}前`;
+        return formatDateTime(date, "relative", language);
     } catch {
         return null;
     }
 }
 
-function formatFuture(date: Date | null) {
-    if (!date) {
-        return null;
-    }
-
-    try {
-        return `${formatRelativeDistance(date, "zh-CN")}后`;
-    } catch {
-        return null;
-    }
-}
-
-function getRemoteStatusText(job: ActivityTranscriptionJob) {
+function getRemoteStatusText(job: ActivityTranscriptionJob, t: Translate) {
     switch (job.remoteStatus) {
         case "queued":
-            return "远端队列中";
+            return t("activityOverlay.remoteStatus.queued");
         case "converting":
-            return "正在转换音频";
+            return t("activityOverlay.remoteStatus.converting");
         case "denoising":
-            return "正在降噪";
+            return t("activityOverlay.remoteStatus.denoising");
         case "transcribing":
-            return "正在转写音频";
+            return t("activityOverlay.remoteStatus.transcribing");
         case "identifying":
-            return "正在识别说话人";
+            return t("activityOverlay.remoteStatus.identifying");
         default:
-            return job.status === "pending" ? "本地队列中" : "正在处理";
+            return job.status === "pending"
+                ? t("activityOverlay.remoteStatus.pending")
+                : t("activityOverlay.remoteStatus.processing");
     }
 }
 
@@ -134,6 +130,8 @@ function getStatusCopy({
     nextSyncTime,
     lastSyncResult,
     workerStatus,
+    language,
+    t,
 }: {
     autoSyncEnabled: boolean;
     isAutoSyncing: boolean;
@@ -141,46 +139,54 @@ function getStatusCopy({
     nextSyncTime: Date | null;
     lastSyncResult: ActivitySyncResult;
     workerStatus: ActivityWorkerStatus;
+    language: UiLanguage;
+    t: Translate;
 }) {
     if (isAutoSyncing || workerStatus?.isRunning) {
         return {
             state: "loading" as const,
-            line: "正在更新来源",
-            sub: "正在检查已连接来源的新录音",
+            line: t("activityOverlay.status.updatingSources"),
+            sub: t("activityOverlay.status.checkingSources"),
         };
     }
 
     if (lastSyncResult?.success === false) {
         return {
             state: "error" as const,
-            line: "上次更新失败",
-            sub: lastSyncResult.error ?? "稍后可重新尝试更新。",
+            line: t("activityOverlay.status.lastUpdateFailed"),
+            sub: lastSyncResult.error ?? t("activityOverlay.status.retryLater"),
         };
     }
 
     if (workerStatus && !workerStatus.healthy) {
         return {
             state: "error" as const,
-            line: "自动更新暂时不可用",
-            sub: workerStatus.lastError ?? "本地更新服务未响应。",
+            line: t("activityOverlay.status.autoUpdateUnavailable"),
+            sub:
+                workerStatus.lastError ??
+                t("activityOverlay.status.workerNotResponding"),
         };
     }
 
     if (!autoSyncEnabled) {
         return {
             state: "idle" as const,
-            line: "自动更新已暂停",
-            sub: "你仍可以手动检查新录音。",
+            line: t("activityOverlay.status.autoUpdatePaused"),
+            sub: t("activityOverlay.status.manualCheckAvailable"),
         };
     }
 
-    const lastText = formatAgo(lastSyncTime);
-    const nextText = formatFuture(nextSyncTime);
+    const lastText = formatRelative(lastSyncTime, language);
+    const nextText = formatRelative(nextSyncTime, language);
 
     return {
         state: "idle" as const,
-        line: lastText ? `上次更新于 ${lastText}` : "等待自动更新",
-        sub: nextText ? `下次约 ${nextText}` : "来源更新会按计划继续运行。",
+        line: lastText
+            ? t("activityOverlay.status.lastUpdatedAt", { time: lastText })
+            : t("activityOverlay.status.waitingForAutoUpdate"),
+        sub: nextText
+            ? t("activityOverlay.status.nextUpdateAt", { time: nextText })
+            : t("activityOverlay.status.sourceUpdatesScheduled"),
     };
 }
 
@@ -197,22 +203,26 @@ function ActivityIcon({ tone }: { tone: ActivityTone }) {
     return <Clock className="h-3.5 w-3.5" />;
 }
 
-function getActionLabel(item: ActivityItem, state: ActivityActionState) {
+function getActionLabel(
+    item: ActivityItem,
+    state: ActivityActionState,
+    t: Translate,
+) {
     if (item.action === "recording") {
-        return item.actionLabel ?? "查看";
+        return item.actionLabel ?? t("activityOverlay.actions.view");
     }
 
     if (state === "busy") {
-        return "正在更新...";
+        return t("activityOverlay.actions.updating");
     }
     if (state === "done") {
-        return "已加入更新";
+        return t("activityOverlay.actions.queued");
     }
     if (state === "failed") {
-        return "重试更新";
+        return t("activityOverlay.actions.retryUpdate");
     }
 
-    return item.actionLabel ?? "重试更新";
+    return item.actionLabel ?? t("activityOverlay.actions.retryUpdate");
 }
 
 function isNestedInteractiveTarget(
@@ -244,6 +254,7 @@ export function ActivityOverlay({
     onSyncNow,
     onOpenRecording,
 }: ActivityOverlayProps) {
+    const { language, t } = useLanguage();
     const rootRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const syncBaselineRef = useRef<Record<string, ActivitySyncResult>>({});
@@ -385,19 +396,22 @@ export function ActivityOverlay({
             items.push({
                 id: "source-update-running",
                 tone: "loading",
-                title: "正在更新来源",
-                body: "正在检查已连接来源的新录音。",
+                title: t("activityOverlay.items.sourceUpdatingTitle"),
+                body: t("activityOverlay.items.sourceUpdatingBody"),
                 action: "sync",
-                actionLabel: "查看进度",
+                actionLabel: t("activityOverlay.actions.viewProgress"),
                 actionable: true,
             });
         } else if (workerStatus?.manualTriggerRequestedAt) {
             items.push({
                 id: "source-update-queued",
                 tone: "loading",
-                title: "更新请求已加入队列",
-                body: "本地服务会尽快开始检查来源。",
-                meta: formatAgo(workerStatus.manualTriggerRequestedAt),
+                title: t("activityOverlay.items.updateQueuedTitle"),
+                body: t("activityOverlay.items.updateQueuedBody"),
+                meta: formatRelative(
+                    workerStatus.manualTriggerRequestedAt,
+                    language,
+                ),
                 actionable: true,
             });
         }
@@ -406,21 +420,25 @@ export function ActivityOverlay({
             items.push({
                 id: "source-update-error",
                 tone: "error",
-                title: "来源更新失败",
-                body: lastSyncResult.error ?? "可以稍后重新尝试。",
+                title: t("activityOverlay.items.sourceUpdateFailedTitle"),
+                body:
+                    lastSyncResult.error ??
+                    t("activityOverlay.items.sourceUpdateFailedBody"),
                 action: "sync",
-                actionLabel: "重试更新",
+                actionLabel: t("activityOverlay.actions.retryUpdate"),
                 actionable: true,
             });
         } else if (workerStatus && !workerStatus.healthy) {
             items.push({
                 id: "worker-unavailable",
                 tone: "error",
-                title: "自动更新暂时不可用",
-                body: workerStatus.lastError ?? "本地更新服务未响应。",
-                meta: formatAgo(workerStatus.lastHeartbeatAt),
+                title: t("activityOverlay.status.autoUpdateUnavailable"),
+                body:
+                    workerStatus.lastError ??
+                    t("activityOverlay.status.workerNotResponding"),
+                meta: formatRelative(workerStatus.lastHeartbeatAt, language),
                 action: "sync",
-                actionLabel: "重新检查",
+                actionLabel: t("activityOverlay.actions.recheck"),
                 actionable: true,
             });
         }
@@ -432,8 +450,10 @@ export function ActivityOverlay({
             items.push({
                 id: "source-update-success",
                 tone: "success",
-                title: "来源更新完成",
-                body: `已导入 ${lastSyncResult.newRecordings ?? 0} 条新录音。`,
+                title: t("activityOverlay.items.sourceUpdateCompleteTitle"),
+                body: t("activityOverlay.items.importedRecordings", {
+                    count: lastSyncResult.newRecordings ?? 0,
+                }),
                 actionable: false,
             });
         } else if (
@@ -446,27 +466,37 @@ export function ActivityOverlay({
             items.push({
                 id: "source-update-summary",
                 tone: summary.errorCount > 0 ? "warn" : "success",
-                title: "最近一次更新完成",
-                body: `新增 ${summary.newRecordings}，更新 ${summary.updatedRecordings}，移除 ${summary.removedRecordings}。`,
-                meta: formatAgo(workerStatus.lastFinishedAt),
+                title: t("activityOverlay.items.lastUpdateCompleteTitle"),
+                body: t("activityOverlay.items.syncSummary", {
+                    new: summary.newRecordings,
+                    updated: summary.updatedRecordings,
+                    removed: summary.removedRecordings,
+                }),
+                meta: formatRelative(workerStatus.lastFinishedAt, language),
                 action: summary.errorCount > 0 ? "sync" : undefined,
-                actionLabel: summary.errorCount > 0 ? "重新检查" : undefined,
+                actionLabel:
+                    summary.errorCount > 0
+                        ? t("activityOverlay.actions.recheck")
+                        : undefined,
                 actionable: summary.errorCount > 0,
             });
         }
 
         for (const [recordingId, job] of transcriptionJobs) {
             const recordingName =
-                recordingNames.get(recordingId) ?? "未命名录音";
+                recordingNames.get(recordingId) ??
+                t("activityOverlay.items.untitledRecording");
 
             if (isActiveTranscriptionJob(job)) {
                 items.push({
                     id: `transcription-active-${recordingId}`,
                     tone: "loading",
                     title: recordingName,
-                    body: `转写${getRemoteStatusText(job)}。`,
+                    body: t("activityOverlay.items.transcriptionActive", {
+                        status: getRemoteStatusText(job, t),
+                    }),
                     action: "recording",
-                    actionLabel: "查看",
+                    actionLabel: t("activityOverlay.actions.view"),
                     recordingId,
                     actionable: true,
                 });
@@ -477,10 +507,14 @@ export function ActivityOverlay({
                 items.push({
                     id: `transcription-failed-${recordingId}`,
                     tone: "warn",
-                    title: `${recordingName} · 转写失败`,
-                    body: job.lastError ?? "可重新加入转写队列。",
+                    title: t("activityOverlay.items.transcriptionFailedTitle", {
+                        name: recordingName,
+                    }),
+                    body:
+                        job.lastError ??
+                        t("activityOverlay.items.transcriptionFailedBody"),
                     action: "recording",
-                    actionLabel: "查看",
+                    actionLabel: t("activityOverlay.actions.view"),
                     recordingId,
                     actionable: true,
                 });
@@ -490,8 +524,10 @@ export function ActivityOverlay({
         return items;
     }, [
         isAutoSyncing,
+        language,
         lastSyncResult,
         recordingNames,
+        t,
         transcriptionJobs,
         workerStatus,
     ]);
@@ -536,9 +572,11 @@ export function ActivityOverlay({
     const statusCopy = getStatusCopy({
         autoSyncEnabled,
         isAutoSyncing,
+        language,
         lastSyncTime,
         lastSyncResult,
         nextSyncTime,
+        t,
         workerStatus,
     });
 
@@ -547,27 +585,27 @@ export function ActivityOverlay({
         if (statusActionState === "busy") {
             return {
                 state: "loading" as const,
-                line: "正在更新来源",
-                sub: "正在检查已连接来源的新录音",
+                line: t("activityOverlay.status.updatingSources"),
+                sub: t("activityOverlay.status.checkingSources"),
             };
         }
         if (statusActionState === "done") {
             return {
                 state: "idle" as const,
-                line: "已加入更新",
-                sub: "来源更新会在后台继续。",
+                line: t("activityOverlay.actions.queued"),
+                sub: t("activityOverlay.status.continuesInBackground"),
             };
         }
         if (statusActionState === "failed") {
             return {
                 state: "error" as const,
-                line: "更新请求失败",
-                sub: "请稍后重试。",
+                line: t("activityOverlay.status.updateRequestFailed"),
+                sub: t("activityOverlay.status.retryLaterShort"),
             };
         }
 
         return statusCopy;
-    }, [statusActionState, statusCopy]);
+    }, [statusActionState, statusCopy, t]);
 
     const visibleActivityItems = useMemo(
         () => activityItems.filter((item) => !dismissedItemIds.has(item.id)),
@@ -699,12 +737,12 @@ export function ActivityOverlay({
 
     const statusButtonLabel =
         statusActionState === "busy"
-            ? "更新中"
+            ? t("activityOverlay.actions.updatingShort")
             : statusActionState === "done"
-              ? "已完成"
+              ? t("activityOverlay.actions.done")
               : statusActionState === "failed"
-                ? "重试"
-                : "更新";
+                ? t("activityOverlay.actions.retry")
+                : t("activityOverlay.actions.update");
 
     const renderActivityItem = (item: ActivityItem) => {
         const actionState = actionStates[item.id] ?? "idle";
@@ -717,7 +755,12 @@ export function ActivityOverlay({
                 key={item.id}
                 aria-label={
                     isRecordingAction
-                        ? `${item.title}，${item.actionLabel ?? "查看"}`
+                        ? t("activityOverlay.itemAria", {
+                              title: item.title,
+                              action:
+                                  item.actionLabel ??
+                                  t("activityOverlay.actions.view"),
+                          })
                         : undefined
                 }
                 data-action-state={actionState}
@@ -790,13 +833,17 @@ export function ActivityOverlay({
                             {item.action === "recording" ? (
                                 <FileText className="mr-1 h-3 w-3" />
                             ) : null}
-                            {getActionLabel(item, actionState)}
+                            {getActionLabel(item, actionState, t)}
                         </Button>
                     ) : null}
-                    <button
+                    <Button
                         type="button"
-                        aria-label={`忽略 ${item.title}`}
-                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("activityOverlay.dismissItem", {
+                            title: item.title,
+                        })}
+                        className="h-7 w-7 shrink-0 rounded-lg"
                         data-activity-dismiss=""
                         data-testid="dashboard-activity-dismiss"
                         onClick={(event) => {
@@ -805,7 +852,7 @@ export function ActivityOverlay({
                         }}
                     >
                         <X className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                 </div>
             </li>
         );
@@ -827,8 +874,10 @@ export function ActivityOverlay({
                 aria-haspopup="dialog"
                 aria-label={
                     actionableCount > 0
-                        ? `打开最近动态，${actionableCount} 项待处理`
-                        : "打开最近动态"
+                        ? t("activityOverlay.openWithPending", {
+                              count: actionableCount,
+                          })
+                        : t("activityOverlay.open")
                 }
                 className="relative h-9 w-9 rounded-xl border-border/70 bg-background/45"
                 data-testid="dashboard-activity-trigger"
@@ -856,7 +905,7 @@ export function ActivityOverlay({
                 <section
                     id="dashboard-activity-panel"
                     role="dialog"
-                    aria-label="最近动态"
+                    aria-label={t("activityOverlay.title")}
                     data-state={panelState}
                     data-testid="dashboard-activity-panel"
                     className="absolute top-11 right-0 z-[220] flex max-h-[min(calc(100svh-6rem),32.5rem)] w-[min(calc(100vw-1.5rem),24rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
@@ -864,24 +913,30 @@ export function ActivityOverlay({
                     <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
                         <div className="min-w-0 flex-1">
                             <h2 className="truncate font-semibold text-sm">
-                                最近动态
+                                {t("activityOverlay.title")}
                             </h2>
                             <p className="truncate text-muted-foreground text-xs">
                                 {actionableCount > 0
-                                    ? `${actionableCount} 项待处理`
+                                    ? t("activityOverlay.pendingCount", {
+                                          count: actionableCount,
+                                      })
                                     : visibleActivityItems.length > 0
-                                      ? `最近有 ${visibleActivityItems.length} 项动态`
-                                      : "全部已处理"}
+                                      ? t("activityOverlay.recentCount", {
+                                            count: visibleActivityItems.length,
+                                        })
+                                      : t("activityOverlay.allHandled")}
                             </p>
                         </div>
-                        <button
+                        <Button
                             type="button"
-                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                            aria-label="关闭最近动态"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="h-7 w-7 shrink-0 rounded-lg"
+                            aria-label={t("activityOverlay.close")}
                             onClick={() => closeAndReturnFocus()}
                         >
                             <X className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                     </header>
 
                     <div
@@ -930,9 +985,11 @@ export function ActivityOverlay({
                             data-testid="dashboard-activity-empty"
                         >
                             <CheckCircle2 className="mb-3 h-9 w-9 text-emerald-500" />
-                            <p className="font-medium text-sm">没有新的动态</p>
+                            <p className="font-medium text-sm">
+                                {t("activityOverlay.emptyTitle")}
+                            </p>
                             <p className="mt-1 text-muted-foreground text-xs">
-                                全部已处理，来源更新与转写任务都在正常运行。
+                                {t("activityOverlay.emptyBody")}
                             </p>
                         </div>
                     ) : (

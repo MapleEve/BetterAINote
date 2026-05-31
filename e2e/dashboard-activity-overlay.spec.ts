@@ -202,6 +202,23 @@ async function mockSyncEndpoint(page: Page, releasePost: Promise<void>) {
     });
 }
 
+async function resetDisplaySettings(
+    page: Page,
+    overrides: Record<string, unknown> = {},
+) {
+    const resetResponse = await page.request.put("/api/settings/display", {
+        data: {
+            dateTimeFormat: "relative",
+            itemsPerPage: 50,
+            recordingListSortOrder: "newest",
+            theme: "system",
+            uiLanguage: "zh-CN",
+            ...overrides,
+        },
+    });
+    expect(resetResponse.ok()).toBe(true);
+}
+
 test("activity overlay retries and dismisses source notifications", async ({
     page,
 }) => {
@@ -366,5 +383,52 @@ test("activity overlay opens transcription items and runs the status sync action
         );
     } finally {
         await cleanupActivityRecording();
+    }
+});
+
+test("activity overlay follows display language for panel and status copy", async ({
+    page,
+}) => {
+    await page.route("**/api/data-sources/sync", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify(healthyWorkerStatus()),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page, { uiLanguage: "en" });
+
+    try {
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const trigger = page.getByRole("button", {
+            name: "Open recent activity",
+        });
+        await expect(trigger).toBeVisible();
+        await trigger.click();
+
+        const panel = page.getByTestId("dashboard-activity-panel");
+        await expect(panel).toHaveAttribute("aria-label", "Recent activity");
+        await expect(
+            panel.getByRole("heading", { name: "Recent activity" }),
+        ).toBeVisible();
+        await expect(panel).toContainText("All handled");
+        await expect(page.getByTestId("dashboard-activity-status")).toContainText(
+            "Last updated",
+        );
+        await expect(page.getByTestId("dashboard-activity-sync-action")).toHaveText(
+            "Update",
+        );
+        await expect(page.getByTestId("dashboard-activity-empty")).toContainText(
+            "No new activity",
+        );
+    } finally {
+        await resetDisplaySettings(page);
     }
 });
