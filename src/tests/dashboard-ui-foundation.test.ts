@@ -47,6 +47,7 @@ describe("dashboard UI foundation", () => {
         const sourceRows = readSource(
             "features/dashboard/components/source-provider-rows.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         for (const provider of [
             "dingtalk-a1",
@@ -70,6 +71,13 @@ describe("dashboard UI foundation", () => {
         expect(sourceRows).not.toContain("window.");
         expect(sourceRows).not.toContain("http://");
         expect(sourceRows).not.toContain("https://");
+        expect(sourceRows).toContain("@/components/ui/button");
+        expect(sourceRows).toContain("sourceProviderRows.heading");
+        expect(sourceRows).toContain("sourceProviderRows.clear");
+        expect(sourceRows).not.toContain("待连接");
+        expect(sourceRows).not.toContain("需要重新登录");
+        expect(translations).toContain("待连接");
+        expect(translations).toContain("Re-auth required");
     });
 
     it("keeps recording list timeline and tag modes controlled by the shell", () => {

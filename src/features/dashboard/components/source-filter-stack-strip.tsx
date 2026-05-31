@@ -15,7 +15,7 @@ import {
     X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { UiLanguage } from "@/lib/i18n";
+import { translate, type UiLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type {
     SourceProviderRowModel,
@@ -94,14 +94,15 @@ export function SourceFilterStackStrip({
         return null;
     }
 
-    const isZh = language === "zh-CN";
+    const t = (key: string, replacements?: Record<string, string | number>) =>
+        translate(language, key, replacements);
     const state = getStripState(
         sourceRow.status,
         filteredCount,
         sourceTotalCount,
     );
     const visibleDenominator =
-        activeFavoriteLabel === (isZh ? "全部录音" : "All recordings")
+        activeFavoriteLabel === t("dashboardFavorites.allRecordings")
             ? totalCount
             : Math.max(sourceTotalCount, filteredCount);
     const ProviderIcon = PROVIDER_ICONS[sourceRow.provider];
@@ -117,7 +118,7 @@ export function SourceFilterStackStrip({
         >
             <span className="inline-flex min-w-0 items-center gap-1.5">
                 <SlidersHorizontal className="size-3.5 shrink-0" />
-                <span>{isZh ? "筛选" : "Filter"}</span>
+                <span>{t("sourceFilterStack.filter")}</span>
                 <span className="truncate font-semibold text-foreground">
                     {activeFavoriteLabel}
                 </span>
@@ -145,17 +146,19 @@ export function SourceFilterStackStrip({
                     )}
                 </span>
                 <span className="truncate">{sourceRow.label}</span>
-                <button
+                <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={onClearSource}
-                    aria-label={isZh ? "清除来源筛选" : "Clear source filter"}
-                    className="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none"
+                    aria-label={t("sourceFilterStack.clearSourceFilter")}
+                    className="size-5 rounded-full"
                 >
                     <X className="size-3" />
-                </button>
+                </Button>
             </span>
             <span className="font-mono text-[0.68rem]">
-                {isZh ? "显示" : "Showing"}{" "}
+                {t("sourceFilterStack.showing")}{" "}
                 <b className="text-foreground">{filteredCount}</b> /{" "}
                 {visibleDenominator}
             </span>
@@ -166,7 +169,7 @@ export function SourceFilterStackStrip({
                 onClick={onClearAll}
                 className="ml-auto h-7 rounded-lg px-2 text-[0.72rem]"
             >
-                {isZh ? "清除全部" : "Clear all"}
+                {t("sourceFilterStack.clearAll")}
             </Button>
 
             {state === "sync-error" ? (
@@ -174,19 +177,20 @@ export function SourceFilterStackStrip({
                     <div className="flex flex-wrap items-center gap-2">
                         <AlertCircle className="size-3.5 shrink-0" />
                         <span className="min-w-0 flex-1">
-                            <b>{sourceRow.label}</b>{" "}
-                            {isZh
-                                ? "同步异常，列表仍显示已缓存的录音。"
-                                : "has a sync issue. Cached recordings remain visible."}
+                            {t("sourceFilterStack.syncErrorMessage", {
+                                provider: sourceRow.label,
+                            })}
                         </span>
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={onRetrySync}
-                            className="inline-flex items-center gap-1 rounded-md border border-amber-500/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                            className="h-7 rounded-md border-amber-500/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
                         >
                             <RefreshCw className="size-3" />
-                            {isZh ? "重试同步" : "Retry sync"}
-                        </button>
+                            {t("sourceFilterStack.retrySync")}
+                        </Button>
                     </div>
                 </div>
             ) : null}
@@ -196,17 +200,20 @@ export function SourceFilterStackStrip({
                     <div className="flex flex-wrap items-center gap-2">
                         <Search className="size-3.5 shrink-0" />
                         <span className="min-w-0 flex-1">
-                            {isZh
-                                ? `${sourceRow.label} 在当前筛选下没有匹配项，共 ${sourceTotalCount} 条录音。`
-                                : `${sourceRow.label} has no matches in the current filter, with ${sourceTotalCount} recordings total.`}
+                            {t("sourceFilterStack.noResultsMessage", {
+                                provider: sourceRow.label,
+                                count: sourceTotalCount,
+                            })}
                         </span>
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={onWidenFilters}
-                            className="rounded-md border border-sky-500/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                            className="h-7 rounded-md border-sky-500/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
                         >
-                            {isZh ? "放宽筛选" : "Widen filter"}
-                        </button>
+                            {t("sourceFilterStack.widenFilter")}
+                        </Button>
                     </div>
                 </div>
             ) : null}
@@ -217,28 +224,30 @@ export function SourceFilterStackStrip({
                         <Settings className="size-3.5 shrink-0" />
                         <span className="min-w-0 flex-1">
                             {sourceRow.status === "paused"
-                                ? isZh
-                                    ? `${sourceRow.label} 已暂停，重新启用后这里会出现录音。`
-                                    : `${sourceRow.label} is paused. Enable it to show recordings here.`
+                                ? t("sourceFilterStack.pausedMessage", {
+                                      provider: sourceRow.label,
+                                  })
                                 : sourceRow.status === "expired"
-                                  ? isZh
-                                      ? `${sourceRow.label} 登录已过期，重新登录后这里会恢复同步。`
-                                      : `${sourceRow.label} needs re-authentication before syncing resumes.`
+                                  ? t("sourceFilterStack.expiredMessage", {
+                                        provider: sourceRow.label,
+                                    })
                                   : sourceRow.status === "planned"
-                                    ? isZh
-                                        ? `${sourceRow.label} 仍在规划中，当前不会同步录音。`
-                                        : `${sourceRow.label} is planned and does not sync recordings yet.`
-                                    : isZh
-                                      ? `${sourceRow.label} 尚未连接，完成设置后这里会出现录音。`
-                                      : `${sourceRow.label} is not connected. Finish setup to show recordings here.`}
+                                    ? t("sourceFilterStack.plannedMessage", {
+                                          provider: sourceRow.label,
+                                      })
+                                    : t("sourceFilterStack.needsSetupMessage", {
+                                          provider: sourceRow.label,
+                                      })}
                         </span>
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={() => onOpenDataSourcesSettings()}
-                            className="rounded-md border border-primary/25 bg-background/55 px-2 py-1 font-medium transition-colors hover:bg-background"
+                            className="h-7 rounded-md border-primary/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
                         >
-                            {isZh ? "前往设置" : "Open settings"}
-                        </button>
+                            {t("sourceFilterStack.openSettings")}
+                        </Button>
                     </div>
                 </div>
             ) : null}

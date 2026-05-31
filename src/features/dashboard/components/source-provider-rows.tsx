@@ -13,8 +13,9 @@ import {
     Radio,
     RefreshCw,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { SourceProvider } from "@/lib/data-sources/catalog";
-import type { UiLanguage } from "@/lib/i18n";
+import { translate, type UiLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export type SourceProviderRowStatus =
@@ -64,45 +65,43 @@ const PROVIDER_ASSET_CLASSES: Partial<Record<SourceProvider, string>> = {
 };
 
 function getStatusCopy(row: SourceProviderRowModel, language: UiLanguage) {
-    const isZh = language === "zh-CN";
-
     if (row.status === "loading") {
-        return isZh ? "检查中" : "Checking";
+        return translate(language, "sourceProviderRows.status.loading");
     }
 
     if (row.status === "syncing" || row.updating) {
-        return isZh ? "更新中" : "Updating";
+        return translate(language, "sourceProviderRows.status.syncing");
     }
 
     if (row.status === "sync-error") {
-        return isZh ? "同步异常" : "Sync issue";
+        return translate(language, "sourceProviderRows.status.syncError");
     }
 
     if (row.status === "connected") {
-        return isZh ? "已连接" : "Connected";
+        return translate(language, "sourceProviderRows.status.connected");
     }
 
     if (row.status === "connected-empty") {
-        return isZh ? "已连接 · 暂无录音" : "Connected · Empty";
+        return translate(language, "sourceProviderRows.status.connectedEmpty");
     }
 
     if (row.status === "no-results") {
-        return isZh ? "无匹配" : "No matches";
+        return translate(language, "sourceProviderRows.status.noResults");
     }
 
     if (row.status === "paused") {
-        return isZh ? "已暂停" : "Paused";
+        return translate(language, "sourceProviderRows.status.paused");
     }
 
     if (row.status === "expired") {
-        return isZh ? "需要重新登录" : "Re-auth required";
+        return translate(language, "sourceProviderRows.status.expired");
     }
 
     if (row.status === "planned") {
-        return isZh ? "待开放" : "Planned";
+        return translate(language, "sourceProviderRows.status.planned");
     }
 
-    return isZh ? "待连接" : "Connect";
+    return translate(language, "sourceProviderRows.status.needsSetup");
 }
 
 function getStatusIcon(row: SourceProviderRowModel) {
@@ -150,7 +149,7 @@ export function SourceProviderRows({
     onSelectProvider,
     rows,
 }: SourceProviderRowsProps) {
-    const isZh = language === "zh-CN";
+    const t = (key: string) => translate(language, key);
 
     return (
         <div
@@ -165,16 +164,20 @@ export function SourceProviderRows({
                 )}
             >
                 <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {compact ? "SRC" : isZh ? "来源" : "Sources"}
+                    {compact
+                        ? t("sourceProviderRows.compactHeading")
+                        : t("sourceProviderRows.heading")}
                 </p>
                 {activeProvider && !compact ? (
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={onClearProvider}
-                        className="rounded-full border border-border/70 bg-background/40 px-2 py-0.5 text-[0.68rem] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        className="h-6 rounded-full bg-background/40 px-2 text-[0.68rem] text-muted-foreground hover:text-foreground"
                     >
-                        {isZh ? "清除" : "Clear"}
-                    </button>
+                        {t("sourceProviderRows.clear")}
+                    </Button>
                 ) : null}
             </div>
 
@@ -268,21 +271,11 @@ export function SourceProviderRows({
                                 ) : row.status === "connected-empty" ? (
                                     0
                                 ) : row.status === "planned" ? (
-                                    isZh ? (
-                                        "待开放"
-                                    ) : (
-                                        "Soon"
-                                    )
+                                    t("sourceProviderRows.badge.planned")
                                 ) : row.status === "expired" ? (
-                                    isZh ? (
-                                        "重登"
-                                    ) : (
-                                        "Re-auth"
-                                    )
-                                ) : isZh ? (
-                                    "连接"
+                                    t("sourceProviderRows.badge.expired")
                                 ) : (
-                                    "Connect"
+                                    t("sourceProviderRows.badge.connect")
                                 )}
                             </span>
                         </button>

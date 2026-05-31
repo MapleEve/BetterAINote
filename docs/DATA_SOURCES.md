@@ -44,10 +44,7 @@ BetterAINote 当前是 `preview`，数据源能力按“账号可见内容 + 来
 
 ## TicNote
 
-TicNote 支持两个站点模式：
-
-- 中国区：`https://voice-api.ticnote.cn`
-- 国际区：`https://prd-backend-api.ticnote.com/api`
+TicNote 支持中国区和国际区两个站点模式。用户只需要在设置页选择账号所属站点，不需要手动填写后端地址。
 
 设置建议：
 

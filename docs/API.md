@@ -11,7 +11,7 @@
 | 阶段 | `preview`，首个正式 release 前仍可能调整路径、字段和错误码 |
 | 部署 | 私有部署优先，默认面向本机或可信网络 |
 | 鉴权 | 浏览器请求使用 Web app 会话；服务间访问应使用部署方控制的 secret 或 integration key |
-| 发布 | CI 可以运行；`0.6.2-preview` 是当前预发布版本，`0.6.0-preview` 保留为架构、数据库和 E2E baseline；Release / Docker 发布工作流默认关闭，需要手动授权 |
+| 发布 | CI 可以运行；当前仍处于预发布阶段，Release / Docker 发布默认关闭，需要维护者明确授权 |
 
 所有示例都使用 `http://localhost:3001`。不要把示例里的占位符替换成真实凭据后提交到公开仓库。
 

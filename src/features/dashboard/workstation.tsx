@@ -959,16 +959,10 @@ export function Workstation({
 
     const activeFavoriteLabel =
         activeFavorite === "transcribed"
-            ? language === "zh-CN"
-                ? "转写记录"
-                : "Transcribed"
+            ? t("dashboardFavorites.transcribed")
             : activeFavorite === "tags"
-              ? language === "zh-CN"
-                  ? "标签"
-                  : "Tags"
-              : language === "zh-CN"
-                ? "全部录音"
-                : "All recordings";
+              ? t("dashboardFavorites.tags")
+              : t("dashboardFavorites.allRecordings");
     const activeSourceLabel = activeSourceProvider
         ? getSourceProviderLabel(activeSourceProvider, language)
         : null;
@@ -976,7 +970,7 @@ export function Workstation({
         ? `${activeFavoriteLabel} / ${activeSourceLabel}`
         : activeFavoriteLabel;
     const librarySearchFilterLabel = librarySearchFilter
-        ? `${librarySearchFilter.kind === "tag" ? (language === "zh-CN" ? "标签" : "Tag") : language === "zh-CN" ? "说话人" : "Speaker"}: ${librarySearchFilter.label}`
+        ? `${librarySearchFilter.kind === "tag" ? t("dashboardFavorites.tagFilter") : t("dashboardFavorites.speakerFilter")}: ${librarySearchFilter.label}`
         : null;
     const expandedListContextLabel = librarySearchFilterLabel
         ? `${listContextLabel} / ${librarySearchFilterLabel}`
@@ -1475,9 +1469,7 @@ export function Workstation({
             >
                 <button
                     type="button"
-                    aria-label={
-                        language === "zh-CN" ? "关闭筛选抽屉" : "Close filters"
-                    }
+                    aria-label={t("dashboardChrome.closeFilters")}
                     data-testid="dashboard-source-drawer-scrim"
                     className={cn(
                         "fixed inset-0 z-[70] bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
@@ -1544,9 +1536,7 @@ export function Workstation({
                                         isSidebarCollapsed && "lg:sr-only",
                                     )}
                                 >
-                                    {language === "zh-CN"
-                                        ? "全部录音"
-                                        : "All recordings"}
+                                    {t("dashboardFavorites.allRecordings")}
                                 </span>
                                 <span
                                     className={cn(
@@ -1580,9 +1570,7 @@ export function Workstation({
                                         isSidebarCollapsed && "lg:sr-only",
                                     )}
                                 >
-                                    {language === "zh-CN"
-                                        ? "转写记录"
-                                        : "Transcribed"}
+                                    {t("dashboardFavorites.transcribed")}
                                 </span>
                                 <span
                                     className={cn(
@@ -1620,7 +1608,7 @@ export function Workstation({
                                         isSidebarCollapsed && "lg:sr-only",
                                     )}
                                 >
-                                    {language === "zh-CN" ? "标签" : "Tags"}
+                                    {t("dashboardFavorites.tags")}
                                 </span>
                                 <span
                                     className={cn(
@@ -1707,11 +1695,7 @@ export function Workstation({
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                aria-label={
-                                    language === "zh-CN"
-                                        ? "打开筛选抽屉"
-                                        : "Open filters"
-                                }
+                                aria-label={t("dashboardChrome.openFilters")}
                                 aria-expanded={isSourceDrawerOpen}
                                 data-testid="dashboard-source-drawer-trigger"
                                 className="relative h-9 w-9 shrink-0 rounded-xl lg:hidden"
@@ -1729,11 +1713,7 @@ export function Workstation({
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                aria-label={
-                                    language === "zh-CN"
-                                        ? "折叠或展开侧边栏"
-                                        : "Collapse or expand sidebar"
-                                }
+                                aria-label={t("dashboardChrome.toggleSidebar")}
                                 aria-pressed={isSidebarCollapsed}
                                 data-testid="dashboard-sidebar-collapse-trigger"
                                 className="hidden h-9 w-9 shrink-0 rounded-xl lg:inline-flex"
@@ -1865,9 +1845,9 @@ export function Workstation({
                                         >
                                             <Search className="size-3.5 shrink-0" />
                                             <span>
-                                                {language === "zh-CN"
-                                                    ? "搜索筛选"
-                                                    : "Search filter"}
+                                                {t(
+                                                    "dashboardChrome.searchFilter",
+                                                )}
                                             </span>
                                             <span className="rounded-full border border-border/70 bg-background/65 px-2 py-1 font-medium text-foreground shadow-xs">
                                                 {librarySearchFilterLabel}
@@ -1881,9 +1861,7 @@ export function Workstation({
                                                 }
                                                 className="ml-auto h-7 rounded-lg px-2 text-[0.72rem]"
                                             >
-                                                {language === "zh-CN"
-                                                    ? "清除"
-                                                    : "Clear"}
+                                                {t("dashboardChrome.clear")}
                                             </Button>
                                         </div>
                                     ) : null}

@@ -7,7 +7,7 @@
 ## 当前状态
 
 - BetterAINote 是独立的多来源私有录音工作台。
-- `0.6.2-preview` 是当前预发布版本；`0.6.0-preview` 是架构、数据库和 E2E 流程的 baseline SOT，不再把核心分层和 SQLite 形状当作后续可选优化。
+- 当前仍处于预发布阶段；核心分层、SQLite 存储形状和 E2E 流程是需要持续维护的项目基础。
 - 当前优先级是自托管、数据安全、文档清晰和可维护的 provider 边界。
 - 首个正式 release 前，API、设置项、数据源能力和 UI 细节仍可能调整。
 - 不发布 npm 包；`package.json` 保持 `private: true`。
@@ -56,9 +56,9 @@ bun run db:migrate
 | preview | 不承诺所有字段和 API 在首个正式 release 前稳定。 |
 | 文档 | README.md 默认使用简体中文，并维护英文、日文、韩文切换版本；技术 docs 可逐步补齐。 |
 
-## 架构 baseline
+## 架构边界
 
-`0.6.0-preview` 起，代码结构按 LobeHub 方向收敛为清晰的模块边界；`0.6.1-preview` 继续把业务 UI 从通用组件层迁入 feature 层：
+代码结构按 LobeHub 方向收敛为清晰的模块边界，业务 UI 从通用组件层迁入 feature 层：
 
 - `src/app/api/**/route.ts` 只做 HTTP 输入输出、session 校验和状态码映射。
 - 业务 SOT 放在 `src/server/modules/*`，例如 recordings、recording-tags、speakers、search 和 data-sources。
@@ -111,7 +111,7 @@ DATABASE_PATH=./data/betterainote.db
 
 本地音频由 `LOCAL_STORAGE_PATH` 控制。
 
-`0.6.0-preview` 的数据库以每个分片的 `0000_*_baseline.sql` 作为初始公开基线。preview 发布前不要保留开发过程中拆出来的零散 migration；后续版本再从这个 baseline 往前追加可审计 migration。
+数据库以每个分片的初始迁移文件作为公开起点。preview 发布前不要保留开发过程中拆出来的零散 migration；后续版本再追加可审计 migration。
 
 ## Provider 开发约定
 
@@ -140,7 +140,7 @@ Issue 和 PR 模板应提醒贡献者只提供脱敏日志、字段名、HTTP �
 ## 公开文档规则
 
 - README.md 默认使用简体中文，并维护英文、日文、韩文切换版本。
-- 必须说明 `preview`、自托管优先、当前预发布版本、`0.6.0-preview` baseline，以及不发布 npm 包或公开镜像。
+- 必须说明 `preview`、自托管优先，以及不发布 npm 包；公开镜像和正式发布需要维护者明确批准。
 - License 口径统一为“个人免费，商业使用须事先取得书面授权；条款为 BetterAINote Additional Terms on top of Apache License 2.0”。
 - 不写会让 BetterAINote 像某个来源派生项目的措辞。
 - 不记录非公开实现细节或未脱敏材料。

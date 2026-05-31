@@ -112,7 +112,7 @@ bun run dev
 ## 得られるもの
 
 <p align="center">
-  <img src="./docs/assets/readme/outcomes.ja.gif" alt="統合録音ライブラリ、私有文字起こし、検索 baseline" width="100%" />
+  <img src="./docs/assets/readme/outcomes.ja.gif" alt="統合録音ライブラリ、私有文字起こし、検索基盤" width="100%" />
 </p>
 
 **統合録音ライブラリ**
@@ -130,7 +130,7 @@ bun run dev
 **検索に向いた保存基盤**
 
 - SQLite ストレージは設定、録音ライブラリ、文字起こし、声紋、単語タイミング、検索インデックスに分かれます。
-- 検索 baseline は録音、文字起こし、話者、タグを対象にします。
+- 検索は録音、文字起こし、話者、タグを対象にします。
 - 今後の検索、フィルター、自動化はこの基盤の上に追加されます。
 
 ---

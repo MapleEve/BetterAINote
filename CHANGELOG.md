@@ -14,7 +14,7 @@
 - 增加架构边界测试，要求 dashboard/recordings 业务 UI 不再回退到 `src/components/dashboard` 或 `src/components/recordings`。
 - 将搜索的查询入口收口到 `src/server/modules/search/search-repository.ts` 与 `queries.ts`，新增 `/api/search` 作为薄 HTTP 适配层。
 - 将 recordings/transcripts/speakers/tags 的搜索读模型拆到 `src/server/modules/recordings/search-read-model.ts`，搜索重建不再直接拼领域文档。
-- 增加本地 SQLite FTS 查询清洗和 CJK n-gram fallback，避免把用户输入直接交给 FTS parser，同时为中文/日韩文搜索做 baseline。
+- 增加本地 SQLite FTS 查询清洗和 CJK n-gram fallback，避免把用户输入直接交给 FTS parser，同时改进中文、日文和韩文搜索。
 
 ### 数据源
 
@@ -26,7 +26,7 @@
 
 ### 当前状态
 
-BetterAINote 处于 `0.6.0-preview` 预发布阶段。这个版本是后续架构、数据库和 E2E 流程的 baseline SOT，当前重点是私有自托管、公开文档安全、多来源录音工作台定位和可维护的 provider 边界。
+BetterAINote 处于 `0.6.0-preview` 预发布阶段。当前重点是私有自托管、公开文档安全、多来源录音工作台定位和可维护的 provider 边界。
 
 ### 新增
 
@@ -37,8 +37,8 @@ BetterAINote 处于 `0.6.0-preview` 预发布阶段。这个版本是后续架�
 - 部署文档，说明本地 SQLite、storage、worker、CI、Docker 和 Release 工作流的状态。
 - 隐私和安全文档，统一 provider 凭据、日志、Issue、截图和未脱敏请求记录的脱敏要求。
 - VoScript 风格 License：前置中英文附加条款，个人使用免费，商业使用需事先书面授权，后置 Apache License 2.0 原文。
-- LobeHub 方向的服务分层 baseline：API route 只保留 HTTP 适配职责，录音、说话人、搜索、来源报告等业务写入 `src/server/modules/*`。
-- 面向全文搜索的 SQLite baseline：拆分 core/library/transcripts/voiceprints/words/search 分片，搜索 sidecar 覆盖 recordings、transcripts、speakers 和 tags。
+- LobeHub 方向的服务分层：API route 只保留 HTTP 适配职责，录音、说话人、搜索、来源报告等业务写入 `src/server/modules/*`。
+- 面向全文搜索的 SQLite 分片：拆分 core/library/transcripts/voiceprints/words/search，搜索 sidecar 覆盖 recordings、transcripts、speakers 和 tags。
 
 ### 已有能力
 

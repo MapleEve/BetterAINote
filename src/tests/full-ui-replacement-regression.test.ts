@@ -85,6 +85,7 @@ describe("full UI replacement regression coverage", () => {
         const rows = readSource(
             "features/dashboard/components/source-provider-rows.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         expect(workstation).toContain("useDataSourcesSettings(language)");
         expect(workstation).toContain("getDashboardSourceStatus");
@@ -109,6 +110,14 @@ describe("full UI replacement regression coverage", () => {
         expect(rows).toContain('"no-results"');
         expect(rows).toContain("PROVIDER_ASSET_CLASSES");
         expect(rows).toContain("/assets/sources/dingtalk.svg");
+        expect(rows).toContain("@/components/ui/button");
+        expect(rows).toContain("sourceProviderRows.status.syncError");
+        expect(rows).toContain("sourceProviderRows.badge.connect");
+        expect(rows).not.toContain("同步异常");
+        expect(rows).not.toContain("待开放");
+        expect(rows).not.toContain("需要重新登录");
+        expect(translations).toContain("同步异常");
+        expect(translations).toContain("Re-auth required");
     });
 
     it("keeps the stacked source filter strip wired to real dashboard actions", () => {
@@ -119,6 +128,7 @@ describe("full UI replacement regression coverage", () => {
         const recordingList = readSource(
             "features/dashboard/components/recording-list.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         expect(strip).toContain('data-testid="dashboard-source-filter-stack"');
         expect(strip).toContain('state === "sync-error"');
@@ -130,7 +140,15 @@ describe("full UI replacement regression coverage", () => {
         expect(strip).toContain("onRetrySync");
         expect(strip).toContain("onWidenFilters");
         expect(strip).toContain("onOpenDataSourcesSettings");
+        expect(strip).toContain("@/components/ui/button");
+        expect(strip).toContain("sourceFilterStack.clearSourceFilter");
+        expect(strip).toContain("sourceFilterStack.noResultsMessage");
+        expect(strip).not.toContain("放宽筛选");
+        expect(strip).not.toContain("前往设置");
+        expect(translations).toContain("放宽筛选");
+        expect(translations).toContain("Open settings");
         expect(workstation).toContain('writeBrowserHash("data-sources")');
+        expect(workstation).toContain("dashboardFavorites.allRecordings");
         expect(recordingList).toContain("filterStack?");
         expect(recordingList).toContain('"loading"');
         expect(recordingList).toContain('"no-match"');

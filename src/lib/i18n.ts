@@ -210,6 +210,59 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 processing: "正在处理",
             },
         },
+        dashboardFavorites: {
+            allRecordings: "全部录音",
+            transcribed: "转写记录",
+            tags: "标签",
+            tagFilter: "标签",
+            speakerFilter: "说话人",
+        },
+        dashboardChrome: {
+            closeFilters: "关闭筛选抽屉",
+            openFilters: "打开筛选抽屉",
+            toggleSidebar: "折叠或展开侧边栏",
+            searchFilter: "搜索筛选",
+            clear: "清除",
+        },
+        sourceProviderRows: {
+            compactHeading: "SRC",
+            heading: "来源",
+            clear: "清除",
+            status: {
+                loading: "检查中",
+                syncing: "更新中",
+                syncError: "同步异常",
+                connected: "已连接",
+                connectedEmpty: "已连接 · 暂无录音",
+                noResults: "无匹配",
+                paused: "已暂停",
+                expired: "需要重新登录",
+                planned: "待开放",
+                needsSetup: "待连接",
+            },
+            badge: {
+                planned: "待开放",
+                expired: "重登",
+                connect: "连接",
+            },
+        },
+        sourceFilterStack: {
+            filter: "筛选",
+            clearSourceFilter: "清除来源筛选",
+            showing: "显示",
+            clearAll: "清除全部",
+            syncErrorMessage: "{provider} 同步异常，列表仍显示已缓存的录音。",
+            retrySync: "重试同步",
+            noResultsMessage:
+                "{provider} 在当前筛选下没有匹配项，共 {count} 条录音。",
+            widenFilter: "放宽筛选",
+            pausedMessage: "{provider} 已暂停，重新启用后这里会出现录音。",
+            expiredMessage: "{provider} 登录已过期，重新登录后这里会恢复同步。",
+            plannedMessage: "{provider} 仍在规划中，当前不会同步录音。",
+            needsSetupMessage:
+                "{provider} 尚未连接，完成设置后这里会出现录音。",
+            openSettings: "前往设置",
+        },
         recordingList: {
             timelineTitle: "时间线",
             tagsTitle: "标签",
@@ -653,6 +706,63 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 pending: "Queued locally",
                 processing: "Processing",
             },
+        },
+        dashboardFavorites: {
+            allRecordings: "All recordings",
+            transcribed: "Transcribed",
+            tags: "Tags",
+            tagFilter: "Tag",
+            speakerFilter: "Speaker",
+        },
+        dashboardChrome: {
+            closeFilters: "Close filters",
+            openFilters: "Open filters",
+            toggleSidebar: "Collapse or expand sidebar",
+            searchFilter: "Search filter",
+            clear: "Clear",
+        },
+        sourceProviderRows: {
+            compactHeading: "SRC",
+            heading: "Sources",
+            clear: "Clear",
+            status: {
+                loading: "Checking",
+                syncing: "Updating",
+                syncError: "Sync issue",
+                connected: "Connected",
+                connectedEmpty: "Connected · Empty",
+                noResults: "No matches",
+                paused: "Paused",
+                expired: "Re-auth required",
+                planned: "Planned",
+                needsSetup: "Connect",
+            },
+            badge: {
+                planned: "Soon",
+                expired: "Re-auth",
+                connect: "Connect",
+            },
+        },
+        sourceFilterStack: {
+            filter: "Filter",
+            clearSourceFilter: "Clear source filter",
+            showing: "Showing",
+            clearAll: "Clear all",
+            syncErrorMessage:
+                "{provider} has a sync issue. Cached recordings remain visible.",
+            retrySync: "Retry sync",
+            noResultsMessage:
+                "{provider} has no matches in the current filter, with {count} recordings total.",
+            widenFilter: "Widen filter",
+            pausedMessage:
+                "{provider} is paused. Enable it to show recordings here.",
+            expiredMessage:
+                "{provider} needs re-authentication before syncing resumes.",
+            plannedMessage:
+                "{provider} is planned and does not sync recordings yet.",
+            needsSetupMessage:
+                "{provider} is not connected. Finish setup to show recordings here.",
+            openSettings: "Open settings",
         },
         recordingList: {
             timelineTitle: "Timeline",

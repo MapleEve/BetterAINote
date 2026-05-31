@@ -292,7 +292,7 @@ async function mockConnectedDataSources(page: Page, providers: string[]) {
 
 async function openDashboard(
     page: Parameters<typeof ensureSignedIn>[0],
-    options: { connectIflyrec?: boolean } = {},
+    options: { connectIflyrec?: boolean; uiLanguage?: "zh-CN" | "en" } = {},
 ) {
     await ensureSignedIn(page);
 
@@ -308,7 +308,7 @@ async function openDashboard(
             itemsPerPage: 50,
             recordingListSortOrder: "newest",
             theme: "system",
-            uiLanguage: "zh-CN",
+            uiLanguage: options.uiLanguage ?? "zh-CN",
         },
     });
     expect(resetDisplay.ok()).toBe(true);
@@ -369,6 +369,32 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
             "data-sources",
         );
     }
+});
+
+test("dashboard source filter stack follows English display language", async ({
+    page,
+}) => {
+    await openDashboard(page, { connectIflyrec: true, uiLanguage: "en" });
+
+    const sourceRows = page.getByTestId("source-provider-rows");
+    await expect(sourceRows).toContainText("Sources");
+
+    const iflyrecRow = page.locator('[data-provider="iflyrec"]');
+    await expect(iflyrecRow).toBeVisible();
+    await iflyrecRow.click();
+
+    const stack = page.getByTestId("dashboard-source-filter-stack");
+    await expect(stack).toBeVisible();
+    await expect(stack).toContainText("Filter");
+    await expect(stack).toContainText("All recordings");
+    await expect(stack).toContainText("Showing");
+    await expect(
+        stack.getByRole("button", { name: "Clear source filter" }),
+    ).toBeVisible();
+    await expect(
+        stack.getByRole("button", { name: "Clear all" }),
+    ).toBeVisible();
+    await expect(sourceRows.getByRole("button", { name: "Clear" })).toBeVisible();
 });
 
 test("dashboard source setup rows open Data Sources settings", async ({ page }) => {

@@ -68,7 +68,7 @@ BetterAINote fixes that: **it brings multi-source recordings into a private work
 - People already using DingTalk / A1, TicNote, Plaud, Feishu Minutes, iFLYTEK iFlyrec, or similar recording platforms.
 - Users who want their recording library, SQLite databases, service credentials, and audio archive on machines or servers they control.
 - Teams that want VoScript or another private transcription service instead of sending every recording through a third-party cloud pipeline.
-- Developers who want a self-hosted baseline before connecting more workflows or private automation.
+- Developers who want a self-hosted foundation before connecting more workflows or private automation.
 
 BetterAINote is an independent project. Plaud is one supported source, not the product identity.
 
@@ -127,11 +127,11 @@ Do not commit `.env.local`, databases, audio archives, account screenshots, or r
 - Review transcript state, local transcript output, speaker labels, and reusable speaker profiles.
 - Keep source records, private transcripts, and AI-generated titles in separate lanes.
 
-**Search-ready storage baseline**
+**Search-ready storage foundation**
 
 - SQLite storage is separated for settings, recording library, transcripts, voiceprints, word timing, and search indexes.
-- Search baseline covers recordings, transcripts, speakers, and tags.
-- Future versions will build search, filters, and automation on this baseline.
+- Search covers recordings, transcripts, speakers, and tags.
+- Future versions will build search, filters, and automation on this foundation.
 
 ---
 
