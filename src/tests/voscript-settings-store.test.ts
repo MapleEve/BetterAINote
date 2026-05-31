@@ -21,7 +21,8 @@ describe("voscript settings store", () => {
         const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
             new Response(
                 JSON.stringify({
-                    privateTranscriptionBaseUrl: " https://voscript.internal ",
+                    privateTranscriptionBaseUrl:
+                        " https://voscript.example.test ",
                     privateTranscriptionApiKeySet: true,
                     privateTranscriptionMinSpeakers: 2,
                     privateTranscriptionMaxSpeakers: 4,
@@ -44,7 +45,7 @@ describe("voscript settings store", () => {
         expect(firstLoad).toBe(secondLoad);
 
         await expect(firstLoad).resolves.toEqual({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
             privateTranscriptionMinSpeakers: 2,
             privateTranscriptionMaxSpeakers: 4,
@@ -60,7 +61,7 @@ describe("voscript settings store", () => {
             isLoading: false,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -79,7 +80,7 @@ describe("voscript settings store", () => {
                 new Response(
                     JSON.stringify({
                         privateTranscriptionBaseUrl:
-                            "https://voscript.internal",
+                            "https://voscript.example.test",
                         privateTranscriptionApiKeySet: false,
                         privateTranscriptionMinSpeakers: 0,
                         privateTranscriptionMaxSpeakers: 0,
@@ -110,7 +111,7 @@ describe("voscript settings store", () => {
         await ensureVoScriptSettingsLoaded();
 
         const savePromise = saveVoScriptSettings({
-            privateTranscriptionBaseUrl: "https://next.internal",
+            privateTranscriptionBaseUrl: "https://next.example.test",
             privateTranscriptionApiKey: "vt-secret-key",
             privateTranscriptionMinSpeakers: 1,
             privateTranscriptionMaxSpeakers: 4,
@@ -123,7 +124,7 @@ describe("voscript settings store", () => {
         expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
             isSaving: true,
             settings: {
-                privateTranscriptionBaseUrl: "https://next.internal",
+                privateTranscriptionBaseUrl: "https://next.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 1,
                 privateTranscriptionMaxSpeakers: 4,
@@ -142,7 +143,7 @@ describe("voscript settings store", () => {
             hasLoaded: true,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: false,
                 privateTranscriptionMinSpeakers: 0,
                 privateTranscriptionMaxSpeakers: 0,
@@ -193,7 +194,7 @@ describe("voscript settings store", () => {
 
         await expect(
             saveVoScriptSettings({
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKey: "vt-secret-key",
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -205,7 +206,7 @@ describe("voscript settings store", () => {
             isLoading: false,
             isSaving: false,
             settings: {
-                privateTranscriptionBaseUrl: "https://voscript.internal",
+                privateTranscriptionBaseUrl: "https://voscript.example.test",
                 privateTranscriptionApiKeySet: true,
                 privateTranscriptionMinSpeakers: 2,
                 privateTranscriptionMaxSpeakers: 4,
@@ -217,7 +218,7 @@ describe("voscript settings store", () => {
         });
 
         await expect(ensureVoScriptSettingsLoaded()).resolves.toEqual({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
             privateTranscriptionMinSpeakers: 2,
             privateTranscriptionMaxSpeakers: 4,

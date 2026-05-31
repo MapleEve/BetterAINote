@@ -123,7 +123,7 @@ describe("transcription jobs", () => {
                         limit: vi.fn().mockResolvedValue([
                             {
                                 privateTranscriptionBaseUrl:
-                                    "http://transcribe.internal:8780",
+                                    "http://transcribe.example.test:8780",
                             },
                         ]),
                     }),
@@ -296,7 +296,7 @@ describe("transcription jobs", () => {
                 mockWhereLimitSelect([
                     {
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                     },
                 ]),
             )
@@ -352,7 +352,7 @@ describe("transcription jobs", () => {
                 mockWhereLimitSelect([
                     {
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                     },
                 ]),
             )
@@ -420,7 +420,7 @@ describe("transcription jobs", () => {
                 mockWhereLimitSelect([
                     {
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                     },
                 ]),
             )
@@ -487,7 +487,7 @@ describe("transcription jobs", () => {
                     {
                         userId: "user-1",
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                         privateTranscriptionMaxInflightJobs: 1,
                     },
                 ]),
@@ -542,7 +542,7 @@ describe("transcription jobs", () => {
                 mockWhereLimitSelect([
                     {
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                     },
                 ]),
             )

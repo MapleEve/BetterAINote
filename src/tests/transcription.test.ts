@@ -252,7 +252,7 @@ describe("Transcription", () => {
                                 {
                                     id: "settings-1",
                                     privateTranscriptionBaseUrl:
-                                        "http://transcribe.internal:8780",
+                                        "http://transcribe.example.test:8780",
                                     defaultTranscriptionLanguage: null,
                                     speakerDiarization: false,
                                     diarizationSpeakers: null,
@@ -270,7 +270,7 @@ describe("Transcription", () => {
                         where: vi.fn().mockResolvedValue([
                             {
                                 apiKey: "encrypted:voscript-key",
-                                baseUrl: "http://transcribe.internal:8780",
+                                baseUrl: "http://transcribe.example.test:8780",
                                 provider: "private-transcription",
                                 defaultModel: null,
                                 isDefaultTranscription: false,
@@ -289,7 +289,7 @@ describe("Transcription", () => {
             expect(createTranscriptionProvider).toHaveBeenCalledWith(
                 "voice-transcribe",
                 "decrypted:encrypted:voscript-key",
-                "http://transcribe.internal:8780",
+                "http://transcribe.example.test:8780",
             );
         });
 

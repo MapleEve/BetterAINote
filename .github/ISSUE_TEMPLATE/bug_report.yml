@@ -101,7 +101,7 @@ body:
     id: environment
     attributes:
       label: Environment details / 环境信息
-      description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, internal hostnames, or local private paths.
+      description: Include OS, browser, deployment details, and anything else relevant. Do not paste full env files, secrets, non-public hostnames, or machine-specific paths.
       placeholder: |
         - OS:
         - Browser:
@@ -112,7 +112,7 @@ body:
     id: logs
     attributes:
       label: Logs or error messages / 日志或错误信息
-      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach network capture files or include credentials, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or internal paths.
+      description: Paste only relevant redacted logs, stack traces, worker output, or upstream API/provider errors. Do not attach network capture files or include credentials, cookies, org/user/recording IDs, recording titles, private meeting content, env files, or machine-specific paths.
       render: shell
 
   - type: textarea
@@ -130,7 +130,7 @@ body:
           required: true
         - label: I filled in the requested details above.
           required: true
-        - label: I removed or redacted credentials, cookies, org/user/recording IDs, recording titles, private meeting content, network capture data, env values, and internal paths from this report.
+        - label: I removed or redacted credentials, cookies, org/user/recording IDs, recording titles, private meeting content, network capture data, env values, and machine-specific paths from this report.
           required: true
         - label: I can help verify a fix if needed.
           required: false

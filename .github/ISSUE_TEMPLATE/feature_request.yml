@@ -88,7 +88,7 @@ body:
           required: true
         - label: I described the user problem, not just a technical implementation detail.
           required: true
-        - label: I removed or redacted credentials, cookies, org/user/recording IDs, meeting titles, private screenshot content, network capture data, env values, and internal paths from this request.
+        - label: I removed or redacted credentials, cookies, org/user/recording IDs, meeting titles, private screenshot content, network capture data, env values, and machine-specific paths from this request.
           required: true
         - label: I can help validate the feature if it gets implemented.
           required: false

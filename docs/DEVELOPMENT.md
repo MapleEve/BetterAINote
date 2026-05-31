@@ -40,7 +40,7 @@ bun run db:migrate
 
 文档改动至少要跑格式 / lint、类型检查和任务要求的敏感词扫描。`bun run type-check` 如果生成 `tsconfig.tsbuildinfo`，结束前删除。
 
-## 真实 Provider E2E
+## 发布前 Provider E2E 验收
 
 发布前 E2E 不能只跑 mock。需要用本地配置的真实 provider 覆盖以下链路：
 
@@ -54,7 +54,7 @@ bun run db:migrate
 8. 用转写中派生的短查询词调用 `/api/search`，覆盖 `recording`、`transcript`、`speaker`、`tag` 四类搜索范围。
 9. 打开首页 `#transcription` 与设置 `#transcription` 做 UI smoke；不得在日志、文档或测试输出中打印真实标题、录音 ID、token 或逐字稿正文。
 
-本地 2026-04-28 的 3001 预发布检查结果：清空后真实同步导入 Plaud 37 条、TicNote 3 条；40 条都有本地音频；来源逐字稿 5/5 段带时间戳；真实转写 `voice-transcribe` 成功；搜索命中 `recording` 与 `transcript`。这类结果只能记录数量和状态，不能记录真实内容。
+验收记录只保留脱敏后的通过 / 失败状态、覆盖链路和问题类型。不要在公开文档中保留某次账号的同步数量、来源分布、录音分布、可反推出来源状态的统计结果、真实标题、录音 ID、token 或逐字稿正文。
 
 E2E 发现过的稳定性边界：
 

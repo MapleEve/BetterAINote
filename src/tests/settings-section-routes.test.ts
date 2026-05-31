@@ -181,7 +181,8 @@ describe("settings section routes", () => {
     it("rejects title generation URLs with query strings through the title-generation route", async () => {
         const response = await putTitleGeneration(
             makePutRequest("http://localhost/api/settings/title-generation", {
-                titleGenerationBaseUrl: "https://llm.internal/v1?model=gpt-4.1",
+                titleGenerationBaseUrl:
+                    "https://llm.example.test/v1?model=gpt-4.1",
             }),
         );
 
@@ -195,7 +196,7 @@ describe("settings section routes", () => {
     it("stores the title generation API key outside user_settings through the title-generation route", async () => {
         const response = await putTitleGeneration(
             makePutRequest("http://localhost/api/settings/title-generation", {
-                titleGenerationBaseUrl: "https://llm.internal/v1",
+                titleGenerationBaseUrl: "https://llm.example.test/v1",
                 titleGenerationModel: "gpt-4.1-mini",
                 titleGenerationApiKey: "tg-secret-key",
             }),
@@ -203,7 +204,7 @@ describe("settings section routes", () => {
 
         expect(response.status).toBe(200);
         expect(upsertUserSettings).toHaveBeenCalledWith("user-1", {
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
         });
         expect(upsertStoredTitleGenerationCredential).toHaveBeenCalledWith({
@@ -232,7 +233,7 @@ describe("settings section routes", () => {
 
     it("keeps the voscript API key configured flag out of user_settings", async () => {
         (getUserSettingsRow as Mock).mockResolvedValue({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionMinSpeakers: 0,
             privateTranscriptionMaxSpeakers: 0,
             privateTranscriptionDenoiseModel: "none",
@@ -250,7 +251,7 @@ describe("settings section routes", () => {
 
         expect(response.status).toBe(200);
         await expect(response.json()).resolves.toMatchObject({
-            privateTranscriptionBaseUrl: "https://voscript.internal",
+            privateTranscriptionBaseUrl: "https://voscript.example.test",
             privateTranscriptionApiKeySet: true,
         });
     });
@@ -259,7 +260,7 @@ describe("settings section routes", () => {
         (getUserSettingsRow as Mock).mockResolvedValue({
             autoTranscribe: false,
             autoGenerateTitle: true,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationPrompt: null,
         });
@@ -272,7 +273,7 @@ describe("settings section routes", () => {
         expect(response.status).toBe(200);
         await expect(response.json()).resolves.toMatchObject({
             autoGenerateTitle: true,
-            titleGenerationBaseUrl: "https://llm.internal/v1",
+            titleGenerationBaseUrl: "https://llm.example.test/v1",
             titleGenerationModel: "gpt-4.1-mini",
             titleGenerationApiKeySet: true,
         });

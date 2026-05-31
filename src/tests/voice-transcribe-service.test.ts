@@ -42,7 +42,7 @@ describe("voice-transcribe service", () => {
                 mockWhereLimitSelect([
                     {
                         privateTranscriptionBaseUrl:
-                            "http://transcribe.internal:8780",
+                            "http://transcribe.example.test:8780",
                     },
                 ]),
             )
@@ -52,7 +52,7 @@ describe("voice-transcribe service", () => {
                         id: "cred-1",
                         provider: "private-transcription",
                         apiKey: "encrypted:secret",
-                        baseUrl: "http://transcribe.internal:8780",
+                        baseUrl: "http://transcribe.example.test:8780",
                         defaultModel: null,
                         isDefaultTranscription: false,
                     },
@@ -65,7 +65,7 @@ describe("voice-transcribe service", () => {
         expect(result.connection).toMatchObject({
             providerId: "cred-1",
             providerName: "private-transcription",
-            baseUrl: "http://transcribe.internal:8780",
+            baseUrl: "http://transcribe.example.test:8780",
             apiKey: "decrypted:encrypted:secret",
         });
         expect(result.client).not.toBeNull();
@@ -80,7 +80,7 @@ describe("voice-transcribe service", () => {
                         id: "cred-2",
                         provider: "voice-transcribe",
                         apiKey: "encrypted:provider-secret",
-                        baseUrl: "http://remote.internal:9000",
+                        baseUrl: "http://remote.example.test:9000",
                         defaultModel: null,
                         isDefaultTranscription: true,
                     },
@@ -93,7 +93,7 @@ describe("voice-transcribe service", () => {
         expect(result.connection).toMatchObject({
             providerId: "cred-2",
             providerName: "voice-transcribe",
-            baseUrl: "http://remote.internal:9000",
+            baseUrl: "http://remote.example.test:9000",
             apiKey: "decrypted:encrypted:provider-secret",
         });
         expect(result.client).not.toBeNull();

@@ -160,7 +160,7 @@ BetterAINote can contain recording titles, source records, transcripts, speaker 
 - Local SQLite files and `LOCAL_STORAGE_PATH` may contain sensitive recording and transcript data.
 - Provider credentials, VoScript credentials, AI title service keys, and session state should stay inside your private deployment.
 - Logs, issues, pull requests, screenshots, and recordings must be sanitized before public sharing.
-- Do not publish cookies, bearer tokens, org/user/recording IDs, meeting content, capture files, full environment files, or local private paths.
+- Do not publish cookies, bearer tokens, org/user/recording IDs, meeting content, capture files, full environment files, or machine-specific paths.
 
 See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 
