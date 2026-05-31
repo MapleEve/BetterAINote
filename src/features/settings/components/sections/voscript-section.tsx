@@ -34,16 +34,18 @@ import { SpeakerProfilesPanel } from "./speaker-profiles-panel";
 
 type VoScriptSaveState = "idle" | "saving" | "saved" | "error";
 type VoScriptConnectionTestState = "idle" | "testing" | "success" | "error";
+type VoScriptAvailabilityState = "configured" | "draft" | "unavailable";
 
 function VoScriptStatusBanner({
     description,
-    isReady,
+    state,
     title,
 }: {
     description: string;
-    isReady: boolean;
+    state: VoScriptAvailabilityState;
     title: string;
 }) {
+    const isReady = state === "configured";
     const Icon = isReady ? CheckCircle2 : Info;
 
     return (
@@ -54,7 +56,7 @@ function VoScriptStatusBanner({
                     ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
                     : "border-sky-400/25 bg-sky-500/10 text-sky-700 dark:text-sky-200",
             )}
-            data-voscript-service-state={isReady ? "configured" : "empty"}
+            data-voscript-service-state={state}
         >
             <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
                 <Icon className="size-4" aria-hidden="true" />
@@ -92,6 +94,10 @@ export function VoScriptSection() {
     const isZh = language === "zh-CN";
     const [privateTranscriptionBaseUrlInput, setPrivateTranscriptionBaseUrl] =
         useState("");
+    const [
+        privateTranscriptionBaseUrlTouched,
+        setPrivateTranscriptionBaseUrlTouched,
+    ] = useState(false);
     const [privateTranscriptionApiKey, setPrivateTranscriptionApiKey] =
         useState("");
     const [
@@ -128,6 +134,7 @@ export function VoScriptSection() {
 
     useEffect(() => {
         setPrivateTranscriptionBaseUrl(privateTranscriptionBaseUrl ?? "");
+        setPrivateTranscriptionBaseUrlTouched(false);
     }, [privateTranscriptionBaseUrl]);
 
     useEffect(() => {
@@ -273,6 +280,7 @@ export function VoScriptSection() {
 
             await updateVoScriptSettings(updates);
             setPrivateTranscriptionBaseUrl(normalizedBaseUrl);
+            setPrivateTranscriptionBaseUrlTouched(false);
             if (trimmedPrivateApiKey) {
                 setPrivateTranscriptionApiKey("");
             }
@@ -346,7 +354,19 @@ export function VoScriptSection() {
         return <SettingsSectionSkeleton cards={2} fieldsPerCard={3} />;
     }
 
-    const serviceConfigured = Boolean(privateTranscriptionBaseUrlInput.trim());
+    const savedBaseUrl = privateTranscriptionBaseUrl?.trim() ?? "";
+    const draftBaseUrl = privateTranscriptionBaseUrlInput.trim();
+    const savedServiceConfigured = Boolean(savedBaseUrl);
+    const draftServiceConfigured = Boolean(draftBaseUrl);
+    const serviceDraftChanged =
+        privateTranscriptionBaseUrlTouched && draftBaseUrl !== savedBaseUrl;
+    const serviceAvailability: VoScriptAvailabilityState =
+        savedServiceConfigured && !serviceDraftChanged
+            ? "configured"
+            : serviceDraftChanged
+              ? "draft"
+              : "unavailable";
+    const serviceReady = serviceAvailability === "configured";
 
     const serviceConnectionFields: SettingFieldDefinition[] = [
         {
@@ -456,6 +476,7 @@ export function VoScriptSection() {
         setConnectionTestMessage(null);
 
         if (field.id === "base-url") {
+            setPrivateTranscriptionBaseUrlTouched(true);
             setPrivateTranscriptionBaseUrl(nextValue);
             return;
         }
@@ -498,9 +519,7 @@ export function VoScriptSection() {
         <div
             className="flex min-h-0 flex-col gap-5"
             data-settings-section="voscript"
-            data-voscript-availability={
-                serviceConfigured ? "configured" : "unavailable"
-            }
+            data-voscript-availability={serviceAvailability}
             data-voscript-save-state={isSaving ? "saving" : saveState}
             data-voscript-test-state={connectionTestState}
         >
@@ -532,35 +551,54 @@ export function VoScriptSection() {
                             <span
                                 className={cn(
                                     "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
-                                    serviceConfigured
+                                    serviceReady
                                         ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
-                                        : "border-border/70 bg-muted/35 text-muted-foreground",
+                                        : serviceAvailability === "draft"
+                                          ? "border-sky-400/30 bg-sky-500/15 text-sky-700 dark:text-sky-200"
+                                          : "border-border/70 bg-muted/35 text-muted-foreground",
                                 )}
                             >
-                                {serviceConfigured
+                                {serviceReady
                                     ? isZh
                                         ? "已配置"
                                         : "Configured"
-                                    : isZh
-                                      ? "待配置"
-                                      : "Not configured"}
+                                    : serviceAvailability === "draft"
+                                      ? isZh
+                                          ? "待保存"
+                                          : "Unsaved"
+                                      : isZh
+                                        ? "待配置"
+                                        : "Not configured"}
                             </span>
                         </CardAction>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4 px-5">
                         <VoScriptStatusBanner
-                            isReady={serviceConfigured}
+                            state={serviceAvailability}
                             title={
-                                serviceConfigured
+                                serviceReady
                                     ? isZh
                                         ? "服务地址已保存"
                                         : "Service URL ready"
-                                    : isZh
-                                      ? "尚未连接 VoScript"
-                                      : "VoScript not connected"
+                                    : serviceDraftChanged &&
+                                        draftServiceConfigured
+                                      ? isZh
+                                          ? savedServiceConfigured
+                                              ? "服务地址有未保存修改"
+                                              : "服务地址待保存"
+                                          : savedServiceConfigured
+                                            ? "Unsaved service URL change"
+                                            : "Service URL pending save"
+                                      : serviceDraftChanged
+                                        ? isZh
+                                            ? "保存后将清空服务地址"
+                                            : "Service URL will be cleared"
+                                        : isZh
+                                          ? "尚未连接 VoScript"
+                                          : "VoScript not connected"
                             }
                             description={
-                                serviceConfigured
+                                serviceReady
                                     ? privateTranscriptionApiKeySet
                                         ? isZh
                                             ? "服务地址和 API Key 均已在当前账号配置。"
@@ -568,9 +606,18 @@ export function VoScriptSection() {
                                         : isZh
                                           ? "服务地址已配置；如果服务启用鉴权，请补充 API Key。"
                                           : "The service URL is configured. Add an API key if the service requires authentication."
-                                    : isZh
-                                      ? "保存服务地址后，声纹库和私有转写任务会使用该连接。"
-                                      : "Save a service URL so voiceprints and private transcription jobs can use it."
+                                    : serviceDraftChanged &&
+                                        draftServiceConfigured
+                                      ? isZh
+                                          ? "当前表单尚未保存；测试通过后仍需保存才会影响声纹库和新任务。"
+                                          : "The current form is not saved yet. Testing does not apply it to voiceprints or new jobs."
+                                      : serviceDraftChanged
+                                        ? isZh
+                                            ? "保存后会清空 VoScript 连接，声纹库和新任务将不再使用该服务。"
+                                            : "Saving will clear the VoScript connection for voiceprints and new jobs."
+                                        : isZh
+                                          ? "保存服务地址后，声纹库和私有转写任务会使用该连接。"
+                                          : "Save a service URL so voiceprints and private transcription jobs can use it."
                             }
                         />
 
@@ -662,7 +709,7 @@ export function VoScriptSection() {
                                 field={field}
                                 fieldId={`private-transcription-${field.id}`}
                                 onValueChange={handleOptionFieldChange}
-                                disabled={isSaving || !serviceConfigured}
+                                disabled={isSaving || !draftServiceConfigured}
                                 variant="settings"
                             />
                         ))}
@@ -688,13 +735,21 @@ export function VoScriptSection() {
                     </div>
                 ) : (
                     <span className="text-sm text-muted-foreground">
-                        {serviceConfigured
+                        {serviceReady
                             ? isZh
                                 ? "服务可用于新的私有转写任务。"
                                 : "The service can be used for new private transcription jobs."
-                            : isZh
-                              ? "保存服务地址后才会启用转写参数。"
-                              : "Save a service URL before transcription options become active."}
+                            : serviceDraftChanged && draftServiceConfigured
+                              ? isZh
+                                  ? "当前服务地址尚未保存；保存后才会用于声纹库和新任务。"
+                                  : "This service URL is not saved yet. Save it before voiceprints or new jobs use it."
+                              : serviceDraftChanged
+                                ? isZh
+                                    ? "保存后将清空 VoScript 连接。"
+                                    : "Saving will clear the VoScript connection."
+                                : isZh
+                                  ? "保存服务地址后才会启用转写参数。"
+                                  : "Save a service URL before transcription options become active."}
                     </span>
                 )}
                 <Button

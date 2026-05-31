@@ -127,6 +127,16 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
     );
     await expect(section).toHaveAttribute("data-voscript-test-state", "idle");
 
+    const baseUrlInput = page.locator("#private-transcription-base-url");
+    await baseUrlInput.fill("https://voscript-updated.e2e.example");
+    await expect(section).toHaveAttribute("data-voscript-availability", "draft");
+    await expect(page.getByText("服务地址有未保存修改")).toBeVisible();
+    await baseUrlInput.fill("https://voscript.e2e.example");
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "configured",
+    );
+
     await expect(page.locator("[data-speaker-profile-row]")).toBeVisible();
     await expect(page.locator("[data-vs-profile-row]")).toBeVisible();
     const profileBox = await page
@@ -273,6 +283,14 @@ test("VoScript settings validates connection, save, and unavailable states", asy
     expect(connectionTestCalls).toBe(0);
 
     await baseUrlInput.fill("https://bad-voscript.e2e.example");
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "draft",
+    );
+    await expect(
+        section.locator("[data-voscript-service-state]"),
+    ).toHaveAttribute("data-voscript-service-state", "draft");
+    await expect(page.getByText("服务地址待保存")).toBeVisible();
     await expect(maxInflightInput).toBeEnabled();
     await page.getByTestId("voscript-test-connection").click();
     await expect(section).toHaveAttribute("data-voscript-test-state", "error");
@@ -301,6 +319,10 @@ test("VoScript settings validates connection, save, and unavailable states", asy
     await repeatInput.fill("3");
     await snrInput.fill("");
     await baseUrlInput.fill("");
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "unavailable",
+    );
     await expect(maxInflightInput).toBeDisabled();
     await Promise.all([settingsSaveStarted, saveButton.click()]);
     await expect(section).toHaveAttribute("data-voscript-save-state", "saving");

@@ -152,8 +152,12 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(voscript).toContain("data-voscript-availability");
         expect(voscript).toContain("data-voscript-save-state");
         expect(voscript).toContain("data-voscript-test-state");
+        expect(voscript).toContain("VoScriptAvailabilityState");
         expect(voscript).toContain("VoScriptSaveState");
         expect(voscript).toContain("VoScriptConnectionTestState");
+        expect(voscript).toContain('"draft"');
+        expect(voscript).toContain("serviceDraftChanged");
+        expect(voscript).toContain("privateTranscriptionBaseUrlTouched");
         expect(voscript).toContain("setSaveMessage");
         expect(voscript).toContain("setConnectionTestMessage");
         expect(voscript).toContain("testVoScriptConnection");
