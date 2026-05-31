@@ -91,14 +91,33 @@ test("data sources settings tests missing details then saves a provider through 
             displayName: "讯飞听见",
         }),
     ];
+    let testPayload: Record<string, unknown> | null = null;
     let savePayload: Record<string, unknown> | null = null;
+    let releaseTest = () => {};
+    let notifyTestStarted = () => {};
     let releaseSave = () => {};
     let notifySaveStarted = () => {};
+    const testStarted = new Promise<void>((resolve) => {
+        notifyTestStarted = resolve;
+    });
+    const pendingTest = new Promise<void>((resolve) => {
+        releaseTest = resolve;
+    });
     const saveStarted = new Promise<void>((resolve) => {
         notifySaveStarted = resolve;
     });
     const pendingSave = new Promise<void>((resolve) => {
         releaseSave = resolve;
+    });
+
+    await page.route("**/api/data-sources/test", async (route) => {
+        testPayload = route.request().postDataJSON();
+        notifyTestStarted();
+        await pendingTest;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
     });
 
     await page.route("**/api/data-sources", async (route) => {
@@ -143,10 +162,6 @@ test("data sources settings tests missing details then saves a provider through 
     await detail.getByTestId("data-source-test-connection").click();
     await expect(detail).toHaveAttribute(
         "data-provider-action-state",
-        "testing",
-    );
-    await expect(detail).toHaveAttribute(
-        "data-provider-action-state",
         "test-error",
     );
     await expect(
@@ -155,13 +170,30 @@ test("data sources settings tests missing details then saves a provider through 
 
     await page.locator("#ticnote-source-secret").fill("fake-ticnote-token");
     await detail.getByTestId("data-source-test-connection").click();
+    await testStarted;
+    await expect(detail).toHaveAttribute(
+        "data-provider-action-state",
+        "testing",
+    );
+    releaseTest();
     await expect(detail).toHaveAttribute(
         "data-provider-action-state",
         "test-success",
     );
     await expect(
         detail.getByTestId("data-source-provider-state-banner"),
-    ).toContainText("连接信息正常");
+    ).toContainText("连接测试通过");
+    expect(testPayload).toMatchObject({
+        authMode: "bearer",
+        baseUrl: "https://voice-api.ticnote.cn",
+        enabled: true,
+        provider: "ticnote",
+        secrets: { bearerToken: "fake-ticnote-token" },
+    });
+    expect(testPayload?.config).toMatchObject({
+        region: "cn",
+    });
+    expect(savePayload).toBeNull();
 
     await page.locator("#ticnote-enabled").click();
     await expect(page.locator("#ticnote-enabled")).toHaveAttribute(

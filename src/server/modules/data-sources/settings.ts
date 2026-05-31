@@ -136,6 +136,7 @@ export async function prepareSourceConnectionWrite(params: {
         lastSync?: Date | null;
     } | null;
     body: DataSourcesRequestBody;
+    forceValidate?: boolean;
 }) {
     const definition = getSourceProviderDefinition(params.provider);
     if (!definition.prepareConnectionWrite) {
@@ -148,6 +149,7 @@ export async function prepareSourceConnectionWrite(params: {
         userId: params.userId,
         existing: toPersistedSourceConnectionState(params.existing),
         body: params.body,
+        forceValidate: params.forceValidate,
     });
 }
 

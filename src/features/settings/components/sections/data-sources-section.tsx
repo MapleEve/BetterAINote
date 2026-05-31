@@ -608,7 +608,7 @@ interface ProviderDetailProps {
     isZh: boolean;
     language: "zh-CN" | "en";
     onSave: (source: DataSourceDisplayState) => Promise<void>;
-    onTest: (source: DataSourceDisplayState) => void;
+    onTest: (source: DataSourceDisplayState) => Promise<void>;
     savingProvider: SourceProvider | null;
     secretDrafts: ReturnType<typeof useDataSourcesSettings>["secretDrafts"];
     source: DataSourceDisplayState;
@@ -928,7 +928,7 @@ function ProviderDetail({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => onTest(source)}
+                            onClick={() => void onTest(source)}
                             data-testid="data-source-test-connection"
                             disabled={
                                 isProviderInteractionDisabled ||
@@ -981,6 +981,7 @@ export function DataSourcesSection() {
         savingProvider,
         secretDrafts,
         saveSourceSettings,
+        testSourceSettings,
         updateField,
         updateSource,
     } = useDataSourcesSettings(language);
@@ -1100,7 +1101,7 @@ export function DataSourcesSection() {
         scheduleProviderActionMessageReset(source.provider);
     };
 
-    const handleTestSource = (source: DataSourceDisplayState) => {
+    const handleTestSource = async (source: DataSourceDisplayState) => {
         if (source.runtimeStatus === "planned") {
             setProviderActionMessage(source.provider, {
                 description: isZh
@@ -1113,46 +1114,57 @@ export function DataSourcesSection() {
             return;
         }
 
+        const fields = getProviderFormFields(
+            source,
+            secretDrafts,
+            language,
+            "settings",
+        ).filter((field) => !isAdvancedOptionalField(field));
+        const missingFields = getMissingConnectionFields(source, fields);
+        const hasMissingBaseUrl =
+            !providerUsesCustomServerSelector(source.provider) &&
+            !String(source.baseUrl ?? "").trim();
+
+        if (missingFields.length > 0 || hasMissingBaseUrl) {
+            setProviderActionMessage(source.provider, {
+                description: isZh
+                    ? "请先补齐登录信息，再保存或测试连接。"
+                    : "Add the required sign-in details before saving or testing.",
+                state: "test-error",
+                title: isZh ? "信息不完整" : "Missing details",
+            });
+            scheduleProviderActionMessageReset(source.provider);
+            return;
+        }
+
         setProviderActionMessage(source.provider, {
             description: isZh
-                ? "正在检查当前表单中的连接信息。"
-                : "Checking the connection details in this form.",
+                ? "正在使用当前表单信息测试连接，不会保存配置。"
+                : "Testing the current form details without saving them.",
             state: "testing",
             title: isZh ? "测试中" : "Testing",
         });
 
-        window.setTimeout(() => {
-            const fields = getProviderFormFields(
-                source,
-                secretDrafts,
-                language,
-                "settings",
-            ).filter((field) => !isAdvancedOptionalField(field));
-            const missingFields = getMissingConnectionFields(source, fields);
-            const hasMissingBaseUrl =
-                !providerUsesCustomServerSelector(source.provider) &&
-                !String(source.baseUrl ?? "").trim();
-            const failed = missingFields.length > 0 || hasMissingBaseUrl;
-
-            setProviderActionMessage(source.provider, {
-                description: failed
-                    ? isZh
-                        ? "请先补齐登录信息，再保存或测试连接。"
-                        : "Add the required sign-in details before saving or testing."
-                    : isZh
-                      ? "当前连接信息完整。若上游账号过期，保存或下次导入时会提示。"
-                      : "Connection details look complete. Expired upstream sessions will be reported on save or the next import.",
-                state: failed ? "test-error" : "test-success",
-                title: failed
-                    ? isZh
-                        ? "信息不完整"
-                        : "Missing details"
-                    : isZh
-                      ? "连接信息正常"
-                      : "Connection ready",
-            });
-            scheduleProviderActionMessageReset(source.provider);
-        }, 700);
+        const result = await testSourceSettings(source);
+        setProviderActionMessage(source.provider, {
+            description: result.ok
+                ? isZh
+                    ? "连接测试通过。测试不会保存当前连接信息。"
+                    : "Connection test passed. Testing does not save these settings."
+                : (result.message ??
+                  (isZh
+                      ? "连接测试失败，请检查登录信息后重试。"
+                      : "Connection test failed. Check the sign-in details and try again.")),
+            state: result.ok ? "test-success" : "test-error",
+            title: result.ok
+                ? isZh
+                    ? "连接测试通过"
+                    : "Connection test passed"
+                : isZh
+                  ? "连接测试失败"
+                  : "Connection test failed",
+        });
+        scheduleProviderActionMessageReset(source.provider);
     };
 
     if (isLoading) {

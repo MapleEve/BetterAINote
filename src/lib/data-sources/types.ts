@@ -221,6 +221,7 @@ export interface SourceProviderDefinition {
         userId: string;
         existing: PersistedSourceConnectionState | null;
         body: DataSourcesRequestBody;
+        forceValidate?: boolean;
     }): Promise<PreparedSourceConnectionWrite>;
     titleWriteback?: SourceTitleWritebackDriver | null;
 }

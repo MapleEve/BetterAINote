@@ -113,3 +113,37 @@ export async function saveDataSourceForUser(
         devices: next.sourceDevices,
     });
 }
+
+export async function testDataSourceForUser(
+    userId: string,
+    body: DataSourcesRequestBody,
+) {
+    if (!isSourceProvider(body.provider)) {
+        throw new SourceProviderSettingsError(
+            "provider must be one of the supported data sources",
+            { status: 400 },
+        );
+    }
+
+    const [existing] = await db
+        .select()
+        .from(sourceConnections)
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, body.provider),
+            ),
+        )
+        .limit(1);
+
+    await prepareSourceConnectionWrite({
+        userId,
+        provider: body.provider,
+        existing: existing ?? null,
+        body: {
+            ...body,
+            enabled: true,
+        },
+        forceValidate: true,
+    });
+}

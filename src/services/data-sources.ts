@@ -10,6 +10,7 @@ interface DataSourceErrorResponse {
 }
 
 export const DATA_SOURCES_API_PATH = "/api/data-sources";
+export const DATA_SOURCES_TEST_API_PATH = "/api/data-sources/test";
 
 interface SaveDataSourceOptions {
     endpoint?: string;
@@ -78,6 +79,33 @@ export async function saveDataSource(
                 data,
                 options.fallbackMessage ??
                     "Failed to save data source settings",
+            ),
+        );
+    }
+
+    return data;
+}
+
+export async function testDataSource(
+    payload: DataSourceSavePayload,
+    options: SaveDataSourceOptions = {},
+) {
+    const response = await fetch(
+        options.endpoint ?? DATA_SOURCES_TEST_API_PATH,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        },
+    );
+    const data = await readResponseJson(response);
+
+    if (!response.ok) {
+        throw new Error(
+            getErrorMessage(
+                data,
+                options.fallbackMessage ??
+                    "Failed to test data source connection",
             ),
         );
     }

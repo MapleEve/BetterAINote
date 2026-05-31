@@ -11,7 +11,11 @@ import {
     type SecretDraftState,
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
-import { getDataSources, saveDataSource } from "@/services/data-sources";
+import {
+    getDataSources,
+    saveDataSource,
+    testDataSource,
+} from "@/services/data-sources";
 
 function updateFormFieldValue(
     source: DataSourceDisplayState,
@@ -42,6 +46,16 @@ function getSettingsSaveErrorMessage(error: unknown, language: UiLanguage) {
     return language === "zh-CN"
         ? "保存数据源设置失败"
         : "Failed to save data source settings";
+}
+
+function getSettingsTestErrorMessage(error: unknown, language: UiLanguage) {
+    if (error instanceof Error && error.message.trim()) {
+        return error.message;
+    }
+
+    return language === "zh-CN"
+        ? "测试数据源连接失败"
+        : "Failed to test data source connection";
 }
 
 export function useDataSourcesSettings(language: UiLanguage) {
@@ -156,6 +170,36 @@ export function useDataSourcesSettings(language: UiLanguage) {
         [isZh, language, refreshSources, secretDrafts],
     );
 
+    const testSourceSettings = useCallback(
+        async (source: DataSourceDisplayState) => {
+            try {
+                await testDataSource(
+                    buildDataSourceSavePayload(
+                        {
+                            ...source,
+                            enabled: true,
+                        },
+                        secretDrafts,
+                        language,
+                    ),
+                    {
+                        fallbackMessage: isZh
+                            ? "测试数据源连接失败"
+                            : "Failed to test data source connection",
+                    },
+                );
+                return { ok: true };
+            } catch (error) {
+                console.error("Failed to test data source connection:", error);
+                return {
+                    ok: false,
+                    message: getSettingsTestErrorMessage(error, language),
+                };
+            }
+        },
+        [isZh, language, secretDrafts],
+    );
+
     return {
         isLoading,
         orderedSources,
@@ -163,6 +207,7 @@ export function useDataSourcesSettings(language: UiLanguage) {
         secretDrafts,
         saveSourceSettings,
         sources,
+        testSourceSettings,
         updateField,
         updateSource,
     };

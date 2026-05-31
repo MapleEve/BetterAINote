@@ -8,6 +8,7 @@
 
 ## 下级入口
 - `src/app/api/data-sources/sync/`
+- `src/app/api/data-sources/test/`
 
 ## 可改范围
 - 可以调整本目录真实文件和同级测试所覆盖的行为。

@@ -44,6 +44,37 @@ describe("frontend data-source routing regression", () => {
         expect(offenders).toEqual([]);
     });
 
+    it("keeps settings connection tests on the unified no-persist endpoint", () => {
+        const service = readFileSync(
+            path.join(ROOT, "services/data-sources.ts"),
+            "utf8",
+        );
+        const hook = readFileSync(
+            path.join(
+                ROOT,
+                "features/data-sources/use-data-sources-settings.ts",
+            ),
+            "utf8",
+        );
+        const section = readFileSync(
+            path.join(
+                ROOT,
+                "features/settings/components/sections/data-sources-section.tsx",
+            ),
+            "utf8",
+        );
+
+        expect(service).toContain("DATA_SOURCES_TEST_API_PATH");
+        expect(service).toContain('"/api/data-sources/test"');
+        expect(service).toContain('method: "POST"');
+        expect(hook).toContain("testDataSource(");
+        expect(hook).toContain("testSourceSettings");
+        expect(hook).not.toContain("@/server");
+        expect(hook).not.toContain("@/db");
+        expect(section).toContain("testSourceSettings(source)");
+        expect(section).not.toContain("Connection details look complete");
+    });
+
     it("keeps onboarding on the unified data-sources flow", () => {
         const onboardingForm = readFileSync(
             path.join(

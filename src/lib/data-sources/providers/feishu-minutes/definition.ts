@@ -30,6 +30,7 @@ import {
 
 async function prepareFeishuMinutesConnectionWrite(params: {
     existing: PersistedSourceConnectionState | null;
+    forceValidate?: boolean;
     body: {
         enabled?: unknown;
         authMode?: unknown;
@@ -141,6 +142,7 @@ async function prepareFeishuMinutesConnectionWrite(params: {
     const existingWebCookie = normalizeSecretValue(existingSecrets.webCookie);
     const existingWebToken = normalizeSecretValue(existingSecrets.webToken);
     const shouldValidateConnection =
+        params.forceValidate ||
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
         params.existing.authMode !== authMode ||

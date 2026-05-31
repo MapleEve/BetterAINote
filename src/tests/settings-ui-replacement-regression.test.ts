@@ -110,13 +110,14 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
         expect(section).toContain("PROVIDER_ASSET_CLASSES");
         expect(section).toContain("handleTestSource");
+        expect(section).toContain("testSourceSettings");
         expect(section).toContain("handleSaveSource");
         expect(section).toContain('data-testid="data-source-test-connection"');
         expect(section).toContain('data-testid="data-source-save"');
         expect(section).toContain(
             'data-testid="data-source-provider-state-banner"',
         );
-        expect(section).not.toContain("/api/data-sources/test");
+        expect(section).not.toContain("Connection details look complete");
     });
 
     it("keeps VoScript and speaker profile rows renderable without expanding into later source detail work", () => {

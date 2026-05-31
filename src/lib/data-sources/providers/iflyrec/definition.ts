@@ -21,6 +21,7 @@ import { IFLYREC_DEFAULT_BASE_URL, IflyrecClient } from "./client";
 
 async function prepareIflyrecConnectionWrite(params: {
     existing: PersistedSourceConnectionState | null;
+    forceValidate?: boolean;
     body: {
         enabled?: unknown;
         baseUrl?: unknown;
@@ -79,6 +80,7 @@ async function prepareIflyrecConnectionWrite(params: {
 
     const existingSessionId = normalizeSecretValue(existingSecrets.sessionId);
     const shouldValidateConnection =
+        params.forceValidate ||
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
         existingSessionId !== sessionId ||

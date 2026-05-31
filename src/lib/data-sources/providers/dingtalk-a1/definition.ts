@@ -30,6 +30,7 @@ const DINGTALK_DEFAULT_BASE_URL = "https://meeting-ai-tingji.dingtalk.com";
 
 async function prepareDingTalkConnectionWrite(params: {
     existing: PersistedSourceConnectionState | null;
+    forceValidate?: boolean;
     body: {
         enabled?: unknown;
         authMode?: unknown;
@@ -95,6 +96,7 @@ async function prepareDingTalkConnectionWrite(params: {
         getDingTalkDeviceCredential(existingSecrets),
     );
     const shouldValidateConnection =
+        params.forceValidate ||
         !params.existing ||
         params.existing.baseUrl !== baseUrl ||
         normalizeDingTalkAuthMode(params.existing.authMode) !== authMode ||

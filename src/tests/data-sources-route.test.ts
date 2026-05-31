@@ -27,6 +27,7 @@ vi.mock("@/lib/data-sources/providers/plaud/client", () => ({
 }));
 
 import { GET, PUT } from "@/app/api/data-sources/route";
+import { POST as TEST } from "@/app/api/data-sources/test/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { PlaudClient } from "@/lib/data-sources/providers/plaud/client";
@@ -792,6 +793,59 @@ describe("data sources route", () => {
                 }),
             }),
         );
+    });
+
+    it("tests TicNote connection details without saving them", async () => {
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValue({ ok: true, json: async () => ({ data: [] }) });
+
+        global.fetch = fetchMock as typeof fetch;
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+
+        const response = await TEST(
+            new Request("http://localhost/api/data-sources/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "ticnote",
+                    enabled: false,
+                    authMode: "bearer",
+                    baseUrl: "https://voice-api.ticnote.cn",
+                    config: {
+                        region: "cn",
+                        orgId: "org_123",
+                        timezone: "Asia/Shanghai",
+                        language: "zh",
+                    },
+                    secrets: {
+                        bearerToken: "tic-token-123",
+                    },
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(fetchMock).toHaveBeenCalledWith(
+            "https://voice-api.ticnote.cn/api/v2/file-index/chats",
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: "Bearer tic-token-123",
+                    "X-Tic-Org-Id": "org_123",
+                    "X-Tic-Lang": "zh",
+                    Timezone: "Asia/Shanghai",
+                }),
+            }),
+        );
+        expect(db.insert).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
     });
 
     it("rejects saving TicNote with a sanitized validation failure reason", async () => {
