@@ -174,7 +174,6 @@ BetterAINote에는 녹음 제목, 소스 기록, 전사 텍스트, 화자 이름
 | AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API | [docs/API.md](./docs/API.md) |
 | 데이터 소스 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 배포 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |

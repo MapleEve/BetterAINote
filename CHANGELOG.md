@@ -32,7 +32,6 @@ BetterAINote 处于 `0.6.0-preview` 预发布阶段。这个版本是后续架�
 
 - 简体中文默认 README，英文可切换，并保留日文、韩文项目概览；顶部加入 Remotion 生成的产品场景动效，突出多平台语音资料私有化集合与统一管理。
 - AI 安装部署指南，面向让 AI 工具协助安装、部署、验收时的环境边界、命令顺序、凭据安全和检查清单。
-- GitHub 项目设置说明，固化公开简介、homepage、topics/tags 和公开文案安全边界。
 - 数据源说明，面向普通用户解释钉钉 / A1 / 闪记、TicNote、Plaud、飞书妙记、讯飞听见的成熟度和限制。
 - API 文档，明确 preview 阶段公开 API 形状、错误语义和 `source-report` 脱敏边界。
 - 部署文档，说明本地 SQLite、storage、worker、CI、Docker 和 Release 工作流的状态。

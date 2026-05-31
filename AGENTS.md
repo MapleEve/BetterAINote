@@ -43,7 +43,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 
 ## Git、签名和提交
 
-- 提交前确认 author 和 committer 是 `Maple Gao <esanisa@gmail.com>`。
+- 提交前确认 author 和 committer 使用维护者授权身份。
 - 本仓库提交必须使用 SSH 签名，保留 `commit.gpgsign=true` 和 `gpg.format=ssh`。
 - 不 push `origin/main`，审查工作使用 `mini/` 前缀分支。
 - staged 范围必须只包含任务相关文件。

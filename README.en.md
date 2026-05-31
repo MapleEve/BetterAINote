@@ -174,7 +174,6 @@ See [Privacy](./docs/PRIVACY.md) and [Security](./SECURITY.md).
 | AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API shape and public boundary | [docs/API.md](./docs/API.md) |
 | Data source maturity | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub project settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | Deployment | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |

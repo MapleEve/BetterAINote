@@ -89,19 +89,27 @@ describe("CI service integrations", () => {
         expect(claudeReviewWorkflow).toContain("use_sticky_comment: true");
     });
 
-    it("documents the required repository secrets without exposing values", () => {
-        const settings = readProjectFile("docs/GITHUB_PROJECT_SETTINGS.md");
-
-        expect(settings).toContain("FOSSA_API_KEY");
-        expect(settings).toContain("CODECOV_TOKEN");
-        expect(settings).toContain("ANTHROPIC_API_KEY");
-        expect(settings).toContain("ANTHROPIC_BASE_URL");
-        expect(settings).toContain("GH_TOKEN");
-        expect(settings).not.toContain("FOSSA_API_KEY=");
-        expect(settings).not.toContain("CODECOV_TOKEN=");
-        expect(settings).not.toContain("ANTHROPIC_API_KEY=");
-        expect(settings).not.toContain("ANTHROPIC_BASE_URL=");
-        expect(settings).not.toContain("GH_TOKEN=");
+    it("keeps repository secret inventory out of public docs", () => {
+        for (const filePath of [
+            "README.md",
+            "README.en.md",
+            "README.ja.md",
+            "README.ko.md",
+            "docs/AI_INSTALL_DEPLOYMENT.md",
+            "docs/API.md",
+            "docs/AUTO_SYNC.md",
+            "docs/DATA_SOURCES.md",
+            "docs/DEPLOYMENT.md",
+            "docs/DEVELOPMENT.md",
+            "docs/PRIVACY.md",
+        ]) {
+            const content = readProjectFile(filePath);
+            expect(content).not.toContain("CODECOV_TOKEN");
+            expect(content).not.toContain("FOSSA_API_KEY");
+            expect(content).not.toContain("ANTHROPIC_API_KEY");
+            expect(content).not.toContain("ANTHROPIC_BASE_URL");
+            expect(content).not.toContain("GH_TOKEN");
+        }
     });
 
     it("keeps the FOSSA scan surface free of unused browser transcription dependencies", () => {

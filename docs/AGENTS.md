@@ -6,7 +6,7 @@
 
 ## 可改范围
 
-- 可以维护 `AI_INSTALL_DEPLOYMENT.md`、`API.md`、`AUTO_SYNC.md`、`DATA_SOURCES.md`、`DEPLOYMENT.md`、`DEVELOPMENT.md`、`GITHUB_PROJECT_SETTINGS.md`、`PRIVACY.md`。
+- 可以维护 `AI_INSTALL_DEPLOYMENT.md`、`API.md`、`AUTO_SYNC.md`、`DATA_SOURCES.md`、`DEPLOYMENT.md`、`DEVELOPMENT.md`、`PRIVACY.md`。
 - `docs/assets/readme/` 只放公开 README 可引用资产，文件名和语言后缀必须稳定。
 - 引用非公开来源时，必须重写为脱敏、用户可读、provider 中立的说明。
 

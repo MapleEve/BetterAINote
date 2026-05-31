@@ -174,7 +174,6 @@ BetterAINote には録音タイトル、ソース記録、文字起こし、話�
 | AI install/deploy | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API | [docs/API.md](./docs/API.md) |
 | データソース | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub settings | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | デプロイ | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | Privacy | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |

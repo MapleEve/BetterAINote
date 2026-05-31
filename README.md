@@ -174,7 +174,6 @@ BetterAINote 可能包含录音标题、来源记录、转写文本、说话人�
 | AI 安装部署 | [docs/AI_INSTALL_DEPLOYMENT.md](./docs/AI_INSTALL_DEPLOYMENT.md) |
 | API 与公开边界 | [docs/API.md](./docs/API.md) |
 | 数据源成熟度 | [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) |
-| GitHub 项目设置 | [docs/GITHUB_PROJECT_SETTINGS.md](./docs/GITHUB_PROJECT_SETTINGS.md) |
 | 部署 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
 | 隐私 | [docs/PRIVACY.md](./docs/PRIVACY.md) |
 | 更新日志 | [CHANGELOG.md](./CHANGELOG.md) |
