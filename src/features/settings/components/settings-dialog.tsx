@@ -178,6 +178,32 @@ function getSettingsUserInitial(displayName: string) {
     return Array.from(displayName.trim())[0]?.toLocaleUpperCase() ?? "B";
 }
 
+function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    if (target.closest("[data-settings-nav-item]")) {
+        return false;
+    }
+
+    return Boolean(
+        target.isContentEditable ||
+            target.closest(
+                [
+                    "input",
+                    "textarea",
+                    "select",
+                    "button",
+                    "a[href]",
+                    '[role="button"]',
+                    '[role="combobox"]',
+                    '[role="menuitem"]',
+                ].join(","),
+            ),
+    );
+}
+
 export function normalizeSettingsSection(
     value: string | null | undefined,
 ): CanonicalSettingsSection | null {
@@ -315,12 +341,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 return;
             }
 
-            const target = event.target as HTMLElement;
-            if (
-                target.tagName === "INPUT" ||
-                target.tagName === "TEXTAREA" ||
-                target.isContentEditable
-            ) {
+            if (shouldBypassSettingsKeyboardNav(event.target)) {
                 return;
             }
 
@@ -552,11 +573,13 @@ export function SettingsDialog(props: SettingsDialogProps) {
                             </div>
                             <DialogClose
                                 className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                                aria-label="Close"
+                                aria-label={t("settingsDialog.close")}
                                 data-testid="settings-close"
                             >
                                 <X className="h-4 w-4" />
-                                <span className="sr-only">Close</span>
+                                <span className="sr-only">
+                                    {t("settingsDialog.close")}
+                                </span>
                             </DialogClose>
                         </header>
 

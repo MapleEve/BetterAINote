@@ -42,6 +42,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         },
         settingsDialog: {
             title: "设置",
+            close: "关闭设置",
             description:
                 "在这里调整系统设置。可用方向键切换分组，回车或空格选择，Esc 关闭。",
             localDeployment: "本地部署",
@@ -223,6 +224,12 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             toggleSidebar: "折叠或展开侧边栏",
             searchFilter: "搜索筛选",
             clear: "清除",
+            privateWorkspace: "私人工作空间",
+            moreActions: "更多操作",
+            noAdditionalLocalActions: "当前录音暂无额外本地操作。",
+            deleteLocalOnly: "仅删除本地副本，不会影响来源端。",
+            deleteLocalUnavailable: "仅来源已删除的本地副本可删除。",
+            aiRenamePreviewLoading: "正在根据当前转写生成可预览的标题。",
         },
         sourceProviderRows: {
             compactHeading: "SRC",
@@ -524,6 +531,7 @@ export const translations: Record<UiLanguage, TranslationTree> = {
         },
         settingsDialog: {
             title: "Settings",
+            close: "Close settings",
             description:
                 "Customize your settings here. Use arrow keys to navigate sections, Enter or Space to select, and Escape to close.",
             localDeployment: "Local deployment",
@@ -720,6 +728,16 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             toggleSidebar: "Collapse or expand sidebar",
             searchFilter: "Search filter",
             clear: "Clear",
+            privateWorkspace: "Private workspace",
+            moreActions: "More actions",
+            noAdditionalLocalActions:
+                "No additional local actions are available for this recording.",
+            deleteLocalOnly:
+                "Deletes the local copy only and leaves the upstream source untouched.",
+            deleteLocalUnavailable:
+                "Only local copies whose upstream source was deleted can be removed.",
+            aiRenamePreviewLoading:
+                "Generating a preview title from the current transcript.",
         },
         sourceProviderRows: {
             compactHeading: "SRC",

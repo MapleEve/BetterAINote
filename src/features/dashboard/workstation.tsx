@@ -1509,22 +1509,23 @@ export function Workstation({
                                     BetterAINote
                                 </h1>
                                 <p className="text-xs text-muted-foreground">
-                                    {language === "zh-CN"
-                                        ? "私人工作空间"
-                                        : "Private workspace"}
+                                    {t("dashboardChrome.privateWorkspace")}
                                 </p>
                             </div>
                         </div>
 
                         <div className="mb-4 flex flex-col gap-1">
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleFavoriteSelect("all")}
+                                aria-pressed={activeFavorite === "all"}
                                 data-active={
                                     activeFavorite === "all" ? "true" : "false"
                                 }
                                 className={cn(
-                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1546,19 +1547,22 @@ export function Workstation({
                                 >
                                     {liveRecordings.length}
                                 </span>
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() =>
                                     handleFavoriteSelect("transcribed")
                                 }
+                                aria-pressed={activeFavorite === "transcribed"}
                                 data-active={
                                     activeFavorite === "transcribed"
                                         ? "true"
                                         : "false"
                                 }
                                 className={cn(
-                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1588,15 +1592,18 @@ export function Workstation({
                                         ).length
                                     }
                                 </span>
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleFavoriteSelect("tags")}
+                                aria-pressed={activeFavorite === "tags"}
                                 data-active={
                                     activeFavorite === "tags" ? "true" : "false"
                                 }
                                 className={cn(
-                                    "group flex items-center gap-2 rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1618,7 +1625,7 @@ export function Workstation({
                                 >
                                     {tagCatalog.length}
                                 </span>
-                            </button>
+                            </Button>
                         </div>
 
                         <SourceProviderRows
@@ -2049,11 +2056,9 @@ export function Workstation({
                                                         aria-expanded={
                                                             isMoreActionsOpen
                                                         }
-                                                        aria-label={
-                                                            language === "zh-CN"
-                                                                ? "更多操作"
-                                                                : "More actions"
-                                                        }
+                                                        aria-label={t(
+                                                            "dashboardChrome.moreActions",
+                                                        )}
                                                         className="shrink-0"
                                                         onClick={() =>
                                                             setMoreActionsOpen(
@@ -2066,12 +2071,9 @@ export function Workstation({
                                                     {isMoreActionsOpen ? (
                                                         <div
                                                             role="menu"
-                                                            aria-label={
-                                                                language ===
-                                                                "zh-CN"
-                                                                    ? "更多操作"
-                                                                    : "More actions"
-                                                            }
+                                                            aria-label={t(
+                                                                "dashboardChrome.moreActions",
+                                                            )}
                                                             data-testid="dashboard-detail-more-menu"
                                                             data-local-delete-available={
                                                                 currentRecording.upstreamDeleted
@@ -2082,23 +2084,23 @@ export function Workstation({
                                                         >
                                                             <header className="border-border/70 border-b px-3.5 py-2.5">
                                                                 <p className="font-semibold text-sm">
-                                                                    {language ===
-                                                                    "zh-CN"
-                                                                        ? "更多操作"
-                                                                        : "More actions"}
+                                                                    {t(
+                                                                        "dashboardChrome.moreActions",
+                                                                    )}
                                                                 </p>
                                                             </header>
                                                             {!currentRecording.upstreamDeleted ? (
                                                                 <p className="px-3.5 py-2.5 text-muted-foreground text-xs leading-5">
-                                                                    {language ===
-                                                                    "zh-CN"
-                                                                        ? "当前录音暂无额外本地操作。"
-                                                                        : "No additional local actions are available for this recording."}
+                                                                    {t(
+                                                                        "dashboardChrome.noAdditionalLocalActions",
+                                                                    )}
                                                                 </p>
                                                             ) : null}
                                                             <div className="p-1.5">
-                                                                <button
+                                                                <Button
                                                                     type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
                                                                     role="menuitem"
                                                                     disabled={
                                                                         !currentRecording.upstreamDeleted
@@ -2107,7 +2109,7 @@ export function Workstation({
                                                                         !currentRecording.upstreamDeleted
                                                                     }
                                                                     data-testid="dashboard-delete-local-recording"
-                                                                    className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                                                                    className="h-auto w-full justify-start rounded-lg px-2.5 py-2 text-left text-sm hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                                                                     onClick={() => {
                                                                         setMoreActionsOpen(
                                                                             false,
@@ -2124,17 +2126,15 @@ export function Workstation({
                                                                         </span>
                                                                         <span className="mt-0.5 block text-muted-foreground text-xs leading-5">
                                                                             {currentRecording.upstreamDeleted
-                                                                                ? language ===
-                                                                                  "zh-CN"
-                                                                                    ? "仅删除本地副本，不会影响来源端。"
-                                                                                    : "Deletes the local copy only and leaves the upstream source untouched."
-                                                                                : language ===
-                                                                                    "zh-CN"
-                                                                                  ? "仅来源已删除的本地副本可删除。"
-                                                                                  : "Only local copies whose upstream source was deleted can be removed."}
+                                                                                ? t(
+                                                                                      "dashboardChrome.deleteLocalOnly",
+                                                                                  )
+                                                                                : t(
+                                                                                      "dashboardChrome.deleteLocalUnavailable",
+                                                                                  )}
                                                                         </span>
                                                                     </span>
-                                                                </button>
+                                                                </Button>
                                                             </div>
                                                         </div>
                                                     ) : null}
@@ -2146,11 +2146,9 @@ export function Workstation({
                                         <AiRenamePreviewCard
                                             isApplying={false}
                                             isRegenerating={isAutoRenaming}
-                                            message={
-                                                language === "zh-CN"
-                                                    ? "正在根据当前转写生成可预览的标题。"
-                                                    : "Generating a preview title from the current transcript."
-                                            }
+                                            message={t(
+                                                "dashboardChrome.aiRenamePreviewLoading",
+                                            )}
                                             state="loading"
                                             title={t("transcription.aiRename")}
                                         />

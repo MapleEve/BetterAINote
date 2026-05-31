@@ -34,6 +34,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain('data-testid="settings-user-avatar"');
         expect(dialog).toContain("settingsDialog.localDeployment");
         expect(dialog).toContain("settingsDialog.singleUserSelfHosted");
+        expect(dialog).toContain("settingsDialog.close");
+        expect(dialog).toContain("shouldBypassSettingsKeyboardNav");
+        expect(dialog).toContain("[data-settings-nav-item]");
+        expect(dialog).not.toContain('aria-label="Close"');
+        expect(dialog).not.toContain('<span className="sr-only">Close</span>');
         expect(dialog).toContain("data-settings-scroll-body");
         expect(dialog).toContain(
             "data-settings-active-section={activeSection}",

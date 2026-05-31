@@ -35,6 +35,12 @@ describe("dashboard UI foundation", () => {
         expect(workstation).toContain("isSidebarCollapsed");
         expect(workstation).toContain("filteredRecordings");
         expect(workstation).toContain("recordingListMode");
+        expect(workstation).toContain("dashboardChrome.privateWorkspace");
+        expect(workstation).toContain("dashboardChrome.moreActions");
+        expect(workstation).toContain("dashboardChrome.deleteLocalOnly");
+        expect(workstation).toContain("@/components/ui/button");
+        expect(workstation).not.toContain("私人工作空间");
+        expect(workstation).not.toContain("当前录音暂无额外本地操作");
         expect(globals).toContain(".dashboard-workstation");
         expect(globals).toContain(".dashboard-list-panel");
         expect(globals).toContain(

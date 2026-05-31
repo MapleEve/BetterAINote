@@ -105,6 +105,9 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         "data-settings-active-section",
         "transcription",
     );
+    await expect(page.getByTestId("settings-close")).toHaveAccessibleName(
+        "关闭设置",
+    );
 
     await page.locator('[data-settings-nav-item="voscript"]').click();
     await expectShellHeightStable(page, baselineHeight);
@@ -153,7 +156,8 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
         .toBe(0);
     await expectShellHeightStable(page, baselineHeight);
 
-    await page.keyboard.press("Escape");
+    await page.getByTestId("settings-close").focus();
+    await page.keyboard.press("Space");
     await expect(page.locator("[data-settings-shell]")).toBeHidden();
     await expect(settingsTrigger).toBeFocused();
 });
@@ -176,7 +180,8 @@ test("settings route aliases and mobile selector keep the shell fixed", async ({
     expect(baselineHeight).toBeLessThanOrEqual(844);
 
     const sectionSelector = shell.getByRole("combobox", { name: "设置" });
-    await sectionSelector.click();
+    await sectionSelector.focus();
+    await page.keyboard.press("Enter");
     await page.getByRole("option", { name: "VoScript" }).click();
     await expect(shell).toHaveAttribute("data-settings-active-section", "voscript");
     await expectShellHeightStable(page, baselineHeight);

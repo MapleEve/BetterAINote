@@ -151,6 +151,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain(
             "dashboard-delete-local-recording",
         );
+        expect(dashboardWorkstation).toContain("dashboardChrome.moreActions");
+        expect(dashboardWorkstation).toContain(
+            "dashboardChrome.deleteLocalOnly",
+        );
+        expect(dashboardWorkstation).not.toContain("更多操作");
+        expect(dashboardWorkstation).not.toContain("仅删除本地副本");
         expect(dashboardWorkstation).toContain(
             "currentRecording.upstreamDeleted",
         );

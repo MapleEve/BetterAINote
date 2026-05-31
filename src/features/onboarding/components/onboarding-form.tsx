@@ -578,8 +578,8 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                         }
                                         description={
                                             isZh
-                                                ? "录音、原始转写和报告优先保留在你的部署里，工作台只围绕本地资料组织。"
-                                                : "Recordings, raw transcripts, and reports stay in your deployment first, with the workspace organized around local material."
+                                                ? "录音、原始转写和报告优先保留在你的部署里，工作台围绕本地数据组织。"
+                                                : "Recordings, raw transcripts, and reports stay in your deployment first, with the workspace organized around local data."
                                         }
                                     />
                                     <PrivacyCard
