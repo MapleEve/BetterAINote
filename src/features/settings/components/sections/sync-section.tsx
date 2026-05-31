@@ -83,7 +83,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3">
+                <div className="glass-surface-subtle flex items-center justify-between rounded-2xl px-4 py-3">
                     <div className="flex flex-col gap-1">
                         <Label htmlFor="auto-sync" className="text-base">
                             {isZh ? "启用后台同步" : "Enable automatic checks"}
@@ -108,7 +108,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
                 </div>
 
                 {autoSyncEnabled ? (
-                    <div className="flex flex-col gap-2 rounded-2xl border border-white/8 bg-white/5 p-4">
+                    <div className="glass-surface-subtle flex flex-col gap-2 rounded-2xl p-4">
                         <Label htmlFor="sync-interval">
                             {isZh ? "自动检查间隔" : "Automatic check interval"}
                         </Label>

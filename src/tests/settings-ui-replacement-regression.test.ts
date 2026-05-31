@@ -181,6 +181,21 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(speakers).not.toContain("AI rename");
     });
 
+    it("keeps settings skeleton and sync controls on shared glass tokens", () => {
+        const skeletons = readSource(
+            "features/settings/components/settings-skeletons.tsx",
+        );
+        const sync = readSource(
+            "features/settings/components/sections/sync-section.tsx",
+        );
+
+        for (const source of [skeletons, sync]) {
+            expect(source).toContain("glass-surface-subtle");
+            expect(source).not.toContain("border-white/8");
+            expect(source).not.toContain("bg-white/5");
+        }
+    });
+
     it("keeps transcription and AI rename sections in the current glass settings language", () => {
         const transcription = readSource(
             "features/settings/components/sections/transcription-section.tsx",

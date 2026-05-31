@@ -31,7 +31,7 @@ export function SettingsCardSkeleton({
                 {makeSkeletonKeys("field", fields).map((fieldKey, index) => (
                     <div
                         key={fieldKey}
-                        className="rounded-2xl border border-white/8 bg-white/5 p-4"
+                        className="glass-surface-subtle rounded-2xl p-4"
                     >
                         <div className="mb-3 flex items-center justify-between gap-4">
                             <Skeleton className="h-4 w-32" />
