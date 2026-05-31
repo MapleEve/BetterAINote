@@ -146,6 +146,7 @@ export function RecordingTagManager({
                 isPopover && "border-0 bg-transparent p-0 backdrop-blur-0",
                 className,
             )}
+            data-testid="recording-tag-manager"
         >
             <div
                 className={cn(
@@ -202,6 +203,8 @@ export function RecordingTagManager({
                                 onClick={() => handleToggleTag(tag)}
                                 disabled={Boolean(savingTagId) || isCreating}
                                 aria-pressed={selected}
+                                data-testid="recording-tag-toggle"
+                                data-tag-name={tag.name}
                                 className={cn(
                                     "inline-flex max-w-full items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] disabled:opacity-60",
                                     isPopover && "max-w-[8.5rem]",
@@ -231,6 +234,7 @@ export function RecordingTagManager({
                 <Input
                     value={name}
                     maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
+                    data-testid="recording-tag-create-input"
                     onChange={(event) =>
                         setName(
                             Array.from(event.target.value)
@@ -255,6 +259,7 @@ export function RecordingTagManager({
                     variant="outline"
                     onClick={handleCreateTag}
                     disabled={!name.trim() || isCreating}
+                    data-testid="recording-tag-create-submit"
                 >
                     {isCreating ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

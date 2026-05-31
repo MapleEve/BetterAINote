@@ -1408,8 +1408,30 @@ export function Workstation({
                 return;
             }
 
+            const deletedRecordingId = currentRecording.id;
             toast.success(t("dashboard.deleteSuccess"));
-            setCurrentRecording(null);
+            setTagManagerOpen(false);
+            setIsRenaming(false);
+            setAutoRenamePreview(null);
+            setAutoRenameError(null);
+            setCurrentRecording((previous) =>
+                previous?.id === deletedRecordingId ? null : previous,
+            );
+            setLiveRecordings((previous) =>
+                previous.filter(
+                    (recording) => recording.id !== deletedRecordingId,
+                ),
+            );
+            setLiveTranscriptions((previous) => {
+                const next = new Map(previous);
+                next.delete(deletedRecordingId);
+                return next;
+            });
+            setLiveTranscriptionJobs((previous) => {
+                const next = new Map(previous);
+                next.delete(deletedRecordingId);
+                return next;
+            });
             refreshBrowserRoute(router);
         } catch {
             toast.error(t("dashboard.deleteFailed"));
@@ -1860,6 +1882,7 @@ export function Workstation({
                                             <div className="flex flex-1 items-center gap-2">
                                                 <Input
                                                     value={renameValue}
+                                                    data-testid="dashboard-rename-input"
                                                     onChange={(event) =>
                                                         setRenameValue(
                                                             event.target.value,
@@ -1917,6 +1940,7 @@ export function Workstation({
                                                     variant="outline"
                                                     onClick={handleRenameSave}
                                                     disabled={isSavingRename}
+                                                    data-testid="dashboard-rename-save"
                                                     title={t(
                                                         "recording.saveRename",
                                                     )}
@@ -1929,6 +1953,7 @@ export function Workstation({
                                                     variant="outline"
                                                     onClick={handleRenameCancel}
                                                     disabled={isSavingRename}
+                                                    data-testid="dashboard-rename-cancel"
                                                     title={t(
                                                         "recording.cancelRename",
                                                     )}
@@ -1939,7 +1964,10 @@ export function Workstation({
                                             </div>
                                         ) : (
                                             <>
-                                                <h2 className="flex-1 truncate text-lg font-semibold">
+                                                <h2
+                                                    className="flex-1 truncate text-lg font-semibold"
+                                                    data-testid="dashboard-recording-title"
+                                                >
                                                     {currentRecording.filename}
                                                 </h2>
                                                 {currentRecording.upstreamDeleted && (
@@ -1987,6 +2015,7 @@ export function Workstation({
                                                         onClick={
                                                             handleRenameStart
                                                         }
+                                                        data-testid="dashboard-rename-recording"
                                                         title={
                                                             currentRenameActionLabel
                                                         }
