@@ -270,3 +270,383 @@ test("VoScript remote voiceprint delete confirmation stays above the settings sh
     );
     await expect(row).toHaveCount(0);
 });
+
+test("VoScript speaker profiles create, edit, delete, and rename remote voiceprints", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    const profilePosts: Record<string, unknown>[] = [];
+    const profilePatches: Record<string, unknown>[] = [];
+    let profileDeletes = 0;
+    const voiceprintPatches: Record<string, unknown>[] = [];
+
+    let localProfiles = [
+        {
+            assignmentCount: 1,
+            createdAt: "2026-05-01T00:00:00.000Z",
+            displayName: "Speaker Pending Edit",
+            id: "profile-edit-001",
+            updatedAt: "2026-05-02T00:00:00.000Z",
+            voiceprintRef: null,
+        },
+    ];
+    let remoteVoiceprints = [
+        {
+            createdAt: "2026-05-01T00:00:00.000Z",
+            displayName: "Voiceprint Pending Rename",
+            id: "vp-rename-001",
+            updatedAt: "2026-05-02T00:00:00.000Z",
+        },
+    ];
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+                privateTranscriptionDenoiseModel: "none",
+                privateTranscriptionMaxInflightJobs: 1,
+                privateTranscriptionMaxSpeakers: 0,
+                privateTranscriptionMinSpeakers: 0,
+                privateTranscriptionNoRepeatNgramSize: 0,
+                privateTranscriptionSnrThreshold: null,
+            }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        if (route.request().method() === "POST") {
+            const payload = route.request().postDataJSON();
+            profilePosts.push(payload);
+            localProfiles = [
+                ...localProfiles,
+                {
+                    assignmentCount: 0,
+                    createdAt: "2026-05-03T00:00:00.000Z",
+                    displayName: String(payload.displayName),
+                    id: "profile-created-001",
+                    updatedAt: "2026-05-03T00:00:00.000Z",
+                    voiceprintRef: null,
+                },
+            ];
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ profile: localProfiles.at(-1) }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: localProfiles }),
+        });
+    });
+
+    await page.route(/\/api\/speakers\/profiles\/[^/]+$/, async (route) => {
+        const profileId = route.request().url().split("/").pop() ?? "";
+        if (route.request().method() === "PATCH") {
+            const payload = route.request().postDataJSON();
+            profilePatches.push(payload);
+            localProfiles = localProfiles.map((profile) =>
+                profile.id === profileId
+                    ? {
+                          ...profile,
+                          displayName: String(payload.displayName),
+                          updatedAt: "2026-05-04T00:00:00.000Z",
+                      }
+                    : profile,
+            );
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    profile: localProfiles.find(
+                        (profile) => profile.id === profileId,
+                    ),
+                }),
+            });
+            return;
+        }
+
+        if (route.request().method() === "DELETE") {
+            profileDeletes += 1;
+            localProfiles = localProfiles.filter(
+                (profile) => profile.id !== profileId,
+            );
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ success: true }),
+            });
+            return;
+        }
+
+        await route.continue();
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: remoteVoiceprints,
+            }),
+        });
+    });
+
+    await page.route("**/api/voiceprints/vp-rename-001", async (route) => {
+        if (route.request().method() !== "PATCH") {
+            await route.continue();
+            return;
+        }
+
+        const payload = route.request().postDataJSON();
+        voiceprintPatches.push(payload);
+        remoteVoiceprints = remoteVoiceprints.map((voiceprint) => ({
+            ...voiceprint,
+            displayName: String(payload.displayName),
+            updatedAt: "2026-05-04T00:00:00.000Z",
+        }));
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ voiceprint: remoteVoiceprints[0] }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const shell = page.locator("[data-settings-shell]");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "voscript",
+    );
+    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
+        "data-profiles-state",
+        "ready",
+    );
+    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
+        "data-vs-state",
+        "ready",
+    );
+
+    await page.getByTestId("speaker-profile-new-name").fill("Casey QA");
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith("/api/speakers/profiles") &&
+                response.request().method() === "POST" &&
+                response.ok(),
+        ),
+        page.getByTestId("speaker-profile-create").click(),
+    ]);
+    expect(profilePosts).toEqual([{ displayName: "Casey QA" }]);
+    await expect(
+        page.locator('[data-speaker-profile-id="profile-created-001"]'),
+    ).toBeVisible();
+    await expect(page.getByTestId("speaker-profile-new-name")).toHaveValue("");
+
+    const editedProfileRow = page.locator(
+        '[data-speaker-profile-id="profile-edit-001"]',
+    );
+    await editedProfileRow
+        .getByTestId("speaker-profile-name")
+        .fill("Speaker Renamed");
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith(
+                    "/api/speakers/profiles/profile-edit-001",
+                ) &&
+                response.request().method() === "PATCH" &&
+                response.ok(),
+        ),
+        editedProfileRow.getByTestId("speaker-profile-save").click(),
+    ]);
+    expect(profilePatches.at(-1)).toEqual({ displayName: "Speaker Renamed" });
+    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toHaveValue(
+        "Speaker Renamed",
+    );
+
+    await editedProfileRow.getByTestId("speaker-profile-delete").click();
+    const confirmDialog = page.getByRole("dialog", {
+        name: "确认操作",
+        exact: true,
+    });
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole("button", { name: "取消" }).click();
+    await expect(confirmDialog).not.toBeVisible();
+    expect(profileDeletes).toBe(0);
+    await expect(editedProfileRow).toBeVisible();
+
+    await editedProfileRow.getByTestId("speaker-profile-delete").click();
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith(
+                    "/api/speakers/profiles/profile-edit-001",
+                ) &&
+                response.request().method() === "DELETE" &&
+                response.ok(),
+        ),
+        page
+            .getByRole("dialog", { name: "确认操作", exact: true })
+            .getByRole("button", { name: "确认" })
+            .click(),
+    ]);
+    expect(profileDeletes).toBe(1);
+    await expect(editedProfileRow).toHaveCount(0);
+
+    const voiceprintRow = page.locator('[data-vs-profile-id="vp-rename-001"]');
+    await voiceprintRow
+        .getByTestId("voiceprint-name")
+        .fill("Voiceprint Renamed");
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith("/api/voiceprints/vp-rename-001") &&
+                response.request().method() === "PATCH" &&
+                response.ok(),
+        ),
+        voiceprintRow.getByTestId("voiceprint-rename").click(),
+    ]);
+    expect(voiceprintPatches.at(-1)).toEqual({
+        displayName: "Voiceprint Renamed",
+    });
+    await expect(voiceprintRow.getByTestId("voiceprint-name")).toHaveValue(
+        "Voiceprint Renamed",
+    );
+
+    await page.mouse.wheel(0, 1200);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test("VoScript speaker profile panels recover from load errors", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let profileGets = 0;
+    let voiceprintGets = 0;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+                privateTranscriptionDenoiseModel: "none",
+                privateTranscriptionMaxInflightJobs: 1,
+                privateTranscriptionMaxSpeakers: 0,
+                privateTranscriptionMinSpeakers: 0,
+                privateTranscriptionNoRepeatNgramSize: 0,
+                privateTranscriptionSnrThreshold: null,
+            }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        profileGets += 1;
+        if (profileGets === 1) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 500,
+                body: JSON.stringify({ error: "Profiles temporarily down" }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                profiles: [
+                    {
+                        assignmentCount: 0,
+                        createdAt: "2026-05-01T00:00:00.000Z",
+                        displayName: "Recovered Speaker",
+                        id: "profile-recovered-001",
+                        updatedAt: "2026-05-01T00:00:00.000Z",
+                        voiceprintRef: null,
+                    },
+                ],
+            }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        voiceprintGets += 1;
+        if (voiceprintGets === 1) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 502,
+                body: JSON.stringify({ error: "Voiceprints temporarily down" }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: [
+                    {
+                        createdAt: "2026-05-01T00:00:00.000Z",
+                        displayName: "Recovered Voiceprint",
+                        id: "vp-recovered-001",
+                        updatedAt: "2026-05-01T00:00:00.000Z",
+                    },
+                ],
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
+        "data-profiles-state",
+        "error",
+    );
+    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
+        "data-vs-state",
+        "error",
+    );
+
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith("/api/speakers/profiles") &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        ),
+        page.getByTestId("speaker-profiles-refresh").click(),
+    ]);
+    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
+        "data-profiles-state",
+        "ready",
+    );
+    await expect(
+        page.locator('[data-speaker-profile-id="profile-recovered-001"]'),
+    ).toBeVisible();
+
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().endsWith("/api/voiceprints") &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        ),
+        page.getByTestId("voiceprints-refresh").click(),
+    ]);
+    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
+        "data-vs-state",
+        "ready",
+    );
+    await expect(
+        page.locator('[data-vs-profile-id="vp-recovered-001"]'),
+    ).toBeVisible();
+});

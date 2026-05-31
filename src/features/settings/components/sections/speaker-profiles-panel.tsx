@@ -303,11 +303,24 @@ export function SpeakerProfilesPanel() {
     );
 
     const handleDelete = useCallback(
-        async (profileId: string) => {
-            setLocalSavingId(profileId);
+        async (profile: SpeakerProfile) => {
+            const confirmed = await confirm({
+                title: isZh ? "确认操作" : "Confirm action",
+                description: isZh
+                    ? `确定删除说话人“${profile.displayName}”吗？已有录音中的说话人标注不会自动重写。`
+                    : `Delete speaker "${profile.displayName}"? Existing recording speaker labels will not be rewritten automatically.`,
+                confirmLabel: isZh ? "确认" : "Confirm",
+                cancelLabel: isZh ? "取消" : "Cancel",
+                variant: "destructive",
+            });
+            if (!confirmed) {
+                return;
+            }
+
+            setLocalSavingId(profile.id);
             try {
                 const response = await fetch(
-                    `/api/speakers/profiles/${profileId}`,
+                    `/api/speakers/profiles/${profile.id}`,
                     {
                         method: "DELETE",
                     },
@@ -336,7 +349,7 @@ export function SpeakerProfilesPanel() {
                 setLocalSavingId(null);
             }
         },
-        [isZh, refreshProfiles],
+        [confirm, isZh, refreshProfiles],
     );
 
     const handleRenameVoiceprint = useCallback(
@@ -481,6 +494,7 @@ export function SpeakerProfilesPanel() {
                         variant="outline"
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
+                        data-testid="speaker-profiles-refresh"
                     >
                         <RefreshCw
                             className={`mr-2 h-3.5 w-3.5 ${isProfilesLoading ? "animate-spin" : ""}`}
@@ -499,6 +513,7 @@ export function SpeakerProfilesPanel() {
                             value={newName}
                             onChange={(event) => setNewName(event.target.value)}
                             placeholder={isZh ? "例如：Alex" : "e.g. Alex"}
+                            data-testid="speaker-profile-new-name"
                         />
                     </div>
                     <Button
@@ -507,6 +522,7 @@ export function SpeakerProfilesPanel() {
                         className="self-end"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
+                        data-testid="speaker-profile-create"
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
                     </Button>
@@ -543,6 +559,7 @@ export function SpeakerProfilesPanel() {
                                 key={profile.id}
                                 className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
                                 data-speaker-profile-row=""
+                                data-speaker-profile-id={profile.id}
                             >
                                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
                                     {profile.displayName
@@ -568,6 +585,7 @@ export function SpeakerProfilesPanel() {
                                             )
                                         }
                                         className="min-w-0 truncate [word-break:keep-all]"
+                                        data-testid="speaker-profile-name"
                                     />
                                     <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
                                         <span className="min-w-0 truncate">
@@ -611,6 +629,7 @@ export function SpeakerProfilesPanel() {
                                     className="shrink-0 whitespace-nowrap max-sm:col-start-2"
                                     onClick={() => handleUpdate(profile)}
                                     disabled={localSavingId === profile.id}
+                                    data-testid="speaker-profile-save"
                                 >
                                     {isZh ? "保存" : "Save"}
                                 </Button>
@@ -619,8 +638,9 @@ export function SpeakerProfilesPanel() {
                                     size="sm"
                                     variant="outline"
                                     className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
-                                    onClick={() => handleDelete(profile.id)}
+                                    onClick={() => handleDelete(profile)}
                                     disabled={localSavingId === profile.id}
+                                    data-testid="speaker-profile-delete"
                                 >
                                     {isZh ? "删除" : "Delete"}
                                 </Button>
@@ -651,6 +671,7 @@ export function SpeakerProfilesPanel() {
                         variant="outline"
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
+                        data-testid="voiceprints-refresh"
                     >
                         <RefreshCw
                             className={`mr-2 h-3.5 w-3.5 ${isVoiceprintsLoading ? "animate-spin" : ""}`}
@@ -697,6 +718,7 @@ export function SpeakerProfilesPanel() {
                                 key={voiceprint.id}
                                 className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
                                 data-vs-profile-row=""
+                                data-vs-profile-id={voiceprint.id}
                             >
                                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
                                     {voiceprint.displayName
@@ -730,6 +752,7 @@ export function SpeakerProfilesPanel() {
                                             )
                                         }
                                         className="min-w-0 truncate [word-break:keep-all]"
+                                        data-testid="voiceprint-name"
                                     />
                                     <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
                                         <StatePill tone="success">
@@ -775,6 +798,7 @@ export function SpeakerProfilesPanel() {
                                     disabled={
                                         voiceprintSavingId === voiceprint.id
                                     }
+                                    data-testid="voiceprint-rename"
                                 >
                                     {isZh ? "重命名" : "Rename"}
                                 </Button>
@@ -789,6 +813,7 @@ export function SpeakerProfilesPanel() {
                                     disabled={
                                         voiceprintSavingId === voiceprint.id
                                     }
+                                    data-testid="voiceprint-delete"
                                 >
                                     {isZh ? "删除" : "Delete"}
                                 </Button>
