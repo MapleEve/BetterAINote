@@ -7,7 +7,7 @@ VoScript 设置 API，保持服务地址和凭据脱敏。
 - `route.ts`
 
 ## 下级入口
-- 本层没有更深的已跟踪源码目录。
+- `src/app/api/settings/voscript/test/`
 
 ## 可改范围
 - 可以调整本目录真实文件和同级测试所覆盖的行为。

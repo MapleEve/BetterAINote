@@ -44,6 +44,7 @@ import {
     saveDataSource,
     testDataSource,
 } from "@/services/data-sources";
+import { testVoScriptConnection } from "@/services/voscript-settings";
 
 describe("data source utility coverage", () => {
     afterEach(() => {
@@ -386,5 +387,68 @@ describe("data source service and connection coverage", () => {
             timezone: "Asia/Shanghai",
             syncTitleToSource: false,
         });
+    });
+});
+
+describe("VoScript service connection coverage", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("posts connection tests to the no-persist VoScript endpoint", async () => {
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValueOnce(
+                    Response.json(
+                        {
+                            available: true,
+                            providerName: "voice-transcribe",
+                            success: true,
+                            voiceprintCount: 2,
+                        },
+                        { status: 200 },
+                    ),
+                )
+                .mockResolvedValueOnce(
+                    Response.json(
+                        { error: "connection failed" },
+                        { status: 502 },
+                    ),
+                )
+                .mockResolvedValueOnce(new Response("{bad", { status: 500 })),
+        );
+
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionApiKey: "key",
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).resolves.toEqual({
+            available: true,
+            providerName: "voice-transcribe",
+            success: true,
+            voiceprintCount: 2,
+        });
+        expect(fetch).toHaveBeenCalledWith("/api/settings/voscript/test", {
+            body: JSON.stringify({
+                privateTranscriptionApiKey: "key",
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+        });
+
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).rejects.toThrow("connection failed");
+        await expect(
+            testVoScriptConnection({
+                privateTranscriptionBaseUrl: "https://voscript.test",
+            }),
+        ).rejects.toThrow("Failed to test VoScript connection");
     });
 });

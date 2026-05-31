@@ -5,6 +5,7 @@ import {
     Cpu,
     Info,
     KeyRound,
+    RefreshCw,
     SlidersHorizontal,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -28,9 +29,11 @@ import type {
     VoScriptDenoiseModel,
     VoScriptSettingsUpdate,
 } from "@/services/voscript-settings";
+import { testVoScriptConnection } from "@/services/voscript-settings";
 import { SpeakerProfilesPanel } from "./speaker-profiles-panel";
 
 type VoScriptSaveState = "idle" | "saving" | "saved" | "error";
+type VoScriptConnectionTestState = "idle" | "testing" | "success" | "error";
 
 function VoScriptStatusBanner({
     description,
@@ -117,6 +120,11 @@ export function VoScriptSection() {
     ] = useState("1");
     const [saveState, setSaveState] = useState<VoScriptSaveState>("idle");
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
+    const [connectionTestState, setConnectionTestState] =
+        useState<VoScriptConnectionTestState>("idle");
+    const [connectionTestMessage, setConnectionTestMessage] = useState<
+        string | null
+    >(null);
 
     useEffect(() => {
         setPrivateTranscriptionBaseUrl(privateTranscriptionBaseUrl ?? "");
@@ -292,6 +300,48 @@ export function VoScriptSection() {
         }
     };
 
+    const handleTestConnection = async () => {
+        const normalizedBaseUrl = privateTranscriptionBaseUrlInput.trim();
+        if (!normalizedBaseUrl) {
+            const message = isZh
+                ? "请先填写 VoScript 服务地址"
+                : "Enter a VoScript service URL first";
+            setConnectionTestState("error");
+            setConnectionTestMessage(message);
+            toast.error(message);
+            return;
+        }
+
+        setConnectionTestState("testing");
+        setConnectionTestMessage(
+            isZh ? "正在测试 VoScript 连接。" : "Testing VoScript connection.",
+        );
+
+        try {
+            const result = await testVoScriptConnection({
+                privateTranscriptionApiKey:
+                    privateTranscriptionApiKey.trim() || null,
+                privateTranscriptionBaseUrl: normalizedBaseUrl,
+            });
+            const message = isZh
+                ? `VoScript 连接测试通过，当前可读取 ${result.voiceprintCount} 个远端声纹。`
+                : `VoScript connection works. ${result.voiceprintCount} remote voiceprint${result.voiceprintCount === 1 ? "" : "s"} readable.`;
+            setConnectionTestState("success");
+            setConnectionTestMessage(message);
+            toast.success(message);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : isZh
+                      ? "测试 VoScript 连接失败"
+                      : "Failed to test VoScript connection";
+            setConnectionTestState("error");
+            setConnectionTestMessage(message);
+            toast.error(message);
+        }
+    };
+
     if (isLoading && !hasLoaded) {
         return <SettingsSectionSkeleton cards={2} fieldsPerCard={3} />;
     }
@@ -402,6 +452,8 @@ export function VoScriptSection() {
         value: string | boolean,
     ) => {
         const nextValue = String(value);
+        setConnectionTestState("idle");
+        setConnectionTestMessage(null);
 
         if (field.id === "base-url") {
             setPrivateTranscriptionBaseUrl(nextValue);
@@ -450,6 +502,7 @@ export function VoScriptSection() {
                 serviceConfigured ? "configured" : "unavailable"
             }
             data-voscript-save-state={isSaving ? "saving" : saveState}
+            data-voscript-test-state={connectionTestState}
         >
             <div className="flex flex-col gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
@@ -531,6 +584,62 @@ export function VoScriptSection() {
                                 variant="settings"
                             />
                         ))}
+
+                        <div className="flex flex-col gap-2 rounded-xl border border-dashed bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0 text-sm">
+                                <p className="font-medium">
+                                    {isZh ? "连接测试" : "Connection test"}
+                                </p>
+                                <p
+                                    className={cn(
+                                        "mt-0.5 text-xs text-muted-foreground",
+                                        connectionTestState === "success" &&
+                                            "text-emerald-700 dark:text-emerald-200",
+                                        connectionTestState === "error" &&
+                                            "text-destructive",
+                                    )}
+                                    data-testid="voscript-connection-message"
+                                    role={
+                                        connectionTestState === "error"
+                                            ? "alert"
+                                            : "status"
+                                    }
+                                >
+                                    {connectionTestMessage ??
+                                        (isZh
+                                            ? "只测试当前表单内容，不会保存服务地址或 API Key。"
+                                            : "Tests the current form only. It does not save the service URL or API key.")}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="shrink-0"
+                                data-testid="voscript-test-connection"
+                                onClick={() => void handleTestConnection()}
+                                disabled={
+                                    isSaving ||
+                                    connectionTestState === "testing"
+                                }
+                                aria-busy={connectionTestState === "testing"}
+                            >
+                                <RefreshCw
+                                    className={cn(
+                                        "mr-2 size-3.5",
+                                        connectionTestState === "testing" &&
+                                            "animate-spin",
+                                    )}
+                                />
+                                {connectionTestState === "testing"
+                                    ? isZh
+                                        ? "测试中"
+                                        : "Testing"
+                                    : isZh
+                                      ? "测试连接"
+                                      : "Test connection"}
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
