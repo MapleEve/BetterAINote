@@ -929,3 +929,67 @@ test("recording detail source copy guards missing artifacts without writing empt
         await cleanupRecordingDetailSeed();
     }
 });
+
+test("recording detail source report retries after first-load failure", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+        let reportAttempts = 0;
+
+        await page.route(
+            `**/api/recordings/${recordingId}/source-report`,
+            async (route) => {
+                reportAttempts += 1;
+
+                if (reportAttempts === 1) {
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 503,
+                        body: JSON.stringify({
+                            error: "Source report temporarily unavailable",
+                        }),
+                    });
+                    return;
+                }
+
+                await route.continue();
+            },
+        );
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        const errorBanner = page.getByTestId("source-report-error");
+        await expect(errorBanner).toBeVisible();
+        await expect(errorBanner).toContainText(
+            "Source report temporarily unavailable",
+        );
+        await expect(page.getByTestId("source-report-loaded")).toHaveCount(0);
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(
+                            `/api/recordings/${recordingId}/source-report`,
+                        ) &&
+                    response.request().method() === "GET" &&
+                    response.ok(),
+            ),
+            page.getByTestId("source-report-retry").click(),
+        ]);
+
+        await expect(page.getByTestId("source-report-loaded")).toHaveAttribute(
+            "data-source-report-state",
+            "loaded",
+        );
+        expect(reportAttempts).toBe(2);
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});

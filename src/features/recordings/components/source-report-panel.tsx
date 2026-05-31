@@ -513,6 +513,7 @@ export function SourceReportPanel({
                 variant="outline"
                 onClick={loadReport}
                 disabled={isLoading}
+                data-testid="source-report-header-load"
             >
                 {isLoading ? (
                     <>
@@ -547,6 +548,7 @@ export function SourceReportPanel({
                         onClick={loadReport}
                         disabled={isLoading}
                         className="shrink-0"
+                        data-testid="source-report-retry"
                     >
                         {t("sourceReport.refresh")}
                     </Button>
@@ -803,6 +805,7 @@ export function SourceReportPanel({
                         variant="outline"
                         onClick={loadReport}
                         className="mt-4"
+                        data-testid="source-report-empty-load"
                     >
                         {t("sourceReport.loadDetail")}
                     </Button>
