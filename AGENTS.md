@@ -4,8 +4,6 @@
 
 先读取本文件，再沿着将要修改的路径读取更近的 AGENTS.md。越靠近目标文件的规则越具体。CLAUDE.md 只是桥接提醒，AGENTS.md 是唯一规范来源。
 
-本地机器说明只能写入被忽略的 AGENTS.local.md、CLAUDE.local.md 或 LOCAL-MATERIALS.md 指定的本地目录，不能写进 tracked 公开文件。
-
 ## 仓库意图
 
 BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音聚合、转写、搜索和管理工作台。公开表达必须面向用户，避免把内部调查、实现证据或 provider 私有材料带到公开表面。
@@ -23,7 +21,6 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - `docs/AGENTS.md`：公开文档和文档资产规则。
 - `public/AGENTS.md`：运行时公开静态资源规则。
 - `scripts/AGENTS.md`：已跟踪脚本和安全本地自动化规则。
-- `LOCAL-MATERIALS.md`：被忽略本地资料目录的分层约定。
 
 ## 公共红线
 
@@ -31,7 +28,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露内部研究、抓包细节、请求归档、实现专用标签或本地证据路径。
 - 不把公开定位改成非隐私优先、非可自托管或偏向单一 provider 的表达。
 - 不修改 license、package privacy、release automation 或发布行为，除非任务明确要求检查发布边界。
-- 不删除被忽略本地资料，例如 tmp、data、storage、录音、数据库、worker 日志，除非用户明确要求。
+- 不提交 `.gitignore` 排除的任何本地文件。
 - 不运行破坏性 git 命令，不覆盖用户工作；改动前检查 `git status --short --branch`。
 
 ## 跨层耦合
@@ -40,7 +37,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 
 ## 验证门槛
 
-- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff，并用 `git check-ignore -v` 验证本地资料忽略边界。
+- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff，并按需验证 `.gitignore` 规则。
 - 源码变更：运行最窄相关测试；触碰类型边界时运行 `bun run type-check`。
 - 公开文档、发布或卫生变更：运行公开残留扫描和 secret/private-data 扫描。
 - 大范围变更：优先运行 `bun run format-and-lint`、`bun run type-check`、`bun run test`。

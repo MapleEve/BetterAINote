@@ -90,11 +90,16 @@ describe("settings UI replacement S6-S8 regressions", () => {
             "min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5",
         );
         expect(section).toContain("data-provider=");
+        expect(section).toContain("data-provider-selected");
         expect(section).toContain("data-provider-detail");
+        expect(section).toContain("data-provider-status");
+        expect(section).toContain("data-provider-action-state");
+        expect(section).toContain("data-provider-interaction-disabled");
         expect(section).toContain("PROVIDER_ICONS");
         expect(section).not.toContain("getProviderInitial");
         expect(section).not.toContain('isZh ? "总览" : "Overview"');
         expect(section).toContain("ProviderActionMessage");
+        expect(section).toContain("ProviderDisplayStatus");
         expect(section).toContain('"testing"');
         expect(section).toContain('"test-success"');
         expect(section).toContain('"save-error"');
@@ -106,6 +111,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("PROVIDER_ASSET_CLASSES");
         expect(section).toContain("handleTestSource");
         expect(section).toContain("handleSaveSource");
+        expect(section).toContain('data-testid="data-source-test-connection"');
+        expect(section).toContain('data-testid="data-source-save"');
+        expect(section).toContain(
+            'data-testid="data-source-provider-state-banner"',
+        );
         expect(section).not.toContain("/api/data-sources/test");
     });
 

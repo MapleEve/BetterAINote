@@ -87,9 +87,19 @@ interface ProviderActionMessage {
     title: string;
 }
 
+type ProviderDisplayStatus =
+    | "needs-setup"
+    | "configured"
+    | "connected"
+    | "paused"
+    | "expired"
+    | "planned"
+    | ProviderActionState;
+
 interface ProviderStatusDisplay {
     description: string;
     label: string;
+    state: ProviderDisplayStatus;
     tone: ProviderTone;
 }
 
@@ -138,6 +148,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "正在保存当前来源的连接信息。"
                 : "Saving this source connection.",
+            state: "saving",
             tone: "info",
         };
     }
@@ -148,6 +159,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "正在检查当前表单中的连接信息。"
                 : "Checking the connection details in this form.",
+            state: "testing",
             tone: "info",
         };
     }
@@ -158,6 +170,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "当前连接信息还没有通过检查。"
                 : "The current connection details need attention.",
+            state: actionState,
             tone: "danger",
         };
     }
@@ -168,6 +181,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "当前连接信息已通过本地检查。"
                 : "The current connection details passed local checks.",
+            state: actionState,
             tone: "success",
         };
     }
@@ -178,6 +192,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "上游登录状态已过期，请更新登录信息后保存。"
                 : "The upstream sign-in has expired. Update the sign-in details, then save.",
+            state: "expired",
             tone: "warning",
         };
     }
@@ -188,6 +203,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "该来源还在准备中，当前不能启用、测试或保存。"
                 : "This source is still being prepared and cannot be enabled, tested, or saved yet.",
+            state: "planned",
             tone: "neutral",
         };
     }
@@ -198,6 +214,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "连接信息已保留，但 BetterAINote 暂不读取新录音。"
                 : "Connection details are kept, but new recordings are not imported.",
+            state: "paused",
             tone: "warning",
         };
     }
@@ -208,6 +225,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "该来源已保存连接信息，可用于导入录音。"
                 : "This source has saved connection details and can import recordings.",
+            state: "connected",
             tone: "success",
         };
     }
@@ -218,6 +236,7 @@ function getProviderStatusDisplay(
             description: isZh
                 ? "已保存部分连接信息，保存后可继续用于导入。"
                 : "Some connection details are saved and can continue after saving.",
+            state: "configured",
             tone: "info",
         };
     }
@@ -227,6 +246,7 @@ function getProviderStatusDisplay(
         description: isZh
             ? "补齐登录信息后即可保存。"
             : "Add sign-in details, then save.",
+        state: "needs-setup",
         tone: "neutral",
     };
 }
@@ -518,7 +538,10 @@ function ProviderCard({
             type="button"
             onClick={onSelect}
             data-provider={source.provider}
+            data-provider-selected={isSelected ? "true" : "false"}
             data-provider-state={status.label}
+            data-provider-status={status.state}
+            data-provider-tone={status.tone}
             className={cn(
                 "grid w-full grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:grid-cols-[2rem_minmax(0,1fr)_auto]",
                 saved && !expired && "border-emerald-400/20 bg-emerald-500/10",
@@ -619,6 +642,8 @@ function ProviderStateBanner({
                 "grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 rounded-xl border px-4 py-3 text-sm",
                 providerBannerClasses[tone],
             )}
+            data-provider-banner-tone={tone}
+            data-testid="data-source-provider-state-banner"
         >
             <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
                 <Icon className="size-4" aria-hidden="true" />
@@ -740,6 +765,12 @@ function ProviderDetail({
         <div className="flex flex-col gap-4">
             <Card
                 data-provider-detail={source.provider}
+                data-provider-action-state={actionState}
+                data-provider-interaction-disabled={
+                    isProviderInteractionDisabled ? "true" : "false"
+                }
+                data-provider-status={status.state}
+                data-provider-tone={status.tone}
                 className={cn(
                     "gap-5 border-border/75",
                     hasSavedSetup(source) &&
@@ -898,6 +929,7 @@ function ProviderDetail({
                             type="button"
                             variant="outline"
                             onClick={() => onTest(source)}
+                            data-testid="data-source-test-connection"
                             disabled={
                                 isProviderInteractionDisabled ||
                                 isSaving ||
@@ -921,6 +953,7 @@ function ProviderDetail({
                         <Button
                             type="button"
                             onClick={() => void onSave(source)}
+                            data-testid="data-source-save"
                             disabled={isProviderInteractionDisabled || isSaving}
                             aria-busy={isSaving}
                         >
@@ -1197,6 +1230,7 @@ export function DataSourcesSection() {
     return (
         <div
             className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:h-full lg:p-5"
+            data-ds-selected-provider={selectedSource?.provider ?? "none"}
             data-settings-section="data-sources"
         >
             <div className="flex shrink-0 flex-col gap-2">

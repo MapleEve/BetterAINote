@@ -121,7 +121,9 @@ pnpm-debug.log*
 # local-only environment overrides
 .env.*.local
 .env.local
+AGENTS.local.md
 CLAUDE.local.md
+LOCAL-MATERIALS.md
 *.key
 
 # editors / local workspace state
