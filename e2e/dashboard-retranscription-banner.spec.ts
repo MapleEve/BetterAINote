@@ -572,6 +572,28 @@ test("dashboard shows failed retranscription state and retries from the banner",
         await expect(banner).toHaveAttribute("data-retx-state", "failed");
         await expect(banner).toContainText("E2E transcription failed safely");
 
+        let retryPosts = 0;
+        await page.route(
+            `**/api/recordings/${RETX_RECORDING_ID}/transcribe`,
+            async (route) => {
+                if (route.request().method() === "POST") {
+                    retryPosts += 1;
+                }
+                await route.continue();
+            },
+        );
+
+        await banner.locator("[data-retx-retry]").click();
+        const confirmDialog = page.getByRole("dialog", {
+            name: "确认操作",
+            exact: true,
+        });
+        await expect(confirmDialog).toBeVisible();
+        await confirmDialog.getByRole("button", { name: "取消" }).click();
+        await expect(confirmDialog).not.toBeVisible();
+        await page.waitForTimeout(200);
+        expect(retryPosts).toBe(0);
+
         const retryResponse = page.waitForResponse(
             (response) =>
                 response
@@ -580,7 +602,12 @@ test("dashboard shows failed retranscription state and retries from the banner",
                 response.request().method() === "POST",
         );
         await banner.locator("[data-retx-retry]").click();
+        await page
+            .getByRole("dialog", { name: "确认操作", exact: true })
+            .getByRole("button", { name: "确认" })
+            .click();
         expect((await retryResponse).ok()).toBe(true);
+        expect(retryPosts).toBe(1);
         await expect(banner).toHaveAttribute("data-retx-state", "queued");
     } finally {
         await cleanupRunningRetranscriptionSeed();

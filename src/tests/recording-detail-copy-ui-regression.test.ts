@@ -179,6 +179,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain("previousJobDisplayStateRef");
         expect(dashboardTranscript).toContain("!canReadExistingTranscript");
         expect(dashboardTranscript).toContain("data-retx-retry");
+        expect(dashboardTranscript).toContain(
+            "void handleConfirmRetranscribe()",
+        );
+        expect(dashboardTranscript).not.toContain("onRetry={onRetranscribe}");
         expect(dashboardTranscript).toContain("data-retx-dismiss");
     });
 });

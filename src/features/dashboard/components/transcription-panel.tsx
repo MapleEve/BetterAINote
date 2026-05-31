@@ -532,7 +532,9 @@ export function TranscriptionPanel({
                                     error={transcriptionJob?.lastError}
                                     language={language}
                                     onDismiss={handleDismissRetxBanner}
-                                    onRetry={onRetranscribe}
+                                    onRetry={() =>
+                                        void handleConfirmRetranscribe()
+                                    }
                                     state={visibleRetxState}
                                 />
                             ) : null}
