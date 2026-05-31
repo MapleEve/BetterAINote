@@ -151,6 +151,85 @@ test("onboarding keeps mobile provider selects above the shell and scroll-stable
     await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
 });
 
+test("onboarding saves Plaud Authorization before opening the workspace", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetOnboardingConnections(await getPlaywrightUserId());
+
+    let releaseDataSourceSave: (() => void) | null = null;
+    let captureDataSourceSave: (payload: Record<string, unknown>) => void;
+    const dataSourceSaveRequest = new Promise<Record<string, unknown>>(
+        (resolve) => {
+            captureDataSourceSave = resolve;
+        },
+    );
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() !== "PUT") {
+            await route.continue();
+            return;
+        }
+
+        captureDataSourceSave(route.request().postDataJSON());
+        await new Promise<void>((release) => {
+            releaseDataSourceSave = release;
+        });
+        await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+
+    const wizard = page.getByTestId("onboarding-wizard");
+    await expect(wizard).toBeVisible();
+    await expect(wizard).toHaveAttribute("data-onboarding-provider", "plaud");
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "source");
+
+    await page.getByRole("button", { name: "下一步" }).click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
+
+    const authorizationInput = page.locator("#source-secret");
+    await expect(authorizationInput).toBeEditable();
+    await authorizationInput.fill("Bearer playwright-onboarding-token");
+    await expect(authorizationInput).toHaveValue(
+        "Bearer playwright-onboarding-token",
+    );
+
+    await page.getByRole("button", { name: "下一步" }).click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "privacy");
+
+    await page.getByRole("button", { name: "下一步" }).click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "finish");
+
+    const saveButton = page.getByTestId("onboarding-save-enter");
+    await saveButton.click();
+
+    const savePayload = await dataSourceSaveRequest;
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "saving");
+    await expect(saveButton).toHaveAttribute("aria-busy", "true");
+    await expect(saveButton).toContainText("保存中");
+    expect(savePayload).toMatchObject({
+        provider: "plaud",
+        enabled: true,
+        secrets: {
+            bearerToken: "Bearer playwright-onboarding-token",
+        },
+    });
+
+    releaseDataSourceSave?.();
+
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "connected");
+    await expect(page.getByTestId("onboarding-enter-workspace")).toBeVisible();
+
+    await Promise.all([
+        page.waitForURL("**/dashboard", { waitUntil: "commit" }),
+        page.getByTestId("onboarding-enter-workspace").click(),
+    ]);
+});
+
 async function waitForAuthPageHydration(page: Page) {
     await page
         .waitForResponse(
