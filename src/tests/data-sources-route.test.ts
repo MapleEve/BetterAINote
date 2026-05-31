@@ -202,7 +202,9 @@ describe("data sources route", () => {
                         enabled: true,
                         authMode: "device-signin",
                         baseUrl: "https://meeting-ai-tingji.dingtalk.com",
-                        config: {},
+                        config: {
+                            connectionStatus: "expired",
+                        },
                         secretConfig: JSON.stringify({
                             cookie: "dt_cookie=abc123;",
                         }),
@@ -223,6 +225,7 @@ describe("data sources route", () => {
                     provider: "dingtalk-a1",
                     authMode: "device-signin",
                     connected: false,
+                    connectionStatus: "expired",
                 }),
             ]),
         });
