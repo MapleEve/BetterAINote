@@ -60,7 +60,8 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
-CLAUDE.local.md
+*.local.md
+LOCAL-*.md
 
 # vercel
 .vercel

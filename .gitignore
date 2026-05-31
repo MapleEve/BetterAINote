@@ -60,7 +60,6 @@ next-env.d.ts
 # Pi coding agent
 .pi/
 
-# local audit / debug artifacts
 /tmp/
 /remotion/
 
@@ -80,7 +79,6 @@ next-env.d.ts
 /docs/.DS_Store
 /.github/.DS_Store
 
-# local sqlite databases and E2E artifacts
 database.db
 database.db-*
 *.db-wal
@@ -108,16 +106,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local network capture / trace artifacts
 *.har
 *.har.gz
 *.trace.zip
 
 .env.*.local
 .env.local
-AGENTS.local.md
-CLAUDE.local.md
-LOCAL-MATERIALS.md
+*.local.md
+LOCAL-*.md
 *.key
 
 # editors / local workspace state
