@@ -195,6 +195,66 @@ async function seedListRecordings(userId: string, count = 10) {
     }
 }
 
+async function seedTimelineFilterRecordings(userId: string) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const now = Date.now();
+    const todayStart = now - 30 * 60_000;
+    const earlierStart = now - 12 * 86_400_000;
+
+    try {
+        await cleanupListSeeds(userId);
+        for (const recording of [
+            {
+                id: `${LIST_RECORDING_PREFIX}today-ticnote`,
+                filename: "E2E timeline today TicNote",
+                sourceProvider: "ticnote",
+                start: todayStart,
+            },
+            {
+                id: `${LIST_RECORDING_PREFIX}earlier-plaud`,
+                filename: "E2E timeline earlier Plaud",
+                sourceProvider: "plaud",
+                start: earlierStart,
+            },
+        ]) {
+            await library.execute({
+                sql: `
+                    INSERT OR REPLACE INTO recordings (
+                        id, user_id, source_provider, source_recording_id, source_version,
+                        source_metadata, provider_device_id, filename, duration, start_time,
+                        end_time, filesize, file_md5, storage_type, storage_path,
+                        downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    recording.id,
+                    userId,
+                    recording.sourceProvider,
+                    `${recording.id}-source`,
+                    "1",
+                    "{}",
+                    "e2e-list-device",
+                    recording.filename,
+                    120_000,
+                    recording.start,
+                    recording.start + 120_000,
+                    2048,
+                    recording.id,
+                    "local",
+                    "",
+                    now,
+                    0,
+                    0,
+                    now,
+                    now,
+                ],
+            });
+        }
+    } finally {
+        await library.close();
+    }
+}
+
 async function resetDisplay(
     page: Page,
     options: { theme?: "system" | "light" | "dark" } = {},
@@ -335,6 +395,47 @@ test("recording list paginates without leaking tweak controls across dark, light
     await expect(page.locator("html")).toHaveClass(/light/);
     await expect(panel).toHaveAttribute("data-list-state", "ready");
     await expectNoHorizontalOverflow(page);
+
+    await cleanupListSeeds(userId);
+});
+
+test("recording list recovers from stale inner timeline filters after source changes", async ({
+    page,
+}) => {
+    await mockConnectedDataSources(page);
+    await ensureSignedIn(page);
+    await resetDisplay(page);
+
+    const userId = await getPlaywrightUserId();
+    await seedTimelineFilterRecordings(userId);
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const panel = page.getByRole("main").getByTestId("recording-list-panel");
+    const todayRecording = page.locator(
+        '[data-recording-id="e2e-list-state-today-ticnote"]',
+    );
+    const earlierRecording = page.locator(
+        '[data-recording-id="e2e-list-state-earlier-plaud"]',
+    );
+    await expect(panel).toHaveAttribute("data-list-state", "ready");
+    await expect(todayRecording).toBeVisible();
+    await expect(earlierRecording).toBeVisible();
+
+    await page.getByRole("button", { name: /今天 1/ }).click();
+    await expect(todayRecording).toBeVisible();
+    await expect(earlierRecording).toHaveCount(0);
+
+    const plaudRow = page.locator('[data-provider="plaud"]');
+    await expect(plaudRow).toHaveAttribute("data-source-status", "connected");
+    await plaudRow.click();
+    await expect(panel).toHaveAttribute("data-list-state", "timeline-empty");
+    await expect(page.getByTestId("recording-list-timeline-empty")).toBeVisible();
+
+    await page.getByRole("button", { name: "清除时间筛选" }).click();
+    await expect(panel).toHaveAttribute("data-list-state", "ready");
+    await expect(earlierRecording).toBeVisible();
+    await expect(todayRecording).toHaveCount(0);
 
     await cleanupListSeeds(userId);
 });
