@@ -11,6 +11,7 @@ import {
     PanelLeftOpen,
     Pencil,
     RefreshCw,
+    Search,
     Settings,
     Sparkles,
     Tags,
@@ -73,7 +74,10 @@ import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import { ActivityOverlay } from "./components/activity-overlay";
-import { LibrarySearch } from "./components/library-search";
+import {
+    LibrarySearch,
+    type LibrarySearchFilter,
+} from "./components/library-search";
 import {
     RecordingList,
     type RecordingListMode,
@@ -170,6 +174,54 @@ function recordingMatchesDashboardFavorite(
     return true;
 }
 
+function normalizeSearchFilterText(value: string | null | undefined) {
+    return value?.trim().toLocaleLowerCase() ?? "";
+}
+
+function recordingMatchesLibrarySearchFilter(
+    recording: Recording,
+    filter: LibrarySearchFilter | null,
+    transcription: TranscriptionData | undefined,
+) {
+    if (!filter) {
+        return true;
+    }
+
+    const filterId = normalizeSearchFilterText(filter.id);
+    const filterLabel = normalizeSearchFilterText(filter.label);
+
+    if (filter.kind === "tag") {
+        return recording.tags.some((tag) => {
+            const tagId = normalizeSearchFilterText(tag.id);
+            const tagName = normalizeSearchFilterText(tag.name);
+            return (
+                tagId === filterId ||
+                tagName === filterLabel ||
+                tagName.includes(filterLabel)
+            );
+        });
+    }
+
+    const speakerCandidates = [
+        ...Object.keys(transcription?.speakerMap ?? {}),
+        ...Object.values(transcription?.speakerMap ?? {}),
+        ...(transcription?.segments ?? []).flatMap((segment) => [
+            segment.speakerId,
+            segment.speakerLabel,
+            segment.speakerName,
+            segment.displaySpeaker,
+        ]),
+    ].map(normalizeSearchFilterText);
+
+    return speakerCandidates.some(
+        (candidate) =>
+            Boolean(candidate) &&
+            (candidate === filterId ||
+                candidate === filterLabel ||
+                candidate.includes(filterLabel)),
+    );
+}
+
 function getDashboardSourceStatus(params: {
     configured: boolean;
     enabled: boolean;
@@ -238,6 +290,8 @@ export function Workstation({
         useState<DashboardFavorite>("all");
     const [activeSourceProvider, setActiveSourceProvider] =
         useState<SourceProvider | null>(null);
+    const [librarySearchFilter, setLibrarySearchFilter] =
+        useState<LibrarySearchFilter | null>(null);
     const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [isSourceDrawerOpen, setSourceDrawerOpen] = useState(false);
     const [recordingListMode, setRecordingListMode] =
@@ -854,11 +908,18 @@ export function Workstation({
                 recording,
                 activeFavorite,
                 liveTranscriptions,
-            );
+            )
+                ? recordingMatchesLibrarySearchFilter(
+                      recording,
+                      librarySearchFilter,
+                      liveTranscriptions.get(recording.id),
+                  )
+                : false;
         });
     }, [
         activeFavorite,
         activeSourceProvider,
+        librarySearchFilter,
         liveRecordings,
         liveTranscriptions,
     ]);
@@ -881,6 +942,12 @@ export function Workstation({
     const listContextLabel = activeSourceLabel
         ? `${activeFavoriteLabel} / ${activeSourceLabel}`
         : activeFavoriteLabel;
+    const librarySearchFilterLabel = librarySearchFilter
+        ? `${librarySearchFilter.kind === "tag" ? (language === "zh-CN" ? "标签" : "Tag") : language === "zh-CN" ? "说话人" : "Speaker"}: ${librarySearchFilter.label}`
+        : null;
+    const expandedListContextLabel = librarySearchFilterLabel
+        ? `${listContextLabel} / ${librarySearchFilterLabel}`
+        : listContextLabel;
     const activeSourceRow =
         activeSourceProvider !== null
             ? (sourceRows.find(
@@ -963,6 +1030,7 @@ export function Workstation({
     const handleClearDashboardFilters = useCallback(() => {
         setActiveFavorite("all");
         setActiveSourceProvider(null);
+        setLibrarySearchFilter(null);
         setRecordingListMode("timeline");
         setSourceDrawerOpen(false);
     }, []);
@@ -986,6 +1054,17 @@ export function Workstation({
             setCurrentRecording(recording);
         },
         [liveRecordings],
+    );
+
+    const handleApplyLibrarySearchFilter = useCallback(
+        (filter: LibrarySearchFilter) => {
+            setLibrarySearchFilter(filter);
+            if (filter.kind === "tag") {
+                setRecordingListMode("tags");
+                setActiveFavorite("tags");
+            }
+        },
+        [],
     );
 
     const handleTranscribe = useCallback(async () => {
@@ -1635,6 +1714,9 @@ export function Workstation({
                             </Button>
                             <LibrarySearch
                                 open={activeTopbarOverlay === "search"}
+                                onApplyLibraryFilter={
+                                    handleApplyLibrarySearchFilter
+                                }
                                 onOpenChange={setSearchOverlayOpen}
                                 onOpenRecording={handleOpenSearchResult}
                             />
@@ -1670,25 +1752,67 @@ export function Workstation({
                             totalCount={filteredRecordings.length}
                             libraryTotalCount={liveRecordings.length}
                             currentRecording={currentRecording}
-                            contextLabel={listContextLabel}
+                            contextLabel={expandedListContextLabel}
                             filterStack={
-                                <SourceFilterStackStrip
-                                    activeFavoriteLabel={activeFavoriteLabel}
-                                    filteredCount={filteredRecordings.length}
-                                    language={language}
-                                    onClearAll={handleClearDashboardFilters}
-                                    onClearSource={() =>
-                                        setActiveSourceProvider(null)
-                                    }
-                                    onOpenDataSourcesSettings={
-                                        handleOpenDataSourcesSettings
-                                    }
-                                    onRetrySync={handleSync}
-                                    onWidenFilters={handleWidenSourceFilters}
-                                    sourceRow={activeSourceRow}
-                                    sourceTotalCount={activeSourceTotalCount}
-                                    totalCount={liveRecordings.length}
-                                />
+                                <>
+                                    <SourceFilterStackStrip
+                                        activeFavoriteLabel={
+                                            activeFavoriteLabel
+                                        }
+                                        filteredCount={
+                                            filteredRecordings.length
+                                        }
+                                        language={language}
+                                        onClearAll={handleClearDashboardFilters}
+                                        onClearSource={() =>
+                                            setActiveSourceProvider(null)
+                                        }
+                                        onOpenDataSourcesSettings={
+                                            handleOpenDataSourcesSettings
+                                        }
+                                        onRetrySync={handleSync}
+                                        onWidenFilters={
+                                            handleWidenSourceFilters
+                                        }
+                                        sourceRow={activeSourceRow}
+                                        sourceTotalCount={
+                                            activeSourceTotalCount
+                                        }
+                                        totalCount={liveRecordings.length}
+                                    />
+                                    {librarySearchFilter ? (
+                                        <div
+                                            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-background/28 px-3 py-2 text-[0.72rem] text-muted-foreground"
+                                            data-library-search-filter={
+                                                librarySearchFilter.kind
+                                            }
+                                            data-testid="dashboard-library-search-filter"
+                                        >
+                                            <Search className="size-3.5 shrink-0" />
+                                            <span>
+                                                {language === "zh-CN"
+                                                    ? "搜索筛选"
+                                                    : "Search filter"}
+                                            </span>
+                                            <span className="rounded-full border border-border/70 bg-background/65 px-2 py-1 font-medium text-foreground shadow-xs">
+                                                {librarySearchFilterLabel}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setLibrarySearchFilter(null)
+                                                }
+                                                className="ml-auto h-7 rounded-lg px-2 text-[0.72rem]"
+                                            >
+                                                {language === "zh-CN"
+                                                    ? "清除"
+                                                    : "Clear"}
+                                            </Button>
+                                        </div>
+                                    ) : null}
+                                </>
                             }
                             mode={recordingListMode}
                             isLoading={

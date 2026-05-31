@@ -1,7 +1,17 @@
 "use client";
 
-import { Loader2, RefreshCw, Search, X } from "lucide-react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+    FileText,
+    Loader2,
+    type LucideIcon,
+    Mic,
+    RefreshCw,
+    Search,
+    Tag,
+    UserRound,
+    X,
+} from "lucide-react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,8 +33,15 @@ type SearchResult = {
 
 interface LibrarySearchProps {
     open: boolean;
+    onApplyLibraryFilter: (filter: LibrarySearchFilter) => void;
     onOpenChange: (open: boolean) => void;
     onOpenRecording: (recordingId: string) => void;
+}
+
+export interface LibrarySearchFilter {
+    id: string;
+    kind: Extract<SearchEntityType, "speaker" | "tag">;
+    label: string;
 }
 
 const SEARCH_SCOPES: Array<{
@@ -37,6 +54,21 @@ const SEARCH_SCOPES: Array<{
     { value: "speaker", label: "说话人" },
     { value: "tag", label: "标签" },
 ];
+const SEARCH_RESULT_GROUPS: Array<{
+    value: SearchEntityType;
+    label: string;
+}> = [
+    { value: "recording", label: "录音" },
+    { value: "transcript", label: "逐字稿" },
+    { value: "speaker", label: "说话人" },
+    { value: "tag", label: "标签" },
+];
+const SEARCH_RESULT_ICONS: Record<SearchEntityType, LucideIcon> = {
+    recording: Mic,
+    transcript: FileText,
+    speaker: UserRound,
+    tag: Tag,
+};
 
 function formatTime(ms: number | null) {
     if (ms === null || !Number.isFinite(ms)) {
@@ -70,8 +102,65 @@ function getTargetRecordingId(result: SearchResult) {
     return result.entityType === "recording" ? result.entityId : null;
 }
 
+function getFilterTarget(result: SearchResult): LibrarySearchFilter | null {
+    if (result.entityType !== "speaker" && result.entityType !== "tag") {
+        return null;
+    }
+
+    const label =
+        result.title?.trim() ||
+        result.speaker?.trim() ||
+        result.body.trim() ||
+        result.entityId;
+
+    return {
+        id: result.entityId,
+        kind: result.entityType,
+        label,
+    };
+}
+
+function renderHighlightedText(text: string, query: string): ReactNode {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+        return text;
+    }
+
+    const lowerText = text.toLocaleLowerCase();
+    const lowerQuery = trimmedQuery.toLocaleLowerCase();
+    const parts: ReactNode[] = [];
+    let cursor = 0;
+    let matchIndex = lowerText.indexOf(lowerQuery);
+
+    while (matchIndex !== -1) {
+        if (matchIndex > cursor) {
+            parts.push(text.slice(cursor, matchIndex));
+        }
+
+        const matchEnd = matchIndex + trimmedQuery.length;
+        parts.push(
+            <mark
+                key={`${matchIndex}-${matchEnd}`}
+                className="rounded-[0.2rem] bg-primary/15 px-0.5 text-primary"
+                data-testid="library-search-highlight"
+            >
+                {text.slice(matchIndex, matchEnd)}
+            </mark>,
+        );
+        cursor = matchEnd;
+        matchIndex = lowerText.indexOf(lowerQuery, cursor);
+    }
+
+    if (cursor < text.length) {
+        parts.push(text.slice(cursor));
+    }
+
+    return parts.length > 0 ? parts : text;
+}
+
 export function LibrarySearch({
     open,
+    onApplyLibraryFilter,
     onOpenChange,
     onOpenRecording,
 }: LibrarySearchProps) {
@@ -108,6 +197,37 @@ export function LibrarySearch({
 
         return `${results.length} 个结果`;
     }, [loading, results.length, trimmedQuery]);
+    const indexedResults = useMemo(
+        () =>
+            results.map((result) => ({
+                filterTarget: getFilterTarget(result),
+                result,
+                targetRecordingId: getTargetRecordingId(result),
+            })),
+        [results],
+    );
+    const displayResults = useMemo(
+        () =>
+            SEARCH_RESULT_GROUPS.flatMap((group) =>
+                indexedResults.filter(
+                    (item) => item.result.entityType === group.value,
+                ),
+            ).map((item, displayIndex) => ({
+                ...item,
+                displayIndex,
+            })),
+        [indexedResults],
+    );
+    const groupedResults = useMemo(
+        () =>
+            SEARCH_RESULT_GROUPS.map((group) => ({
+                ...group,
+                items: displayResults.filter(
+                    (item) => item.result.entityType === group.value,
+                ),
+            })).filter((group) => group.items.length > 0),
+        [displayResults],
+    );
 
     const closeAndReturnFocus = useCallback(
         (options: { returnFocus?: boolean } = {}) => {
@@ -239,28 +359,36 @@ export function LibrarySearch({
         inputRef.current?.focus({ preventScroll: true });
     }, [trimmedQuery]);
 
-    const handleResultOpen = useCallback(
-        (recordingId: string | null) => {
-            if (!recordingId) {
+    const handleResultAction = useCallback(
+        (result: SearchResult) => {
+            const targetRecordingId = getTargetRecordingId(result);
+            if (targetRecordingId) {
+                onOpenRecording(targetRecordingId);
+                closeAndReturnFocus();
                 return;
             }
 
-            onOpenRecording(recordingId);
+            const filterTarget = getFilterTarget(result);
+            if (!filterTarget) {
+                return;
+            }
+
+            onApplyLibraryFilter(filterTarget);
             closeAndReturnFocus();
         },
-        [closeAndReturnFocus, onOpenRecording],
+        [closeAndReturnFocus, onApplyLibraryFilter, onOpenRecording],
     );
 
     const handleInputKeyDown = useCallback(
         (event: ReactKeyboardEvent<HTMLInputElement>) => {
-            if (results.length === 0) {
+            if (displayResults.length === 0) {
                 return;
             }
 
             if (event.key === "ArrowDown") {
                 event.preventDefault();
                 setActiveResultIndex((current) =>
-                    Math.min(current + 1, results.length - 1),
+                    Math.min(current + 1, displayResults.length - 1),
                 );
                 return;
             }
@@ -273,12 +401,13 @@ export function LibrarySearch({
 
             if (event.key === "Enter") {
                 event.preventDefault();
-                handleResultOpen(
-                    getTargetRecordingId(results[activeResultIndex]),
-                );
+                const activeResult = displayResults[activeResultIndex]?.result;
+                if (activeResult) {
+                    handleResultAction(activeResult);
+                }
             }
         },
-        [activeResultIndex, handleResultOpen, results],
+        [activeResultIndex, displayResults, handleResultAction],
     );
 
     return (
@@ -329,7 +458,7 @@ export function LibrarySearch({
                             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                             aria-label="搜索录音、逐字稿、说话人、标签"
                             aria-activedescendant={
-                                results.length > 0
+                                displayResults.length > 0
                                     ? `library-search-result-${activeResultIndex}`
                                     : undefined
                             }
@@ -412,91 +541,174 @@ export function LibrarySearch({
                             </div>
                         ) : null}
 
-                        {!loading && !error && results.length > 0 ? (
+                        {!loading && !error && groupedResults.length > 0 ? (
                             <div data-testid="library-search-results">
                                 <div className="flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs">
                                     <span>{resultCountLabel}</span>
                                     <span>最多显示 12 条</span>
                                 </div>
-                                <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
-                                    {results.map((result, index) => {
-                                        const start = formatTime(
-                                            result.startMs,
-                                        );
-                                        const end = formatTime(result.endMs);
-                                        const timeRange =
-                                            start && end
-                                                ? `${start} - ${end}`
-                                                : null;
-                                        const targetRecordingId =
-                                            getTargetRecordingId(result);
-                                        const isActive =
-                                            index === activeResultIndex;
-
-                                        return (
-                                            <button
-                                                key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
-                                                id={`library-search-result-${index}`}
-                                                type="button"
-                                                role="option"
-                                                aria-selected={isActive}
-                                                aria-disabled={
-                                                    targetRecordingId
-                                                        ? undefined
-                                                        : true
-                                                }
-                                                data-active={
-                                                    isActive ? "true" : "false"
-                                                }
-                                                className={cn(
-                                                    "grid w-full grid-cols-[auto_minmax(0,1fr)] gap-2 border-border/60 border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
-                                                    targetRecordingId
-                                                        ? "hover:bg-accent/45 data-[active=true]:bg-accent/60"
-                                                        : "cursor-default opacity-70",
-                                                )}
-                                                onMouseEnter={() =>
-                                                    setActiveResultIndex(index)
-                                                }
-                                                onClick={() =>
-                                                    handleResultOpen(
+                                <div className="flex flex-col gap-2">
+                                    {groupedResults.map((group) => (
+                                        <section
+                                            key={group.value}
+                                            data-testid={`library-search-group-${group.value}`}
+                                        >
+                                            <div className="px-2 py-1 text-[0.66rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                                                {group.label}
+                                            </div>
+                                            <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
+                                                {group.items.map(
+                                                    ({
+                                                        displayIndex,
+                                                        filterTarget,
+                                                        result,
                                                         targetRecordingId,
-                                                    )
-                                                }
-                                            >
-                                                <span className="mt-0.5 inline-flex h-6 shrink-0 items-center rounded-md border border-border/70 bg-muted/40 px-1.5 text-muted-foreground text-xs">
-                                                    {getTypeLabel(
-                                                        result.entityType,
-                                                    )}
-                                                </span>
-                                                <span className="min-w-0">
-                                                    <span className="block truncate font-medium text-sm">
-                                                        {result.title ||
-                                                            "未命名结果"}
-                                                    </span>
-                                                    <span className="mt-1 block line-clamp-2 text-muted-foreground text-xs leading-5">
-                                                        {result.body}
-                                                    </span>
-                                                    <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground text-[0.68rem]">
-                                                        {timeRange ? (
-                                                            <span>
-                                                                {timeRange}
-                                                            </span>
-                                                        ) : null}
-                                                        {result.speaker ? (
-                                                            <span>
-                                                                {result.speaker}
-                                                            </span>
-                                                        ) : null}
-                                                        {result.source ? (
-                                                            <span>
-                                                                {result.source}
-                                                            </span>
-                                                        ) : null}
-                                                    </span>
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                                    }) => {
+                                                        const start =
+                                                            formatTime(
+                                                                result.startMs,
+                                                            );
+                                                        const end = formatTime(
+                                                            result.endMs,
+                                                        );
+                                                        const timeRange =
+                                                            start && end
+                                                                ? `${start} - ${end}`
+                                                                : null;
+                                                        const isActive =
+                                                            displayIndex ===
+                                                            activeResultIndex;
+                                                        const isFilter =
+                                                            !targetRecordingId &&
+                                                            Boolean(
+                                                                filterTarget,
+                                                            );
+                                                        const isActionable =
+                                                            Boolean(
+                                                                targetRecordingId,
+                                                            ) || isFilter;
+                                                        const ResultIcon =
+                                                            SEARCH_RESULT_ICONS[
+                                                                result
+                                                                    .entityType
+                                                            ];
+                                                        const title =
+                                                            result.title ||
+                                                            "未命名结果";
+
+                                                        return (
+                                                            <button
+                                                                key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
+                                                                id={`library-search-result-${displayIndex}`}
+                                                                type="button"
+                                                                role="option"
+                                                                aria-selected={
+                                                                    isActive
+                                                                }
+                                                                aria-disabled={
+                                                                    isActionable
+                                                                        ? undefined
+                                                                        : true
+                                                                }
+                                                                data-active={
+                                                                    isActive
+                                                                        ? "true"
+                                                                        : "false"
+                                                                }
+                                                                data-result-mode={
+                                                                    targetRecordingId
+                                                                        ? "navigate"
+                                                                        : isFilter
+                                                                          ? "filter"
+                                                                          : "inert"
+                                                                }
+                                                                data-result-type={
+                                                                    result.entityType
+                                                                }
+                                                                data-testid={`library-search-result-${result.entityType}-${displayIndex}`}
+                                                                tabIndex={
+                                                                    isActionable
+                                                                        ? undefined
+                                                                        : -1
+                                                                }
+                                                                className={cn(
+                                                                    "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-2 border-border/60 border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
+                                                                    isActionable
+                                                                        ? "hover:bg-accent/45 data-[active=true]:bg-accent/60"
+                                                                        : "cursor-default opacity-70",
+                                                                )}
+                                                                onMouseEnter={() =>
+                                                                    setActiveResultIndex(
+                                                                        displayIndex,
+                                                                    )
+                                                                }
+                                                                onClick={() =>
+                                                                    handleResultAction(
+                                                                        result,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="mt-0.5 inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-1.5 text-muted-foreground text-xs">
+                                                                    <ResultIcon className="size-3" />
+                                                                    {getTypeLabel(
+                                                                        result.entityType,
+                                                                    )}
+                                                                </span>
+                                                                <span className="min-w-0">
+                                                                    <span className="block truncate font-medium text-sm">
+                                                                        {renderHighlightedText(
+                                                                            title,
+                                                                            trimmedQuery,
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="mt-1 block line-clamp-2 text-muted-foreground text-xs leading-5">
+                                                                        {renderHighlightedText(
+                                                                            result.body,
+                                                                            trimmedQuery,
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground text-[0.68rem]">
+                                                                        {timeRange ? (
+                                                                            <span>
+                                                                                {
+                                                                                    timeRange
+                                                                                }
+                                                                            </span>
+                                                                        ) : null}
+                                                                        {result.speaker ? (
+                                                                            <span>
+                                                                                {renderHighlightedText(
+                                                                                    result.speaker,
+                                                                                    trimmedQuery,
+                                                                                )}
+                                                                            </span>
+                                                                        ) : null}
+                                                                        {result.source ? (
+                                                                            <span>
+                                                                                {
+                                                                                    result.source
+                                                                                }
+                                                                            </span>
+                                                                        ) : null}
+                                                                    </span>
+                                                                </span>
+                                                                <span className="mt-0.5 shrink-0 text-[0.68rem] text-muted-foreground">
+                                                                    {isFilter
+                                                                        ? "筛选"
+                                                                        : targetRecordingId &&
+                                                                            timeRange
+                                                                          ? timeRange
+                                                                          : !isActionable
+                                                                            ? "不可跳转"
+                                                                            : null}
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+                                        </section>
+                                    ))}
                                 </div>
                             </div>
                         ) : null}

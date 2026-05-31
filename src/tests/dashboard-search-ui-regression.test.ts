@@ -37,7 +37,7 @@ describe("dashboard search and activity overlay regression", () => {
         );
 
         const syncActionIndex = workstation.indexOf("onClick={handleSync}");
-        const searchIndex = workstation.indexOf("<LibrarySearch");
+        const searchIndex = workstation.indexOf("<LibrarySearch\n");
         const activityIndex = workstation.indexOf("<ActivityOverlay");
         const settingsIndex = workstation.indexOf(
             "onClick={handleOpenSettings}",
@@ -68,7 +68,9 @@ describe("dashboard search and activity overlay regression", () => {
         expect(searchComponent).toContain(
             "closeAndReturnFocus({ returnFocus: false });",
         );
-        expect(searchComponent).toContain("onOpenRecording(recordingId);");
+        expect(searchComponent).toContain(
+            "onOpenRecording(targetRecordingId);",
+        );
     });
 
     it("keeps search no-query, loading, results, empty, and error states explicit", () => {
@@ -98,6 +100,37 @@ describe("dashboard search and activity overlay regression", () => {
         expect(searchComponent).toContain("data-ls-retry");
         expect(searchComponent).toContain("retryCount");
         expect(searchComponent).toContain('setQuery("")');
+    });
+
+    it("keeps search results grouped, highlighted, and filter-capable for global speaker/tag hits", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const searchComponent = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+
+        expect(searchComponent).toContain("SEARCH_RESULT_GROUPS");
+        expect(searchComponent).toContain("displayResults");
+        expect(searchComponent).toContain("activeResultIndex");
+        expect(searchComponent).toContain("renderHighlightedText");
+        expect(searchComponent).toContain(
+            'data-testid="library-search-highlight"',
+        );
+        expect(searchComponent).toContain("interface LibrarySearchFilter");
+        expect(searchComponent).toContain("onApplyLibraryFilter");
+        expect(searchComponent).toContain("data-result-mode=");
+        expect(searchComponent).toContain('"filter"');
+        expect(searchComponent).toContain('"inert"');
+        expect(searchComponent).toContain("library-search-group-");
+        expect(searchComponent).toContain("group.value");
+
+        expect(workstation).toContain("librarySearchFilter");
+        expect(workstation).toContain("librarySearchFilterLabel");
+        expect(workstation).toContain("recordingMatchesLibrarySearchFilter");
+        expect(workstation).toContain(
+            'data-testid="dashboard-library-search-filter"',
+        );
+        expect(workstation).toContain("data-library-search-filter");
+        expect(workstation).toContain("onApplyLibraryFilter={");
     });
 
     it("derives the activity overlay from existing workstation update and transcription state", () => {
