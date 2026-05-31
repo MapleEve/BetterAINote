@@ -154,6 +154,10 @@ test("data sources settings tests missing details then saves a provider through 
 
     await section.locator('[data-provider="ticnote"]').click();
     await expect(section).toHaveAttribute("data-ds-selected-provider", "ticnote");
+    await expect(section.locator('[data-provider="ticnote"]')).toHaveAttribute(
+        "aria-pressed",
+        "true",
+    );
 
     const detail = section.locator('[data-provider-detail="ticnote"]');
     await expect(detail).toBeVisible();
@@ -175,6 +179,8 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-action-state",
         "testing",
     );
+    await expect(detail.getByTestId("data-source-save")).toBeDisabled();
+    expect(savePayload).toBeNull();
     releaseTest();
     await expect(detail).toHaveAttribute(
         "data-provider-action-state",

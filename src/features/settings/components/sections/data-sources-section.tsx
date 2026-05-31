@@ -15,7 +15,7 @@ import {
     RotateCw,
     XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -537,6 +537,7 @@ function ProviderCard({
         <button
             type="button"
             onClick={onSelect}
+            aria-pressed={isSelected}
             data-provider={source.provider}
             data-provider-selected={isSelected ? "true" : "false"}
             data-provider-state={status.label}
@@ -954,7 +955,11 @@ function ProviderDetail({
                             type="button"
                             onClick={() => void onSave(source)}
                             data-testid="data-source-save"
-                            disabled={isProviderInteractionDisabled || isSaving}
+                            disabled={
+                                isProviderInteractionDisabled ||
+                                isSaving ||
+                                actionState === "testing"
+                            }
                             aria-busy={isSaving}
                         >
                             {isSaving
@@ -990,6 +995,7 @@ export function DataSourcesSection() {
     const [providerActionMessages, setProviderActionMessages] = useState<
         Partial<Record<SourceProvider, ProviderActionMessage>>
     >({});
+    const providerDetailScrollRef = useRef<HTMLElement | null>(null);
 
     const selectedSource =
         orderedSources.find((source) => source.provider === selectedProvider) ??
@@ -1037,6 +1043,11 @@ export function DataSourcesSection() {
             setSelectedProvider(orderedSources[0].provider);
         }
     }, [orderedSources, selectedProvider]);
+
+    useEffect(() => {
+        if (!selectedProvider) return;
+        providerDetailScrollRef.current?.scrollTo({ top: 0, left: 0 });
+    }, [selectedProvider]);
 
     const setProviderActionMessage = (
         provider: SourceProvider,
@@ -1281,7 +1292,11 @@ export function DataSourcesSection() {
                         </span>
                     </div>
 
-                    <div className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1">
+                    <div
+                        className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1"
+                        data-settings-inner-scroll=""
+                        data-ds-provider-list-scroll=""
+                    >
                         {orderedSources.map((source) => {
                             const message =
                                 providerActionMessages[source.provider];
@@ -1310,6 +1325,7 @@ export function DataSourcesSection() {
                 </aside>
 
                 <section
+                    ref={providerDetailScrollRef}
                     className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5"
                     data-settings-inner-scroll=""
                     data-ds-scroll=""

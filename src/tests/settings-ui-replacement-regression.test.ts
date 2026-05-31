@@ -37,6 +37,8 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain("settingsDialog.close");
         expect(dialog).toContain("shouldBypassSettingsKeyboardNav");
         expect(dialog).toContain("[data-settings-nav-item]");
+        expect(dialog).toContain('[data-slot="select-content"]');
+        expect(dialog).toContain('[role="option"]');
         expect(dialog).not.toContain('aria-label="Close"');
         expect(dialog).not.toContain('<span className="sr-only">Close</span>');
         expect(dialog).toContain("data-settings-scroll-body");
@@ -95,11 +97,16 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain('data-settings-section="data-sources"');
         expect(section).toContain("lg:grid-cols-[280px_minmax(0,1fr)]");
         expect(section).toContain("data-ds-scroll");
+        expect(section).toContain("data-ds-provider-list-scroll");
         expect(section).toContain("data-settings-inner-scroll");
+        expect(section).toContain("providerDetailScrollRef");
+        expect(section).toContain("selectedProvider");
+        expect(section).toContain("providerDetailScrollRef.current?.scrollTo");
         expect(section).toContain(
             "min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5",
         );
         expect(section).toContain("data-provider=");
+        expect(section).toContain("aria-pressed={isSelected}");
         expect(section).toContain("data-provider-selected");
         expect(section).toContain("data-provider-detail");
         expect(section).toContain("data-provider-status");
@@ -116,6 +123,7 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("connectionStatus");
         expect(section).toContain('"expired"');
         expect(section).toContain("isProviderInteractionDisabled");
+        expect(section).toContain('actionState === "testing"');
         expect(section).toContain("data-auth-mode-picker");
         expect(section).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
         expect(section).toContain("PROVIDER_ASSET_CLASSES");

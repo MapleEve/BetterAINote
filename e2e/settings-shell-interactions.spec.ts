@@ -65,6 +65,16 @@ async function elementScrollTop(locator: ReturnType<Page["locator"]>) {
     return locator.evaluate((node) => node.scrollTop);
 }
 
+async function elementCanScroll(locator: ReturnType<Page["locator"]>) {
+    return locator.evaluate((node) => node.scrollHeight > node.clientHeight + 1);
+}
+
+async function scrollElementToEnd(locator: ReturnType<Page["locator"]>) {
+    await locator.evaluate((node) => {
+        node.scrollTop = node.scrollHeight;
+    });
+}
+
 test("settings shell closes sibling overlays, locks height, bounds wheel scroll, and returns focus", async ({
     page,
 }) => {
@@ -162,6 +172,55 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await expect(settingsTrigger).toBeFocused();
 });
 
+test("settings data source nested scroll containers reset without freezing", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 520 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await clearSettingsPersistence(page);
+    await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
+
+    const shell = page.locator("[data-settings-shell]");
+    const section = page.locator('[data-settings-section="data-sources"]');
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "data-sources",
+    );
+    await expect(section).toBeVisible();
+    const baselineHeight = await settingsShellHeight(page);
+
+    const providerListScroll = section.locator(
+        "[data-ds-provider-list-scroll]",
+    );
+    await expect.poll(() => elementCanScroll(providerListScroll)).toBe(true);
+    await scrollElementToEnd(providerListScroll);
+    await expect.poll(() => elementScrollTop(providerListScroll)).toBeGreaterThan(0);
+
+    const providerDetailScroll = section.locator("[data-ds-scroll]").last();
+    await expect.poll(() => elementCanScroll(providerDetailScroll)).toBe(true);
+    await scrollElementToEnd(providerDetailScroll);
+    await expect.poll(() => elementScrollTop(providerDetailScroll)).toBeGreaterThan(0);
+
+    const selectedProvider = await section.getAttribute(
+        "data-ds-selected-provider",
+    );
+    const nextProvider = selectedProvider === "ticnote" ? "plaud" : "ticnote";
+    await section.locator(`[data-provider="${nextProvider}"]`).click();
+    await expect(section).toHaveAttribute(
+        "data-ds-selected-provider",
+        nextProvider,
+    );
+    await expect.poll(() => elementScrollTop(providerDetailScroll)).toBe(0);
+    await expectShellHeightStable(page, baselineHeight);
+
+    await page.locator('[data-settings-nav-item="appearance"]').click();
+    await page.locator('[data-settings-nav-item="data-sources"]').click();
+    await expect.poll(() => elementScrollTop(providerListScroll)).toBe(0);
+    await expect.poll(() => elementScrollTop(providerDetailScroll)).toBe(0);
+    await expectShellHeightStable(page, baselineHeight);
+});
+
 test("settings route aliases and mobile selector keep the shell fixed", async ({
     page,
 }) => {
@@ -180,6 +239,12 @@ test("settings route aliases and mobile selector keep the shell fixed", async ({
     expect(baselineHeight).toBeLessThanOrEqual(844);
 
     const sectionSelector = shell.getByRole("combobox", { name: "设置" });
+    await sectionSelector.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("option", { name: "VoScript" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(shell).toBeVisible();
+    await expect(page.getByRole("option", { name: "VoScript" })).toBeHidden();
     await sectionSelector.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("option", { name: "VoScript" }).click();

@@ -196,9 +196,13 @@ function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
                     "select",
                     "button",
                     "a[href]",
+                    '[data-slot="select-content"]',
+                    '[data-slot="select-item"]',
                     '[role="button"]',
                     '[role="combobox"]',
+                    '[role="listbox"]',
                     '[role="menuitem"]',
+                    '[role="option"]',
                 ].join(","),
             ),
     );
@@ -336,12 +340,12 @@ export function SettingsDialog(props: SettingsDialogProps) {
         (event: KeyboardEvent) => {
             if (!props.open) return;
 
-            if (event.key === "Escape") {
-                props.onOpenChange(false);
+            if (shouldBypassSettingsKeyboardNav(event.target)) {
                 return;
             }
 
-            if (shouldBypassSettingsKeyboardNav(event.target)) {
+            if (event.key === "Escape") {
+                props.onOpenChange(false);
                 return;
             }
 
