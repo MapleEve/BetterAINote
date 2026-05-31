@@ -158,4 +158,46 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(speakers).not.toContain("source detail");
         expect(speakers).not.toContain("AI rename");
     });
+
+    it("keeps transcription and AI rename sections in the current glass settings language", () => {
+        const transcription = readSource(
+            "features/settings/components/sections/transcription-section.tsx",
+        );
+        const titleGeneration = readSource(
+            "features/settings/components/sections/title-generation-section.tsx",
+        );
+
+        expect(transcription).toContain(
+            'data-settings-section="transcription"',
+        );
+        expect(transcription).toContain("data-transcription-save-state");
+        expect(transcription).toContain(
+            'data-testid="transcription-save-state"',
+        );
+        expect(transcription).toContain(
+            'data-testid="transcription-settings-card"',
+        );
+        expect(transcription).toContain("glass-surface flex flex-col gap-5");
+        expect(transcription).not.toContain(
+            "border border-white/10 bg-white/[0.03]",
+        );
+
+        expect(titleGeneration).toContain(
+            'data-settings-section="title-generation"',
+        );
+        expect(titleGeneration).toContain(
+            "data-title-generation-service-state",
+        );
+        expect(titleGeneration).toContain("data-title-generation-save-state");
+        expect(titleGeneration).toContain(
+            'data-testid="title-generation-config-state"',
+        );
+        expect(titleGeneration).toContain(
+            'data-testid="title-generation-settings-card"',
+        );
+        expect(titleGeneration).toContain("data-state={saveState}");
+        expect(titleGeneration).not.toContain(
+            "border border-white/10 bg-white/[0.03]",
+        );
+    });
 });

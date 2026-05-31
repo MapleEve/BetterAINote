@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -102,14 +102,63 @@ export function TitleGenerationSection() {
         return <SettingsSectionSkeleton cards={1} fieldsPerCard={3} />;
     }
 
-    return (
-        <div className="space-y-6" data-settings-section="title-generation">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                {isZh ? "AI 重命名服务" : "AI Rename Service"}
-            </h2>
+    const serviceState =
+        titleGenerationModel && titleGenerationApiKeySet
+            ? "configured"
+            : titleGenerationModel
+              ? "missing-api-key"
+              : "needs-setup";
+    const saveState = isSaving ? "saving" : "ready";
 
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+    return (
+        <section
+            className="flex flex-col gap-5"
+            data-settings-section="title-generation"
+            data-title-generation-service-state={serviceState}
+            data-title-generation-save-state={saveState}
+        >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 space-y-2">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <Sparkles className="size-5" />
+                        {isZh ? "AI 重命名服务" : "AI Rename Service"}
+                    </h2>
+                    <p className="max-w-2xl text-sm text-muted-foreground">
+                        {isZh
+                            ? "只负责 transcript -> title 这条链路；录音来源和私有转录服务仍分别在 Data Sources 与 VoScript。"
+                            : "Owns only the transcript-to-title chain; recording sources and private transcription remain in Data Sources and VoScript."}
+                    </p>
+                </div>
+                <span
+                    className="glass-control inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[0.72rem] font-medium text-muted-foreground"
+                    data-testid="title-generation-config-state"
+                    data-state={serviceState}
+                >
+                    {isSaving ? (
+                        <Loader2 className="size-3 animate-spin" />
+                    ) : null}
+                    {isSaving
+                        ? isZh
+                            ? "保存中"
+                            : "Saving"
+                        : serviceState === "configured"
+                          ? isZh
+                              ? "已配置"
+                              : "Configured"
+                          : serviceState === "missing-api-key"
+                            ? isZh
+                                ? "缺少密钥"
+                                : "Missing key"
+                            : isZh
+                              ? "待配置"
+                              : "Needs setup"}
+                </span>
+            </div>
+
+            <div
+                className="glass-surface flex flex-col gap-5 rounded-[1.1rem] p-5"
+                data-testid="title-generation-settings-card"
+            >
                 <div className="space-y-1">
                     <h3 className="text-base font-semibold">
                         {isZh ? "标题生成服务" : "Title generation service"}
@@ -121,8 +170,8 @@ export function TitleGenerationSection() {
                     </p>
                 </div>
 
-                <div className="flex items-center justify-between">
-                    <div className="space-y-0.5 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/35 px-4 py-3">
+                    <div className="min-w-0 flex-1 space-y-0.5">
                         <Label
                             htmlFor="auto-generate-title"
                             className="text-base"
@@ -149,7 +198,7 @@ export function TitleGenerationSection() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
                         <Label htmlFor="title-generation-base-url">
                             {isZh ? "重命名服务地址" : "Rename service URL"}
                         </Label>
@@ -170,7 +219,7 @@ export function TitleGenerationSection() {
                                 : "OpenAI-compatible endpoint used only for filename generation."}
                         </p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
                         <Label htmlFor="title-generation-model">
                             {isZh ? "重命名模型" : "Rename model"}
                         </Label>
@@ -186,7 +235,7 @@ export function TitleGenerationSection() {
                     </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
                     <Label htmlFor="title-generation-api-key">
                         {isZh ? "重命名服务 API Key" : "Rename service API key"}
                     </Label>
@@ -217,8 +266,8 @@ export function TitleGenerationSection() {
                     </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/35 px-4 py-3">
+                    <p className="min-w-0 flex-1 text-xs text-muted-foreground">
                         {isZh
                             ? "上游录音平台连接在 Data Sources，私有转录服务在 VoScript。本页只负责 transcript -> title 这条链。"
                             : "Recording-platform connections live in Data Sources, and private transcription lives in VoScript. This page only owns the transcript-to-title chain."}
@@ -228,12 +277,22 @@ export function TitleGenerationSection() {
                         onClick={() => void handleTitleGenerationConfigSave()}
                         disabled={isSaving}
                         aria-busy={isSaving}
+                        data-state={saveState}
                         data-testid="title-generation-save"
                     >
-                        {isZh ? "保存 AI 重命名配置" : "Save AI rename"}
+                        {isSaving ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : null}
+                        {isSaving
+                            ? isZh
+                                ? "保存中"
+                                : "Saving"
+                            : isZh
+                              ? "保存 AI 重命名配置"
+                              : "Save AI rename"}
                     </Button>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }

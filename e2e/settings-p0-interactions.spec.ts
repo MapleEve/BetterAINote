@@ -77,9 +77,21 @@ test("title generation settings validate, save, and clear sensitive input", asyn
     await resetCoreSettings(page);
 
     const titleGenerationPuts: Record<string, unknown>[] = [];
+    let releaseTitleGenerationSave: (() => void) | null = null;
+    let markTitleGenerationSaveStarted: (() => void) | null = null;
+    const titleGenerationSaveStarted = new Promise<void>((resolve) => {
+        markTitleGenerationSaveStarted = resolve;
+    });
     await page.route("**/api/settings/title-generation", async (route) => {
         if (route.request().method() === "PUT") {
-            titleGenerationPuts.push(route.request().postDataJSON());
+            const payload = route.request().postDataJSON();
+            titleGenerationPuts.push(payload);
+            if (payload?.titleGenerationModel === "e2e-title-model") {
+                markTitleGenerationSaveStarted?.();
+                await new Promise<void>((release) => {
+                    releaseTitleGenerationSave = release;
+                });
+            }
         }
         await route.continue();
     });
@@ -96,6 +108,19 @@ test("title generation settings validate, save, and clear sensitive input", asyn
     await expect(
         page.locator('[data-settings-section="title-generation"]'),
     ).toBeVisible();
+    const section = page.locator('[data-settings-section="title-generation"]');
+    await expect(section).toHaveAttribute(
+        "data-title-generation-service-state",
+        "needs-setup",
+    );
+    await expect(section).toHaveAttribute(
+        "data-title-generation-save-state",
+        "ready",
+    );
+    await expect(page.getByTestId("title-generation-config-state")).toHaveAttribute(
+        "data-state",
+        "needs-setup",
+    );
 
     const autoToggle = page.getByTestId("title-generation-auto-toggle");
     await expect(autoToggle).toHaveAttribute("data-state", "checked");
@@ -124,23 +149,43 @@ test("title generation settings validate, save, and clear sensitive input", asyn
     await page.locator("#title-generation-model").fill("e2e-title-model");
     await page.locator("#title-generation-api-key").fill("e2e-title-value");
 
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/title-generation") &&
-                response.request().method() === "PUT" &&
-                response.ok() &&
-                response.request().postDataJSON()?.titleGenerationModel ===
-                    "e2e-title-model",
-        ),
-        page.getByTestId("title-generation-save").click(),
-    ]);
+    const titleGenerationSaveResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/title-generation") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.titleGenerationModel ===
+                "e2e-title-model",
+    );
+    await page.getByTestId("title-generation-save").click();
+    await titleGenerationSaveStarted;
+    await expect(section).toHaveAttribute(
+        "data-title-generation-save-state",
+        "saving",
+    );
+    await expect(page.getByTestId("title-generation-save")).toHaveAttribute(
+        "aria-busy",
+        "true",
+    );
+    await expect(page.getByTestId("title-generation-config-state")).toContainText(
+        "保存中",
+    );
+    releaseTitleGenerationSave?.();
+    await titleGenerationSaveResponse;
 
     expect(titleGenerationPuts.at(-1)).toMatchObject({
         titleGenerationApiKey: "e2e-title-value",
         titleGenerationBaseUrl: "https://example.com/v1",
         titleGenerationModel: "e2e-title-model",
     });
+    await expect(section).toHaveAttribute(
+        "data-title-generation-service-state",
+        "configured",
+    );
+    await expect(section).toHaveAttribute(
+        "data-title-generation-save-state",
+        "ready",
+    );
     await expect(page.locator("#title-generation-api-key")).toHaveValue("");
     await expect(page.getByText("AI 重命名设置已保存")).toBeVisible();
 
@@ -152,6 +197,10 @@ test("title generation settings validate, save, and clear sensitive input", asyn
         "placeholder",
         /已存储/,
     );
+    await expect(page.getByTestId("title-generation-config-state")).toHaveAttribute(
+        "data-state",
+        "configured",
+    );
 });
 
 test("transcription settings persist auto-transcribe and language changes", async ({
@@ -159,29 +208,65 @@ test("transcription settings persist auto-transcribe and language changes", asyn
 }) => {
     await ensureSignedIn(page);
     await resetCoreSettings(page);
+    let releaseTranscriptionSave: (() => void) | null = null;
+    let markTranscriptionSaveStarted: (() => void) | null = null;
+    const transcriptionSaveStarted = new Promise<void>((resolve) => {
+        markTranscriptionSaveStarted = resolve;
+    });
+    await page.route("**/api/settings/transcription", async (route) => {
+        if (route.request().method() === "PUT") {
+            const payload = route.request().postDataJSON();
+            if (payload?.autoTranscribe === true) {
+                markTranscriptionSaveStarted?.();
+                await new Promise<void>((release) => {
+                    releaseTranscriptionSave = release;
+                });
+            }
+        }
+        await route.continue();
+    });
 
     await page.goto("/settings#transcription", {
         waitUntil: "domcontentloaded",
     });
 
-    await expect(
-        page.locator('[data-settings-section="transcription"]'),
-    ).toBeVisible();
+    const section = page.locator('[data-settings-section="transcription"]');
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute(
+        "data-transcription-save-state",
+        "ready",
+    );
+    await expect(page.getByTestId("transcription-save-state")).toHaveAttribute(
+        "data-state",
+        "ready",
+    );
 
     const autoToggle = page.getByTestId("transcription-auto-toggle");
     await expect(autoToggle).toHaveAttribute("data-state", "unchecked");
 
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/transcription") &&
-                response.request().method() === "PUT" &&
-                response.ok() &&
-                response.request().postDataJSON()?.autoTranscribe === true,
-        ),
-        autoToggle.click(),
-    ]);
+    const autoSaveResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/transcription") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.autoTranscribe === true,
+    );
+    await autoToggle.click();
+    await transcriptionSaveStarted;
+    await expect(section).toHaveAttribute(
+        "data-transcription-save-state",
+        "saving",
+    );
+    await expect(page.getByTestId("transcription-save-state")).toContainText(
+        "保存中",
+    );
+    releaseTranscriptionSave?.();
+    await autoSaveResponse;
     await expect(autoToggle).toHaveAttribute("data-state", "checked");
+    await expect(section).toHaveAttribute(
+        "data-transcription-save-state",
+        "ready",
+    );
 
     await page.getByTestId("transcription-language").click();
     await Promise.all([
