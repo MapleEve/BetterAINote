@@ -40,27 +40,11 @@ bun run db:migrate
 
 文档改动至少要跑格式 / lint、类型检查和任务要求的敏感词扫描。`bun run type-check` 如果生成 `tsconfig.tsbuildinfo`，结束前删除。
 
-## 发布前 Provider E2E 验收
+## 发布前 E2E 验收
 
-发布前 E2E 不能只跑 mock。需要用本地配置的真实 provider 覆盖以下链路：
+发布前 E2E 不能只跑 mock。需要覆盖脱敏真实链路、数据源连接、同步、来源报告、私有转写、搜索范围、设置页和首页 smoke。验收记录不得进入公开仓库，只允许保留脱敏后的通过 / 失败状态、覆盖链路和问题类型。
 
-1. 使用 `scripts/e2e-reset-data.mjs` 清空录音、转写、标签、来源 artifact、搜索 sidecar 和本地 storage；保留 `source_connections` 与 `api_credentials`。
-2. 启动 `bun run dev`，确认 Web 与 worker 都在 `3001` 上运行。
-3. 登录测试账号，确认 `/api/recordings` 初始为空。
-4. 在 `Data Sources` 设置页确认 Plaud 和 TicNote 都为已启用，飞书妙记、钉钉 A1 等入口可见。
-5. 从 UI 点击“同步设备”，等待 `/api/data-sources/sync` 完整返回；必须看到 Plaud 与 TicNote 都有真实录音落库。
-6. 检查至少一条来源报告的逐字稿 segments 带 `startMs` 或 `endMs`，并确认来源页签在首页转录区域可见。
-7. 选择一条有本地音频的短录音触发真实 VoScript / voice-transcribe 转写，等待 job 成功并读取 `/transcript/raw`。
-8. 用转写中派生的短查询词调用 `/api/search`，覆盖 `recording`、`transcript`、`speaker`、`tag` 四类搜索范围。
-9. 打开首页 `#transcription` 与设置 `#transcription` 做 UI smoke；不得在日志、文档或测试输出中打印真实标题、录音 ID、token 或逐字稿正文。
-
-验收记录只保留脱敏后的通过 / 失败状态、覆盖链路和问题类型。不要在公开文档中保留某次账号的同步数量、来源分布、录音分布、可反推出来源状态的统计结果、真实标题、录音 ID、token 或逐字稿正文。
-
-E2E 发现过的稳定性边界：
-
-- 来源音频下载必须设置超时；临时下载 URL 卡死不能让 provider batch 永远 running。
-- 手动 provider 同步运行期间，后台 worker 不能同时处理 search jobs，否则 SQLite search shard 会出现 `SQLITE_BUSY`。
-- search job 写入需要识别顶层和 `cause` 内的 `SQLITE_BUSY` 并做短重试。
+相关实现必须保留超时、并发和短重试保护，避免 provider、worker 或 search 写入在异常网络和 SQLite 忙碌状态下卡住。
 
 ## 产品边界
 

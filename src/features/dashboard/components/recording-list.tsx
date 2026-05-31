@@ -368,7 +368,10 @@ export function RecordingList({
         <Card
             hasNoPadding
             className="dashboard-list-panel h-[calc(100svh-13rem)] min-h-[28rem] lg:h-full lg:min-h-0"
+            data-current-page={currentPage}
             data-list-state={listState}
+            data-total-pages={totalPages}
+            data-visible-count={sortedAndPaginatedRecordings.length}
             data-testid="recording-list-panel"
         >
             <CardContent className="flex h-full min-h-0 flex-col p-0">
@@ -521,6 +524,8 @@ export function RecordingList({
                                             <button
                                                 key={recording.id}
                                                 type="button"
+                                                data-recording-id={recording.id}
+                                                data-testid="recording-list-item"
                                                 onClick={() =>
                                                     onSelect(recording)
                                                 }
@@ -747,6 +752,7 @@ export function RecordingList({
                 <div className="flex items-center justify-between border-t p-4">
                     <button
                         type="button"
+                        data-testid="recording-list-prev-page"
                         onClick={() =>
                             setCurrentPage((page) => Math.max(1, page - 1))
                         }
@@ -755,7 +761,10 @@ export function RecordingList({
                     >
                         {language === "zh-CN" ? "上一页" : "Previous"}
                     </button>
-                    <div className="text-center text-sm text-muted-foreground">
+                    <div
+                        className="text-center text-sm text-muted-foreground"
+                        data-testid="recording-list-page-status"
+                    >
                         <span>
                             {language === "zh-CN"
                                 ? `${currentPage} / ${totalPages} 页`
@@ -768,6 +777,7 @@ export function RecordingList({
                     </div>
                     <button
                         type="button"
+                        data-testid="recording-list-next-page"
                         onClick={() =>
                             setCurrentPage((page) =>
                                 Math.min(totalPages, page + 1),

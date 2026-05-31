@@ -107,9 +107,9 @@ ENCRYPTION_KEY=<generate-a-strong-64-char-hex-key>
 不要执行：
 
 - 删除用户已有数据库、音频归档或声纹数据，除非用户明确要求。
-- 把真实 provider token、cookie、VoScript 密钥或 AI 服务密钥写入公开文件。
+- 把真实 token、cookie、VoScript 密钥或 AI 服务密钥写入公开文件。
 - 把登录态截图、录音标题、逐字稿、组织 ID、用户 ID、录音 ID 或未脱敏请求内容发到公开渠道。
-- 为了省事跳过 worker；真实 provider 同步和转写调度必须覆盖 worker。
+- 为了省事跳过 worker；数据源同步和转写调度必须覆盖 worker。
 
 ## 验收命令
 
@@ -125,7 +125,7 @@ bun run db:migrate
 需要检查 UI 时，打开 `APP_URL`，至少覆盖：
 
 - 注册 / 登录。
-- `Data Sources` 设置与真实 provider 配置。
+- `Data Sources` 设置与已配置的数据源。
 - 手动同步和 worker 自动同步。
 - 录音列表、录音详情、来源信息。
 - 转写输出、来源逐字稿、说话人标签。
