@@ -428,7 +428,10 @@ export function SpeakerLabelEditor({
     }
 
     return (
-        <div className="space-y-4 border-t pt-4">
+        <div
+            className="space-y-4 border-t pt-4"
+            data-testid="speaker-review-panel"
+        >
             <div className="space-y-3">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="flex items-center gap-2">
@@ -450,6 +453,7 @@ export function SpeakerLabelEditor({
                                 reviewMode === "speaker" ? "default" : "outline"
                             }
                             onClick={() => setReviewMode("speaker")}
+                            data-testid="speaker-review-mode-speaker"
                         >
                             {t("speakerReview.speakerNamesMode")}
                         </Button>
@@ -460,6 +464,7 @@ export function SpeakerLabelEditor({
                                 reviewMode === "raw" ? "default" : "outline"
                             }
                             onClick={() => setReviewMode("raw")}
+                            data-testid="speaker-review-mode-raw"
                         >
                             {t("speakerReview.rawLabelsMode")}
                         </Button>
@@ -474,6 +479,7 @@ export function SpeakerLabelEditor({
                                 !canCopyRawTranscript
                             }
                             aria-busy={isCopyingRawTranscript}
+                            data-testid="speaker-review-copy-raw"
                         >
                             <Copy className="mr-2 h-3.5 w-3.5" />
                             {isCopyingRawTranscript
@@ -486,6 +492,7 @@ export function SpeakerLabelEditor({
                             variant="ghost"
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
+                            data-testid="speaker-review-refresh"
                         >
                             <RefreshCw
                                 className={`mr-2 h-3.5 w-3.5 ${isReviewLoading ? "animate-spin" : ""}`}
@@ -498,12 +505,18 @@ export function SpeakerLabelEditor({
                 {isReviewLoading ? (
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
-                    <div className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground">
+                    <div
+                        className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground"
+                        data-testid="speaker-review-error"
+                    >
                         {reviewError}
                     </div>
                 ) : activeReview ? (
                     <>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <div
+                            className="flex flex-wrap gap-3 text-xs text-muted-foreground"
+                            data-testid="speaker-review-metadata"
+                        >
                             {activeReview.detectedLanguage ? (
                                 <span>
                                     {t("speakerReview.languageLabel")}:{" "}
@@ -561,7 +574,10 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div className="max-h-72 overflow-y-auto rounded-xl bg-background/50 p-3">
+                        <div
+                            className="max-h-72 overflow-y-auto rounded-xl bg-background/50 p-3"
+                            data-testid="speaker-review-transcript-preview"
+                        >
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">
                                 {activeReview.text}
                             </p>
@@ -571,7 +587,10 @@ export function SpeakerLabelEditor({
             </div>
 
             {speakers.length === 0 ? (
-                <div className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
+                <div
+                    className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground"
+                    data-testid="speaker-review-empty"
+                >
                     {t("speakerReview.noDetectedSpeakers")}
                 </div>
             ) : (
@@ -580,6 +599,17 @@ export function SpeakerLabelEditor({
                         <div
                             key={speaker.rawLabel}
                             className="space-y-4 rounded-2xl border bg-background/35 p-4"
+                            data-speaker-has-playable-sample={String(
+                                speaker.hasPlayableSample,
+                            )}
+                            data-speaker-has-voiceprint={String(
+                                speaker.hasVoiceprint,
+                            )}
+                            data-speaker-label={speaker.rawLabel}
+                            data-speaker-mapped={String(
+                                Boolean(speaker.matchedProfileId),
+                            )}
+                            data-testid="speaker-review-card"
                         >
                             {(() => {
                                 const searchQuery =
@@ -613,10 +643,16 @@ export function SpeakerLabelEditor({
                                     <>
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="space-y-1">
-                                                <p className="text-sm font-medium">
+                                                <p
+                                                    className="text-sm font-medium"
+                                                    data-testid="speaker-review-raw-label"
+                                                >
                                                     {speaker.rawLabel}
                                                 </p>
-                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                <div
+                                                    className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+                                                    data-testid="speaker-review-card-status"
+                                                >
                                                     <span>
                                                         {speaker.matchedProfileId
                                                             ? t(
@@ -658,7 +694,10 @@ export function SpeakerLabelEditor({
                                                 </div>
                                             </div>
                                             {speaker.hasPlayableSample ? null : (
-                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                <span
+                                                    className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                                                    data-testid="speaker-review-no-playable-sample"
+                                                >
                                                     <Volume2 className="h-3.5 w-3.5" />
                                                     {t(
                                                         "speakerReview.noTimedSamples",
@@ -687,6 +726,7 @@ export function SpeakerLabelEditor({
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
                                                                 className="space-y-3 rounded-xl border bg-background/60 p-3"
+                                                                data-testid="speaker-review-sample"
                                                             >
                                                                 <div className="flex items-start justify-between gap-3">
                                                                     <p className="text-xs font-medium text-muted-foreground">
@@ -719,6 +759,7 @@ export function SpeakerLabelEditor({
                                                                                 index,
                                                                             )
                                                                         }
+                                                                        data-testid="speaker-review-play-sample"
                                                                     >
                                                                         <Play className="h-3.5 w-3.5" />
                                                                         {playingKey ===
@@ -802,6 +843,7 @@ export function SpeakerLabelEditor({
                                                             ? "pr-10"
                                                             : undefined
                                                     }
+                                                    data-testid="speaker-review-mapping-input"
                                                 />
                                                 {searchQuery.trim() ? (
                                                     <Button
@@ -831,6 +873,7 @@ export function SpeakerLabelEditor({
                                                                 speaker.rawLabel,
                                                             );
                                                         }}
+                                                        data-testid="speaker-review-clear-mapping"
                                                     >
                                                         <X className="h-3.5 w-3.5" />
                                                     </Button>
@@ -852,6 +895,7 @@ export function SpeakerLabelEditor({
                                                                 null,
                                                             )
                                                         }
+                                                        data-testid="speaker-review-unlink"
                                                     >
                                                         {t(
                                                             "speakerReview.unlink",
@@ -881,7 +925,10 @@ export function SpeakerLabelEditor({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="max-h-52 overflow-y-auto rounded-lg border bg-background md:col-start-2">
+                                                    <div
+                                                        className="max-h-52 overflow-y-auto rounded-lg border bg-background md:col-start-2"
+                                                        data-testid="speaker-review-picker"
+                                                    >
                                                         {filteredProfiles.map(
                                                             (profile) => (
                                                                 <button
@@ -915,6 +962,7 @@ export function SpeakerLabelEditor({
                                                                             profile.id,
                                                                         );
                                                                     }}
+                                                                    data-testid="speaker-review-profile-option"
                                                                 >
                                                                     <span>
                                                                         {
@@ -964,6 +1012,7 @@ export function SpeakerLabelEditor({
                                                                         normalizedQuery,
                                                                     );
                                                                 }}
+                                                                data-testid="speaker-review-create-option"
                                                             >
                                                                 <span>
                                                                     {t(

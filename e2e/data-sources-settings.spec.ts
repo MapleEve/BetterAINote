@@ -345,3 +345,157 @@ test("data sources settings keeps responsive provider states and disabled action
     ).toBeDisabled();
     await expect(plannedDetail.getByTestId("data-source-save")).toBeDisabled();
 });
+
+test("data sources settings switches Feishu sign-in methods without saving test payloads", async ({
+    page,
+}) => {
+    const sources = [
+        makeSource("plaud", {
+            displayName: "Plaud",
+            config: { server: "cn" },
+        }),
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+        }),
+        makeSource("feishu-minutes", {
+            authMode: "oauth-device-flow",
+            authModes: ["oauth-device-flow", "web-reverse"],
+            baseUrl: "https://open.feishu.cn",
+            config: { appId: "" },
+            displayName: "飞书妙记",
+            runtimeStatus: "active",
+        }),
+        makeSource("dingtalk-a1", {
+            authMode: "device-signin",
+            authModes: ["device-signin"],
+            displayName: "钉钉闪记",
+        }),
+        makeSource("iflyrec", {
+            authMode: "session-header",
+            authModes: ["session-header"],
+            config: { bizId: "tjzs" },
+            displayName: "讯飞听见",
+        }),
+    ];
+    const testPayloads: Record<string, unknown>[] = [];
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/data-sources/test", async (route) => {
+        testPayloads.push(route.request().postDataJSON());
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ sources }),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    const section = await openDataSourcesSettings(page);
+
+    await section.locator('[data-provider="feishu-minutes"]').click();
+    await expect(section).toHaveAttribute(
+        "data-ds-selected-provider",
+        "feishu-minutes",
+    );
+
+    const detail = section.locator('[data-provider-detail="feishu-minutes"]');
+    await expect(detail).toBeVisible();
+    await expect(
+        detail.locator('[data-auth-mode="oauth-device-flow"]'),
+    ).toHaveAttribute("data-active", "true");
+    await expect(
+        detail.locator('[data-auth-mode="web-reverse"]'),
+    ).toHaveAttribute("data-active", "false");
+    await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
+        "https://open.feishu.cn",
+    );
+    await expect(page.locator("#feishu-minutes-source-app-id")).toBeVisible();
+    await expect(page.locator("#feishu-minutes-source-secret")).toBeVisible();
+    await expect(page.locator("#feishu-minutes-source-web-cookie")).toHaveCount(
+        0,
+    );
+    await expect(page.locator("#feishu-minutes-source-web-token")).toHaveCount(
+        0,
+    );
+
+    await page
+        .locator("#feishu-minutes-source-app-id")
+        .fill("cli_e2e_feishu_app");
+    await page
+        .locator("#feishu-minutes-source-secret")
+        .fill("u-e2e-open-platform-token");
+    await detail.getByTestId("data-source-test-connection").click();
+    await expect(detail).toHaveAttribute(
+        "data-provider-action-state",
+        "test-success",
+    );
+    expect(testPayloads).toHaveLength(1);
+    expect(testPayloads[0]).toMatchObject({
+        authMode: "oauth-device-flow",
+        baseUrl: "https://open.feishu.cn",
+        enabled: true,
+        provider: "feishu-minutes",
+        config: { appId: "cli_e2e_feishu_app" },
+        secrets: { userAccessToken: "u-e2e-open-platform-token" },
+    });
+    expect(savePayload).toBeNull();
+
+    await detail.locator('[data-auth-mode="web-reverse"]').click();
+    await expect(
+        detail.locator('[data-auth-mode="oauth-device-flow"]'),
+    ).toHaveAttribute("data-active", "false");
+    await expect(
+        detail.locator('[data-auth-mode="web-reverse"]'),
+    ).toHaveAttribute("data-active", "true");
+    await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
+        "https://meetings.feishu.cn",
+    );
+    await expect(page.locator("#feishu-minutes-source-app-id")).toHaveCount(0);
+    await expect(page.locator("#feishu-minutes-source-secret")).toHaveCount(0);
+    await expect(page.locator("#feishu-minutes-source-web-cookie")).toBeVisible();
+    await expect(page.locator("#feishu-minutes-source-web-token")).toBeVisible();
+
+    await page.locator("#feishu-minutes-source-space-name").fill("cn");
+    await page
+        .locator("#feishu-minutes-source-web-cookie")
+        .fill("minutes_csrf_token=e2e; session=e2e");
+    await page
+        .locator("#feishu-minutes-source-web-token")
+        .fill("x-minutes-e2e-token");
+    await detail.getByTestId("data-source-test-connection").click();
+    await expect(detail).toHaveAttribute(
+        "data-provider-action-state",
+        "test-success",
+    );
+    expect(testPayloads).toHaveLength(2);
+    expect(testPayloads[1]).toMatchObject({
+        authMode: "web-reverse",
+        baseUrl: "https://meetings.feishu.cn",
+        enabled: true,
+        provider: "feishu-minutes",
+        config: { spaceName: "cn" },
+        secrets: {
+            webCookie: "minutes_csrf_token=e2e; session=e2e",
+            webToken: "x-minutes-e2e-token",
+        },
+    });
+    expect(savePayload).toBeNull();
+});
