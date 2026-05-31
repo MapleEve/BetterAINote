@@ -6,7 +6,7 @@
 
 ## 仓库意图
 
-BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音聚合、转写、搜索和管理工作台。公开表达必须面向用户，避免把内部调查、实现证据或 provider 私有材料带到公开表面。
+BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音聚合、转写、搜索和管理工作台。公开表达必须面向用户，只使用已脱敏、可发布的信息。
 
 ## 目录索引
 
@@ -24,8 +24,8 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 
 ## 公共红线
 
-- 不提交真实 token、密码、私有 ID、浏览器会话材料、本地数据库、私有录音、私有转写或 provider 私有来源材料。
-- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露内部研究、抓包细节、请求归档、实现专用标签或本地证据路径。
+- 不提交真实 token、密码、私有 ID、浏览器会话材料、本地数据库、私有录音、私有转写或未脱敏来源材料。
+- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露敏感、未脱敏或非公开材料。
 - 不把公开定位改成非隐私优先、非可自托管或偏向单一 provider 的表达。
 - 不修改 license、package privacy、release automation 或发布行为，除非任务明确要求检查发布边界。
 - 不提交 `.gitignore` 排除的任何本地文件。
@@ -47,7 +47,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - 提交前确认 author 和 committer 是 `Maple Gao <esanisa@gmail.com>`。
 - 本仓库提交必须使用 SSH 签名，保留 `commit.gpgsign=true` 和 `gpg.format=ssh`。
 - 不 push `origin/main`，审查工作使用 `mini/` 前缀分支。
-- staged 范围必须只包含任务相关文件；不要把 ignored 本地资料、依赖产物、数据库或日志加入提交。
+- staged 范围必须只包含任务相关文件；不要把 `.gitignore` 排除内容、依赖产物、数据库或日志加入提交。
 
 ## PR 审查流程
 

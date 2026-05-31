@@ -149,7 +149,7 @@ DATABASE_PATH=./data/betterainote.db
 - `.env.local`、数据库、音频归档、完整转写、账号页面截图。
 - 数据源 cookie、bearer、刷新凭据、组织 / 用户 / 录音 ID。
 - VoScript、AI 标题服务、对象存储或其它服务密钥。
-- 网络抓包文件、完整来源响应、内部排查记录或本地私有路径。
+- 未脱敏请求记录、完整来源响应、未脱敏日志、截图或本机路径。
 
 Issue 和 PR 模板应提醒贡献者只提供脱敏日志、字段名、HTTP 状态和最小复现步骤。
 
@@ -159,7 +159,7 @@ Issue 和 PR 模板应提醒贡献者只提供脱敏日志、字段名、HTTP �
 - 必须说明 `preview`、自托管优先、当前预发布版本、`0.6.0-preview` baseline，以及不发布 npm 包或公开镜像。
 - License 口径统一为“个人免费，商业使用须事先取得书面授权；条款为 BetterAINote Additional Terms on top of Apache License 2.0”。
 - 不写会让 BetterAINote 像某个来源派生项目的措辞。
-- 不记录来源内部协议、未公开计划或本地研究材料。
+- 不记录非公开实现细节或未脱敏材料。
 
 ## 相关链接
 

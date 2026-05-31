@@ -14,7 +14,7 @@ VoScript 连接测试 API，只验证当前表单里的服务连接，不持久�
 - 变更请求体、响应字段或公开错误语义时必须同步更新 `src/services/voscript-settings.ts`、设置 UI 和 route 测试。
 
 ## 禁止事项
-- 禁止记录、返回或提交真实 API Key、服务私有响应、私有录音、私有转写和 provider 私有标识。
+- 禁止记录、返回或提交真实 API Key、未脱敏服务响应、私有录音、私有转写和未脱敏来源标识。
 - 禁止把测试连接写入 `user_settings` 或 `api_credentials`。
 
 ## 依赖方向

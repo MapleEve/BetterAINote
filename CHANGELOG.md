@@ -36,7 +36,7 @@ BetterAINote 处于 `0.6.0-preview` 预发布阶段。这个版本是后续架�
 - 数据源说明，面向普通用户解释钉钉 / A1 / 闪记、TicNote、Plaud、飞书妙记、讯飞听见的成熟度和限制。
 - API 文档，明确 preview 阶段公开 API 形状、错误语义和 `source-report` 脱敏边界。
 - 部署文档，说明本地 SQLite、storage、worker、CI、Docker 和 Release 工作流的状态。
-- 隐私和安全文档，统一 provider 凭据、日志、Issue、截图和网络抓包文件的脱敏要求。
+- 隐私和安全文档，统一 provider 凭据、日志、Issue、截图和未脱敏请求记录的脱敏要求。
 - VoScript 风格 License：前置中英文附加条款，个人使用免费，商业使用需事先书面授权，后置 Apache License 2.0 原文。
 - LobeHub 方向的服务分层 baseline：API route 只保留 HTTP 适配职责，录音、说话人、搜索、来源报告等业务写入 `src/server/modules/*`。
 - 面向全文搜索的 SQLite baseline：拆分 core/library/transcripts/voiceprints/words/search 分片，搜索 sidecar 覆盖 recordings、transcripts、speakers 和 tags。

@@ -95,6 +95,6 @@ gh repo view MapleEve/BetterAINote --json description,homepageUrl,repositoryTopi
 不能公开：
 
 - 真实 token、cookie、bearer、账号、组织 ID、用户 ID、录音 ID。
-- 数据库、音频、逐字稿、来源原始响应、完整日志或抓包文件。
+- 数据库、音频、逐字稿、来源原始响应、完整日志或未脱敏请求记录。
 - 未脱敏的登录态截图、数据源详情截图或错误响应。
-- 私有 provider 研究记录、临时测试记录和本地路径。
+- 未脱敏或非公开材料。

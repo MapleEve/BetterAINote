@@ -160,7 +160,7 @@ BetterAINote 可能包含录音标题、来源记录、转写文本、说话人�
 - 本地 SQLite 和 `LOCAL_STORAGE_PATH` 可能包含敏感录音与转写数据。
 - Provider 凭据、VoScript 凭据、AI 标题服务密钥和会话状态只应存在于你的私有部署里。
 - 日志、Issue、PR、截图和录屏必须先脱敏。
-- 不要公开 cookie、bearer token、组织 / 用户 / 录音 ID、会议内容、抓包文件、完整环境文件或本地私有路径。
+- 不要公开 cookie、bearer token、组织 / 用户 / 录音 ID、会议内容、未脱敏请求记录、完整环境文件或本机路径。
 
 更多说明见 [隐私文档](./docs/PRIVACY.md) 和 [安全策略](./SECURITY.md)。
 
