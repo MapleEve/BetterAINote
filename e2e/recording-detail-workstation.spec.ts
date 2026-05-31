@@ -675,6 +675,18 @@ test("recording detail keeps the player controls live with local audio", async (
 }) => {
     try {
         await ensureSignedIn(page);
+        const resetPlaybackResponse = await page.request.put(
+            "/api/settings/playback",
+            {
+                data: {
+                    autoPlayNext: false,
+                    defaultPlaybackSpeed: 1,
+                    defaultVolume: 75,
+                },
+            },
+        );
+        expect(resetPlaybackResponse.ok()).toBe(true);
+
         const userId = await getPlaywrightUserId();
         const storagePath = await writeAudioFixture();
         const recordingId = await seedRecordingDetail(userId, { storagePath });
