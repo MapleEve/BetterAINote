@@ -715,6 +715,7 @@ export function TranscriptionPanel({
                         recording.sourceProvider ? (
                             <SourceReportPanel
                                 autoLoad
+                                hasAudio={recording.hasAudio}
                                 recordingId={recording.id}
                                 sourceProvider={recording.sourceProvider}
                                 variant="embedded"

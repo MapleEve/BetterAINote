@@ -2,6 +2,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
@@ -74,7 +75,23 @@ async function cleanupRecordingDetailSeed() {
     }
 }
 
-async function seedRecordingDetail(userId: string) {
+type RecordingDetailSeedOptions = {
+    includeSourceTranscript?: boolean;
+    includeSourceSummary?: boolean;
+    includeSourceDetail?: boolean;
+    storagePath?: string;
+};
+
+async function seedRecordingDetail(
+    userId: string,
+    options: RecordingDetailSeedOptions = {},
+) {
+    const {
+        includeSourceDetail = true,
+        includeSourceSummary = true,
+        includeSourceTranscript = true,
+        storagePath = "",
+    } = options;
     const now = Date.now();
     const start = now - 7_200_000;
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
@@ -106,7 +123,7 @@ async function seedRecordingDetail(userId: string) {
                 4096,
                 "e2e-detail",
                 "local",
-                "",
+                storagePath,
                 now,
                 0,
                 0,
@@ -137,79 +154,85 @@ async function seedRecordingDetail(userId: string) {
                 now - 120_000,
             ],
         });
-        await transcripts.execute({
-            sql: `
-                INSERT OR REPLACE INTO source_artifacts (
-                    id, recording_id, user_id, provider, artifact_type, title,
-                    text_content, markdown_content, payload, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            args: [
-                "e2e-detail-source-transcript",
-                DETAIL_RECORDING_ID,
-                userId,
-                "ticnote",
-                "official-transcript",
-                "来源逐字稿",
-                "Speaker 1: 来源逐字稿复制内容。",
-                null,
-                JSON.stringify({
-                    language: "zh-CN",
-                    segments: [
-                        {
-                            speaker: "Speaker 1",
-                            startMs: 0,
-                            endMs: 15_000,
-                            text: "来源逐字稿复制内容。",
-                        },
-                    ],
-                }),
-                now - 90_000,
-                now - 90_000,
-            ],
-        });
-        await transcripts.execute({
-            sql: `
-                INSERT OR REPLACE INTO source_artifacts (
-                    id, recording_id, user_id, provider, artifact_type, title,
-                    text_content, markdown_content, payload, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            args: [
-                "e2e-detail-source-summary",
-                DETAIL_RECORDING_ID,
-                userId,
-                "ticnote",
-                "official-summary",
-                "来源报告",
-                null,
-                "## E2E 源报告摘要\n\n- 录音详情页自动加载来源报告。",
-                "{}",
-                now - 80_000,
-                now - 80_000,
-            ],
-        });
-        await transcripts.execute({
-            sql: `
-                INSERT OR REPLACE INTO source_artifacts (
-                    id, recording_id, user_id, provider, artifact_type, title,
-                    text_content, markdown_content, payload, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            args: [
-                "e2e-detail-source-detail",
-                DETAIL_RECORDING_ID,
-                userId,
-                "ticnote",
-                "official-detail",
-                "来源详情",
-                null,
-                null,
-                JSON.stringify({ language: "zh-CN" }),
-                now - 70_000,
-                now - 70_000,
-            ],
-        });
+        if (includeSourceTranscript) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO source_artifacts (
+                        id, recording_id, user_id, provider, artifact_type, title,
+                        text_content, markdown_content, payload, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    "e2e-detail-source-transcript",
+                    DETAIL_RECORDING_ID,
+                    userId,
+                    "ticnote",
+                    "official-transcript",
+                    "来源逐字稿",
+                    "Speaker 1: 来源逐字稿复制内容。",
+                    null,
+                    JSON.stringify({
+                        language: "zh-CN",
+                        segments: [
+                            {
+                                speaker: "Speaker 1",
+                                startMs: 0,
+                                endMs: 15_000,
+                                text: "来源逐字稿复制内容。",
+                            },
+                        ],
+                    }),
+                    now - 90_000,
+                    now - 90_000,
+                ],
+            });
+        }
+        if (includeSourceSummary) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO source_artifacts (
+                        id, recording_id, user_id, provider, artifact_type, title,
+                        text_content, markdown_content, payload, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    "e2e-detail-source-summary",
+                    DETAIL_RECORDING_ID,
+                    userId,
+                    "ticnote",
+                    "official-summary",
+                    "来源报告",
+                    null,
+                    "## E2E 源报告摘要\n\n- 录音详情页自动加载来源报告。",
+                    "{}",
+                    now - 80_000,
+                    now - 80_000,
+                ],
+            });
+        }
+        if (includeSourceDetail) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO source_artifacts (
+                        id, recording_id, user_id, provider, artifact_type, title,
+                        text_content, markdown_content, payload, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    "e2e-detail-source-detail",
+                    DETAIL_RECORDING_ID,
+                    userId,
+                    "ticnote",
+                    "official-detail",
+                    "来源详情",
+                    null,
+                    null,
+                    JSON.stringify({ language: "zh-CN" }),
+                    now - 70_000,
+                    now - 70_000,
+                ],
+            });
+        }
     } finally {
         await library.close();
         await transcripts.close();
@@ -218,9 +241,7 @@ async function seedRecordingDetail(userId: string) {
     return DETAIL_RECORDING_ID;
 }
 
-test("recording detail uses the new workstation shell and keeps all copy actions live", async ({
-    page,
-}) => {
+async function installClipboardCapture(page: Page) {
     await page.addInitScript(() => {
         const copiedTexts: string[] = [];
         Object.defineProperty(window, "__betterainoteCopiedTexts", {
@@ -236,6 +257,23 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             configurable: true,
         });
     });
+}
+
+async function readCopiedTexts(page: Page) {
+    return page.evaluate(
+        () =>
+            (
+                window as unknown as {
+                    __betterainoteCopiedTexts: string[];
+                }
+            ).__betterainoteCopiedTexts,
+    );
+}
+
+test("recording detail uses the new workstation shell and keeps all copy actions live", async ({
+    page,
+}) => {
+    await installClipboardCapture(page);
 
     let recordingId = DETAIL_RECORDING_ID;
 
@@ -258,6 +296,9 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             page.getByRole("heading", { name: "E2E source detail review" }),
         ).toBeVisible();
         await expect(page.getByText("E2E 源报告摘要")).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-segment-timestamp"),
+        ).toContainText("0:00 - 0:15");
 
         await page.getByTestId("recording-copy-local-transcript").click();
         await expect
@@ -286,6 +327,18 @@ test("recording detail uses the new workstation shell and keeps all copy actions
                 ),
             )
             .toContain("来源逐字稿复制内容");
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("0:00 - 0:15 · Speaker 1");
 
         await page.getByTestId("recording-copy-source-report").click();
         await expect
@@ -300,6 +353,74 @@ test("recording detail uses the new workstation shell and keeps all copy actions
                 ),
             )
             .toContain("E2E 源报告摘要");
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail source copy guards missing artifacts without writing empty clipboard", async ({
+    page,
+}) => {
+    await installClipboardCapture(page);
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId, {
+            includeSourceDetail: false,
+            includeSourceSummary: false,
+            includeSourceTranscript: false,
+        });
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await expect(
+            page.getByTestId("source-report-loaded"),
+        ).toHaveAttribute("data-source-report-state", "missing");
+        await expect(
+            page.getByTestId("source-report-no-audio-warning"),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-transcript-status"),
+        ).toHaveText("缺失");
+        await expect(
+            page.getByTestId("source-report-summary-status"),
+        ).toHaveText("缺失");
+        await expect(
+            page.getByTestId("source-report-missing-transcript"),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-missing-report"),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-copy-transcript"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("source-report-copy-report"),
+        ).toBeDisabled();
+
+        await page.getByTestId("recording-copy-source-transcript").click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("这个来源暂时没有可复制的原始转录。"),
+        ).toBeVisible();
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        await page.getByTestId("recording-copy-source-report").click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("这个来源暂时没有可复制的原始报告。"),
+        ).toBeVisible();
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        await expect(
+            page.getByTestId("source-report-upstream-open"),
+        ).toHaveCount(0);
+        await expect(page.getByTestId("source-report-repull")).toHaveCount(0);
     } finally {
         await cleanupRecordingDetailSeed();
     }

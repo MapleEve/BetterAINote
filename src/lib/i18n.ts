@@ -275,6 +275,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             copyFailed: "复制失败，请检查浏览器剪贴板权限。",
             missingSourceTranscript: "这个来源暂时没有可复制的原始转录。",
             missingSourceReport: "这个来源暂时没有可复制的原始报告。",
+            sourceOnlyNoAudio:
+                "这条来源记录没有本地音频，只能查看来源侧内容；私有转写需要先有可播放音频。",
             contentEntries: "来源内容条目",
             emptyHint:
                 "加载来源原始记录后，可查看来源侧 transcript 与报告产物，不会影响本地转录链路。",
@@ -582,6 +584,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
                 "This source does not have a raw transcript to copy yet.",
             missingSourceReport:
                 "This source does not have a raw report to copy yet.",
+            sourceOnlyNoAudio:
+                "This source record has no local audio. You can review source-side content, but private transcription requires playable audio first.",
             contentEntries: "Source Content Entries",
             emptyHint:
                 "Load the source record to inspect source-side transcript and report artifacts without affecting the local transcript pipeline.",

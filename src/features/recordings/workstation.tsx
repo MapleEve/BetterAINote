@@ -834,6 +834,7 @@ export function RecordingWorkstation({
                                 </div>
                                 {activeTranscriptTab === "source" ? (
                                     <SourceReportPanel
+                                        hasAudio={recording.hasAudio}
                                         recordingId={recording.id}
                                         sourceProvider={
                                             recording.sourceProvider

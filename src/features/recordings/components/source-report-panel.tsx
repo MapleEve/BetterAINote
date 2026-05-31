@@ -43,6 +43,7 @@ interface SourceReportPanelProps {
     sourceProvider: string;
     autoLoad?: boolean;
     className?: string;
+    hasAudio?: boolean;
     variant?: "card" | "embedded";
 }
 
@@ -397,6 +398,7 @@ function renderDetailEntries(
 export function SourceReportPanel({
     autoLoad = false,
     className,
+    hasAudio = true,
     recordingId,
     sourceProvider,
     variant = "card",
@@ -532,7 +534,11 @@ export function SourceReportPanel({
     const content = (
         <div className="space-y-4">
             {error && (
-                <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between">
+                <div
+                    className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+                    data-source-report-state="error"
+                    data-testid="source-report-error"
+                >
                     <span>{error}</span>
                     <Button
                         type="button"
@@ -572,7 +578,24 @@ export function SourceReportPanel({
             ) : null}
 
             {data && (
-                <>
+                <div
+                    className="space-y-4"
+                    data-source-report-state={
+                        data.transcriptReady || data.summaryReady
+                            ? "loaded"
+                            : "missing"
+                    }
+                    data-testid="source-report-loaded"
+                >
+                    {!hasAudio ? (
+                        <div
+                            className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-100"
+                            data-testid="source-report-no-audio-warning"
+                        >
+                            {t("sourceReport.sourceOnlyNoAudio")}
+                        </div>
+                    ) : null}
+
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-xl border border-white/10 bg-background/25 px-4 py-3">
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
@@ -596,6 +619,7 @@ export function SourceReportPanel({
                                         ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
                                         : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
                                 )}
+                                data-testid="source-report-transcript-status"
                             >
                                 {data.transcriptReady
                                     ? t("sourceReport.ready")
@@ -613,6 +637,7 @@ export function SourceReportPanel({
                                         ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
                                         : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
                                 )}
+                                data-testid="source-report-summary-status"
                             >
                                 {data.summaryReady
                                     ? t("sourceReport.ready")
@@ -643,6 +668,7 @@ export function SourceReportPanel({
                                     copyingKey === "source-report" ||
                                     !data.summaryMarkdown?.trim()
                                 }
+                                data-testid="source-report-copy-report"
                                 aria-busy={copyingKey === "source-report"}
                                 className="shrink-0"
                             >
@@ -657,7 +683,10 @@ export function SourceReportPanel({
                                 {data.summaryMarkdown}
                             </div>
                         ) : (
-                            <div className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                            <div
+                                className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground"
+                                data-testid="source-report-missing-report"
+                            >
                                 {t("sourceReport.missingSourceReport")}
                             </div>
                         )}
@@ -681,6 +710,7 @@ export function SourceReportPanel({
                                         language,
                                     ).trim()
                                 }
+                                data-testid="source-report-copy-transcript"
                                 aria-busy={copyingKey === "source-transcript"}
                                 className="shrink-0"
                             >
@@ -708,7 +738,10 @@ export function SourceReportPanel({
                                             >
                                                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
                                                     {timeRange ? (
-                                                        <span className="rounded-md border border-white/10 bg-background/60 px-2 py-1 font-mono text-muted-foreground">
+                                                        <span
+                                                            className="rounded-md border border-white/10 bg-background/60 px-2 py-1 font-mono text-muted-foreground"
+                                                            data-testid="source-report-segment-timestamp"
+                                                        >
                                                             {timeRange}
                                                         </span>
                                                     ) : null}
@@ -735,7 +768,10 @@ export function SourceReportPanel({
                                 )}
                             </div>
                         ) : (
-                            <div className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                            <div
+                                className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground"
+                                data-testid="source-report-missing-transcript"
+                            >
                                 {t("sourceReport.missingSourceTranscript")}
                             </div>
                         )}
@@ -751,7 +787,7 @@ export function SourceReportPanel({
                             </dl>
                         </div>
                     ) : null}
-                </>
+                </div>
             )}
 
             {!data && !error && !isLoading && (
