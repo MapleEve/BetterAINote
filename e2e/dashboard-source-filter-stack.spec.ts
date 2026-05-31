@@ -403,6 +403,17 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
         "true",
     );
 
+    await page.getByTestId("dashboard-source-drawer-scrim").click();
+    await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+
+    await page.getByTestId("dashboard-source-drawer-trigger").click();
+    await expect(workstation).toHaveAttribute("data-source-drawer", "open");
+    await page.keyboard.press("Escape");
+    await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+
+    await page.getByTestId("dashboard-source-drawer-trigger").click();
+    await expect(workstation).toHaveAttribute("data-source-drawer", "open");
+
     const iflyrecRow = page.locator('[data-provider="iflyrec"]');
     await expect(iflyrecRow).toBeVisible();
     await iflyrecRow.click();

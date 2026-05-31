@@ -524,3 +524,93 @@ test("dashboard exposes unavailable retranscription state for sources without lo
         await cleanupRunningRetranscriptionSeed();
     }
 });
+
+test("dashboard transcription panel copies text and switches speaker/source tabs", async ({
+    page,
+}) => {
+    let copiedText = "";
+    await page.exposeFunction(
+        "__captureBetterAiNoteClipboardText",
+        (text: string) => {
+            copiedText = text;
+        },
+    );
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: {
+                writeText: async (text: string) => {
+                    await (
+                        window as Window & {
+                            __captureBetterAiNoteClipboardText: (
+                                text: string,
+                            ) => Promise<void>;
+                        }
+                    ).__captureBetterAiNoteClipboardText(text);
+                },
+            },
+        });
+    });
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        await seedRetranscriptionScenario(userId, {
+            filename: "E2E transcript tabs and copy",
+            status: null,
+            oldText: "Speaker 1: 复制这段转录。\nSpeaker 2: 切换标签也要稳定。",
+        });
+        await page.route(
+            `**/api/recordings/${RETX_RECORDING_ID}/source-report`,
+            async (route) => {
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify({
+                        sourceProvider: "ticnote",
+                        filename: "E2E transcript tabs and copy",
+                        transcriptReady: true,
+                        summaryReady: true,
+                        transcript: {
+                            text: "Speaker 1: 来源原始转录。",
+                            segmentCount: 1,
+                            segments: [
+                                {
+                                    speaker: "Speaker 1",
+                                    startMs: 0,
+                                    endMs: 1200,
+                                    text: "来源原始转录。",
+                                },
+                            ],
+                        },
+                        summaryMarkdown: "来源原始报告。",
+                        detail: {
+                            provider: "ticnote",
+                            title: "E2E transcript tabs and copy",
+                        },
+                    }),
+                });
+            },
+        );
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: /E2E transcript tabs and copy/ })
+            .click();
+
+        const panel = page.getByTestId("dashboard-transcription-panel");
+        await expect(panel).toContainText("复制这段转录");
+        await page.getByRole("button", { name: "复制转录" }).click();
+        await expect
+            .poll(() => copiedText)
+            .toContain("切换标签也要稳定");
+
+        await page.getByRole("button", { name: "说话人标签" }).click();
+        await expect(page.getByTestId("speaker-review-panel")).toBeVisible();
+
+        await page.getByRole("button", { name: "来源", exact: true }).click();
+        await expect(page.getByTestId("source-report-loaded")).toBeVisible();
+        await expect(page.getByTestId("source-report-copy-transcript")).toBeEnabled();
+    } finally {
+        await cleanupRunningRetranscriptionSeed();
+    }
+});

@@ -1,5 +1,130 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { createClient } from "@libsql/client";
 import { expect, test, type Page } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+
+const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+const ACTIVITY_RECORDING_ID = "e2e-activity-transcription";
+const ACTIVITY_JOB_ID = "e2e-activity-transcription-job";
+
+function resolveDatabasePath() {
+    return process.env.DATABASE_PATH
+        ? path.resolve(process.cwd(), process.env.DATABASE_PATH)
+        : path.join(E2E_DATA_DIR, "betterainote-e2e.db");
+}
+
+function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
+    const parsed = path.parse(databasePath);
+    return path.resolve(
+        parsed.dir || ".",
+        `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
+    );
+}
+
+function databaseUrl(filePath: string) {
+    return pathToFileURL(filePath).href;
+}
+
+const CORE_DB = resolveDatabasePath();
+const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
+
+async function getPlaywrightUserId() {
+    const client = createClient({ url: databaseUrl(CORE_DB) });
+    try {
+        const result = await client.execute({
+            sql: "SELECT id FROM `users` WHERE email = ? LIMIT 1",
+            args: ["playwright-admin@example.com"],
+        });
+        const id = result.rows[0]?.id;
+        if (typeof id !== "string") {
+            throw new Error("Playwright user not found");
+        }
+        return id;
+    } finally {
+        await client.close();
+    }
+}
+
+async function cleanupActivityRecording() {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    try {
+        await library.execute({
+            sql: "DELETE FROM transcription_jobs WHERE id = ? OR recording_id = ?",
+            args: [ACTIVITY_JOB_ID, ACTIVITY_RECORDING_ID],
+        });
+        await library.execute({
+            sql: "DELETE FROM recordings WHERE id = ?",
+            args: [ACTIVITY_RECORDING_ID],
+        });
+    } finally {
+        await library.close();
+    }
+}
+
+async function seedActivityRecording(userId: string) {
+    const now = Date.now();
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    try {
+        await cleanupActivityRecording();
+        await library.execute({
+            sql: `
+                INSERT OR REPLACE INTO recordings (
+                    id, user_id, source_provider, source_recording_id, source_version,
+                    source_metadata, provider_device_id, filename, duration, start_time,
+                    end_time, filesize, file_md5, storage_type, storage_path,
+                    downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            args: [
+                ACTIVITY_RECORDING_ID,
+                userId,
+                "ticnote",
+                "e2e-activity-source",
+                "1",
+                "{}",
+                "e2e-activity-device",
+                "E2E activity transcription",
+                120_000,
+                now - 120_000,
+                now,
+                2048,
+                "e2e-activity",
+                "local",
+                "e2e/activity.mp3",
+                now,
+                0,
+                0,
+                now,
+                now,
+            ],
+        });
+        await library.execute({
+            sql: `
+                INSERT OR REPLACE INTO transcription_jobs (
+                    id, user_id, recording_id, status, force, provider, model,
+                    provider_job_id, remote_status, attempts, last_error,
+                    requested_at, started_at, completed_at, next_poll_at,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, 'processing', 0, 'voice-transcribe', 'e2e',
+                    'remote-e2e-activity', 'transcribing', 1, NULL,
+                    ?, ?, NULL, ?, ?, ?)
+            `,
+            args: [
+                ACTIVITY_JOB_ID,
+                userId,
+                ACTIVITY_RECORDING_ID,
+                now - 60_000,
+                now - 45_000,
+                now + 60_000,
+                now - 60_000,
+                now,
+            ],
+        });
+    } finally {
+        await library.close();
+    }
+}
 
 function unhealthyWorkerStatus() {
     const now = new Date();
@@ -189,4 +314,57 @@ test("activity overlay exposes default empty and syncing states without layout j
         "正在更新来源",
     );
     await expect(panel).toHaveCSS("z-index", "220");
+});
+
+test("activity overlay opens transcription items and runs the status sync action", async ({
+    page,
+}) => {
+    let releasePost = () => {};
+    const pendingPost = new Promise<void>((resolve) => {
+        releasePost = resolve;
+    });
+    await mockSyncEndpoint(page, pendingPost);
+
+    await ensureSignedIn(page);
+    const userId = await getPlaywrightUserId();
+    try {
+        await seedActivityRecording(userId);
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const trigger = page.getByTestId("dashboard-activity-trigger");
+        await trigger.click();
+        const panel = page.getByTestId("dashboard-activity-panel");
+        await expect(panel).toBeVisible();
+
+        const item = panel.locator(
+            `[data-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"]`,
+        );
+        await expect(item).toBeVisible();
+        await expect(item).toHaveAttribute("data-clickable", "true");
+        await item.getByTestId("dashboard-activity-action").click();
+        await expect(panel).toBeHidden();
+        await expect(page.getByTestId("dashboard-recording-title")).toContainText(
+            "E2E activity transcription",
+        );
+
+        await trigger.click();
+        await expect(panel).toBeVisible();
+        const statusAction = page.getByTestId("dashboard-activity-sync-action");
+        const syncPostRequest = page.waitForRequest(
+            (request) =>
+                request.url().includes("/api/data-sources/sync") &&
+                request.method() === "POST",
+        );
+        await statusAction.click();
+        await syncPostRequest;
+        await expect(statusAction).toHaveAttribute("data-action-state", "busy");
+        releasePost();
+        await expect(statusAction).toHaveAttribute("data-action-state", "done");
+        await expect(page.getByTestId("dashboard-activity-status")).toContainText(
+            "已加入更新",
+        );
+    } finally {
+        await cleanupActivityRecording();
+    }
 });
