@@ -1739,6 +1739,7 @@ export function Workstation({
                                 variant="outline"
                                 size="icon"
                                 aria-label={t("settingsDialog.title")}
+                                data-testid="dashboard-settings-trigger"
                                 className="rounded-xl"
                             >
                                 <Settings className="h-4 w-4" />

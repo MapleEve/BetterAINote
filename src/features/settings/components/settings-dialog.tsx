@@ -389,6 +389,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                                 key={item.id}
                                                             >
                                                                 <SidebarMenuButton
+                                                                    data-settings-nav-item={
+                                                                        item.id
+                                                                    }
                                                                     data-settings-nav={
                                                                         itemIndex ===
                                                                         0
@@ -500,6 +503,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                             <DialogClose
                                 className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                                 aria-label="Close"
+                                data-testid="settings-close"
                             >
                                 <X className="h-4 w-4" />
                                 <span className="sr-only">Close</span>
