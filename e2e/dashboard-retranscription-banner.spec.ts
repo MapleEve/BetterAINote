@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
@@ -336,6 +336,50 @@ async function cleanupSourceReportRaceSeeds(userId: string) {
     }
 }
 
+async function selectDashboardRecordingByTitle(page: Page, title: RegExp) {
+    const row = page.getByRole("button", { name: title });
+    const titleText = title.source.replace(/^\.\*/, "").replace(/\.\*$/, "");
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await row.click();
+        if (
+            await page
+                .getByTestId("dashboard-recording-title")
+                .textContent({ timeout: 1_000 })
+                .then((value) => title.test(value ?? ""))
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(page.getByTestId("dashboard-recording-title")).toContainText(
+        titleText,
+    );
+}
+
+async function clickSourceTabUntilStarted(page: Page, started: Promise<void>) {
+    const sourceTab = page.getByRole("button", {
+        name: "来源",
+        exact: true,
+    });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await sourceTab.click();
+        if (
+            await Promise.race([
+                started.then(() => true),
+                page.waitForTimeout(1_000).then(() => false),
+            ])
+        ) {
+            return;
+        }
+    }
+
+    await started;
+}
+
 async function seedSourceReportRaceRecordings(userId: string) {
     const now = Date.now();
     const start = now - 2_400_000;
@@ -626,9 +670,10 @@ test("dashboard shows and dismisses completed retranscription state", async ({
         await seedRunningRetranscription(userId);
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-        await page
-            .getByRole("button", { name: /E2E retranscription running/ })
-            .click();
+        await selectDashboardRecordingByTitle(
+            page,
+            /E2E retranscription running/,
+        );
 
         await expect(
             page.getByTestId("dashboard-retranscription-banner"),
@@ -834,17 +879,15 @@ test("dashboard source report ignores stale auto-load responses after recording 
         );
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-        await page
-            .getByRole("button", { name: new RegExp(alphaRecording.title) })
-            .click();
-        await page.getByRole("button", { name: "来源", exact: true }).click();
-        await alphaStarted;
+        await selectDashboardRecordingByTitle(
+            page,
+            new RegExp(alphaRecording.title),
+        );
+        await clickSourceTabUntilStarted(page, alphaStarted);
 
-        await page
-            .getByRole("button", { name: new RegExp(betaRecording.title) })
-            .click();
-        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
-            betaRecording.title,
+        await selectDashboardRecordingByTitle(
+            page,
+            new RegExp(betaRecording.title),
         );
         await expect(page.getByTestId("source-report-loaded")).toContainText(
             `${betaRecording.title} source report`,

@@ -86,7 +86,7 @@ test("settings shell closes sibling overlays, locks height, bounds wheel scroll,
     await dashboardHydrated;
     await clearSettingsPersistence(page);
 
-    const searchTrigger = page.getByTestId("library-search-trigger");
+    const searchTrigger = page.getByTestId("library-search-trigger").first();
     const activityTrigger = page.getByTestId("dashboard-activity-trigger");
     const settingsTrigger = page.getByTestId("dashboard-settings-trigger");
 
@@ -274,7 +274,9 @@ test("settings shell restores the last section and supports keyboard section sel
     await page.setViewportSize({ width: 1280, height: 720 });
     await ensureSignedIn(page);
     await resetDisplayToChinese(page);
+    const dashboardHydrated = waitForDashboardHydration(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await dashboardHydrated;
     await clearSettingsPersistence(page);
     await page.evaluate(() => {
         localStorage.setItem("settings-last-section", "title-generation");

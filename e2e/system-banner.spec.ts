@@ -2,16 +2,39 @@ import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 async function resetDisplayToChinese(page: Page) {
-    const response = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: "system",
-            uiLanguage: "zh-CN",
-        },
-    });
-    expect(response.ok()).toBe(true);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const response = await page.request.put("/api/settings/display", {
+                data: {
+                    dateTimeFormat: "relative",
+                    itemsPerPage: 50,
+                    recordingListSortOrder: "newest",
+                    theme: "system",
+                    uiLanguage: "zh-CN",
+                },
+            });
+            expect(response.ok()).toBe(true);
+            return;
+        } catch (error) {
+            if (attempt === 2) {
+                throw error;
+            }
+            await page.waitForTimeout(500);
+        }
+    }
+}
+
+async function reloadDashboardAfterSyncStatus(page: Page) {
+    const syncStatusResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/data-sources/sync") &&
+            response.request().method() === "GET" &&
+            response.ok(),
+    );
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await syncStatusResponse;
+    await page.waitForLoadState("networkidle");
 }
 
 test("dashboard system banner responds to runtime events and offline state", async ({
@@ -146,12 +169,12 @@ test("dashboard sync status exposes worker unavailable, queued, and running stat
     await expect(status).toContainText("本地更新服务未响应");
 
     mode = "queued";
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await reloadDashboardAfterSyncStatus(page);
     await expect(status).toHaveAttribute("data-sync-status-state", "queued");
     await expect(status).toContainText("即将开始检查");
 
     mode = "running";
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await reloadDashboardAfterSyncStatus(page);
     await expect(status).toHaveAttribute("data-sync-status-state", "running");
     await expect(status).toContainText("正在检查新录音");
 });

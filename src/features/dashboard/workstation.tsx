@@ -18,6 +18,7 @@ import {
     X,
 } from "lucide-react";
 import {
+    type MouseEvent as ReactMouseEvent,
     startTransition,
     useCallback,
     useEffect,
@@ -65,7 +66,9 @@ import {
     readBrowserHash,
     removeBrowserWindowEventListener,
     startBrowserInterval,
+    startBrowserTimeout,
     stopBrowserInterval,
+    stopBrowserTimeout,
     writeBrowserHash,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
@@ -303,6 +306,8 @@ export function Workstation({
     const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
     const moreActionsRef = useRef<HTMLDivElement | null>(null);
+    const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const wasSettingsOpenRef = useRef(false);
     const { isLoading: areDataSourcesLoading, sources: dataSourceStates } =
         useDataSourcesSettings(language);
     const { settings: titleGenerationSettings } =
@@ -374,6 +379,54 @@ export function Workstation({
                 openSettingsFromHash,
             );
     }, [openSettingsFromHash]);
+
+    useEffect(() => {
+        const wasOpen = wasSettingsOpenRef.current;
+        wasSettingsOpenRef.current = settingsOpen;
+
+        if (!settingsOpen && wasOpen) {
+            let attempts = 0;
+            const restoreTriggerFocus = () => {
+                attempts += 1;
+                const trigger = settingsTriggerRef.current;
+                if (!trigger || !document.contains(trigger)) {
+                    return;
+                }
+
+                const activeElement = document.activeElement;
+                const shouldRestoreFocus =
+                    activeElement === trigger ||
+                    activeElement === document.body ||
+                    activeElement === document.documentElement ||
+                    !(activeElement instanceof HTMLElement) ||
+                    Boolean(activeElement.closest("[data-settings-shell]"));
+
+                if (!shouldRestoreFocus) {
+                    stopBrowserInterval(interval);
+                    return;
+                }
+
+                trigger.focus({ preventScroll: true });
+
+                if (attempts >= 40) {
+                    stopBrowserInterval(interval);
+                }
+            };
+            const interval = startBrowserInterval(() => {
+                restoreTriggerFocus();
+            }, 50);
+            const timer = startBrowserTimeout(() => {
+                stopBrowserInterval(interval);
+            }, 2500);
+
+            restoreTriggerFocus();
+
+            return () => {
+                stopBrowserInterval(interval);
+                stopBrowserTimeout(timer);
+            };
+        }
+    }, [settingsOpen]);
 
     const currentTranscription = currentRecording
         ? liveTranscriptions.get(currentRecording.id)
@@ -525,6 +578,15 @@ export function Workstation({
 
         const transcription = liveTranscriptions.get(recordingId);
         if (!transcription?.hasTranscript || transcription.text?.trim()) {
+            setLoadingTranscriptIds((previous) => {
+                if (!previous.has(recordingId)) {
+                    return previous;
+                }
+
+                const next = new Set(previous);
+                next.delete(recordingId);
+                return next;
+            });
             return;
         }
 
@@ -1046,6 +1108,15 @@ export function Workstation({
         setActiveTopbarOverlay(null);
         setSettingsOpen(true);
     }, []);
+
+    const handleSettingsTriggerClick = useCallback(
+        (event: ReactMouseEvent<HTMLButtonElement>) => {
+            event.preventDefault();
+            event.currentTarget.focus({ preventScroll: true });
+            handleOpenSettings();
+        },
+        [handleOpenSettings],
+    );
 
     const handleOpenDataSourcesSettings = useCallback(
         (provider?: SourceProvider) => {
@@ -1789,13 +1860,15 @@ export function Workstation({
                                 onOpenRecording={handleOpenSearchResult}
                             />
                             <Button
-                                onClick={handleOpenSettings}
                                 variant="outline"
                                 size="icon"
                                 aria-label={`${t("settingsDialog.title")} · ${dashboardUserName}`}
                                 data-testid="dashboard-settings-trigger"
                                 className="glass-control h-9 w-9 overflow-hidden rounded-full p-0 text-sm font-semibold"
                                 title={dashboardUserName}
+                                type="button"
+                                ref={settingsTriggerRef}
+                                onClick={handleSettingsTriggerClick}
                             >
                                 <span
                                     className="flex size-full items-center justify-center"
@@ -2301,6 +2374,7 @@ export function Workstation({
             <SettingsDialog
                 open={settingsOpen}
                 onOpenChange={setSettingsOpen}
+                returnFocusRef={settingsTriggerRef}
                 user={user}
             />
         </>

@@ -6,6 +6,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useState,
 } from "react";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import {
@@ -27,11 +28,16 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 function useSharedLanguageValue(): LanguageContextValue {
+    const [hasHydrated, setHasHydrated] = useState(false);
     const {
         settings: { uiLanguage },
         hasLoaded,
         updateDisplaySettings,
     } = useDisplaySettingsStore();
+
+    useEffect(() => {
+        setHasHydrated(true);
+    }, []);
 
     useEffect(() => {
         if (!hasLoaded) {
@@ -50,14 +56,16 @@ function useSharedLanguageValue(): LanguageContextValue {
         },
         [updateDisplaySettings],
     );
+    const renderedLanguage = hasHydrated ? uiLanguage : "zh-CN";
 
     return useMemo<LanguageContextValue>(
         () => ({
-            language: uiLanguage,
+            language: renderedLanguage,
             setLanguage,
-            t: (key, replacements) => translate(uiLanguage, key, replacements),
+            t: (key, replacements) =>
+                translate(renderedLanguage, key, replacements),
         }),
-        [setLanguage, uiLanguage],
+        [renderedLanguage, setLanguage],
     );
 }
 

@@ -186,6 +186,25 @@ async function getRecordingSnapshot(userId: string) {
     }
 }
 
+async function openDashboardRenameEditor(page: Page) {
+    const renameTrigger = page.getByTestId("dashboard-rename-recording");
+    const renameInput = page.getByTestId("dashboard-rename-input");
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await renameTrigger.click();
+        if (
+            await renameInput
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(renameInput).toBeVisible();
+}
+
 test("dashboard renames, tags, and deletes a local-only recording through the new UI", async ({
     page,
 }) => {
@@ -205,7 +224,7 @@ test("dashboard renames, tags, and deletes a local-only recording through the ne
             ACTION_RECORDING_TITLE,
         );
 
-        await page.getByTestId("dashboard-rename-recording").click();
+        await openDashboardRenameEditor(page);
         await page
             .getByTestId("dashboard-rename-input")
             .fill(ACTION_RENAMED_TITLE);

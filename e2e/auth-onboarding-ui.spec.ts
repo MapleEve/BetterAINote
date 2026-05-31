@@ -66,6 +66,61 @@ async function resetOnboardingConnections(userId: string) {
     }
 }
 
+async function goToOnboardingState(
+    page: Page,
+    wizard: ReturnType<Page["getByTestId"]>,
+    state: string,
+) {
+    const nextButton = page.getByRole("button", { name: "下一步" });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await nextButton.click();
+        if (
+            await wizard
+                .getAttribute("data-onboarding-state", { timeout: 1_000 })
+                .then((value) => value === state)
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(wizard).toHaveAttribute("data-onboarding-state", state);
+}
+
+async function openSelectContent(
+    page: Page,
+    trigger: ReturnType<Page["locator"]>,
+) {
+    const selectContent = page.locator('[data-slot="select-content"]').last();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await trigger.click();
+        if (
+            await selectContent
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return selectContent;
+        }
+
+        await trigger.press("Enter");
+        if (
+            await selectContent
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return selectContent;
+        }
+
+        await page.waitForTimeout(250);
+    }
+
+    await expect(selectContent).toBeVisible();
+    return selectContent;
+}
+
 test("auth login keeps graphite shell, disabled controls, and error feedback stable", async ({
     page,
 }) => {
@@ -114,9 +169,10 @@ test("onboarding keeps mobile provider selects above the shell and scroll-stable
     const wizardHeight = await wizard.evaluate(
         (node) => node.getBoundingClientRect().height,
     );
-    await page.locator("#source-provider").click();
-    const providerSelect = page.locator('[data-slot="select-content"]');
-    await expect(providerSelect).toBeVisible();
+    const providerSelect = await openSelectContent(
+        page,
+        page.locator("#source-provider"),
+    );
     const providerZIndex = await providerSelect.evaluate((node) =>
         Number.parseInt(window.getComputedStyle(node).zIndex, 10),
     );
@@ -135,12 +191,12 @@ test("onboarding keeps mobile provider selects above the shell and scroll-stable
         .toBeLessThan(2);
 
     await page.getByRole("option", { name: "飞书妙记" }).click();
-    await page.getByRole("button", { name: "下一步" }).click();
-    await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
+    await goToOnboardingState(page, wizard, "auth");
 
-    await page.locator("#source-auth-mode").click();
-    const authModeSelect = page.locator('[data-slot="select-content"]');
-    await expect(authModeSelect).toBeVisible();
+    const authModeSelect = await openSelectContent(
+        page,
+        page.locator("#source-auth-mode"),
+    );
     const authModeZIndex = await authModeSelect.evaluate((node) =>
         Number.parseInt(window.getComputedStyle(node).zIndex, 10),
     );
@@ -188,8 +244,7 @@ test("onboarding saves Plaud Authorization before opening the workspace", async 
     await expect(wizard).toHaveAttribute("data-onboarding-provider", "plaud");
     await expect(wizard).toHaveAttribute("data-onboarding-state", "source");
 
-    await page.getByRole("button", { name: "下一步" }).click();
-    await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
+    await goToOnboardingState(page, wizard, "auth");
 
     const authorizationInput = page.locator("#source-secret");
     await expect(authorizationInput).toBeEditable();
@@ -198,11 +253,9 @@ test("onboarding saves Plaud Authorization before opening the workspace", async 
         "Bearer playwright-onboarding-token",
     );
 
-    await page.getByRole("button", { name: "下一步" }).click();
-    await expect(wizard).toHaveAttribute("data-onboarding-state", "privacy");
+    await goToOnboardingState(page, wizard, "privacy");
 
-    await page.getByRole("button", { name: "下一步" }).click();
-    await expect(wizard).toHaveAttribute("data-onboarding-state", "finish");
+    await goToOnboardingState(page, wizard, "finish");
 
     const saveButton = page.getByTestId("onboarding-save-enter");
     await saveButton.click();

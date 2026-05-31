@@ -60,6 +60,7 @@ import { SettingsContent } from "./settings-content";
 interface SettingsDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    returnFocusRef?: React.RefObject<HTMLElement | null>;
     user?: SettingsUserSummary;
 }
 
@@ -243,6 +244,66 @@ export function SettingsDialog(props: SettingsDialogProps) {
     const settingsUserName = getSettingsUserDisplayName(props.user, t);
     const settingsUserSubtitle = getSettingsUserSubtitle(props.user, t);
     const settingsUserInitial = getSettingsUserInitial(settingsUserName);
+    const handleCloseSettings = React.useCallback(() => {
+        props.onOpenChange(false);
+    }, [props.onOpenChange]);
+    const restoreReturnFocus = React.useCallback(
+        (forceFocus = false) => {
+            const target =
+                props.returnFocusRef?.current ?? returnFocusRef.current;
+            const restoreDelays = [0, 50, 250, 750, 1250, 2000];
+            const focusTarget = () => {
+                if (target && document.contains(target)) {
+                    const activeElement = document.activeElement;
+                    const shouldRestoreFocus =
+                        forceFocus ||
+                        activeElement === target ||
+                        activeElement === document.body ||
+                        activeElement === document.documentElement ||
+                        !(activeElement instanceof HTMLElement) ||
+                        Boolean(activeElement.closest("[data-settings-shell]"));
+
+                    if (shouldRestoreFocus) {
+                        target.focus({ preventScroll: true });
+                    }
+                }
+            };
+
+            restoreDelays.forEach((delay) => {
+                startBrowserTimeout(focusTarget, delay);
+            });
+            returnFocusRef.current = null;
+        },
+        [props.returnFocusRef],
+    );
+
+    const handleCloseKeyDown = React.useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+
+            event.preventDefault();
+            handleCloseSettings();
+        },
+        [handleCloseSettings],
+    );
+    const handleCloseAutoFocus = React.useCallback(
+        (event: Event) => {
+            event.preventDefault();
+            restoreReturnFocus();
+        },
+        [restoreReturnFocus],
+    );
+    const handleEscapeKeyDown = React.useCallback(
+        (event: KeyboardEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleCloseSettings();
+            restoreReturnFocus(true);
+        },
+        [handleCloseSettings, restoreReturnFocus],
+    );
 
     React.useEffect(() => {
         if (!props.open) return;
@@ -285,27 +346,21 @@ export function SettingsDialog(props: SettingsDialogProps) {
     }, [activeSection, props.open]);
 
     React.useEffect(() => {
-        if (props.open && !previousOpenRef.current) {
+        const wasOpen = previousOpenRef.current;
+        previousOpenRef.current = props.open;
+
+        if (props.open && !wasOpen) {
             const activeElement = document.activeElement;
             returnFocusRef.current =
-                activeElement instanceof HTMLElement ? activeElement : null;
+                props.returnFocusRef?.current ??
+                (activeElement instanceof HTMLElement ? activeElement : null);
+            return;
         }
 
-        if (!props.open && previousOpenRef.current) {
-            const target = returnFocusRef.current;
-            const timer = startBrowserTimeout(() => {
-                if (target && document.contains(target)) {
-                    target.focus({ preventScroll: true });
-                }
-                returnFocusRef.current = null;
-            }, 0);
-
-            previousOpenRef.current = props.open;
-            return () => stopBrowserTimeout(timer);
+        if (!props.open && wasOpen) {
+            restoreReturnFocus();
         }
-
-        previousOpenRef.current = props.open;
-    }, [props.open]);
+    }, [props.open, props.returnFocusRef, restoreReturnFocus]);
 
     React.useEffect(() => {
         if (!props.open) return;
@@ -345,6 +400,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
             }
 
             if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                restoreReturnFocus(true);
                 props.onOpenChange(false);
                 return;
             }
@@ -373,7 +431,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     break;
             }
         },
-        [keyboardSelectedIndex, props],
+        [keyboardSelectedIndex, props, restoreReturnFocus],
     );
 
     React.useEffect(() => {
@@ -396,6 +454,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
             <DialogContent
                 data-settings-shell=""
                 data-settings-active-section={activeSection}
+                onCloseAutoFocus={handleCloseAutoFocus}
+                onEscapeKeyDown={handleEscapeKeyDown}
                 showCloseButton={false}
                 className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
                 style={
@@ -579,6 +639,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                                 aria-label={t("settingsDialog.close")}
                                 data-testid="settings-close"
+                                onClick={handleCloseSettings}
+                                onKeyDown={handleCloseKeyDown}
+                                type="button"
                             >
                                 <X className="h-4 w-4" />
                                 <span className="sr-only">

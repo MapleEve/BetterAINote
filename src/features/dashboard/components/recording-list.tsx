@@ -288,32 +288,66 @@ export function RecordingList({
             recordings: Recording[];
         }> = [];
 
-        for (const recording of sortedAndPaginatedRecordings) {
-            const tag = recording.tags[0];
-            const group =
-                mode === "tags"
-                    ? {
-                          id: tag?.id ?? "untagged",
-                          label: tag?.name ?? t("recordingList.untagged"),
-                      }
-                    : {
-                          id: getTimelineBucket(recording.startTime),
-                          label: getTimelineLabel(
-                              getTimelineBucket(recording.startTime),
-                              t,
-                          ),
-                      };
+        const pushGroupRecording = (
+            group: { id: string; label: string },
+            recording: Recording,
+        ) => {
             const existing = groups.find((item) => item.id === group.id);
 
             if (existing) {
                 existing.recordings.push(recording);
-            } else {
-                groups.push({ ...group, recordings: [recording] });
+                return;
             }
+
+            groups.push({ ...group, recordings: [recording] });
+        };
+
+        for (const recording of sortedAndPaginatedRecordings) {
+            if (mode === "tags") {
+                if (recording.tags.length === 0 || tagFilter === "untagged") {
+                    pushGroupRecording(
+                        {
+                            id: "untagged",
+                            label: t("recordingList.untagged"),
+                        },
+                        recording,
+                    );
+                    continue;
+                }
+
+                if (tagFilter.startsWith("tag:")) {
+                    const tagId = tagFilter.replace("tag:", "");
+                    const selectedTag = recording.tags.find(
+                        (tag) => tag.id === tagId,
+                    );
+
+                    if (selectedTag) {
+                        pushGroupRecording(
+                            { id: selectedTag.id, label: selectedTag.name },
+                            recording,
+                        );
+                    }
+                    continue;
+                }
+
+                for (const tag of recording.tags) {
+                    pushGroupRecording(
+                        { id: tag.id, label: tag.name },
+                        recording,
+                    );
+                }
+                continue;
+            }
+
+            const bucket = getTimelineBucket(recording.startTime);
+            pushGroupRecording(
+                { id: bucket, label: getTimelineLabel(bucket, t) },
+                recording,
+            );
         }
 
         return groups;
-    }, [mode, sortedAndPaginatedRecordings, t]);
+    }, [mode, sortedAndPaginatedRecordings, t, tagFilter]);
 
     const totalPages = Math.max(
         1,
@@ -390,6 +424,7 @@ export function RecordingList({
             className="dashboard-list-panel h-[calc(100svh-13rem)] min-h-[28rem] lg:h-full lg:min-h-0"
             data-current-page={currentPage}
             data-list-state={listState}
+            data-list-mode={mode}
             data-total-pages={totalPages}
             data-visible-count={sortedAndPaginatedRecordings.length}
             data-testid="recording-list-panel"
@@ -515,7 +550,11 @@ export function RecordingList({
                     ) : null}
                     {!isLoading &&
                         groupedRecordings.map((group) => (
-                            <div key={group.id}>
+                            <div
+                                key={group.id}
+                                data-recording-list-group={group.id}
+                                data-testid="recording-list-group"
+                            >
                                 <div className="sticky top-0 z-10 flex items-center gap-2 bg-card/95 px-3 py-2 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase backdrop-blur">
                                     <span>{group.label}</span>
                                     <span className="h-px flex-1 bg-border/70" />

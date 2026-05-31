@@ -94,6 +94,10 @@ async function cleanupListSeeds(userId: string) {
             args: [userId, `${LIST_RECORDING_PREFIX}%`],
         });
         await library.execute({
+            sql: "DELETE FROM recording_tags WHERE user_id = ? AND id LIKE ?",
+            args: [userId, `${LIST_RECORDING_PREFIX}tag-%`],
+        });
+        await library.execute({
             sql: "DELETE FROM recordings WHERE user_id = ? AND id LIKE ?",
             args: [userId, `${LIST_RECORDING_PREFIX}%`],
         });
@@ -131,6 +135,10 @@ async function cleanupAllUserRecordings(userId: string) {
         await library.execute({
             sql: "DELETE FROM recording_tag_assignments WHERE user_id = ?",
             args: [userId],
+        });
+        await library.execute({
+            sql: "DELETE FROM recording_tags WHERE user_id = ? AND id LIKE ?",
+            args: [userId, `${LIST_RECORDING_PREFIX}tag-%`],
         });
         await library.execute({
             sql: "DELETE FROM recordings WHERE user_id = ?",
@@ -190,6 +198,96 @@ async function seedListRecordings(userId: string, count = 10) {
                 ],
             });
         }
+    } finally {
+        await library.close();
+    }
+}
+
+async function seedMultiTagRecordings(userId: string) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const now = Date.now();
+    const recordingId = `${LIST_RECORDING_PREFIX}multi-tag`;
+    const alphaTagId = `${LIST_RECORDING_PREFIX}tag-alpha`;
+    const betaTagId = `${LIST_RECORDING_PREFIX}tag-beta`;
+
+    try {
+        await cleanupListSeeds(userId);
+        await library.batch([
+            {
+                sql: `
+                    INSERT OR REPLACE INTO recordings (
+                        id, user_id, source_provider, source_recording_id, source_version,
+                        source_metadata, provider_device_id, filename, duration, start_time,
+                        end_time, filesize, file_md5, storage_type, storage_path,
+                        downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    recordingId,
+                    userId,
+                    "ticnote",
+                    `${recordingId}-source`,
+                    "1",
+                    "{}",
+                    "e2e-list-device",
+                    "E2E multi tag recording",
+                    120_000,
+                    now,
+                    now + 120_000,
+                    2048,
+                    recordingId,
+                    "local",
+                    "",
+                    now,
+                    0,
+                    0,
+                    now,
+                    now,
+                ],
+            },
+            {
+                sql: `
+                    INSERT OR REPLACE INTO recording_tags (
+                        id, user_id, name, color, icon, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    alphaTagId,
+                    userId,
+                    "Alpha",
+                    "blue",
+                    "tag",
+                    now,
+                    now,
+                    betaTagId,
+                    userId,
+                    "Beta",
+                    "purple",
+                    "star",
+                    now,
+                    now,
+                ],
+            },
+            {
+                sql: `
+                    INSERT OR REPLACE INTO recording_tag_assignments (
+                        id, user_id, recording_id, tag_id, created_at
+                    ) VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?)
+                `,
+                args: [
+                    `${recordingId}-alpha`,
+                    userId,
+                    recordingId,
+                    alphaTagId,
+                    now,
+                    `${recordingId}-beta`,
+                    userId,
+                    recordingId,
+                    betaTagId,
+                    now,
+                ],
+            },
+        ]);
     } finally {
         await library.close();
     }
@@ -339,6 +437,59 @@ async function expectNoHorizontalOverflow(page: Page) {
     expect(overflow).toBeLessThanOrEqual(2);
 }
 
+async function switchRecordingListToTags(page: Page) {
+    const panel = page.getByTestId("recording-list-panel");
+    const tagsModeButton = panel.getByRole("button", {
+        name: "标签",
+        exact: true,
+    });
+
+    await expect(panel).toHaveAttribute("data-list-state", "ready");
+    await expect(tagsModeButton).toBeVisible();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await tagsModeButton.click();
+        if (
+            await panel
+                .getAttribute("data-list-mode", { timeout: 1_000 })
+                .then((mode) => mode === "tags")
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(panel).toHaveAttribute("data-list-mode", "tags");
+}
+
+async function selectTimelineFilter(
+    page: Page,
+    panel: ReturnType<Page["getByTestId"]>,
+    name: RegExp,
+    visibleCount: number,
+) {
+    const trigger = page.getByRole("button", { name });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await trigger.click();
+        if (
+            await panel
+                .getAttribute("data-visible-count", { timeout: 1_000 })
+                .then((value) => value === String(visibleCount))
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(panel).toHaveAttribute(
+        "data-visible-count",
+        String(visibleCount),
+    );
+}
+
 test("recording list paginates without leaking tweak controls across dark, light, and mobile states", async ({
     page,
 }) => {
@@ -425,7 +576,7 @@ test("recording list recovers from stale inner timeline filters after source cha
     await expect(todayRecording).toBeVisible();
     await expect(earlierRecording).toBeVisible();
 
-    await page.getByRole("button", { name: /今天 1/ }).click();
+    await selectTimelineFilter(page, panel, /今天 1/, 1);
     await expect(todayRecording).toBeVisible();
     await expect(earlierRecording).toHaveCount(0);
 
@@ -483,6 +634,46 @@ test("recording list exposes empty setup and no-match recovery states", async ({
     await page.getByRole("button", { name: "清除筛选" }).click();
     await expect(panel).toHaveAttribute("data-list-state", "ready");
     await expect(plaudRow).toHaveAttribute("data-active", "false");
+
+    await cleanupListSeeds(userId);
+});
+
+test("recording list tags mode keeps multi-tag recordings in every matching group", async ({
+    page,
+}) => {
+    await mockConnectedDataSources(page);
+    await ensureSignedIn(page);
+    await resetDisplay(page);
+
+    const userId = await getPlaywrightUserId();
+    await seedMultiTagRecordings(userId);
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await switchRecordingListToTags(page);
+
+    const alphaGroup = page.locator(
+        '[data-recording-list-group="e2e-list-state-tag-alpha"]',
+    );
+    const betaGroup = page.locator(
+        '[data-recording-list-group="e2e-list-state-tag-beta"]',
+    );
+    await expect(alphaGroup).toContainText("Alpha");
+    await expect(betaGroup).toContainText("Beta");
+    await expect(
+        alphaGroup.locator('[data-recording-id="e2e-list-state-multi-tag"]'),
+    ).toBeVisible();
+    await expect(
+        betaGroup.locator('[data-recording-id="e2e-list-state-multi-tag"]'),
+    ).toBeVisible();
+
+    await page.locator('[data-slot="select-trigger"]').click();
+    await page.getByRole("option", { name: /Beta/ }).click();
+
+    await expect(betaGroup).toContainText("Beta");
+    await expect(alphaGroup).toHaveCount(0);
+    await expect(
+        betaGroup.locator('[data-recording-id="e2e-list-state-multi-tag"]'),
+    ).toBeVisible();
 
     await cleanupListSeeds(userId);
 });

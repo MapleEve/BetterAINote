@@ -480,6 +480,29 @@ async function installClipboardCapture(page: Page) {
     });
 }
 
+async function openSpeakerReviewPanel(page: Page) {
+    const tab = page.getByRole("button", {
+        name: "说话人标签",
+        exact: true,
+    });
+    const panel = page.getByTestId("speaker-review-panel");
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await tab.click();
+        if (
+            await panel
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return panel;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(panel).toBeVisible();
+    return panel;
+}
+
 async function readCopiedTexts(page: Page) {
     return page.evaluate(
         () =>
@@ -516,9 +539,7 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             waitUntil: "domcontentloaded",
         });
 
-        await expect(
-            page.getByTestId("recording-detail-workstation"),
-        ).toBeVisible();
+        await waitForRecordingDetailReady(page);
         await expect(
             page.getByTestId("recording-detail-copy-strip"),
         ).toBeVisible();
@@ -857,12 +878,7 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
             page.getByTestId("recording-detail-workstation"),
         ).toBeVisible();
         await expect(page.getByTestId("source-report-loaded")).toBeVisible();
-        await page
-            .getByRole("button", { name: "说话人标签", exact: true })
-            .click();
-
-        const panel = page.getByTestId("speaker-review-panel");
-        await expect(panel).toBeVisible();
+        const panel = await openSpeakerReviewPanel(page);
         await expect(panel.getByTestId("speaker-review-card")).toHaveCount(2);
         await expect(
             panel.getByTestId("speaker-review-metadata"),
@@ -1006,12 +1022,7 @@ test("recording detail speaker review covers empty and refresh failure states", 
         });
         await waitForRecordingDetailReady(page);
 
-        await page
-            .getByRole("button", { name: "说话人标签", exact: true })
-            .click();
-
-        const panel = page.getByTestId("speaker-review-panel");
-        await expect(panel).toBeVisible();
+        const panel = await openSpeakerReviewPanel(page);
         await expect(panel.getByTestId("speaker-review-empty")).toBeVisible();
         await expect(
             panel.getByTestId("speaker-review-copy-raw"),

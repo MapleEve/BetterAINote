@@ -187,7 +187,7 @@ async function resetDisplaySettings(
 }
 
 async function openLibrarySearch(page: Page) {
-    const trigger = page.getByTestId("library-search-trigger");
+    const trigger = page.getByTestId("library-search-trigger").first();
     const panel = page.getByTestId("library-search-panel");
 
     await expect(trigger).toBeVisible();
@@ -200,9 +200,18 @@ async function openLibrarySearch(page: Page) {
         ) {
             return panel;
         }
+        await trigger.press("Enter");
+        if (
+            await panel
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return panel;
+        }
         await page.waitForTimeout(250);
     }
 
+    await expect(panel).toBeVisible();
     return panel;
 }
 

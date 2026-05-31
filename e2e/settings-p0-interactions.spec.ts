@@ -1,65 +1,69 @@
 import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
+async function putSettingsWithRetry(
+    page: Page,
+    path: string,
+    data: Record<string, unknown>,
+) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const response = await page.request.put(path, { data });
+            expect(response.ok()).toBe(true);
+            return;
+        } catch (error) {
+            if (attempt === 2) {
+                throw error;
+            }
+            await page.waitForTimeout(500);
+        }
+    }
+}
+
 async function resetDisplayToChinese(page: Page) {
-    const response = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: "system",
-            uiLanguage: "zh-CN",
-        },
+    await putSettingsWithRetry(page, "/api/settings/display", {
+        dateTimeFormat: "relative",
+        itemsPerPage: 50,
+        recordingListSortOrder: "newest",
+        theme: "system",
+        uiLanguage: "zh-CN",
     });
-    expect(response.ok()).toBe(true);
 }
 
 async function resetTitleGeneration(page: Page) {
-    const response = await page.request.put("/api/settings/title-generation", {
-        data: {
-            autoGenerateTitle: true,
-            titleGenerationApiKey: null,
-            titleGenerationBaseUrl: null,
-            titleGenerationModel: null,
-        },
+    await putSettingsWithRetry(page, "/api/settings/title-generation", {
+        autoGenerateTitle: true,
+        titleGenerationApiKey: null,
+        titleGenerationBaseUrl: null,
+        titleGenerationModel: null,
     });
-    expect(response.ok()).toBe(true);
 }
 
 async function resetTranscription(page: Page) {
-    const response = await page.request.put("/api/settings/transcription", {
-        data: {
-            autoTranscribe: false,
-            defaultTranscriptionLanguage: null,
-        },
+    await putSettingsWithRetry(page, "/api/settings/transcription", {
+        autoTranscribe: false,
+        defaultTranscriptionLanguage: null,
     });
-    expect(response.ok()).toBe(true);
 }
 
 async function resetSync(page: Page) {
-    const response = await page.request.put("/api/settings/sync", {
-        data: {
-            autoSyncEnabled: true,
-            syncIntervalSeconds: 300,
-        },
+    await putSettingsWithRetry(page, "/api/settings/sync", {
+        autoSyncEnabled: true,
+        syncIntervalSeconds: 300,
     });
-    expect(response.ok()).toBe(true);
 }
 
 async function resetVoScript(page: Page) {
-    const response = await page.request.put("/api/settings/voscript", {
-        data: {
-            privateTranscriptionApiKey: null,
-            privateTranscriptionBaseUrl: null,
-            privateTranscriptionDenoiseModel: "none",
-            privateTranscriptionMaxInflightJobs: 1,
-            privateTranscriptionMaxSpeakers: 0,
-            privateTranscriptionMinSpeakers: 0,
-            privateTranscriptionNoRepeatNgramSize: 0,
-            privateTranscriptionSnrThreshold: null,
-        },
+    await putSettingsWithRetry(page, "/api/settings/voscript", {
+        privateTranscriptionApiKey: null,
+        privateTranscriptionBaseUrl: null,
+        privateTranscriptionDenoiseModel: "none",
+        privateTranscriptionMaxInflightJobs: 1,
+        privateTranscriptionMaxSpeakers: 0,
+        privateTranscriptionMinSpeakers: 0,
+        privateTranscriptionNoRepeatNgramSize: 0,
+        privateTranscriptionSnrThreshold: null,
     });
-    expect(response.ok()).toBe(true);
 }
 
 async function resetCoreSettings(page: Page) {

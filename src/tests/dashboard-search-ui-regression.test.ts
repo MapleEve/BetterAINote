@@ -47,7 +47,7 @@ describe("dashboard search and activity overlay regression", () => {
         const searchIndex = workstation.indexOf("<LibrarySearch\n");
         const activityIndex = workstation.indexOf("<ActivityOverlay");
         const settingsIndex = workstation.indexOf(
-            "onClick={handleOpenSettings}",
+            'data-testid="dashboard-settings-trigger"',
         );
 
         expect(syncActionIndex).toBeGreaterThan(-1);
