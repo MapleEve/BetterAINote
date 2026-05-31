@@ -15,6 +15,7 @@ describe("dashboard search and activity overlay regression", () => {
         const searchComponent = readSource(
             "features/dashboard/components/library-search.tsx",
         );
+        const translations = readSource("lib/i18n.ts");
 
         expect(workstation).toContain("<LibrarySearch");
         expect(searchComponent).toContain("/api/search");
@@ -27,7 +28,13 @@ describe("dashboard search and activity overlay regression", () => {
         expect(searchComponent).toContain('"tag"');
         expect(searchComponent).toContain("setTimeout(() =>");
         expect(searchComponent).toContain("}, 250);");
-        expect(searchComponent).toContain("搜索录音、逐字稿、说话人、标签");
+        expect(searchComponent).toContain("useLanguage");
+        expect(searchComponent).toContain("librarySearch.placeholder");
+        expect(searchComponent).not.toContain("搜索录音、逐字稿、说话人、标签");
+        expect(translations).toContain("搜索录音、逐字稿、说话人、标签");
+        expect(translations).toContain(
+            "Search recordings, transcripts, speakers, tags",
+        );
     });
 
     it("keeps search as a controlled topbar overlay with focus-safe close paths", () => {

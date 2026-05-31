@@ -169,6 +169,23 @@ async function mockSyncEndpoint(page: Page) {
     });
 }
 
+async function resetDisplaySettings(
+    page: Page,
+    overrides: Record<string, unknown> = {},
+) {
+    const resetResponse = await page.request.put("/api/settings/display", {
+        data: {
+            dateTimeFormat: "relative",
+            itemsPerPage: 50,
+            recordingListSortOrder: "newest",
+            theme: "system",
+            uiLanguage: "zh-CN",
+            ...overrides,
+        },
+    });
+    expect(resetResponse.ok()).toBe(true);
+}
+
 async function openLibrarySearch(page: Page) {
     const trigger = page.getByTestId("library-search-trigger");
     const panel = page.getByTestId("library-search-panel");
@@ -328,16 +345,7 @@ test("library search groups highlights and applies global speaker tag filters", 
     });
 
     await ensureSignedIn(page);
-    const resetDisplay = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: "system",
-            uiLanguage: "zh-CN",
-        },
-    });
-    expect(resetDisplay.ok()).toBe(true);
+    await resetDisplaySettings(page);
 
     const dashboardHydrated = page
         .waitForResponse(
@@ -576,4 +584,47 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await page.keyboard.press("Escape");
     await expect(activityPanel).toBeHidden();
     await expect(activityTrigger).toBeFocused();
+});
+
+test("library search follows display language across visible copy and aria labels", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page, { uiLanguage: "en" });
+    await mockLibrarySearchResults(page, []);
+
+    try {
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        await expect(
+            page.getByRole("button", { name: "Open search" }),
+        ).toBeVisible();
+
+        const panel = await openLibrarySearch(page);
+        await expect(panel).toHaveAttribute("aria-label", "Search library");
+
+        const input = panel.getByRole("combobox", {
+            name: "Search recordings, transcripts, speakers, tags",
+        });
+        await expect(input).toHaveAttribute(
+            "placeholder",
+            "Search recordings, transcripts, speakers, tags",
+        );
+        await expect(panel.getByText("All", { exact: true })).toBeVisible();
+        await expect(
+            panel.getByText("Recordings", { exact: true }),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("library-search-no-query"),
+        ).toContainText(
+            "Search recordings, transcript segments, speakers, or tags",
+        );
+
+        await input.fill("Alpha");
+        await expect(page.getByTestId("library-search-no-results")).toContainText(
+            'No content found for "Alpha"',
+        );
+    } finally {
+        await resetDisplaySettings(page);
+    }
 });

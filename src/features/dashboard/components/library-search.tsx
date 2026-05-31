@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,22 +47,20 @@ export interface LibrarySearchFilter {
 
 const SEARCH_SCOPES: Array<{
     value: "all" | SearchEntityType;
-    label: string;
 }> = [
-    { value: "all", label: "全部" },
-    { value: "recording", label: "录音" },
-    { value: "transcript", label: "逐字稿" },
-    { value: "speaker", label: "说话人" },
-    { value: "tag", label: "标签" },
+    { value: "all" },
+    { value: "recording" },
+    { value: "transcript" },
+    { value: "speaker" },
+    { value: "tag" },
 ];
 const SEARCH_RESULT_GROUPS: Array<{
     value: SearchEntityType;
-    label: string;
 }> = [
-    { value: "recording", label: "录音" },
-    { value: "transcript", label: "逐字稿" },
-    { value: "speaker", label: "说话人" },
-    { value: "tag", label: "标签" },
+    { value: "recording" },
+    { value: "transcript" },
+    { value: "speaker" },
+    { value: "tag" },
 ];
 const SEARCH_RESULT_ICONS: Record<SearchEntityType, LucideIcon> = {
     recording: Mic,
@@ -81,16 +80,19 @@ function formatTime(ms: number | null) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function getTypeLabel(type: SearchEntityType) {
+function getTypeLabel(
+    type: SearchEntityType,
+    t: (key: string, replacements?: Record<string, string | number>) => string,
+) {
     switch (type) {
         case "recording":
-            return "录音";
+            return t("librarySearch.types.recording");
         case "transcript":
-            return "逐字稿";
+            return t("librarySearch.types.transcript");
         case "speaker":
-            return "说话人";
+            return t("librarySearch.types.speaker");
         case "tag":
-            return "标签";
+            return t("librarySearch.types.tag");
     }
 }
 
@@ -164,6 +166,7 @@ export function LibrarySearch({
     onOpenChange,
     onOpenRecording,
 }: LibrarySearchProps) {
+    const { t } = useLanguage();
     const rootRef = useRef<HTMLElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -188,15 +191,34 @@ export function LibrarySearch({
 
     const resultCountLabel = useMemo(() => {
         if (!trimmedQuery) {
-            return "输入关键词开始搜索";
+            return t("librarySearch.startSearch");
         }
 
         if (loading) {
-            return "检索中";
+            return t("librarySearch.loading");
         }
 
-        return `${results.length} 个结果`;
-    }, [loading, results.length, trimmedQuery]);
+        return t("librarySearch.resultCount", { count: results.length });
+    }, [loading, results.length, t, trimmedQuery]);
+    const searchScopes = useMemo(
+        () =>
+            SEARCH_SCOPES.map((item) => ({
+                ...item,
+                label:
+                    item.value === "all"
+                        ? t("librarySearch.scopes.all")
+                        : getTypeLabel(item.value, t),
+            })),
+        [t],
+    );
+    const searchResultGroups = useMemo(
+        () =>
+            SEARCH_RESULT_GROUPS.map((group) => ({
+                ...group,
+                label: getTypeLabel(group.value, t),
+            })),
+        [t],
+    );
     const indexedResults = useMemo(
         () =>
             results.map((result) => ({
@@ -208,25 +230,29 @@ export function LibrarySearch({
     );
     const displayResults = useMemo(
         () =>
-            SEARCH_RESULT_GROUPS.flatMap((group) =>
-                indexedResults.filter(
-                    (item) => item.result.entityType === group.value,
-                ),
-            ).map((item, displayIndex) => ({
-                ...item,
-                displayIndex,
-            })),
-        [indexedResults],
+            searchResultGroups
+                .flatMap((group) =>
+                    indexedResults.filter(
+                        (item) => item.result.entityType === group.value,
+                    ),
+                )
+                .map((item, displayIndex) => ({
+                    ...item,
+                    displayIndex,
+                })),
+        [indexedResults, searchResultGroups],
     );
     const groupedResults = useMemo(
         () =>
-            SEARCH_RESULT_GROUPS.map((group) => ({
-                ...group,
-                items: displayResults.filter(
-                    (item) => item.result.entityType === group.value,
-                ),
-            })).filter((group) => group.items.length > 0),
-        [displayResults],
+            searchResultGroups
+                .map((group) => ({
+                    ...group,
+                    items: displayResults.filter(
+                        (item) => item.result.entityType === group.value,
+                    ),
+                }))
+                .filter((group) => group.items.length > 0),
+        [displayResults, searchResultGroups],
     );
 
     useEffect(() => {
@@ -424,7 +450,7 @@ export function LibrarySearch({
     return (
         <search
             ref={rootRef}
-            aria-label="资料搜索"
+            aria-label={t("librarySearch.regionLabel")}
             className="relative shrink-0"
             data-testid="library-search"
         >
@@ -436,7 +462,7 @@ export function LibrarySearch({
                 aria-controls="library-search-panel"
                 aria-expanded={open}
                 aria-haspopup="dialog"
-                aria-label="打开搜索"
+                aria-label={t("librarySearch.openSearch")}
                 className="h-9 w-9 rounded-xl border-border/70 bg-background/45"
                 data-testid="library-search-trigger"
                 onClick={() => {
@@ -454,7 +480,7 @@ export function LibrarySearch({
                 <section
                     id="library-search-panel"
                     role="dialog"
-                    aria-label="搜索库"
+                    aria-label={t("librarySearch.dialogLabel")}
                     data-state={panelState}
                     data-testid="library-search-panel"
                     className="absolute top-11 right-0 z-[220] flex max-h-[min(calc(100svh-6rem),34rem)] w-[min(calc(100vw-1.5rem),28.75rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
@@ -465,9 +491,9 @@ export function LibrarySearch({
                             ref={inputRef}
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            placeholder="搜索录音、逐字稿、说话人、标签"
+                            placeholder={t("librarySearch.placeholder")}
                             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                            aria-label="搜索录音、逐字稿、说话人、标签"
+                            aria-label={t("librarySearch.placeholder")}
                             aria-autocomplete="list"
                             aria-activedescendant={
                                 displayResults.length > 0
@@ -481,10 +507,12 @@ export function LibrarySearch({
                             role="combobox"
                         />
                         {query ? (
-                            <button
+                            <Button
                                 type="button"
-                                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                aria-label="清空搜索"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="h-7 w-7 shrink-0 rounded-lg"
+                                aria-label={t("librarySearch.clearSearch")}
                                 onClick={() => {
                                     setQuery("");
                                     inputRef.current?.focus({
@@ -493,26 +521,30 @@ export function LibrarySearch({
                                 }}
                             >
                                 <X className="h-3.5 w-3.5" />
-                            </button>
+                            </Button>
                         ) : null}
                     </div>
 
                     <fieldset className="flex flex-wrap gap-1 border-border/70 border-b bg-muted/35 px-3 py-2">
-                        <legend className="sr-only">检索范围</legend>
-                        {SEARCH_SCOPES.map((item) => (
-                            <button
+                        <legend className="sr-only">
+                            {t("librarySearch.scopeLegend")}
+                        </legend>
+                        {searchScopes.map((item) => (
+                            <Button
                                 key={item.value}
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 aria-pressed={scope === item.value}
                                 data-active={scope === item.value}
-                                className="inline-flex h-7 items-center rounded-full border border-border/70 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                                className="h-7 rounded-full border border-border/70 px-3 text-xs text-muted-foreground hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                                 onClick={() => {
                                     setScope(item.value);
                                     setActiveResultIndex(0);
                                 }}
                             >
                                 {item.label}
-                            </button>
+                            </Button>
                         ))}
                     </fieldset>
 
@@ -525,7 +557,7 @@ export function LibrarySearch({
                                 className="px-4 py-8 text-center text-muted-foreground text-sm"
                                 data-testid="library-search-no-query"
                             >
-                                输入关键字搜索录音、逐字稿片段、说话人或标签
+                                {t("librarySearch.noQuery")}
                             </div>
                         ) : null}
 
@@ -535,7 +567,7 @@ export function LibrarySearch({
                                 data-testid="library-search-loading"
                             >
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                检索中
+                                {t("librarySearch.loading")}
                             </div>
                         ) : null}
 
@@ -545,30 +577,32 @@ export function LibrarySearch({
                                 data-testid="library-search-error"
                             >
                                 <p className="text-destructive text-sm">
-                                    检索失败，请稍后重试。
+                                    {t("librarySearch.error")}
                                 </p>
-                                <button
+                                <Button
                                     type="button"
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/55 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-background"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-lg px-3 text-xs"
                                     data-ls-retry=""
                                     onClick={handleRetrySearch}
                                 >
                                     <RefreshCw className="size-3" />
-                                    重试
-                                </button>
+                                    {t("librarySearch.retry")}
+                                </Button>
                             </div>
                         ) : null}
 
                         {!loading && !error && groupedResults.length > 0 ? (
                             <div
                                 id="library-search-results-listbox"
-                                aria-label="搜索结果"
+                                aria-label={t("librarySearch.resultsLabel")}
                                 data-testid="library-search-results"
                                 role="listbox"
                             >
                                 <div className="flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs">
                                     <span>{resultCountLabel}</span>
-                                    <span>最多显示 12 条</span>
+                                    <span>{t("librarySearch.maxResults")}</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     {groupedResults.map((group) => (
@@ -618,7 +652,9 @@ export function LibrarySearch({
                                                             ];
                                                         const title =
                                                             result.title ||
-                                                            "未命名结果";
+                                                            t(
+                                                                "librarySearch.untitledResult",
+                                                            );
 
                                                         return (
                                                             <button
@@ -676,6 +712,7 @@ export function LibrarySearch({
                                                                     <ResultIcon className="size-3" />
                                                                     {getTypeLabel(
                                                                         result.entityType,
+                                                                        t,
                                                                     )}
                                                                 </span>
                                                                 <span className="min-w-0">
@@ -718,12 +755,16 @@ export function LibrarySearch({
                                                                 </span>
                                                                 <span className="mt-0.5 shrink-0 text-[0.68rem] text-muted-foreground">
                                                                     {isFilter
-                                                                        ? "筛选"
+                                                                        ? t(
+                                                                              "librarySearch.filterAction",
+                                                                          )
                                                                         : targetRecordingId &&
                                                                             timeRange
                                                                           ? timeRange
                                                                           : !isActionable
-                                                                            ? "不可跳转"
+                                                                            ? t(
+                                                                                  "librarySearch.notNavigable",
+                                                                              )
                                                                             : null}
                                                                 </span>
                                                             </button>
@@ -745,7 +786,9 @@ export function LibrarySearch({
                                 className="px-4 py-8 text-center text-muted-foreground text-sm"
                                 data-testid="library-search-no-results"
                             >
-                                没有找到与「{trimmedQuery}」相关的内容
+                                {t("librarySearch.noResults", {
+                                    query: trimmedQuery,
+                                })}
                             </div>
                         ) : null}
                     </div>
