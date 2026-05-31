@@ -16,7 +16,6 @@ coverage/
 # production
 /build
 
-# local data and private artifacts
 /tmp/
 tmp/
 /.full-review/
@@ -56,7 +55,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# local env files
 .env
 .env.*
 !.env.example
