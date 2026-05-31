@@ -25,10 +25,9 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 ## 公共红线
 
 - 不提交真实 token、密码、私有 ID、浏览器会话材料、本地数据库、私有录音、私有转写或未脱敏来源材料。
-- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露敏感、未脱敏或非公开材料。
+- 不在公开文档、UI 文案、注释、测试或 issue 模板中暴露敏感或未脱敏材料。
 - 不把公开定位改成非隐私优先、非可自托管或偏向单一 provider 的表达。
 - 不修改 license、package privacy、release automation 或发布行为，除非任务明确要求检查发布边界。
-- 不提交 `.gitignore` 排除的任何本地文件。
 - 不运行破坏性 git 命令，不覆盖用户工作；改动前检查 `git status --short --branch`。
 
 ## 跨层耦合
@@ -37,7 +36,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 
 ## 验证门槛
 
-- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff，并按需验证 `.gitignore` 规则。
+- 说明文档或规则变更：运行 `git diff --check`，检查最终 diff。
 - 源码变更：运行最窄相关测试；触碰类型边界时运行 `bun run type-check`。
 - 公开文档、发布或卫生变更：运行公开残留扫描和 secret/private-data 扫描。
 - 大范围变更：优先运行 `bun run format-and-lint`、`bun run type-check`、`bun run test`。
@@ -47,7 +46,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - 提交前确认 author 和 committer 是 `Maple Gao <esanisa@gmail.com>`。
 - 本仓库提交必须使用 SSH 签名，保留 `commit.gpgsign=true` 和 `gpg.format=ssh`。
 - 不 push `origin/main`，审查工作使用 `mini/` 前缀分支。
-- staged 范围必须只包含任务相关文件；不要把 `.gitignore` 排除内容、依赖产物、数据库或日志加入提交。
+- staged 范围必须只包含任务相关文件。
 
 ## PR 审查流程
 
