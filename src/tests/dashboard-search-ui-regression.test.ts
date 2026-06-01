@@ -161,10 +161,17 @@ describe("dashboard search and activity overlay regression", () => {
             "transcriptionJobs={liveTranscriptionJobs}",
         );
         expect(workstation).toContain("onSyncNow={handleSync}");
+        expect(workstation).toContain("onOpenDataSourcesSettings={() =>");
+        expect(workstation).toContain("handleOpenDataSourcesSettings()");
 
         expect(activityOverlay).toContain("lastSyncResult");
         expect(activityOverlay).toContain("workerStatus");
         expect(activityOverlay).toContain("transcriptionJobs");
+        expect(activityOverlay).toContain('"sync" | "recording" | "settings"');
+        expect(activityOverlay).toContain("onOpenDataSourcesSettings");
+        expect(activityOverlay).toContain(
+            "activityOverlay.actions.openDataSources",
+        );
         expect(activityOverlay).toContain("isActiveTranscriptionJob");
         expect(activityOverlay).toContain(
             'data-testid="dashboard-activity-trigger"',
@@ -211,12 +218,14 @@ describe("dashboard search and activity overlay regression", () => {
         expect(translations).toContain("已加入更新");
         expect(translations).toContain("All handled");
         expect(translations).toContain("No new activity");
+        expect(translations).toContain("前往数据源设置");
+        expect(translations).toContain("Open data source settings");
         expect(activityOverlay).toContain("role={isRecordingAction");
         expect(activityOverlay).toContain("tabIndex={isRecordingAction");
         expect(activityOverlay).toContain('event.key !== "Enter"');
         expect(activityOverlay).toContain('event.key !== " "');
         expect(activityOverlay).toContain("onSyncNow");
-        expect(activityOverlay).not.toContain("settings:open");
+        expect(activityOverlay).toContain('item.action === "settings"');
     });
 
     it("keeps search and activity mutually exclusive and below modal-level surfaces", () => {

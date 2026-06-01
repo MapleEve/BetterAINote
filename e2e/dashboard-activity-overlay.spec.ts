@@ -219,14 +219,10 @@ async function resetDisplaySettings(
     expect(resetResponse.ok()).toBe(true);
 }
 
-test("activity overlay retries and dismisses source notifications", async ({
+test("activity overlay opens data source settings for worker-down notifications", async ({
     page,
 }) => {
-    let releasePost = () => {};
-    const pendingPost = new Promise<void>((resolve) => {
-        releasePost = resolve;
-    });
-    await mockSyncEndpoint(page, pendingPost);
+    await mockSyncEndpoint(page, Promise.resolve());
 
     await ensureSignedIn(page);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
@@ -245,37 +241,21 @@ test("activity overlay retries and dismisses source notifications", async ({
     await expect(item).toHaveAttribute("data-action-state", "idle");
 
     const action = item.getByTestId("dashboard-activity-action");
-    const syncPostRequest = page.waitForRequest(
-        (request) =>
-            request.url().includes("/api/data-sources/sync") &&
-            request.method() === "POST",
-    );
+    await expect(item).toHaveAttribute("data-activity-action", "settings");
+    await expect(action).toContainText("前往数据源设置");
     await action.click();
-    await syncPostRequest;
-    await expect(item).toHaveAttribute("data-action-state", "busy");
-    await expect(action).toHaveAttribute("aria-busy", "true");
 
-    releasePost();
+    const settingsShell = page.locator("[data-settings-shell]");
+    await expect(panel).toBeHidden();
+    await expect(settingsShell).toBeVisible();
+    await expect(settingsShell).toHaveAttribute(
+        "data-settings-active-section",
+        "data-sources",
+    );
 
-    await expect(item).toHaveAttribute("data-action-state", "done");
-    await expect(action).toContainText("已加入更新");
-
-    await item.getByTestId("dashboard-activity-dismiss").click();
-    await expect(item).toBeHidden();
-
-    let remainingDismissActions = await panel
-        .getByTestId("dashboard-activity-dismiss")
-        .count();
-    while (remainingDismissActions > 0) {
-        await panel.getByTestId("dashboard-activity-dismiss").first().click();
-        remainingDismissActions = await panel
-            .getByTestId("dashboard-activity-dismiss")
-            .count();
-    }
-
-    await expect(page.getByTestId("dashboard-activity-empty")).toBeVisible();
-    await expect(panel).toContainText("全部已处理");
-    await expect(panel).toContainText("没有新的动态");
+    await page.getByTestId("settings-close").click();
+    await expect(settingsShell).toBeHidden();
+    await expect(page.getByTestId("dashboard-settings-trigger")).toBeFocused();
 });
 
 test("activity overlay exposes default empty and syncing states without layout jumps", async ({

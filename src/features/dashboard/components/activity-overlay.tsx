@@ -7,6 +7,7 @@ import {
     Clock,
     FileText,
     RefreshCw,
+    SlidersHorizontal,
     X,
 } from "lucide-react";
 import type {
@@ -23,7 +24,7 @@ import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
-type ActivityAction = "sync" | "recording";
+type ActivityAction = "sync" | "recording" | "settings";
 type ActivityActionState = "idle" | "busy" | "done" | "failed";
 type Translate = (
     key: string,
@@ -90,6 +91,7 @@ interface ActivityOverlayProps {
     transcriptionJobs: Map<string, ActivityTranscriptionJob>;
     onSyncNow: () => Promise<void> | void;
     onOpenRecording: (recordingId: string) => void;
+    onOpenDataSourcesSettings: () => void;
 }
 
 function formatRelative(date: Date | null, language: UiLanguage) {
@@ -211,6 +213,9 @@ function getActionLabel(
     if (item.action === "recording") {
         return item.actionLabel ?? t("activityOverlay.actions.view");
     }
+    if (item.action === "settings") {
+        return item.actionLabel ?? t("activityOverlay.actions.openDataSources");
+    }
 
     if (state === "busy") {
         return t("activityOverlay.actions.updating");
@@ -253,6 +258,7 @@ export function ActivityOverlay({
     transcriptionJobs,
     onSyncNow,
     onOpenRecording,
+    onOpenDataSourcesSettings,
 }: ActivityOverlayProps) {
     const { language, t } = useLanguage();
     const rootRef = useRef<HTMLDivElement>(null);
@@ -437,8 +443,8 @@ export function ActivityOverlay({
                     workerStatus.lastError ??
                     t("activityOverlay.status.workerNotResponding"),
                 meta: formatRelative(workerStatus.lastHeartbeatAt, language),
-                action: "sync",
-                actionLabel: t("activityOverlay.actions.recheck"),
+                action: "settings",
+                actionLabel: t("activityOverlay.actions.openDataSources"),
                 actionable: true,
             });
         }
@@ -688,9 +694,19 @@ export function ActivityOverlay({
             if (item.action === "recording" && item.recordingId) {
                 onOpenRecording(item.recordingId);
                 closeAndReturnFocus();
+                return;
+            }
+
+            if (item.action === "settings") {
+                onOpenDataSourcesSettings();
             }
         },
-        [closeAndReturnFocus, onOpenRecording, runSyncAction],
+        [
+            closeAndReturnFocus,
+            onOpenDataSourcesSettings,
+            onOpenRecording,
+            runSyncAction,
+        ],
     );
 
     const handleRecordingItemClick = useCallback(
@@ -832,6 +848,9 @@ export function ActivityOverlay({
                         >
                             {item.action === "recording" ? (
                                 <FileText className="mr-1 h-3 w-3" />
+                            ) : null}
+                            {item.action === "settings" ? (
+                                <SlidersHorizontal className="mr-1 h-3 w-3" />
                             ) : null}
                             {getActionLabel(item, actionState, t)}
                         </Button>

@@ -1882,6 +1882,9 @@ export function Workstation({
                                 transcriptionJobs={liveTranscriptionJobs}
                                 onSyncNow={handleSync}
                                 onOpenRecording={handleOpenSearchResult}
+                                onOpenDataSourcesSettings={() =>
+                                    handleOpenDataSourcesSettings()
+                                }
                             />
                             <Button
                                 variant="outline"
