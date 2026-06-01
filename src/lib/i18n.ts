@@ -19,6 +19,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             confirmAction: "确认操作",
             loading: "加载中...",
             copying: "复制中...",
+            saving: "保存中...",
+            autoSaved: "更改会自动保存。",
             saveFailed: "保存设置失败，已回滚。",
         },
         auth: {
@@ -509,6 +511,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             confirmAction: "Confirm action",
             loading: "Loading...",
             copying: "Copying...",
+            saving: "Saving...",
+            autoSaved: "Changes save automatically.",
             saveFailed: "Failed to save settings. Changes reverted.",
         },
         auth: {

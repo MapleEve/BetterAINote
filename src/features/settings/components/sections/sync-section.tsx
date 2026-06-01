@@ -70,7 +70,12 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
     }
 
     const content = (
-        <Card className="gap-5" data-settings-section="sync">
+        <Card
+            aria-busy={isSaving}
+            className="gap-5"
+            data-settings-section="sync"
+            data-sync-save-state={isSaving ? "saving" : "ready"}
+        >
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <RefreshCw />
@@ -83,6 +88,20 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
+                <div
+                    aria-live="polite"
+                    className="text-xs text-muted-foreground"
+                    data-testid="sync-save-state"
+                >
+                    {isSaving
+                        ? isZh
+                            ? "保存中..."
+                            : "Saving..."
+                        : isZh
+                          ? "更改会自动保存。"
+                          : "Changes save automatically."}
+                </div>
+
                 <div className="glass-surface-subtle flex items-center justify-between rounded-2xl px-4 py-3">
                     <div className="flex flex-col gap-1">
                         <Label htmlFor="auto-sync" className="text-base">

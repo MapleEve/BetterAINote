@@ -58,11 +58,22 @@ function getSettingsTestErrorMessage(error: unknown, language: UiLanguage) {
         : "Failed to test data source connection";
 }
 
+function getSettingsLoadErrorMessage(error: unknown, language: UiLanguage) {
+    if (error instanceof Error && error.message.trim()) {
+        return error.message;
+    }
+
+    return language === "zh-CN"
+        ? "加载数据源设置失败"
+        : "Failed to load data sources";
+}
+
 export function useDataSourcesSettings(language: UiLanguage) {
     const isZh = language === "zh-CN";
     const [sources, setSources] = useState<DataSourceDisplayState[]>([]);
     const [secretDrafts, setSecretDrafts] = useState<SecretDraftState>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [savingProvider, setSavingProvider] = useState<SourceProvider | null>(
         null,
     );
@@ -74,18 +85,19 @@ export function useDataSourcesSettings(language: UiLanguage) {
 
     const refreshSources = useCallback(async () => {
         setIsLoading(true);
+        setLoadError(null);
         try {
             const data = await getDataSources();
             setSources(data.sources);
         } catch (error) {
             console.error("Failed to load data sources:", error);
-            toast.error(
-                isZh ? "加载数据源设置失败" : "Failed to load data sources",
-            );
+            const message = getSettingsLoadErrorMessage(error, language);
+            setLoadError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
-    }, [isZh]);
+    }, [language]);
 
     useEffect(() => {
         void refreshSources();
@@ -202,7 +214,9 @@ export function useDataSourcesSettings(language: UiLanguage) {
 
     return {
         isLoading,
+        loadError,
         orderedSources,
+        refreshSources,
         savingProvider,
         secretDrafts,
         saveSourceSettings,

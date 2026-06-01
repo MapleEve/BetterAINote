@@ -312,19 +312,51 @@ test("sync settings persist toggles and normalize short intervals", async ({
 
     const autoToggle = page.getByTestId("sync-auto-toggle");
     const intervalInput = page.getByTestId("sync-interval");
+    const section = page.locator('[data-settings-section="sync"]');
     await expect(autoToggle).toHaveAttribute("data-state", "checked");
     await expect(intervalInput).toHaveValue("300");
 
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/sync") &&
-                response.request().method() === "PUT" &&
-                response.ok() &&
-                response.request().postDataJSON()?.autoSyncEnabled === false,
-        ),
-        autoToggle.click(),
-    ]);
+    let releaseSyncSave = () => {};
+    let notifySyncSaveStarted = () => {};
+    const syncSaveStarted = new Promise<void>((resolve) => {
+        notifySyncSaveStarted = resolve;
+    });
+    const pendingSyncSave = new Promise<void>((resolve) => {
+        releaseSyncSave = resolve;
+    });
+    let delayNextSyncPut = true;
+
+    await page.route("**/api/settings/sync", async (route) => {
+        if (
+            route.request().method() !== "PUT" ||
+            !delayNextSyncPut ||
+            route.request().postDataJSON()?.autoSyncEnabled !== false
+        ) {
+            await route.continue();
+            return;
+        }
+
+        delayNextSyncPut = false;
+        notifySyncSaveStarted();
+        await pendingSyncSave;
+        await route.continue();
+    });
+
+    const autoSyncOffResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/sync") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.autoSyncEnabled === false,
+    );
+    await autoToggle.click();
+    await syncSaveStarted;
+    await expect(section).toHaveAttribute("data-sync-save-state", "saving");
+    await expect(page.getByTestId("sync-save-state")).toContainText("保存中");
+    await expect(autoToggle).toBeDisabled();
+    releaseSyncSave();
+    await autoSyncOffResponse;
+    await expect(section).toHaveAttribute("data-sync-save-state", "ready");
     await expect(autoToggle).toHaveAttribute("data-state", "unchecked");
     await expect(intervalInput).toHaveCount(0);
 

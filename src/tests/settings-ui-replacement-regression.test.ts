@@ -97,6 +97,10 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain('data-settings-section="data-sources"');
         expect(section).toContain("lg:grid-cols-[280px_minmax(0,1fr)]");
         expect(section).toContain("data-ds-scroll");
+        expect(section).toContain("data-ds-load-state");
+        expect(section).toContain("loadError");
+        expect(section).toContain("refreshSources");
+        expect(section).toContain('data-testid="data-sources-load-error"');
         expect(section).toContain("data-ds-provider-list-scroll");
         expect(section).toContain("data-settings-inner-scroll");
         expect(section).toContain("providerDetailScrollRef");
@@ -182,6 +186,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
     });
 
     it("keeps settings skeleton and sync controls on shared glass tokens", () => {
+        const display = readSource(
+            "features/settings/components/sections/display-section.tsx",
+        );
         const skeletons = readSource(
             "features/settings/components/settings-skeletons.tsx",
         );
@@ -194,6 +201,17 @@ describe("settings UI replacement S6-S8 regressions", () => {
             expect(source).not.toContain("border-white/8");
             expect(source).not.toContain("bg-white/5");
         }
+
+        expect(sync).toContain("data-sync-save-state");
+        expect(sync).toContain('data-testid="sync-save-state"');
+        expect(sync).toContain("aria-busy={isSaving}");
+        expect(display).toContain('data-settings-section="display"');
+        expect(display).toContain("data-display-save-state");
+        expect(display).toContain('data-testid="display-save-state"');
+        expect(display).toContain("aria-busy={isSaving}");
+        expect(display).toContain("ITEMS_PER_PAGE_MIN");
+        expect(display).toContain("ITEMS_PER_PAGE_MAX");
+        expect(display).toContain("onBlur={() =>");
     });
 
     it("keeps transcription and AI rename sections in the current glass settings language", () => {

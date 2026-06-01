@@ -983,7 +983,9 @@ export function DataSourcesSection() {
     const isZh = language === "zh-CN";
     const {
         isLoading,
+        loadError,
         orderedSources,
+        refreshSources,
         savingProvider,
         secretDrafts,
         saveSourceSettings,
@@ -1183,6 +1185,8 @@ export function DataSourcesSection() {
         return <DataSourcesSectionSkeleton isZh={isZh} />;
     }
 
+    const loadState = loadError ? "error" : "ready";
+
     const renderProviderOverview = () => (
         <div className="flex flex-col gap-5">
             <Card className="gap-4">
@@ -1255,6 +1259,7 @@ export function DataSourcesSection() {
         <div
             className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:h-full lg:p-5"
             data-ds-selected-provider={selectedSource?.provider ?? "none"}
+            data-ds-load-state={loadState}
             data-settings-section="data-sources"
         >
             <div className="flex shrink-0 flex-col gap-2">
@@ -1298,6 +1303,30 @@ export function DataSourcesSection() {
                                   : "No source"}
                         </span>
                     </div>
+
+                    {loadError ? (
+                        <div
+                            className="rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-3 text-sm text-destructive"
+                            data-testid="data-sources-load-error"
+                        >
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                                    <span>{loadError}</span>
+                                </div>
+                                <Button
+                                    className="self-start"
+                                    onClick={() => void refreshSources()}
+                                    size="sm"
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    <RotateCw className="size-4" />
+                                    {isZh ? "重试" : "Retry"}
+                                </Button>
+                            </div>
+                        </div>
+                    ) : null}
 
                     <div
                         className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1"

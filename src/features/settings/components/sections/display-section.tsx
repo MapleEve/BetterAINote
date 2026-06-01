@@ -32,6 +32,9 @@ import {
 import type { RecordingListSortOrder } from "@/services/display-settings";
 import type { DateTimeFormat } from "@/types/common";
 
+const ITEMS_PER_PAGE_MIN = 10;
+const ITEMS_PER_PAGE_MAX = 100;
+
 export function DisplaySection() {
     const { t } = useLanguage();
     const {
@@ -118,6 +121,10 @@ export function DisplaySection() {
         };
 
         if (!debounceMs) {
+            if (saveTimeoutRef.current) {
+                stopBrowserTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
             persistSettings();
             return;
         }
@@ -137,7 +144,12 @@ export function DisplaySection() {
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div
+            aria-busy={isSaving}
+            className="flex flex-col gap-6"
+            data-display-save-state={isSaving ? "saving" : "ready"}
+            data-settings-section="display"
+        >
             <div className="flex flex-col gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
                     <Monitor />
@@ -145,6 +157,13 @@ export function DisplaySection() {
                 </h2>
                 <p className="text-sm text-muted-foreground">
                     {t("display.title")}
+                </p>
+                <p
+                    aria-live="polite"
+                    className="text-xs text-muted-foreground"
+                    data-testid="display-save-state"
+                >
+                    {isSaving ? t("common.saving") : t("common.autoSaved")}
                 </p>
             </div>
 
@@ -358,8 +377,8 @@ export function DisplaySection() {
                             <Input
                                 id="items-per-page"
                                 type="number"
-                                min={10}
-                                max={100}
+                                min={ITEMS_PER_PAGE_MIN}
+                                max={ITEMS_PER_PAGE_MAX}
                                 value={itemsPerPageInput}
                                 disabled={isSaving}
                                 onChange={(event) => {
@@ -367,17 +386,40 @@ export function DisplaySection() {
                                         event.target.value,
                                         10,
                                     );
+                                    if (Number.isNaN(value)) {
+                                        setItemsPerPageInput(
+                                            ITEMS_PER_PAGE_MIN,
+                                        );
+                                        return;
+                                    }
+
+                                    setItemsPerPageInput(value);
                                     if (
-                                        !Number.isNaN(value) &&
-                                        value >= 10 &&
-                                        value <= 100
+                                        value >= ITEMS_PER_PAGE_MIN &&
+                                        value <= ITEMS_PER_PAGE_MAX
                                     ) {
-                                        setItemsPerPageInput(value);
                                         void handleDisplaySettingChange(
                                             { itemsPerPage: value },
                                             500,
                                         );
                                     }
+                                }}
+                                onBlur={() => {
+                                    const normalizedItemsPerPage = Math.min(
+                                        ITEMS_PER_PAGE_MAX,
+                                        Math.max(
+                                            ITEMS_PER_PAGE_MIN,
+                                            Number.isFinite(itemsPerPageInput)
+                                                ? Math.floor(itemsPerPageInput)
+                                                : ITEMS_PER_PAGE_MIN,
+                                        ),
+                                    );
+                                    setItemsPerPageInput(
+                                        normalizedItemsPerPage,
+                                    );
+                                    void handleDisplaySettingChange({
+                                        itemsPerPage: normalizedItemsPerPage,
+                                    });
                                 }}
                             />
                             <p className="text-xs text-muted-foreground">

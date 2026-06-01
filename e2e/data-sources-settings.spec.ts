@@ -61,6 +61,44 @@ async function openDataSourcesSettings(page: Page) {
     return section;
 }
 
+test("data sources settings shows section-level load failure and retries", async ({
+    page,
+}) => {
+    let failNextLoad = false;
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        if (failNextLoad) {
+            failNextLoad = false;
+            await route.fulfill({
+                contentType: "application/json",
+                status: 503,
+                body: JSON.stringify({ error: "数据源服务暂不可用" }),
+            });
+            return;
+        }
+
+        await route.continue();
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+
+    failNextLoad = true;
+    const section = await openDataSourcesSettings(page);
+    await expect(section).toHaveAttribute("data-ds-load-state", "error");
+    await expect(page.getByTestId("data-sources-load-error")).toContainText(
+        "数据源服务暂不可用",
+    );
+
+    await page.getByRole("button", { name: "重试" }).click();
+    await expect(section).toHaveAttribute("data-ds-load-state", "ready");
+    await expect(page.locator('[data-provider="dingtalk-a1"]')).toBeVisible();
+});
+
 test("data sources settings tests missing details then saves a provider through the real form", async ({
     page,
 }) => {

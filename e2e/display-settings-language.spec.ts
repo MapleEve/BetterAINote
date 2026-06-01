@@ -155,3 +155,103 @@ test("display settings theme switches light and dark without waiting for persist
         .toMatchObject({ theme: "light" });
     await expect(page.locator("#theme")).toContainText("浅色");
 });
+
+test("display settings secondary controls show pending state and normalize page size", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page, {
+        dateTimeFormat: "relative",
+        itemsPerPage: 50,
+        recordingListSortOrder: "newest",
+    });
+
+    let releasePendingUpdate = () => {};
+    let notifyUpdateStarted = () => {};
+    const updateStarted = new Promise<void>((resolve) => {
+        notifyUpdateStarted = resolve;
+    });
+    const pendingUpdate = new Promise<void>((resolve) => {
+        releasePendingUpdate = resolve;
+    });
+    let delayDateFormatUpdate = true;
+
+    await page.route("**/api/settings/display", async (route) => {
+        if (
+            route.request().method() !== "PUT" ||
+            !delayDateFormatUpdate ||
+            route.request().postDataJSON()?.dateTimeFormat !== "absolute"
+        ) {
+            await route.continue();
+            return;
+        }
+
+        delayDateFormatUpdate = false;
+        notifyUpdateStarted();
+        await pendingUpdate;
+        await route.continue();
+    });
+
+    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+
+    const displaySection = page.locator('[data-settings-section="display"]');
+    await expect(displaySection).toBeVisible();
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "ready",
+    );
+
+    await page.locator("#date-time-format").click();
+    await page.getByRole("option", { name: /绝对时间/ }).click();
+
+    await updateStarted;
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "saving",
+    );
+    await expect(page.getByTestId("display-save-state")).toContainText(
+        "保存中",
+    );
+    await expect(page.locator("#sort-order")).toBeDisabled();
+    await expect(page.locator("#items-per-page")).toBeDisabled();
+
+    releasePendingUpdate();
+
+    await page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.dateTimeFormat === "absolute",
+    );
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "ready",
+    );
+
+    await page.locator("#sort-order").click();
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/display") &&
+                response.request().method() === "PUT" &&
+                response.ok() &&
+                response.request().postDataJSON()?.recordingListSortOrder ===
+                    "oldest",
+        ),
+        page.getByRole("option", { name: "最早优先", exact: true }).click(),
+    ]);
+    await expect(page.locator("#sort-order")).toContainText("最早优先");
+
+    const pageSizeResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.itemsPerPage === 10,
+    );
+    await page.locator("#items-per-page").fill("3");
+    await page.getByText("显示设置", { exact: true }).click();
+    await pageSizeResponse;
+    await expect(page.locator("#items-per-page")).toHaveValue("10");
+});
