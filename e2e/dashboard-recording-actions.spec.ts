@@ -7,8 +7,11 @@ import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const ACTION_RECORDING_ID = "e2e-dashboard-actions-recording";
+const ACTION_TRANSCRIPT_ID = "e2e-dashboard-actions-transcript";
 const ACTION_RECORDING_TITLE = "E2E dashboard actions source";
 const ACTION_RENAMED_TITLE = "E2E dashboard actions renamed";
+const ACTION_KEYBOARD_RENAMED_TITLE = "E2E dashboard keyboard renamed";
+const ACTION_AI_RENAMED_TITLE = "E2E dashboard AI renamed";
 const ACTION_TAG_NAME = "E2E操作标签";
 
 function resolveDatabasePath() {
@@ -113,10 +116,15 @@ async function cleanupDashboardActionSeed(userId?: string) {
     }
 }
 
-async function seedDashboardActionRecording(userId: string) {
+async function seedDashboardActionRecording(
+    userId: string,
+    options: { includeTranscript?: boolean } = {},
+) {
+    const { includeTranscript = false } = options;
     const now = Date.now();
     const start = now - 1_800_000;
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
 
     try {
         await cleanupDashboardActionSeed(userId);
@@ -152,8 +160,34 @@ async function seedDashboardActionRecording(userId: string) {
                 now,
             ],
         });
+        if (includeTranscript) {
+            await transcripts.execute({
+                sql: `
+                    INSERT OR REPLACE INTO transcriptions (
+                        id, recording_id, user_id, text, detected_language,
+                        transcription_type, provider, model, provider_job_id,
+                        speaker_map, provider_payload, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `,
+                args: [
+                    ACTION_TRANSCRIPT_ID,
+                    ACTION_RECORDING_ID,
+                    userId,
+                    "Speaker 1: Dashboard AI rename review must wait for user confirmation.",
+                    "en",
+                    "server",
+                    "voice-transcribe",
+                    "e2e",
+                    "remote-e2e-dashboard-actions",
+                    "{}",
+                    "{}",
+                    now - 60_000,
+                ],
+            });
+        }
     } finally {
         await library.close();
+        await transcripts.close();
     }
 }
 
@@ -203,6 +237,28 @@ async function openDashboardRenameEditor(page: Page) {
     }
 
     await expect(renameInput).toBeVisible();
+}
+
+async function mockTitleGenerationSettings(page: Page, configured: boolean) {
+    await page.route("**/api/settings/title-generation", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.fallback();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                autoGenerateTitle: true,
+                titleGenerationBaseUrl: configured
+                    ? "https://llm.example.invalid/v1"
+                    : null,
+                titleGenerationModel: configured ? "e2e-title-model" : null,
+                titleGenerationApiKeySet: configured,
+                titleGenerationPrompt: null,
+            }),
+        });
+    });
 }
 
 test("dashboard renames, tags, and deletes a local-only recording through the new UI", async ({
@@ -338,6 +394,138 @@ test("dashboard renames, tags, and deletes a local-only recording through the ne
             .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
             .toBeNull();
         await expect(page.getByText(ACTION_RENAMED_TITLE)).toBeHidden();
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard rename keyboard paths and AI rename review states stay explicit", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    const previewPayloads: unknown[] = [];
+    const patchPayloads: unknown[] = [];
+    let previewAttempts = 0;
+
+    page.on("request", (request) => {
+        const requestPath = new URL(request.url()).pathname;
+        if (
+            request.method() === "PATCH" &&
+            requestPath.endsWith(`/api/recordings/${ACTION_RECORDING_ID}/rename`)
+        ) {
+            patchPayloads.push(request.postDataJSON());
+        }
+    });
+
+    await mockTitleGenerationSettings(page, true);
+    await page.route(
+        `**/api/recordings/${ACTION_RECORDING_ID}/rename/auto`,
+        async (route) => {
+            expect(route.request().method()).toBe("POST");
+            previewPayloads.push(route.request().postDataJSON());
+            previewAttempts += 1;
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    applied: false,
+                    filename:
+                        previewAttempts === 1
+                            ? "E2E dashboard AI preview discarded"
+                            : ACTION_AI_RENAMED_TITLE,
+                }),
+            });
+        },
+    );
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId, {
+            includeTranscript: true,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        await openDashboardRenameEditor(page);
+        await page
+            .getByTestId("dashboard-rename-input")
+            .fill("E2E dashboard escape should not save");
+        await page.getByTestId("dashboard-rename-input").press("Escape");
+        await expect(page.getByTestId("dashboard-rename-input")).toHaveCount(0);
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_RECORDING_TITLE);
+        expect(patchPayloads).toEqual([]);
+
+        await openDashboardRenameEditor(page);
+        await page
+            .getByTestId("dashboard-rename-input")
+            .fill(ACTION_KEYBOARD_RENAMED_TITLE);
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${ACTION_RECORDING_ID}/rename`) &&
+                    response.request().method() === "PATCH" &&
+                    response.ok(),
+            ),
+            page.getByTestId("dashboard-rename-input").press("Enter"),
+        ]);
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_KEYBOARD_RENAMED_TITLE,
+        );
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_KEYBOARD_RENAMED_TITLE);
+
+        await expect(page.getByTestId("dashboard-ai-rename")).toBeEnabled();
+        await page.getByTestId("dashboard-ai-rename").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByText("E2E dashboard AI preview discarded"))
+            .toBeVisible();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_KEYBOARD_RENAMED_TITLE,
+        );
+        await page.getByTestId("ai-rename-cancel").click();
+        await expect(page.getByText("E2E dashboard AI preview discarded"))
+            .toBeHidden();
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_KEYBOARD_RENAMED_TITLE);
+
+        await page.getByTestId("dashboard-ai-rename").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByText(ACTION_AI_RENAMED_TITLE)).toBeVisible();
+        await page.getByTestId("ai-rename-apply").click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_AI_RENAMED_TITLE,
+        );
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "accepted");
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_AI_RENAMED_TITLE);
+        expect(previewPayloads).toEqual([
+            { mode: "preview" },
+            { mode: "preview" },
+        ]);
+        expect(patchPayloads).toEqual([
+            { filename: ACTION_KEYBOARD_RENAMED_TITLE },
+            { filename: ACTION_AI_RENAMED_TITLE },
+        ]);
     } finally {
         await cleanupDashboardActionSeed(userId ?? undefined);
     }
