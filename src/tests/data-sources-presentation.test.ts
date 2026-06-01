@@ -40,6 +40,8 @@ describe("data-sources presentation helpers", () => {
 
     it("derives provider labels and source tab labels from shared metadata", () => {
         expect(getSourceProviderLabel("plaud", "zh-CN")).toBe("Plaud");
+        expect(getSourceProviderLabel("dingtalk-a1", "zh-CN")).toBe("钉钉");
+        expect(getSourceProviderLabel("iflyrec", "zh-CN")).toBe("讯飞听见");
         expect(getSourceProviderLabel("dingtalk-a1", "en")).toBe("DingTalk A1");
         expect(getSourceTabLabel("plaud", "zh-CN")).toBe("Plaud 来源原始记录");
         expect(getSourceTabLabel("ticnote", "en")).toBe(

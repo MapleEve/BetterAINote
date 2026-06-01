@@ -18,6 +18,29 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("--steel-500");
         expect(globals).toContain("BetterAINote Graphite Glass design system");
         expect(globals).toContain("--page-background");
+        expect(globals).toContain("--bg-canvas:");
+        expect(globals).toContain("--bg-elevated:");
+        expect(globals).toContain("--fg-primary:");
+        expect(globals).toContain("--line-hairline:");
+        expect(globals).toContain("--accent-hover:");
+        expect(globals).toContain("--accent-pressed:");
+        expect(globals).toContain("--accent-soft:");
+        expect(globals).toContain("--glass-tint-strong:");
+        expect(globals).toContain("--glass-border-soft:");
+        expect(globals).toContain("--glass-shadow-cast:");
+        expect(globals).toContain("--shadow-focus:");
+        expect(globals).toContain("--bg-canvas: oklch(0.185 0.004 250)");
+        expect(globals).toContain("--bg-elevated: oklch(0.215 0.004 250)");
+        expect(globals).toContain("--accent-brand: oklch(0.7 0.092 226)");
+        expect(globals).toContain(
+            "--glass-tint-strong: rgb(255 255 255 / 0.08)",
+        );
+        expect(globals).toContain("--background: var(--bg-canvas)");
+        expect(globals).toContain("--primary: var(--accent-brand)");
+        expect(globals).toContain("--accent: var(--accent-soft)");
+        expect(globals).toContain(
+            "box-shadow: var(--shadow-inset), var(--glass-shadow-cast)",
+        );
         expect(globals).not.toContain("Hardware Design System");
         expect(globals).not.toContain("Graphite, Paper, Brass");
         expect(globals).not.toContain("warm beige");
@@ -85,6 +108,9 @@ describe("full UI replacement regression coverage", () => {
         const rows = readSource(
             "features/dashboard/components/source-provider-rows.tsx",
         );
+        const dataSourcesSection = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
         const translations = readSource("lib/i18n.ts");
 
         expect(workstation).toContain("useDataSourcesSettings(language)");
@@ -116,6 +142,11 @@ describe("full UI replacement regression coverage", () => {
         expect(rows).not.toContain("同步异常");
         expect(rows).not.toContain("待开放");
         expect(rows).not.toContain("需要重新登录");
+        expect(dataSourcesSection).toContain("getSourceProviderLabel");
+        expect(dataSourcesSection).not.toContain("{source.displayName}");
+        expect(dataSourcesSection).not.toContain(
+            "{selectedSource?.displayName",
+        );
         expect(translations).toContain("同步异常");
         expect(translations).toContain("Re-auth required");
     });
@@ -293,5 +324,26 @@ describe("full UI replacement regression coverage", () => {
         expect(systemBanner).toContain("betterainote:system-banner");
         expect(dashboard).toContain("<SystemBanner");
         expect(detail).toContain("<SystemBanner");
+    });
+
+    it("keeps settings and recording detail surfaces on shared glass interaction states", () => {
+        const playback = readSource(
+            "features/settings/components/sections/playback-section.tsx",
+        );
+        const transcriptionSection = readSource(
+            "features/recordings/components/transcription-section.tsx",
+        );
+        const transcriptionSkeletons = readSource(
+            "features/recordings/components/transcription-skeletons.tsx",
+        );
+
+        expect(playback).toContain('id="default-volume"');
+        expect(playback).toContain("disabled={isSaving}");
+
+        for (const source of [transcriptionSection, transcriptionSkeletons]) {
+            expect(source).toContain("glass-surface-subtle");
+            expect(source).not.toContain("border-white/10");
+            expect(source).not.toContain("bg-background/25");
+        }
     });
 });

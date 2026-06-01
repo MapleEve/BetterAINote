@@ -25,38 +25,78 @@
     --steel-500: oklch(0.555 0.09 224);
     --steel-600: oklch(0.47 0.095 222);
     --steel-700: oklch(0.385 0.085 222);
-    --background: var(--graphite-100);
-    --foreground: var(--graphite-800);
-    --card: var(--graphite-50);
-    --card-foreground: var(--graphite-800);
-    --popover: oklch(0.99 0.003 250);
-    --popover-foreground: var(--graphite-800);
-    --primary: var(--steel-500);
-    --primary-foreground: var(--graphite-50);
-    --secondary: var(--graphite-150);
+
+    --bg-canvas: var(--graphite-100);
+    --bg-elevated: var(--graphite-50);
+    --bg-recessed: var(--graphite-150);
+    --bg-overlay: oklch(0.99 0.003 250 / 0.72);
+    --fg-primary: var(--graphite-800);
+    --fg-secondary: var(--graphite-600);
+    --fg-tertiary: var(--graphite-500);
+    --fg-disabled: var(--graphite-400);
+    --fg-on-accent: var(--graphite-50);
+    --line-hairline: color-mix(in srgb, var(--graphite-300) 56%, transparent);
+    --line-strong: var(--graphite-300);
+    --line-focus: var(--steel-500);
+    --accent-brand: var(--steel-500);
+    --accent-hover: var(--steel-600);
+    --accent-pressed: var(--steel-700);
+    --accent-soft: color-mix(in srgb, var(--steel-500) 12%, transparent);
+    --accent-on: oklch(0.985 0.003 250);
+    --glass-tint-strong: color-mix(
+        in srgb,
+        var(--graphite-50) 70%,
+        transparent
+    );
+    --glass-tint-base: color-mix(in srgb, var(--graphite-50) 58%, transparent);
+    --glass-tint-subtle: color-mix(
+        in srgb,
+        var(--graphite-100) 48%,
+        transparent
+    );
+    --glass-border: color-mix(in srgb, white 38%, transparent);
+    --glass-border-soft: color-mix(in srgb, white 22%, transparent);
+    --glass-highlight-top: rgb(255 255 255 / 0.55);
+    --glass-highlight-bottom: rgb(255 255 255 / 0.05);
+    --glass-shadow-cast:
+        0 12px 32px rgb(20 22 28 / 0.1), 0 2px 6px rgb(20 22 28 / 0.06);
+    --glass-shadow-lift:
+        0 22px 56px rgb(20 22 28 / 0.14), 0 4px 10px rgb(20 22 28 / 0.08);
+    --shadow-focus: 0 0 0 3px
+        color-mix(in srgb, var(--steel-500) 28%, transparent);
+
+    --background: var(--bg-canvas);
+    --foreground: var(--fg-primary);
+    --card: var(--bg-elevated);
+    --card-foreground: var(--fg-primary);
+    --popover: var(--bg-overlay);
+    --popover-foreground: var(--fg-primary);
+    --primary: var(--accent-brand);
+    --primary-foreground: var(--fg-on-accent);
+    --secondary: var(--bg-recessed);
     --secondary-foreground: var(--graphite-700);
-    --muted: var(--graphite-150);
-    --muted-foreground: var(--graphite-500);
-    --accent: color-mix(in srgb, var(--steel-500) 12%, transparent);
-    --accent-foreground: var(--graphite-800);
+    --muted: var(--bg-recessed);
+    --muted-foreground: var(--fg-tertiary);
+    --accent: var(--accent-soft);
+    --accent-foreground: var(--fg-primary);
     --destructive: oklch(0.59 0.19 28);
     --destructive-foreground: var(--graphite-50);
-    --border: color-mix(in srgb, var(--graphite-300) 62%, transparent);
-    --input: color-mix(in srgb, var(--graphite-300) 66%, transparent);
-    --ring: var(--steel-500);
+    --border: var(--line-hairline);
+    --input: color-mix(in srgb, var(--line-strong) 66%, transparent);
+    --ring: var(--line-focus);
     --chart-1: var(--steel-500);
     --chart-2: oklch(0.62 0.09 224);
     --chart-3: oklch(0.58 0.09 170);
     --chart-4: oklch(0.73 0.14 78);
     --chart-5: oklch(0.585 0.18 25);
-    --sidebar: color-mix(in srgb, var(--graphite-50) 70%, transparent);
-    --sidebar-foreground: var(--graphite-800);
-    --sidebar-primary: var(--steel-500);
-    --sidebar-primary-foreground: var(--graphite-50);
-    --sidebar-accent: color-mix(in srgb, var(--steel-500) 12%, transparent);
-    --sidebar-accent-foreground: var(--graphite-800);
-    --sidebar-border: color-mix(in srgb, var(--graphite-300) 62%, transparent);
-    --sidebar-ring: var(--steel-500);
+    --sidebar: var(--glass-tint-strong);
+    --sidebar-foreground: var(--fg-primary);
+    --sidebar-primary: var(--accent-brand);
+    --sidebar-primary-foreground: var(--fg-on-accent);
+    --sidebar-accent: var(--accent-soft);
+    --sidebar-accent-foreground: var(--fg-primary);
+    --sidebar-border: var(--line-hairline);
+    --sidebar-ring: var(--line-focus);
     --font-sans:
         ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -98,38 +138,67 @@
 }
 
 .dark {
-    --background: oklch(0.185 0.004 250);
-    --foreground: oklch(0.965 0.003 250);
-    --card: oklch(0.215 0.004 250);
-    --card-foreground: oklch(0.965 0.003 250);
-    --popover: oklch(0.215 0.004 250);
-    --popover-foreground: oklch(0.965 0.003 250);
-    --primary: oklch(0.7 0.092 226);
-    --primary-foreground: oklch(0.11 0.004 250);
+    --bg-canvas: oklch(0.185 0.004 250);
+    --bg-elevated: oklch(0.215 0.004 250);
+    --bg-recessed: oklch(0.165 0.004 250);
+    --bg-overlay: oklch(0.215 0.004 250 / 0.74);
+    --fg-primary: oklch(0.965 0.003 250);
+    --fg-secondary: oklch(0.745 0.005 250);
+    --fg-tertiary: oklch(0.555 0.006 250);
+    --fg-disabled: oklch(0.395 0.006 250);
+    --fg-on-accent: oklch(0.985 0.003 250);
+    --line-hairline: rgb(255 255 255 / 0.07);
+    --line-strong: rgb(255 255 255 / 0.13);
+    --line-focus: oklch(0.7 0.092 226);
+    --accent-brand: oklch(0.7 0.092 226);
+    --accent-hover: oklch(0.745 0.094 226);
+    --accent-pressed: oklch(0.625 0.09 224);
+    --accent-soft: color-mix(in srgb, var(--accent-brand) 16%, transparent);
+    --accent-on: oklch(0.11 0.004 250);
+    --glass-tint-strong: rgb(255 255 255 / 0.08);
+    --glass-tint-base: rgb(255 255 255 / 0.05);
+    --glass-tint-subtle: rgb(255 255 255 / 0.03);
+    --glass-border: rgb(255 255 255 / 0.1);
+    --glass-border-soft: rgb(255 255 255 / 0.06);
+    --glass-highlight-top: rgb(255 255 255 / 0.07);
+    --glass-highlight-bottom: rgb(255 255 255 / 0);
+    --glass-shadow-cast:
+        0 16px 40px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+    --glass-shadow-lift:
+        0 28px 64px rgb(0 0 0 / 0.55), 0 6px 14px rgb(0 0 0 / 0.36);
+
+    --background: var(--bg-canvas);
+    --foreground: var(--fg-primary);
+    --card: var(--bg-elevated);
+    --card-foreground: var(--fg-primary);
+    --popover: var(--bg-overlay);
+    --popover-foreground: var(--fg-primary);
+    --primary: var(--accent-brand);
+    --primary-foreground: var(--accent-on);
     --secondary: oklch(0.245 0.006 250);
     --secondary-foreground: oklch(0.91 0.004 250);
     --muted: oklch(0.245 0.006 250);
-    --muted-foreground: oklch(0.745 0.005 250);
-    --accent: color-mix(in srgb, var(--primary) 16%, transparent);
-    --accent-foreground: oklch(0.965 0.003 250);
+    --muted-foreground: var(--fg-secondary);
+    --accent: var(--accent-soft);
+    --accent-foreground: var(--fg-primary);
     --destructive: oklch(0.66 0.19 28);
     --destructive-foreground: oklch(0.96 0.006 250);
-    --border: rgb(255 255 255 / 0.09);
+    --border: var(--line-hairline);
     --input: rgb(255 255 255 / 0.1);
-    --ring: oklch(0.7 0.092 226);
+    --ring: var(--line-focus);
     --chart-1: oklch(0.7 0.092 226);
     --chart-2: oklch(0.7 0.12 214);
     --chart-3: oklch(0.72 0.11 154);
     --chart-4: oklch(0.8 0.16 83);
     --chart-5: oklch(0.66 0.19 28);
-    --sidebar: rgb(255 255 255 / 0.08);
-    --sidebar-foreground: oklch(0.965 0.003 250);
-    --sidebar-primary: oklch(0.7 0.092 226);
-    --sidebar-primary-foreground: oklch(0.11 0.004 250);
-    --sidebar-accent: color-mix(in srgb, var(--primary) 16%, transparent);
-    --sidebar-accent-foreground: oklch(0.965 0.003 250);
-    --sidebar-border: rgb(255 255 255 / 0.08);
-    --sidebar-ring: oklch(0.7 0.092 226);
+    --sidebar: var(--glass-tint-strong);
+    --sidebar-foreground: var(--fg-primary);
+    --sidebar-primary: var(--accent-brand);
+    --sidebar-primary-foreground: var(--accent-on);
+    --sidebar-accent: var(--accent-soft);
+    --sidebar-accent-foreground: var(--fg-primary);
+    --sidebar-border: var(--glass-border);
+    --sidebar-ring: var(--line-focus);
     --page-background:
         radial-gradient(
             circle at 16% 0%,
@@ -245,29 +314,26 @@
     }
 
     .dark .dashboard-workstation {
-        --background: oklch(0.205 0.012 258);
-        --foreground: oklch(0.93 0.006 248);
-        --card: oklch(0.245 0.012 258);
-        --card-foreground: oklch(0.93 0.006 248);
-        --popover: oklch(0.225 0.012 258);
-        --popover-foreground: oklch(0.93 0.006 248);
-        --primary: oklch(0.72 0.105 224);
-        --primary-foreground: oklch(0.18 0.012 258);
-        --secondary: oklch(0.29 0.012 258);
-        --secondary-foreground: oklch(0.9 0.006 248);
-        --muted: oklch(0.285 0.012 258);
-        --muted-foreground: oklch(0.72 0.01 248);
-        --accent: oklch(0.34 0.035 218);
-        --accent-foreground: oklch(0.94 0.006 248);
-        --border: oklch(0.365 0.014 255);
-        --input: oklch(0.34 0.014 255);
-        --ring: oklch(0.72 0.105 224);
+        --background: var(--bg-canvas);
+        --foreground: var(--fg-primary);
+        --card: var(--bg-elevated);
+        --card-foreground: var(--fg-primary);
+        --popover: var(--bg-overlay);
+        --popover-foreground: var(--fg-primary);
+        --primary: var(--accent-brand);
+        --primary-foreground: var(--accent-on);
+        --secondary: oklch(0.245 0.006 250);
+        --secondary-foreground: var(--fg-primary);
+        --muted: oklch(0.245 0.006 250);
+        --muted-foreground: var(--fg-secondary);
+        --accent: var(--accent-soft);
+        --accent-foreground: var(--fg-primary);
+        --border: var(--line-strong);
+        --input: var(--line-strong);
+        --ring: var(--line-focus);
         background:
-            linear-gradient(
-                180deg,
-                oklch(0.205 0.012 258),
-                oklch(0.16 0.01 258)
-            ), oklch(0.18 0.01 258);
+            linear-gradient(180deg, var(--bg-canvas), var(--bg-recessed)),
+            var(--bg-canvas);
     }
 
     .dashboard-workstation-grid {
@@ -288,14 +354,12 @@
         background:
             linear-gradient(
                 180deg,
-                color-mix(in srgb, var(--card) 78%, white 8%),
-                color-mix(in srgb, var(--card) 66%, transparent)
-            ), color-mix(in srgb, var(--card) 72%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 84%, white 7%);
+                var(--glass-tint-strong),
+                var(--glass-tint-base)
+            ), var(--glass-tint-subtle);
+        border: 1px solid var(--glass-border-soft);
         border-radius: 1rem;
-        box-shadow:
-            0 1px 1px rgb(255 255 255 / 0.08) inset,
-            0 10px 28px rgb(0 0 0 / 0.08);
+        box-shadow: var(--shadow-inset), var(--glass-shadow-cast);
         overflow: hidden;
     }
 
@@ -327,14 +391,12 @@
         background:
             linear-gradient(
                 180deg,
-                color-mix(in srgb, var(--card) 72%, white 10%),
-                color-mix(in srgb, var(--card) 64%, transparent)
-            ), color-mix(in srgb, var(--card) 68%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 82%, white 8%);
+                var(--glass-tint-strong),
+                var(--glass-tint-base)
+            ), var(--glass-tint-subtle);
+        border: 1px solid var(--glass-border);
         backdrop-filter: blur(26px) saturate(148%);
-        box-shadow:
-            0 1px 1px rgb(255 255 255 / 0.08) inset,
-            0 10px 28px rgb(0 0 0 / 0.08);
+        box-shadow: var(--shadow-inset), var(--glass-shadow-cast);
         transition:
             background-color 360ms var(--ease-sine),
             border-color 360ms var(--ease-sine),
@@ -348,14 +410,12 @@
         background:
             linear-gradient(
                 180deg,
-                color-mix(in srgb, var(--secondary) 62%, white 2%),
-                color-mix(in srgb, var(--secondary) 56%, transparent)
-            ), color-mix(in srgb, var(--secondary) 58%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 82%, white 4%);
+                var(--glass-tint-base),
+                var(--glass-tint-subtle)
+            ), color-mix(in srgb, var(--secondary) 48%, transparent);
+        border: 1px solid var(--glass-border-soft);
         backdrop-filter: blur(18px) saturate(132%);
-        box-shadow:
-            0 1px 1px rgb(255 255 255 / 0.06) inset,
-            0 6px 18px rgb(0 0 0 / 0.06);
+        box-shadow: var(--shadow-inset), var(--shadow-sm);
         transition:
             background-color 360ms var(--ease-sine),
             border-color 360ms var(--ease-sine),
@@ -410,11 +470,9 @@
     .glass-control {
         position: relative;
         overflow: hidden;
-        background: color-mix(in srgb, var(--secondary) 58%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 82%, white 8%);
-        box-shadow:
-            inset 0 1px 0 rgb(255 255 255 / 0.1),
-            0 4px 12px rgb(0 0 0 / 0.05);
+        background: var(--glass-tint-subtle);
+        border: 1px solid var(--glass-border-soft);
+        box-shadow: var(--shadow-inset), var(--shadow-xs);
         backdrop-filter: blur(18px) saturate(130%);
         transition:
             background-color 320ms var(--ease-sine),

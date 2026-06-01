@@ -46,12 +46,7 @@ export function TranscriptOutputSkeleton({
     className?: string;
 }) {
     return (
-        <div
-            className={cn(
-                "rounded-2xl border border-white/10 bg-background/25 p-4",
-                className,
-            )}
-        >
+        <div className={cn("glass-surface-subtle rounded-2xl p-4", className)}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-2">
                     <Skeleton className="h-4 w-24" />

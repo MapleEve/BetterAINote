@@ -304,7 +304,7 @@ export function TranscriptionSection({
 
                 {transcription ? (
                     <>
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                        <div className="glass-surface-subtle rounded-xl p-4">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div className="flex flex-col gap-1">
                                     <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
@@ -382,7 +382,7 @@ export function TranscriptionSection({
                             </div>
                         </div>
                         {showSpeakerReview ? (
-                            <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                            <div className="glass-surface-subtle rounded-xl p-4">
                                 <div className="flex flex-col gap-1">
                                     <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                         {t("speakerReview.title")}

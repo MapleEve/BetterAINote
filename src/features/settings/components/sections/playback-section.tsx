@@ -192,6 +192,7 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
                             min={0}
                             max={100}
                             step={1}
+                            disabled={isSaving}
                         />
                         <p className="text-xs text-muted-foreground">
                             {isZh

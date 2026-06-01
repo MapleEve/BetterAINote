@@ -44,6 +44,7 @@ import {
     getProviderFormFields,
     getProviderServiceAddressDisplay,
     getSourceAuthModeDisplayLabel,
+    getSourceProviderLabel,
     getSourceProviderMaturityHint,
     getSourceProviderMaturityLabel,
     groupDataSourceProvidersByStage,
@@ -532,6 +533,7 @@ function ProviderCard({
     const status = getProviderStatusDisplay(source, isZh, actionState);
     const ProviderIcon = PROVIDER_ICONS[source.provider];
     const providerAssetClass = PROVIDER_ASSET_CLASSES[source.provider];
+    const displayName = getSourceProviderLabel(source.provider, language);
 
     return (
         <button
@@ -573,7 +575,7 @@ function ProviderCard({
             </span>
             <span className="flex min-w-0 flex-col gap-1">
                 <span className="truncate text-sm font-semibold">
-                    {source.displayName}
+                    {displayName}
                 </span>
                 <span className="line-clamp-2 text-xs text-muted-foreground">
                     {maturity ?? (isZh ? "录音来源" : "Recording source")}
@@ -679,6 +681,7 @@ function ProviderDetail({
         : (actionMessage?.state ?? "idle");
     const isProviderInteractionDisabled = source.runtimeStatus === "planned";
     const status = getProviderStatusDisplay(source, isZh, actionState);
+    const displayName = getSourceProviderLabel(source.provider, language);
     const helpUrl = getDataSourceHelpDocUrl(source.provider);
     const serviceAddress = getProviderServiceAddressDisplay(source, language);
     const providerFields = getProviderFormFields(
@@ -779,9 +782,7 @@ function ProviderDetail({
                 )}
             >
                 <CardHeader>
-                    <CardTitle className="text-xl">
-                        {source.displayName}
-                    </CardTitle>
+                    <CardTitle className="text-xl">{displayName}</CardTitle>
                     <CardDescription>
                         {isZh
                             ? "按下方提示补充登录信息，保存后启用该来源。"
@@ -1287,8 +1288,14 @@ export function DataSourcesSection() {
                             </p>
                         </div>
                         <span className="rounded-lg border border-border/60 bg-background/35 px-2 py-1 text-xs font-medium text-muted-foreground">
-                            {selectedSource?.displayName ??
-                                (isZh ? "未选择" : "No source")}
+                            {selectedSource
+                                ? getSourceProviderLabel(
+                                      selectedSource.provider,
+                                      language,
+                                  )
+                                : isZh
+                                  ? "未选择"
+                                  : "No source"}
                         </span>
                     </div>
 

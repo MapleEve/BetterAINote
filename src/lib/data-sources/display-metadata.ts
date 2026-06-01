@@ -208,7 +208,7 @@ const SOURCE_PROVIDER_DISPLAY_METADATA: SourceProviderDisplayMetadataRegistry =
         },
         "dingtalk-a1": {
             label: {
-                zh: "钉钉闪记/A1",
+                zh: "钉钉",
                 en: "DingTalk A1",
             },
             helpDocAnchor: "#dingtalk-a1",
@@ -223,7 +223,7 @@ const SOURCE_PROVIDER_DISPLAY_METADATA: SourceProviderDisplayMetadataRegistry =
         },
         iflyrec: {
             label: {
-                zh: "讯飞听见/录音笔",
+                zh: "讯飞听见",
                 en: "iFLYTEK iflyrec",
             },
             maturityHint: {
