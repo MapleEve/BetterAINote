@@ -2,6 +2,10 @@
 
 import {
     CalendarX2,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
     Clock,
     CloudOff,
     FolderOpen,
@@ -120,7 +124,7 @@ export function RecordingList({
     const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>("all");
     const [tagFilter, setTagFilter] = useState<TagFilter>("all");
     const mode = controlledMode ?? internalMode;
-    const pageSize = Math.min(itemsPerPage, 8);
+    const pageSize = Math.max(1, Math.floor(itemsPerPage));
 
     const updateMode = useCallback(
         (nextMode: RecordingListMode) => {
@@ -772,51 +776,97 @@ export function RecordingList({
                     ) : null}
                 </div>
 
-                <div className="flex items-center justify-between border-t p-4">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        data-testid="recording-list-prev-page"
-                        onClick={() =>
-                            setCurrentPage((page) => Math.max(1, page - 1))
-                        }
-                        disabled={currentPage === 1}
-                        className="h-8 rounded-lg px-2 text-muted-foreground text-xs"
-                    >
-                        {t("recordingList.previous")}
-                    </Button>
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-t p-3">
+                    <div className="flex items-center gap-1">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            data-testid="recording-list-first-page"
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                            title={t("recordingList.first")}
+                            aria-label={t("recordingList.first")}
+                            className="rounded-lg text-muted-foreground"
+                        >
+                            <ChevronsLeft className="size-4" />
+                            <span className="sr-only">
+                                {t("recordingList.first")}
+                            </span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            data-testid="recording-list-prev-page"
+                            onClick={() =>
+                                setCurrentPage((page) => Math.max(1, page - 1))
+                            }
+                            disabled={currentPage === 1}
+                            title={t("recordingList.previous")}
+                            aria-label={t("recordingList.previous")}
+                            className="rounded-lg text-muted-foreground"
+                        >
+                            <ChevronLeft className="size-4" />
+                            <span className="sr-only">
+                                {t("recordingList.previous")}
+                            </span>
+                        </Button>
+                    </div>
                     <div
-                        className="text-center text-sm text-muted-foreground"
+                        className="min-w-0 text-center text-sm text-muted-foreground"
                         data-testid="recording-list-page-status"
                     >
-                        <span>
+                        <span className="block truncate">
                             {t("recordingList.pageStatus", {
                                 current: currentPage,
                                 total: totalPages,
                             })}
                         </span>
-                        <span className="ml-2 text-xs opacity-70">
+                        <span className="block truncate text-xs opacity-70">
                             {t("recordingList.visibleCount", {
                                 count: filteredSortedRecordings.length,
                             })}
                         </span>
                     </div>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        data-testid="recording-list-next-page"
-                        onClick={() =>
-                            setCurrentPage((page) =>
-                                Math.min(totalPages, page + 1),
-                            )
-                        }
-                        disabled={currentPage === totalPages}
-                        className="h-8 rounded-lg px-2 text-muted-foreground text-xs"
-                    >
-                        {t("recordingList.next")}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            data-testid="recording-list-next-page"
+                            onClick={() =>
+                                setCurrentPage((page) =>
+                                    Math.min(totalPages, page + 1),
+                                )
+                            }
+                            disabled={currentPage === totalPages}
+                            title={t("recordingList.next")}
+                            aria-label={t("recordingList.next")}
+                            className="rounded-lg text-muted-foreground"
+                        >
+                            <ChevronRight className="size-4" />
+                            <span className="sr-only">
+                                {t("recordingList.next")}
+                            </span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            data-testid="recording-list-last-page"
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                            title={t("recordingList.last")}
+                            aria-label={t("recordingList.last")}
+                            className="rounded-lg text-muted-foreground"
+                        >
+                            <ChevronsRight className="size-4" />
+                            <span className="sr-only">
+                                {t("recordingList.last")}
+                            </span>
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>

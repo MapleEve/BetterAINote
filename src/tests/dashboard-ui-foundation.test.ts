@@ -109,11 +109,27 @@ describe("dashboard UI foundation", () => {
         expect(recordingList).toContain("@/components/ui/button");
         expect(recordingList).toContain("recordingList.openDataSources");
         expect(recordingList).toContain("recordingList.pageStatus");
+        expect(recordingList).toContain(
+            "Math.max(1, Math.floor(itemsPerPage))",
+        );
+        expect(recordingList).not.toContain("Math.min(itemsPerPage, 8)");
+        expect(recordingList).toContain(
+            'data-testid="recording-list-first-page"',
+        );
+        expect(recordingList).toContain(
+            'data-testid="recording-list-last-page"',
+        );
+        expect(recordingList).toContain("recordingList.first");
+        expect(recordingList).toContain("recordingList.last");
         expect(recordingList).not.toContain("前往数据源");
         expect(recordingList).not.toContain("清除筛选");
         expect(recordingList).not.toContain("上一页");
         expect(recordingList).not.toContain("下一页");
+        expect(recordingList).not.toContain("第一页");
+        expect(recordingList).not.toContain("最后一页");
         expect(translations).toContain("前往数据源");
         expect(translations).toContain("Open data sources");
+        expect(translations).toContain("第一页");
+        expect(translations).toContain("First");
     });
 });

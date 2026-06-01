@@ -356,6 +356,7 @@ async function seedTimelineFilterRecordings(userId: string) {
 async function resetDisplay(
     page: Page,
     options: {
+        itemsPerPage?: number;
         theme?: "system" | "light" | "dark";
         uiLanguage?: "zh-CN" | "en";
     } = {},
@@ -363,7 +364,7 @@ async function resetDisplay(
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
             dateTimeFormat: "relative",
-            itemsPerPage: 50,
+            itemsPerPage: options.itemsPerPage ?? 50,
             recordingListSortOrder: "newest",
             theme: options.theme ?? "system",
             uiLanguage: options.uiLanguage ?? "zh-CN",
@@ -495,10 +496,10 @@ test("recording list paginates without leaking tweak controls across dark, light
 }) => {
     await mockConnectedDataSources(page);
     await ensureSignedIn(page);
-    await resetDisplay(page, { theme: "dark" });
+    await resetDisplay(page, { itemsPerPage: 10, theme: "dark" });
 
     const userId = await getPlaywrightUserId();
-    await seedListRecordings(userId);
+    await seedListRecordings(userId, 23);
 
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
@@ -506,45 +507,65 @@ test("recording list paginates without leaking tweak controls across dark, light
     const panel = page.getByRole("main").getByTestId("recording-list-panel");
     await expect(panel).toHaveAttribute("data-list-state", "ready");
     await expect(panel).toHaveAttribute("data-current-page", "1");
-    await expect(panel).toHaveAttribute("data-total-pages", "2");
-    await expect(panel).toHaveAttribute("data-visible-count", "8");
+    await expect(panel).toHaveAttribute("data-total-pages", "3");
+    await expect(panel).toHaveAttribute("data-visible-count", "10");
     await expect(page.locator("html")).toHaveClass(/dark/);
     await expect(page.getByText("Tweaks", { exact: true })).toHaveCount(0);
     await expect(page.getByText("调试", { exact: true })).toHaveCount(0);
 
+    await expect(page.getByTestId("recording-list-first-page")).toBeDisabled();
     await expect(page.getByTestId("recording-list-prev-page")).toBeDisabled();
     await expect(page.getByTestId("recording-list-next-page")).toBeEnabled();
+    await expect(page.getByTestId("recording-list-last-page")).toBeEnabled();
     await expect(page.getByTestId("recording-list-page-status")).toContainText(
-        "1 / 2 页",
+        "1 / 3 页",
     );
-    await expect(page.getByTestId("recording-list-item")).toHaveCount(8);
+    await expect(page.getByTestId("recording-list-item")).toHaveCount(10);
     await expect(
         page.locator('[data-recording-id="e2e-list-state-01"]'),
     ).toBeVisible();
-    await expect(
-        page.locator('[data-recording-id="e2e-list-state-09"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('[data-recording-id="e2e-list-state-11"]')).toHaveCount(
+        0,
+    );
 
     await page.getByTestId("recording-list-next-page").click();
     await expect(panel).toHaveAttribute("data-current-page", "2");
-    await expect(panel).toHaveAttribute("data-visible-count", "2");
+    await expect(panel).toHaveAttribute("data-visible-count", "10");
+    await expect(page.getByTestId("recording-list-first-page")).toBeEnabled();
     await expect(page.getByTestId("recording-list-prev-page")).toBeEnabled();
-    await expect(page.getByTestId("recording-list-next-page")).toBeDisabled();
+    await expect(page.getByTestId("recording-list-next-page")).toBeEnabled();
+    await expect(page.getByTestId("recording-list-last-page")).toBeEnabled();
     await expect(page.getByTestId("recording-list-page-status")).toContainText(
-        "2 / 2 页",
+        "2 / 3 页",
     );
     await expect(
-        page.locator('[data-recording-id="e2e-list-state-09"]'),
+        page.locator('[data-recording-id="e2e-list-state-11"]'),
     ).toBeVisible();
     await expect(
-        page.locator('[data-recording-id="e2e-list-state-10"]'),
+        page.locator('[data-recording-id="e2e-list-state-20"]'),
     ).toBeVisible();
+
+    await page.getByTestId("recording-list-last-page").click();
+    await expect(panel).toHaveAttribute("data-current-page", "3");
+    await expect(panel).toHaveAttribute("data-visible-count", "3");
+    await expect(page.getByTestId("recording-list-next-page")).toBeDisabled();
+    await expect(page.getByTestId("recording-list-last-page")).toBeDisabled();
+    await expect(page.getByTestId("recording-list-page-status")).toContainText(
+        "3 / 3 页",
+    );
+    await expect(
+        page.locator('[data-recording-id="e2e-list-state-23"]'),
+    ).toBeVisible();
+
+    await page.getByTestId("recording-list-first-page").click();
+    await expect(panel).toHaveAttribute("data-current-page", "1");
+    await expect(page.getByTestId("recording-list-first-page")).toBeDisabled();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByTestId("dashboard-source-drawer-trigger")).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await resetDisplay(page, { theme: "light" });
+    await resetDisplay(page, { itemsPerPage: 10, theme: "light" });
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveClass(/light/);
     await expect(panel).toHaveAttribute("data-list-state", "ready");
@@ -683,19 +704,25 @@ test("recording list follows display language for empty and pagination copy", as
 }) => {
     await mockConnectedDataSources(page);
     await ensureSignedIn(page);
-    await resetDisplay(page, { uiLanguage: "en" });
+    await resetDisplay(page, { itemsPerPage: 10, uiLanguage: "en" });
 
     const userId = await getPlaywrightUserId();
     try {
-        await seedListRecordings(userId);
+        await seedListRecordings(userId, 23);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
         await expect(page.getByText("Timeline", { exact: true })).toBeVisible();
+        await expect(page.getByTestId("recording-list-first-page")).toHaveText(
+            "First",
+        );
         await expect(page.getByTestId("recording-list-next-page")).toHaveText(
             "Next",
         );
+        await expect(page.getByTestId("recording-list-last-page")).toHaveText(
+            "Last",
+        );
         await expect(page.getByTestId("recording-list-page-status")).toContainText(
-            "Page 1 of 2",
+            "Page 1 of 3",
         );
 
         await cleanupAllUserRecordings(userId);
