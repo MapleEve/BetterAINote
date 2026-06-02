@@ -43,14 +43,30 @@ describe("recording detail copy and title action UI regressions", () => {
             "features/dashboard/components/transcription-panel.tsx",
         );
 
-        for (const source of [detailTranscript, dashboardTranscript]) {
-            expect(source).toContain("handleCopyTranscript");
-            expect(source).toContain("writeBrowserClipboardText(displayText)");
-            expect(source).toContain("isCopyingTranscript");
-            expect(source).toContain("!displayText.trim()");
-            expect(source).toContain("transcription.copyTranscript");
-            expect(source).toContain("transcription.copyTranscriptFailed");
-        }
+        expect(detailTranscript).toContain("handleCopyTranscript");
+        expect(detailTranscript).toContain(
+            "writeBrowserClipboardText(displayText)",
+        );
+        expect(detailTranscript).toContain("isCopyingTranscript");
+        expect(detailTranscript).toContain("!displayText.trim()");
+        expect(detailTranscript).toContain("transcription.copyTranscript");
+        expect(detailTranscript).toContain(
+            "transcription.copyTranscriptFailed",
+        );
+
+        expect(dashboardTranscript).toContain("handleCopyTranscript");
+        expect(dashboardTranscript).toContain(
+            "writeBrowserClipboardText(displayText)",
+        );
+        expect(dashboardTranscript).toContain('copyingAction === "local"');
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-copy-local-transcript"',
+        );
+        expect(dashboardTranscript).toContain("!displayText.trim()");
+        expect(dashboardTranscript).toContain("transcription.copyTranscript");
+        expect(dashboardTranscript).toContain(
+            "transcription.copyTranscriptFailed",
+        );
     });
 
     it("keeps source report copy states explicit without dumping raw detail payloads", () => {
@@ -110,6 +126,40 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("autoLoad");
         expect(detailWorkstation).not.toContain("container mx-auto max-w-4xl");
         expect(detailWorkstation).not.toContain(">←<");
+    });
+
+    it("keeps dashboard transcription panel on the same three-way copy contract", () => {
+        const dashboardTranscript = readSource(
+            "features/dashboard/components/transcription-panel.tsx",
+        );
+
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-transcription-copy-strip"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-copy-local-transcript"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-copy-source-transcript"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-copy-source-report"',
+        );
+        expect(dashboardTranscript).toContain("handleCopySourceMaterial");
+        expect(dashboardTranscript).toContain("buildSourceTranscriptCopyText");
+        expect(dashboardTranscript).toContain("sourceReportAvailability");
+        expect(dashboardTranscript).toContain("data-source-copy-state");
+        expect(dashboardTranscript).toContain("onAvailabilityChange");
+        expect(dashboardTranscript).toContain(
+            "sourceReport.copySourceTranscript",
+        );
+        expect(dashboardTranscript).toContain("sourceReport.copySourceReport");
+        expect(dashboardTranscript).toContain(
+            "sourceReport.missingSourceTranscript",
+        );
+        expect(dashboardTranscript).toContain(
+            "sourceReport.missingSourceReport",
+        );
     });
 
     it("keeps standalone recording route fallback states in the new shell", () => {

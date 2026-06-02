@@ -19,7 +19,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
-import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
+import {
+    type SourceReportAvailabilitySnapshot,
+    SourceReportPanel,
+} from "@/features/recordings/components/source-report-panel";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     canRecordingPrivateTranscribe,
@@ -55,6 +58,20 @@ interface MergedTranscriptTurn {
     text: string;
 }
 
+interface SourceReportCopyPayload {
+    transcript?: {
+        text?: string | null;
+        segments?: Array<{
+            speaker?: string | null;
+            startMs?: number | null;
+            endMs?: number | null;
+            text?: string | null;
+        }>;
+    } | null;
+    summaryMarkdown?: string | null;
+    error?: string;
+}
+
 interface TranscriptionPanelProps {
     recording: Recording;
     transcription?: Transcription;
@@ -77,6 +94,9 @@ type RetranscriptionBannerState =
     | "failed"
     | "completed"
     | "unavailable";
+type CopyAction = "local" | "source-transcript" | "source-report" | null;
+type SourceCopyKind = Exclude<CopyAction, "local" | null>;
+type SourceCopyState = "ready" | "missing" | "error";
 
 function applySpeakerMap(
     text: string,
@@ -126,6 +146,64 @@ function formatTimeRange(start: number | null, end: number | null) {
     }
 
     return startLabel ?? endLabel ?? null;
+}
+
+function formatCopyTimestamp(valueMs: number | null | undefined) {
+    if (valueMs == null || !Number.isFinite(valueMs)) {
+        return null;
+    }
+
+    const totalSeconds = Math.max(0, Math.floor(valueMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
+    }
+
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function buildSourceTranscriptCopyText(payload: SourceReportCopyPayload) {
+    const transcript = payload.transcript;
+    if (!transcript) {
+        return "";
+    }
+
+    const segments = transcript.segments ?? [];
+    if (segments.length === 0) {
+        return transcript.text ?? "";
+    }
+
+    return segments
+        .map((segment) => {
+            const start = formatCopyTimestamp(segment.startMs);
+            const end = formatCopyTimestamp(segment.endMs);
+            const timeRange =
+                start && end ? `${start} - ${end}` : (start ?? end);
+            const heading = [timeRange, segment.speaker]
+                .filter(Boolean)
+                .join(" · ");
+
+            return heading
+                ? `${heading}\n${segment.text ?? ""}`.trim()
+                : (segment.text ?? "");
+        })
+        .filter((segment) => segment.trim())
+        .join("\n\n");
+}
+
+function createSourceReportAvailability(
+    sourceProvider: string | null | undefined,
+): SourceReportAvailabilitySnapshot {
+    return {
+        state: sourceProvider ? "idle" : "missing",
+        transcriptAvailable: false,
+        reportAvailable: false,
+    };
 }
 
 function resolveSegmentSpeaker(
@@ -342,7 +420,11 @@ export function TranscriptionPanel({
     const [liveSpeakerMap, setLiveSpeakerMap] = useState(
         transcription?.speakerMap ?? null,
     );
-    const [isCopyingTranscript, setIsCopyingTranscript] = useState(false);
+    const [copyingAction, setCopyingAction] = useState<CopyAction>(null);
+    const [sourceReportAvailability, setSourceReportAvailability] =
+        useState<SourceReportAvailabilitySnapshot>(() =>
+            createSourceReportAvailability(recording.sourceProvider),
+        );
     const [dismissedRetxKey, setDismissedRetxKey] = useState<string | null>(
         null,
     );
@@ -350,10 +432,20 @@ export function TranscriptionPanel({
     const previousJobDisplayStateRef =
         useRef<ReturnType<typeof getTranscriptionJobDisplayState>>(null);
     const retxResetKey = recording.id;
+    const sourceReportAvailabilityKey = `${recording.id}:${recording.sourceProvider ?? ""}`;
 
     useEffect(() => {
         setLiveSpeakerMap(transcription?.speakerMap ?? null);
     }, [transcription?.speakerMap]);
+
+    useEffect(() => {
+        const nextSourceProvider = sourceReportAvailabilityKey.endsWith(":")
+            ? null
+            : recording.sourceProvider;
+        setSourceReportAvailability(
+            createSourceReportAvailability(nextSourceProvider),
+        );
+    }, [recording.sourceProvider, sourceReportAvailabilityKey]);
 
     useEffect(() => {
         if (!recording.sourceProvider && activeTab === "source") {
@@ -463,16 +555,66 @@ export function TranscriptionPanel({
             return;
         }
 
-        setIsCopyingTranscript(true);
+        setCopyingAction("local");
         try {
             await writeBrowserClipboardText(displayText);
             toast.success(t("transcription.transcriptCopied"));
         } catch {
             toast.error(t("transcription.copyTranscriptFailed"));
         } finally {
-            setIsCopyingTranscript(false);
+            setCopyingAction(null);
         }
     }, [displayText, t]);
+
+    const handleCopySourceMaterial = useCallback(
+        async (kind: SourceCopyKind) => {
+            if (!recording.sourceProvider) {
+                toast.error(t("sourceReport.missingSourceTranscript"));
+                return;
+            }
+
+            setCopyingAction(kind);
+            try {
+                const response = await fetch(
+                    `/api/recordings/${recording.id}/source-report`,
+                    { cache: "no-store" },
+                );
+                const payload =
+                    (await response.json()) as SourceReportCopyPayload;
+
+                if (!response.ok) {
+                    toast.error(payload.error ?? t("sourceReport.copyFailed"));
+                    return;
+                }
+
+                const copyText =
+                    kind === "source-transcript"
+                        ? buildSourceTranscriptCopyText(payload)
+                        : (payload.summaryMarkdown ?? "");
+
+                if (!copyText.trim()) {
+                    toast.error(
+                        kind === "source-transcript"
+                            ? t("sourceReport.missingSourceTranscript")
+                            : t("sourceReport.missingSourceReport"),
+                    );
+                    return;
+                }
+
+                await writeBrowserClipboardText(copyText);
+                toast.success(
+                    kind === "source-transcript"
+                        ? t("sourceReport.sourceTranscriptCopied")
+                        : t("sourceReport.sourceReportCopied"),
+                );
+            } catch {
+                toast.error(t("sourceReport.copyFailed"));
+            } finally {
+                setCopyingAction(null);
+            }
+        },
+        [recording.id, recording.sourceProvider, t],
+    );
 
     const handleConfirmRetranscribe = useCallback(async () => {
         if (!canPrivateTranscribe) return;
@@ -495,6 +637,55 @@ export function TranscriptionPanel({
             `${recording.id}:${visibleRetxState}:${completedRetxAt ?? ""}`,
         );
     }, [completedRetxAt, recording.id, visibleRetxState]);
+
+    const getSourceCopyState = useCallback(
+        (kind: SourceCopyKind): SourceCopyState => {
+            if (!recording.sourceProvider) {
+                return "missing";
+            }
+
+            if (sourceReportAvailability.state === "loaded") {
+                const available =
+                    kind === "source-transcript"
+                        ? sourceReportAvailability.transcriptAvailable
+                        : sourceReportAvailability.reportAvailable;
+                return available ? "ready" : "missing";
+            }
+
+            if (sourceReportAvailability.state === "missing") {
+                return "missing";
+            }
+
+            if (sourceReportAvailability.state === "error") {
+                return "error";
+            }
+
+            return "ready";
+        },
+        [recording.sourceProvider, sourceReportAvailability],
+    );
+    const sourceTranscriptCopyState = getSourceCopyState("source-transcript");
+    const sourceReportCopyState = getSourceCopyState("source-report");
+    const sourceTranscriptCopyDisabled =
+        copyingAction === "source-transcript" ||
+        !recording.sourceProvider ||
+        sourceTranscriptCopyState === "missing";
+    const sourceReportCopyDisabled =
+        copyingAction === "source-report" ||
+        !recording.sourceProvider ||
+        sourceReportCopyState === "missing";
+    const sourceTranscriptCopyTitle =
+        sourceTranscriptCopyState === "error"
+            ? t("sourceReport.failedFetch")
+            : sourceTranscriptCopyState === "missing"
+              ? t("sourceReport.missingSourceTranscript")
+              : t("sourceReport.copySourceTranscript");
+    const sourceReportCopyTitle =
+        sourceReportCopyState === "error"
+            ? t("sourceReport.failedFetch")
+            : sourceReportCopyState === "missing"
+              ? t("sourceReport.missingSourceReport")
+              : t("sourceReport.copySourceReport");
 
     const tabs: Array<{ id: WorkspaceTab; label: string }> = [
         { id: "transcript", label: t("transcription.outputTitle") },
@@ -564,23 +755,6 @@ export function TranscriptionPanel({
                                         </div>
                                         <div className="flex shrink-0 flex-wrap gap-2">
                                             <Button
-                                                onClick={handleCopyTranscript}
-                                                size="sm"
-                                                variant="outline"
-                                                disabled={
-                                                    isCopyingTranscript ||
-                                                    !displayText.trim()
-                                                }
-                                                aria-busy={isCopyingTranscript}
-                                            >
-                                                <Copy className="h-4 w-4" />
-                                                {isCopyingTranscript
-                                                    ? t("common.copying")
-                                                    : t(
-                                                          "transcription.copyTranscript",
-                                                      )}
-                                            </Button>
-                                            <Button
                                                 onClick={
                                                     handleConfirmRetranscribe
                                                 }
@@ -615,6 +789,89 @@ export function TranscriptionPanel({
                                                         )}
                                             </Button>
                                         </div>
+                                    </div>
+                                    <div
+                                        className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-background/35 p-2"
+                                        data-testid="dashboard-transcription-copy-strip"
+                                    >
+                                        <Button
+                                            onClick={handleCopyTranscript}
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                copyingAction === "local" ||
+                                                !displayText.trim()
+                                            }
+                                            aria-busy={
+                                                copyingAction === "local"
+                                            }
+                                            data-testid="dashboard-copy-local-transcript"
+                                            className="h-9 rounded-xl"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                            {copyingAction === "local"
+                                                ? t("common.copying")
+                                                : t(
+                                                      "transcription.copyTranscript",
+                                                  )}
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                handleCopySourceMaterial(
+                                                    "source-transcript",
+                                                )
+                                            }
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                sourceTranscriptCopyDisabled
+                                            }
+                                            aria-busy={
+                                                copyingAction ===
+                                                "source-transcript"
+                                            }
+                                            title={sourceTranscriptCopyTitle}
+                                            data-source-copy-state={
+                                                sourceTranscriptCopyState
+                                            }
+                                            data-testid="dashboard-copy-source-transcript"
+                                            className="h-9 rounded-xl"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                            {copyingAction ===
+                                            "source-transcript"
+                                                ? t("common.copying")
+                                                : t(
+                                                      "sourceReport.copySourceTranscript",
+                                                  )}
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                handleCopySourceMaterial(
+                                                    "source-report",
+                                                )
+                                            }
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={sourceReportCopyDisabled}
+                                            aria-busy={
+                                                copyingAction ===
+                                                "source-report"
+                                            }
+                                            title={sourceReportCopyTitle}
+                                            data-source-copy-state={
+                                                sourceReportCopyState
+                                            }
+                                            data-testid="dashboard-copy-source-report"
+                                            className="h-9 rounded-xl"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                            {copyingAction === "source-report"
+                                                ? t("common.copying")
+                                                : t(
+                                                      "sourceReport.copySourceReport",
+                                                  )}
+                                        </Button>
                                     </div>
                                     {localTranscriptHint ? (
                                         <div
@@ -724,6 +981,9 @@ export function TranscriptionPanel({
                                 hasAudio={recording.hasAudio}
                                 recordingId={recording.id}
                                 sourceProvider={recording.sourceProvider}
+                                onAvailabilityChange={
+                                    setSourceReportAvailability
+                                }
                                 variant="embedded"
                             />
                         ) : (

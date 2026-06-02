@@ -365,6 +365,7 @@ export function Workstation({
     const [loadingTranscriptIds, setLoadingTranscriptIds] = useState(
         () => new Set<string>(),
     );
+    const loadingTranscriptIdsRef = useRef(new Set<string>());
 
     const openSettingsFromHash = useCallback(() => {
         if (normalizeSettingsSection(readBrowserHash())) {
@@ -434,6 +435,10 @@ export function Workstation({
     const currentTranscription = currentRecording
         ? liveTranscriptions.get(currentRecording.id)
         : undefined;
+    const currentTranscriptionHasTranscript = Boolean(
+        currentTranscription?.hasTranscript,
+    );
+    const currentTranscriptionText = currentTranscription?.text ?? "";
     const currentTranscriptionJob = currentRecording
         ? liveTranscriptionJobs.get(currentRecording.id)
         : undefined;
@@ -597,24 +602,45 @@ export function Workstation({
             return;
         }
 
-        const transcription = liveTranscriptions.get(recordingId);
-        if (!transcription?.hasTranscript || transcription.text?.trim()) {
+        const isTranscriptLoading =
+            loadingTranscriptIdsRef.current.has(recordingId);
+
+        if (
+            !currentTranscriptionHasTranscript ||
+            currentTranscriptionText.trim()
+        ) {
+            if (!isTranscriptLoading) {
+                return;
+            }
+
             setLoadingTranscriptIds((previous) => {
                 if (!previous.has(recordingId)) {
+                    loadingTranscriptIdsRef.current = previous;
                     return previous;
                 }
 
                 const next = new Set(previous);
                 next.delete(recordingId);
+                loadingTranscriptIdsRef.current = next;
                 return next;
             });
             return;
         }
 
+        if (isTranscriptLoading) {
+            return;
+        }
+
         let cancelled = false;
         setLoadingTranscriptIds((previous) => {
+            if (previous.has(recordingId)) {
+                loadingTranscriptIdsRef.current = previous;
+                return previous;
+            }
+
             const next = new Set(previous);
             next.add(recordingId);
+            loadingTranscriptIdsRef.current = next;
             return next;
         });
 
@@ -631,10 +657,21 @@ export function Workstation({
 
                 if (response.status === 404) {
                     setLiveTranscriptions((previous) => {
+                        const previousTranscript = previous.get(recordingId);
+                        if (
+                            previousTranscript &&
+                            !previousTranscript.hasTranscript &&
+                            !previousTranscript.text?.trim()
+                        ) {
+                            return previous;
+                        }
+
                         const next = new Map(previous);
                         next.set(recordingId, {
                             ...next.get(recordingId),
                             hasTranscript: false,
+                            text: "",
+                            segments: null,
                         });
                         return next;
                     });
@@ -650,17 +687,46 @@ export function Workstation({
                     return;
                 }
 
+                const segments = data.transcript.segments ?? null;
+                const transcriptText =
+                    data.transcript.rawText ??
+                    data.transcript.displayText ??
+                    "";
+                const hasTranscriptContent = Boolean(
+                    transcriptText.trim() ||
+                        segments?.some((segment: TranscriptSegmentData) =>
+                            segment.text.trim(),
+                        ),
+                );
+
                 setLiveTranscriptions((previous) => {
+                    const previousTranscript = previous.get(recordingId);
+                    if (!hasTranscriptContent) {
+                        if (
+                            previousTranscript &&
+                            !previousTranscript.hasTranscript &&
+                            !previousTranscript.text?.trim()
+                        ) {
+                            return previous;
+                        }
+
+                        const next = new Map(previous);
+                        next.set(recordingId, {
+                            ...previousTranscript,
+                            hasTranscript: false,
+                            text: "",
+                            segments: null,
+                        });
+                        return next;
+                    }
+
                     const next = new Map(previous);
                     next.set(recordingId, {
                         hasTranscript: true,
-                        text:
-                            data.transcript.rawText ??
-                            data.transcript.displayText ??
-                            "",
+                        text: transcriptText,
                         language: data.transcript.detectedLanguage ?? undefined,
                         speakerMap: data.speakerMap ?? undefined,
-                        segments: data.transcript.segments ?? null,
+                        segments,
                     });
                     return next;
                 });
@@ -669,8 +735,14 @@ export function Workstation({
             } finally {
                 if (!cancelled) {
                     setLoadingTranscriptIds((previous) => {
+                        if (!previous.has(recordingId)) {
+                            loadingTranscriptIdsRef.current = previous;
+                            return previous;
+                        }
+
                         const next = new Set(previous);
                         next.delete(recordingId);
+                        loadingTranscriptIdsRef.current = next;
                         return next;
                     });
                 }
@@ -682,7 +754,11 @@ export function Workstation({
         return () => {
             cancelled = true;
         };
-    }, [currentRecording?.id, liveTranscriptions]);
+    }, [
+        currentRecording?.id,
+        currentTranscriptionHasTranscript,
+        currentTranscriptionText,
+    ]);
 
     useEffect(() => {
         setLiveRecordings(recordings);

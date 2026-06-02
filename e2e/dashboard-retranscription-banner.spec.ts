@@ -813,10 +813,27 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
         await expect(page.getByTestId("dashboard-local-transcript-hint")).toContainText(
             "这里只展示本地转录",
         );
-        await page.getByRole("button", { name: "复制转录" }).click();
+        await expect(
+            page.getByTestId("dashboard-transcription-copy-strip"),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("dashboard-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+        await expect(
+            page.getByTestId("dashboard-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+
+        await page.getByTestId("dashboard-copy-local-transcript").click();
         await expect
             .poll(() => copiedText)
             .toContain("切换标签也要稳定");
+
+        await page.getByTestId("dashboard-copy-source-transcript").click();
+        await expect.poll(() => copiedText).toContain("来源原始转录");
+        await expect.poll(() => copiedText).toContain("0:00 - 0:01 · Speaker 1");
+
+        await page.getByTestId("dashboard-copy-source-report").click();
+        await expect.poll(() => copiedText).toContain("来源原始报告");
 
         await page.getByRole("button", { name: "说话人标签" }).click();
         await expect(page.getByTestId("speaker-review-panel")).toBeVisible();
