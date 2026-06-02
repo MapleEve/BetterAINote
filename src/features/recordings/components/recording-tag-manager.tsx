@@ -56,6 +56,7 @@ export function RecordingTagManager({
     const [icon, setIcon] = useState<RecordingTagIcon>("tag");
     const [savingTagId, setSavingTagId] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [operationError, setOperationError] = useState<string | null>(null);
 
     const selectedTagIds = useMemo(
         () => new Set(recording.tags.map((tag) => tag.id)),
@@ -90,19 +91,21 @@ export function RecordingTagManager({
 
     const handleToggleTag = async (tag: RecordingTag) => {
         setSavingTagId(tag.id);
+        setOperationError(null);
         try {
             const nextTags = selectedTagIds.has(tag.id)
                 ? recording.tags.filter((item) => item.id !== tag.id)
                 : [...recording.tags, tag];
             await updateRecordingTags(nextTags);
         } catch (error) {
-            toast.error(
+            const message =
                 error instanceof Error
                     ? error.message
                     : language === "zh-CN"
                       ? "标签保存失败"
-                      : "Failed to save tag",
-            );
+                      : "Failed to save tag";
+            setOperationError(message);
+            toast.error(message);
         } finally {
             setSavingTagId(null);
         }
@@ -115,6 +118,7 @@ export function RecordingTagManager({
         }
 
         setIsCreating(true);
+        setOperationError(null);
         try {
             const response = await fetch("/api/recording-tags", {
                 method: "POST",
@@ -127,13 +131,14 @@ export function RecordingTagManager({
             await updateRecordingTags([...recording.tags, tag]);
             setName("");
         } catch (error) {
-            toast.error(
+            const message =
                 error instanceof Error
                     ? error.message
                     : language === "zh-CN"
                       ? "标签创建失败"
-                      : "Failed to create tag",
-            );
+                      : "Failed to create tag";
+            setOperationError(message);
+            toast.error(message);
         } finally {
             setIsCreating(false);
         }
@@ -147,6 +152,9 @@ export function RecordingTagManager({
                 className,
             )}
             data-testid="recording-tag-manager"
+            data-tag-create-state={isCreating ? "saving" : "idle"}
+            data-tag-error={operationError ? "true" : "false"}
+            data-tag-toggle-state={savingTagId ? "saving" : "idle"}
         >
             <div
                 className={cn(
@@ -235,6 +243,16 @@ export function RecordingTagManager({
                         );
                     })}
                 </div>
+            ) : null}
+
+            {operationError ? (
+                <output
+                    aria-live="polite"
+                    className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs"
+                    data-testid="recording-tag-error"
+                >
+                    {operationError}
+                </output>
             ) : null}
 
             <div className="grid gap-2 lg:grid-cols-[1fr_auto]">

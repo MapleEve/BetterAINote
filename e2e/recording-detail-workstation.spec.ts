@@ -1178,6 +1178,8 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
 
         await trigger.click();
         await expect(page.getByText("录音标签", { exact: true })).toBeVisible();
+        const tagManager = page.getByTestId("recording-tag-manager");
+        const tagCreateInput = page.getByTestId("recording-tag-create-input");
         const blueTagColor = page.locator(
             '[data-testid="recording-tag-color"][data-tag-color="blue"]',
         );
@@ -1199,9 +1201,59 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             }
         });
 
-        await page
-            .getByTestId("recording-tag-create-input")
-            .fill(DETAIL_TAG_NAME);
+        let resolveCreateFailure = () => {};
+        const createFailureGate = new Promise<void>((resolve) => {
+            resolveCreateFailure = resolve;
+        });
+        let createAttempts = 0;
+        await page.route("**/api/recording-tags", async (route) => {
+            if (route.request().method() !== "POST") {
+                await route.fallback();
+                return;
+            }
+
+            createAttempts += 1;
+            if (createAttempts === 1) {
+                await createFailureGate;
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 503,
+                    body: JSON.stringify({
+                        error: "标签服务暂不可用",
+                    }),
+                });
+                return;
+            }
+
+            await route.fallback();
+        });
+
+        await tagCreateInput.fill(DETAIL_TAG_NAME);
+        const failedCreateResponse = page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/recording-tags") &&
+                response.request().method() === "POST" &&
+                response.status() === 503,
+        );
+
+        await tagCreateInput.press("Enter");
+        await expect(tagManager).toHaveAttribute(
+            "data-tag-create-state",
+            "saving",
+        );
+        resolveCreateFailure();
+        await failedCreateResponse;
+
+        await expect(tagManager).toHaveAttribute(
+            "data-tag-create-state",
+            "idle",
+        );
+        await expect(tagManager).toHaveAttribute("data-tag-error", "true");
+        await expect(page.getByTestId("recording-tag-error")).toContainText(
+            "标签服务暂不可用",
+        );
+        await expect(tagCreateInput).toHaveValue(DETAIL_TAG_NAME);
+        await expect(trigger).toContainText("标签");
 
         await Promise.all([
             page.waitForResponse(
@@ -1216,18 +1268,18 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            page.getByTestId("recording-tag-create-input").press("Enter"),
+            tagCreateInput.press("Enter"),
         ]);
 
+        await expect(tagManager).toHaveAttribute("data-tag-error", "false");
+        await expect(page.getByTestId("recording-tag-error")).toHaveCount(0);
         await expect(trigger).toContainText(DETAIL_TAG_NAME);
         await expect(
             trigger.locator(
                 '[data-recording-tag-chip][data-tag-color="blue"][data-tag-icon="star"]',
             ),
         ).toBeVisible();
-        await expect(page.getByTestId("recording-tag-create-input")).toHaveValue(
-            "",
-        );
+        await expect(tagCreateInput).toHaveValue("");
         const tagToggle = page
             .locator('button[aria-pressed="true"]')
             .filter({ hasText: DETAIL_TAG_NAME });
@@ -1240,7 +1292,70 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                 icon: "star",
                 name: DETAIL_TAG_NAME,
             },
+            {
+                color: "blue",
+                icon: "star",
+                name: DETAIL_TAG_NAME,
+            },
         ]);
+        expect(createAttempts).toBe(2);
+
+        let resolveToggleFailure = () => {};
+        const toggleFailureGate = new Promise<void>((resolve) => {
+            resolveToggleFailure = resolve;
+        });
+        let toggleAttempts = 0;
+        await page.route(
+            `**/api/recordings/${recordingId}/tags`,
+            async (route) => {
+                if (route.request().method() !== "PUT") {
+                    await route.fallback();
+                    return;
+                }
+
+                toggleAttempts += 1;
+                if (toggleAttempts === 1) {
+                    await toggleFailureGate;
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 503,
+                        body: JSON.stringify({
+                            error: "标签保存暂不可用",
+                        }),
+                    });
+                    return;
+                }
+
+                await route.fallback();
+            },
+        );
+
+        const failedToggleResponse = page.waitForResponse(
+            (response) =>
+                response
+                    .url()
+                    .includes(`/api/recordings/${recordingId}/tags`) &&
+                response.request().method() === "PUT" &&
+                response.status() === 503,
+        );
+
+        await tagToggle.click();
+        await expect(tagManager).toHaveAttribute(
+            "data-tag-toggle-state",
+            "saving",
+        );
+        resolveToggleFailure();
+        await failedToggleResponse;
+
+        await expect(tagManager).toHaveAttribute(
+            "data-tag-toggle-state",
+            "idle",
+        );
+        await expect(tagManager).toHaveAttribute("data-tag-error", "true");
+        await expect(page.getByTestId("recording-tag-error")).toContainText(
+            "标签保存暂不可用",
+        );
+        await expect(tagToggle).toHaveAttribute("aria-pressed", "true");
 
         await Promise.all([
             page.waitForResponse(
@@ -1252,6 +1367,9 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             tagToggle.click(),
         ]);
 
+        await expect(tagManager).toHaveAttribute("data-tag-error", "false");
+        await expect(page.getByTestId("recording-tag-error")).toHaveCount(0);
+        expect(toggleAttempts).toBe(2);
         await expect(trigger).toContainText("标签");
         await expect(
             page.locator('button[aria-pressed="false"]').filter({
