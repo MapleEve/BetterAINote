@@ -205,8 +205,13 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
         "configured",
     );
     await expect(section).toHaveAttribute("data-voscript-test-state", "idle");
+    await expect(section).toHaveAttribute(
+        "data-voscript-interaction-disabled",
+        "false",
+    );
 
     const baseUrlInput = page.locator("#private-transcription-base-url");
+    const apiKeyInput = page.locator("#private-transcription-api-key");
     await baseUrlInput.fill("https://voscript-updated.e2e.example");
     await expect(section).toHaveAttribute("data-voscript-availability", "draft");
     await expect(page.getByText("服务地址有未保存修改")).toBeVisible();
@@ -225,19 +230,35 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
     expect(profileBox?.width ?? 0).toBeGreaterThan(520);
     expect(profileBox?.height ?? 0).toBeLessThan(180);
 
-    await page.locator("#private-transcription-api-key").fill("typed-e2e-key");
+    await apiKeyInput.fill("typed-e2e-key");
     await page.getByTestId("voscript-test-connection").click();
     await connectionTestStarted;
     await expect(section).toHaveAttribute(
         "data-voscript-test-state",
         "testing",
     );
+    await expect(section).toHaveAttribute(
+        "data-voscript-interaction-disabled",
+        "true",
+    );
+    await expect(baseUrlInput).toBeDisabled();
+    await expect(apiKeyInput).toBeDisabled();
+    await expect(page.getByTestId("voscript-test-connection")).toBeDisabled();
+    await expect(page.getByTestId("voscript-save")).toBeDisabled();
 
     releaseConnectionTest();
     await expect(section).toHaveAttribute(
         "data-voscript-test-state",
         "success",
     );
+    await expect(section).toHaveAttribute(
+        "data-voscript-interaction-disabled",
+        "false",
+    );
+    await expect(baseUrlInput).toBeEnabled();
+    await expect(apiKeyInput).toBeEnabled();
+    await expect(page.getByTestId("voscript-test-connection")).toBeEnabled();
+    await expect(page.getByTestId("voscript-save")).toBeEnabled();
     await expect(page.getByTestId("voscript-connection-message")).toContainText(
         "连接测试通过",
     );

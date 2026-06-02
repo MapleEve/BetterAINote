@@ -435,6 +435,8 @@ export function VoScriptSection() {
               ? "draft"
               : "unavailable";
     const serviceReady = serviceAvailability === "configured";
+    const isConnectionTestBusy = connectionTestState === "testing";
+    const isVoScriptInteractionDisabled = isSaving || isConnectionTestBusy;
 
     const serviceConnectionFields: SettingFieldDefinition[] = [
         {
@@ -588,6 +590,9 @@ export function VoScriptSection() {
             className="flex min-h-0 flex-col gap-5"
             data-settings-section="voscript"
             data-voscript-availability={serviceAvailability}
+            data-voscript-interaction-disabled={
+                isVoScriptInteractionDisabled ? "true" : "false"
+            }
             data-voscript-load-state={hasLoaded ? "ready" : "loading"}
             data-voscript-save-state={isSaving ? "saving" : saveState}
             data-voscript-test-state={connectionTestState}
@@ -696,7 +701,7 @@ export function VoScriptSection() {
                                 field={field}
                                 fieldId={`private-transcription-${field.id}`}
                                 onValueChange={handleConnectionFieldChange}
-                                disabled={isSaving}
+                                disabled={isVoScriptInteractionDisabled}
                                 variant="settings"
                             />
                         ))}
@@ -734,20 +739,16 @@ export function VoScriptSection() {
                                 className="shrink-0"
                                 data-testid="voscript-test-connection"
                                 onClick={() => void handleTestConnection()}
-                                disabled={
-                                    isSaving ||
-                                    connectionTestState === "testing"
-                                }
-                                aria-busy={connectionTestState === "testing"}
+                                disabled={isVoScriptInteractionDisabled}
+                                aria-busy={isConnectionTestBusy}
                             >
                                 <RefreshCw
                                     className={cn(
                                         "mr-2 size-3.5",
-                                        connectionTestState === "testing" &&
-                                            "animate-spin",
+                                        isConnectionTestBusy && "animate-spin",
                                     )}
                                 />
-                                {connectionTestState === "testing"
+                                {isConnectionTestBusy
                                     ? isZh
                                         ? "测试中"
                                         : "Testing"
@@ -824,7 +825,7 @@ export function VoScriptSection() {
                 <Button
                     type="button"
                     onClick={() => void handleSave()}
-                    disabled={isSaving}
+                    disabled={isVoScriptInteractionDisabled}
                     aria-busy={isSaving}
                     data-testid="voscript-save"
                 >
