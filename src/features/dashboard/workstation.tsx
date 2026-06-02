@@ -1279,6 +1279,20 @@ export function Workstation({
         });
     }, []);
 
+    const handleToggleMoreActions = useCallback(() => {
+        setActiveTopbarOverlay(null);
+        setTagManagerOpen(false);
+        setSourceDrawerOpen(false);
+        setMoreActionsOpen((open) => !open);
+    }, []);
+
+    const handleToggleTagManager = useCallback(() => {
+        setActiveTopbarOverlay(null);
+        setMoreActionsOpen(false);
+        setSourceDrawerOpen(false);
+        setTagManagerOpen((open) => !open);
+    }, []);
+
     const handleOpenSettings = useCallback(() => {
         setActiveTopbarOverlay(null);
         setMoreActionsOpen(false);
@@ -2324,10 +2338,8 @@ export function Workstation({
                                                             "dashboardChrome.moreActions",
                                                         )}
                                                         className="shrink-0"
-                                                        onClick={() =>
-                                                            setMoreActionsOpen(
-                                                                (open) => !open,
-                                                            )
+                                                        onClick={
+                                                            handleToggleMoreActions
                                                         }
                                                     >
                                                         <MoreHorizontal className="h-4 w-4" />
@@ -2496,8 +2508,8 @@ export function Workstation({
                                         recording={currentRecording}
                                         tags={currentRecording.tags}
                                         isTagManagerOpen={tagManagerOpen}
-                                        onToggleTagManager={() =>
-                                            setTagManagerOpen((open) => !open)
+                                        onToggleTagManager={
+                                            handleToggleTagManager
                                         }
                                         tagManagerPanel={
                                             <RecordingTagManager

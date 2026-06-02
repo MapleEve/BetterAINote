@@ -242,6 +242,8 @@ describe("dashboard search and activity overlay regression", () => {
         );
         expect(workstation).toContain("setSearchOverlayOpen");
         expect(workstation).toContain("setActivityOverlayOpen");
+        expect(workstation).toContain("handleToggleMoreActions");
+        expect(workstation).toContain("handleToggleTagManager");
         expect(workstation).toContain('setActiveTopbarOverlay("search");');
         expect(workstation).toContain('setActiveTopbarOverlay("activity");');
         expect(workstation).toContain("setMoreActionsOpen(false);");

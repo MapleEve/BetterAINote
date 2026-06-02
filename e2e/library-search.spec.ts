@@ -247,16 +247,28 @@ async function expectOverlayHitTarget(
 
     const result = await panel.evaluate((node, panelTestId) => {
         const rect = node.getBoundingClientRect();
-        const point = {
+        const topPoint = {
             x: rect.left + rect.width / 2,
             y: rect.top + Math.min(48, Math.max(8, rect.height / 2)),
         };
-        const hit = document.elementFromPoint(point.x, point.y);
+        const bottomPoint = {
+            x: rect.left + rect.width / 2,
+            y: rect.bottom - Math.min(12, Math.max(8, rect.height / 3)),
+        };
+        const topHit = document.elementFromPoint(topPoint.x, topPoint.y);
+        const bottomHit = document.elementFromPoint(
+            bottomPoint.x,
+            bottomPoint.y,
+        );
 
         return {
-            containsHit: Boolean(
-                hit?.closest(`[data-testid="${panelTestId}"]`) === node,
+            containsBottomHit: Boolean(
+                bottomHit?.closest(`[data-testid="${panelTestId}"]`) === node,
             ),
+            containsTopHit: Boolean(
+                topHit?.closest(`[data-testid="${panelTestId}"]`) === node,
+            ),
+            bottom: rect.bottom,
             height: rect.height,
             left: rect.left,
             right: rect.right,
@@ -272,7 +284,9 @@ async function expectOverlayHitTarget(
     expect(result.left).toBeGreaterThanOrEqual(0);
     expect(result.right).toBeLessThanOrEqual(result.viewportWidth);
     expect(result.top).toBeGreaterThanOrEqual(0);
-    expect(result.containsHit).toBe(true);
+    expect(result.bottom).toBeLessThanOrEqual(result.viewportHeight);
+    expect(result.containsTopHit).toBe(true);
+    expect(result.containsBottomHit).toBe(true);
 
     await page.mouse.click(
         (result.left + result.right) / 2,
@@ -727,7 +741,23 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "false");
 
+    await page
+        .getByTestId("dashboard-detail-more-actions")
+        .getByRole("button")
+        .focus();
+    await page.keyboard.press("Enter");
+    await expect(searchPanel).toBeHidden();
+    await expect(moreMenu).toBeVisible();
+
+    await openLibrarySearch(page);
+    await expect(moreMenu).toBeHidden();
+    await tagManagerTrigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(searchPanel).toBeHidden();
+    await expect(tagManager).toBeVisible();
+
     await settingsTrigger.click();
+    await expect(tagManager).toBeHidden();
     await expect(searchPanel).toBeHidden();
     await expect(activityPanel).toBeHidden();
     await expect(page.locator("[data-settings-shell]")).toBeVisible();
