@@ -94,7 +94,7 @@ interface RawTranscriptCopyPayload {
 }
 
 type SourceCopyKind = "source-transcript" | "source-report";
-type SourceCopyState = "ready" | "missing" | "error";
+type SourceCopyState = "ready" | "missing" | "loading" | "error";
 
 function createSourceReportAvailability(
     sourceProvider: string | null | undefined,
@@ -174,21 +174,6 @@ function buildSourceTranscriptCopyText(payload: SourceReportCopyPayload) {
         })
         .filter((segment) => segment.trim())
         .join("\n\n");
-}
-
-function createSourceReportAvailabilityFromPayload(
-    payload: SourceReportCopyPayload,
-): SourceReportAvailabilitySnapshot {
-    const transcriptAvailable = Boolean(
-        buildSourceTranscriptCopyText(payload).trim(),
-    );
-    const reportAvailable = Boolean(payload.summaryMarkdown?.trim());
-
-    return {
-        state: transcriptAvailable || reportAvailable ? "loaded" : "missing",
-        transcriptAvailable,
-        reportAvailable,
-    };
 }
 
 export function RecordingWorkstation({
@@ -606,9 +591,6 @@ export function RecordingWorkstation({
                     return;
                 }
 
-                setSourceReportAvailability(
-                    createSourceReportAvailabilityFromPayload(payload),
-                );
                 const copyText =
                     kind === "source-transcript"
                         ? buildSourceTranscriptCopyText(payload)
@@ -660,7 +642,7 @@ export function RecordingWorkstation({
                 return "error";
             }
 
-            return "ready";
+            return "loading";
         },
         [recording.sourceProvider, sourceReportAvailability],
     );
@@ -669,23 +651,29 @@ export function RecordingWorkstation({
     const sourceTranscriptCopyDisabled =
         copyingAction === "source-transcript" ||
         !recording.sourceProvider ||
-        sourceTranscriptCopyState === "missing";
+        sourceTranscriptCopyState === "missing" ||
+        sourceTranscriptCopyState === "loading";
     const sourceReportCopyDisabled =
         copyingAction === "source-report" ||
         !recording.sourceProvider ||
-        sourceReportCopyState === "missing";
+        sourceReportCopyState === "missing" ||
+        sourceReportCopyState === "loading";
     const sourceTranscriptCopyTitle =
-        sourceTranscriptCopyState === "error"
-            ? t("sourceReport.failedFetch")
-            : sourceTranscriptCopyState === "missing"
-              ? t("sourceReport.missingSourceTranscript")
-              : t("sourceReport.copySourceTranscript");
+        sourceTranscriptCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceTranscriptCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceTranscriptCopyState === "missing"
+                ? t("sourceReport.missingSourceTranscript")
+                : t("sourceReport.copySourceTranscript");
     const sourceReportCopyTitle =
-        sourceReportCopyState === "error"
-            ? t("sourceReport.failedFetch")
-            : sourceReportCopyState === "missing"
-              ? t("sourceReport.missingSourceReport")
-              : t("sourceReport.copySourceReport");
+        sourceReportCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceReportCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceReportCopyState === "missing"
+                ? t("sourceReport.missingSourceReport")
+                : t("sourceReport.copySourceReport");
 
     const durationLabel = `${Math.floor(recording.duration / 60000)}:${(
         (recording.duration % 60000) /

@@ -206,21 +206,6 @@ function createSourceReportAvailability(
     };
 }
 
-function createSourceReportAvailabilityFromPayload(
-    payload: SourceReportCopyPayload,
-): SourceReportAvailabilitySnapshot {
-    const transcriptAvailable = Boolean(
-        buildSourceTranscriptCopyText(payload).trim(),
-    );
-    const reportAvailable = Boolean(payload.summaryMarkdown?.trim());
-
-    return {
-        state: transcriptAvailable || reportAvailable ? "loaded" : "missing",
-        transcriptAvailable,
-        reportAvailable,
-    };
-}
-
 function resolveSegmentSpeaker(
     segment: TranscriptSegment,
     speakerMap: Record<string, string> | null | undefined,
@@ -607,9 +592,6 @@ export function TranscriptionPanel({
                     return;
                 }
 
-                setSourceReportAvailability(
-                    createSourceReportAvailabilityFromPayload(payload),
-                );
                 const copyText =
                     kind === "source-transcript"
                         ? buildSourceTranscriptCopyText(payload)

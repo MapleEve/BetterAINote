@@ -1522,6 +1522,10 @@ test("recording detail source report retries after first-load failure", async ({
         const userId = await getPlaywrightUserId();
         const recordingId = await seedRecordingDetail(userId);
         let reportAttempts = 0;
+        let releaseFirstReport: () => void = () => {};
+        const firstReportGate = new Promise<void>((resolve) => {
+            releaseFirstReport = resolve;
+        });
 
         await page.route(
             `**/api/recordings/${recordingId}/source-report`,
@@ -1529,6 +1533,7 @@ test("recording detail source report retries after first-load failure", async ({
                 reportAttempts += 1;
 
                 if (reportAttempts === 1) {
+                    await firstReportGate;
                     await route.fulfill({
                         contentType: "application/json",
                         status: 503,
@@ -1547,6 +1552,19 @@ test("recording detail source report retries after first-load failure", async ({
             waitUntil: "domcontentloaded",
         });
 
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "loading");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "loading");
+        await expect(page.getByTestId("recording-copy-source-report")).toBeDisabled();
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        releaseFirstReport();
         const errorBanner = page.getByTestId("source-report-error");
         await expect(errorBanner).toBeVisible();
         await expect(errorBanner).toContainText(
@@ -1591,8 +1609,9 @@ test("recording detail source report retries after first-load failure", async ({
             .toContain("E2E 源报告摘要");
         await expect(page.getByTestId("recording-copy-source-report")).toHaveAttribute(
             "data-source-copy-state",
-            "ready",
+            "error",
         );
+        await expect(errorBanner).toBeVisible();
 
         await Promise.all([
             page.waitForResponse(
