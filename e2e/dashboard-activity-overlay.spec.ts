@@ -258,6 +258,38 @@ test("activity overlay opens data source settings for worker-down notifications"
     await expect(page.getByTestId("dashboard-settings-trigger")).toBeFocused();
 });
 
+test("activity overlay dismisses actionable notifications into an empty state", async ({
+    page,
+}) => {
+    await mockSyncEndpoint(page, Promise.resolve());
+
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const trigger = page.getByTestId("dashboard-activity-trigger");
+    await expect(trigger).toHaveAttribute("aria-label", /1 项待处理/);
+
+    await trigger.click();
+    const panel = page.getByTestId("dashboard-activity-panel");
+    await expect(panel).toHaveAttribute("data-state", "error");
+    await expect(panel).toContainText("1 项待处理");
+
+    const item = panel.locator('[data-activity-id="worker-unavailable"]');
+    await expect(item).toBeVisible();
+    await item.getByTestId("dashboard-activity-dismiss").click();
+
+    await expect(item).toHaveCount(0);
+    await expect(panel).toHaveAttribute("data-state", "empty");
+    await expect(panel).toContainText("全部已处理");
+    await expect(page.getByTestId("dashboard-activity-empty")).toBeVisible();
+    await expect(page.getByTestId("dashboard-activity-list")).toHaveCount(0);
+    await expect(trigger).toHaveAttribute("aria-label", "打开最近动态");
+    await expect(
+        trigger.locator(".absolute.rounded-full"),
+    ).toHaveCount(0);
+});
+
 test("activity overlay exposes default empty and syncing states without layout jumps", async ({
     page,
 }) => {
