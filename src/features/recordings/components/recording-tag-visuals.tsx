@@ -79,6 +79,9 @@ export function RecordingTagChip({
                 recordingTagColorClassName[tag.color],
                 className,
             )}
+            data-recording-tag-chip=""
+            data-tag-color={tag.color}
+            data-tag-icon={tag.icon}
         >
             <RecordingTagIconGlyph
                 icon={tag.icon}

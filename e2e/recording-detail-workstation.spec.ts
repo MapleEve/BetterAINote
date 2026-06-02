@@ -1178,7 +1178,30 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
 
         await trigger.click();
         await expect(page.getByText("录音标签", { exact: true })).toBeVisible();
-        await page.getByPlaceholder("新标签，最多 12 字").fill(DETAIL_TAG_NAME);
+        const blueTagColor = page.locator(
+            '[data-testid="recording-tag-color"][data-tag-color="blue"]',
+        );
+        const starTagIcon = page.locator(
+            '[data-testid="recording-tag-icon"][data-tag-icon="star"]',
+        );
+        await blueTagColor.click();
+        await starTagIcon.click();
+        await expect(blueTagColor).toHaveAttribute("aria-pressed", "true");
+        await expect(starTagIcon).toHaveAttribute("aria-pressed", "true");
+
+        const tagCreatePayloads: unknown[] = [];
+        page.on("request", (request) => {
+            if (
+                request.method() === "POST" &&
+                new URL(request.url()).pathname.endsWith("/api/recording-tags")
+            ) {
+                tagCreatePayloads.push(request.postDataJSON());
+            }
+        });
+
+        await page
+            .getByTestId("recording-tag-create-input")
+            .fill(DETAIL_TAG_NAME);
 
         await Promise.all([
             page.waitForResponse(
@@ -1193,14 +1216,31 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
                     response.request().method() === "PUT" &&
                     response.ok(),
             ),
-            page.getByRole("button", { name: "添加" }).click(),
+            page.getByTestId("recording-tag-create-input").press("Enter"),
         ]);
 
         await expect(trigger).toContainText(DETAIL_TAG_NAME);
+        await expect(
+            trigger.locator(
+                '[data-recording-tag-chip][data-tag-color="blue"][data-tag-icon="star"]',
+            ),
+        ).toBeVisible();
+        await expect(page.getByTestId("recording-tag-create-input")).toHaveValue(
+            "",
+        );
         const tagToggle = page
             .locator('button[aria-pressed="true"]')
             .filter({ hasText: DETAIL_TAG_NAME });
         await expect(tagToggle).toBeVisible();
+        await expect(tagToggle).toHaveAttribute("data-tag-color", "blue");
+        await expect(tagToggle).toHaveAttribute("data-tag-icon", "star");
+        expect(tagCreatePayloads).toEqual([
+            {
+                color: "blue",
+                icon: "star",
+                name: DETAIL_TAG_NAME,
+            },
+        ]);
 
         await Promise.all([
             page.waitForResponse(

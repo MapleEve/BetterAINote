@@ -195,6 +195,10 @@ export function RecordingTagManager({
                     {sortedTags.map((tag) => {
                         const selected = selectedTagIds.has(tag.id);
                         const saving = savingTagId === tag.id;
+                        const toggleLabel =
+                            language === "zh-CN"
+                                ? `${selected ? "取消" : "选择"}标签 ${tag.name}`
+                                : `${selected ? "Remove" : "Select"} tag ${tag.name}`;
 
                         return (
                             <button
@@ -202,8 +206,11 @@ export function RecordingTagManager({
                                 type="button"
                                 onClick={() => handleToggleTag(tag)}
                                 disabled={Boolean(savingTagId) || isCreating}
+                                aria-label={toggleLabel}
                                 aria-pressed={selected}
                                 data-testid="recording-tag-toggle"
+                                data-tag-color={tag.color}
+                                data-tag-icon={tag.icon}
                                 data-tag-name={tag.name}
                                 className={cn(
                                     "inline-flex max-w-full items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] disabled:opacity-60",
@@ -276,7 +283,14 @@ export function RecordingTagManager({
                         key={item}
                         type="button"
                         onClick={() => setColor(item)}
+                        aria-label={
+                            language === "zh-CN"
+                                ? `选择标签颜色 ${item}`
+                                : `Select tag color ${item}`
+                        }
                         aria-pressed={color === item}
+                        data-tag-color={item}
+                        data-testid="recording-tag-color"
                         className={cn(
                             "h-6 w-6 rounded-full border border-white/30 transition-[border-color,box-shadow,opacity] duration-300 ease-[var(--ease-sine)]",
                             recordingTagDotClassName[item],
@@ -293,7 +307,14 @@ export function RecordingTagManager({
                         key={item}
                         type="button"
                         onClick={() => setIcon(item)}
+                        aria-label={
+                            language === "zh-CN"
+                                ? `选择标签图标 ${item}`
+                                : `Select tag icon ${item}`
+                        }
                         aria-pressed={icon === item}
+                        data-tag-icon={item}
+                        data-testid="recording-tag-icon"
                         className={cn(
                             "inline-flex h-8 w-8 items-center justify-center rounded-xl border text-muted-foreground transition-[background-color,border-color,color] duration-300 ease-[var(--ease-sine)]",
                             icon === item
