@@ -939,6 +939,76 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
             )
             .toContain("SPEAKER_ALPHA_00");
 
+        const speakerPatchPayloads: unknown[] = [];
+        page.on("request", (request) => {
+            if (
+                request.method() === "PATCH" &&
+                new URL(request.url()).pathname.endsWith(
+                    `/api/recordings/${recordingId}/speakers`,
+                )
+            ) {
+                speakerPatchPayloads.push(request.postDataJSON());
+            }
+        });
+
+        await unmappedCard
+            .getByTestId("speaker-review-mapping-input")
+            .fill("Long Latin");
+        await expect(
+            unmappedCard.getByTestId("speaker-review-clear-mapping"),
+        ).toBeVisible();
+        await expect(unmappedCard.getByTestId("speaker-review-profile-option"))
+            .toContainText(SPEAKER_REVIEW_PROFILE_LATIN_NAME);
+        await unmappedCard.getByTestId("speaker-review-clear-mapping").click();
+        await expect(
+            unmappedCard.getByTestId("speaker-review-mapping-input"),
+        ).toHaveValue("");
+
+        await unmappedCard
+            .getByTestId("speaker-review-mapping-input")
+            .fill("Long Latin");
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/speakers`) &&
+                    response.request().method() === "PATCH" &&
+                    response.ok(),
+            ),
+            unmappedCard
+                .getByTestId("speaker-review-profile-option")
+                .filter({ hasText: SPEAKER_REVIEW_PROFILE_LATIN_NAME })
+                .click(),
+        ]);
+        await expect(unmappedCard).toHaveAttribute(
+            "data-speaker-mapped",
+            "true",
+        );
+        await expect(
+            unmappedCard.getByTestId("speaker-review-card-status"),
+        ).toContainText(SPEAKER_REVIEW_PROFILE_LATIN_NAME);
+        await expect(unmappedCard).toHaveAttribute(
+            "data-speaker-has-voiceprint",
+            "false",
+        );
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/speakers`) &&
+                    response.request().method() === "PATCH" &&
+                    response.ok(),
+            ),
+            unmappedCard.getByTestId("speaker-review-unlink").click(),
+        ]);
+        await expect(unmappedCard).toHaveAttribute(
+            "data-speaker-mapped",
+            "false",
+        );
+
         await unmappedCard
             .getByTestId("speaker-review-mapping-input")
             .fill(SPEAKER_REVIEW_CREATED_NAME);
@@ -987,6 +1057,25 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(
             unmappedCard.getByTestId("speaker-review-card-status"),
         ).toContainText("尚未匹配");
+        expect(speakerPatchPayloads).toEqual([
+            {
+                profileId: SPEAKER_REVIEW_PROFILE_LATIN_ID,
+                rawLabel: "SPEAKER_BETA_01",
+            },
+            {
+                profileId: null,
+                rawLabel: "SPEAKER_BETA_01",
+            },
+            {
+                profileId: null,
+                profileName: SPEAKER_REVIEW_CREATED_NAME,
+                rawLabel: "SPEAKER_BETA_01",
+            },
+            {
+                profileId: null,
+                rawLabel: "SPEAKER_BETA_01",
+            },
+        ]);
 
         await page.setViewportSize({ width: 390, height: 844 });
         await panel.scrollIntoViewIfNeeded();
