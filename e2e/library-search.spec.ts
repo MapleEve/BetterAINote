@@ -474,26 +474,69 @@ test("library search sends scoped requests and opens transcript hits", async ({
     page,
 }) => {
     const requestedTypes: string[] = [];
-    await mockLibrarySearchResults(
-        page,
-        [
-            buildSearchResult({
-                entityType: "transcript",
-                entityId: "segment-alpha",
-                recordingId: SEARCH_RECORDING_ID,
-                title: "E2E library search target",
-                body: "Alpha transcript keyboard target",
-                speaker: "Speaker Alpha",
-                source: "ticnote",
-                startMs: 1000,
-                endMs: 3000,
-            }),
-        ],
-        (url) => requestedTypes.push(url.searchParams.get("type") ?? "all"),
-    );
+    let releaseTranscriptSearch = () => {};
+    let notifyTranscriptSearchStarted = () => {};
+    const transcriptSearchStarted = new Promise<void>((resolve) => {
+        notifyTranscriptSearchStarted = resolve;
+    });
+    const pendingTranscriptSearch = new Promise<void>((resolve) => {
+        releaseTranscriptSearch = resolve;
+    });
+    await page.route("**/api/search?**", async (route) => {
+        const url = new URL(route.request().url());
+        const type = url.searchParams.get("type") ?? "all";
+        requestedTypes.push(type);
+        const results =
+            type === "transcript"
+                ? [
+                      buildSearchResult({
+                          entityType: "transcript",
+                          entityId: "segment-other",
+                          recordingId: SEARCH_OTHER_RECORDING_ID,
+                          title: "E2E library search other",
+                          body: "Alpha transcript first result",
+                          speaker: "Speaker Alpha",
+                          source: "ticnote",
+                          startMs: 1000,
+                          endMs: 3000,
+                      }),
+                      buildSearchResult({
+                          entityType: "transcript",
+                          entityId: "segment-alpha",
+                          recordingId: SEARCH_RECORDING_ID,
+                          title: "E2E library search target",
+                          body: "Alpha transcript keyboard target",
+                          speaker: "Speaker Alpha",
+                          source: "ticnote",
+                          startMs: 4000,
+                          endMs: 6000,
+                      }),
+                  ]
+                : [
+                      buildSearchResult({
+                          entityType: "recording",
+                          entityId: SEARCH_OTHER_RECORDING_ID,
+                          recordingId: SEARCH_OTHER_RECORDING_ID,
+                          title: "E2E library search other",
+                          body: "Alpha recording hit",
+                          source: "ticnote",
+                      }),
+                  ];
+
+        if (type === "transcript") {
+            notifyTranscriptSearchStarted();
+            await pendingTranscriptSearch;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ results }),
+        });
+    });
     await mockSyncEndpoint(page);
 
     await ensureSignedIn(page);
+    await resetDisplaySettings(page);
     const userId = await getPlaywrightUserId();
     await seedLibrarySearchRecording(userId);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
@@ -515,12 +558,20 @@ test("library search sends scoped requests and opens transcript hits", async ({
     await expect(page.getByTestId("library-search-results")).toBeVisible();
 
     await panel.getByRole("button", { name: "逐字稿" }).click();
+    await transcriptSearchStarted;
+    await expect(input).toBeFocused();
+    await expect(page.getByTestId("library-search-loading")).toBeVisible();
+    releaseTranscriptSearch();
     await expect
         .poll(() => requestedTypes)
         .toContain("transcript");
-    await expect(page.getByTestId("library-search-result-transcript-0")).toBeVisible();
+    await expect(page.getByTestId("library-search-result-transcript-1")).toBeVisible();
 
-    await input.focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByTestId("library-search-result-transcript-1")).toHaveAttribute(
+        "data-active",
+        "true",
+    );
     await page.keyboard.press("Enter");
 
     await expect(panel).toBeHidden();

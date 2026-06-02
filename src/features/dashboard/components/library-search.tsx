@@ -279,15 +279,19 @@ export function LibrarySearch({
         [onOpenChange],
     );
 
+    const focusSearchInput = useCallback(() => {
+        window.setTimeout(() => {
+            inputRef.current?.focus({ preventScroll: true });
+        }, 0);
+    }, []);
+
     useEffect(() => {
         if (!open) {
             return;
         }
 
-        window.setTimeout(() => {
-            inputRef.current?.focus({ preventScroll: true });
-        }, 0);
-    }, [open]);
+        focusSearchInput();
+    }, [focusSearchInput, open]);
 
     useEffect(() => {
         if (!open) {
@@ -541,6 +545,7 @@ export function LibrarySearch({
                                 onClick={() => {
                                     setScope(item.value);
                                     setActiveResultIndex(0);
+                                    focusSearchInput();
                                 }}
                             >
                                 {item.label}
