@@ -45,6 +45,34 @@ function databaseUrl(filePath: string) {
     return pathToFileURL(filePath).href;
 }
 
+async function executeWithBusyRetry<T>(
+    operation: () => Promise<T>,
+    attempts = 5,
+): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error;
+            if (
+                !(error instanceof Error) ||
+                !error.message.includes("SQLITE_BUSY") ||
+                attempt === attempts - 1
+            ) {
+                throw error;
+            }
+
+            await new Promise((resolve) =>
+                setTimeout(resolve, 75 * (attempt + 1)),
+            );
+        }
+    }
+
+    throw lastError;
+}
+
 const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
 const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
@@ -88,27 +116,37 @@ async function cleanupDashboardActionSeed(userId?: string) {
     const transcripts = createClient({ url: databaseUrl(TRANSCRIPTS_DB) });
 
     try {
-        await transcripts.execute({
-            sql: "DELETE FROM transcriptions WHERE recording_id = ?",
-            args: [ACTION_RECORDING_ID],
-        });
-        await library.execute({
-            sql: "DELETE FROM transcription_jobs WHERE recording_id = ?",
-            args: [ACTION_RECORDING_ID],
-        });
-        await library.execute({
-            sql: "DELETE FROM recording_tag_assignments WHERE recording_id = ?",
-            args: [ACTION_RECORDING_ID],
-        });
-        await library.execute({
-            sql: "DELETE FROM recordings WHERE id = ?",
-            args: [ACTION_RECORDING_ID],
-        });
+        await executeWithBusyRetry(() =>
+            transcripts.execute({
+                sql: "DELETE FROM transcriptions WHERE recording_id = ?",
+                args: [ACTION_RECORDING_ID],
+            }),
+        );
+        await executeWithBusyRetry(() =>
+            library.execute({
+                sql: "DELETE FROM transcription_jobs WHERE recording_id = ?",
+                args: [ACTION_RECORDING_ID],
+            }),
+        );
+        await executeWithBusyRetry(() =>
+            library.execute({
+                sql: "DELETE FROM recording_tag_assignments WHERE recording_id = ?",
+                args: [ACTION_RECORDING_ID],
+            }),
+        );
+        await executeWithBusyRetry(() =>
+            library.execute({
+                sql: "DELETE FROM recordings WHERE id = ?",
+                args: [ACTION_RECORDING_ID],
+            }),
+        );
         if (userId) {
-            await library.execute({
-                sql: "DELETE FROM recording_tags WHERE user_id = ? AND name = ?",
-                args: [userId, ACTION_TAG_NAME],
-            });
+            await executeWithBusyRetry(() =>
+                library.execute({
+                    sql: "DELETE FROM recording_tags WHERE user_id = ? AND name = ?",
+                    args: [userId, ACTION_TAG_NAME],
+                }),
+            );
         }
     } finally {
         await library.close();
@@ -526,6 +564,223 @@ test("dashboard rename keyboard paths and AI rename review states stay explicit"
             { filename: ACTION_KEYBOARD_RENAMED_TITLE },
             { filename: ACTION_AI_RENAMED_TITLE },
         ]);
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard AI rename exposes loading, retry, and apply failure states", async ({
+    page,
+}) => {
+    type DeferredAutoRenameResponse = {
+        body: { error: string };
+        status: number;
+    };
+    let userId: string | null = null;
+    let resolveFirstPreview: (response: DeferredAutoRenameResponse) => void =
+        () => {};
+    const firstPreviewResponse = new Promise<DeferredAutoRenameResponse>(
+        (resolve) => {
+            resolveFirstPreview = resolve;
+        },
+    );
+    let previewAttempts = 0;
+    let applyAttempts = 0;
+    const retryTitle = "E2E dashboard AI retry title";
+
+    await mockTitleGenerationSettings(page, true);
+    await page.route(
+        `**/api/recordings/${ACTION_RECORDING_ID}/rename/auto`,
+        async (route) => {
+            expect(route.request().method()).toBe("POST");
+            previewAttempts += 1;
+
+            if (route.request().postDataJSON()?.mode !== "preview") {
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 400,
+                    body: JSON.stringify({ error: "preview mode required" }),
+                });
+                return;
+            }
+
+            if (previewAttempts === 1) {
+                const response = await firstPreviewResponse;
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: response.status,
+                    body: JSON.stringify(response.body),
+                });
+                return;
+            }
+
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ filename: retryTitle, applied: false }),
+            });
+        },
+    );
+    await page.route(
+        `**/api/recordings/${ACTION_RECORDING_ID}/rename`,
+        async (route) => {
+            if (route.request().method() !== "PATCH") {
+                await route.fallback();
+                return;
+            }
+
+            applyAttempts += 1;
+            if (applyAttempts === 1) {
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 500,
+                    body: JSON.stringify({
+                        error: "Dashboard title writeback is unavailable",
+                    }),
+                });
+                return;
+            }
+
+            await route.fallback();
+        },
+    );
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId, {
+            includeTranscript: true,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        await page.getByTestId("dashboard-ai-rename").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "loading");
+        await expect(page.getByText("正在根据当前转写生成可预览的标题。"))
+            .toBeVisible();
+
+        resolveFirstPreview({
+            status: 503,
+            body: { error: "Dashboard AI rename service unavailable" },
+        });
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "error");
+        await expect(
+            page
+                .getByTestId("ai-rename-preview-card")
+                .getByText("Dashboard AI rename service unavailable"),
+        ).toBeVisible();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        await page.getByTestId("ai-rename-regenerate").click();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByText(retryTitle)).toBeVisible();
+
+        await page.getByTestId("ai-rename-apply").click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("Dashboard title writeback is unavailable"),
+        ).toBeVisible();
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "review");
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_RECORDING_TITLE);
+
+        await page.getByTestId("ai-rename-apply").click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            retryTitle,
+        );
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "accepted");
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(retryTitle);
+        expect(previewAttempts).toBe(2);
+        expect(applyAttempts).toBe(2);
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard AI rename unavailable service opens title generation settings", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+
+    await mockTitleGenerationSettings(page, false);
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId, {
+            includeTranscript: true,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "unavailable");
+        await page.getByTestId("ai-rename-open-settings").click();
+        await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
+            "data-settings-active-section",
+            "title-generation",
+        );
+        await expect(page).toHaveURL(/\/dashboard#title-generation$/);
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard AI rename configured service blocks recordings without transcripts", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+
+    await mockTitleGenerationSettings(page, true);
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId, {
+            includeTranscript: false,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+
+        await expect(page.getByTestId("ai-rename-preview-card"))
+            .toHaveAttribute("data-ai-rename-state", "unavailable");
+        await expect(
+            page
+                .getByTestId("ai-rename-preview-card")
+                .getByText("需要先生成本地转录"),
+        ).toBeVisible();
+        await expect(page.getByTestId("ai-rename-open-settings")).toHaveCount(
+            0,
+        );
+        await expect(page.getByTestId("dashboard-ai-rename")).toBeDisabled();
     } finally {
         await cleanupDashboardActionSeed(userId ?? undefined);
     }

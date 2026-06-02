@@ -86,6 +86,13 @@ interface SourceReportCopyPayload {
     error?: string;
 }
 
+interface RawTranscriptCopyPayload {
+    transcript?: {
+        text?: string | null;
+    } | null;
+    error?: string;
+}
+
 function createSourceReportAvailability(
     sourceProvider: string | null | undefined,
 ): SourceReportAvailabilitySnapshot {
@@ -192,7 +199,11 @@ export function RecordingWorkstation({
         "source" | "local" | "speakers"
     >("source");
     const [copyingAction, setCopyingAction] = useState<
-        "local" | "source-transcript" | "source-report" | null
+        | "local"
+        | "raw-transcript"
+        | "source-transcript"
+        | "source-report"
+        | null
     >(null);
     const [sourceReportAvailability, setSourceReportAvailability] =
         useState<SourceReportAvailabilitySnapshot>(() =>
@@ -517,6 +528,40 @@ export function RecordingWorkstation({
         }
     }, [localTranscriptCopyText, t]);
 
+    const handleCopyRawTranscript = useCallback(async () => {
+        if (!transcription?.text?.trim()) {
+            toast.error(t("transcription.noTranscript"));
+            return;
+        }
+
+        setCopyingAction("raw-transcript");
+        try {
+            const response = await fetch(
+                `/api/recordings/${recording.id}/transcript/raw`,
+                { cache: "no-store" },
+            );
+            const payload = (await response
+                .json()
+                .catch(() => ({}))) as RawTranscriptCopyPayload;
+            const copyText = payload.transcript?.text ?? "";
+
+            if (!response.ok || !copyText.trim()) {
+                toast.error(
+                    payload.error ??
+                        t("speakerReview.failedToLoadTranscriptReview"),
+                );
+                return;
+            }
+
+            await writeBrowserClipboardText(copyText);
+            toast.success(t("speakerReview.rawTranscriptCopied"));
+        } catch {
+            toast.error(t("speakerReview.copyRawTranscriptFailed"));
+        } finally {
+            setCopyingAction(null);
+        }
+    }, [recording.id, t, transcription?.text]);
+
     const handleCopySourceMaterial = useCallback(
         async (kind: "source-transcript" | "source-report") => {
             if (!recording.sourceProvider) {
@@ -797,6 +842,24 @@ export function RecordingWorkstation({
                         {copyingAction === "local"
                             ? t("common.copying")
                             : t("transcription.copyTranscript")}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyRawTranscript}
+                        disabled={
+                            copyingAction === "raw-transcript" ||
+                            !transcription?.text?.trim()
+                        }
+                        aria-busy={copyingAction === "raw-transcript"}
+                        data-testid="recording-copy-raw-transcript"
+                        className="h-9 rounded-xl"
+                    >
+                        <Copy className="h-4 w-4" />
+                        {copyingAction === "raw-transcript"
+                            ? t("common.copying")
+                            : t("speakerReview.copyRawTranscript")}
                     </Button>
                     <Button
                         type="button"

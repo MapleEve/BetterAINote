@@ -107,6 +107,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-testid="recording-copy-local-transcript"',
         );
+        expect(detailWorkstation).toContain("handleCopyRawTranscript");
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-copy-raw-transcript"',
+        );
+        expect(detailWorkstation).toContain("/transcript/raw");
+        expect(detailWorkstation).toContain("RawTranscriptCopyPayload");
         expect(detailWorkstation).toContain(
             'data-testid="recording-copy-source-transcript"',
         );

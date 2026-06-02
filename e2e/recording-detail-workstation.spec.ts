@@ -589,6 +589,32 @@ test("recording detail uses the new workstation shell and keeps all copy actions
             )
             .not.toContain("SPEAKER_ALPHA_00");
 
+        await page.getByTestId("recording-copy-raw-transcript").click();
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("SPEAKER_ALPHA_00");
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .not.toContain(SPEAKER_REVIEW_PROFILE_ZH_NAME);
+
         await page.getByTestId("recording-copy-source-transcript").click();
         await expect
             .poll(() =>
