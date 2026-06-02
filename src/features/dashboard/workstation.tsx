@@ -2514,19 +2514,21 @@ export function Workstation({
                                         }
                                         onEnded={() => {
                                             const index =
-                                                liveRecordings.findIndex(
+                                                filteredRecordings.findIndex(
                                                     (recording) =>
                                                         recording.id ===
                                                         currentRecording.id,
                                                 );
-                                            if (
-                                                index >= 0 &&
-                                                index <
-                                                    liveRecordings.length - 1
-                                            ) {
+                                            const nextRecording =
+                                                index >= 0
+                                                    ? filteredRecordings[
+                                                          index + 1
+                                                      ]
+                                                    : undefined;
+                                            if (nextRecording) {
                                                 setTagManagerOpen(false);
                                                 setCurrentRecording(
-                                                    liveRecordings[index + 1],
+                                                    nextRecording,
                                                 );
                                             }
                                         }}
