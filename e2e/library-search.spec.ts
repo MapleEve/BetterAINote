@@ -215,6 +215,49 @@ async function openLibrarySearch(page: Page) {
     return panel;
 }
 
+async function expectOverlayHitTarget(
+    page: Page,
+    testId: "dashboard-activity-panel" | "library-search-panel",
+) {
+    const panel = page.getByTestId(testId);
+    await expect(panel).toBeVisible();
+
+    const result = await panel.evaluate((node, panelTestId) => {
+        const rect = node.getBoundingClientRect();
+        const point = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + Math.min(48, Math.max(8, rect.height / 2)),
+        };
+        const hit = document.elementFromPoint(point.x, point.y);
+
+        return {
+            containsHit: Boolean(
+                hit?.closest(`[data-testid="${panelTestId}"]`) === node,
+            ),
+            height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            width: rect.width,
+            viewportHeight: window.innerHeight,
+            viewportWidth: window.innerWidth,
+        };
+    }, testId);
+
+    expect(result.width).toBeGreaterThan(0);
+    expect(result.height).toBeGreaterThan(0);
+    expect(result.left).toBeGreaterThanOrEqual(0);
+    expect(result.right).toBeLessThanOrEqual(result.viewportWidth);
+    expect(result.top).toBeGreaterThanOrEqual(0);
+    expect(result.containsHit).toBe(true);
+
+    await page.mouse.click(
+        (result.left + result.right) / 2,
+        result.top + Math.min(48, Math.max(8, result.height / 2)),
+    );
+    await expect(panel).toBeVisible();
+}
+
 function healthySyncStatus() {
     const now = new Date();
 
@@ -612,6 +655,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await openLibrarySearch(page);
     await expect(searchPanel).toBeVisible();
     await expect(searchPanel).toHaveCSS("z-index", "220");
+    await expectOverlayHitTarget(page, "library-search-panel");
 
     await page.mouse.click(16, 220);
     await expect(searchPanel).toBeHidden();
@@ -622,6 +666,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(searchPanel).toBeHidden();
     await expect(activityPanel).toBeVisible();
     await expect(activityPanel).toHaveCSS("z-index", "220");
+    await expectOverlayHitTarget(page, "dashboard-activity-panel");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
 
@@ -644,6 +689,18 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await page.keyboard.press("Escape");
     await expect(activityPanel).toBeHidden();
     await expect(activityTrigger).toBeFocused();
+
+    await page.setViewportSize({ width: 390, height: 740 });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    await openLibrarySearch(page);
+    await expect(searchPanel).toBeVisible();
+    await expectOverlayHitTarget(page, "library-search-panel");
+
+    await activityTrigger.click();
+    await expect(searchPanel).toBeHidden();
+    await expect(activityPanel).toBeVisible();
+    await expectOverlayHitTarget(page, "dashboard-activity-panel");
 });
 
 test("library search follows display language across visible copy and aria labels", async ({

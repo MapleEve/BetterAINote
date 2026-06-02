@@ -927,7 +927,7 @@ export function ActivityOverlay({
                     aria-label={t("activityOverlay.title")}
                     data-state={panelState}
                     data-testid="dashboard-activity-panel"
-                    className="absolute top-11 right-0 z-[220] flex max-h-[min(calc(100svh-6rem),32.5rem)] w-[min(calc(100vw-1.5rem),24rem)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                    className="fixed top-[4.75rem] right-3 left-3 z-[220] flex max-h-[min(calc(100svh-5.5rem),32.5rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl sm:absolute sm:top-11 sm:right-0 sm:left-auto sm:max-h-[min(calc(100svh-6rem),32.5rem)] sm:w-[min(calc(100vw-1.5rem),24rem)]"
                 >
                     <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
                         <div className="min-w-0 flex-1">

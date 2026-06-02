@@ -250,8 +250,18 @@ describe("dashboard search and activity overlay regression", () => {
 
         expect(searchComponent).toContain("z-[220]");
         expect(activityOverlay).toContain("z-[220]");
-        expect(searchComponent).toContain("max-h-[min(calc(100svh-6rem)");
-        expect(activityOverlay).toContain("max-h-[min(calc(100svh-6rem)");
+        expect(searchComponent).toContain("fixed top-[4.75rem] right-3 left-3");
+        expect(activityOverlay).toContain("fixed top-[4.75rem] right-3 left-3");
+        expect(searchComponent).toContain(
+            "sm:absolute sm:top-11 sm:right-0 sm:left-auto",
+        );
+        expect(activityOverlay).toContain(
+            "sm:absolute sm:top-11 sm:right-0 sm:left-auto",
+        );
+        expect(searchComponent).toContain("max-h-[min(calc(100svh-5.5rem)");
+        expect(activityOverlay).toContain("max-h-[min(calc(100svh-5.5rem)");
+        expect(searchComponent).toContain("sm:max-h-[min(calc(100svh-6rem)");
+        expect(activityOverlay).toContain("sm:max-h-[min(calc(100svh-6rem)");
         expect(activityOverlay).toContain("triggerRef.current?.focus");
         expect(activityOverlay).toContain('event.key === "Escape"');
         expect(activityOverlay).toContain(
