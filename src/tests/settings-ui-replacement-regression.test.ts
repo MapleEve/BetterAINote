@@ -178,7 +178,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(speakers).toContain("data-profiles-state");
         expect(speakers).toContain("data-vs-state");
         expect(speakers).toContain("data-speaker-profile-row");
+        expect(speakers).toContain("data-speaker-profile-busy");
         expect(speakers).toContain("data-vs-profile-row");
+        expect(speakers).toContain("data-vs-profile-busy");
+        expect(speakers).toContain("isProfileSaving");
+        expect(speakers).toContain("isVoiceprintSaving");
         expect(speakers).toContain(
             "sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]",
         );

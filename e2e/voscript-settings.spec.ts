@@ -648,6 +648,30 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     const profilePatches: Record<string, unknown>[] = [];
     let profileDeletes = 0;
     const voiceprintPatches: Record<string, unknown>[] = [];
+    let releaseProfileCreate = () => {};
+    let notifyProfileCreateStarted = () => {};
+    const profileCreateStarted = new Promise<void>((resolve) => {
+        notifyProfileCreateStarted = resolve;
+    });
+    const pendingProfileCreate = new Promise<void>((resolve) => {
+        releaseProfileCreate = resolve;
+    });
+    let releaseProfilePatch = () => {};
+    let notifyProfilePatchStarted = () => {};
+    const profilePatchStarted = new Promise<void>((resolve) => {
+        notifyProfilePatchStarted = resolve;
+    });
+    const pendingProfilePatch = new Promise<void>((resolve) => {
+        releaseProfilePatch = resolve;
+    });
+    let releaseVoiceprintPatch = () => {};
+    let notifyVoiceprintPatchStarted = () => {};
+    const voiceprintPatchStarted = new Promise<void>((resolve) => {
+        notifyVoiceprintPatchStarted = resolve;
+    });
+    const pendingVoiceprintPatch = new Promise<void>((resolve) => {
+        releaseVoiceprintPatch = resolve;
+    });
 
     let localProfiles = [
         {
@@ -688,6 +712,8 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
         if (route.request().method() === "POST") {
             const payload = route.request().postDataJSON();
             profilePosts.push(payload);
+            notifyProfileCreateStarted();
+            await pendingProfileCreate;
             localProfiles = [
                 ...localProfiles,
                 {
@@ -717,6 +743,8 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
         if (route.request().method() === "PATCH") {
             const payload = route.request().postDataJSON();
             profilePatches.push(payload);
+            notifyProfilePatchStarted();
+            await pendingProfilePatch;
             localProfiles = localProfiles.map((profile) =>
                 profile.id === profileId
                     ? {
@@ -771,6 +799,8 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
 
         const payload = route.request().postDataJSON();
         voiceprintPatches.push(payload);
+        notifyVoiceprintPatchStarted();
+        await pendingVoiceprintPatch;
         remoteVoiceprints = remoteVoiceprints.map((voiceprint) => ({
             ...voiceprint,
             displayName: String(payload.displayName),
@@ -801,19 +831,27 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     );
 
     await page.getByTestId("speaker-profile-new-name").fill("Casey QA");
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith("/api/speakers/profiles") &&
-                response.request().method() === "POST" &&
-                response.ok(),
-        ),
-        page.getByTestId("speaker-profile-create").click(),
-    ]);
+    const createResponse = page.waitForResponse(
+        (response) =>
+            response.url().endsWith("/api/speakers/profiles") &&
+            response.request().method() === "POST" &&
+            response.ok(),
+    );
+    await page.getByTestId("speaker-profile-create").click();
+    await profileCreateStarted;
+    await expect(page.getByTestId("speaker-profile-new-name")).toBeDisabled();
+    await expect(page.getByTestId("speaker-profile-create")).toBeDisabled();
+    await expect(page.getByTestId("speaker-profile-create")).toHaveAttribute(
+        "aria-busy",
+        "true",
+    );
+    releaseProfileCreate();
+    await createResponse;
     expect(profilePosts).toEqual([{ displayName: "Casey QA" }]);
     await expect(
         page.locator('[data-speaker-profile-id="profile-created-001"]'),
     ).toBeVisible();
+    await expect(page.getByTestId("speaker-profile-new-name")).toBeEnabled();
     await expect(page.getByTestId("speaker-profile-new-name")).toHaveValue("");
 
     const editedProfileRow = page.locator(
@@ -822,18 +860,37 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     await editedProfileRow
         .getByTestId("speaker-profile-name")
         .fill("Speaker Renamed");
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith(
-                    "/api/speakers/profiles/profile-edit-001",
-                ) &&
-                response.request().method() === "PATCH" &&
-                response.ok(),
-        ),
-        editedProfileRow.getByTestId("speaker-profile-save").click(),
-    ]);
+    const profilePatchResponse = page.waitForResponse(
+        (response) =>
+            response
+                .url()
+                .endsWith("/api/speakers/profiles/profile-edit-001") &&
+            response.request().method() === "PATCH" &&
+            response.ok(),
+    );
+    await editedProfileRow.getByTestId("speaker-profile-save").click();
+    await profilePatchStarted;
+    await expect(editedProfileRow).toHaveAttribute(
+        "data-speaker-profile-busy",
+        "true",
+    );
+    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toBeDisabled();
+    await expect(editedProfileRow.getByTestId("speaker-profile-save")).toBeDisabled();
+    await expect(editedProfileRow.getByTestId("speaker-profile-save")).toHaveAttribute(
+        "aria-busy",
+        "true",
+    );
+    await expect(
+        editedProfileRow.getByTestId("speaker-profile-delete"),
+    ).toBeDisabled();
+    releaseProfilePatch();
+    await profilePatchResponse;
     expect(profilePatches.at(-1)).toEqual({ displayName: "Speaker Renamed" });
+    await expect(editedProfileRow).toHaveAttribute(
+        "data-speaker-profile-busy",
+        "false",
+    );
+    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toBeEnabled();
     await expect(editedProfileRow.getByTestId("speaker-profile-name")).toHaveValue(
         "Speaker Renamed",
     );
@@ -871,18 +928,35 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     await voiceprintRow
         .getByTestId("voiceprint-name")
         .fill("Voiceprint Renamed");
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith("/api/voiceprints/vp-rename-001") &&
-                response.request().method() === "PATCH" &&
-                response.ok(),
-        ),
-        voiceprintRow.getByTestId("voiceprint-rename").click(),
-    ]);
+    const voiceprintPatchResponse = page.waitForResponse(
+        (response) =>
+            response.url().endsWith("/api/voiceprints/vp-rename-001") &&
+            response.request().method() === "PATCH" &&
+            response.ok(),
+    );
+    await voiceprintRow.getByTestId("voiceprint-rename").click();
+    await voiceprintPatchStarted;
+    await expect(voiceprintRow).toHaveAttribute(
+        "data-vs-profile-busy",
+        "true",
+    );
+    await expect(voiceprintRow.getByTestId("voiceprint-name")).toBeDisabled();
+    await expect(voiceprintRow.getByTestId("voiceprint-rename")).toBeDisabled();
+    await expect(voiceprintRow.getByTestId("voiceprint-rename")).toHaveAttribute(
+        "aria-busy",
+        "true",
+    );
+    await expect(voiceprintRow.getByTestId("voiceprint-delete")).toBeDisabled();
+    releaseVoiceprintPatch();
+    await voiceprintPatchResponse;
     expect(voiceprintPatches.at(-1)).toEqual({
         displayName: "Voiceprint Renamed",
     });
+    await expect(voiceprintRow).toHaveAttribute(
+        "data-vs-profile-busy",
+        "false",
+    );
+    await expect(voiceprintRow.getByTestId("voiceprint-name")).toBeEnabled();
     await expect(voiceprintRow.getByTestId("voiceprint-name")).toHaveValue(
         "Voiceprint Renamed",
     );

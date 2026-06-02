@@ -513,6 +513,7 @@ export function SpeakerProfilesPanel() {
                             value={newName}
                             onChange={(event) => setNewName(event.target.value)}
                             placeholder={isZh ? "例如：Alex" : "e.g. Alex"}
+                            disabled={localSavingId === "new"}
                             data-testid="speaker-profile-new-name"
                         />
                     </div>
@@ -522,6 +523,7 @@ export function SpeakerProfilesPanel() {
                         className="self-end"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
+                        aria-busy={localSavingId === "new"}
                         data-testid="speaker-profile-create"
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
@@ -554,98 +556,111 @@ export function SpeakerProfilesPanel() {
                     </PanelNotice>
                 ) : (
                     <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
-                        {profiles.map((profile) => (
-                            <div
-                                key={profile.id}
-                                className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
-                                data-speaker-profile-row=""
-                                data-speaker-profile-id={profile.id}
-                            >
-                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
-                                    {profile.displayName
-                                        .trim()
-                                        .slice(0, 1)
-                                        .toUpperCase() || "#"}
-                                </span>
-                                <div className="min-w-0 space-y-2">
-                                    <Input
-                                        value={profile.displayName}
-                                        onChange={(event) =>
-                                            setProfiles((prev) =>
-                                                prev.map((item) =>
-                                                    item.id === profile.id
-                                                        ? {
-                                                              ...item,
-                                                              displayName:
-                                                                  event.target
-                                                                      .value,
-                                                          }
-                                                        : item,
-                                                ),
-                                            )
-                                        }
-                                        className="min-w-0 truncate [word-break:keep-all]"
-                                        data-testid="speaker-profile-name"
-                                    />
-                                    <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
-                                        <span className="min-w-0 truncate">
-                                            {isZh
-                                                ? `已用于 ${profile.assignmentCount} 条录音`
-                                                : `Used in ${profile.assignmentCount} recording${profile.assignmentCount === 1 ? "" : "s"}`}
-                                        </span>
-                                        <StatePill
-                                            tone={
-                                                profile.voiceprintRef
-                                                    ? "success"
-                                                    : "neutral"
+                        {profiles.map((profile) => {
+                            const isProfileSaving =
+                                localSavingId === profile.id;
+
+                            return (
+                                <div
+                                    key={profile.id}
+                                    className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
+                                    data-speaker-profile-row=""
+                                    data-speaker-profile-busy={
+                                        isProfileSaving ? "true" : "false"
+                                    }
+                                    data-speaker-profile-id={profile.id}
+                                >
+                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                        {profile.displayName
+                                            .trim()
+                                            .slice(0, 1)
+                                            .toUpperCase() || "#"}
+                                    </span>
+                                    <div className="min-w-0 space-y-2">
+                                        <Input
+                                            value={profile.displayName}
+                                            onChange={(event) =>
+                                                setProfiles((prev) =>
+                                                    prev.map((item) =>
+                                                        item.id === profile.id
+                                                            ? {
+                                                                  ...item,
+                                                                  displayName:
+                                                                      event
+                                                                          .target
+                                                                          .value,
+                                                              }
+                                                            : item,
+                                                    ),
+                                                )
                                             }
-                                        >
-                                            {profile.voiceprintRef
-                                                ? isZh
-                                                    ? "已关联声纹"
-                                                    : "Voiceprint linked"
-                                                : isZh
-                                                  ? "未关联声纹"
-                                                  : "No voiceprint"}
-                                        </StatePill>
-                                        {formatTimestamp(
-                                            profile.updatedAt,
-                                            locale,
-                                        ) ? (
+                                            className="min-w-0 truncate [word-break:keep-all]"
+                                            disabled={isProfileSaving}
+                                            data-testid="speaker-profile-name"
+                                        />
+                                        <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
                                             <span className="min-w-0 truncate">
-                                                {isZh ? "更新于 " : "Updated "}
-                                                {formatTimestamp(
-                                                    profile.updatedAt,
-                                                    locale,
-                                                )}
+                                                {isZh
+                                                    ? `已用于 ${profile.assignmentCount} 条录音`
+                                                    : `Used in ${profile.assignmentCount} recording${profile.assignmentCount === 1 ? "" : "s"}`}
                                             </span>
-                                        ) : null}
+                                            <StatePill
+                                                tone={
+                                                    profile.voiceprintRef
+                                                        ? "success"
+                                                        : "neutral"
+                                                }
+                                            >
+                                                {profile.voiceprintRef
+                                                    ? isZh
+                                                        ? "已关联声纹"
+                                                        : "Voiceprint linked"
+                                                    : isZh
+                                                      ? "未关联声纹"
+                                                      : "No voiceprint"}
+                                            </StatePill>
+                                            {formatTimestamp(
+                                                profile.updatedAt,
+                                                locale,
+                                            ) ? (
+                                                <span className="min-w-0 truncate">
+                                                    {isZh
+                                                        ? "更新于 "
+                                                        : "Updated "}
+                                                    {formatTimestamp(
+                                                        profile.updatedAt,
+                                                        locale,
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </div>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="shrink-0 whitespace-nowrap max-sm:col-start-2"
+                                        onClick={() => handleUpdate(profile)}
+                                        disabled={isProfileSaving}
+                                        aria-busy={isProfileSaving}
+                                        data-testid="speaker-profile-save"
+                                    >
+                                        {isZh ? "保存" : "Save"}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
+                                        onClick={() => handleDelete(profile)}
+                                        disabled={isProfileSaving}
+                                        data-testid="speaker-profile-delete"
+                                    >
+                                        {isZh ? "删除" : "Delete"}
+                                    </Button>
                                 </div>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="shrink-0 whitespace-nowrap max-sm:col-start-2"
-                                    onClick={() => handleUpdate(profile)}
-                                    disabled={localSavingId === profile.id}
-                                    data-testid="speaker-profile-save"
-                                >
-                                    {isZh ? "保存" : "Save"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
-                                    onClick={() => handleDelete(profile)}
-                                    disabled={localSavingId === profile.id}
-                                    data-testid="speaker-profile-delete"
-                                >
-                                    {isZh ? "删除" : "Delete"}
-                                </Button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -713,112 +728,126 @@ export function SpeakerProfilesPanel() {
                     </PanelNotice>
                 ) : (
                     <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
-                        {voiceprints.map((voiceprint) => (
-                            <div
-                                key={voiceprint.id}
-                                className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
-                                data-vs-profile-row=""
-                                data-vs-profile-id={voiceprint.id}
-                            >
-                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
-                                    {voiceprint.displayName
-                                        .trim()
-                                        .slice(0, 1)
-                                        .toUpperCase() || "V"}
-                                </span>
+                        {voiceprints.map((voiceprint) => {
+                            const isVoiceprintSaving =
+                                voiceprintSavingId === voiceprint.id;
 
-                                <div className="min-w-0 space-y-2">
-                                    <Label
-                                        className="sr-only"
-                                        htmlFor={`voiceprint-${voiceprint.id}`}
-                                    >
-                                        {isZh ? "声纹名称" : "Voiceprint name"}
-                                    </Label>
-                                    <Input
-                                        id={`voiceprint-${voiceprint.id}`}
-                                        value={voiceprint.displayName}
-                                        onChange={(event) =>
-                                            setVoiceprints((prev) =>
-                                                prev.map((item) =>
-                                                    item.id === voiceprint.id
-                                                        ? {
-                                                              ...item,
-                                                              displayName:
-                                                                  event.target
-                                                                      .value,
-                                                          }
-                                                        : item,
-                                                ),
-                                            )
-                                        }
-                                        className="min-w-0 truncate [word-break:keep-all]"
-                                        data-testid="voiceprint-name"
-                                    />
-                                    <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
-                                        <StatePill tone="success">
-                                            {isZh ? "远端声纹" : "Remote"}
-                                        </StatePill>
-                                        <span className="min-w-0 truncate font-mono">
-                                            {voiceprint.id}
-                                        </span>
-                                        {formatTimestamp(
-                                            voiceprint.updatedAt,
-                                            locale,
-                                        ) ? (
-                                            <span className="min-w-0 truncate">
-                                                {isZh ? "更新于 " : "Updated "}
-                                                {formatTimestamp(
-                                                    voiceprint.updatedAt,
-                                                    locale,
-                                                )}
+                            return (
+                                <div
+                                    key={voiceprint.id}
+                                    className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
+                                    data-vs-profile-row=""
+                                    data-vs-profile-busy={
+                                        isVoiceprintSaving ? "true" : "false"
+                                    }
+                                    data-vs-profile-id={voiceprint.id}
+                                >
+                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                        {voiceprint.displayName
+                                            .trim()
+                                            .slice(0, 1)
+                                            .toUpperCase() || "V"}
+                                    </span>
+
+                                    <div className="min-w-0 space-y-2">
+                                        <Label
+                                            className="sr-only"
+                                            htmlFor={`voiceprint-${voiceprint.id}`}
+                                        >
+                                            {isZh
+                                                ? "声纹名称"
+                                                : "Voiceprint name"}
+                                        </Label>
+                                        <Input
+                                            id={`voiceprint-${voiceprint.id}`}
+                                            value={voiceprint.displayName}
+                                            onChange={(event) =>
+                                                setVoiceprints((prev) =>
+                                                    prev.map((item) =>
+                                                        item.id ===
+                                                        voiceprint.id
+                                                            ? {
+                                                                  ...item,
+                                                                  displayName:
+                                                                      event
+                                                                          .target
+                                                                          .value,
+                                                              }
+                                                            : item,
+                                                    ),
+                                                )
+                                            }
+                                            className="min-w-0 truncate [word-break:keep-all]"
+                                            disabled={isVoiceprintSaving}
+                                            data-testid="voiceprint-name"
+                                        />
+                                        <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
+                                            <StatePill tone="success">
+                                                {isZh ? "远端声纹" : "Remote"}
+                                            </StatePill>
+                                            <span className="min-w-0 truncate font-mono">
+                                                {voiceprint.id}
                                             </span>
-                                        ) : formatTimestamp(
-                                              voiceprint.createdAt,
-                                              locale,
-                                          ) ? (
-                                            <span className="min-w-0 truncate">
-                                                {isZh ? "创建于 " : "Created "}
-                                                {formatTimestamp(
-                                                    voiceprint.createdAt,
-                                                    locale,
-                                                )}
-                                            </span>
-                                        ) : null}
+                                            {formatTimestamp(
+                                                voiceprint.updatedAt,
+                                                locale,
+                                            ) ? (
+                                                <span className="min-w-0 truncate">
+                                                    {isZh
+                                                        ? "更新于 "
+                                                        : "Updated "}
+                                                    {formatTimestamp(
+                                                        voiceprint.updatedAt,
+                                                        locale,
+                                                    )}
+                                                </span>
+                                            ) : formatTimestamp(
+                                                  voiceprint.createdAt,
+                                                  locale,
+                                              ) ? (
+                                                <span className="min-w-0 truncate">
+                                                    {isZh
+                                                        ? "创建于 "
+                                                        : "Created "}
+                                                    {formatTimestamp(
+                                                        voiceprint.createdAt,
+                                                        locale,
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="shrink-0 whitespace-nowrap max-sm:col-start-2"
-                                    onClick={() =>
-                                        handleRenameVoiceprint(voiceprint)
-                                    }
-                                    disabled={
-                                        voiceprintSavingId === voiceprint.id
-                                    }
-                                    data-testid="voiceprint-rename"
-                                >
-                                    {isZh ? "重命名" : "Rename"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
-                                    onClick={() =>
-                                        handleDeleteVoiceprint(voiceprint)
-                                    }
-                                    disabled={
-                                        voiceprintSavingId === voiceprint.id
-                                    }
-                                    data-testid="voiceprint-delete"
-                                >
-                                    {isZh ? "删除" : "Delete"}
-                                </Button>
-                            </div>
-                        ))}
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="shrink-0 whitespace-nowrap max-sm:col-start-2"
+                                        onClick={() =>
+                                            handleRenameVoiceprint(voiceprint)
+                                        }
+                                        disabled={isVoiceprintSaving}
+                                        aria-busy={isVoiceprintSaving}
+                                        data-testid="voiceprint-rename"
+                                    >
+                                        {isZh ? "重命名" : "Rename"}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
+                                        onClick={() =>
+                                            handleDeleteVoiceprint(voiceprint)
+                                        }
+                                        disabled={isVoiceprintSaving}
+                                        data-testid="voiceprint-delete"
+                                    >
+                                        {isZh ? "删除" : "Delete"}
+                                    </Button>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
