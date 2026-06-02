@@ -330,6 +330,12 @@ async function openDashboard(
         .catch(() => null);
 }
 
+async function activeElementIsInsideSourceDrawer(page: Page) {
+    return page.getByTestId("dashboard-source-rail").evaluate((node) => {
+        return node.contains(document.activeElement);
+    });
+}
+
 test("dashboard source filter stack exposes clear and setup actions", async ({
     page,
 }) => {
@@ -428,14 +434,37 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
         "data-drawer-open",
         "true",
     );
+    await expect
+        .poll(() => activeElementIsInsideSourceDrawer(page))
+        .toBe(true);
+    for (let index = 0; index < 12; index += 1) {
+        await page.keyboard.press("Tab");
+        await expect
+            .poll(() => activeElementIsInsideSourceDrawer(page))
+            .toBe(true);
+    }
+    await page.keyboard.press("Shift+Tab");
+    await expect
+        .poll(() => activeElementIsInsideSourceDrawer(page))
+        .toBe(true);
 
-    await page.getByTestId("dashboard-source-drawer-scrim").click();
+    await page.mouse.click(374, 760);
     await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+    await expect(page.getByTestId("dashboard-source-drawer-trigger")).toBeFocused();
 
     await page.getByTestId("dashboard-source-drawer-trigger").click();
     await expect(workstation).toHaveAttribute("data-source-drawer", "open");
     await page.keyboard.press("Escape");
     await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+    await expect(page.getByTestId("dashboard-source-drawer-trigger")).toBeFocused();
+
+    await page.getByTestId("dashboard-source-drawer-trigger").click();
+    await expect(workstation).toHaveAttribute("data-source-drawer", "open");
+    await page.getByTestId("library-search-trigger").first().click();
+    await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+    await expect(page.getByTestId("library-search-panel")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("library-search-panel")).toBeHidden();
 
     await page.getByTestId("dashboard-source-drawer-trigger").click();
     await expect(workstation).toHaveAttribute("data-source-drawer", "open");

@@ -735,6 +735,15 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await page.getByTestId("settings-close").click();
     await expect(page.locator("[data-settings-shell]")).toBeHidden();
 
+    await tagManagerTrigger.click();
+    await expect(tagManager).toBeVisible();
+    await settingsTrigger.click();
+    await expect(tagManager).toBeHidden();
+    await expect(page.locator("[data-settings-shell]")).toBeVisible();
+
+    await page.getByTestId("settings-close").click();
+    await expect(page.locator("[data-settings-shell]")).toBeHidden();
+
     await activityTrigger.click();
     await expect(activityPanel).toBeVisible();
     await page.keyboard.press("Escape");

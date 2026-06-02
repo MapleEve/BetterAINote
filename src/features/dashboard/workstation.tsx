@@ -152,6 +152,8 @@ type DashboardFavorite = "all" | "transcribed" | "tags";
 type TopbarOverlay = "search" | "activity";
 const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
+const DASHBOARD_DRAWER_FOCUSABLE_SELECTOR =
+    'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 const DASHBOARD_SOURCE_ORDER = [
     "dingtalk-a1",
@@ -306,6 +308,8 @@ export function Workstation({
     const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
     const moreActionsRef = useRef<HTMLDivElement | null>(null);
+    const sourceDrawerRef = useRef<HTMLElement | null>(null);
+    const sourceDrawerTriggerRef = useRef<HTMLButtonElement | null>(null);
     const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
     const wasSettingsOpenRef = useRef(false);
     const { isLoading: areDataSourcesLoading, sources: dataSourceStates } =
@@ -573,6 +577,20 @@ export function Workstation({
         }
     }, [isRenaming]);
 
+    const closeSourceDrawer = useCallback(
+        (options: { returnFocus?: boolean } = {}) => {
+            setSourceDrawerOpen(false);
+            if (options.returnFocus === false) {
+                return;
+            }
+
+            startBrowserTimeout(() => {
+                sourceDrawerTriggerRef.current?.focus({ preventScroll: true });
+            }, 0);
+        },
+        [],
+    );
+
     useEffect(() => {
         if (settingsOpen) {
             setActiveTopbarOverlay(null);
@@ -588,13 +606,65 @@ export function Workstation({
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 event.preventDefault();
-                setSourceDrawerOpen(false);
+                closeSourceDrawer();
+                return;
+            }
+
+            if (event.key !== "Tab") {
+                return;
+            }
+
+            const focusable = Array.from(
+                sourceDrawerRef.current?.querySelectorAll<HTMLElement>(
+                    DASHBOARD_DRAWER_FOCUSABLE_SELECTOR,
+                ) ?? [],
+            ).filter(
+                (node) =>
+                    !node.hasAttribute("disabled") &&
+                    node.getAttribute("aria-hidden") !== "true",
+            );
+
+            if (focusable.length === 0) {
+                event.preventDefault();
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable.at(-1) ?? first;
+            const activeElement = document.activeElement;
+
+            if (!sourceDrawerRef.current?.contains(activeElement)) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
+                return;
+            }
+
+            if (event.shiftKey && activeElement === first) {
+                event.preventDefault();
+                last.focus({ preventScroll: true });
+                return;
+            }
+
+            if (!event.shiftKey && activeElement === last) {
+                event.preventDefault();
+                first.focus({ preventScroll: true });
             }
         };
 
+        const focusTimer = startBrowserTimeout(() => {
+            const firstFocusable =
+                sourceDrawerRef.current?.querySelector<HTMLElement>(
+                    DASHBOARD_DRAWER_FOCUSABLE_SELECTOR,
+                );
+            firstFocusable?.focus({ preventScroll: true });
+        }, 0);
+
         addBrowserWindowEventListener("keydown", handleKeyDown);
-        return () => removeBrowserWindowEventListener("keydown", handleKeyDown);
-    }, [isSourceDrawerOpen]);
+        return () => {
+            stopBrowserTimeout(focusTimer);
+            removeBrowserWindowEventListener("keydown", handleKeyDown);
+        };
+    }, [closeSourceDrawer, isSourceDrawerOpen]);
 
     useEffect(() => {
         const recordingId = currentRecording?.id;
@@ -1211,6 +1281,9 @@ export function Workstation({
 
     const handleOpenSettings = useCallback(() => {
         setActiveTopbarOverlay(null);
+        setMoreActionsOpen(false);
+        setTagManagerOpen(false);
+        setSourceDrawerOpen(false);
         setSettingsOpen(true);
     }, []);
 
@@ -1656,7 +1729,7 @@ export function Workstation({
                             ? "pointer-events-auto opacity-100"
                             : "pointer-events-none",
                     )}
-                    onClick={() => setSourceDrawerOpen(false)}
+                    onClick={() => closeSourceDrawer()}
                 />
                 <div
                     className="dashboard-workstation-grid mx-auto grid max-w-[1280px] gap-3 lg:h-[calc(100svh-2rem)] lg:min-h-[680px] lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)] lg:grid-rows-[3.5rem_minmax(0,1fr)] lg:overflow-hidden"
@@ -1665,6 +1738,7 @@ export function Workstation({
                     }
                 >
                     <aside
+                        ref={sourceDrawerRef}
                         className={cn(
                             "dashboard-source-sidebar glass-surface fixed top-3 bottom-3 left-3 z-[80] flex w-[min(18rem,calc(100vw-2rem))] min-h-0 flex-col rounded-2xl p-3 transition-transform duration-300 ease-[var(--ease-sine)] lg:static lg:row-span-2 lg:w-auto lg:min-h-0 lg:translate-x-0",
                             isSourceDrawerOpen
@@ -1884,8 +1958,14 @@ export function Workstation({
                                 aria-label={t("dashboardChrome.openFilters")}
                                 aria-expanded={isSourceDrawerOpen}
                                 data-testid="dashboard-source-drawer-trigger"
+                                ref={sourceDrawerTriggerRef}
                                 className="relative h-9 w-9 shrink-0 rounded-xl lg:hidden"
-                                onClick={() => setSourceDrawerOpen(true)}
+                                onClick={() => {
+                                    setActiveTopbarOverlay(null);
+                                    setMoreActionsOpen(false);
+                                    setTagManagerOpen(false);
+                                    setSourceDrawerOpen(true);
+                                }}
                             >
                                 <Menu className="h-4 w-4" />
                                 {activeSourceProvider ? (
