@@ -1,7 +1,7 @@
 "use client";
 
 import { Monitor } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import {
@@ -30,7 +30,10 @@ import {
     startBrowserTimeout,
     stopBrowserTimeout,
 } from "@/lib/platform/browser-shell";
-import type { RecordingListSortOrder } from "@/services/display-settings";
+import type {
+    DisplaySettingsUpdate,
+    RecordingListSortOrder,
+} from "@/services/display-settings";
 import type { DateTimeFormat } from "@/types/common";
 
 const ITEMS_PER_PAGE_MIN = 10;
@@ -55,6 +58,7 @@ export function DisplaySection() {
     } = useDisplaySettingsStore();
     const [itemsPerPageInput, setItemsPerPageInput] = useState(itemsPerPage);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
+    const pendingDisplayUpdateRef = useRef<DisplaySettingsUpdate | null>(null);
     const isZh = language === "zh-CN";
 
     const dateTimeFormatOptions = [
@@ -100,28 +104,53 @@ export function DisplaySection() {
         }
     }, [dateTimeFormat, hasLoaded, t, updateDisplaySettings]);
 
+    const showSaveError = useCallback(() => {
+        toast.error(t("common.saveFailed"));
+    }, [t]);
+
+    const persistDisplaySettings = useCallback(
+        (updates: DisplaySettingsUpdate) => {
+            if (Object.keys(updates).length === 0) {
+                return;
+            }
+
+            void updateDisplaySettings(updates).catch(() => {
+                showSaveError();
+            });
+        },
+        [showSaveError, updateDisplaySettings],
+    );
+
     useEffect(() => {
         return () => {
             if (saveTimeoutRef.current) {
                 stopBrowserTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
+
+            if (pendingDisplayUpdateRef.current) {
+                const updates = pendingDisplayUpdateRef.current;
+                pendingDisplayUpdateRef.current = null;
+                persistDisplaySettings(updates);
             }
         };
-    }, []);
+    }, [persistDisplaySettings]);
 
     const handleDisplaySettingChange = (
-        updates: {
-            uiLanguage?: UiLanguage;
-            dateTimeFormat?: DateTimeFormat;
-            recordingListSortOrder?: RecordingListSortOrder;
-            itemsPerPage?: number;
-            theme?: "system" | "light" | "dark";
-        },
+        updates: DisplaySettingsUpdate,
         debounceMs?: number,
     ) => {
-        const persistSettings = () => {
-            void updateDisplaySettings(updates).catch(() => {
-                toast.error(t("common.saveFailed"));
-            });
+        const persistPendingSettings = () => {
+            const pendingUpdates = pendingDisplayUpdateRef.current;
+            pendingDisplayUpdateRef.current = null;
+            if (pendingUpdates) {
+                persistDisplaySettings(pendingUpdates);
+            }
+        };
+
+        pendingDisplayUpdateRef.current = {
+            ...pendingDisplayUpdateRef.current,
+            ...updates,
         };
 
         if (!debounceMs) {
@@ -129,7 +158,7 @@ export function DisplaySection() {
                 stopBrowserTimeout(saveTimeoutRef.current);
                 saveTimeoutRef.current = null;
             }
-            persistSettings();
+            persistPendingSettings();
             return;
         }
 
@@ -137,10 +166,10 @@ export function DisplaySection() {
             stopBrowserTimeout(saveTimeoutRef.current);
         }
 
-        saveTimeoutRef.current = startBrowserTimeout(
-            persistSettings,
-            debounceMs,
-        );
+        saveTimeoutRef.current = startBrowserTimeout(() => {
+            saveTimeoutRef.current = null;
+            persistPendingSettings();
+        }, debounceMs);
     };
 
     if (isLoading && !hasLoaded) {

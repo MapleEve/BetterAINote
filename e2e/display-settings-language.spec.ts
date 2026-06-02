@@ -254,4 +254,23 @@ test("display settings secondary controls show pending state and normalize page 
     await page.getByText("显示设置", { exact: true }).click();
     await pageSizeResponse;
     await expect(page.locator("#items-per-page")).toHaveValue("10");
+
+    const flushedPageSizeResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.itemsPerPage === 42,
+    );
+    await page.locator("#items-per-page").fill("42");
+    await page.locator('[data-settings-nav-item="misc"]').click();
+    await flushedPageSizeResponse;
+    await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
+        "data-settings-active-section",
+        "misc",
+    );
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-settings-nav-item="appearance"]').click();
+    await expect(page.locator("#items-per-page")).toHaveValue("42");
 });
