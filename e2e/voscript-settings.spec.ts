@@ -256,6 +256,101 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
     );
 });
 
+test("VoScript settings clears stored API key when service URL is cleared", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let settings: Record<string, unknown> = {
+        privateTranscriptionApiKeySet: true,
+        privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+        privateTranscriptionDenoiseModel: "none",
+        privateTranscriptionMaxInflightJobs: 1,
+        privateTranscriptionMaxSpeakers: 0,
+        privateTranscriptionMinSpeakers: 0,
+        privateTranscriptionNoRepeatNgramSize: 0,
+        privateTranscriptionSnrThreshold: null,
+    };
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(settings),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        settings = {
+            ...settings,
+            privateTranscriptionApiKeySet:
+                savePayload?.privateTranscriptionApiKey === null
+                    ? false
+                    : settings.privateTranscriptionApiKeySet,
+            privateTranscriptionBaseUrl:
+                typeof savePayload?.privateTranscriptionBaseUrl === "string"
+                    ? savePayload.privateTranscriptionBaseUrl
+                    : null,
+        };
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: [] }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: [],
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const section = page.locator('[data-settings-section="voscript"]');
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "configured",
+    );
+    await expect(page.locator("#private-transcription-api-key")).toHaveAttribute(
+        "placeholder",
+        /已存储/,
+    );
+
+    await page.locator("#private-transcription-base-url").fill("");
+    await expect(
+        page.getByText("保存后将清空 VoScript 连接和已保存的 API Key。"),
+    ).toBeVisible();
+    await page.getByTestId("voscript-save").click();
+
+    await expect(page.getByTestId("voscript-save-message")).toContainText(
+        "VoScript 服务地址已清空",
+    );
+    expect(savePayload).toMatchObject({
+        privateTranscriptionApiKey: null,
+        privateTranscriptionBaseUrl: null,
+    });
+    await expect(page.locator("#private-transcription-api-key")).toHaveAttribute(
+        "placeholder",
+        "vt_...",
+    );
+});
+
 test("VoScript settings validates connection, save, and unavailable states", async ({
     page,
 }) => {

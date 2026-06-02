@@ -37,6 +37,20 @@ type VoScriptSaveState = "idle" | "saving" | "saved" | "error";
 type VoScriptConnectionTestState = "idle" | "testing" | "success" | "error";
 type VoScriptAvailabilityState = "configured" | "draft" | "unavailable";
 
+function parseNonNegativeIntegerInput(value: string, fallbackValue: number) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return fallbackValue;
+    }
+
+    if (!/^\d+$/.test(trimmed)) {
+        return null;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+}
+
 function VoScriptStatusBanner({
     description,
     state,
@@ -182,31 +196,26 @@ export function VoScriptSection() {
             isZh ? "正在保存 VoScript 配置。" : "Saving VoScript settings.",
         );
         const normalizedBaseUrl = privateTranscriptionBaseUrlInput.trim();
-        const minSpeakers = Number.parseInt(
-            privateTranscriptionMinSpeakersInput || "0",
-            10,
+        const minSpeakers = parseNonNegativeIntegerInput(
+            privateTranscriptionMinSpeakersInput,
+            0,
         );
-        const maxSpeakers = Number.parseInt(
-            privateTranscriptionMaxSpeakersInput || "0",
-            10,
+        const maxSpeakers = parseNonNegativeIntegerInput(
+            privateTranscriptionMaxSpeakersInput,
+            0,
         );
-        const maxInflightJobs = Number.parseInt(
-            privateTranscriptionMaxInflightJobsInput || "1",
-            10,
+        const maxInflightJobs = parseNonNegativeIntegerInput(
+            privateTranscriptionMaxInflightJobsInput,
+            1,
         );
-        const noRepeatNgramSize = Number.parseInt(
-            privateTranscriptionNoRepeatNgramSizeInput || "0",
-            10,
+        const noRepeatNgramSize = parseNonNegativeIntegerInput(
+            privateTranscriptionNoRepeatNgramSizeInput,
+            0,
         );
         const normalizedSnrThreshold =
             privateTranscriptionSnrThresholdInput.trim();
 
-        if (
-            !Number.isInteger(minSpeakers) ||
-            minSpeakers < 0 ||
-            !Number.isInteger(maxSpeakers) ||
-            maxSpeakers < 0
-        ) {
+        if (minSpeakers === null || maxSpeakers === null) {
             const message = isZh
                 ? "最少/最多说话人数必须是非负整数"
                 : "Min and max speakers must be non-negative integers";
@@ -226,7 +235,7 @@ export function VoScriptSection() {
             return;
         }
 
-        if (!Number.isInteger(maxInflightJobs) || maxInflightJobs < 0) {
+        if (maxInflightJobs === null) {
             const message = isZh
                 ? "本地调度活跃任务上限必须是非负整数"
                 : "Local scheduler inflight job limit must be a non-negative integer";
@@ -237,8 +246,7 @@ export function VoScriptSection() {
         }
 
         if (
-            !Number.isInteger(noRepeatNgramSize) ||
-            noRepeatNgramSize < 0 ||
+            noRepeatNgramSize === null ||
             (noRepeatNgramSize > 0 && noRepeatNgramSize < 3)
         ) {
             const message = isZh
@@ -279,6 +287,8 @@ export function VoScriptSection() {
             const trimmedPrivateApiKey = privateTranscriptionApiKey.trim();
             if (trimmedPrivateApiKey) {
                 updates.privateTranscriptionApiKey = trimmedPrivateApiKey;
+            } else if (!normalizedBaseUrl && privateTranscriptionApiKeySet) {
+                updates.privateTranscriptionApiKey = null;
             }
 
             await updateVoScriptSettings(updates);
@@ -672,8 +682,8 @@ export function VoScriptSection() {
                                           : "The current form is not saved yet. Testing does not apply it to voiceprints or new jobs."
                                       : serviceDraftChanged
                                         ? isZh
-                                            ? "保存后会清空 VoScript 连接，声纹库和新任务将不再使用该服务。"
-                                            : "Saving will clear the VoScript connection for voiceprints and new jobs."
+                                            ? "保存后会清空 VoScript 连接和已保存的 API Key，声纹库和新任务将不再使用该服务。"
+                                            : "Saving will clear the VoScript connection and stored API key for voiceprints and new jobs."
                                         : isZh
                                           ? "保存服务地址后，声纹库和私有转写任务会使用该连接。"
                                           : "Save a service URL so voiceprints and private transcription jobs can use it."
@@ -804,8 +814,8 @@ export function VoScriptSection() {
                                   : "This service URL is not saved yet. Save it before voiceprints or new jobs use it."
                               : serviceDraftChanged
                                 ? isZh
-                                    ? "保存后将清空 VoScript 连接。"
-                                    : "Saving will clear the VoScript connection."
+                                    ? "保存后将清空 VoScript 连接和已保存的 API Key。"
+                                    : "Saving will clear the VoScript connection and stored API key."
                                 : isZh
                                   ? "保存服务地址后才会启用转写参数。"
                                   : "Save a service URL before transcription options become active."}

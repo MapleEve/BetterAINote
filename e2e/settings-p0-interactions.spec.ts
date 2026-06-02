@@ -460,6 +460,16 @@ test("VoScript settings validate local parameters and save without testing conne
 
     await page.locator("#private-transcription-no-repeat-ngram-size").fill("4");
     await page.locator("#private-transcription-snr-threshold").fill("12.5");
+    await page.locator("#private-transcription-max-inflight-jobs").fill("1.5");
+
+    const requestCountBeforeInflightError = voscriptPuts.length;
+    await page.getByTestId("voscript-save").click();
+    await expect(page.getByTestId("voscript-save-message")).toContainText(
+        "本地调度活跃任务上限",
+    );
+    await page.waitForTimeout(250);
+    expect(voscriptPuts).toHaveLength(requestCountBeforeInflightError);
+
     await page.locator("#private-transcription-max-inflight-jobs").fill("2");
     await page.locator("#private-transcription-denoise-model").click();
     await page.getByRole("option", { name: "DeepFilterNet" }).click();

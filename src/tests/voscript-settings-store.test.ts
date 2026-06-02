@@ -180,6 +180,7 @@ describe("voscript settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch VoScript settings",
             settings: {
                 privateTranscriptionBaseUrl: null,
                 privateTranscriptionApiKeySet: false,
@@ -228,5 +229,58 @@ describe("voscript settings store", () => {
             privateTranscriptionMaxInflightJobs: 1,
         });
         expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("clears the stored api key marker when save explicitly sends null", async () => {
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        privateTranscriptionBaseUrl:
+                            "https://voscript.example.test",
+                        privateTranscriptionApiKeySet: true,
+                        privateTranscriptionMinSpeakers: 2,
+                        privateTranscriptionMaxSpeakers: 4,
+                        privateTranscriptionDenoiseModel: "none",
+                        privateTranscriptionSnrThreshold: null,
+                        privateTranscriptionNoRepeatNgramSize: 4,
+                        privateTranscriptionMaxInflightJobs: 2,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            )
+            .mockResolvedValueOnce(new Response(null, { status: 200 }));
+        vi.stubGlobal("fetch", fetchMock);
+
+        await ensureVoScriptSettingsLoaded();
+        await expect(
+            saveVoScriptSettings({
+                privateTranscriptionApiKey: null,
+                privateTranscriptionBaseUrl: null,
+            }),
+        ).resolves.toBeUndefined();
+
+        expect(fetchMock).toHaveBeenLastCalledWith(
+            "/api/settings/voscript",
+            expect.objectContaining({
+                body: JSON.stringify({
+                    privateTranscriptionApiKey: null,
+                    privateTranscriptionBaseUrl: null,
+                }),
+                method: "PUT",
+            }),
+        );
+        expect(getVoScriptSettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            isSaving: false,
+            settings: {
+                privateTranscriptionApiKeySet: false,
+                privateTranscriptionBaseUrl: null,
+            },
+        });
     });
 });
