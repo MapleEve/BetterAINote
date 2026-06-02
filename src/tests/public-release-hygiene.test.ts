@@ -6,13 +6,13 @@ import { describe, expect, it } from "vitest";
 const ROOT = process.cwd();
 
 describe("public release hygiene", () => {
-    it("keeps local-only materials out of the public git surface", () => {
+    it("keeps ignored planning and workspace patterns untracked", () => {
         const gitignore = readFileSync(path.join(ROOT, ".gitignore"), "utf8");
         const dockerignore = readFileSync(
             path.join(ROOT, ".dockerignore"),
             "utf8",
         );
-        const localOnlyPatterns = [
+        const ignoredWorkspacePatterns = [
             "/plans/",
             "/plan/",
             "/meeting-notes/",
@@ -39,12 +39,12 @@ describe("public release hygiene", () => {
             "LOCAL-*.md",
         ];
 
-        for (const pattern of localOnlyPatterns) {
+        for (const pattern of ignoredWorkspacePatterns) {
             expect(gitignore).toContain(pattern);
             expect(dockerignore).toContain(pattern);
         }
 
-        const trackedLocalOnlyFiles = execFileSync(
+        const trackedIgnoredWorkspaceFiles = execFileSync(
             "git",
             [
                 "ls-files",
@@ -78,7 +78,7 @@ describe("public release hygiene", () => {
             .split("\n")
             .filter(Boolean);
 
-        expect(trackedLocalOnlyFiles).toEqual([]);
+        expect(trackedIgnoredWorkspaceFiles).toEqual([]);
     });
 
     it("keeps generated hero source files out of the public git surface", () => {

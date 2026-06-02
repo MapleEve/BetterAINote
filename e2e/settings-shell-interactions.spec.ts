@@ -65,6 +65,10 @@ async function elementScrollTop(locator: ReturnType<Page["locator"]>) {
     return locator.evaluate((node) => node.scrollTop);
 }
 
+async function windowScrollY(page: Page) {
+    return page.evaluate(() => window.scrollY);
+}
+
 async function elementCanScroll(locator: ReturnType<Page["locator"]>) {
     return locator.evaluate((node) => node.scrollHeight > node.clientHeight + 1);
 }
@@ -73,6 +77,39 @@ async function scrollElementToEnd(locator: ReturnType<Page["locator"]>) {
     await locator.evaluate((node) => {
         node.scrollTop = node.scrollHeight;
     });
+}
+
+const desktopSettingsSections = [
+    "transcription",
+    "title-generation",
+    "voscript",
+    "data-sources",
+    "appearance",
+    "misc",
+] as const;
+
+async function expectShellFitsViewport(page: Page) {
+    const metrics = await page.locator("[data-settings-shell]").evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+
+        return {
+            bottom: rect.bottom,
+            height: rect.height,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            width: rect.width,
+            viewportHeight: window.innerHeight,
+            viewportWidth: window.innerWidth,
+        };
+    });
+
+    expect(metrics.width).toBeGreaterThan(0);
+    expect(metrics.height).toBeGreaterThan(0);
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.left).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight);
+    expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
 }
 
 test("settings shell closes sibling overlays, locks height, bounds wheel scroll, and returns focus", async ({
@@ -218,6 +255,97 @@ test("settings data source nested scroll containers reset without freezing", asy
     await page.locator('[data-settings-nav-item="data-sources"]').click();
     await expect.poll(() => elementScrollTop(providerListScroll)).toBe(0);
     await expect.poll(() => elementScrollTop(providerDetailScroll)).toBe(0);
+    await expectShellHeightStable(page, baselineHeight);
+});
+
+test("settings dialog locks a pre-scrolled page while preserving internal scroll", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 640 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    const dashboardHydrated = waitForDashboardHydration(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await dashboardHydrated;
+    await clearSettingsPersistence(page);
+
+    await page.evaluate(() => {
+        const spacer = document.createElement("div");
+        spacer.dataset.testid = "settings-scroll-lock-spacer";
+        spacer.style.height = "1800px";
+        spacer.style.pointerEvents = "none";
+        document.body.append(spacer);
+        window.scrollTo(0, 320);
+    });
+    await expect.poll(() => windowScrollY(page)).toBeGreaterThan(250);
+
+    await page
+        .getByTestId("dashboard-settings-trigger")
+        .evaluate((node) => (node as HTMLElement).click());
+    const shell = page.locator("[data-settings-shell]");
+    await expect(shell).toBeVisible();
+
+    const lockedScrollY = await windowScrollY(page);
+    await page.mouse.move(20, 20);
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => windowScrollY(page)).toBe(lockedScrollY);
+
+    await page.locator('[data-settings-nav-item="voscript"]').click();
+    const settingsScrollBody = page.locator("[data-settings-scroll-body]");
+    await settingsScrollBody.hover();
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => elementScrollTop(settingsScrollBody)).toBeGreaterThan(0);
+    await expect.poll(() => windowScrollY(page)).toBe(lockedScrollY);
+
+    await page.getByTestId("settings-close").click();
+    await expect(shell).toBeHidden();
+    await page.mouse.move(20, 20);
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => windowScrollY(page)).toBeGreaterThan(lockedScrollY);
+});
+
+test("settings shell keeps every desktop section fixed while wheel scrolling", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 640 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await clearSettingsPersistence(page);
+    await page.goto("/settings#transcription", { waitUntil: "domcontentloaded" });
+
+    const shell = page.locator("[data-settings-shell]");
+    const settingsScrollBody = page.locator("[data-settings-scroll-body]");
+    await expect(shell).toBeVisible();
+    const baselineHeight = await settingsShellHeight(page);
+
+    for (const section of desktopSettingsSections) {
+        await page.locator(`[data-settings-nav-item="${section}"]`).click();
+        await expect(shell).toHaveAttribute(
+            "data-settings-active-section",
+            section,
+        );
+        await expectShellHeightStable(page, baselineHeight);
+        await expectShellFitsViewport(page);
+
+        await settingsScrollBody.hover();
+        await page.mouse.wheel(0, 420);
+        await expect
+            .poll(() => page.evaluate(() => window.scrollY))
+            .toBe(0);
+        await expect(shell).toHaveAttribute(
+            "data-settings-active-section",
+            section,
+        );
+    }
+
+    await expect(
+        page.locator('[data-settings-nav-item="transcription"]'),
+    ).toBeVisible();
+    await page.locator('[data-settings-nav-item="transcription"]').click();
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "transcription",
+    );
     await expectShellHeightStable(page, baselineHeight);
 });
 
