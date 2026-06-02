@@ -1515,6 +1515,8 @@ test("recording detail source copy guards missing artifacts without writing empt
 test("recording detail source report retries after first-load failure", async ({
     page,
 }) => {
+    await installClipboardCapture(page);
+
     try {
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
@@ -1551,6 +1553,46 @@ test("recording detail source report retries after first-load failure", async ({
             "Source report temporarily unavailable",
         );
         await expect(page.getByTestId("source-report-loaded")).toHaveCount(0);
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "error");
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toBeEnabled();
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "error");
+        await expect(page.getByTestId("recording-copy-source-report")).toBeEnabled();
+
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(
+                            `/api/recordings/${recordingId}/source-report`,
+                        ) &&
+                    response.request().method() === "GET" &&
+                    response.ok(),
+            ),
+            page.getByTestId("recording-copy-source-report").click(),
+        ]);
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("E2E 源报告摘要");
+        await expect(page.getByTestId("recording-copy-source-report")).toHaveAttribute(
+            "data-source-copy-state",
+            "ready",
+        );
 
         await Promise.all([
             page.waitForResponse(
@@ -1570,7 +1612,7 @@ test("recording detail source report retries after first-load failure", async ({
             "data-source-report-state",
             "loaded",
         );
-        expect(reportAttempts).toBe(2);
+        expect(reportAttempts).toBe(3);
     } finally {
         await cleanupRecordingDetailSeed();
     }

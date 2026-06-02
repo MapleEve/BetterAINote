@@ -93,6 +93,9 @@ interface RawTranscriptCopyPayload {
     error?: string;
 }
 
+type SourceCopyKind = "source-transcript" | "source-report";
+type SourceCopyState = "ready" | "missing" | "error";
+
 function createSourceReportAvailability(
     sourceProvider: string | null | undefined,
 ): SourceReportAvailabilitySnapshot {
@@ -171,6 +174,21 @@ function buildSourceTranscriptCopyText(payload: SourceReportCopyPayload) {
         })
         .filter((segment) => segment.trim())
         .join("\n\n");
+}
+
+function createSourceReportAvailabilityFromPayload(
+    payload: SourceReportCopyPayload,
+): SourceReportAvailabilitySnapshot {
+    const transcriptAvailable = Boolean(
+        buildSourceTranscriptCopyText(payload).trim(),
+    );
+    const reportAvailable = Boolean(payload.summaryMarkdown?.trim());
+
+    return {
+        state: transcriptAvailable || reportAvailable ? "loaded" : "missing",
+        transcriptAvailable,
+        reportAvailable,
+    };
 }
 
 export function RecordingWorkstation({
@@ -563,7 +581,7 @@ export function RecordingWorkstation({
     }, [recording.id, t, transcription?.text]);
 
     const handleCopySourceMaterial = useCallback(
-        async (kind: "source-transcript" | "source-report") => {
+        async (kind: SourceCopyKind) => {
             if (!recording.sourceProvider) {
                 toast.error(t("sourceReport.missingSourceTranscript"));
                 return;
@@ -579,10 +597,18 @@ export function RecordingWorkstation({
                     (await response.json()) as SourceReportCopyPayload;
 
                 if (!response.ok) {
+                    setSourceReportAvailability({
+                        state: "error",
+                        transcriptAvailable: false,
+                        reportAvailable: false,
+                    });
                     toast.error(payload.error ?? t("sourceReport.copyFailed"));
                     return;
                 }
 
+                setSourceReportAvailability(
+                    createSourceReportAvailabilityFromPayload(payload),
+                );
                 const copyText =
                     kind === "source-transcript"
                         ? buildSourceTranscriptCopyText(payload)
@@ -612,47 +638,54 @@ export function RecordingWorkstation({
         [recording.id, recording.sourceProvider, t],
     );
 
-    const sourceTranscriptCopyState =
-        !recording.sourceProvider || sourceReportAvailability.state === "idle"
-            ? "missing"
-            : sourceReportAvailability.state === "loading"
-              ? "loading"
-              : sourceReportAvailability.state === "error"
-                ? "error"
-                : sourceReportAvailability.transcriptAvailable
-                  ? "ready"
-                  : "missing";
-    const sourceReportCopyState =
-        !recording.sourceProvider || sourceReportAvailability.state === "idle"
-            ? "missing"
-            : sourceReportAvailability.state === "loading"
-              ? "loading"
-              : sourceReportAvailability.state === "error"
-                ? "error"
-                : sourceReportAvailability.reportAvailable
-                  ? "ready"
-                  : "missing";
+    const getSourceCopyState = useCallback(
+        (kind: SourceCopyKind): SourceCopyState => {
+            if (!recording.sourceProvider) {
+                return "missing";
+            }
+
+            if (sourceReportAvailability.state === "loaded") {
+                const available =
+                    kind === "source-transcript"
+                        ? sourceReportAvailability.transcriptAvailable
+                        : sourceReportAvailability.reportAvailable;
+                return available ? "ready" : "missing";
+            }
+
+            if (sourceReportAvailability.state === "missing") {
+                return "missing";
+            }
+
+            if (sourceReportAvailability.state === "error") {
+                return "error";
+            }
+
+            return "ready";
+        },
+        [recording.sourceProvider, sourceReportAvailability],
+    );
+    const sourceTranscriptCopyState = getSourceCopyState("source-transcript");
+    const sourceReportCopyState = getSourceCopyState("source-report");
     const sourceTranscriptCopyDisabled =
         copyingAction === "source-transcript" ||
-        sourceTranscriptCopyState !== "ready";
+        !recording.sourceProvider ||
+        sourceTranscriptCopyState === "missing";
     const sourceReportCopyDisabled =
-        copyingAction === "source-report" || sourceReportCopyState !== "ready";
+        copyingAction === "source-report" ||
+        !recording.sourceProvider ||
+        sourceReportCopyState === "missing";
     const sourceTranscriptCopyTitle =
-        sourceTranscriptCopyState === "loading"
-            ? t("sourceReport.loadingDetail")
-            : sourceTranscriptCopyState === "error"
-              ? t("sourceReport.failedFetch")
-              : sourceTranscriptCopyState === "missing"
-                ? t("sourceReport.missingSourceTranscript")
-                : t("sourceReport.copySourceTranscript");
+        sourceTranscriptCopyState === "error"
+            ? t("sourceReport.failedFetch")
+            : sourceTranscriptCopyState === "missing"
+              ? t("sourceReport.missingSourceTranscript")
+              : t("sourceReport.copySourceTranscript");
     const sourceReportCopyTitle =
-        sourceReportCopyState === "loading"
-            ? t("sourceReport.loadingDetail")
-            : sourceReportCopyState === "error"
-              ? t("sourceReport.failedFetch")
-              : sourceReportCopyState === "missing"
-                ? t("sourceReport.missingSourceReport")
-                : t("sourceReport.copySourceReport");
+        sourceReportCopyState === "error"
+            ? t("sourceReport.failedFetch")
+            : sourceReportCopyState === "missing"
+              ? t("sourceReport.missingSourceReport")
+              : t("sourceReport.copySourceReport");
 
     const durationLabel = `${Math.floor(recording.duration / 60000)}:${(
         (recording.duration % 60000) /
