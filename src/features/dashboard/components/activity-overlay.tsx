@@ -22,6 +22,7 @@ import type { UiLanguage } from "@/lib/i18n";
 import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
 import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
+import { TopbarOverlayPortal } from "./topbar-overlay-portal";
 
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityAction = "sync" | "recording" | "settings";
@@ -263,6 +264,7 @@ export function ActivityOverlay({
     const { language, t } = useLanguage();
     const rootRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLElement>(null);
     const syncBaselineRef = useRef<Record<string, ActivitySyncResult>>({});
     const actionTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(
         new Set(),
@@ -353,7 +355,10 @@ export function ActivityOverlay({
             if (!(target instanceof Node)) {
                 return;
             }
-            if (!rootRef.current?.contains(target)) {
+            if (
+                !rootRef.current?.contains(target) &&
+                !panelRef.current?.contains(target)
+            ) {
                 closeAndReturnFocus({ returnFocus: false });
             }
         };
@@ -920,107 +925,116 @@ export function ActivityOverlay({
                 ) : null}
             </Button>
 
-            {open ? (
-                <section
-                    id="dashboard-activity-panel"
-                    role="dialog"
-                    aria-label={t("activityOverlay.title")}
-                    data-state={panelState}
-                    data-testid="dashboard-activity-panel"
-                    className="fixed top-[4.75rem] right-3 left-3 z-[220] flex max-h-[min(calc(100svh-5.5rem),32.5rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl sm:absolute sm:top-11 sm:right-0 sm:left-auto sm:max-h-[min(calc(100svh-6rem),32.5rem)] sm:w-[min(calc(100vw-1.5rem),24rem)]"
-                >
-                    <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
-                        <div className="min-w-0 flex-1">
-                            <h2 className="truncate font-semibold text-sm">
-                                {t("activityOverlay.title")}
-                            </h2>
-                            <p className="truncate text-muted-foreground text-xs">
-                                {actionableCount > 0
-                                    ? t("activityOverlay.pendingCount", {
-                                          count: actionableCount,
-                                      })
-                                    : visibleActivityItems.length > 0
-                                      ? t("activityOverlay.recentCount", {
-                                            count: visibleActivityItems.length,
-                                        })
-                                      : t("activityOverlay.allHandled")}
-                            </p>
-                        </div>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className="h-7 w-7 shrink-0 rounded-lg"
-                            aria-label={t("activityOverlay.close")}
-                            onClick={() => closeAndReturnFocus()}
-                        >
-                            <X className="h-3.5 w-3.5" />
-                        </Button>
-                    </header>
-
-                    <div
-                        className="flex items-center gap-2 border-border/70 border-b bg-muted/35 px-3.5 py-2.5"
-                        data-action-state={statusActionState}
-                        data-state={displayedStatusCopy.state}
-                        data-testid="dashboard-activity-status"
+            <TopbarOverlayPortal
+                anchorRef={triggerRef}
+                maxWidthPx={384}
+                open={open}
+            >
+                {({ style }) => (
+                    <section
+                        ref={panelRef}
+                        id="dashboard-activity-panel"
+                        role="dialog"
+                        aria-label={t("activityOverlay.title")}
+                        data-state={panelState}
+                        data-testid="dashboard-activity-panel"
+                        data-topbar-overlay-portal="true"
+                        style={style}
+                        className="fixed z-[520] flex max-h-[min(calc(100svh-5.5rem),32.5rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                     >
-                        <span
-                            className={cn(
-                                "h-2 w-2 shrink-0 rounded-full",
-                                displayedStatusCopy.state === "loading"
-                                    ? "animate-pulse bg-primary"
-                                    : displayedStatusCopy.state === "error"
-                                      ? "bg-destructive"
-                                      : "bg-emerald-500",
-                            )}
-                            aria-hidden="true"
-                        />
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-xs">
-                                {displayedStatusCopy.line}
-                            </p>
-                            <p className="truncate text-muted-foreground text-[0.68rem]">
-                                {displayedStatusCopy.sub}
-                            </p>
-                        </div>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            aria-busy={statusActionState === "busy"}
-                            data-action-state={statusActionState}
-                            data-testid="dashboard-activity-sync-action"
-                            disabled={statusActionState === "busy"}
-                            className="h-7 shrink-0 rounded-lg px-2 text-xs"
-                            onClick={handleStatusSync}
-                        >
-                            {statusButtonLabel}
-                        </Button>
-                    </div>
+                        <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
+                            <div className="min-w-0 flex-1">
+                                <h2 className="truncate font-semibold text-sm">
+                                    {t("activityOverlay.title")}
+                                </h2>
+                                <p className="truncate text-muted-foreground text-xs">
+                                    {actionableCount > 0
+                                        ? t("activityOverlay.pendingCount", {
+                                              count: actionableCount,
+                                          })
+                                        : visibleActivityItems.length > 0
+                                          ? t("activityOverlay.recentCount", {
+                                                count: visibleActivityItems.length,
+                                            })
+                                          : t("activityOverlay.allHandled")}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="h-7 w-7 shrink-0 rounded-lg"
+                                aria-label={t("activityOverlay.close")}
+                                onClick={() => closeAndReturnFocus()}
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </Button>
+                        </header>
 
-                    {panelState === "empty" ? (
                         <div
-                            className="flex flex-col items-center justify-center px-5 py-10 text-center"
-                            data-testid="dashboard-activity-empty"
+                            className="flex items-center gap-2 border-border/70 border-b bg-muted/35 px-3.5 py-2.5"
+                            data-action-state={statusActionState}
+                            data-state={displayedStatusCopy.state}
+                            data-testid="dashboard-activity-status"
                         >
-                            <CheckCircle2 className="mb-3 h-9 w-9 text-emerald-500" />
-                            <p className="font-medium text-sm">
-                                {t("activityOverlay.emptyTitle")}
-                            </p>
-                            <p className="mt-1 text-muted-foreground text-xs">
-                                {t("activityOverlay.emptyBody")}
-                            </p>
+                            <span
+                                className={cn(
+                                    "h-2 w-2 shrink-0 rounded-full",
+                                    displayedStatusCopy.state === "loading"
+                                        ? "animate-pulse bg-primary"
+                                        : displayedStatusCopy.state === "error"
+                                          ? "bg-destructive"
+                                          : "bg-emerald-500",
+                                )}
+                                aria-hidden="true"
+                            />
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate font-medium text-xs">
+                                    {displayedStatusCopy.line}
+                                </p>
+                                <p className="truncate text-muted-foreground text-[0.68rem]">
+                                    {displayedStatusCopy.sub}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                aria-busy={statusActionState === "busy"}
+                                data-action-state={statusActionState}
+                                data-testid="dashboard-activity-sync-action"
+                                disabled={statusActionState === "busy"}
+                                className="h-7 shrink-0 rounded-lg px-2 text-xs"
+                                onClick={handleStatusSync}
+                            >
+                                {statusButtonLabel}
+                            </Button>
                         </div>
-                    ) : (
-                        <ul
-                            className="min-h-0 flex-1 overflow-y-auto p-1.5"
-                            data-testid="dashboard-activity-list"
-                        >
-                            {visibleActivityItems.map(renderActivityItem)}
-                        </ul>
-                    )}
-                </section>
-            ) : null}
+
+                        {panelState === "empty" ? (
+                            <div
+                                className="flex flex-col items-center justify-center px-5 py-10 text-center"
+                                data-testid="dashboard-activity-empty"
+                            >
+                                <CheckCircle2 className="mb-3 h-9 w-9 text-emerald-500" />
+                                <p className="font-medium text-sm">
+                                    {t("activityOverlay.emptyTitle")}
+                                </p>
+                                <p className="mt-1 text-muted-foreground text-xs">
+                                    {t("activityOverlay.emptyBody")}
+                                </p>
+                            </div>
+                        ) : (
+                            <ul
+                                className="min-h-0 flex-1 overflow-y-auto p-1.5"
+                                data-testid="dashboard-activity-list"
+                            >
+                                {visibleActivityItems.map(renderActivityItem)}
+                            </ul>
+                        )}
+                    </section>
+                )}
+            </TopbarOverlayPortal>
         </div>
     );
 }

@@ -76,11 +76,22 @@ describe("settings UI replacement S6-S8 regressions", () => {
         const activity = readSource(
             "features/dashboard/components/activity-overlay.tsx",
         );
+        const topbarOverlayPortal = readSource(
+            "features/dashboard/components/topbar-overlay-portal.tsx",
+        );
 
         expect(baseDialog).toContain("z-[600]");
         expect(select).toContain("z-[650]");
-        expect(search).toContain("z-[220]");
-        expect(activity).toContain("z-[220]");
+        expect(topbarOverlayPortal).toContain("createPortal");
+        expect(topbarOverlayPortal).toContain("document.body");
+        expect(search).toContain("TopbarOverlayPortal");
+        expect(activity).toContain("TopbarOverlayPortal");
+        expect(search).toContain("z-[520]");
+        expect(activity).toContain("z-[520]");
+        expect(search).toContain('data-topbar-overlay-portal="true"');
+        expect(activity).toContain('data-topbar-overlay-portal="true"');
+        expect(search).not.toContain("fixed top-[4.75rem] right-3 left-3");
+        expect(activity).not.toContain("fixed top-[4.75rem] right-3 left-3");
     });
 
     it("keeps data-source settings on provider rows with detail status, save, and test lanes", () => {

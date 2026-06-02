@@ -244,6 +244,18 @@ async function expectOverlayHitTarget(
 ) {
     const panel = page.getByTestId(testId);
     await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
+
+    const portalState = await panel.evaluate((node) => ({
+        isDirectBodyChild: node.parentElement === document.body,
+        isInsideLibrarySearchRoot: Boolean(
+            node.closest('[data-testid="library-search"]'),
+        ),
+    }));
+    expect(portalState.isDirectBodyChild).toBe(true);
+    if (testId === "library-search-panel") {
+        expect(portalState.isInsideLibrarySearchRoot).toBe(false);
+    }
 
     const result = await panel.evaluate((node, panelTestId) => {
         const rect = node.getBoundingClientRect();
@@ -293,6 +305,65 @@ async function expectOverlayHitTarget(
         result.top + Math.min(48, Math.max(8, result.height / 2)),
     );
     await expect(panel).toBeVisible();
+}
+
+async function expectOverlayAnchoredToTrigger(
+    page: Page,
+    panelTestId: "dashboard-activity-panel" | "library-search-panel",
+    triggerTestId: "dashboard-activity-trigger" | "library-search-trigger",
+) {
+    const panel = page.getByTestId(panelTestId);
+    const trigger = page.getByTestId(triggerTestId);
+    await expect(panel).toBeVisible();
+    await expect(trigger).toBeVisible();
+
+    const metrics = await panel.evaluate((node, triggerId) => {
+        const panelRect = node.getBoundingClientRect();
+        const triggerNode = document.querySelector(
+            `[data-testid="${triggerId}"]`,
+        );
+        if (!triggerNode) {
+            throw new Error(`Missing trigger: ${triggerId}`);
+        }
+        const triggerRect = triggerNode.getBoundingClientRect();
+        const expectedRight = Math.max(
+            12,
+            Math.round(window.innerWidth - triggerRect.right),
+        );
+
+        return {
+            expectedRight,
+            panelRightOffset: window.innerWidth - panelRect.right,
+            panelTop: panelRect.top,
+            triggerBottom: triggerRect.bottom,
+        };
+    }, triggerTestId);
+
+    expect(Math.abs(metrics.panelTop - (metrics.triggerBottom + 8))).toBeLessThanOrEqual(16);
+    expect(Math.abs(metrics.panelRightOffset - metrics.expectedRight)).toBeLessThanOrEqual(16);
+}
+
+async function expectMobileOverlayLayout(
+    page: Page,
+    panelTestId: "dashboard-activity-panel" | "library-search-panel",
+) {
+    const panel = page.getByTestId(panelTestId);
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
+
+    const metrics = await panel.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+            left: rect.left,
+            right: window.innerWidth - rect.right,
+            viewportWidth: window.innerWidth,
+            width: rect.width,
+        };
+    });
+
+    expect(Math.abs(metrics.left - 12)).toBeLessThanOrEqual(2);
+    expect(Math.abs(metrics.right - 12)).toBeLessThanOrEqual(2);
+    expect(metrics.width).toBeLessThanOrEqual(metrics.viewportWidth);
 }
 
 function healthySyncStatus() {
@@ -356,7 +427,7 @@ test("library search keeps error retry and keyboard focus paths live", async ({
 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "220");
+    await expect(panel).toHaveCSS("z-index", "520");
 
     const input = panel.getByRole("combobox", {
         name: "搜索录音、逐字稿、说话人、标签",
@@ -368,7 +439,7 @@ test("library search keeps error retry and keyboard focus paths live", async ({
     await expect(page.getByTestId("library-search-no-results")).toBeVisible();
 
     await page.keyboard.press("Escape");
-    await expect(panel).toBeHidden();
+    await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("library-search-trigger")).toBeFocused();
 });
 
@@ -709,11 +780,16 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await openLibrarySearch(page);
     await expect(moreMenu).toBeHidden();
     await expect(searchPanel).toBeVisible();
-    await expect(searchPanel).toHaveCSS("z-index", "220");
+    await expect(searchPanel).toHaveCSS("z-index", "520");
+    await expectOverlayAnchoredToTrigger(
+        page,
+        "library-search-panel",
+        "library-search-trigger",
+    );
     await expectOverlayHitTarget(page, "library-search-panel");
 
     await page.mouse.click(16, 220);
-    await expect(searchPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
 
     await tagManagerTrigger.click();
     await expect(tagManager).toBeVisible();
@@ -721,22 +797,27 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(tagManager).toBeHidden();
     await expect(searchPanel).toBeVisible();
     await activityTrigger.click();
-    await expect(searchPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
-    await expect(activityPanel).toHaveCSS("z-index", "220");
+    await expect(activityPanel).toHaveCSS("z-index", "520");
+    await expectOverlayAnchoredToTrigger(
+        page,
+        "dashboard-activity-panel",
+        "dashboard-activity-trigger",
+    );
     await expectOverlayHitTarget(page, "dashboard-activity-panel");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
 
     await page.mouse.click(16, 220);
-    await expect(activityPanel).toBeHidden();
+    await expect(activityPanel).toHaveCount(0);
     await openDashboardMoreMenu(page);
     await activityTrigger.click();
     await expect(moreMenu).toBeHidden();
     await expect(activityPanel).toBeVisible();
 
     await openLibrarySearch(page);
-    await expect(activityPanel).toBeHidden();
+    await expect(activityPanel).toHaveCount(0);
     await expect(searchPanel).toBeVisible();
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "false");
@@ -746,20 +827,20 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
         .getByRole("button")
         .focus();
     await page.keyboard.press("Enter");
-    await expect(searchPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
     await expect(moreMenu).toBeVisible();
 
     await openLibrarySearch(page);
     await expect(moreMenu).toBeHidden();
     await tagManagerTrigger.focus();
     await page.keyboard.press("Enter");
-    await expect(searchPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
     await expect(tagManager).toBeVisible();
 
     await settingsTrigger.click();
     await expect(tagManager).toBeHidden();
-    await expect(searchPanel).toBeHidden();
-    await expect(activityPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
+    await expect(activityPanel).toHaveCount(0);
     await expect(page.locator("[data-settings-shell]")).toBeVisible();
 
     await page.getByTestId("settings-close").click();
@@ -777,7 +858,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await activityTrigger.click();
     await expect(activityPanel).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(activityPanel).toBeHidden();
+    await expect(activityPanel).toHaveCount(0);
     await expect(activityTrigger).toBeFocused();
 
     await page.setViewportSize({ width: 390, height: 740 });
@@ -785,11 +866,13 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
 
     await openLibrarySearch(page);
     await expect(searchPanel).toBeVisible();
+    await expectMobileOverlayLayout(page, "library-search-panel");
     await expectOverlayHitTarget(page, "library-search-panel");
 
     await activityTrigger.click();
-    await expect(searchPanel).toBeHidden();
+    await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
+    await expectMobileOverlayLayout(page, "dashboard-activity-panel");
     await expectOverlayHitTarget(page, "dashboard-activity-panel");
 });
 

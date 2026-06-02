@@ -236,6 +236,9 @@ describe("dashboard search and activity overlay regression", () => {
         const activityOverlay = readSource(
             "features/dashboard/components/activity-overlay.tsx",
         );
+        const topbarOverlayPortal = readSource(
+            "features/dashboard/components/topbar-overlay-portal.tsx",
+        );
 
         expect(workstation).toContain(
             'type TopbarOverlay = "search" | "activity"',
@@ -253,20 +256,38 @@ describe("dashboard search and activity overlay regression", () => {
         expect(workstation).toContain("setActiveTopbarOverlay(null);");
         expect(workstation).toContain("overflow-visible");
 
-        expect(searchComponent).toContain("z-[220]");
-        expect(activityOverlay).toContain("z-[220]");
-        expect(searchComponent).toContain("fixed top-[4.75rem] right-3 left-3");
-        expect(activityOverlay).toContain("fixed top-[4.75rem] right-3 left-3");
-        expect(searchComponent).toContain(
+        expect(topbarOverlayPortal).toContain(
+            'import { createPortal } from "react-dom"',
+        );
+        expect(topbarOverlayPortal).toContain(
+            "return createPortal(children({ style }), document.body);",
+        );
+        expect(searchComponent).toContain("TopbarOverlayPortal");
+        expect(activityOverlay).toContain("TopbarOverlayPortal");
+        expect(searchComponent).toContain("z-[520]");
+        expect(activityOverlay).toContain("z-[520]");
+        expect(searchComponent).toContain('data-topbar-overlay-portal="true"');
+        expect(activityOverlay).toContain('data-topbar-overlay-portal="true"');
+        expect(searchComponent).not.toContain(
+            "fixed top-[4.75rem] right-3 left-3",
+        );
+        expect(activityOverlay).not.toContain(
+            "fixed top-[4.75rem] right-3 left-3",
+        );
+        expect(searchComponent).not.toContain(
             "sm:absolute sm:top-11 sm:right-0 sm:left-auto",
         );
-        expect(activityOverlay).toContain(
+        expect(activityOverlay).not.toContain(
             "sm:absolute sm:top-11 sm:right-0 sm:left-auto",
         );
         expect(searchComponent).toContain("max-h-[min(calc(100svh-5.5rem)");
         expect(activityOverlay).toContain("max-h-[min(calc(100svh-5.5rem)");
-        expect(searchComponent).toContain("sm:max-h-[min(calc(100svh-6rem)");
-        expect(activityOverlay).toContain("sm:max-h-[min(calc(100svh-6rem)");
+        expect(searchComponent).not.toContain(
+            "sm:max-h-[min(calc(100svh-6rem)",
+        );
+        expect(activityOverlay).not.toContain(
+            "sm:max-h-[min(calc(100svh-6rem)",
+        );
         expect(activityOverlay).toContain("triggerRef.current?.focus");
         expect(activityOverlay).toContain('event.key === "Escape"');
         expect(activityOverlay).toContain(

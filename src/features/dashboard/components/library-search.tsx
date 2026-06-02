@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { TopbarOverlayPortal } from "./topbar-overlay-portal";
 
 type SearchEntityType = "recording" | "transcript" | "speaker" | "tag";
 
@@ -169,6 +170,7 @@ export function LibrarySearch({
     const { t } = useLanguage();
     const rootRef = useRef<HTMLElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [query, setQuery] = useState("");
     const [scope, setScope] = useState<"all" | SearchEntityType>("all");
@@ -303,7 +305,10 @@ export function LibrarySearch({
             if (!(target instanceof Node)) {
                 return;
             }
-            if (!rootRef.current?.contains(target)) {
+            if (
+                !rootRef.current?.contains(target) &&
+                !panelRef.current?.contains(target)
+            ) {
                 closeAndReturnFocus({ returnFocus: false });
             }
         };
@@ -480,325 +485,339 @@ export function LibrarySearch({
                 <Search className="h-4 w-4" />
             </Button>
 
-            {open ? (
-                <section
-                    id="library-search-panel"
-                    role="dialog"
-                    aria-label={t("librarySearch.dialogLabel")}
-                    data-state={panelState}
-                    data-testid="library-search-panel"
-                    className="fixed top-[4.75rem] right-3 left-3 z-[220] flex max-h-[min(calc(100svh-5.5rem),34rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl sm:absolute sm:top-11 sm:right-0 sm:left-auto sm:max-h-[min(calc(100svh-6rem),34rem)] sm:w-[min(calc(100vw-1.5rem),28.75rem)]"
-                >
-                    <div className="flex items-center gap-2 border-border/70 border-b px-3 py-2.5">
-                        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <input
-                            ref={inputRef}
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            placeholder={t("librarySearch.placeholder")}
-                            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                            aria-label={t("librarySearch.placeholder")}
-                            aria-autocomplete="list"
-                            aria-activedescendant={
-                                displayResults.length > 0
-                                    ? `library-search-result-${activeResultIndex}`
-                                    : undefined
-                            }
-                            aria-controls="library-search-results-listbox"
-                            aria-expanded={open}
-                            autoComplete="off"
-                            onKeyDown={handleInputKeyDown}
-                            role="combobox"
-                        />
-                        {query ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                className="h-7 w-7 shrink-0 rounded-lg"
-                                aria-label={t("librarySearch.clearSearch")}
-                                onClick={() => {
-                                    setQuery("");
-                                    inputRef.current?.focus({
-                                        preventScroll: true,
-                                    });
-                                }}
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </Button>
-                        ) : null}
-                    </div>
-
-                    <fieldset className="flex flex-wrap gap-1 border-border/70 border-b bg-muted/35 px-3 py-2">
-                        <legend className="sr-only">
-                            {t("librarySearch.scopeLegend")}
-                        </legend>
-                        {searchScopes.map((item) => (
-                            <Button
-                                key={item.value}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                aria-pressed={scope === item.value}
-                                data-active={scope === item.value}
-                                className="h-7 rounded-full border border-border/70 px-3 text-xs text-muted-foreground hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
-                                onClick={() => {
-                                    setScope(item.value);
-                                    setActiveResultIndex(0);
-                                    focusSearchInput();
-                                }}
-                            >
-                                {item.label}
-                            </Button>
-                        ))}
-                    </fieldset>
-
-                    <div
-                        className="min-h-0 flex-1 overflow-y-auto p-1.5"
-                        data-testid="library-search-scroll-region"
+            <TopbarOverlayPortal
+                anchorRef={triggerRef}
+                maxWidthPx={460}
+                open={open}
+            >
+                {({ style }) => (
+                    <section
+                        ref={panelRef}
+                        id="library-search-panel"
+                        role="dialog"
+                        aria-label={t("librarySearch.dialogLabel")}
+                        data-state={panelState}
+                        data-testid="library-search-panel"
+                        data-topbar-overlay-portal="true"
+                        style={style}
+                        className="fixed z-[520] flex max-h-[min(calc(100svh-5.5rem),34rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                     >
-                        {!trimmedQuery ? (
-                            <div
-                                className="px-4 py-8 text-center text-muted-foreground text-sm"
-                                data-testid="library-search-no-query"
-                            >
-                                {t("librarySearch.noQuery")}
-                            </div>
-                        ) : null}
-
-                        {loading ? (
-                            <div
-                                className="flex items-center justify-center gap-2 px-4 py-8 text-muted-foreground text-sm"
-                                data-testid="library-search-loading"
-                            >
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                {t("librarySearch.loading")}
-                            </div>
-                        ) : null}
-
-                        {error ? (
-                            <div
-                                className="flex flex-col items-center gap-3 px-4 py-8 text-center"
-                                data-testid="library-search-error"
-                            >
-                                <p className="text-destructive text-sm">
-                                    {t("librarySearch.error")}
-                                </p>
+                        <div className="flex items-center gap-2 border-border/70 border-b px-3 py-2.5">
+                            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <input
+                                ref={inputRef}
+                                value={query}
+                                onChange={(event) =>
+                                    setQuery(event.target.value)
+                                }
+                                placeholder={t("librarySearch.placeholder")}
+                                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                                aria-label={t("librarySearch.placeholder")}
+                                aria-autocomplete="list"
+                                aria-activedescendant={
+                                    displayResults.length > 0
+                                        ? `library-search-result-${activeResultIndex}`
+                                        : undefined
+                                }
+                                aria-controls="library-search-results-listbox"
+                                aria-expanded={open}
+                                autoComplete="off"
+                                onKeyDown={handleInputKeyDown}
+                                role="combobox"
+                            />
+                            {query ? (
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 rounded-lg px-3 text-xs"
-                                    data-ls-retry=""
-                                    onClick={handleRetrySearch}
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="h-7 w-7 shrink-0 rounded-lg"
+                                    aria-label={t("librarySearch.clearSearch")}
+                                    onClick={() => {
+                                        setQuery("");
+                                        inputRef.current?.focus({
+                                            preventScroll: true,
+                                        });
+                                    }}
                                 >
-                                    <RefreshCw className="size-3" />
-                                    {t("librarySearch.retry")}
+                                    <X className="h-3.5 w-3.5" />
                                 </Button>
-                            </div>
-                        ) : null}
+                            ) : null}
+                        </div>
 
-                        {!loading && !error && groupedResults.length > 0 ? (
-                            <div
-                                id="library-search-results-listbox"
-                                aria-label={t("librarySearch.resultsLabel")}
-                                data-testid="library-search-results"
-                                role="listbox"
-                            >
-                                <div className="flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs">
-                                    <span>{resultCountLabel}</span>
-                                    <span>{t("librarySearch.maxResults")}</span>
+                        <fieldset className="flex flex-wrap gap-1 border-border/70 border-b bg-muted/35 px-3 py-2">
+                            <legend className="sr-only">
+                                {t("librarySearch.scopeLegend")}
+                            </legend>
+                            {searchScopes.map((item) => (
+                                <Button
+                                    key={item.value}
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    aria-pressed={scope === item.value}
+                                    data-active={scope === item.value}
+                                    className="h-7 rounded-full border border-border/70 px-3 text-xs text-muted-foreground hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                                    onClick={() => {
+                                        setScope(item.value);
+                                        setActiveResultIndex(0);
+                                        focusSearchInput();
+                                    }}
+                                >
+                                    {item.label}
+                                </Button>
+                            ))}
+                        </fieldset>
+
+                        <div
+                            className="min-h-0 flex-1 overflow-y-auto p-1.5"
+                            data-testid="library-search-scroll-region"
+                        >
+                            {!trimmedQuery ? (
+                                <div
+                                    className="px-4 py-8 text-center text-muted-foreground text-sm"
+                                    data-testid="library-search-no-query"
+                                >
+                                    {t("librarySearch.noQuery")}
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    {groupedResults.map((group) => (
-                                        <section
-                                            key={group.value}
-                                            aria-label={group.label}
-                                            data-testid={`library-search-group-${group.value}`}
-                                        >
-                                            <div className="px-2 py-1 text-[0.66rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                                                {group.label}
-                                            </div>
-                                            <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
-                                                {group.items.map(
-                                                    ({
-                                                        displayIndex,
-                                                        filterTarget,
-                                                        result,
-                                                        targetRecordingId,
-                                                    }) => {
-                                                        const start =
-                                                            formatTime(
-                                                                result.startMs,
-                                                            );
-                                                        const end = formatTime(
-                                                            result.endMs,
-                                                        );
-                                                        const timeRange =
-                                                            start && end
-                                                                ? `${start} - ${end}`
-                                                                : null;
-                                                        const isActive =
-                                                            displayIndex ===
-                                                            activeResultIndex;
-                                                        const isFilter =
-                                                            !targetRecordingId &&
-                                                            Boolean(
-                                                                filterTarget,
-                                                            );
-                                                        const isActionable =
-                                                            Boolean(
-                                                                targetRecordingId,
-                                                            ) || isFilter;
-                                                        const ResultIcon =
-                                                            SEARCH_RESULT_ICONS[
-                                                                result
-                                                                    .entityType
-                                                            ];
-                                                        const title =
-                                                            result.title ||
-                                                            t(
-                                                                "librarySearch.untitledResult",
-                                                            );
+                            ) : null}
 
-                                                        return (
-                                                            <button
-                                                                key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
-                                                                id={`library-search-result-${displayIndex}`}
-                                                                type="button"
-                                                                role="option"
-                                                                aria-selected={
-                                                                    isActive
-                                                                }
-                                                                aria-disabled={
-                                                                    isActionable
-                                                                        ? undefined
-                                                                        : true
-                                                                }
-                                                                data-active={
-                                                                    isActive
-                                                                        ? "true"
-                                                                        : "false"
-                                                                }
-                                                                data-result-mode={
-                                                                    targetRecordingId
-                                                                        ? "navigate"
-                                                                        : isFilter
-                                                                          ? "filter"
-                                                                          : "inert"
-                                                                }
-                                                                data-result-type={
-                                                                    result.entityType
-                                                                }
-                                                                data-testid={`library-search-result-${result.entityType}-${displayIndex}`}
-                                                                tabIndex={
-                                                                    isActionable
-                                                                        ? undefined
-                                                                        : -1
-                                                                }
-                                                                className={cn(
-                                                                    "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-2 border-border/60 border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
-                                                                    isActionable
-                                                                        ? "hover:bg-accent/45 data-[active=true]:bg-accent/60"
-                                                                        : "cursor-default opacity-70",
-                                                                )}
-                                                                onMouseEnter={() =>
-                                                                    setActiveResultIndex(
-                                                                        displayIndex,
-                                                                    )
-                                                                }
-                                                                onClick={() =>
-                                                                    handleResultAction(
-                                                                        result,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <span className="mt-0.5 inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-1.5 text-muted-foreground text-xs">
-                                                                    <ResultIcon className="size-3" />
-                                                                    {getTypeLabel(
-                                                                        result.entityType,
-                                                                        t,
+                            {loading ? (
+                                <div
+                                    className="flex items-center justify-center gap-2 px-4 py-8 text-muted-foreground text-sm"
+                                    data-testid="library-search-loading"
+                                >
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    {t("librarySearch.loading")}
+                                </div>
+                            ) : null}
+
+                            {error ? (
+                                <div
+                                    className="flex flex-col items-center gap-3 px-4 py-8 text-center"
+                                    data-testid="library-search-error"
+                                >
+                                    <p className="text-destructive text-sm">
+                                        {t("librarySearch.error")}
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 rounded-lg px-3 text-xs"
+                                        data-ls-retry=""
+                                        onClick={handleRetrySearch}
+                                    >
+                                        <RefreshCw className="size-3" />
+                                        {t("librarySearch.retry")}
+                                    </Button>
+                                </div>
+                            ) : null}
+
+                            {!loading && !error && groupedResults.length > 0 ? (
+                                <div
+                                    id="library-search-results-listbox"
+                                    aria-label={t("librarySearch.resultsLabel")}
+                                    data-testid="library-search-results"
+                                    role="listbox"
+                                >
+                                    <div className="flex items-center justify-between px-2 py-1.5 text-muted-foreground text-xs">
+                                        <span>{resultCountLabel}</span>
+                                        <span>
+                                            {t("librarySearch.maxResults")}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        {groupedResults.map((group) => (
+                                            <section
+                                                key={group.value}
+                                                aria-label={group.label}
+                                                data-testid={`library-search-group-${group.value}`}
+                                            >
+                                                <div className="px-2 py-1 text-[0.66rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                                                    {group.label}
+                                                </div>
+                                                <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
+                                                    {group.items.map(
+                                                        ({
+                                                            displayIndex,
+                                                            filterTarget,
+                                                            result,
+                                                            targetRecordingId,
+                                                        }) => {
+                                                            const start =
+                                                                formatTime(
+                                                                    result.startMs,
+                                                                );
+                                                            const end =
+                                                                formatTime(
+                                                                    result.endMs,
+                                                                );
+                                                            const timeRange =
+                                                                start && end
+                                                                    ? `${start} - ${end}`
+                                                                    : null;
+                                                            const isActive =
+                                                                displayIndex ===
+                                                                activeResultIndex;
+                                                            const isFilter =
+                                                                !targetRecordingId &&
+                                                                Boolean(
+                                                                    filterTarget,
+                                                                );
+                                                            const isActionable =
+                                                                Boolean(
+                                                                    targetRecordingId,
+                                                                ) || isFilter;
+                                                            const ResultIcon =
+                                                                SEARCH_RESULT_ICONS[
+                                                                    result
+                                                                        .entityType
+                                                                ];
+                                                            const title =
+                                                                result.title ||
+                                                                t(
+                                                                    "librarySearch.untitledResult",
+                                                                );
+
+                                                            return (
+                                                                <button
+                                                                    key={`${result.entityType}-${result.entityId}-${result.startMs ?? 0}`}
+                                                                    id={`library-search-result-${displayIndex}`}
+                                                                    type="button"
+                                                                    role="option"
+                                                                    aria-selected={
+                                                                        isActive
+                                                                    }
+                                                                    aria-disabled={
+                                                                        isActionable
+                                                                            ? undefined
+                                                                            : true
+                                                                    }
+                                                                    data-active={
+                                                                        isActive
+                                                                            ? "true"
+                                                                            : "false"
+                                                                    }
+                                                                    data-result-mode={
+                                                                        targetRecordingId
+                                                                            ? "navigate"
+                                                                            : isFilter
+                                                                              ? "filter"
+                                                                              : "inert"
+                                                                    }
+                                                                    data-result-type={
+                                                                        result.entityType
+                                                                    }
+                                                                    data-testid={`library-search-result-${result.entityType}-${displayIndex}`}
+                                                                    tabIndex={
+                                                                        isActionable
+                                                                            ? undefined
+                                                                            : -1
+                                                                    }
+                                                                    className={cn(
+                                                                        "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-2 border-border/60 border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
+                                                                        isActionable
+                                                                            ? "hover:bg-accent/45 data-[active=true]:bg-accent/60"
+                                                                            : "cursor-default opacity-70",
                                                                     )}
-                                                                </span>
-                                                                <span className="min-w-0">
-                                                                    <span className="block truncate font-medium text-sm">
-                                                                        {renderHighlightedText(
-                                                                            title,
-                                                                            trimmedQuery,
+                                                                    onMouseEnter={() =>
+                                                                        setActiveResultIndex(
+                                                                            displayIndex,
+                                                                        )
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleResultAction(
+                                                                            result,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <span className="mt-0.5 inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-1.5 text-muted-foreground text-xs">
+                                                                        <ResultIcon className="size-3" />
+                                                                        {getTypeLabel(
+                                                                            result.entityType,
+                                                                            t,
                                                                         )}
                                                                     </span>
-                                                                    <span className="mt-1 block line-clamp-2 text-muted-foreground text-xs leading-5">
-                                                                        {renderHighlightedText(
-                                                                            result.body,
-                                                                            trimmedQuery,
-                                                                        )}
+                                                                    <span className="min-w-0">
+                                                                        <span className="block truncate font-medium text-sm">
+                                                                            {renderHighlightedText(
+                                                                                title,
+                                                                                trimmedQuery,
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="mt-1 block line-clamp-2 text-muted-foreground text-xs leading-5">
+                                                                            {renderHighlightedText(
+                                                                                result.body,
+                                                                                trimmedQuery,
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground text-[0.68rem]">
+                                                                            {timeRange ? (
+                                                                                <span>
+                                                                                    {
+                                                                                        timeRange
+                                                                                    }
+                                                                                </span>
+                                                                            ) : null}
+                                                                            {result.speaker ? (
+                                                                                <span>
+                                                                                    {renderHighlightedText(
+                                                                                        result.speaker,
+                                                                                        trimmedQuery,
+                                                                                    )}
+                                                                                </span>
+                                                                            ) : null}
+                                                                            {result.source ? (
+                                                                                <span>
+                                                                                    {
+                                                                                        result.source
+                                                                                    }
+                                                                                </span>
+                                                                            ) : null}
+                                                                        </span>
                                                                     </span>
-                                                                    <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-muted-foreground text-[0.68rem]">
-                                                                        {timeRange ? (
-                                                                            <span>
-                                                                                {
-                                                                                    timeRange
-                                                                                }
-                                                                            </span>
-                                                                        ) : null}
-                                                                        {result.speaker ? (
-                                                                            <span>
-                                                                                {renderHighlightedText(
-                                                                                    result.speaker,
-                                                                                    trimmedQuery,
-                                                                                )}
-                                                                            </span>
-                                                                        ) : null}
-                                                                        {result.source ? (
-                                                                            <span>
-                                                                                {
-                                                                                    result.source
-                                                                                }
-                                                                            </span>
-                                                                        ) : null}
-                                                                    </span>
-                                                                </span>
-                                                                <span className="mt-0.5 shrink-0 text-[0.68rem] text-muted-foreground">
-                                                                    {isFilter
-                                                                        ? t(
-                                                                              "librarySearch.filterAction",
-                                                                          )
-                                                                        : targetRecordingId &&
-                                                                            timeRange
-                                                                          ? timeRange
-                                                                          : !isActionable
+                                                                    <span className="mt-0.5 shrink-0 text-[0.68rem] text-muted-foreground">
+                                                                        {isFilter
                                                                             ? t(
-                                                                                  "librarySearch.notNavigable",
+                                                                                  "librarySearch.filterAction",
                                                                               )
-                                                                            : null}
-                                                                </span>
-                                                            </button>
-                                                        );
-                                                    },
-                                                )}
-                                            </div>
-                                        </section>
-                                    ))}
+                                                                            : targetRecordingId &&
+                                                                                timeRange
+                                                                              ? timeRange
+                                                                              : !isActionable
+                                                                                ? t(
+                                                                                      "librarySearch.notNavigable",
+                                                                                  )
+                                                                                : null}
+                                                                    </span>
+                                                                </button>
+                                                            );
+                                                        },
+                                                    )}
+                                                </div>
+                                            </section>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : null}
+                            ) : null}
 
-                        {!loading &&
-                        !error &&
-                        trimmedQuery &&
-                        results.length === 0 ? (
-                            <div
-                                className="px-4 py-8 text-center text-muted-foreground text-sm"
-                                data-testid="library-search-no-results"
-                            >
-                                {t("librarySearch.noResults", {
-                                    query: trimmedQuery,
-                                })}
-                            </div>
-                        ) : null}
-                    </div>
-                </section>
-            ) : null}
+                            {!loading &&
+                            !error &&
+                            trimmedQuery &&
+                            results.length === 0 ? (
+                                <div
+                                    className="px-4 py-8 text-center text-muted-foreground text-sm"
+                                    data-testid="library-search-no-results"
+                                >
+                                    {t("librarySearch.noResults", {
+                                        query: trimmedQuery,
+                                    })}
+                                </div>
+                            ) : null}
+                        </div>
+                    </section>
+                )}
+            </TopbarOverlayPortal>
         </search>
     );
 }

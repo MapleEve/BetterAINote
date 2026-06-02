@@ -219,6 +219,66 @@ async function resetDisplaySettings(
     expect(resetResponse.ok()).toBe(true);
 }
 
+async function expectActivityPortalOverlay(page: Page) {
+    const panel = page.getByTestId("dashboard-activity-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
+
+    const isDirectBodyChild = await panel.evaluate(
+        (node) => node.parentElement === document.body,
+    );
+    expect(isDirectBodyChild).toBe(true);
+}
+
+async function expectActivityAnchoredToTrigger(page: Page) {
+    const panel = page.getByTestId("dashboard-activity-panel");
+    await expect(panel).toBeVisible();
+
+    const metrics = await panel.evaluate((node) => {
+        const panelRect = node.getBoundingClientRect();
+        const trigger = document.querySelector(
+            '[data-testid="dashboard-activity-trigger"]',
+        );
+        if (!trigger) {
+            throw new Error("Missing activity trigger");
+        }
+        const triggerRect = trigger.getBoundingClientRect();
+
+        return {
+            expectedRight: Math.max(
+                12,
+                Math.round(window.innerWidth - triggerRect.right),
+            ),
+            panelRightOffset: window.innerWidth - panelRect.right,
+            panelTop: panelRect.top,
+            triggerBottom: triggerRect.bottom,
+        };
+    });
+
+    expect(Math.abs(metrics.panelTop - (metrics.triggerBottom + 8))).toBeLessThanOrEqual(16);
+    expect(Math.abs(metrics.panelRightOffset - metrics.expectedRight)).toBeLessThanOrEqual(16);
+}
+
+async function expectActivityMobileLayout(page: Page) {
+    const panel = page.getByTestId("dashboard-activity-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
+
+    const metrics = await panel.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+            left: rect.left,
+            right: window.innerWidth - rect.right,
+            viewportWidth: window.innerWidth,
+            width: rect.width,
+        };
+    });
+
+    expect(Math.abs(metrics.left - 12)).toBeLessThanOrEqual(2);
+    expect(Math.abs(metrics.right - 12)).toBeLessThanOrEqual(2);
+    expect(metrics.width).toBeLessThanOrEqual(metrics.viewportWidth);
+}
+
 test("activity overlay opens data source settings for worker-down notifications", async ({
     page,
 }) => {
@@ -234,7 +294,9 @@ test("activity overlay opens data source settings for worker-down notifications"
     await trigger.click();
     const panel = page.getByTestId("dashboard-activity-panel");
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "220");
+    await expect(panel).toHaveCSS("z-index", "520");
+    await expectActivityPortalOverlay(page);
+    await expectActivityAnchoredToTrigger(page);
 
     const item = panel.locator('[data-activity-id="worker-unavailable"]');
     await expect(item).toBeVisible();
@@ -252,6 +314,7 @@ test("activity overlay opens data source settings for worker-down notifications"
         "data-settings-active-section",
         "data-sources",
     );
+    await expect(panel).toHaveCount(0);
 
     await page.getByTestId("settings-close").click();
     await expect(settingsShell).toBeHidden();
@@ -325,7 +388,7 @@ test("activity overlay exposes default empty and syncing states without layout j
     expect(emptyBoxHeight).toBeGreaterThan(120);
 
     await page.keyboard.press("Escape");
-    await expect(panel).toBeHidden();
+    await expect(panel).toHaveCount(0);
     await expect(trigger).toBeFocused();
 
     statusMode = "syncing";
@@ -342,7 +405,15 @@ test("activity overlay exposes default empty and syncing states without layout j
     await expect(page.getByTestId("dashboard-activity-loading")).toContainText(
         "正在更新来源",
     );
-    await expect(panel).toHaveCSS("z-index", "220");
+    await expect(panel).toHaveCSS("z-index", "520");
+    await expectActivityPortalOverlay(page);
+
+    await page.setViewportSize({ width: 390, height: 740 });
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await page.getByTestId("dashboard-activity-trigger").click();
+    await expectActivityMobileLayout(page);
 });
 
 test("activity overlay opens transcription items and runs the status sync action", async ({
