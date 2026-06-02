@@ -215,6 +215,29 @@ async function openLibrarySearch(page: Page) {
     return panel;
 }
 
+async function openDashboardMoreMenu(page: Page) {
+    const trigger = page
+        .getByTestId("dashboard-detail-more-actions")
+        .getByRole("button");
+    const menu = page.getByTestId("dashboard-detail-more-menu");
+
+    await expect(trigger).toBeVisible();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await trigger.click();
+        if (
+            await menu
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return menu;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(menu).toBeVisible();
+    return menu;
+}
+
 async function expectOverlayHitTarget(
     page: Page,
     testId: "dashboard-activity-panel" | "library-search-panel",
@@ -644,15 +667,33 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     });
 
     await ensureSignedIn(page);
+    await resetDisplaySettings(page);
+    const userId = await getPlaywrightUserId();
+    await seedLibrarySearchRecording(userId);
+    const dashboardHydrated = page
+        .waitForResponse(
+            (response) =>
+                response.url().includes("/api/recording-tags") &&
+                response.ok(),
+            { timeout: 15_000 },
+        )
+        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await dashboardHydrated;
 
     const searchTrigger = page.getByTestId("library-search-trigger");
     const searchPanel = page.getByTestId("library-search-panel");
     const activityTrigger = page.getByTestId("dashboard-activity-trigger");
     const activityPanel = page.getByTestId("dashboard-activity-panel");
     const settingsTrigger = page.getByTestId("dashboard-settings-trigger");
+    const moreMenu = page.getByTestId("dashboard-detail-more-menu");
+    const tagManagerTrigger = page.getByTestId("recording-tag-manager-trigger");
+    const tagManager = page.getByTestId("recording-tag-manager");
+
+    await openDashboardMoreMenu(page);
 
     await openLibrarySearch(page);
+    await expect(moreMenu).toBeHidden();
     await expect(searchPanel).toBeVisible();
     await expect(searchPanel).toHaveCSS("z-index", "220");
     await expectOverlayHitTarget(page, "library-search-panel");
@@ -660,7 +701,10 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await page.mouse.click(16, 220);
     await expect(searchPanel).toBeHidden();
 
+    await tagManagerTrigger.click();
+    await expect(tagManager).toBeVisible();
     await openLibrarySearch(page);
+    await expect(tagManager).toBeHidden();
     await expect(searchPanel).toBeVisible();
     await activityTrigger.click();
     await expect(searchPanel).toBeHidden();
@@ -669,6 +713,13 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expectOverlayHitTarget(page, "dashboard-activity-panel");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
+
+    await page.mouse.click(16, 220);
+    await expect(activityPanel).toBeHidden();
+    await openDashboardMoreMenu(page);
+    await activityTrigger.click();
+    await expect(moreMenu).toBeHidden();
+    await expect(activityPanel).toBeVisible();
 
     await openLibrarySearch(page);
     await expect(activityPanel).toBeHidden();

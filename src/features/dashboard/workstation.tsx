@@ -1182,21 +1182,29 @@ export function Workstation({
     }, [manualSync]);
 
     const setSearchOverlayOpen = useCallback((open: boolean) => {
-        setActiveTopbarOverlay((previous) => {
-            if (open) {
-                return "search";
-            }
+        if (open) {
+            setMoreActionsOpen(false);
+            setTagManagerOpen(false);
+            setSourceDrawerOpen(false);
+            setActiveTopbarOverlay("search");
+            return;
+        }
 
+        setActiveTopbarOverlay((previous) => {
             return previous === "search" ? null : previous;
         });
     }, []);
 
     const setActivityOverlayOpen = useCallback((open: boolean) => {
-        setActiveTopbarOverlay((previous) => {
-            if (open) {
-                return "activity";
-            }
+        if (open) {
+            setMoreActionsOpen(false);
+            setTagManagerOpen(false);
+            setSourceDrawerOpen(false);
+            setActiveTopbarOverlay("activity");
+            return;
+        }
 
+        setActiveTopbarOverlay((previous) => {
             return previous === "activity" ? null : previous;
         });
     }, []);

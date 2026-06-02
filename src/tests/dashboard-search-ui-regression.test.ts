@@ -242,8 +242,11 @@ describe("dashboard search and activity overlay regression", () => {
         );
         expect(workstation).toContain("setSearchOverlayOpen");
         expect(workstation).toContain("setActivityOverlayOpen");
-        expect(workstation).toContain('return "search";');
-        expect(workstation).toContain('return "activity";');
+        expect(workstation).toContain('setActiveTopbarOverlay("search");');
+        expect(workstation).toContain('setActiveTopbarOverlay("activity");');
+        expect(workstation).toContain("setMoreActionsOpen(false);");
+        expect(workstation).toContain("setTagManagerOpen(false);");
+        expect(workstation).toContain("setSourceDrawerOpen(false);");
         expect(workstation).toContain("if (settingsOpen) {");
         expect(workstation).toContain("setActiveTopbarOverlay(null);");
         expect(workstation).toContain("overflow-visible");
