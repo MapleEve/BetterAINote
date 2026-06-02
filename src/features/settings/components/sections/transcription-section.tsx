@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTranscriptionSettingsStore } from "@/features/settings/transcription-settings-store";
 
@@ -22,6 +23,8 @@ export function TranscriptionSection() {
         hasLoaded,
         isLoading,
         isSaving,
+        loadError,
+        ensureTranscriptionSettingsLoaded,
         updateTranscriptionSettings,
     } = useTranscriptionSettingsStore();
     const isZh = language === "zh-CN";
@@ -68,6 +71,33 @@ export function TranscriptionSection() {
 
     if (isLoading && !hasLoaded) {
         return <SettingsSectionSkeleton cards={1} fieldsPerCard={2} />;
+    }
+
+    if (loadError && !hasLoaded) {
+        return (
+            <SettingsLoadErrorState
+                section="transcription"
+                title={isZh ? "转录设置" : "Transcription Settings"}
+                description={
+                    isZh
+                        ? "统一控制本地转录队列的默认行为。上游录音平台在 Data Sources，私有转录服务在 VoScript。"
+                        : "Controls default behavior for the local transcription queue. Recording platforms live in Data Sources, and private transcription lives in VoScript."
+                }
+                headingIcon={<FileText className="size-5" />}
+                errorTitle={
+                    isZh
+                        ? "无法加载转录设置"
+                        : "Transcription settings could not load"
+                }
+                error={loadError}
+                errorTestId="transcription-load-error"
+                retryLabel={isZh ? "重试" : "Retry"}
+                retryTestId="transcription-load-retry"
+                onRetry={() =>
+                    void ensureTranscriptionSettingsLoaded().catch(() => {})
+                }
+            />
+        );
     }
 
     const saveState = isSaving ? "saving" : "ready";

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import {
     SettingsCardSkeleton,
     SettingsSectionSkeleton,
@@ -48,8 +49,15 @@ interface PlaybackSectionProps {
 
 export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
     const { language } = useLanguage();
-    const { settings, isLoading, isSaving, updatePlaybackSettings } =
-        usePlaybackSettingsStore();
+    const {
+        settings,
+        hasLoaded,
+        isLoading,
+        isSaving,
+        loadError,
+        ensurePlaybackSettingsLoaded,
+        updatePlaybackSettings,
+    } = usePlaybackSettingsStore();
     const [pendingVolume, setPendingVolume] = useState<number | null>(null);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
     const isZh = language === "zh-CN";
@@ -102,12 +110,39 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
         }, 500);
     };
 
-    if (isLoading) {
+    if (isLoading && !hasLoaded) {
         if (embedded) {
             return <SettingsCardSkeleton fields={3} />;
         }
 
         return <SettingsSectionSkeleton cards={1} fieldsPerCard={3} />;
+    }
+
+    if (loadError && !hasLoaded) {
+        return (
+            <SettingsLoadErrorState
+                section="playback"
+                title={isZh ? "播放设置" : "Playback Settings"}
+                description={
+                    isZh
+                        ? "控制录音播放默认行为和常用快捷键。"
+                        : "Controls default recording playback behavior and common shortcuts."
+                }
+                headingIcon={<Play />}
+                errorTitle={
+                    isZh
+                        ? "无法加载播放设置"
+                        : "Playback settings could not load"
+                }
+                error={loadError}
+                errorTestId="playback-load-error"
+                retryLabel={isZh ? "重试" : "Retry"}
+                retryTestId="playback-load-retry"
+                onRetry={() =>
+                    void ensurePlaybackSettingsLoaded().catch(() => {})
+                }
+            />
+        );
     }
 
     const content = (

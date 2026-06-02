@@ -207,6 +207,63 @@ test("title generation settings validate, save, and clear sensitive input", asyn
     );
 });
 
+test("title generation settings load failure shows retry-only state", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetCoreSettings(page);
+
+    let failedInitialLoad = false;
+    await page.route("**/api/settings/title-generation", async (route) => {
+        if (route.request().method() !== "GET" || failedInitialLoad) {
+            await route.continue();
+            return;
+        }
+
+        failedInitialLoad = true;
+        await route.fulfill({
+            status: 503,
+            contentType: "application/json",
+            body: JSON.stringify({ error: "Title generation unavailable" }),
+        });
+    });
+
+    await page.goto("/settings#title-generation", {
+        waitUntil: "domcontentloaded",
+    });
+
+    const section = page.locator('[data-settings-section="title-generation"]');
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-settings-load-state", "error");
+    await expect(page.getByTestId("title-generation-load-error")).toContainText(
+        "Title generation unavailable",
+    );
+    await expect(page.getByTestId("title-generation-auto-toggle")).toHaveCount(
+        0,
+    );
+    await expect(page.locator("#title-generation-model")).toHaveCount(0);
+    await expect(page.getByTestId("title-generation-save")).toHaveCount(0);
+
+    const retryResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/title-generation") &&
+            response.request().method() === "GET" &&
+            response.ok(),
+    );
+    await page.getByTestId("title-generation-load-retry").click();
+    await retryResponse;
+
+    await expect(section).toHaveAttribute(
+        "data-title-generation-service-state",
+        "needs-setup",
+    );
+    await expect(page.getByTestId("title-generation-auto-toggle")).toHaveAttribute(
+        "data-state",
+        "checked",
+    );
+    await expect(page.locator("#title-generation-model")).toBeVisible();
+});
+
 test("transcription settings persist auto-transcribe and language changes", async ({
     page,
 }) => {

@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import {
     SettingsCardSkeleton,
     SettingsSectionSkeleton,
@@ -32,6 +33,8 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
         hasLoaded,
         isLoading,
         isSaving,
+        loadError,
+        ensureSyncSettingsLoaded,
         updateSyncSettings,
     } = useSyncSettingsStore();
     const [syncIntervalInput, setSyncIntervalInput] =
@@ -67,6 +70,29 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
         }
 
         return <SettingsSectionSkeleton cards={1} fieldsPerCard={2} />;
+    }
+
+    if (loadError && !hasLoaded) {
+        return (
+            <SettingsLoadErrorState
+                section="sync"
+                title={isZh ? "同步设置" : "Sync Settings"}
+                description={
+                    isZh
+                        ? "控制后台同步检查，不直接绑定某一个数据源。"
+                        : "Controls background checks across configured data sources."
+                }
+                headingIcon={<RefreshCw />}
+                errorTitle={
+                    isZh ? "无法加载同步设置" : "Sync settings could not load"
+                }
+                error={loadError}
+                errorTestId="sync-load-error"
+                retryLabel={isZh ? "重试" : "Retry"}
+                retryTestId="sync-load-retry"
+                onRetry={() => void ensureSyncSettingsLoaded().catch(() => {})}
+            />
+        );
     }
 
     const content = (

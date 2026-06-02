@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
 
@@ -22,6 +23,8 @@ export function TitleGenerationSection() {
         hasLoaded,
         isLoading,
         isSaving,
+        loadError,
+        ensureTitleGenerationSettingsLoaded,
         updateTitleGenerationSettings,
     } = useTitleGenerationSettingsStore();
     const { language } = useLanguage();
@@ -100,6 +103,33 @@ export function TitleGenerationSection() {
 
     if (isLoading && !hasLoaded) {
         return <SettingsSectionSkeleton cards={1} fieldsPerCard={3} />;
+    }
+
+    if (loadError && !hasLoaded) {
+        return (
+            <SettingsLoadErrorState
+                section="title-generation"
+                title={isZh ? "AI 重命名服务" : "AI Rename Service"}
+                description={
+                    isZh
+                        ? "只负责 transcript -> title 这条链路；录音来源和私有转录服务仍分别在 Data Sources 与 VoScript。"
+                        : "Owns only the transcript-to-title chain; recording sources and private transcription remain in Data Sources and VoScript."
+                }
+                headingIcon={<Sparkles className="size-5" />}
+                errorTitle={
+                    isZh
+                        ? "无法加载 AI 重命名设置"
+                        : "AI rename settings could not load"
+                }
+                error={loadError}
+                errorTestId="title-generation-load-error"
+                retryLabel={isZh ? "重试" : "Retry"}
+                retryTestId="title-generation-load-retry"
+                onRetry={() =>
+                    void ensureTitleGenerationSettingsLoaded().catch(() => {})
+                }
+            />
+        );
     }
 
     const serviceState =

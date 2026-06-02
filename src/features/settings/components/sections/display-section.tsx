@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
 import type { UiLanguage } from "@/lib/i18n";
@@ -36,7 +37,7 @@ const ITEMS_PER_PAGE_MIN = 10;
 const ITEMS_PER_PAGE_MAX = 100;
 
 export function DisplaySection() {
-    const { t } = useLanguage();
+    const { language, t } = useLanguage();
     const {
         settings: {
             uiLanguage,
@@ -48,10 +49,13 @@ export function DisplaySection() {
         hasLoaded,
         isLoading,
         isSaving,
+        loadError,
+        ensureDisplaySettingsLoaded,
         updateDisplaySettings,
     } = useDisplaySettingsStore();
     const [itemsPerPageInput, setItemsPerPageInput] = useState(itemsPerPage);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
+    const isZh = language === "zh-CN";
 
     const dateTimeFormatOptions = [
         {
@@ -141,6 +145,29 @@ export function DisplaySection() {
 
     if (isLoading && !hasLoaded) {
         return <SettingsSectionSkeleton cards={4} fieldsPerCard={1} />;
+    }
+
+    if (loadError && !hasLoaded) {
+        return (
+            <SettingsLoadErrorState
+                section="display"
+                title={t("settingsDialog.sections.appearance")}
+                description={t("display.title")}
+                headingIcon={<Monitor />}
+                errorTitle={
+                    isZh
+                        ? "无法加载显示设置"
+                        : "Display settings could not load"
+                }
+                error={loadError}
+                errorTestId="display-load-error"
+                retryLabel={isZh ? "重试" : "Retry"}
+                retryTestId="display-load-retry"
+                onRetry={() =>
+                    void ensureDisplaySettingsLoaded().catch(() => {})
+                }
+            />
+        );
     }
 
     return (

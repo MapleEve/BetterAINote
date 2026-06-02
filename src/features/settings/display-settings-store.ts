@@ -16,6 +16,7 @@ interface DisplaySettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,6 +27,7 @@ function createInitialState(): DisplaySettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
@@ -116,6 +118,7 @@ export function ensureDisplaySettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -126,13 +129,19 @@ export function ensureDisplaySettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch display settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -162,6 +171,13 @@ export async function saveDisplaySettings(updates: DisplaySettingsUpdate) {
 
     try {
         await persistDisplaySettings(updates);
+        if (!storeState.hasLoaded) {
+            setStoreState((currentState) => ({
+                ...currentState,
+                hasLoaded: true,
+                loadError: null,
+            }));
+        }
     } catch (error) {
         setStoreState((currentState) => ({
             ...currentState,

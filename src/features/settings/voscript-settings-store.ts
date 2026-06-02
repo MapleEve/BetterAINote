@@ -305,6 +305,7 @@ export async function saveVoScriptSettings(updates: VoScriptSettingsUpdate) {
             setStoreState((currentState) => ({
                 ...currentState,
                 hasLoaded: true,
+                loadError: null,
             }));
         }
     } catch (error) {

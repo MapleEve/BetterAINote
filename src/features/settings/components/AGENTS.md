@@ -7,6 +7,7 @@
 - `setting-field-control.tsx`
 - `settings-content.tsx`
 - `settings-dialog.tsx`
+- `settings-load-error-state.tsx`
 - `settings-page-content.tsx`
 - `settings-skeletons.tsx`
 

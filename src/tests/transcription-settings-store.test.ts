@@ -136,6 +136,7 @@ describe("transcription settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch transcription settings",
             settings: {
                 autoTranscribe: false,
                 defaultTranscriptionLanguage: null,
@@ -152,6 +153,7 @@ describe("transcription settings store", () => {
             hasLoaded: true,
             isLoading: false,
             isSaving: false,
+            loadError: null,
             settings: {
                 autoTranscribe: true,
                 defaultTranscriptionLanguage: null,

@@ -16,6 +16,7 @@ interface SyncSettingsStoreState {
     hasLoaded: boolean;
     isLoading: boolean;
     isSaving: boolean;
+    loadError: string | null;
 }
 
 const listeners = new Set<Listener>();
@@ -26,6 +27,7 @@ function createInitialState(): SyncSettingsStoreState {
         hasLoaded: false,
         isLoading: true,
         isSaving: false,
+        loadError: null,
     };
 }
 
@@ -114,6 +116,7 @@ export function ensureSyncSettingsLoaded() {
         setStoreState((currentState) => ({
             ...currentState,
             isLoading: true,
+            loadError: null,
         }));
     }
 
@@ -124,13 +127,19 @@ export function ensureSyncSettingsLoaded() {
                 settings,
                 hasLoaded: true,
                 isLoading: false,
+                loadError: null,
             }));
             return settings;
         })
         .catch((error) => {
+            const message =
+                error instanceof Error && error.message.trim()
+                    ? error.message
+                    : "Failed to fetch sync settings";
             setStoreState((currentState) => ({
                 ...currentState,
                 isLoading: false,
+                loadError: message,
             }));
             throw error;
         })
@@ -164,6 +173,7 @@ export async function saveSyncSettings(updates: SyncSettingsUpdate) {
             setStoreState((currentState) => ({
                 ...currentState,
                 hasLoaded: true,
+                loadError: null,
             }));
         }
     } catch (error) {

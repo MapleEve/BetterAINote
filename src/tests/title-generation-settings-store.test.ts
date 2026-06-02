@@ -151,6 +151,7 @@ describe("title generation settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch title generation settings",
             settings: {
                 autoGenerateTitle: true,
                 titleGenerationBaseUrl: null,
@@ -172,6 +173,7 @@ describe("title generation settings store", () => {
             hasLoaded: true,
             isLoading: false,
             isSaving: false,
+            loadError: null,
             settings: {
                 autoGenerateTitle: true,
                 titleGenerationBaseUrl: "https://llm.example.test/v1",

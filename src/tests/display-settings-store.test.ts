@@ -90,6 +90,59 @@ describe("display settings store", () => {
         });
     });
 
+    it("keeps a load error until display settings load successfully", async () => {
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        error: "Display settings unavailable",
+                    }),
+                    {
+                        status: 503,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            )
+            .mockResolvedValueOnce(
+                new Response(
+                    JSON.stringify({
+                        uiLanguage: "en",
+                        dateTimeFormat: "absolute",
+                        recordingListSortOrder: "oldest",
+                        itemsPerPage: 25,
+                        theme: "dark",
+                    }),
+                    {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" },
+                    },
+                ),
+            );
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(ensureDisplaySettingsLoaded()).rejects.toThrow(
+            "Display settings unavailable",
+        );
+
+        expect(getDisplaySettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: false,
+            isLoading: false,
+            loadError: "Display settings unavailable",
+        });
+
+        await expect(ensureDisplaySettingsLoaded()).resolves.toMatchObject({
+            uiLanguage: "en",
+            theme: "dark",
+        });
+
+        expect(getDisplaySettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            isLoading: false,
+            loadError: null,
+        });
+    });
+
     it("rolls back optimistic updates when saving fails", async () => {
         const fetchMock = vi
             .fn<typeof fetch>()

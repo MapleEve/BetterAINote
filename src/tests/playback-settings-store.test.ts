@@ -142,6 +142,7 @@ describe("playback settings store", () => {
             hasLoaded: false,
             isLoading: false,
             isSaving: false,
+            loadError: "Failed to fetch playback settings",
             settings: {
                 defaultPlaybackSpeed: 1.0,
                 defaultVolume: 75,
@@ -159,6 +160,7 @@ describe("playback settings store", () => {
             hasLoaded: true,
             isLoading: false,
             isSaving: false,
+            loadError: null,
             settings: {
                 defaultPlaybackSpeed: 1.5,
                 defaultVolume: 75,
