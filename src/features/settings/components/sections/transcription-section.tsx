@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTranscriptionSettingsStore } from "@/features/settings/transcription-settings-store";
@@ -28,6 +29,7 @@ export function TranscriptionSection() {
         updateTranscriptionSettings,
     } = useTranscriptionSettingsStore();
     const isZh = language === "zh-CN";
+    useSettingsSectionBusy("transcription", isSaving);
 
     const languageOptions = [
         { label: isZh ? "自动检测" : "Auto-detect", value: null },

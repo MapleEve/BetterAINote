@@ -62,6 +62,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(dialog).toContain("returnFocusRef");
         expect(dialog).toContain("focus({ preventScroll: true })");
         expect(dialog).toContain('event.key === "Escape"');
+        expect(dialog).toContain("SettingsBusyProvider");
+        expect(dialog).toContain("data-settings-busy");
+        expect(dialog).toContain("isSettingsBusy");
+        expect(dialog).toContain("setSettingsSectionBusy");
+        expect(dialog).toContain("onInteractOutside");
 
         const select = readSource("components/ui/select.tsx");
         const baseDialog = readSource("components/ui/dialog.tsx");
@@ -128,6 +133,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain('"expired"');
         expect(section).toContain("isProviderInteractionDisabled");
         expect(section).toContain("isProviderActionBusy");
+        expect(section).toContain("useSettingsSectionBusy");
+        expect(section).toContain("isDataSourcesBusy");
+        expect(section).toContain("disabled={isDataSourcesBusy}");
         expect(section).toContain('actionState === "testing"');
         expect(section).toContain('actionState === "saving"');
         expect(section).toContain("data-auth-mode-picker");

@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import {
     SettingsCardSkeleton,
@@ -41,6 +42,7 @@ export function SyncSection({ embedded = false }: SyncSectionProps) {
         useState(syncIntervalSeconds);
 
     const isZh = language === "zh-CN";
+    useSettingsSectionBusy("sync", isSaving);
 
     useEffect(() => {
         setSyncIntervalInput(syncIntervalSeconds);

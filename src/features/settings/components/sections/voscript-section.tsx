@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import type { SettingFieldDefinition } from "@/features/settings/components/setting-field-control";
 import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useVoScriptSettingsStore } from "@/features/settings/voscript-settings-store";
 import { cn } from "@/lib/utils";
@@ -148,6 +149,10 @@ export function VoScriptSection() {
     const [connectionTestMessage, setConnectionTestMessage] = useState<
         string | null
     >(null);
+    useSettingsSectionBusy(
+        "voscript",
+        isSaving || saveState === "saving" || connectionTestState === "testing",
+    );
 
     useEffect(() => {
         setPrivateTranscriptionBaseUrl(privateTranscriptionBaseUrl ?? "");

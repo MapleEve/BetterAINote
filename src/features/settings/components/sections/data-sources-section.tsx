@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import {
     isSourceProvider,
     type SourceProvider,
@@ -508,6 +509,7 @@ function DataSourcesSectionSkeleton({ isZh }: { isZh: boolean }) {
 
 interface ProviderCardProps {
     actionState?: ProviderActionState;
+    disabled?: boolean;
     isSelected: boolean;
     isZh: boolean;
     language: "zh-CN" | "en";
@@ -517,6 +519,7 @@ interface ProviderCardProps {
 
 function ProviderCard({
     actionState = "idle",
+    disabled = false,
     isSelected,
     isZh,
     language,
@@ -538,15 +541,16 @@ function ProviderCard({
     return (
         <button
             type="button"
-            onClick={onSelect}
+            onClick={disabled ? undefined : onSelect}
             aria-pressed={isSelected}
+            disabled={disabled}
             data-provider={source.provider}
             data-provider-selected={isSelected ? "true" : "false"}
             data-provider-state={status.label}
             data-provider-status={status.state}
             data-provider-tone={status.tone}
             className={cn(
-                "grid w-full grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:grid-cols-[2rem_minmax(0,1fr)_auto]",
+                "grid w-full grid-cols-[2rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-55 sm:grid-cols-[2rem_minmax(0,1fr)_auto]",
                 saved && !expired && "border-emerald-400/20 bg-emerald-500/10",
                 saved &&
                     !expired &&
@@ -1003,10 +1007,16 @@ export function DataSourcesSection() {
         () => groupDataSourceProvidersByStage(orderedSources, language),
         [language, orderedSources],
     );
+    const providerActionIsBusy = Object.values(providerActionMessages).some(
+        (message) =>
+            message?.state === "testing" || message?.state === "saving",
+    );
+    const isDataSourcesBusy = Boolean(savingProvider || providerActionIsBusy);
     const connectedCount = orderedSources.filter(hasSavedSetup).length;
     const enabledCount = orderedSources.filter(
         (source) => source.enabled,
     ).length;
+    useSettingsSectionBusy("data-sources", isDataSourcesBusy);
 
     useEffect(() => {
         if (orderedSources.length === 0) {
@@ -1069,6 +1079,10 @@ export function DataSourcesSection() {
     };
 
     const handleSaveSource = async (source: DataSourceDisplayState) => {
+        if (isDataSourcesBusy) {
+            return;
+        }
+
         if (source.runtimeStatus === "planned") {
             setProviderActionMessage(source.provider, {
                 description: isZh
@@ -1111,6 +1125,10 @@ export function DataSourcesSection() {
     };
 
     const handleTestSource = async (source: DataSourceDisplayState) => {
+        if (isDataSourcesBusy) {
+            return;
+        }
+
         if (source.runtimeStatus === "planned") {
             setProviderActionMessage(source.provider, {
                 description: isZh
@@ -1241,6 +1259,7 @@ export function DataSourcesSection() {
                                 onSelect={() =>
                                     setSelectedProvider(source.provider)
                                 }
+                                disabled={isDataSourcesBusy}
                                 source={source}
                             />
                         ))}
@@ -1348,6 +1367,7 @@ export function DataSourcesSection() {
                                     onSelect={() =>
                                         setSelectedProvider(source.provider)
                                     }
+                                    disabled={isDataSourcesBusy}
                                     source={source}
                                 />
                             );

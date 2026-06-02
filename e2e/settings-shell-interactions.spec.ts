@@ -50,6 +50,25 @@ async function openPanelWithRetry(
     }
 }
 
+async function openSettingsWithRetry(page: Page) {
+    const trigger = page.getByTestId("dashboard-settings-trigger");
+    const shell = page.locator("[data-settings-shell]");
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        await trigger.evaluate((node) => (node as HTMLElement).click());
+        if (
+            await shell
+                .isVisible({ timeout: 1_000 })
+                .catch(() => false)
+        ) {
+            return;
+        }
+        await page.waitForTimeout(250);
+    }
+
+    await expect(shell).toBeVisible();
+}
+
 async function settingsShellHeight(page: Page) {
     return page
         .locator("[data-settings-shell]")
@@ -279,9 +298,7 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
     });
     await expect.poll(() => windowScrollY(page)).toBeGreaterThan(250);
 
-    await page
-        .getByTestId("dashboard-settings-trigger")
-        .evaluate((node) => (node as HTMLElement).click());
+    await openSettingsWithRetry(page);
     const shell = page.locator("[data-settings-shell]");
     await expect(shell).toBeVisible();
 
@@ -302,6 +319,68 @@ test("settings dialog locks a pre-scrolled page while preserving internal scroll
     await page.mouse.move(20, 20);
     await page.mouse.wheel(0, 900);
     await expect.poll(() => windowScrollY(page)).toBeGreaterThan(lockedScrollY);
+});
+
+test("settings shell locks navigation and close while a debounced save is pending", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1280, height: 640 });
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await clearSettingsPersistence(page);
+
+    let releaseSave = () => {};
+    let notifySaveStarted = () => {};
+    const saveStarted = new Promise<void>((resolve) => {
+        notifySaveStarted = resolve;
+    });
+    const pendingSave = new Promise<void>((resolve) => {
+        releaseSave = resolve;
+    });
+
+    await page.route("**/api/settings/display", async (route) => {
+        if (route.request().method() !== "PUT") {
+            await route.continue();
+            return;
+        }
+
+        notifySaveStarted();
+        await pendingSave;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
+    const shell = page.locator("[data-settings-shell]");
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "appearance",
+    );
+    await expect(page.locator("#items-per-page")).toHaveValue("50");
+
+    await page.locator("#items-per-page").fill("42");
+    await expect(shell).toHaveAttribute("data-settings-busy", "true");
+    await expect(page.locator('[data-settings-nav-item="misc"]')).toBeDisabled();
+    await expect(page.getByTestId("settings-close")).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(shell).toBeVisible();
+    await page
+        .locator('[data-settings-nav-item="misc"]')
+        .evaluate((node) => (node as HTMLButtonElement).click());
+    await expect(shell).toHaveAttribute(
+        "data-settings-active-section",
+        "appearance",
+    );
+
+    await saveStarted;
+    await expect(page.locator("#items-per-page")).toBeDisabled();
+    releaseSave();
+    await expect(shell).toHaveAttribute("data-settings-busy", "false");
+    await expect(page.locator("#items-per-page")).toBeEnabled();
+    await expect(page.locator('[data-settings-nav-item="misc"]')).toBeEnabled();
+    await expect(page.getByTestId("settings-close")).toBeEnabled();
 });
 
 test("settings shell keeps every desktop section fixed while wheel scrolling", async ({

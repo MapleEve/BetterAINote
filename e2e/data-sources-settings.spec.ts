@@ -213,14 +213,27 @@ test("data sources settings tests missing details then saves a provider through 
     await page.locator("#ticnote-source-secret").fill("fake-ticnote-token");
     await detail.getByTestId("data-source-test-connection").click();
     await testStarted;
+    const shell = page.locator("[data-settings-shell]");
     await expect(detail).toHaveAttribute(
         "data-provider-action-state",
         "testing",
     );
+    await expect(shell).toHaveAttribute("data-settings-busy", "true");
     await expect(detail).toHaveAttribute(
         "data-provider-interaction-disabled",
         "true",
     );
+    await expect(section.locator('[data-provider="plaud"]')).toBeDisabled();
+    await expect(
+        page.locator('[data-settings-nav-item="appearance"]'),
+    ).toBeDisabled();
+    await expect(page.getByTestId("settings-close")).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(shell).toBeVisible();
+    await section
+        .locator('[data-provider="plaud"]')
+        .evaluate((node) => (node as HTMLButtonElement).click());
+    await expect(section).toHaveAttribute("data-ds-selected-provider", "ticnote");
     await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
     await expect(page.locator("#ticnote-enabled")).toBeDisabled();
     await expect(detail.getByTestId("data-source-test-connection")).toBeDisabled();
@@ -235,6 +248,12 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-interaction-disabled",
         "false",
     );
+    await expect(shell).toHaveAttribute("data-settings-busy", "false");
+    await expect(section.locator('[data-provider="plaud"]')).toBeEnabled();
+    await expect(
+        page.locator('[data-settings-nav-item="appearance"]'),
+    ).toBeEnabled();
+    await expect(page.getByTestId("settings-close")).toBeEnabled();
     await expect(page.locator("#ticnote-source-secret")).toBeEnabled();
     await expect(page.locator("#ticnote-enabled")).toBeEnabled();
     await expect(
@@ -264,10 +283,16 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-action-state",
         "saving",
     );
+    await expect(shell).toHaveAttribute("data-settings-busy", "true");
     await expect(detail).toHaveAttribute(
         "data-provider-interaction-disabled",
         "true",
     );
+    await expect(section.locator('[data-provider="plaud"]')).toBeDisabled();
+    await section
+        .locator('[data-provider="plaud"]')
+        .evaluate((node) => (node as HTMLButtonElement).click());
+    await expect(section).toHaveAttribute("data-ds-selected-provider", "ticnote");
     await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
     await expect(page.locator("#ticnote-enabled")).toBeDisabled();
     await expect(detail.getByTestId("data-source-test-connection")).toBeDisabled();
@@ -279,6 +304,8 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-interaction-disabled",
         "false",
     );
+    await expect(shell).toHaveAttribute("data-settings-busy", "false");
+    await expect(section.locator('[data-provider="plaud"]')).toBeEnabled();
     await expect(detail).toHaveAttribute("data-provider-status", "saved");
     const ticnoteRow = section.locator('[data-provider="ticnote"]');
     await expect(ticnoteRow).toHaveAttribute("data-provider-status", "saved");

@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
@@ -57,9 +58,11 @@ export function DisplaySection() {
         updateDisplaySettings,
     } = useDisplaySettingsStore();
     const [itemsPerPageInput, setItemsPerPageInput] = useState(itemsPerPage);
+    const [hasPendingDisplaySave, setHasPendingDisplaySave] = useState(false);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
     const pendingDisplayUpdateRef = useRef<DisplaySettingsUpdate | null>(null);
     const isZh = language === "zh-CN";
+    useSettingsSectionBusy("display", isSaving || hasPendingDisplaySave);
 
     const dateTimeFormatOptions = [
         {
@@ -144,14 +147,20 @@ export function DisplaySection() {
             const pendingUpdates = pendingDisplayUpdateRef.current;
             pendingDisplayUpdateRef.current = null;
             if (pendingUpdates) {
+                setHasPendingDisplaySave(false);
                 persistDisplaySettings(pendingUpdates);
             }
         };
+
+        if (Object.keys(updates).length === 0) {
+            return;
+        }
 
         pendingDisplayUpdateRef.current = {
             ...pendingDisplayUpdateRef.current,
             ...updates,
         };
+        setHasPendingDisplaySave(true);
 
         if (!debounceMs) {
             if (saveTimeoutRef.current) {

@@ -55,6 +55,10 @@ import {
 } from "@/lib/platform/browser-shell";
 import { cn } from "@/lib/utils";
 import type { CanonicalSettingsSection } from "@/types/settings";
+import {
+    type SettingsBusyContextValue,
+    SettingsBusyProvider,
+} from "./settings-busy-context";
 import { SettingsContent } from "./settings-content";
 
 interface SettingsDialogProps {
@@ -232,6 +236,9 @@ export function SettingsDialog(props: SettingsDialogProps) {
         React.useState<CanonicalSettingsSection>(orderedSettingsNav[0].id);
     const [keyboardSelectedIndex, setKeyboardSelectedIndex] =
         React.useState<number>(0);
+    const [busySections, setBusySections] = React.useState<
+        Record<string, true>
+    >({});
     const navBoundaryRef = React.useRef<HTMLElement | null>(null);
     const scrollBodyRef = React.useRef<HTMLDivElement | null>(null);
     const returnFocusRef = React.useRef<HTMLElement | null>(null);
@@ -244,9 +251,52 @@ export function SettingsDialog(props: SettingsDialogProps) {
     const settingsUserName = getSettingsUserDisplayName(props.user, t);
     const settingsUserSubtitle = getSettingsUserSubtitle(props.user, t);
     const settingsUserInitial = getSettingsUserInitial(settingsUserName);
+    const isSettingsBusy = Object.keys(busySections).length > 0;
+    const setSettingsSectionBusy = React.useCallback(
+        (section: string, busy: boolean) => {
+            setBusySections((current) => {
+                const isCurrentlyBusy = Boolean(current[section]);
+                if (isCurrentlyBusy === busy) {
+                    return current;
+                }
+
+                if (busy) {
+                    return {
+                        ...current,
+                        [section]: true,
+                    };
+                }
+
+                const { [section]: _removed, ...rest } = current;
+                return rest;
+            });
+        },
+        [],
+    );
+    const busyContextValue = React.useMemo<SettingsBusyContextValue>(
+        () => ({
+            isSettingsBusy,
+            setSettingsSectionBusy,
+        }),
+        [isSettingsBusy, setSettingsSectionBusy],
+    );
+    const handleDialogOpenChange = React.useCallback(
+        (open: boolean) => {
+            if (!open && isSettingsBusy) {
+                return;
+            }
+
+            props.onOpenChange(open);
+        },
+        [isSettingsBusy, props.onOpenChange],
+    );
     const handleCloseSettings = React.useCallback(() => {
+        if (isSettingsBusy) {
+            return;
+        }
+
         props.onOpenChange(false);
-    }, [props.onOpenChange]);
+    }, [isSettingsBusy, props.onOpenChange]);
     const restoreReturnFocus = React.useCallback(
         (forceFocus = false) => {
             const target =
@@ -299,10 +349,14 @@ export function SettingsDialog(props: SettingsDialogProps) {
         (event: KeyboardEvent) => {
             event.preventDefault();
             event.stopPropagation();
+            if (isSettingsBusy) {
+                return;
+            }
+
             handleCloseSettings();
             restoreReturnFocus(true);
         },
-        [handleCloseSettings, restoreReturnFocus],
+        [handleCloseSettings, isSettingsBusy, restoreReturnFocus],
     );
 
     React.useEffect(() => {
@@ -363,6 +417,12 @@ export function SettingsDialog(props: SettingsDialogProps) {
     }, [props.open, props.returnFocusRef, restoreReturnFocus]);
 
     React.useEffect(() => {
+        if (!props.open) {
+            setBusySections({});
+        }
+    }, [props.open]);
+
+    React.useEffect(() => {
         if (!props.open) return;
 
         const timer = startBrowserTimeout(() => {
@@ -402,8 +462,25 @@ export function SettingsDialog(props: SettingsDialogProps) {
             if (event.key === "Escape") {
                 event.preventDefault();
                 event.stopPropagation();
+                if (isSettingsBusy) {
+                    return;
+                }
+
                 restoreReturnFocus(true);
                 props.onOpenChange(false);
+                return;
+            }
+
+            if (isSettingsBusy) {
+                if (
+                    event.key === "ArrowDown" ||
+                    event.key === "ArrowUp" ||
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
                 return;
             }
 
@@ -431,7 +508,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     break;
             }
         },
-        [keyboardSelectedIndex, props, restoreReturnFocus],
+        [isSettingsBusy, keyboardSelectedIndex, props, restoreReturnFocus],
     );
 
     React.useEffect(() => {
@@ -450,12 +527,19 @@ export function SettingsDialog(props: SettingsDialogProps) {
     }, [activeSection]);
 
     return (
-        <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+        <Dialog open={props.open} onOpenChange={handleDialogOpenChange}>
             <DialogContent
                 data-settings-shell=""
                 data-settings-active-section={activeSection}
+                data-settings-busy={isSettingsBusy ? "true" : "false"}
+                aria-busy={isSettingsBusy}
                 onCloseAutoFocus={handleCloseAutoFocus}
                 onEscapeKeyDown={handleEscapeKeyDown}
+                onInteractOutside={(event) => {
+                    if (isSettingsBusy) {
+                        event.preventDefault();
+                    }
+                }}
                 showCloseButton={false}
                 className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
                 style={
@@ -472,210 +556,233 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     {t("settingsDialog.description")}
                 </DialogDescription>
 
-                <SidebarProvider className="min-h-0 flex-1 items-stretch">
-                    <Sidebar className="hidden md:flex border-r border-border/65 shadow-none before:hidden after:hidden backdrop-blur-none">
-                        <SidebarContent className="gap-0 p-0">
-                            <div
-                                className="flex h-16 shrink-0 items-center gap-3 border-b border-border/65 px-4"
-                                data-testid="settings-user-summary"
-                            >
-                                <span
-                                    className="glass-control flex size-10 shrink-0 items-center justify-center rounded-full font-semibold text-primary text-sm"
-                                    aria-hidden="true"
-                                    data-testid="settings-user-avatar"
+                <SettingsBusyProvider value={busyContextValue}>
+                    <SidebarProvider className="min-h-0 flex-1 items-stretch">
+                        <Sidebar className="hidden md:flex border-r border-border/65 shadow-none before:hidden after:hidden backdrop-blur-none">
+                            <SidebarContent className="gap-0 p-0">
+                                <div
+                                    className="flex h-16 shrink-0 items-center gap-3 border-b border-border/65 px-4"
+                                    data-testid="settings-user-summary"
                                 >
-                                    {settingsUserInitial}
-                                </span>
-                                <div className="min-w-0">
-                                    <h2 className="truncate text-sm font-semibold">
-                                        {settingsUserName}
-                                    </h2>
-                                    <p className="truncate text-muted-foreground text-xs">
-                                        {settingsUserSubtitle}
-                                    </p>
-                                </div>
-                            </div>
-                            <SidebarGroup className="p-4">
-                                <SidebarGroupContent>
-                                    <nav
-                                        ref={navBoundaryRef}
-                                        aria-label={t("settingsDialog.title")}
-                                        className="flex flex-col gap-4"
+                                    <span
+                                        className="glass-control flex size-10 shrink-0 items-center justify-center rounded-full font-semibold text-primary text-sm"
+                                        aria-hidden="true"
+                                        data-testid="settings-user-avatar"
                                     >
-                                        {settingsNavGroups.map((group) => (
-                                            <div
-                                                key={group.labelKey}
-                                                className="flex flex-col gap-1"
-                                            >
-                                                <h3 className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
-                                                    {t(group.labelKey)}
-                                                </h3>
-                                                <SidebarMenu>
-                                                    {group.items.map((item) => {
-                                                        const itemIndex =
-                                                            orderedSettingsNav.findIndex(
-                                                                (entry) =>
-                                                                    entry.id ===
-                                                                    item.id,
-                                                            );
-
-                                                        return (
-                                                            <SidebarMenuItem
-                                                                key={item.id}
-                                                            >
-                                                                <SidebarMenuButton
-                                                                    data-settings-nav-item={
-                                                                        item.id
-                                                                    }
-                                                                    data-settings-nav={
-                                                                        itemIndex ===
-                                                                        0
-                                                                            ? "first"
-                                                                            : undefined
-                                                                    }
-                                                                    isActive={
-                                                                        activeSection ===
-                                                                        item.id
-                                                                    }
-                                                                    data-keyboard-selected={
-                                                                        keyboardSelectedIndex ===
-                                                                        itemIndex
-                                                                    }
-                                                                    onClick={() =>
-                                                                        setActiveSection(
+                                        {settingsUserInitial}
+                                    </span>
+                                    <div className="min-w-0">
+                                        <h2 className="truncate text-sm font-semibold">
+                                            {settingsUserName}
+                                        </h2>
+                                        <p className="truncate text-muted-foreground text-xs">
+                                            {settingsUserSubtitle}
+                                        </p>
+                                    </div>
+                                </div>
+                                <SidebarGroup className="p-4">
+                                    <SidebarGroupContent>
+                                        <nav
+                                            ref={navBoundaryRef}
+                                            aria-label={t(
+                                                "settingsDialog.title",
+                                            )}
+                                            className="flex flex-col gap-4"
+                                        >
+                                            {settingsNavGroups.map((group) => (
+                                                <div
+                                                    key={group.labelKey}
+                                                    className="flex flex-col gap-1"
+                                                >
+                                                    <h3 className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                                                        {t(group.labelKey)}
+                                                    </h3>
+                                                    <SidebarMenu>
+                                                        {group.items.map(
+                                                            (item) => {
+                                                                const itemIndex =
+                                                                    orderedSettingsNav.findIndex(
+                                                                        (
+                                                                            entry,
+                                                                        ) =>
+                                                                            entry.id ===
                                                                             item.id,
-                                                                        )
-                                                                    }
-                                                                    aria-label={`${t(item.labelKey)} ${t("settingsDialog.title")}`}
-                                                                    aria-current={
-                                                                        activeSection ===
-                                                                        item.id
-                                                                            ? "page"
-                                                                            : undefined
-                                                                    }
-                                                                    className="transition-all duration-200"
-                                                                >
-                                                                    <item.icon
-                                                                        data-icon="inline-start"
-                                                                        aria-hidden="true"
-                                                                    />
-                                                                    <span>
-                                                                        {t(
-                                                                            item.labelKey,
-                                                                        )}
-                                                                    </span>
-                                                                </SidebarMenuButton>
-                                                            </SidebarMenuItem>
-                                                        );
-                                                    })}
-                                                </SidebarMenu>
-                                            </div>
-                                        ))}
-                                    </nav>
-                                </SidebarGroupContent>
-                            </SidebarGroup>
-                        </SidebarContent>
-                    </Sidebar>
+                                                                    );
 
-                    <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
-                        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 py-0 pl-4 pr-3">
-                            <div className="flex flex-1 items-center gap-2">
-                                <Breadcrumb>
-                                    <BreadcrumbList>
-                                        <BreadcrumbItem className="hidden md:block">
-                                            <BreadcrumbPage>
-                                                {t("settingsDialog.title")}
-                                            </BreadcrumbPage>
-                                        </BreadcrumbItem>
-                                        <BreadcrumbSeparator className="hidden md:block" />
-                                        <BreadcrumbItem>
-                                            <BreadcrumbPage>
+                                                                return (
+                                                                    <SidebarMenuItem
+                                                                        key={
+                                                                            item.id
+                                                                        }
+                                                                    >
+                                                                        <SidebarMenuButton
+                                                                            data-settings-nav-item={
+                                                                                item.id
+                                                                            }
+                                                                            data-settings-nav={
+                                                                                itemIndex ===
+                                                                                0
+                                                                                    ? "first"
+                                                                                    : undefined
+                                                                            }
+                                                                            isActive={
+                                                                                activeSection ===
+                                                                                item.id
+                                                                            }
+                                                                            data-keyboard-selected={
+                                                                                keyboardSelectedIndex ===
+                                                                                itemIndex
+                                                                            }
+                                                                            onClick={() =>
+                                                                                !isSettingsBusy &&
+                                                                                setActiveSection(
+                                                                                    item.id,
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                isSettingsBusy
+                                                                            }
+                                                                            aria-label={`${t(item.labelKey)} ${t("settingsDialog.title")}`}
+                                                                            aria-current={
+                                                                                activeSection ===
+                                                                                item.id
+                                                                                    ? "page"
+                                                                                    : undefined
+                                                                            }
+                                                                            className="transition-all duration-200"
+                                                                        >
+                                                                            <item.icon
+                                                                                data-icon="inline-start"
+                                                                                aria-hidden="true"
+                                                                            />
+                                                                            <span>
+                                                                                {t(
+                                                                                    item.labelKey,
+                                                                                )}
+                                                                            </span>
+                                                                        </SidebarMenuButton>
+                                                                    </SidebarMenuItem>
+                                                                );
+                                                            },
+                                                        )}
+                                                    </SidebarMenu>
+                                                </div>
+                                            ))}
+                                        </nav>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 py-0 pl-4 pr-3">
+                                <div className="flex flex-1 items-center gap-2">
+                                    <Breadcrumb>
+                                        <BreadcrumbList>
+                                            <BreadcrumbItem className="hidden md:block">
+                                                <BreadcrumbPage>
+                                                    {t("settingsDialog.title")}
+                                                </BreadcrumbPage>
+                                            </BreadcrumbItem>
+                                            <BreadcrumbSeparator className="hidden md:block" />
+                                            <BreadcrumbItem>
+                                                <BreadcrumbPage>
+                                                    {activeNavItem
+                                                        ? t(
+                                                              activeNavItem.labelKey,
+                                                          )
+                                                        : t(
+                                                              "settingsDialog.title",
+                                                          )}
+                                                </BreadcrumbPage>
+                                            </BreadcrumbItem>
+                                        </BreadcrumbList>
+                                    </Breadcrumb>
+                                </div>
+
+                                <div className="md:hidden">
+                                    <Select
+                                        value={activeSection}
+                                        onValueChange={(value) =>
+                                            !isSettingsBusy &&
+                                            setActiveSection(
+                                                value as CanonicalSettingsSection,
+                                            )
+                                        }
+                                        disabled={isSettingsBusy}
+                                    >
+                                        <SelectTrigger
+                                            className="w-[180px]"
+                                            aria-label={t(
+                                                "settingsDialog.title",
+                                            )}
+                                        >
+                                            <SelectValue>
                                                 {activeNavItem
                                                     ? t(activeNavItem.labelKey)
                                                     : t("settingsDialog.title")}
-                                            </BreadcrumbPage>
-                                        </BreadcrumbItem>
-                                    </BreadcrumbList>
-                                </Breadcrumb>
-                            </div>
-
-                            <div className="md:hidden">
-                                <Select
-                                    value={activeSection}
-                                    onValueChange={(value) =>
-                                        setActiveSection(
-                                            value as CanonicalSettingsSection,
-                                        )
-                                    }
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {orderedSettingsNav.map((item) => (
+                                                <SelectItem
+                                                    key={item.id}
+                                                    value={item.id}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <item.icon className="h-4 w-4" />
+                                                        <span>
+                                                            {t(item.labelKey)}
+                                                        </span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <DialogClose
+                                    className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                                    aria-label={t("settingsDialog.close")}
+                                    data-testid="settings-close"
+                                    onClick={handleCloseSettings}
+                                    onKeyDown={handleCloseKeyDown}
+                                    disabled={isSettingsBusy}
+                                    type="button"
                                 >
-                                    <SelectTrigger
-                                        className="w-[180px]"
-                                        aria-label={t("settingsDialog.title")}
-                                    >
-                                        <SelectValue>
-                                            {activeNavItem
-                                                ? t(activeNavItem.labelKey)
-                                                : t("settingsDialog.title")}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {orderedSettingsNav.map((item) => (
-                                            <SelectItem
-                                                key={item.id}
-                                                value={item.id}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <item.icon className="h-4 w-4" />
-                                                    <span>
-                                                        {t(item.labelKey)}
-                                                    </span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <DialogClose
-                                className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                                aria-label={t("settingsDialog.close")}
-                                data-testid="settings-close"
-                                onClick={handleCloseSettings}
-                                onKeyDown={handleCloseKeyDown}
-                                type="button"
-                            >
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">
-                                    {t("settingsDialog.close")}
-                                </span>
-                            </DialogClose>
-                        </header>
+                                    <X className="h-4 w-4" />
+                                    <span className="sr-only">
+                                        {t("settingsDialog.close")}
+                                    </span>
+                                </DialogClose>
+                            </header>
 
-                        <div
-                            ref={scrollBodyRef}
-                            data-settings-scroll-body=""
-                            data-settings-active-section={activeSection}
-                            className={cn(
-                                "flex min-h-0 flex-1 flex-col overscroll-contain",
-                                isDataSourcesSection
-                                    ? "overflow-y-auto p-4 lg:overflow-hidden lg:p-0"
-                                    : "gap-4 overflow-y-auto p-4 pt-6",
-                            )}
-                        >
                             <div
-                                key={activeSection}
+                                ref={scrollBodyRef}
+                                data-settings-scroll-body=""
+                                data-settings-active-section={activeSection}
                                 className={cn(
-                                    "animate-in fade-in-0 min-h-0 duration-200",
-                                    isDataSourcesSection &&
-                                        "flex flex-1 flex-col",
+                                    "flex min-h-0 flex-1 flex-col overscroll-contain",
+                                    isDataSourcesSection
+                                        ? "overflow-y-auto p-4 lg:overflow-hidden lg:p-0"
+                                        : "gap-4 overflow-y-auto p-4 pt-6",
                                 )}
                             >
-                                <SettingsContent
-                                    activeSection={activeSection}
-                                />
+                                <div
+                                    key={activeSection}
+                                    className={cn(
+                                        "animate-in fade-in-0 min-h-0 duration-200",
+                                        isDataSourcesSection &&
+                                            "flex flex-1 flex-col",
+                                    )}
+                                >
+                                    <SettingsContent
+                                        activeSection={activeSection}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </main>
-                </SidebarProvider>
+                        </main>
+                    </SidebarProvider>
+                </SettingsBusyProvider>
             </DialogContent>
         </Dialog>
     );

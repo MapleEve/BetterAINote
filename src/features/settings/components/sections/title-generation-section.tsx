@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import { SettingsSectionSkeleton } from "@/features/settings/components/settings-skeletons";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
@@ -34,6 +35,7 @@ export function TitleGenerationSection() {
         useState("");
     const [titleGenerationApiKey, setTitleGenerationApiKey] = useState("");
     const isZh = language === "zh-CN";
+    useSettingsSectionBusy("title-generation", isSaving);
 
     useEffect(() => {
         setTitleGenerationBaseUrlInput(titleGenerationBaseUrl ?? "");

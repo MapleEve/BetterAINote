@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useSettingsSectionBusy } from "@/features/settings/components/settings-busy-context";
 import { SettingsLoadErrorState } from "@/features/settings/components/settings-load-error-state";
 import {
     SettingsCardSkeleton,
@@ -59,12 +60,14 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
         updatePlaybackSettings,
     } = usePlaybackSettingsStore();
     const [pendingVolume, setPendingVolume] = useState<number | null>(null);
+    const [hasPendingVolumeSave, setHasPendingVolumeSave] = useState(false);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
     const pendingVolumeSaveRef = useRef<number | null>(null);
     const isZh = language === "zh-CN";
     const defaultPlaybackSpeed = settings.defaultPlaybackSpeed;
     const defaultVolume = pendingVolume ?? settings.defaultVolume;
     const autoPlayNext = settings.autoPlayNext;
+    useSettingsSectionBusy("playback", isSaving || hasPendingVolumeSave);
 
     const showSaveError = useCallback(() => {
         toast.error(
@@ -105,6 +108,7 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
 
     const handleDefaultVolumeChange = (volume: number) => {
         setPendingVolume(volume);
+        setHasPendingVolumeSave(true);
         pendingVolumeSaveRef.current = volume;
 
         if (saveTimeoutRef.current) {
@@ -122,6 +126,7 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
                     pendingVolumeSaveRef.current = null;
                 }
                 setPendingVolume(null);
+                setHasPendingVolumeSave(false);
             }
         }, 500);
     };
