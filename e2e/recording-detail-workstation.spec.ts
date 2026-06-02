@@ -801,6 +801,26 @@ test("recording detail keeps the player controls live with local audio", async (
         const storagePath = await writeAudioFixture();
         const recordingId = await seedRecordingDetail(userId, { storagePath });
 
+        await page.addInitScript(() => {
+            const playbackWindow = window as Window & {
+                __betterAiNoteRejectNextPlay?: boolean;
+            };
+            const originalPlay = HTMLMediaElement.prototype.play;
+            HTMLMediaElement.prototype.play = function () {
+                if (playbackWindow.__betterAiNoteRejectNextPlay) {
+                    playbackWindow.__betterAiNoteRejectNextPlay = false;
+                    return Promise.reject(
+                        new DOMException(
+                            "E2E rejected audio playback",
+                            "NotAllowedError",
+                        ),
+                    );
+                }
+
+                return originalPlay.call(this);
+            };
+        });
+
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
         });
@@ -827,6 +847,26 @@ test("recording detail keeps the player controls live with local audio", async (
             )
             .toBeGreaterThan(1);
         await expect(seek).toBeEnabled();
+
+        await page.evaluate(() => {
+            (
+                window as Window & {
+                    __betterAiNoteRejectNextPlay?: boolean;
+                }
+            ).__betterAiNoteRejectNextPlay = true;
+        });
+        await toggle.click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("Failed to play audio"),
+        ).toBeVisible();
+        await expect(toggle).toHaveAttribute("aria-label", "播放录音");
+        await expect
+            .poll(() =>
+                audio.evaluate((node) => (node as HTMLAudioElement).paused),
+            )
+            .toBe(true);
 
         await seek.fill("50");
         await expect

@@ -14,6 +14,85 @@ async function resetDisplayToChinese(page: Page) {
     expect(resetResponse.ok()).toBe(true);
 }
 
+test("VoScript settings shows settings load failure and retries", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let settingsGets = 0;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        settingsGets += 1;
+        if (settingsGets === 1) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 503,
+                body: JSON.stringify({
+                    error: "VoScript settings temporarily unavailable",
+                }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+                privateTranscriptionDenoiseModel: "none",
+                privateTranscriptionMaxInflightJobs: 1,
+                privateTranscriptionMaxSpeakers: 0,
+                privateTranscriptionMinSpeakers: 0,
+                privateTranscriptionNoRepeatNgramSize: 0,
+                privateTranscriptionSnrThreshold: null,
+            }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: [] }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: [],
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const section = page.locator('[data-settings-section="voscript"]');
+    await expect(section).toHaveAttribute("data-voscript-load-state", "error");
+    await expect(page.getByTestId("voscript-load-error")).toContainText(
+        "VoScript settings temporarily unavailable",
+    );
+    await expect(page.getByTestId("voscript-save")).toHaveCount(0);
+
+    await page.getByTestId("voscript-load-retry").click();
+    await expect(section).toHaveAttribute("data-voscript-load-state", "ready");
+    await expect(section).toHaveAttribute(
+        "data-voscript-availability",
+        "configured",
+    );
+    await expect(page.getByTestId("voscript-save")).toBeEnabled();
+    expect(settingsGets).toBe(2);
+});
+
 test("VoScript settings tests the current connection and keeps speaker rows scroll-stable", async ({
     page,
 }) => {

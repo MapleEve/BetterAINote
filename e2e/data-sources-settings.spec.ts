@@ -71,7 +71,7 @@ test("data sources settings shows section-level load failure and retries", async
             return;
         }
 
-        if (failNextLoad) {
+        if (failNextLoad && page.url().includes("/settings")) {
             failNextLoad = false;
             await route.fulfill({
                 contentType: "application/json",

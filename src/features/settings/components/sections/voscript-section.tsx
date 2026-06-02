@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    AlertCircle,
     CheckCircle2,
     Cpu,
     Info,
@@ -88,6 +89,8 @@ export function VoScriptSection() {
         hasLoaded,
         isLoading,
         isSaving,
+        loadError,
+        ensureVoScriptSettingsLoaded,
         updateVoScriptSettings,
     } = useVoScriptSettingsStore();
     const { language } = useLanguage();
@@ -354,6 +357,61 @@ export function VoScriptSection() {
         return <SettingsSectionSkeleton cards={2} fieldsPerCard={3} />;
     }
 
+    if (loadError && !hasLoaded) {
+        return (
+            <div
+                className="flex min-h-0 flex-col gap-5"
+                data-settings-section="voscript"
+                data-voscript-load-state="error"
+            >
+                <div className="flex flex-col gap-2">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <Cpu className="size-5" />
+                        {isZh ? "VoScript 服务" : "VoScript Service"}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                        {isZh
+                            ? "配置私有转写服务、任务参数和说话人资料；录音平台仍在数据源里管理。"
+                            : "Configure the private transcription service, job options, and speaker records. Recording platforms stay in Data Sources."}
+                    </p>
+                </div>
+
+                <Card className="border-destructive/30 bg-destructive/5">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base text-destructive">
+                            <AlertCircle className="size-4" />
+                            {isZh
+                                ? "无法加载 VoScript 配置"
+                                : "VoScript settings could not load"}
+                        </CardTitle>
+                        <CardDescription
+                            className="text-destructive/80"
+                            data-testid="voscript-load-error"
+                            role="alert"
+                        >
+                            {loadError}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            data-testid="voscript-load-retry"
+                            onClick={() =>
+                                void ensureVoScriptSettingsLoaded().catch(
+                                    () => {},
+                                )
+                            }
+                        >
+                            <RefreshCw className="mr-2 size-3.5" />
+                            {isZh ? "重试" : "Retry"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     const savedBaseUrl = privateTranscriptionBaseUrl?.trim() ?? "";
     const draftBaseUrl = privateTranscriptionBaseUrlInput.trim();
     const savedServiceConfigured = Boolean(savedBaseUrl);
@@ -520,6 +578,7 @@ export function VoScriptSection() {
             className="flex min-h-0 flex-col gap-5"
             data-settings-section="voscript"
             data-voscript-availability={serviceAvailability}
+            data-voscript-load-state={hasLoaded ? "ready" : "loading"}
             data-voscript-save-state={isSaving ? "saving" : saveState}
             data-voscript-test-state={connectionTestState}
         >

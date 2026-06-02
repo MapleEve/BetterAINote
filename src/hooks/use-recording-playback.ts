@@ -145,17 +145,24 @@ export function useRecordingPlayback({
 
         if (isPlaying) {
             audio.pause();
+            setIsPlaying(false);
+            return;
         } else {
             audio.playbackRate = playbackSpeed;
-            audio.play().catch((error) => {
-                if (isPlaybackAbort(error)) {
-                    return;
-                }
-                console.error("Error playing audio:", error);
-                toast.error("Failed to play audio");
-            });
+            audio
+                .play()
+                .then(() => {
+                    setIsPlaying(true);
+                })
+                .catch((error) => {
+                    if (isPlaybackAbort(error)) {
+                        return;
+                    }
+                    setIsPlaying(false);
+                    console.error("Error playing audio:", error);
+                    toast.error("Failed to play audio");
+                });
         }
-        setIsPlaying(!isPlaying);
     }, [audioSrc, isPlaying, playbackSpeed]);
 
     const seekToSliderValue = useCallback((value: number[]) => {
