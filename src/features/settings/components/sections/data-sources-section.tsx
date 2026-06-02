@@ -679,7 +679,10 @@ function ProviderDetail({
     const actionState: ProviderActionState = isSaving
         ? "saving"
         : (actionMessage?.state ?? "idle");
-    const isProviderInteractionDisabled = source.runtimeStatus === "planned";
+    const isProviderActionBusy =
+        actionState === "testing" || actionState === "saving";
+    const isProviderInteractionDisabled =
+        source.runtimeStatus === "planned" || isProviderActionBusy;
     const status = getProviderStatusDisplay(source, isZh, actionState);
     const displayName = getSourceProviderLabel(source.provider, language);
     const helpUrl = getDataSourceHelpDocUrl(source.provider);
@@ -932,11 +935,7 @@ function ProviderDetail({
                             variant="outline"
                             onClick={() => void onTest(source)}
                             data-testid="data-source-test-connection"
-                            disabled={
-                                isProviderInteractionDisabled ||
-                                isSaving ||
-                                actionState === "testing"
-                            }
+                            disabled={isProviderInteractionDisabled}
                             aria-busy={actionState === "testing"}
                         >
                             <RotateCw data-icon="inline-start" />
@@ -956,11 +955,7 @@ function ProviderDetail({
                             type="button"
                             onClick={() => void onSave(source)}
                             data-testid="data-source-save"
-                            disabled={
-                                isProviderInteractionDisabled ||
-                                isSaving ||
-                                actionState === "testing"
-                            }
+                            disabled={isProviderInteractionDisabled}
                             aria-busy={isSaving}
                         >
                             {isSaving

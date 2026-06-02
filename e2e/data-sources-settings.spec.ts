@@ -217,6 +217,13 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-action-state",
         "testing",
     );
+    await expect(detail).toHaveAttribute(
+        "data-provider-interaction-disabled",
+        "true",
+    );
+    await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
+    await expect(page.locator("#ticnote-enabled")).toBeDisabled();
+    await expect(detail.getByTestId("data-source-test-connection")).toBeDisabled();
     await expect(detail.getByTestId("data-source-save")).toBeDisabled();
     expect(savePayload).toBeNull();
     releaseTest();
@@ -224,6 +231,12 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-action-state",
         "test-success",
     );
+    await expect(detail).toHaveAttribute(
+        "data-provider-interaction-disabled",
+        "false",
+    );
+    await expect(page.locator("#ticnote-source-secret")).toBeEnabled();
+    await expect(page.locator("#ticnote-enabled")).toBeEnabled();
     await expect(
         detail.getByTestId("data-source-provider-state-banner"),
     ).toContainText("连接测试通过");
@@ -251,9 +264,21 @@ test("data sources settings tests missing details then saves a provider through 
         "data-provider-action-state",
         "saving",
     );
+    await expect(detail).toHaveAttribute(
+        "data-provider-interaction-disabled",
+        "true",
+    );
+    await expect(page.locator("#ticnote-source-secret")).toBeDisabled();
+    await expect(page.locator("#ticnote-enabled")).toBeDisabled();
+    await expect(detail.getByTestId("data-source-test-connection")).toBeDisabled();
+    await expect(detail.getByTestId("data-source-save")).toBeDisabled();
     releaseSave();
 
     await expect(detail).toHaveAttribute("data-provider-action-state", "saved");
+    await expect(detail).toHaveAttribute(
+        "data-provider-interaction-disabled",
+        "false",
+    );
     await expect(detail).toHaveAttribute("data-provider-status", "saved");
     const ticnoteRow = section.locator('[data-provider="ticnote"]');
     await expect(ticnoteRow).toHaveAttribute("data-provider-status", "saved");
@@ -271,6 +296,71 @@ test("data sources settings tests missing details then saves a provider through 
     });
     expect(savePayload?.config).toMatchObject({
         region: "cn",
+    });
+});
+
+test("data sources settings keeps save failures scoped and editable", async ({
+    page,
+}) => {
+    const sources = [
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+        }),
+    ];
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ sources }),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            status: 503,
+            body: JSON.stringify({ error: "保存服务暂不可用" }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    const section = await openDataSourcesSettings(page);
+    const detail = section.locator('[data-provider-detail="ticnote"]');
+
+    await page.locator("#ticnote-source-secret").fill("failed-save-token");
+    await page.locator("#ticnote-enabled").click();
+    await detail.getByTestId("data-source-save").click();
+
+    await expect(detail).toHaveAttribute(
+        "data-provider-action-state",
+        "save-error",
+    );
+    await expect(detail).toHaveAttribute(
+        "data-provider-interaction-disabled",
+        "false",
+    );
+    await expect(
+        detail.getByTestId("data-source-provider-state-banner"),
+    ).toContainText("保存失败");
+    await expect(page.locator("#ticnote-source-secret")).toBeEnabled();
+    await expect(page.locator("#ticnote-source-secret")).toHaveValue(
+        "failed-save-token",
+    );
+    await expect(page.locator("#ticnote-enabled")).toBeEnabled();
+    await expect(page.locator("#ticnote-enabled")).toHaveAttribute(
+        "data-state",
+        "checked",
+    );
+    expect(savePayload).toMatchObject({
+        enabled: true,
+        provider: "ticnote",
+        secrets: { bearerToken: "failed-save-token" },
     });
 });
 
