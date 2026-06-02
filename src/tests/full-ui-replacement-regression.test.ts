@@ -339,6 +339,10 @@ describe("full UI replacement regression coverage", () => {
 
         expect(playback).toContain('id="default-volume"');
         expect(playback).toContain("disabled={isSaving}");
+        expect(playback).toContain("pendingVolumeSaveRef");
+        expect(playback).toContain(
+            "updatePlaybackSettings({ defaultVolume: volume })",
+        );
 
         for (const source of [transcriptionSection, transcriptionSkeletons]) {
             expect(source).toContain("glass-surface-subtle");

@@ -95,10 +95,35 @@ test("playback settings update speed and autoplay, then persist after reload", a
     await autoPlayResponsePromise;
     await expect(autoPlaySwitch).toHaveAttribute("data-state", "checked");
 
+    const volumeFlushResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/playback") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.defaultVolume === 42,
+    );
+    await page.locator("#default-volume").evaluate((node) => {
+        const input = node as HTMLInputElement;
+        const valueSetter = Object.getOwnPropertyDescriptor(
+            HTMLInputElement.prototype,
+            "value",
+        )?.set;
+        valueSetter?.call(input, "42");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.locator('[data-settings-nav-item="appearance"]').click();
+    await volumeFlushResponse;
+    await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
+        "data-settings-active-section",
+        "appearance",
+    );
+
     await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-settings-nav-item="misc"]').click();
 
     await expect(miscHeading).toBeVisible();
     await expect(playbackTitle).toBeVisible();
     await expect(playbackSpeedTrigger).toContainText("1.5x");
+    await expect(page.locator("#default-volume")).toHaveValue("42");
     await expect(autoPlaySwitch).toHaveAttribute("data-state", "checked");
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import {
@@ -60,26 +60,38 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
     } = usePlaybackSettingsStore();
     const [pendingVolume, setPendingVolume] = useState<number | null>(null);
     const saveTimeoutRef = useRef<BrowserTimeoutHandle>(null);
+    const pendingVolumeSaveRef = useRef<number | null>(null);
     const isZh = language === "zh-CN";
     const defaultPlaybackSpeed = settings.defaultPlaybackSpeed;
     const defaultVolume = pendingVolume ?? settings.defaultVolume;
     const autoPlayNext = settings.autoPlayNext;
 
-    useEffect(() => {
-        return () => {
-            if (saveTimeoutRef.current) {
-                stopBrowserTimeout(saveTimeoutRef.current);
-            }
-        };
-    }, []);
-
-    const showSaveError = () => {
+    const showSaveError = useCallback(() => {
         toast.error(
             isZh
                 ? "保存设置失败，已回滚。"
                 : "Failed to save settings. Changes reverted.",
         );
-    };
+    }, [isZh]);
+
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                stopBrowserTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
+
+            if (pendingVolumeSaveRef.current !== null) {
+                const volume = pendingVolumeSaveRef.current;
+                pendingVolumeSaveRef.current = null;
+                void updatePlaybackSettings({ defaultVolume: volume }).catch(
+                    () => {
+                        showSaveError();
+                    },
+                );
+            }
+        };
+    }, [showSaveError, updatePlaybackSettings]);
 
     const handlePlaybackSettingChange = async (
         updates: PlaybackSettingsUpdate,
@@ -93,18 +105,22 @@ export function PlaybackSection({ embedded = false }: PlaybackSectionProps) {
 
     const handleDefaultVolumeChange = (volume: number) => {
         setPendingVolume(volume);
+        pendingVolumeSaveRef.current = volume;
 
         if (saveTimeoutRef.current) {
             stopBrowserTimeout(saveTimeoutRef.current);
         }
 
         saveTimeoutRef.current = startBrowserTimeout(async () => {
+            saveTimeoutRef.current = null;
             try {
                 await updatePlaybackSettings({ defaultVolume: volume });
             } catch {
                 showSaveError();
             } finally {
-                saveTimeoutRef.current = null;
+                if (pendingVolumeSaveRef.current === volume) {
+                    pendingVolumeSaveRef.current = null;
+                }
                 setPendingVolume(null);
             }
         }, 500);
