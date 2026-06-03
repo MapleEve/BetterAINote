@@ -834,7 +834,7 @@ export function RecordingWorkstation({
                         </p>
                     </div>
 
-                    <div className="hidden shrink-0 items-center gap-2 rounded-full border border-border/60 bg-background/30 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-xl md:flex">
+                    <div className="hidden shrink-0 items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-xl md:flex">
                         <Database className="h-3.5 w-3.5" />
                         <span>{sourceLabel}</span>
                     </div>

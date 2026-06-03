@@ -23,7 +23,7 @@ export default function RecordingDetailLoading() {
                         <Skeleton className="h-5 w-64 max-w-full" />
                         <Skeleton className="h-3 w-36" />
                     </div>
-                    <span className="hidden shrink-0 items-center gap-2 rounded-full border border-border/60 bg-background/30 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-xl md:flex">
+                    <span className="hidden shrink-0 items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-xl md:flex">
                         <Database className="h-3.5 w-3.5" />
                         <Skeleton className="h-3 w-20" />
                     </span>

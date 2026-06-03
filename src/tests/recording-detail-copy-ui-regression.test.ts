@@ -132,6 +132,26 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("autoLoad");
         expect(detailWorkstation).not.toContain("container mx-auto max-w-4xl");
         expect(detailWorkstation).not.toContain(">←<");
+
+        const sourceLabelMarker = "<span>{sourceLabel}</span>";
+        const sourceLabelMarkerIndex =
+            detailWorkstation.indexOf(sourceLabelMarker);
+        const headerSourcePillStart = detailWorkstation.lastIndexOf(
+            '<div className="hidden shrink-0 items-center gap-2 rounded-full',
+            sourceLabelMarkerIndex,
+        );
+        const headerSourcePillEnd =
+            detailWorkstation.indexOf("</div>", sourceLabelMarkerIndex) +
+            "</div>".length;
+        const headerSourcePill = detailWorkstation.slice(
+            headerSourcePillStart,
+            headerSourcePillEnd,
+        );
+
+        expect(headerSourcePill).toContain('<Database className="h-3.5 w-3.5"');
+        expect(headerSourcePill).toContain(sourceLabelMarker);
+        expect(headerSourcePill).not.toContain("bg-background/30");
+        expect(headerSourcePill).toContain("bg-muted/20");
     });
 
     it("keeps dashboard transcription panel on the same three-way copy contract", () => {
@@ -183,6 +203,27 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(error).toContain('variant="outline"');
         expect(error).toContain('href="/dashboard"');
         expect(error).toContain("返回录音列表");
+
+        const loadingSourceMarker = '<Skeleton className="h-3 w-20" />';
+        const loadingSourceMarkerIndex = loading.indexOf(loadingSourceMarker);
+        const loadingSourcePillStart = loading.lastIndexOf(
+            '<span className="hidden shrink-0 items-center gap-2 rounded-full',
+            loadingSourceMarkerIndex,
+        );
+        const loadingSourcePillEnd =
+            loading.indexOf("</span>", loadingSourceMarkerIndex) +
+            "</span>".length;
+        const loadingSourcePill = loading.slice(
+            loadingSourcePillStart,
+            loadingSourcePillEnd,
+        );
+
+        expect(loadingSourcePill).toContain(
+            '<Database className="h-3.5 w-3.5" />',
+        );
+        expect(loadingSourcePill).toContain(loadingSourceMarker);
+        expect(loadingSourcePill).not.toContain("bg-background/30");
+        expect(loadingSourcePill).toContain("bg-muted/20");
     });
 
     it("keeps speaker review raw transcript copy available from the review toolbar", () => {
