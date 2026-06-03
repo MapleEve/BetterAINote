@@ -169,7 +169,7 @@ export function RegisterForm() {
                     </Button>
                 </form>
 
-                <div className="rounded-2xl border border-border/55 bg-background/22 px-4 py-3 text-center text-sm backdrop-blur-xl">
+                <div className="glass-surface-subtle rounded-2xl px-4 py-3 text-center text-sm">
                     <span className="text-muted-foreground">
                         {t("auth.alreadyHaveAccount")}{" "}
                     </span>

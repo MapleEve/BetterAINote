@@ -471,7 +471,7 @@ function ProviderDetailSkeleton() {
                     </div>
                 ))}
             </CardContent>
-            <CardFooter className="flex flex-col items-stretch justify-between gap-4 border-t bg-background/10 sm:flex-row sm:items-center">
+            <CardFooter className="flex flex-col items-stretch justify-between gap-4 border-t bg-muted/20 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-col gap-2">
                     <Skeleton className="h-3 w-72 max-w-full" />
                     <Skeleton className="h-3 w-28" />
@@ -921,7 +921,7 @@ function ProviderDetail({
                     ) : null}
                 </CardContent>
 
-                <CardFooter className="flex flex-col items-stretch justify-between gap-4 border-t bg-background/10 sm:flex-row sm:items-center">
+                <CardFooter className="flex flex-col items-stretch justify-between gap-4 border-t bg-muted/20 sm:flex-row sm:items-center">
                     <div className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
                         <span>{footerHint}</span>
                         {helpUrl ? (

@@ -311,7 +311,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         ))}
                     </div>
 
-                    <div className="min-h-[30rem] rounded-3xl border border-border/60 bg-background/24 p-4 backdrop-blur-xl sm:p-6">
+                    <div className="glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6">
                         {visibleStep === "source" ? (
                             <section
                                 className="flex h-full flex-col gap-5"

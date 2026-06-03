@@ -159,7 +159,7 @@ export function LoginForm({ registrationOpen = false }: LoginFormProps) {
                     </Button>
                 </form>
 
-                <div className="rounded-2xl border border-border/55 bg-background/22 px-4 py-3 text-center text-sm text-muted-foreground backdrop-blur-xl">
+                <div className="glass-surface-subtle rounded-2xl px-4 py-3 text-center text-sm text-muted-foreground">
                     {registrationOpen ? (
                         <span>
                             {t("auth.noAccountYet")}{" "}

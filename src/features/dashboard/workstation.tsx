@@ -2128,7 +2128,7 @@ export function Workstation({
                                     />
                                     {librarySearchFilter ? (
                                         <div
-                                            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-background/28 px-3 py-2 text-[0.72rem] text-muted-foreground"
+                                            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-muted/20 px-3 py-2 text-[0.72rem] text-muted-foreground"
                                             data-library-search-filter={
                                                 librarySearchFilter.kind
                                             }

@@ -792,7 +792,7 @@ export function VoScriptSection() {
                 </Card>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex flex-col gap-2 border-border/70 border-t bg-background/85 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+            <div className="sticky bottom-0 z-10 flex flex-col gap-2 border-border/70 border-t bg-card/95 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
                 {saveMessage ? (
                     <div
                         data-testid="voscript-save-message"

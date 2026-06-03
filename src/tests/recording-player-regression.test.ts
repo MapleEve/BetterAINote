@@ -94,5 +94,19 @@ describe("dashboard recording player regressions", () => {
         expect(tagManagerSurface).toContain("bg-muted/20");
         expect(tagManagerSurface).toContain("<RecordingTagChip");
         expect(tagManagerSurface).toContain("+{tags.length - 1}");
+
+        const controlsStateIndex = source.indexOf("data-player-state");
+        const controlsStart = source.lastIndexOf("<div", controlsStateIndex);
+        const controlsEnd = source.indexOf("</div>", controlsStateIndex);
+        const controlsSurface = source.slice(controlsStart, controlsEnd);
+
+        expect(controlsStateIndex).toBeGreaterThanOrEqual(0);
+        expect(controlsStart).toBeGreaterThanOrEqual(0);
+        expect(controlsEnd).toBeGreaterThan(controlsStart);
+        expect(controlsSurface).not.toContain("bg-background/14");
+        expect(controlsSurface).toContain("glass-surface-subtle");
+        expect(controlsSurface).toContain(
+            "grid items-center gap-4 rounded-2xl px-4 py-4",
+        );
     });
 });

@@ -153,6 +153,10 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).not.toContain("bg-background/20");
         expect(section).not.toContain("bg-background/35");
         expect(section).not.toContain("bg-background/45");
+        expect(section).not.toContain("bg-background/10");
+        expect(section).toContain(
+            "flex flex-col items-stretch justify-between gap-4 border-t bg-muted/20",
+        );
         expect(section).toContain("ProviderActionMessage");
         expect(section).toContain("ProviderDisplayStatus");
         expect(section).toContain('"testing"');
@@ -210,6 +214,10 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(voscript).toContain("data-voscript-service-state");
         expect(voscript).toContain("glass-control");
         expect(voscript).not.toContain("bg-background/35");
+        expect(voscript).not.toContain("bg-background/85");
+        expect(voscript).toContain(
+            "sticky bottom-0 z-10 flex flex-col gap-2 border-border/70 border-t bg-card/95",
+        );
         expect(voscript).toContain("data-voscript-availability");
         expect(voscript).toContain("data-voscript-interaction-disabled");
         expect(voscript).toContain("data-voscript-save-state");

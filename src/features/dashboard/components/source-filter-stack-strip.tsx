@@ -114,7 +114,7 @@ export function SourceFilterStackStrip({
             data-state={state}
             data-source-status={sourceRow.status}
             data-testid="dashboard-source-filter-stack"
-            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-background/28 px-3 py-2 text-[0.72rem] text-muted-foreground"
+            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-muted/20 px-3 py-2 text-[0.72rem] text-muted-foreground"
         >
             <span className="inline-flex min-w-0 items-center gap-1.5">
                 <SlidersHorizontal className="size-3.5 shrink-0" />

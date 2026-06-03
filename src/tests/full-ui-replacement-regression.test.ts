@@ -95,11 +95,21 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain("aria-busy={isLoading}");
         expect(register).toContain("data-auth-form-state");
         expect(register).toContain("aria-busy={isLoading}");
+        for (const source of [login, register]) {
+            expect(source).not.toContain("bg-background/22");
+            expect(source).toContain(
+                "glass-surface-subtle rounded-2xl px-4 py-3",
+            );
+        }
         expect(authLayout).toContain("dashboard-workstation");
         expect(onboardingPage).toContain("dashboard-workstation");
         expect(onboarding).toContain("data-onboarding-surface");
         expect(onboarding).toContain("glass-nav-item");
         expect(onboarding).toContain("PROVIDER_ICONS");
+        expect(onboarding).not.toContain("bg-background/24");
+        expect(onboarding).toContain(
+            "glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6",
+        );
         expect(onboarding).not.toContain("item.label.slice(0, 1)");
     });
 
@@ -187,6 +197,8 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(strip).toContain("bg-muted/35");
         expect(strip).toContain("hover:bg-muted/45");
+        expect(strip).toContain("border-b bg-muted/20");
+        expect(strip).not.toContain("bg-background/28");
         expect(strip).not.toContain("bg-background/55");
         expect(strip).not.toContain("放宽筛选");
         expect(strip).not.toContain("前往设置");
@@ -220,6 +232,8 @@ describe("full UI replacement regression coverage", () => {
 
         expect(strip).not.toContain("bg-background/65");
         expect(workstation).not.toContain("bg-background/65");
+        expect(workstation).not.toContain("bg-background/28");
+        expect(workstation).toContain("border-b bg-muted/20");
         expect(favoriteSurfaceStart).toBeGreaterThanOrEqual(0);
         expect(favoriteSurfaceEnd).toBeGreaterThan(favoriteSurfaceStart);
         expect(workstation).not.toContain(

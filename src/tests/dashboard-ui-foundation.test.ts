@@ -12,6 +12,9 @@ function readSource(relativePath: string) {
 describe("dashboard UI foundation", () => {
     it("keeps the web index shell scoped to the three foundation columns", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const sourceFilterStrip = readSource(
+            "features/dashboard/components/source-filter-stack-strip.tsx",
+        );
         const globals = readSource("app/globals.css");
         const favoriteSurfaceStart = workstation.indexOf(
             'onClick={() => handleFavoriteSelect("all")}',
@@ -48,6 +51,10 @@ describe("dashboard UI foundation", () => {
         expect(workstation).not.toContain(
             "data-[active=true]:bg-background/70",
         );
+        expect(workstation).not.toContain("bg-background/28");
+        expect(workstation).toContain("border-b bg-muted/20");
+        expect(sourceFilterStrip).not.toContain("bg-background/28");
+        expect(sourceFilterStrip).toContain("border-b bg-muted/20");
         expect(favoriteSurface).not.toContain("bg-background/50");
         expect(workstation).toContain("data-[active=true]:bg-muted/35");
         expect(workstation).toContain('data-testid="dashboard-favorite-all"');

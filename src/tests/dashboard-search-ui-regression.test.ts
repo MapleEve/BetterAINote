@@ -154,6 +154,14 @@ describe("dashboard search and activity overlay regression", () => {
         expect(workstation).toContain(
             'data-testid="dashboard-library-search-filter"',
         );
+        const librarySearchFilterSurface = sourceAround(
+            workstation,
+            'data-testid="dashboard-library-search-filter"',
+            700,
+        );
+
+        expect(librarySearchFilterSurface).not.toContain("bg-background/28");
+        expect(librarySearchFilterSurface).toContain("bg-muted/20");
         expect(workstation).toContain("data-library-search-filter");
         expect(workstation).toContain("onApplyLibraryFilter={");
     });

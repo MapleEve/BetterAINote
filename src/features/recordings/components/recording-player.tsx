@@ -129,7 +129,7 @@ export function RecordingPlayer({
                 )}
 
                 <div
-                    className="grid items-center gap-4 rounded-2xl border border-border/40 bg-background/14 px-4 py-4 backdrop-blur-xl md:grid-cols-[4rem_minmax(0,1fr)_12.5rem]"
+                    className="glass-surface-subtle grid items-center gap-4 rounded-2xl px-4 py-4 md:grid-cols-[4rem_minmax(0,1fr)_12.5rem]"
                     data-player-state={playbackDisabled ? "disabled" : "ready"}
                 >
                     <Button

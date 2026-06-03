@@ -25,6 +25,10 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("认证与服务地址");
         expect(source).toContain("权限与私有化");
         expect(source).toContain("保存进入工作台");
+        expect(source).not.toContain("bg-background/24");
+        expect(source).toContain(
+            "glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6",
+        );
     });
 
     it("preserves the unified data-source connection and dashboard routing behavior", () => {
