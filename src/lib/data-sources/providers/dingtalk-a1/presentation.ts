@@ -19,18 +19,18 @@ function buildDingTalkFields(
             id: "source-secret",
             target: "secret",
             key: DINGTALK_DEVICE_CREDENTIAL_KEY,
-            label: "dt-meeting-agent-token",
+            label: zh ? "钉钉登录凭证" : "DingTalk sign-in credential",
             value: secretDraft[DINGTALK_DEVICE_CREDENTIAL_KEY] ?? "",
             rows: 3,
             className: "font-mono text-sm",
             description: zh
-                ? "复制钉钉闪记 getConversationList 请求头 dt-meeting-agent-token 的值。"
-                : "Copy the dt-meeting-agent-token header value from the DingTalk A1 getConversationList request.",
+                ? "粘贴钉钉闪记当前账号的访问凭证。"
+                : "Paste the access credential for your current DingTalk A1 account.",
             placeholder: state.secretsConfigured[DINGTALK_DEVICE_CREDENTIAL_KEY]
                 ? "••••••••••••••••"
                 : zh
-                  ? "dt-meeting-agent-token"
-                  : "dt-meeting-agent-token",
+                  ? "粘贴登录凭证"
+                  : "Paste sign-in credential",
         }),
     ];
 }

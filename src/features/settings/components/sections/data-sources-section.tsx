@@ -755,11 +755,11 @@ function ProviderDetail({
                                 <span className="mt-1 block text-xs text-muted-foreground">
                                     {mode === "web-reverse"
                                         ? isZh
-                                            ? "网页登录会话，适合从网页导入来源内容。"
-                                            : "Web session credentials for source-side imports."
+                                            ? "网页登录信息，适合从已登录网页导入来源内容。"
+                                            : "Web sign-in details for importing from a signed-in web session."
                                         : isZh
-                                          ? "开放平台或服务端凭据，适合稳定导入。"
-                                          : "Open-platform or server credentials for stable imports."}
+                                          ? "授权信息，适合稳定导入。"
+                                          : "Access details for stable imports."}
                                 </span>
                             </button>
                         );

@@ -96,7 +96,7 @@ type RetranscriptionBannerState =
     | "unavailable";
 type CopyAction = "local" | "source-transcript" | "source-report" | null;
 type SourceCopyKind = Exclude<CopyAction, "local" | null>;
-type SourceCopyState = "ready" | "missing" | "error";
+type SourceCopyState = "ready" | "missing" | "loading" | "error";
 
 function applySpeakerMap(
     text: string,
@@ -661,6 +661,10 @@ export function TranscriptionPanel({
                 return "missing";
             }
 
+            if (sourceReportAvailability.state === "loading") {
+                return "loading";
+            }
+
             if (sourceReportAvailability.state === "error") {
                 return "error";
             }
@@ -671,26 +675,35 @@ export function TranscriptionPanel({
     );
     const sourceTranscriptCopyState = getSourceCopyState("source-transcript");
     const sourceReportCopyState = getSourceCopyState("source-report");
-    const sourceTranscriptCopyDisabled =
+    const isCopyingSourceMaterial =
         copyingAction === "source-transcript" ||
+        copyingAction === "source-report";
+    const sourceTranscriptCopyDisabled =
+        isCopyingSourceMaterial ||
         !recording.sourceProvider ||
-        sourceTranscriptCopyState === "missing";
+        sourceTranscriptCopyState === "missing" ||
+        sourceTranscriptCopyState === "loading";
     const sourceReportCopyDisabled =
-        copyingAction === "source-report" ||
+        isCopyingSourceMaterial ||
         !recording.sourceProvider ||
-        sourceReportCopyState === "missing";
+        sourceReportCopyState === "missing" ||
+        sourceReportCopyState === "loading";
     const sourceTranscriptCopyTitle =
-        sourceTranscriptCopyState === "error"
-            ? t("sourceReport.failedFetch")
-            : sourceTranscriptCopyState === "missing"
-              ? t("sourceReport.missingSourceTranscript")
-              : t("sourceReport.copySourceTranscript");
+        sourceTranscriptCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceTranscriptCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceTranscriptCopyState === "missing"
+                ? t("sourceReport.missingSourceTranscript")
+                : t("sourceReport.copySourceTranscript");
     const sourceReportCopyTitle =
-        sourceReportCopyState === "error"
-            ? t("sourceReport.failedFetch")
-            : sourceReportCopyState === "missing"
-              ? t("sourceReport.missingSourceReport")
-              : t("sourceReport.copySourceReport");
+        sourceReportCopyState === "loading"
+            ? t("sourceReport.loadingDetail")
+            : sourceReportCopyState === "error"
+              ? t("sourceReport.failedFetch")
+              : sourceReportCopyState === "missing"
+                ? t("sourceReport.missingSourceReport")
+                : t("sourceReport.copySourceReport");
 
     const tabs: Array<{ id: WorkspaceTab; label: string }> = [
         { id: "transcript", label: t("transcription.outputTitle") },

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/theme-provider";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
+import { DisplayPreferencesProvider } from "@/features/settings/components/display-preferences-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function RootLayout({
     return (
         <html lang="zh-CN" suppressHydrationWarning>
             <body className="antialiased">
-                <ThemeProvider
+                <DisplayPreferencesProvider
                     attribute="class"
                     defaultTheme="system"
                     enableSystem
@@ -31,7 +31,7 @@ export default function RootLayout({
                 >
                     <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
                     <Toaster />
-                </ThemeProvider>
+                </DisplayPreferencesProvider>
             </body>
         </html>
     );

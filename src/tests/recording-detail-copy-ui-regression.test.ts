@@ -205,6 +205,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain("buildSourceTranscriptCopyText");
         expect(dashboardTranscript).toContain("sourceReportAvailability");
         expect(dashboardTranscript).toContain("data-source-copy-state");
+        expect(dashboardTranscript).toContain(
+            'type SourceCopyState = "ready" | "missing" | "loading" | "error"',
+        );
+        expect(dashboardTranscript).toContain('return "loading"');
+        expect(dashboardTranscript).toContain(
+            'sourceTranscriptCopyState === "loading"',
+        );
+        expect(dashboardTranscript).toContain(
+            'sourceReportCopyState === "loading"',
+        );
+        expect(dashboardTranscript).toContain("sourceReport.loadingDetail");
         expect(dashboardTranscript).toContain("onAvailabilityChange");
         expect(dashboardTranscript).toContain(
             "sourceReport.copySourceTranscript",

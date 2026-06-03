@@ -175,4 +175,21 @@ describe("preview architecture boundary", () => {
             ),
         ).toEqual([]);
     });
+
+    it("keeps shared components independent from feature and backend layers", () => {
+        const offenders = collectFiles(
+            path.join(process.cwd(), "src/components"),
+            (name) => name.endsWith(".ts") || name.endsWith(".tsx"),
+        )
+            .map((filePath) => ({
+                filePath,
+                source: readFileSync(filePath, "utf8"),
+            }))
+            .filter(({ source }) =>
+                /from\s+["']@\/(?:features|server|db)(?:\/|["'])/.test(source),
+            )
+            .map(({ filePath }) => path.relative(process.cwd(), filePath));
+
+        expect(offenders).toEqual([]);
+    });
 });

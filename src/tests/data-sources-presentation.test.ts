@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
     DATA_SOURCE_CATALOG,
@@ -25,6 +27,10 @@ import {
 } from "@/lib/data-sources/presentation";
 import { translations } from "@/lib/i18n";
 
+function readSource(relativePath: string) {
+    return readFileSync(path.join(process.cwd(), "src", relativePath), "utf8");
+}
+
 describe("data-sources presentation helpers", () => {
     it("keeps common queue and workflow copy user-facing", () => {
         const zhCopy = JSON.stringify(translations["zh-CN"]);
@@ -36,6 +42,16 @@ describe("data-sources presentation helpers", () => {
         expect(zhCopy).not.toContain(blockedZhWorkflow);
         expect(enCopy).not.toContain("queued for worker");
         expect(enCopy).not.toContain("Waiting for worker");
+    });
+
+    it("keeps data source settings auth helper copy user-facing", () => {
+        const settingsSection = readSource(
+            "features/settings/components/sections/data-sources-section.tsx",
+        );
+
+        expect(settingsSection).not.toContain("Authorization details");
+        expect(settingsSection).not.toContain("request header");
+        expect(settingsSection).not.toContain("request URL");
     });
 
     it("derives provider labels and source tab labels from shared metadata", () => {
@@ -147,22 +163,22 @@ describe("data-sources presentation helpers", () => {
 
     it("uses user-facing sign-in labels instead of engineering terms", () => {
         expect(getSourceAuthModeDisplayLabel("web-reverse", "zh-CN")).toBe(
-            "space_name + Cookie",
+            "网页登录信息",
         );
         expect(getSourceAuthModeDisplayLabel("web-reverse", "en")).toBe(
-            "space_name + Cookie",
+            "Web sign-in details",
         );
         expect(getSourceAuthModeDisplayLabel("session-header", "zh-CN")).toBe(
-            "X-Session-Id",
+            "会话凭证",
         );
         expect(getSourceAuthModeDisplayLabel("session-header", "en")).toBe(
-            "X-Session-Id",
+            "Session credential",
         );
         expect(getSourceAuthModeDisplayLabel("device-signin", "zh-CN")).toBe(
-            "dt-meeting-agent-token",
+            "设备登录凭证",
         );
         expect(getSourceAuthModeDisplayLabel("oauth-device-flow", "en")).toBe(
-            "Open platform user_access_token",
+            "Open platform authorization",
         );
     });
 
@@ -229,7 +245,7 @@ describe("data-sources presentation helpers", () => {
                 secretsConfigured: {},
             },
             { ticnote: drafts.ticnote.secrets },
-            "en",
+            "zh-CN",
             "settings",
         );
         expect(ticnoteFields.some((field) => field.key === "orgId")).toBe(
@@ -448,8 +464,7 @@ describe("data-sources presentation helpers", () => {
         ).toMatchObject({
             label: "飞书开放平台地址",
             value: "https://open.feishu.cn",
-            description:
-                "用于飞书开放平台接口；填写 user_access_token 时使用这个地址。",
+            description: "用于飞书开放平台导入；填写授权信息时使用这个地址。",
             readOnly: true,
         });
 
@@ -469,7 +484,7 @@ describe("data-sources presentation helpers", () => {
             label: "飞书妙记网页地址",
             value: "https://meetings.feishu.cn",
             description:
-                "用于飞书妙记网页请求；填写 space_name、Cookie 时使用这个地址。",
+                "用于飞书妙记网页导入；填写网页登录信息时使用这个地址。",
             readOnly: true,
         });
 
@@ -488,8 +503,7 @@ describe("data-sources presentation helpers", () => {
         ).toMatchObject({
             label: "钉钉闪记服务地址",
             value: "https://meeting-ai-tingji.dingtalk.com",
-            description:
-                "用于 getConversationList、minutesDetailV2 等钉钉闪记接口。",
+            description: "用于钉钉闪记导入和来源详情读取。",
             readOnly: true,
         });
 
@@ -515,7 +529,7 @@ describe("data-sources presentation helpers", () => {
         });
     });
 
-    it("labels DingTalk A1 sign-in fields with the exact request field to paste", () => {
+    it("labels DingTalk A1 sign-in fields with user-facing credential copy", () => {
         const [field] = getProviderFormFields(
             {
                 provider: "dingtalk-a1",
@@ -530,22 +544,21 @@ describe("data-sources presentation helpers", () => {
                     deviceCredential: "",
                 },
             },
-            "en",
+            "zh-CN",
             "settings",
         );
 
-        expect(field?.label).toBe("dt-meeting-agent-token");
-        expect(field?.description).toContain("getConversationList");
-        expect(field?.description).toContain("dt-meeting-agent-token");
-        expect(field?.placeholder).toBe("dt-meeting-agent-token");
+        expect(field?.label).toBe("钉钉登录凭证");
+        expect(field?.description).toBe("粘贴钉钉闪记当前账号的访问凭证。");
+        expect(field?.placeholder).toBe("粘贴登录凭证");
     });
 
-    it("labels Feishu Minutes sign-in choices with the exact fields to paste", () => {
+    it("labels Feishu Minutes sign-in choices with user-facing credential copy", () => {
         expect(
             getSourceAuthModeDisplayLabel("oauth-device-flow", "zh-CN"),
-        ).toBe("开放平台 user_access_token");
+        ).toBe("开放平台授权");
         expect(getSourceAuthModeDisplayLabel("web-reverse", "zh-CN")).toBe(
-            "space_name + Cookie",
+            "网页登录信息",
         );
 
         const tokenFields = getProviderFormFields(
@@ -594,33 +607,40 @@ describe("data-sources presentation helpers", () => {
             "webToken",
         ]);
         expect(tokenFields[0]).toMatchObject({
-            label: "FEISHU_APP_ID / app_id",
-            placeholder: "cli_xxx",
+            label: "开放平台应用 ID",
+            placeholder: "应用 ID",
         });
-        expect(tokenFields[0]?.description).toContain("app_id");
+        expect(tokenFields[0]?.description).toBe(
+            "填写飞书开放平台应用的应用 ID。",
+        );
         expect(tokenFields[1]).toMatchObject({
-            label: "user_access_token",
-            placeholder: "user_access_token",
+            label: "开放平台授权信息",
+            placeholder: "粘贴授权信息",
         });
-        expect(tokenFields[1]?.description).toContain("user_access_token");
+        expect(tokenFields[1]?.description).toBe(
+            "粘贴飞书开放平台授权结果中的访问凭证。",
+        );
         expect(fields[0]).toMatchObject({
-            label: "space_name",
+            label: "站点区域",
             placeholder: "cn",
         });
         expect(fields[1]).toMatchObject({
-            label: "Cookie",
-            placeholder: "Cookie: minutes_csrf_token=...",
+            label: "网页登录信息",
+            placeholder: "粘贴登录信息",
         });
-        expect(fields[1]?.description).toContain("list?size=");
-        expect(fields[1]?.description).toContain("minutes_csrf_token=");
+        expect(fields[1]?.description).toBe(
+            "粘贴飞书妙记当前网页登录状态对应的登录信息。",
+        );
         expect(fields[2]).toMatchObject({
-            label: "X-Feishu-Minutes-Token（可选）",
-            placeholder: "X-Feishu-Minutes-Token",
+            label: "补充校验信息（可选）",
+            placeholder: "可选",
         });
-        expect(fields[2]?.description).toContain("X-Feishu-Minutes-Token");
+        expect(fields[2]?.description).toBe(
+            "只有连接测试提示需要额外校验信息时才填写；没有就留空。",
+        );
     });
 
-    it("labels Plaud sign-in inputs with the exact request field to paste", () => {
+    it("labels Plaud sign-in inputs with user-facing credential copy", () => {
         const fields = getProviderFormFields(
             {
                 provider: "plaud",
@@ -647,7 +667,7 @@ describe("data-sources presentation helpers", () => {
             expect.arrayContaining([
                 "站点版本",
                 "自定义服务地址",
-                "Plaud Authorization",
+                "Plaud 访问凭证",
             ]),
         );
         expect(
@@ -655,10 +675,10 @@ describe("data-sources presentation helpers", () => {
         ).toBe("••••••••••••••••");
         expect(
             fields.find((field) => field.key === "bearerToken")?.description,
-        ).toContain("Authorization");
+        ).toBe("粘贴 Plaud 当前账号的访问凭证；系统会自动整理格式。");
     });
 
-    it("labels iFLYTEK and TicNote inputs with the exact fields to paste", () => {
+    it("labels iFLYTEK and TicNote inputs with user-facing credential copy", () => {
         const iflyrecFields = getProviderFormFields(
             {
                 provider: "iflyrec",
@@ -698,26 +718,68 @@ describe("data-sources presentation helpers", () => {
             "settings",
         );
 
-        expect(iflyrecFields[0]?.label).toBe("X-Biz-Id");
-        expect(iflyrecFields[0]?.description).toContain("X-Biz-Id");
-        expect(iflyrecFields[1]?.label).toBe("X-Session-Id");
-        expect(iflyrecFields[1]?.description).toContain("X-Session-Id");
+        expect(iflyrecFields[0]?.label).toBe("站点标识");
+        expect(iflyrecFields[0]?.description).toBe(
+            "用于匹配讯飞听见站点；不确定就保留默认值。",
+        );
+        expect(iflyrecFields[1]?.label).toBe("登录凭证");
+        expect(iflyrecFields[1]?.description).toBe(
+            "粘贴讯飞听见当前账号的访问凭证。",
+        );
         expect(
             ticnoteFields.find((field) => field.key === "bearerToken"),
         ).toMatchObject({
-            label: "TicNote Authorization / tic_token",
+            label: "TicNote 访问凭证",
             placeholder: "••••••••••••••••",
         });
         expect(
             ticnoteFields.find((field) => field.key === "bearerToken")
                 ?.description,
-        ).toContain("Authorization");
-        expect(
-            ticnoteFields.find((field) => field.key === "bearerToken")
-                ?.description,
-        ).toContain("localStorage.tic_token");
+        ).toBe("粘贴 TicNote 当前账号的访问凭证。");
         expect(ticnoteFields.some((field) => field.key === "language")).toBe(
             false,
+        );
+    });
+
+    it("keeps settings field copy free of browser-capture and request-header wording", () => {
+        const drafts = createDefaultSourceDrafts();
+        const allFields = DATA_SOURCE_PROVIDERS.flatMap((provider) =>
+            DATA_SOURCE_CATALOG[provider].authModes.flatMap((authMode) =>
+                getProviderFormFields(
+                    {
+                        provider,
+                        enabled: true,
+                        authMode,
+                        baseUrl: drafts[provider].baseUrl,
+                        config: drafts[provider].config,
+                        secretsConfigured: {},
+                    },
+                    {
+                        [provider]: drafts[provider].secrets,
+                    },
+                    "zh-CN",
+                    "settings",
+                ),
+            ),
+        );
+        const visibleCopy = [
+            ...allFields.flatMap((field) => [
+                field.label,
+                field.description ?? "",
+                field.placeholder ?? "",
+            ]),
+            ...[
+                "bearer",
+                "cookie",
+                "oauth-device-flow",
+                "web-reverse",
+                "session-header",
+                "device-signin",
+            ].map((mode) => getSourceAuthModeDisplayLabel(mode, "zh-CN")),
+        ].join("\n");
+
+        expect(visibleCopy).not.toMatch(
+            /Cookie|Authorization|Bearer|web-reverse|X-Session-Id|X-Biz-Id|X-Feishu|dt-meeting|user_access_token|space_name|localStorage|request header|请求头|请求 URL/i,
         );
     });
 

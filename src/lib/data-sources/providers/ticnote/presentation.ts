@@ -96,19 +96,19 @@ function buildTicNoteFields(
             id: "source-secret",
             target: "secret",
             key: "bearerToken",
-            label: "TicNote Authorization / tic_token",
+            label: zh ? "TicNote 访问凭证" : "TicNote access credential",
             value: secretDraft.bearerToken ?? "",
             rows: 3,
             spellCheck: false,
             className: "font-mono text-sm",
             description: zh
-                ? "优先复制 TicNote API 请求头 Authorization；如果从浏览器存储拿，就复制 localStorage.tic_token 的值。"
-                : "Prefer the TicNote API request header named Authorization. If using browser storage, copy localStorage.tic_token.",
+                ? "粘贴 TicNote 当前账号的访问凭证。"
+                : "Paste the access credential for your current TicNote account.",
             placeholder: state.secretsConfigured.bearerToken
                 ? "••••••••••••••••"
                 : zh
-                  ? "Authorization: Bearer ... / tic_token"
-                  : "Authorization: Bearer ... / tic_token",
+                  ? "粘贴访问凭证"
+                  : "Paste access credential",
         }),
     ];
 

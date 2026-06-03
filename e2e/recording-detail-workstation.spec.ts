@@ -1182,6 +1182,30 @@ test("recording detail speaker review covers empty and refresh failure states", 
         await ensureSignedIn(page);
         const userId = await getPlaywrightUserId();
         const recordingId = await seedRecordingDetail(userId);
+        let speakerListAttempts = 0;
+        await page.route(
+            `**/api/recordings/${recordingId}/speakers`,
+            async (route) => {
+                if (route.request().method() !== "GET") {
+                    await route.continue();
+                    return;
+                }
+
+                speakerListAttempts += 1;
+                if (speakerListAttempts === 1) {
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 503,
+                        body: JSON.stringify({
+                            error: "说话人标签暂时不可用",
+                        }),
+                    });
+                    return;
+                }
+
+                await route.continue();
+            },
+        );
 
         await page.goto(`/recordings/${recordingId}`, {
             waitUntil: "domcontentloaded",
@@ -1189,7 +1213,26 @@ test("recording detail speaker review covers empty and refresh failure states", 
         await waitForRecordingDetailReady(page);
 
         const panel = await openSpeakerReviewPanel(page);
+        await expect(
+            panel.getByTestId("speaker-review-speakers-error"),
+        ).toContainText("说话人标签暂时不可用");
+        await expect(panel.getByTestId("speaker-review-empty")).toHaveCount(0);
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/speakers`) &&
+                    response.request().method() === "GET" &&
+                    response.ok(),
+            ),
+            panel.getByTestId("speaker-review-speakers-retry").click(),
+        ]);
+
         await expect(panel.getByTestId("speaker-review-empty")).toBeVisible();
+        await expect(
+            panel.getByTestId("speaker-review-speakers-error"),
+        ).toHaveCount(0);
         await expect(
             panel.getByTestId("speaker-review-copy-raw"),
         ).toBeEnabled();
@@ -1226,6 +1269,77 @@ test("recording detail speaker review covers empty and refresh failure states", 
             panel.getByTestId("speaker-review-copy-raw"),
         ).toBeDisabled();
     } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail speaker review disables picker actions while saving mappings", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const storagePath = await writeAudioFixture();
+        const recordingId = await seedRecordingDetail(userId, {
+            includeSpeakerReview: true,
+            storagePath,
+        });
+        let releasePatch: (() => void) | null = null;
+        let speakerPatchAttempts = 0;
+        await page.route(
+            `**/api/recordings/${recordingId}/speakers`,
+            async (route) => {
+                if (route.request().method() !== "PATCH") {
+                    await route.continue();
+                    return;
+                }
+
+                speakerPatchAttempts += 1;
+                await new Promise<void>((resolve) => {
+                    releasePatch = resolve;
+                });
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify({
+                        profileId: SPEAKER_REVIEW_PROFILE_LATIN_ID,
+                        rawLabel: "SPEAKER_BETA_01",
+                    }),
+                });
+            },
+        );
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await expect(
+            page.getByTestId("recording-detail-workstation"),
+        ).toBeVisible();
+        const panel = await openSpeakerReviewPanel(page);
+        const unmappedCard = panel.locator(
+            '[data-testid="speaker-review-card"][data-speaker-label="SPEAKER_BETA_01"]',
+        );
+        const mappingInput = unmappedCard.getByTestId(
+            "speaker-review-mapping-input",
+        );
+
+        await mappingInput.fill("Long Latin");
+        const profileOption = unmappedCard
+            .getByTestId("speaker-review-profile-option")
+            .filter({ hasText: SPEAKER_REVIEW_PROFILE_LATIN_NAME });
+        await expect(profileOption).toBeEnabled();
+        await profileOption.click();
+
+        await expect(mappingInput).toBeDisabled();
+        await expect(profileOption).toBeDisabled();
+        await expect
+            .poll(() => speakerPatchAttempts)
+            .toBe(1);
+
+        releasePatch?.();
+        await expect(mappingInput).toBeEnabled();
+        expect(speakerPatchAttempts).toBe(1);
+    } finally {
+        await removeAudioFixture();
         await cleanupRecordingDetailSeed();
     }
 });

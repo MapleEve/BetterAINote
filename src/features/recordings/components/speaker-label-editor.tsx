@@ -136,6 +136,9 @@ export function SpeakerLabelEditor({
     const { language, t } = useLanguage();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState<string | null>(null);
+    const [speakerLoadError, setSpeakerLoadError] = useState<string | null>(
+        null,
+    );
     const [speakers, setSpeakers] = useState<RecordingSpeaker[]>([]);
     const [profiles, setProfiles] = useState<SpeakerProfile[]>([]);
     const [searchQueries, setSearchQueries] = useState<Record<string, string>>(
@@ -185,6 +188,7 @@ export function SpeakerLabelEditor({
 
     const refreshSpeakers = useCallback(async () => {
         setIsLoading(true);
+        setSpeakerLoadError(null);
         try {
             const response = await fetch(
                 `/api/recordings/${recordingId}/speakers`,
@@ -194,12 +198,17 @@ export function SpeakerLabelEditor({
             );
             const data = await response.json();
             if (!response.ok) {
-                toast.error(
-                    data.error || t("speakerReview.failedToLoadSpeakers"),
-                );
+                const message =
+                    data.error || t("speakerReview.failedToLoadSpeakers");
+                setSpeakers([]);
+                setProfiles([]);
+                setSearchQueries({});
+                setSpeakerLoadError(message);
+                toast.error(message);
                 return;
             }
 
+            setSpeakerLoadError(null);
             setSpeakers(data.speakers ?? []);
             setProfiles(data.profiles ?? []);
             const nextSpeakers = data.speakers ?? [];
@@ -212,10 +221,12 @@ export function SpeakerLabelEditor({
                 ),
             );
         } catch {
+            const message = t("speakerReview.failedToLoadSpeakers");
             setSpeakers([]);
             setProfiles([]);
             setSearchQueries({});
-            toast.error(t("speakerReview.failedToLoadSpeakers"));
+            setSpeakerLoadError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -586,7 +597,31 @@ export function SpeakerLabelEditor({
                 ) : null}
             </div>
 
-            {speakers.length === 0 ? (
+            {speakerLoadError ? (
+                <div
+                    className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+                    data-testid="speaker-review-speakers-error"
+                    role="alert"
+                >
+                    <span>{speakerLoadError}</span>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void refreshSpeakers()}
+                        disabled={isLoading}
+                        data-testid="speaker-review-speakers-retry"
+                    >
+                        <RefreshCw
+                            className={cn(
+                                "mr-2 h-3.5 w-3.5",
+                                isLoading && "animate-spin",
+                            )}
+                        />
+                        {t("speakerReview.refresh")}
+                    </Button>
+                </div>
+            ) : speakers.length === 0 ? (
                 <div
                     className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground"
                     data-testid="speaker-review-empty"
@@ -638,6 +673,8 @@ export function SpeakerLabelEditor({
                                             language,
                                         ),
                                 );
+                                const isSpeakerSaving =
+                                    isSaving === speaker.rawLabel;
 
                                 return (
                                     <>
@@ -801,6 +838,7 @@ export function SpeakerLabelEditor({
                                                 <Input
                                                     value={searchQuery}
                                                     onFocus={() =>
+                                                        !isSpeakerSaving &&
                                                         setOpenPickerFor(
                                                             speaker.rawLabel,
                                                         )
@@ -822,6 +860,10 @@ export function SpeakerLabelEditor({
                                                         );
                                                     }}
                                                     onChange={(event) => {
+                                                        if (isSpeakerSaving) {
+                                                            return;
+                                                        }
+
                                                         const value =
                                                             event.target.value;
                                                         setSearchQueries(
@@ -844,6 +886,7 @@ export function SpeakerLabelEditor({
                                                             : undefined
                                                     }
                                                     data-testid="speaker-review-mapping-input"
+                                                    disabled={isSpeakerSaving}
                                                 />
                                                 {searchQuery.trim() ? (
                                                     <Button
@@ -855,13 +898,18 @@ export function SpeakerLabelEditor({
                                                             "speakerReview.clearSelectedSpeaker",
                                                         )}
                                                         disabled={
-                                                            isSaving ===
-                                                            speaker.rawLabel
+                                                            isSpeakerSaving
                                                         }
                                                         onMouseDown={(event) =>
                                                             event.preventDefault()
                                                         }
                                                         onClick={() => {
+                                                            if (
+                                                                isSpeakerSaving
+                                                            ) {
+                                                                return;
+                                                            }
+
                                                             setSearchQueries(
                                                                 (prev) => ({
                                                                     ...prev,
@@ -886,8 +934,7 @@ export function SpeakerLabelEditor({
                                                         size="sm"
                                                         variant="outline"
                                                         disabled={
-                                                            isSaving ===
-                                                            speaker.rawLabel
+                                                            isSpeakerSaving
                                                         }
                                                         onClick={() =>
                                                             void handleAssignProfile(
@@ -942,12 +989,25 @@ export function SpeakerLabelEditor({
                                                                             profile.id &&
                                                                             "bg-muted",
                                                                     )}
+                                                                    disabled={
+                                                                        isSpeakerSaving ||
+                                                                        speaker.matchedProfileId ===
+                                                                            profile.id
+                                                                    }
                                                                     onMouseDown={(
                                                                         event,
                                                                     ) =>
                                                                         event.preventDefault()
                                                                     }
                                                                     onClick={() => {
+                                                                        if (
+                                                                            isSpeakerSaving ||
+                                                                            speaker.matchedProfileId ===
+                                                                                profile.id
+                                                                        ) {
+                                                                            return;
+                                                                        }
+
                                                                         setSearchQueries(
                                                                             (
                                                                                 prev,
@@ -990,13 +1050,22 @@ export function SpeakerLabelEditor({
                                                         !hasExactMatch ? (
                                                             <button
                                                                 type="button"
-                                                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60"
+                                                                disabled={
+                                                                    isSpeakerSaving
+                                                                }
+                                                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-55"
                                                                 onMouseDown={(
                                                                     event,
                                                                 ) =>
                                                                     event.preventDefault()
                                                                 }
                                                                 onClick={() => {
+                                                                    if (
+                                                                        isSpeakerSaving
+                                                                    ) {
+                                                                        return;
+                                                                    }
+
                                                                     setSearchQueries(
                                                                         (
                                                                             prev,

@@ -846,6 +846,167 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
     }
 });
 
+test("dashboard source copy strip mirrors source report loading and failure", async ({
+    page,
+}) => {
+    let copiedText = "";
+    let sourceReportAttempts = 0;
+    let holdInitialReports = true;
+    let failAutoLoadReports = true;
+    let releaseFirstReport: () => void = () => {};
+    let resolveFirstStarted: () => void = () => {};
+    const firstReportStarted = new Promise<void>((resolve) => {
+        resolveFirstStarted = resolve;
+    });
+    const firstReportGate = new Promise<void>((resolve) => {
+        releaseFirstReport = resolve;
+    });
+
+    await page.exposeFunction(
+        "__captureBetterAiNoteClipboardText",
+        (text: string) => {
+            copiedText = text;
+        },
+    );
+    await page.addInitScript(() => {
+        Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: {
+                writeText: async (text: string) => {
+                    await (
+                        window as Window & {
+                            __captureBetterAiNoteClipboardText: (
+                                text: string,
+                            ) => Promise<void>;
+                        }
+                    ).__captureBetterAiNoteClipboardText(text);
+                },
+            },
+        });
+    });
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        await seedRetranscriptionScenario(userId, {
+            filename: "E2E dashboard source report failure",
+            status: null,
+            oldText: "Speaker 1: 仪表盘来源复制状态需要跟随加载结果。",
+        });
+
+        await page.route(
+            `**/api/recordings/${RETX_RECORDING_ID}/source-report`,
+            async (route) => {
+                sourceReportAttempts += 1;
+
+                if (holdInitialReports) {
+                    resolveFirstStarted();
+                    await firstReportGate;
+                    await route
+                        .fulfill({
+                            contentType: "application/json",
+                            status: 503,
+                            body: JSON.stringify({
+                                error: "Source report temporarily unavailable",
+                            }),
+                        })
+                        .catch(() => null);
+                    return;
+                }
+
+                if (failAutoLoadReports) {
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 503,
+                        body: JSON.stringify({
+                            error: "Source report temporarily unavailable",
+                        }),
+                    });
+                    return;
+                }
+
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify({
+                        sourceProvider: "ticnote",
+                        filename: "E2E dashboard source report failure",
+                        transcriptReady: true,
+                        summaryReady: true,
+                        transcript: {
+                            text: "Speaker 1: 来源状态恢复后的转录。",
+                            segmentCount: 1,
+                            segments: [
+                                {
+                                    speaker: "Speaker 1",
+                                    startMs: 0,
+                                    endMs: 1200,
+                                    text: "来源状态恢复后的转录。",
+                                },
+                            ],
+                        },
+                        summaryMarkdown: "来源状态恢复后的报告。",
+                        detail: {
+                            provider: "ticnote",
+                            title: "E2E dashboard source report failure",
+                        },
+                    }),
+                });
+            },
+        );
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", {
+                name: /E2E dashboard source report failure/,
+            })
+            .click();
+
+        await page.getByRole("button", { name: "来源", exact: true }).click();
+        await firstReportStarted;
+        await page.getByRole("button", { name: "转录输出" }).click();
+
+        await expect(
+            page.getByTestId("dashboard-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "loading");
+        await expect(
+            page.getByTestId("dashboard-copy-source-transcript"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("dashboard-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "loading");
+        await expect(page.getByTestId("dashboard-copy-source-report")).toBeDisabled();
+        expect(copiedText).toBe("");
+
+        holdInitialReports = false;
+        releaseFirstReport();
+        await page.getByRole("button", { name: "来源", exact: true }).click();
+        await expect(page.getByTestId("source-report-error")).toContainText(
+            "Source report temporarily unavailable",
+        );
+        await page.getByRole("button", { name: "转录输出" }).click();
+
+        await expect(
+            page.getByTestId("dashboard-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "error");
+        await expect(
+            page.getByTestId("dashboard-copy-source-transcript"),
+        ).toBeEnabled();
+        await expect(
+            page.getByTestId("dashboard-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "error");
+        await expect(page.getByTestId("dashboard-copy-source-report")).toBeEnabled();
+
+        failAutoLoadReports = false;
+        await page.getByTestId("dashboard-copy-source-report").click();
+        await expect.poll(() => copiedText).toContain("来源状态恢复后的报告");
+        expect(sourceReportAttempts).toBeGreaterThanOrEqual(3);
+    } finally {
+        holdInitialReports = false;
+        releaseFirstReport();
+        await cleanupRunningRetranscriptionSeed();
+    }
+});
+
 test("dashboard source report ignores stale auto-load responses after recording changes", async ({
     page,
 }) => {

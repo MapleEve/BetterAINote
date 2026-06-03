@@ -74,4 +74,35 @@ describe("dashboard speaker label editor regressions", () => {
             'data-testid="speaker-review-play-sample"',
         );
     });
+
+    it("keeps speaker list load failures distinct from empty state", () => {
+        expect(source).toContain("speakerLoadError");
+        expect(source).toContain('data-testid="speaker-review-speakers-error"');
+        expect(source).toContain('data-testid="speaker-review-speakers-retry"');
+        expect(source).toContain("speakerLoadError ? (");
+        expect(source).toContain(") : speakers.length === 0 ? (");
+    });
+
+    it("disables mapping inputs and picker options while a speaker mapping is saving", () => {
+        expect(source).toContain("const isSpeakerSaving =");
+        const inputMarker = 'data-testid="speaker-review-mapping-input"';
+        const profileOptionMarker =
+            'data-testid="speaker-review-profile-option"';
+        const createOptionMarker = 'data-testid="speaker-review-create-option"';
+        const inputIndex = source.indexOf(inputMarker);
+        const profileOptionIndex = source.indexOf(profileOptionMarker);
+        const createOptionIndex = source.indexOf(createOptionMarker);
+        const inputSlice = source.slice(inputIndex - 360, inputIndex + 220);
+
+        expect(inputIndex).toBeGreaterThan(-1);
+        expect(profileOptionIndex).toBeGreaterThan(-1);
+        expect(createOptionIndex).toBeGreaterThan(-1);
+        expect(inputSlice).toMatch(/disabled=\{\s*isSpeakerSaving\s*\}/);
+        expect(source).toMatch(
+            /disabled=\{\s*isSpeakerSaving\s*\|\|\s*speaker\.matchedProfileId ===\s*profile\.id\s*\}[\s\S]*?data-testid="speaker-review-profile-option"/,
+        );
+        expect(source).toMatch(
+            /disabled=\{\s*isSpeakerSaving\s*\}[\s\S]*?data-testid="speaker-review-create-option"/,
+        );
+    });
 });

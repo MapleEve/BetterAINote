@@ -1,23 +1,7 @@
 "use client";
 
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
-import {
-    translate,
-    UI_LANGUAGE_STORAGE_KEY,
-    type UiLanguage,
-} from "@/lib/i18n";
-import {
-    writeBrowserDocumentLanguage,
-    writeBrowserStorage,
-} from "@/lib/platform/browser-shell";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { translate, type UiLanguage } from "@/lib/i18n";
 
 interface LanguageContextValue {
     language: UiLanguage;
@@ -27,50 +11,36 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-function useSharedLanguageValue(): LanguageContextValue {
-    const [hasHydrated, setHasHydrated] = useState(false);
-    const {
-        settings: { uiLanguage },
-        hasLoaded,
-        updateDisplaySettings,
-    } = useDisplaySettingsStore();
+const fallbackLanguageValue: LanguageContextValue = {
+    language: "zh-CN",
+    setLanguage: () => {},
+    t: (key, replacements) => translate("zh-CN", key, replacements),
+};
 
-    useEffect(() => {
-        setHasHydrated(true);
-    }, []);
-
-    useEffect(() => {
-        if (!hasLoaded) {
-            return;
-        }
-
-        writeBrowserStorage(UI_LANGUAGE_STORAGE_KEY, uiLanguage);
-        writeBrowserDocumentLanguage(uiLanguage);
-    }, [hasLoaded, uiLanguage]);
-
+export function LanguageProvider({
+    children,
+    language = "zh-CN",
+    onLanguageChange,
+}: {
+    children: React.ReactNode;
+    language?: UiLanguage;
+    onLanguageChange?: (language: UiLanguage) => void;
+}) {
     const setLanguage = useCallback(
         (nextLanguage: UiLanguage) => {
-            void updateDisplaySettings({ uiLanguage: nextLanguage }).catch(
-                () => {},
-            );
+            onLanguageChange?.(nextLanguage);
         },
-        [updateDisplaySettings],
+        [onLanguageChange],
     );
-    const renderedLanguage = hasHydrated ? uiLanguage : "zh-CN";
 
-    return useMemo<LanguageContextValue>(
+    const value = useMemo<LanguageContextValue>(
         () => ({
-            language: renderedLanguage,
+            language,
             setLanguage,
-            t: (key, replacements) =>
-                translate(renderedLanguage, key, replacements),
+            t: (key, replacements) => translate(language, key, replacements),
         }),
-        [renderedLanguage, setLanguage],
+        [language, setLanguage],
     );
-}
-
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const value = useSharedLanguageValue();
 
     return (
         <LanguageContext.Provider value={value}>
@@ -81,6 +51,5 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 export function useLanguage() {
     const context = useContext(LanguageContext);
-    const sharedValue = useSharedLanguageValue();
-    return context ?? sharedValue;
+    return context ?? fallbackLanguageValue;
 }
