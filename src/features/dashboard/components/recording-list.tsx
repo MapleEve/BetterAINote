@@ -492,7 +492,7 @@ export function RecordingList({
                                 setCurrentPage(1);
                             }}
                         >
-                            <SelectTrigger className="h-11 w-full rounded-2xl border-border/60 bg-background/30 px-3 shadow-none backdrop-blur-xl">
+                            <SelectTrigger className="h-11 w-full rounded-2xl border-border/60 bg-muted/20 px-3 shadow-none backdrop-blur-xl">
                                 <span className="flex min-w-0 flex-1 items-center gap-2">
                                     <span className="min-w-0 truncate text-left text-sm font-medium">
                                         {selectedTagOption?.label ??

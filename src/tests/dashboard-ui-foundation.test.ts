@@ -169,6 +169,21 @@ describe("dashboard UI foundation", () => {
             tagCountBadgeStart,
             tagCountBadgeEnd,
         );
+        const tagSelectStart = recordingList.indexOf(
+            "<Select\n                            value={tagFilter}",
+        );
+        const tagSelectTriggerStart = recordingList.indexOf(
+            '<SelectTrigger className="h-11 w-full',
+            tagSelectStart,
+        );
+        const tagSelectTriggerEnd = recordingList.indexOf(
+            "</SelectTrigger>",
+            tagSelectTriggerStart,
+        );
+        const tagSelectTrigger = recordingList.slice(
+            tagSelectStart,
+            tagSelectTriggerEnd,
+        );
         const headerTotalBadgeTextStart = recordingList.indexOf("{totalLabel}");
         const headerTotalBadgeStart = recordingList.lastIndexOf(
             "<span",
@@ -215,6 +230,15 @@ describe("dashboard UI foundation", () => {
         expect(tagCountBadgeStart).toBeGreaterThanOrEqual(0);
         expect(tagCountBadgeEnd).toBeGreaterThan(tagCountBadgeStart);
         expect(tagCountBadge).toContain("{selectedTagOption?.count ?? 0}");
+        expect(tagSelectStart).toBeGreaterThanOrEqual(0);
+        expect(tagSelectTriggerStart).toBeGreaterThan(tagSelectStart);
+        expect(tagSelectTriggerEnd).toBeGreaterThan(tagSelectTriggerStart);
+        expect(tagSelectTrigger).toContain("SelectTrigger");
+        expect(tagSelectTrigger).toContain("value={tagFilter}");
+        expect(tagSelectTrigger).toContain("onValueChange={(value) => {");
+        expect(tagSelectTrigger).toContain("setTagFilter(value as TagFilter)");
+        expect(tagSelectTrigger).not.toContain("bg-background/30");
+        expect(tagSelectTrigger).toContain("bg-muted/20");
         expect(headerTotalBadgeTextStart).toBeGreaterThanOrEqual(0);
         expect(headerTotalBadgeStart).toBeGreaterThanOrEqual(0);
         expect(headerTotalBadgeEnd).toBeGreaterThan(headerTotalBadgeStart);
