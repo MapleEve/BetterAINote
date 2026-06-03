@@ -32,6 +32,7 @@ function createInitialState(): DisplaySettingsStoreState {
 }
 
 let storeState = createInitialState();
+const hydrationSnapshot = createInitialState();
 let loadPromise: Promise<DisplaySettings> | null = null;
 let pendingSaveCount = 0;
 
@@ -99,6 +100,10 @@ function subscribe(listener: Listener) {
 
 function getSnapshot() {
     return storeState;
+}
+
+function getHydrationSnapshot() {
+    return hydrationSnapshot;
 }
 
 export function getDisplaySettingsStoreSnapshot() {
@@ -195,7 +200,11 @@ export async function saveDisplaySettings(updates: DisplaySettingsUpdate) {
 }
 
 export function useDisplaySettingsStore() {
-    const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    const snapshot = useSyncExternalStore(
+        subscribe,
+        getSnapshot,
+        getHydrationSnapshot,
+    );
 
     useEffect(() => {
         if (!storeState.hasLoaded) {

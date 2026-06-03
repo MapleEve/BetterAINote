@@ -1,10 +1,26 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     __resetDisplaySettingsStoreForTests,
     ensureDisplaySettingsLoaded,
     getDisplaySettingsStoreSnapshot,
     saveDisplaySettings,
+    useDisplaySettingsStore,
 } from "@/features/settings/display-settings-store";
+
+function DisplaySettingsProbe() {
+    const {
+        hasLoaded,
+        settings: { itemsPerPage, recordingListSortOrder },
+    } = useDisplaySettingsStore();
+
+    return React.createElement("output", {
+        "data-has-loaded": String(hasLoaded),
+        "data-items-per-page": String(itemsPerPage),
+        "data-sort-order": recordingListSortOrder,
+    });
+}
 
 describe("display settings store", () => {
     beforeEach(() => {
@@ -61,6 +77,43 @@ describe("display settings store", () => {
                 theme: "dark",
             },
         });
+    });
+
+    it("uses default settings for server and hydration snapshots even after client cache is loaded", async () => {
+        const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    uiLanguage: "en",
+                    dateTimeFormat: "absolute",
+                    recordingListSortOrder: "oldest",
+                    itemsPerPage: 25,
+                    theme: "dark",
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        await ensureDisplaySettingsLoaded();
+
+        expect(getDisplaySettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: true,
+            settings: {
+                recordingListSortOrder: "oldest",
+                itemsPerPage: 25,
+            },
+        });
+
+        const html = renderToStaticMarkup(
+            React.createElement(DisplaySettingsProbe),
+        );
+
+        expect(html).toContain('data-has-loaded="false"');
+        expect(html).toContain('data-items-per-page="50"');
+        expect(html).toContain('data-sort-order="newest"');
     });
 
     it("maps legacy ISO display settings to absolute time", async () => {
