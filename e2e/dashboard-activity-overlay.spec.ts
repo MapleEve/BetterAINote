@@ -6,6 +6,7 @@ import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const ACTIVITY_RECORDING_ID = "e2e-activity-transcription";
+const ACTIVITY_BACKGROUND_RECORDING_ID = "e2e-activity-background";
 const ACTIVITY_JOB_ID = "e2e-activity-transcription-job";
 
 function resolveDatabasePath() {
@@ -50,23 +51,32 @@ async function cleanupActivityRecording() {
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
     try {
         await library.execute({
-            sql: "DELETE FROM transcription_jobs WHERE id = ? OR recording_id = ?",
-            args: [ACTIVITY_JOB_ID, ACTIVITY_RECORDING_ID],
+            sql: "DELETE FROM transcription_jobs WHERE id = ? OR recording_id IN (?, ?)",
+            args: [
+                ACTIVITY_JOB_ID,
+                ACTIVITY_RECORDING_ID,
+                ACTIVITY_BACKGROUND_RECORDING_ID,
+            ],
         });
         await library.execute({
-            sql: "DELETE FROM recordings WHERE id = ?",
-            args: [ACTIVITY_RECORDING_ID],
+            sql: "DELETE FROM recordings WHERE id IN (?, ?)",
+            args: [ACTIVITY_RECORDING_ID, ACTIVITY_BACKGROUND_RECORDING_ID],
         });
     } finally {
         await library.close();
     }
 }
 
-async function seedActivityRecording(userId: string) {
-    const now = Date.now();
+async function seedActivityRecording(
+    userId: string,
+    options: { cleanup?: boolean; now?: number } = {},
+) {
+    const now = options.now ?? Date.now();
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
     try {
-        await cleanupActivityRecording();
+        if (options.cleanup ?? true) {
+            await cleanupActivityRecording();
+        }
         await library.execute({
             sql: `
                 INSERT OR REPLACE INTO recordings (
@@ -118,6 +128,46 @@ async function seedActivityRecording(userId: string) {
                 now - 45_000,
                 now + 60_000,
                 now - 60_000,
+                now,
+            ],
+        });
+    } finally {
+        await library.close();
+    }
+}
+
+async function seedActivityBackgroundRecording(userId: string, now = Date.now()) {
+    const library = createClient({ url: databaseUrl(LIBRARY_DB) });
+    try {
+        await library.execute({
+            sql: `
+                INSERT OR REPLACE INTO recordings (
+                    id, user_id, source_provider, source_recording_id, source_version,
+                    source_metadata, provider_device_id, filename, duration, start_time,
+                    end_time, filesize, file_md5, storage_type, storage_path,
+                    downloaded_at, upstream_trashed, upstream_deleted, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            args: [
+                ACTIVITY_BACKGROUND_RECORDING_ID,
+                userId,
+                "ticnote",
+                "e2e-activity-background-source",
+                "1",
+                "{}",
+                "e2e-activity-device",
+                "E2E activity current selection",
+                60_000,
+                now - 60_000,
+                now,
+                1024,
+                "e2e-activity-background",
+                "local",
+                "",
+                null,
+                0,
+                0,
+                now,
                 now,
             ],
         });
@@ -464,6 +514,66 @@ test("activity overlay opens transcription items and runs the status sync action
         await expect(page.getByTestId("dashboard-activity-status")).toContainText(
             "已加入更新",
         );
+    } finally {
+        await cleanupActivityRecording();
+    }
+});
+
+test("activity overlay opens recording rows with keyboard activation", async ({
+    page,
+}) => {
+    await mockSyncEndpoint(page, Promise.resolve());
+
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page);
+    const userId = await getPlaywrightUserId();
+    const now = Date.now();
+
+    try {
+        await cleanupActivityRecording();
+        await seedActivityBackgroundRecording(userId, now);
+        await seedActivityRecording(userId, {
+            cleanup: false,
+            now: now - 180_000,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+        const backgroundRecording = page
+            .getByTestId("recording-list-item")
+            .filter({ hasText: "E2E activity current selection" });
+        await expect(backgroundRecording).toBeVisible();
+        await backgroundRecording.click();
+        await expect(page.getByTestId("dashboard-recording-title")).toContainText(
+            "E2E activity current selection",
+        );
+
+        await page.getByTestId("dashboard-activity-trigger").click();
+        const panel = page.getByTestId("dashboard-activity-panel");
+        await expect(panel).toBeVisible();
+
+        const recordingRow = panel.locator(
+            `[data-activity-id="transcription-active-${ACTIVITY_RECORDING_ID}"][role="button"]`,
+        );
+        await expect(recordingRow).toBeVisible();
+        await expect(recordingRow).toHaveAccessibleName(
+            /E2E activity transcription/,
+        );
+        await expect(recordingRow).toHaveAttribute("data-clickable", "true");
+        await recordingRow.focus();
+        await expect(recordingRow).toBeFocused();
+
+        await page.keyboard.press("Enter");
+
+        await expect(panel).toHaveCount(0);
+        await expect(page.getByTestId("dashboard-recording-title")).toContainText(
+            "E2E activity transcription",
+        );
+        await expect(
+            page
+                .getByTestId("recording-list-item")
+                .filter({ hasText: "E2E activity transcription" }),
+        ).toHaveAttribute("data-selected", "true");
     } finally {
         await cleanupActivityRecording();
     }

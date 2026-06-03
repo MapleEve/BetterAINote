@@ -560,6 +560,57 @@ test("library search groups highlights and applies global speaker tag filters", 
     await expect(searchFilter).toBeHidden();
 });
 
+test("library search clear button resets query results and focus", async ({
+    page,
+}) => {
+    const requestedQueries: string[] = [];
+    await mockLibrarySearchResults(
+        page,
+        [
+            buildSearchResult({
+                entityId: "tag-alpha-clear",
+                title: "Alpha clear tag",
+                body: "Alpha clear search result",
+                tags: ["Alpha clear"],
+            }),
+        ],
+        (url) => requestedQueries.push(url.searchParams.get("q") ?? ""),
+    );
+
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    const panel = await openLibrarySearch(page);
+    const input = panel.getByRole("combobox", {
+        name: "搜索录音、逐字稿、说话人、标签",
+    });
+    await input.fill("Alpha");
+
+    await expect(page.getByTestId("library-search-results")).toBeVisible();
+    await expect(
+        page.getByTestId("library-search-highlight").first(),
+    ).toBeVisible();
+    await expect(page.getByTestId("library-search-result-tag-0")).toContainText(
+        "Alpha clear tag",
+    );
+
+    await panel.getByRole("button", { name: "清空搜索" }).click();
+
+    await expect(input).toHaveValue("");
+    await expect(input).toBeFocused();
+    await expect(panel).toHaveAttribute("data-state", "no-query");
+    await expect(page.getByTestId("library-search-no-query")).toBeVisible();
+    await expect(page.getByTestId("library-search-results")).toHaveCount(0);
+    await expect(page.getByTestId("library-search-highlight")).toHaveCount(0);
+    await expect(page.getByTestId("library-search-result-tag-0")).toHaveCount(
+        0,
+    );
+    await expect(page.getByText("没有找到与「Alpha」相关的内容")).toHaveCount(0);
+    await page.waitForTimeout(300);
+    expect(requestedQueries).not.toContain("");
+});
+
 test("library search keeps keyboard active results visible before Enter actions", async ({
     page,
 }) => {

@@ -2062,3 +2062,126 @@ test("recording detail source report retries after first-load failure", async ({
         await cleanupRecordingDetailSeed();
     }
 });
+
+test("recording detail source report refresh keeps loaded actions stable", async ({
+    page,
+}) => {
+    await installClipboardCapture(page);
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+        let reportAttempts = 0;
+        let releaseRefreshReport: () => void = () => {};
+        const refreshReportGate = new Promise<void>((resolve) => {
+            releaseRefreshReport = resolve;
+        });
+
+        await page.route(
+            `**/api/recordings/${recordingId}/source-report`,
+            async (route) => {
+                reportAttempts += 1;
+
+                if (reportAttempts === 2) {
+                    await refreshReportGate;
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 200,
+                        body: JSON.stringify({
+                            sourceProvider: "ticnote",
+                            filename: "E2E source detail review",
+                            transcriptReady: true,
+                            summaryReady: true,
+                            transcript: {
+                                text: "Speaker 1: 来源逐字稿刷新内容。",
+                                segmentCount: 1,
+                                segments: [
+                                    {
+                                        speaker: "Speaker 1",
+                                        startMs: 15_000,
+                                        endMs: 30_000,
+                                        text: "来源逐字稿刷新内容。",
+                                    },
+                                ],
+                            },
+                            summaryMarkdown:
+                                "## E2E 源报告刷新摘要\n\n- 录音详情页刷新后保留复制动作。",
+                            detail: {
+                                provider: "ticnote",
+                                status: "available",
+                                sections: ["transcript", "summary", "detail"],
+                                language: "zh-CN",
+                            },
+                        }),
+                    });
+                    return;
+                }
+
+                await route.continue();
+            },
+        );
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await waitForRecordingDetailReady(page);
+        await expect(page.getByText("E2E 源报告摘要")).toBeVisible();
+        await expect(
+            page.getByTestId("recording-copy-source-transcript"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+        await expect(
+            page.getByTestId("recording-copy-source-report"),
+        ).toHaveAttribute("data-source-copy-state", "ready");
+
+        const refreshResponse = page.waitForResponse(
+            (response) =>
+                response
+                    .url()
+                    .includes(`/api/recordings/${recordingId}/source-report`) &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        );
+        const refreshButton = page.getByTestId("source-report-header-load");
+        await refreshButton.click();
+        await expect(refreshButton).toBeDisabled();
+        await expect(refreshButton).toContainText("加载中...");
+        await expect(page.getByTestId("source-report-loaded")).toHaveAttribute(
+            "data-source-report-state",
+            "loaded",
+        );
+        await expect(page.getByText("E2E 源报告摘要")).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-copy-transcript"),
+        ).toBeEnabled();
+        await expect(page.getByTestId("source-report-copy-report")).toBeEnabled();
+
+        releaseRefreshReport();
+        await refreshResponse;
+
+        await expect(page.getByText("E2E 源报告刷新摘要")).toBeVisible();
+        await expect(
+            page.getByTestId("source-report-segment-timestamp"),
+        ).toContainText("0:15 - 0:30");
+        await expect(refreshButton).toBeEnabled();
+        await expect(refreshButton).toContainText("刷新");
+
+        await page.getByTestId("source-report-copy-report").click();
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        (
+                            window as unknown as {
+                                __betterainoteCopiedTexts: string[];
+                            }
+                        ).__betterainoteCopiedTexts.at(-1) ?? "",
+                ),
+            )
+            .toContain("E2E 源报告刷新摘要");
+        expect(reportAttempts).toBe(2);
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
