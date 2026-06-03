@@ -88,6 +88,100 @@ test("display settings language switches copy immediately via the shared store",
     await expect(page.locator("#ui-language")).toContainText("English");
 });
 
+test("display settings language auto-save failure rolls back visible copy", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page);
+
+    let failedPayload: Record<string, unknown> | null = null;
+    let releaseFailedUpdate = () => {};
+    let notifyFailedUpdateStarted = () => {};
+    const failedUpdateStarted = new Promise<void>((resolve) => {
+        notifyFailedUpdateStarted = resolve;
+    });
+    const failedUpdatePending = new Promise<void>((resolve) => {
+        releaseFailedUpdate = resolve;
+    });
+
+    await page.route("**/api/settings/display", async (route) => {
+        const request = route.request();
+        if (
+            request.method() !== "PUT" ||
+            request.postDataJSON()?.uiLanguage !== "en"
+        ) {
+            await route.continue();
+            return;
+        }
+
+        failedPayload = request.postDataJSON();
+        notifyFailedUpdateStarted();
+        await failedUpdatePending;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 503,
+            body: JSON.stringify({ error: "Display settings unavailable" }),
+        });
+    });
+
+    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+
+    const displaySection = page.locator('[data-settings-section="display"]');
+    await expect(displaySection).toBeVisible();
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "ready",
+    );
+    await expect(page.locator("#ui-language")).toContainText("中文");
+    await expect(
+        page.getByRole("heading", { name: "外观", exact: true }),
+    ).toBeVisible();
+
+    await page.locator("#ui-language").click();
+    await page.getByRole("option", { name: "英文", exact: true }).click();
+
+    await failedUpdateStarted;
+    expect(failedPayload).toEqual({ uiLanguage: "en" });
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "saving",
+    );
+    await expect(page.getByTestId("display-save-state")).toContainText(
+        "Saving",
+    );
+    await expect(page.locator("#ui-language")).toContainText("English");
+    await expect(
+        page.getByRole("heading", { name: "Appearance", exact: true }),
+    ).toBeVisible();
+    await expect(page.locator("#theme")).toBeDisabled();
+
+    const failedResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.status() === 503 &&
+            response.request().postDataJSON()?.uiLanguage === "en",
+    );
+    releaseFailedUpdate();
+    await failedResponse;
+
+    await expect(displaySection).toHaveAttribute(
+        "data-display-save-state",
+        "ready",
+    );
+    await expect(page.locator("#theme")).toBeEnabled();
+    await expect(page.locator("#ui-language")).toContainText("中文");
+    await expect(
+        page.getByRole("heading", { name: "外观", exact: true }),
+    ).toBeVisible();
+    await expect(
+        page.getByText(/保存设置失败，已回滚。|Failed to save settings. Changes reverted./),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sonner-toast][data-type="success"]'),
+    ).toHaveCount(0);
+});
+
 test("display settings theme switches light and dark without waiting for persistence", async ({
     page,
 }) => {

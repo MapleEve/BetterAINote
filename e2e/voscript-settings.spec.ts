@@ -978,6 +978,227 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
 
+test("VoScript speaker profile mutation failures keep inputs recoverable", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let profileGets = 0;
+    let voiceprintGets = 0;
+    const profilePatches: Record<string, unknown>[] = [];
+    const voiceprintPatches: Record<string, unknown>[] = [];
+    let releaseProfilePatch = () => {};
+    let notifyProfilePatchStarted = () => {};
+    const profilePatchStarted = new Promise<void>((resolve) => {
+        notifyProfilePatchStarted = resolve;
+    });
+    const pendingProfilePatch = new Promise<void>((resolve) => {
+        releaseProfilePatch = resolve;
+    });
+    let releaseVoiceprintPatch = () => {};
+    let notifyVoiceprintPatchStarted = () => {};
+    const voiceprintPatchStarted = new Promise<void>((resolve) => {
+        notifyVoiceprintPatchStarted = resolve;
+    });
+    const pendingVoiceprintPatch = new Promise<void>((resolve) => {
+        releaseVoiceprintPatch = resolve;
+    });
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                privateTranscriptionApiKeySet: true,
+                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+                privateTranscriptionDenoiseModel: "none",
+                privateTranscriptionMaxInflightJobs: 1,
+                privateTranscriptionMaxSpeakers: 0,
+                privateTranscriptionMinSpeakers: 0,
+                privateTranscriptionNoRepeatNgramSize: 0,
+                privateTranscriptionSnrThreshold: null,
+            }),
+        });
+    });
+
+    await page.route("**/api/speakers/profiles", async (route) => {
+        profileGets += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                profiles: [
+                    {
+                        assignmentCount: 2,
+                        createdAt: "2026-05-01T00:00:00.000Z",
+                        displayName: "Speaker Mutation Target",
+                        id: "profile-failure-001",
+                        updatedAt: "2026-05-02T00:00:00.000Z",
+                        voiceprintRef: null,
+                    },
+                ],
+            }),
+        });
+    });
+
+    await page.route(/\/api\/speakers\/profiles\/[^/]+$/, async (route) => {
+        if (route.request().method() !== "PATCH") {
+            await route.continue();
+            return;
+        }
+
+        profilePatches.push(route.request().postDataJSON());
+        notifyProfilePatchStarted();
+        await pendingProfilePatch;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 409,
+            body: JSON.stringify({
+                error: "E2E speaker profile update rejected",
+            }),
+        });
+    });
+
+    await page.route("**/api/voiceprints", async (route) => {
+        voiceprintGets += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                available: true,
+                reason: null,
+                voiceprints: [
+                    {
+                        createdAt: "2026-05-01T00:00:00.000Z",
+                        displayName: "Voiceprint Mutation Target",
+                        id: "vp-failure-001",
+                        updatedAt: "2026-05-02T00:00:00.000Z",
+                    },
+                ],
+            }),
+        });
+    });
+
+    await page.route("**/api/voiceprints/vp-failure-001", async (route) => {
+        if (route.request().method() !== "PATCH") {
+            await route.continue();
+            return;
+        }
+
+        voiceprintPatches.push(route.request().postDataJSON());
+        notifyVoiceprintPatchStarted();
+        await pendingVoiceprintPatch;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 502,
+            body: JSON.stringify({
+                error: "E2E remote voiceprint rename rejected",
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const profileRow = page.locator(
+        '[data-speaker-profile-id="profile-failure-001"]',
+    );
+    const profileNameInput = profileRow.getByTestId("speaker-profile-name");
+    const profileSaveButton = profileRow.getByTestId("speaker-profile-save");
+    const profileDeleteButton = profileRow.getByTestId(
+        "speaker-profile-delete",
+    );
+    await expect(profileRow).toBeVisible();
+    await expect(profileNameInput).toHaveValue("Speaker Mutation Target");
+    const profileGetsBeforeMutation = profileGets;
+
+    await profileNameInput.fill("Speaker Rename Not Saved");
+    const profilePatchResponse = page.waitForResponse(
+        (response) =>
+            response
+                .url()
+                .endsWith("/api/speakers/profiles/profile-failure-001") &&
+            response.request().method() === "PATCH" &&
+            response.status() === 409,
+    );
+    await profileSaveButton.click();
+    await profilePatchStarted;
+    await expect(profileRow).toHaveAttribute(
+        "data-speaker-profile-busy",
+        "true",
+    );
+    await expect(profileNameInput).toBeDisabled();
+    await expect(profileSaveButton).toBeDisabled();
+    await expect(profileDeleteButton).toBeDisabled();
+
+    releaseProfilePatch();
+    await profilePatchResponse;
+    await expect(profileRow).toHaveAttribute(
+        "data-speaker-profile-busy",
+        "false",
+    );
+    await expect(profileNameInput).toBeEnabled();
+    await expect(profileSaveButton).toBeEnabled();
+    await expect(profileDeleteButton).toBeEnabled();
+    await expect(profileNameInput).toHaveValue("Speaker Rename Not Saved");
+    await expect(
+        page
+            .getByLabel("Notifications alt+T")
+            .getByText("E2E speaker profile update rejected"),
+    ).toBeVisible();
+    expect(profilePatches).toEqual([
+        { displayName: "Speaker Rename Not Saved" },
+    ]);
+    expect(profileGets).toBe(profileGetsBeforeMutation);
+
+    const voiceprintRow = page.locator('[data-vs-profile-id="vp-failure-001"]');
+    const voiceprintNameInput = voiceprintRow.getByTestId("voiceprint-name");
+    const voiceprintRenameButton =
+        voiceprintRow.getByTestId("voiceprint-rename");
+    const voiceprintDeleteButton =
+        voiceprintRow.getByTestId("voiceprint-delete");
+    await expect(voiceprintRow).toBeVisible();
+    await expect(voiceprintNameInput).toHaveValue("Voiceprint Mutation Target");
+    const voiceprintGetsBeforeMutation = voiceprintGets;
+
+    await voiceprintNameInput.fill("Voiceprint Rename Not Saved");
+    const voiceprintPatchResponse = page.waitForResponse(
+        (response) =>
+            response.url().endsWith("/api/voiceprints/vp-failure-001") &&
+            response.request().method() === "PATCH" &&
+            response.status() === 502,
+    );
+    await voiceprintRenameButton.click();
+    await voiceprintPatchStarted;
+    await expect(voiceprintRow).toHaveAttribute(
+        "data-vs-profile-busy",
+        "true",
+    );
+    await expect(voiceprintNameInput).toBeDisabled();
+    await expect(voiceprintRenameButton).toBeDisabled();
+    await expect(voiceprintDeleteButton).toBeDisabled();
+
+    releaseVoiceprintPatch();
+    await voiceprintPatchResponse;
+    await expect(voiceprintRow).toHaveAttribute(
+        "data-vs-profile-busy",
+        "false",
+    );
+    await expect(voiceprintNameInput).toBeEnabled();
+    await expect(voiceprintRenameButton).toBeEnabled();
+    await expect(voiceprintDeleteButton).toBeEnabled();
+    await expect(voiceprintNameInput).toHaveValue(
+        "Voiceprint Rename Not Saved",
+    );
+    await expect(
+        page
+            .getByLabel("Notifications alt+T")
+            .getByText("E2E remote voiceprint rename rejected"),
+    ).toBeVisible();
+    expect(voiceprintPatches).toEqual([
+        { displayName: "Voiceprint Rename Not Saved" },
+    ]);
+    expect(voiceprintGets).toBe(voiceprintGetsBeforeMutation);
+});
+
 test("VoScript speaker profile panels recover from load errors", async ({
     page,
 }) => {
