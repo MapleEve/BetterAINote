@@ -213,7 +213,7 @@ export function SourceProviderRows({
                                 "hover:border-border/70 hover:bg-background/45 focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none",
                                 compact && "justify-center px-1.5",
                                 row.active
-                                    ? "border-border/80 bg-background/70 text-foreground shadow-xs"
+                                    ? "border-border/80 bg-muted/35 text-foreground shadow-xs"
                                     : "text-muted-foreground",
                             )}
                         >
@@ -255,13 +255,14 @@ export function SourceProviderRows({
 
                             <span
                                 className={cn(
-                                    "inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-background/50 px-2 text-[0.68rem] font-semibold text-muted-foreground",
+                                    "inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border/70 bg-muted/35 px-2 text-[0.68rem] font-semibold text-muted-foreground",
                                     compact && "hidden",
                                     row.active &&
                                         "border-primary/30 bg-primary/10 text-primary",
                                     !row.connected &&
                                         "border-border/60 bg-transparent",
                                 )}
+                                data-testid="source-provider-row-badge"
                             >
                                 {row.status === "syncing" || row.updating ? (
                                     <RefreshCw className="size-3 animate-spin" />

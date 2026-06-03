@@ -137,6 +137,10 @@ describe("full UI replacement regression coverage", () => {
         expect(rows).toContain("PROVIDER_ASSET_CLASSES");
         expect(rows).toContain("/assets/sources/dingtalk.svg");
         expect(rows).toContain("@/components/ui/button");
+        expect(rows).toContain('data-testid="source-provider-row-badge"');
+        expect(rows).toContain("bg-muted/35");
+        expect(rows).not.toContain("bg-background/70");
+        expect(rows).not.toContain("bg-background/50");
         expect(rows).toContain("sourceProviderRows.status.syncError");
         expect(rows).toContain("sourceProviderRows.badge.connect");
         expect(rows).not.toContain("同步异常");

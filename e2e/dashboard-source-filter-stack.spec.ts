@@ -510,8 +510,25 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
     await expect(iflyrecInitial).toBeVisible();
     await expect(iflyrecInitial).toHaveClass(/bg-muted\/35/);
     await expect(iflyrecInitial).not.toHaveClass(/bg-background\/60/);
+    const iflyrecBadge = iflyrecRow.getByTestId("source-provider-row-badge");
+    await expect(iflyrecBadge).toBeVisible();
+    await expect(iflyrecBadge).not.toHaveClass(/bg-background\/50/);
+    if ((await iflyrecRow.getAttribute("data-connected")) === "true") {
+        await expect(iflyrecBadge).toHaveClass(/bg-muted\/35/);
+    } else {
+        await expect(iflyrecBadge).toHaveClass(/bg-transparent/);
+    }
     await iflyrecRow.click();
     await expect(iflyrecRow).toHaveAttribute("data-active", "true");
+    await expect(iflyrecRow).toHaveClass(/bg-muted\/35/);
+    await expect(iflyrecRow).not.toHaveClass(/bg-background\/70/);
+    await expect(iflyrecBadge).toBeVisible();
+    await expect(iflyrecBadge).not.toHaveClass(/bg-background\/50/);
+    if ((await iflyrecRow.getAttribute("data-connected")) === "true") {
+        await expect(iflyrecBadge).toHaveClass(/bg-primary\/10/);
+    } else {
+        await expect(iflyrecBadge).toHaveClass(/bg-transparent/);
+    }
 
     const stack = page.getByTestId("dashboard-source-filter-stack");
     await expect(stack).toBeVisible();
