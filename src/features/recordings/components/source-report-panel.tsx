@@ -810,7 +810,7 @@ export function SourceReportPanel({
                                         return (
                                             <article
                                                 key={`${segment.startMs ?? "na"}-${index}`}
-                                                className="rounded-lg bg-background/45 px-3 py-2"
+                                                className="rounded-lg bg-muted/20 px-3 py-2"
                                             >
                                                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
                                                     {timeRange ? (

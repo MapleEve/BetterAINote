@@ -325,6 +325,31 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("border-border/70");
         expect(sourceReport).toContain("bg-muted/35");
         expect(sourceReport).toContain("bg-popover/60");
+        const segmentTimestampIndex = sourceReport.indexOf(
+            'data-testid="source-report-segment-timestamp"',
+        );
+        const segmentSpeakerIndex = sourceReport.indexOf(
+            "formatTranscriptSpeaker(",
+            segmentTimestampIndex,
+        );
+        const segmentArticleStart = sourceReport.lastIndexOf(
+            "<article",
+            segmentTimestampIndex,
+        );
+        const segmentArticleRegion = sourceReport.slice(
+            segmentArticleStart,
+            segmentSpeakerIndex + "formatTranscriptSpeaker(".length,
+        );
+
+        expect(segmentArticleStart).toBeGreaterThanOrEqual(0);
+        expect(segmentTimestampIndex).toBeGreaterThan(segmentArticleStart);
+        expect(segmentSpeakerIndex).toBeGreaterThan(segmentTimestampIndex);
+        expect(segmentArticleRegion).toContain(
+            'data-testid="source-report-segment-timestamp"',
+        );
+        expect(segmentArticleRegion).toContain("formatTranscriptSpeaker(");
+        expect(segmentArticleRegion).toContain("bg-muted/20");
+        expect(segmentArticleRegion).not.toContain("bg-background/45");
         expect(sourceReport).not.toContain("border-white/10");
         expect(sourceReport).not.toContain("bg-background/25");
         expect(sourceReport).not.toContain("bg-background/60");
