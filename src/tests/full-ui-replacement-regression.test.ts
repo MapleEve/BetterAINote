@@ -235,8 +235,14 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionPanel).toContain(
             'data-testid="dashboard-local-transcript-hint"',
         );
+        expect(transcriptionPanel).toContain("glass-surface-subtle");
         expect(transcriptionPanel).toContain("border-primary/20");
         expect(transcriptionPanel).toContain("bg-primary/8");
+        expect(transcriptionPanel).not.toContain(
+            "border-white/10 bg-background/25",
+        );
+        expect(transcriptionPanel).not.toContain("border-white/10");
+        expect(transcriptionPanel).not.toContain("bg-background/25");
         expect(transcriptionPanel).not.toContain("border-blue-");
         expect(transcriptionPanel).not.toContain("bg-blue-");
         expect(transcriptionPanel).not.toContain("text-blue-");

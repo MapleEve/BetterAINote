@@ -260,7 +260,7 @@ function TranscriptionProgressState({
     label: string;
 }) {
     return (
-        <div className="flex min-h-[260px] items-center justify-center rounded-xl border border-white/10 bg-background/25 px-6 py-10">
+        <div className="glass-surface-subtle flex min-h-[260px] items-center justify-center rounded-xl px-6 py-10">
             <div className="flex max-w-sm flex-col items-center text-center">
                 <div className="relative mb-5 flex size-14 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary shadow-[0_0_24px_rgb(245_158_11_/_0.18)]">
                     <span className="absolute inset-0 animate-ping rounded-2xl bg-primary/20 opacity-70" />
@@ -746,7 +746,7 @@ export function TranscriptionPanel({
                                     label={t("common.loading")}
                                 />
                             ) : transcription?.text ? (
-                                <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                                <div className="glass-surface-subtle rounded-xl p-4">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div className="flex flex-col gap-1">
                                             <p className="text-sm font-medium">
