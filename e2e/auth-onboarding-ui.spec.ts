@@ -299,6 +299,71 @@ test("onboarding keeps mobile provider selects above the shell and scroll-stable
     await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
 });
 
+test("onboarding stepper supports direct review paths and returns failed saves to auth", async ({
+    page,
+}) => {
+    await ensureSignedIn(page);
+    await resetOnboardingConnections(await getPlaywrightUserId());
+
+    let saveAttempts = 0;
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() === "PUT") {
+            saveAttempts += 1;
+            await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify({ success: true }),
+            });
+            return;
+        }
+
+        await route.continue();
+    });
+
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+
+    const wizard = page.getByTestId("onboarding-wizard");
+    await expect(wizard).toBeVisible();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "source");
+    await expect(page.getByTestId("onboarding-source-step")).toBeVisible();
+
+    await page.getByTestId("onboarding-step-privacy").click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "privacy");
+    await expect(page.getByTestId("onboarding-privacy-step")).toBeVisible();
+    await expect(page.getByTestId("onboarding-permission-matrix")).toBeVisible();
+    await expect(page.getByTestId("onboarding-step-source")).toHaveAttribute(
+        "data-state",
+        "complete",
+    );
+    await expect(page.getByTestId("onboarding-step-privacy")).toHaveAttribute(
+        "data-state",
+        "active",
+    );
+
+    await page.getByRole("button", { name: "返回" }).click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
+    await expect(page.getByTestId("onboarding-auth-step")).toBeVisible();
+    await expect(page.getByTestId("onboarding-auth-fields")).toBeVisible();
+
+    await page.getByRole("button", { name: "返回" }).click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "source");
+    await expect(page.getByTestId("onboarding-provider-grid")).toBeVisible();
+
+    await page.getByTestId("onboarding-step-finish").click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "finish");
+    await expect(page.getByTestId("onboarding-finish-step")).toBeVisible();
+    await expect(page.getByTestId("onboarding-state-matrix")).toBeVisible();
+
+    await page.getByTestId("onboarding-save-enter").click();
+    await expect(wizard).toHaveAttribute("data-onboarding-state", "auth");
+    await expect(page.getByTestId("onboarding-auth-step")).toBeVisible();
+    await expect(
+        page.getByLabel("Notifications alt+T").getByText(/请填写/),
+    ).toBeVisible();
+    await expect(page.getByTestId("onboarding-enter-workspace")).toHaveCount(0);
+    expect(saveAttempts).toBe(0);
+});
+
 test("onboarding saves Plaud Authorization before opening the workspace", async ({
     page,
 }) => {
