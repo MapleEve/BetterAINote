@@ -498,7 +498,7 @@ export function RecordingList({
                                         {selectedTagOption?.label ??
                                             t("recordingList.timeline.all")}
                                     </span>
-                                    <span className="shrink-0 rounded-xl border border-border/60 bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                    <span className="shrink-0 rounded-xl border border-border/60 bg-muted/35 px-2 py-0.5 text-[10px] text-muted-foreground">
                                         {selectedTagOption?.count ?? 0}
                                     </span>
                                 </span>

@@ -158,6 +158,17 @@ describe("dashboard UI foundation", () => {
             "features/dashboard/components/recording-list.tsx",
         );
         const translations = readSource("lib/i18n.ts");
+        const tagCountBadgeStart = recordingList.indexOf(
+            "{selectedTagOption?.label ??",
+        );
+        const tagCountBadgeEnd = recordingList.indexOf(
+            "</SelectTrigger>",
+            tagCountBadgeStart,
+        );
+        const tagCountBadge = recordingList.slice(
+            tagCountBadgeStart,
+            tagCountBadgeEnd,
+        );
 
         expect(recordingList).toContain(
             'export type RecordingListMode = "timeline" | "tags"',
@@ -188,6 +199,11 @@ describe("dashboard UI foundation", () => {
         );
         expect(recordingList).toContain("recordingList.first");
         expect(recordingList).toContain("recordingList.last");
+        expect(tagCountBadgeStart).toBeGreaterThanOrEqual(0);
+        expect(tagCountBadgeEnd).toBeGreaterThan(tagCountBadgeStart);
+        expect(tagCountBadge).toContain("{selectedTagOption?.count ?? 0}");
+        expect(recordingList).not.toContain("bg-background/40");
+        expect(tagCountBadge).toContain("bg-muted/35");
         expect(recordingList).not.toContain("前往数据源");
         expect(recordingList).not.toContain("清除筛选");
         expect(recordingList).not.toContain("上一页");
