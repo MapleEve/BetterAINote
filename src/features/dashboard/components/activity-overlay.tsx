@@ -940,7 +940,7 @@ export function ActivityOverlay({
                         data-testid="dashboard-activity-panel"
                         data-topbar-overlay-portal="true"
                         style={style}
-                        className="fixed z-[520] flex max-h-[min(calc(100svh-5.5rem),32.5rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                        className="fixed z-[220] flex max-h-[min(calc(100svh-5.5rem),32.5rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                     >
                         <header className="flex items-center gap-3 border-border/70 border-b px-3.5 py-3">
                             <div className="min-w-0 flex-1">

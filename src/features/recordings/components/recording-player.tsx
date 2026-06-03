@@ -112,7 +112,7 @@ export function RecordingPlayer({
                 </div>
 
                 {isTagManagerOpen && tagManagerPanel ? (
-                    <div className="animate-in fade-in-0 zoom-in-95 absolute top-12 right-5 z-[220] max-h-[min(28rem,calc(100vh-12rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border/65 bg-popover/95 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.18)] backdrop-blur-2xl duration-200">
+                    <div className="animate-in fade-in-0 zoom-in-95 absolute top-12 right-5 z-[240] max-h-[min(28rem,calc(100vh-12rem))] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border/65 bg-popover/95 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.18)] backdrop-blur-2xl duration-200">
                         {tagManagerPanel}
                     </div>
                 ) : null}

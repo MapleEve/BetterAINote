@@ -86,8 +86,8 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(topbarOverlayPortal).toContain("document.body");
         expect(search).toContain("TopbarOverlayPortal");
         expect(activity).toContain("TopbarOverlayPortal");
-        expect(search).toContain("z-[520]");
-        expect(activity).toContain("z-[520]");
+        expect(search).toContain("z-[220]");
+        expect(activity).toContain("z-[220]");
         expect(search).toContain('data-topbar-overlay-portal="true"');
         expect(activity).toContain('data-topbar-overlay-portal="true"');
         expect(search).not.toContain("fixed top-[4.75rem] right-3 left-3");

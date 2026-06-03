@@ -344,7 +344,7 @@ test("activity overlay opens data source settings for worker-down notifications"
     await trigger.click();
     const panel = page.getByTestId("dashboard-activity-panel");
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "520");
+    await expect(panel).toHaveCSS("z-index", "220");
     await expectActivityPortalOverlay(page);
     await expectActivityAnchoredToTrigger(page);
 
@@ -455,7 +455,7 @@ test("activity overlay exposes default empty and syncing states without layout j
     await expect(page.getByTestId("dashboard-activity-loading")).toContainText(
         "正在更新来源",
     );
-    await expect(panel).toHaveCSS("z-index", "520");
+    await expect(panel).toHaveCSS("z-index", "220");
     await expectActivityPortalOverlay(page);
 
     await page.setViewportSize({ width: 390, height: 740 });

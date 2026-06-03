@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const API_ROOT = path.join(process.cwd(), "src/app/api");
 const APP_ROOT = path.join(process.cwd(), "src/app");
+const FEATURES_ROOT = path.join(process.cwd(), "src/features");
+const SERVER_ROOT = path.join(process.cwd(), "src/server");
 
 function collectRouteFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -191,5 +193,59 @@ describe("preview architecture boundary", () => {
             .map(({ filePath }) => path.relative(process.cwd(), filePath));
 
         expect(offenders).toEqual([]);
+    });
+
+    it("keeps feature modules independent from server and database layers", () => {
+        const offenders = collectFiles(
+            FEATURES_ROOT,
+            (name) => name.endsWith(".ts") || name.endsWith(".tsx"),
+        )
+            .map((filePath) => ({
+                filePath,
+                source: readFileSync(filePath, "utf8"),
+            }))
+            .filter(({ source }) =>
+                /from\s+["']@\/(?:server|db)(?:\/|["'])|from\s+["']drizzle-orm(?:\/|["'])/.test(
+                    source,
+                ),
+            )
+            .map(({ filePath }) => path.relative(process.cwd(), filePath));
+
+        expect(offenders).toEqual([]);
+    });
+
+    it("keeps server modules independent from app and React UI layers", () => {
+        const offenders = collectFiles(
+            SERVER_ROOT,
+            (name) => name.endsWith(".ts") || name.endsWith(".tsx"),
+        )
+            .map((filePath) => ({
+                filePath,
+                source: readFileSync(filePath, "utf8"),
+            }))
+            .filter(({ source }) =>
+                /from\s+["']@\/(?:app|features|components)(?:\/|["'])/.test(
+                    source,
+                ),
+            )
+            .map(({ filePath }) => path.relative(process.cwd(), filePath));
+
+        expect(offenders).toEqual([]);
+    });
+
+    it("keeps the VoScript connection test route as a thin adapter", () => {
+        const source = readFileSync(
+            path.join(API_ROOT, "settings/voscript/test/route.ts"),
+            "utf8",
+        );
+
+        expect(source).toContain("testVoiceTranscribeConnectionForUser");
+        expect(source).not.toContain("new VoiceTranscribeClient");
+        expect(source).not.toContain(".listVoiceprints(");
+        expect(source).toContain('"VoScript connection test failed"');
+        expect(source).toContain("status: error.status");
+        expect(source).not.toContain(
+            'console.error("VoScript connection test failed:", error)',
+        );
     });
 });

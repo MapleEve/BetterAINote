@@ -5,6 +5,7 @@
 
 ## 真实文件
 - `access.ts`
+- `connection-test.ts`
 - `credentials.ts`
 
 ## 下级入口

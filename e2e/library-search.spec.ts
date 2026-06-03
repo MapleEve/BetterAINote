@@ -427,7 +427,7 @@ test("library search keeps error retry and keyboard focus paths live", async ({
 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "520");
+    await expect(panel).toHaveCSS("z-index", "220");
 
     const input = panel.getByRole("combobox", {
         name: "搜索录音、逐字稿、说话人、标签",
@@ -837,7 +837,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await openLibrarySearch(page);
     await expect(moreMenu).toBeHidden();
     await expect(searchPanel).toBeVisible();
-    await expect(searchPanel).toHaveCSS("z-index", "520");
+    await expect(searchPanel).toHaveCSS("z-index", "220");
     await expectOverlayAnchoredToTrigger(
         page,
         "library-search-panel",
@@ -856,7 +856,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await activityTrigger.click();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
-    await expect(activityPanel).toHaveCSS("z-index", "520");
+    await expect(activityPanel).toHaveCSS("z-index", "220");
     await expectOverlayAnchoredToTrigger(
         page,
         "dashboard-activity-panel",

@@ -1738,7 +1738,7 @@ export function Workstation({
                     aria-label={t("dashboardChrome.closeFilters")}
                     data-testid="dashboard-source-drawer-scrim"
                     className={cn(
-                        "fixed inset-0 z-[70] bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
+                        "fixed inset-0 z-[300] bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
                         isSourceDrawerOpen
                             ? "pointer-events-auto opacity-100"
                             : "pointer-events-none",
@@ -1754,7 +1754,7 @@ export function Workstation({
                     <aside
                         ref={sourceDrawerRef}
                         className={cn(
-                            "dashboard-source-sidebar glass-surface fixed top-3 bottom-3 left-3 z-[80] flex w-[min(18rem,calc(100vw-2rem))] min-h-0 flex-col rounded-2xl p-3 transition-transform duration-300 ease-[var(--ease-sine)] lg:static lg:row-span-2 lg:w-auto lg:min-h-0 lg:translate-x-0",
+                            "dashboard-source-sidebar glass-surface fixed top-3 bottom-3 left-3 z-[310] flex w-[min(18rem,calc(100vw-2rem))] min-h-0 flex-col rounded-2xl p-3 transition-transform duration-300 ease-[var(--ease-sine)] lg:static lg:row-span-2 lg:w-auto lg:min-h-0 lg:translate-x-0",
                             isSourceDrawerOpen
                                 ? "translate-x-0"
                                 : "-translate-x-[calc(100%+1rem)]",
@@ -1969,7 +1969,7 @@ export function Workstation({
                         </div>
                     </aside>
 
-                    <header className="glass-surface relative z-[210] flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
+                    <header className="glass-surface relative z-[200] flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
                         <div className="flex min-w-0 items-center gap-2">
                             <Button
                                 type="button"
@@ -2365,7 +2365,7 @@ export function Workstation({
                                                                     ? "true"
                                                                     : "false"
                                                             }
-                                                            className="absolute top-11 right-0 z-[220] w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                                                            className="absolute top-11 right-0 z-[240] w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                                                         >
                                                             <header className="border-border/70 border-b px-3.5 py-2.5">
                                                                 <p className="font-semibold text-sm">

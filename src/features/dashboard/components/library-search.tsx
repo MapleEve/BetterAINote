@@ -500,7 +500,7 @@ export function LibrarySearch({
                         data-testid="library-search-panel"
                         data-topbar-overlay-portal="true"
                         style={style}
-                        className="fixed z-[520] flex max-h-[min(calc(100svh-5.5rem),34rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
+                        className="fixed z-[220] flex max-h-[min(calc(100svh-5.5rem),34rem)] w-auto flex-col overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
                     >
                         <div className="flex items-center gap-2 border-border/70 border-b px-3 py-2.5">
                             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />

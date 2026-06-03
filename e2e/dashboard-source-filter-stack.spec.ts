@@ -727,8 +727,20 @@ test("dashboard responsive source rail opens as a mobile drawer and collapses on
 
     await page.getByTestId("dashboard-source-drawer-trigger").click();
     await expect(workstation).toHaveAttribute("data-source-drawer", "open");
-    await page.getByTestId("library-search-trigger").first().click();
+    await expect(page.getByTestId("dashboard-source-drawer-scrim")).toHaveCSS(
+        "z-index",
+        "300",
+    );
+    await expect(page.getByTestId("dashboard-source-rail")).toHaveCSS(
+        "z-index",
+        "310",
+    );
+    await page
+        .getByTestId("dashboard-source-drawer-scrim")
+        .click({ position: { x: 374, y: 760 } });
     await expect(workstation).toHaveAttribute("data-source-drawer", "closed");
+    await expect(page.getByTestId("dashboard-source-drawer-trigger")).toBeFocused();
+    await page.getByTestId("library-search-trigger").first().click();
     await expect(page.getByTestId("library-search-panel")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("library-search-panel")).toBeHidden();

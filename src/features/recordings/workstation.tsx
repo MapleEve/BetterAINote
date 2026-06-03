@@ -698,7 +698,7 @@ export function RecordingWorkstation({
             data-testid="recording-detail-workstation"
         >
             <div className="mx-auto flex min-h-0 w-full max-w-[1280px] flex-1 flex-col gap-4">
-                <header className="glass-surface relative z-[210] flex min-h-14 items-center gap-3 overflow-visible rounded-2xl px-3 py-2">
+                <header className="glass-surface relative z-[200] flex min-h-14 items-center gap-3 overflow-visible rounded-2xl px-3 py-2">
                     <Button
                         onClick={() =>
                             navigateBrowserRoute(router, "/dashboard")

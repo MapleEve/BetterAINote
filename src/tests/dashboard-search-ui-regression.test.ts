@@ -352,8 +352,8 @@ describe("dashboard search and activity overlay regression", () => {
         );
         expect(searchComponent).toContain("TopbarOverlayPortal");
         expect(activityOverlay).toContain("TopbarOverlayPortal");
-        expect(searchComponent).toContain("z-[520]");
-        expect(activityOverlay).toContain("z-[520]");
+        expect(searchComponent).toContain("z-[220]");
+        expect(activityOverlay).toContain("z-[220]");
         expect(searchComponent).toContain('data-topbar-overlay-portal="true"');
         expect(activityOverlay).toContain('data-topbar-overlay-portal="true"');
         expect(searchComponent).not.toContain(

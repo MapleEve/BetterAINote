@@ -2,12 +2,9 @@ import { NextResponse } from "next/server";
 import { normalizePrivateTranscriptionBaseUrlSetting } from "@/lib/settings/service-url-settings";
 import { getAuthenticatedUserId } from "@/lib/settings/user-settings";
 import { SettingsValidationError } from "@/lib/settings/validation";
-import {
-    VoiceTranscribeClient,
-    VoiceTranscribeHttpError,
-} from "@/lib/voice-transcribe/client";
+import { VoiceTranscribeHttpError } from "@/lib/voice-transcribe/client";
 import { getPublicVoiceTranscribeErrorMessage } from "@/lib/voice-transcribe/public-errors";
-import { getVoiceTranscribeAccessForUser } from "@/server/modules/voice-transcribe/access";
+import { testVoiceTranscribeConnectionForUser } from "@/server/modules/voice-transcribe/connection-test";
 
 function normalizeRawApiKey(value: unknown) {
     if (value === undefined || value === null || value === "") {
@@ -21,29 +18,6 @@ function normalizeRawApiKey(value: unknown) {
     }
 
     return value.trim() || null;
-}
-
-async function resolveTestClient(params: {
-    apiKey: string | null;
-    baseUrl: string;
-    userId: string;
-}) {
-    if (!params.apiKey) {
-        const access = await getVoiceTranscribeAccessForUser(params.userId);
-        if (
-            access.client &&
-            access.connection?.baseUrl.trim() === params.baseUrl
-        ) {
-            return access.client;
-        }
-    }
-
-    return new VoiceTranscribeClient({
-        apiKey: params.apiKey,
-        baseUrl: params.baseUrl,
-        providerId: "voscript-test",
-        providerName: "voice-transcribe",
-    });
 }
 
 export async function POST(request: Request) {
@@ -67,19 +41,19 @@ export async function POST(request: Request) {
             );
         }
 
-        const apiKey = normalizeRawApiKey(body.privateTranscriptionApiKey);
-        const client = await resolveTestClient({ apiKey, baseUrl, userId });
-        const voiceprints = await client.listVoiceprints();
-
-        return NextResponse.json({
-            available: true,
-            providerName: "voice-transcribe",
-            success: true,
-            voiceprintCount: voiceprints.length,
-        });
+        return NextResponse.json(
+            await testVoiceTranscribeConnectionForUser({
+                apiKey: normalizeRawApiKey(body.privateTranscriptionApiKey),
+                baseUrl,
+                userId,
+            }),
+        );
     } catch (error) {
         if (error instanceof VoiceTranscribeHttpError) {
-            console.error("VoScript connection test failed:", error);
+            console.error("VoScript connection test failed", {
+                name: error.name,
+                status: error.status,
+            });
             return NextResponse.json(
                 { error: getPublicVoiceTranscribeErrorMessage(error) },
                 { status: 502 },
