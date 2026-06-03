@@ -221,6 +221,39 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-testid="recording-rename-cancel"',
         );
+        const firstAiRenameMarker = detailWorkstation.indexOf(
+            'data-testid="recording-ai-rename"',
+        );
+        const cancelRenameMarker = detailWorkstation.indexOf(
+            'data-testid="recording-rename-cancel"',
+            firstAiRenameMarker,
+        );
+        const secondAiRenameMarker = detailWorkstation.indexOf(
+            'data-testid="recording-ai-rename"',
+            cancelRenameMarker,
+        );
+        const titleActionStart = detailWorkstation.lastIndexOf(
+            "<Button",
+            firstAiRenameMarker,
+        );
+        const titleActionEnd =
+            detailWorkstation.indexOf("</Button>", secondAiRenameMarker) +
+            "</Button>".length;
+        const titleActionButtons = detailWorkstation.slice(
+            titleActionStart,
+            titleActionEnd,
+        );
+
+        expect(titleActionButtons).toContain("handleAutoRename");
+        expect(titleActionButtons).toContain("handleRenameCancel");
+        expect(
+            titleActionButtons.match(/data-testid="recording-ai-rename"/g),
+        ).toHaveLength(2);
+        expect(titleActionButtons).toContain(
+            'data-testid="recording-rename-cancel"',
+        );
+        expect(titleActionButtons).not.toContain("bg-background/30");
+        expect(titleActionButtons.match(/bg-muted\/20/g)).toHaveLength(3);
         expect(detailWorkstation).toContain(
             'data-testid="recording-copy-source-report"',
         );
