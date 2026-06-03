@@ -1053,7 +1053,7 @@ export function RecordingWorkstation({
                                         </div>
                                     </div>
                                 </div>
-                                <div className="mt-3 rounded-xl border border-border/55 bg-background/30 px-3 py-2 text-xs text-muted-foreground">
+                                <div className="mt-3 rounded-xl border border-border/55 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                                     <span className="mr-2 font-medium text-foreground">
                                         {t("recording.device")}
                                     </span>

@@ -152,6 +152,31 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(headerSourcePill).toContain(sourceLabelMarker);
         expect(headerSourcePill).not.toContain("bg-background/30");
         expect(headerSourcePill).toContain("bg-muted/20");
+
+        const deviceLabelMarker = '{t("recording.device")}';
+        const deviceValueMarker = "{recording.providerDeviceId}";
+        const deviceLabelMarkerIndex =
+            detailWorkstation.indexOf(deviceLabelMarker);
+        const deviceValueMarkerIndex = detailWorkstation.indexOf(
+            deviceValueMarker,
+            deviceLabelMarkerIndex,
+        );
+        const deviceCalloutStart = detailWorkstation.lastIndexOf(
+            '<div className="mt-3 rounded-xl border border-border/55',
+            deviceLabelMarkerIndex,
+        );
+        const deviceCalloutEnd =
+            detailWorkstation.indexOf("</div>", deviceValueMarkerIndex) +
+            "</div>".length;
+        const deviceCallout = detailWorkstation.slice(
+            deviceCalloutStart,
+            deviceCalloutEnd,
+        );
+
+        expect(deviceCallout).toContain(deviceLabelMarker);
+        expect(deviceCallout).toContain(deviceValueMarker);
+        expect(deviceCallout).not.toContain("bg-background/30");
+        expect(deviceCallout).toContain("bg-muted/20");
     });
 
     it("keeps dashboard transcription panel on the same three-way copy contract", () => {
