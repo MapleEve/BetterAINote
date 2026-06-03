@@ -212,6 +212,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("showSpeakerReview={false}");
         expect(detailWorkstation).toContain("<SpeakerLabelEditor");
         expect(detailWorkstation).toContain("/rename/auto");
+        expect(detailWorkstation).not.toContain("hover:bg-background/50");
+        expect(detailWorkstation).toContain("handleAutoRename");
+        expect(detailWorkstation).toContain("handleRenameCancel");
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-ai-rename"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-testid="recording-rename-cancel"',
+        );
         expect(detailWorkstation).toContain(
             'data-testid="recording-copy-source-report"',
         );

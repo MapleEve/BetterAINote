@@ -742,7 +742,7 @@ export function RecordingWorkstation({
                                         autoRenameDisabledReason ??
                                         t("transcription.aiRename")
                                     }
-                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                 >
                                     <Sparkles
                                         className={
@@ -773,7 +773,7 @@ export function RecordingWorkstation({
                                     onClick={handleRenameCancel}
                                     disabled={isSavingRename}
                                     aria-label={t("recording.cancelRename")}
-                                    className="h-10 w-10 shrink-0 rounded-xl border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
+                                    className="h-10 w-10 shrink-0 rounded-xl border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-accent/45"
                                     data-testid="recording-rename-cancel"
                                 >
                                     <X className="h-5 w-5" />
@@ -801,7 +801,7 @@ export function RecordingWorkstation({
                                         autoRenameDisabledReason ??
                                         t("transcription.aiRename")
                                     }
-                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                 >
                                     <Sparkles
                                         className={
