@@ -140,6 +140,26 @@ describe("React surface SSR coverage", () => {
         expect(html).not.toContain("border-white/8");
     });
 
+    it("renders the shared Footer shell without deprecated background surfaces", () => {
+        const footerSource = readSource("components/footer.tsx");
+
+        expect(footerSource).toContain("glass-surface-subtle");
+        expect(footerSource).not.toContain("bg-background/45");
+        expect(footerSource).not.toContain(
+            "supports-[backdrop-filter]:bg-background/30",
+        );
+
+        const html = render(React.createElement(Footer));
+
+        expect(html).toContain("BetterAINote");
+        expect(html).toContain("https://github.com/MapleEve/BetterAINote");
+        expect(html).toContain("glass-surface-subtle");
+        expect(html).not.toContain("bg-background/45");
+        expect(html).not.toContain(
+            "supports-[backdrop-filter]:bg-background/30",
+        );
+    });
+
     it("renders shared shell and primitive UI components", () => {
         const html = render(
             React.createElement(

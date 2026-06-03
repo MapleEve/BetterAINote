@@ -60,5 +60,16 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain('<SelectContent className="z-[650]">');
         expect(source).toContain('selectContentClassName="z-[650]"');
         expect(source).not.toContain("z-[200]");
+
+        const readOnlyMatrixRow = source.slice(
+            source.indexOf("function ReadOnlyMatrixRow"),
+            source.indexOf("function WizardActions"),
+        );
+
+        expect(readOnlyMatrixRow).toContain("data-state={state}");
+        expect(readOnlyMatrixRow).toContain("{label}");
+        expect(readOnlyMatrixRow).toContain("{value}");
+        expect(readOnlyMatrixRow).toContain("glass-surface-subtle");
+        expect(readOnlyMatrixRow).not.toContain("bg-background/45");
     });
 });

@@ -10,7 +10,7 @@ export function Footer() {
     const { t } = useLanguage();
 
     return (
-        <footer className="border-border/70 border-t bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/30">
+        <footer className="glass-surface-subtle w-full border-x-0 border-b-0 border-t border-border/70">
             <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4 py-4 text-center text-xs text-muted-foreground sm:text-sm">
                 <span className="flex items-center gap-2 font-medium text-foreground/80">
                     {t("footer.madeWith")}
