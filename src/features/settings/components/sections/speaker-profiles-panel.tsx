@@ -62,7 +62,7 @@ function StatePill({
                 tone === "warning" &&
                     "border-amber-400/35 bg-amber-500/15 text-amber-700 dark:text-amber-200",
                 tone === "neutral" &&
-                    "border-border/70 bg-background/45 text-muted-foreground",
+                    "border-border/70 glass-control text-muted-foreground",
             )}
         >
             <span className="size-1.5 rounded-full bg-current" />
@@ -91,7 +91,7 @@ function PanelNotice({
                     : "border-border/75 bg-muted/20 text-muted-foreground",
             )}
         >
-            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 glass-control">
                 <Icon className="size-4" aria-hidden="true" />
             </span>
             <div className="min-w-0 space-y-3">

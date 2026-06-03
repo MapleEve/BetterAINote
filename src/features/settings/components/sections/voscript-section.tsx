@@ -74,7 +74,7 @@ function VoScriptStatusBanner({
             )}
             data-voscript-service-state={state}
         >
-            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 glass-control">
                 <Icon className="size-4" aria-hidden="true" />
             </span>
             <span className="min-w-0">
