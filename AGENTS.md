@@ -18,7 +18,6 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - `src/db/AGENTS.md`：schema、迁移、数据库路径和迁移入口。
 - `src/tests/AGENTS.md`：Vitest 覆盖、架构护栏和公开发布卫生测试。
 - `.github/AGENTS.md`：GitHub 模板、workflow 和公开自动化边界。
-- `docs/AGENTS.md`：公开文档和文档资产规则。
 - `scripts/AGENTS.md`：已跟踪脚本和安全本地自动化规则。
 
 ## 公共红线
@@ -29,6 +28,7 @@ BetterAINote 是隐私优先、可自托管、provider 中立的多平台录音�
 - 不修改 license、package privacy、release automation 或发布行为，除非任务明确要求检查发布边界。
 - 不运行破坏性 git 命令，不覆盖用户工作；改动前检查 `git status --short --branch`。
 - `public/` 会被运行时按原样公开访问，禁止放入 AGENTS、CLAUDE、内部说明、测试夹具、调试输出或任何非公开素材。
+- `docs/` 是可发布用户文档目录，禁止放入 AGENTS、CLAUDE、内部说明、测试夹具、调试输出或任何非公开素材。
 
 ## 跨层耦合
 

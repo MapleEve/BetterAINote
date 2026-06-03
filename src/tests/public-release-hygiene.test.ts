@@ -4,13 +4,14 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = process.cwd();
+const DOCS_ROOT = path.join(ROOT, "docs");
 const PUBLIC_ROOT = path.join(ROOT, "public");
 
-function collectPublicInstructionFiles(directory: string): string[] {
+function collectInstructionFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const fullPath = path.join(directory, entry.name);
         if (entry.isDirectory()) {
-            return collectPublicInstructionFiles(fullPath);
+            return collectInstructionFiles(fullPath);
         }
 
         return entry.isFile() &&
@@ -22,7 +23,11 @@ function collectPublicInstructionFiles(directory: string): string[] {
 
 describe("public release hygiene", () => {
     it("keeps agent instruction files out of the runtime public surface", () => {
-        expect(collectPublicInstructionFiles(PUBLIC_ROOT)).toEqual([]);
+        expect(collectInstructionFiles(PUBLIC_ROOT)).toEqual([]);
+    });
+
+    it("keeps agent instruction files out of publishable docs", () => {
+        expect(collectInstructionFiles(DOCS_ROOT)).toEqual([]);
     });
 
     it("keeps generated hero source files out of the public git surface", () => {

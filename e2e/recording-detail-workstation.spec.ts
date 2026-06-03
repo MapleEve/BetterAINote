@@ -486,6 +486,52 @@ async function installClipboardCapture(page: Page) {
     });
 }
 
+async function installToggleableClipboardCapture(page: Page) {
+    await page.addInitScript(() => {
+        const copiedTexts: string[] = [];
+        Object.defineProperty(window, "__betterainoteCopiedTexts", {
+            value: copiedTexts,
+            configurable: true,
+        });
+        Object.defineProperty(window, "__betterainoteRejectClipboardWrites", {
+            value: true,
+            writable: true,
+            configurable: true,
+        });
+        Object.defineProperty(navigator, "clipboard", {
+            value: {
+                writeText: async (text: string) => {
+                    if (
+                        (
+                            window as unknown as {
+                                __betterainoteRejectClipboardWrites: boolean;
+                            }
+                        ).__betterainoteRejectClipboardWrites
+                    ) {
+                        throw new Error("Clipboard write rejected by E2E");
+                    }
+                    copiedTexts.push(String(text));
+                },
+            },
+            configurable: true,
+        });
+        Object.defineProperty(document, "execCommand", {
+            value: () => false,
+            configurable: true,
+        });
+    });
+}
+
+async function setClipboardRejectWrites(page: Page, shouldReject: boolean) {
+    await page.evaluate((nextValue) => {
+        (
+            window as unknown as {
+                __betterainoteRejectClipboardWrites: boolean;
+            }
+        ).__betterainoteRejectClipboardWrites = nextValue;
+    }, shouldReject);
+}
+
 async function openSpeakerReviewPanel(page: Page) {
     const tab = page.getByRole("button", {
         name: "说话人标签",
@@ -687,6 +733,60 @@ test("recording detail uses the new workstation shell and keeps all copy actions
     }
 });
 
+test("recording detail copy actions recover after clipboard write rejection", async ({
+    page,
+}) => {
+    await installToggleableClipboardCapture(page);
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId, {
+            includeSpeakerReview: true,
+        });
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+
+        await waitForRecordingDetailReady(page);
+
+        const localCopyButton = page.getByTestId(
+            "recording-copy-local-transcript",
+        );
+        await localCopyButton.click();
+        await expect(
+            page.getByText("复制转录失败，请检查浏览器剪贴板权限。"),
+        ).toBeVisible();
+        await expect(localCopyButton).toBeEnabled();
+        await expect(localCopyButton).toContainText("复制转录");
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        const sourceReportButton = page.getByTestId(
+            "recording-copy-source-report",
+        );
+        await sourceReportButton.click();
+        await expect(
+            page.getByText("复制失败，请检查浏览器剪贴板权限。"),
+        ).toBeVisible();
+        await expect(sourceReportButton).toBeEnabled();
+        await expect(sourceReportButton).toContainText("复制原始报告");
+        await expect(sourceReportButton).toHaveAttribute(
+            "data-source-copy-state",
+            "ready",
+        );
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        await setClipboardRejectWrites(page, false);
+        await sourceReportButton.click();
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("E2E 源报告摘要");
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
 test("recording detail source copy strip mirrors partial artifact availability", async ({
     page,
 }) => {
@@ -801,6 +901,100 @@ test("recording detail manual rename supports cancel and save states", async ({
                 .getByLabel("Notifications alt+T")
                 .getByText("录音已重命名"),
         ).toBeVisible();
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail manual rename supports keyboard cancel, failure, and retry", async ({
+    page,
+}) => {
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId);
+        let renamePatchAttempts = 0;
+
+        await page.route(
+            `**/api/recordings/${recordingId}/rename`,
+            async (route) => {
+                renamePatchAttempts += 1;
+                const payload = route.request().postDataJSON() as {
+                    filename?: string;
+                };
+                if (payload.filename === "E2E detail failing keyboard rename") {
+                    await route.fulfill({
+                        contentType: "application/json",
+                        status: 500,
+                        body: JSON.stringify({
+                            error: "录音重命名失败",
+                        }),
+                    });
+                    return;
+                }
+
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify({ ok: true }),
+                });
+            },
+        );
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await waitForRecordingDetailReady(page);
+
+        await page.getByTestId("recording-rename-start").click();
+        const renameInput = page.getByTestId("recording-rename-input");
+        await renameInput.fill("E2E detail escaped keyboard rename");
+        await renameInput.press("Escape");
+        await expect(
+            page.getByRole("heading", { name: "E2E source detail review" }),
+        ).toBeVisible();
+        expect(renamePatchAttempts).toBe(0);
+
+        await page.getByTestId("recording-rename-start").click();
+        await renameInput.fill("E2E detail failing keyboard rename");
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/rename`) &&
+                    response.request().method() === "PATCH" &&
+                    response.status() === 500,
+            ),
+            renameInput.press("Enter"),
+        ]);
+
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("录音重命名失败"),
+        ).toBeVisible();
+        await expect(renameInput).toHaveValue(
+            "E2E detail failing keyboard rename",
+        );
+        await expect(page.getByTestId("recording-rename-save")).toBeEnabled();
+
+        await renameInput.fill("E2E detail keyboard rename");
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${recordingId}/rename`) &&
+                    response.request().method() === "PATCH" &&
+                    response.ok(),
+            ),
+            renameInput.press("Enter"),
+        ]);
+
+        await expect(
+            page.getByRole("heading", { name: "E2E detail keyboard rename" }),
+        ).toBeVisible();
+        expect(renamePatchAttempts).toBe(2);
     } finally {
         await cleanupRecordingDetailSeed();
     }
@@ -1175,6 +1369,101 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
     }
 });
 
+test("recording detail speaker review sample playback recovers after failure and segment end", async ({
+    page,
+}) => {
+    await page.addInitScript(() => {
+        class FakeSampleAudio {
+            currentTime = 0;
+            onloadedmetadata: (() => void) | null = null;
+            ontimeupdate: (() => void) | null = null;
+            src = "";
+
+            load() {
+                queueMicrotask(() => this.onloadedmetadata?.());
+            }
+
+            pause() {}
+
+            async play() {
+                const state = window as Window & {
+                    __betterAiNoteLastSampleAudio?: FakeSampleAudio;
+                    __betterAiNoteRejectNextSamplePlay?: boolean;
+                };
+                state.__betterAiNoteLastSampleAudio = this;
+                if (state.__betterAiNoteRejectNextSamplePlay) {
+                    state.__betterAiNoteRejectNextSamplePlay = false;
+                    throw new Error("Sample playback rejected by E2E");
+                }
+            }
+        }
+
+        Object.defineProperty(window, "Audio", {
+            configurable: true,
+            value: FakeSampleAudio,
+        });
+    });
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        const recordingId = await seedRecordingDetail(userId, {
+            includeSpeakerReview: true,
+        });
+
+        await page.goto(`/recordings/${recordingId}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await waitForRecordingDetailReady(page);
+
+        const panel = await openSpeakerReviewPanel(page);
+        const mappedCard = panel.locator(
+            '[data-testid="speaker-review-card"][data-speaker-label="SPEAKER_ALPHA_00"]',
+        );
+        const playSampleButton = mappedCard
+            .getByTestId("speaker-review-play-sample")
+            .first();
+
+        await page.evaluate(() => {
+            (
+                window as Window & {
+                    __betterAiNoteRejectNextSamplePlay?: boolean;
+                }
+            ).__betterAiNoteRejectNextSamplePlay = true;
+        });
+        await playSampleButton.click();
+        await expect(
+            page
+                .getByLabel("Notifications alt+T")
+                .getByText("示例播放失败"),
+        ).toBeVisible();
+        await expect(playSampleButton).toContainText("播放");
+        await expect(playSampleButton).not.toContainText("播放中");
+
+        await playSampleButton.click();
+        await expect(playSampleButton).toContainText("播放中");
+        await page.evaluate(() => {
+            const audio = (
+                window as Window & {
+                    __betterAiNoteLastSampleAudio?: {
+                        currentTime: number;
+                        ontimeupdate: (() => void) | null;
+                    };
+                }
+            ).__betterAiNoteLastSampleAudio;
+            if (!audio) {
+                throw new Error("No sample audio instance captured");
+            }
+            audio.currentTime = 4;
+            audio.ontimeupdate?.();
+        });
+        await expect(playSampleButton).toContainText("播放");
+        await expect(playSampleButton).not.toContainText("播放中");
+    } finally {
+        await cleanupRecordingDetailSeed();
+    }
+});
+
 test("recording detail speaker review covers empty and refresh failure states", async ({
     page,
 }) => {
@@ -1183,6 +1472,7 @@ test("recording detail speaker review covers empty and refresh failure states", 
         const userId = await getPlaywrightUserId();
         const recordingId = await seedRecordingDetail(userId);
         let speakerListAttempts = 0;
+        let holdSpeakerListFailure = true;
         await page.route(
             `**/api/recordings/${recordingId}/speakers`,
             async (route) => {
@@ -1192,7 +1482,7 @@ test("recording detail speaker review covers empty and refresh failure states", 
                 }
 
                 speakerListAttempts += 1;
-                if (speakerListAttempts === 1) {
+                if (holdSpeakerListFailure) {
                     await route.fulfill({
                         contentType: "application/json",
                         status: 503,
@@ -1217,6 +1507,7 @@ test("recording detail speaker review covers empty and refresh failure states", 
             panel.getByTestId("speaker-review-speakers-error"),
         ).toContainText("说话人标签暂时不可用");
         await expect(panel.getByTestId("speaker-review-empty")).toHaveCount(0);
+        holdSpeakerListFailure = false;
         await Promise.all([
             page.waitForResponse(
                 (response) =>

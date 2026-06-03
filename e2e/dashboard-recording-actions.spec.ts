@@ -156,9 +156,9 @@ async function cleanupDashboardActionSeed(userId?: string) {
 
 async function seedDashboardActionRecording(
     userId: string,
-    options: { includeTranscript?: boolean } = {},
+    options: { includeTranscript?: boolean; upstreamDeleted?: boolean } = {},
 ) {
-    const { includeTranscript = false } = options;
+    const { includeTranscript = false, upstreamDeleted = true } = options;
     const now = Date.now();
     const start = now - 1_800_000;
     const library = createClient({ url: databaseUrl(LIBRARY_DB) });
@@ -193,7 +193,7 @@ async function seedDashboardActionRecording(
                 "",
                 now,
                 0,
-                1,
+                upstreamDeleted ? 1 : 0,
                 now,
                 now,
             ],
@@ -432,6 +432,139 @@ test("dashboard renames, tags, and deletes a local-only recording through the ne
             .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
             .toBeNull();
         await expect(page.getByText(ACTION_RENAMED_TITLE)).toBeHidden();
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard keeps local delete unavailable for synced source recordings", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    let deleteAttempts = 0;
+
+    await page.route(
+        `**/api/recordings/${ACTION_RECORDING_ID}`,
+        async (route) => {
+            if (route.request().method() === "DELETE") {
+                deleteAttempts += 1;
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 500,
+                    body: JSON.stringify({ error: "DELETE should not fire" }),
+                });
+                return;
+            }
+
+            await route.fallback();
+        },
+    );
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId, {
+            upstreamDeleted: false,
+        });
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        await page
+            .getByTestId("dashboard-detail-more-actions")
+            .getByRole("button")
+            .click();
+        await expect(page.getByTestId("dashboard-detail-more-menu"))
+            .toHaveAttribute("data-local-delete-available", "false");
+        const deleteButton = page.getByTestId("dashboard-delete-local-recording");
+        await expect(deleteButton).toBeDisabled();
+        await expect(deleteButton).toHaveAttribute("aria-disabled", "true");
+        await expect(deleteButton).toContainText("仅来源已删除");
+
+        await deleteButton.evaluate((button) =>
+            (button as HTMLButtonElement).click(),
+        );
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        expect(deleteAttempts).toBe(0);
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
+
+test("dashboard preserves a local-only recording after local delete failure", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+    let deleteAttempts = 0;
+
+    await page.route(
+        `**/api/recordings/${ACTION_RECORDING_ID}`,
+        async (route) => {
+            if (route.request().method() === "DELETE") {
+                deleteAttempts += 1;
+                await route.fulfill({
+                    contentType: "application/json",
+                    status: 500,
+                    body: JSON.stringify({ error: "本地删除失败" }),
+                });
+                return;
+            }
+
+            await route.fallback();
+        },
+    );
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId);
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        await page
+            .getByTestId("dashboard-detail-more-actions")
+            .getByRole("button")
+            .click();
+        await page.getByTestId("dashboard-delete-local-recording").click();
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(`/api/recordings/${ACTION_RECORDING_ID}`) &&
+                    response.request().method() === "DELETE" &&
+                    response.status() === 500,
+            ),
+            page.getByRole("dialog").getByRole("button", { name: "确认" })
+                .click(),
+        ]);
+
+        await expect(
+            page.getByLabel("Notifications alt+T").getByText("本地删除失败"),
+        ).toBeVisible();
+        await expect(page.getByTestId("dashboard-recording-title")).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+        await expect(
+            page.getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) }),
+        ).toBeVisible();
+        await expect
+            .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
+            .toBe(ACTION_RECORDING_TITLE);
+        expect(deleteAttempts).toBe(1);
     } finally {
         await cleanupDashboardActionSeed(userId ?? undefined);
     }

@@ -61,6 +61,23 @@ async function openDataSourcesSettings(page: Page) {
     return section;
 }
 
+async function pasteTextIntoInput(
+    locator: ReturnType<Page["locator"]>,
+    text: string,
+) {
+    await locator.evaluate((element, pastedText) => {
+        const clipboardData = new DataTransfer();
+        clipboardData.setData("text", pastedText);
+        clipboardData.setData("text/plain", pastedText);
+        const event = new ClipboardEvent("paste", {
+            bubbles: true,
+            cancelable: true,
+            clipboardData,
+        });
+        element.dispatchEvent(event);
+    }, text);
+}
+
 test("data sources settings shows section-level load failure and retries", async ({
     page,
 }) => {
@@ -396,6 +413,108 @@ test("data sources settings keeps save failures scoped and editable", async ({
         enabled: true,
         provider: "ticnote",
         secrets: { bearerToken: "failed-save-token" },
+    });
+});
+
+test("data sources settings masks sensitive fields and preserves pasted sign-in details", async ({
+    page,
+}) => {
+    const sources = [
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+        }),
+        makeSource("feishu-minutes", {
+            authMode: "oauth-device-flow",
+            authModes: ["oauth-device-flow", "web-reverse"],
+            baseUrl: "https://open.feishu.cn",
+            config: { appId: "" },
+            displayName: "飞书妙记",
+        }),
+    ];
+    const testPayloads: Record<string, unknown>[] = [];
+
+    await page.route("**/api/data-sources/test", async (route) => {
+        testPayloads.push(route.request().postDataJSON());
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ sources }),
+            });
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    const section = await openDataSourcesSettings(page);
+
+    await section.locator('[data-provider="ticnote"]').click();
+    const ticnoteDetail = section.locator('[data-provider-detail="ticnote"]');
+    const ticnoteSecret = page.locator("#ticnote-source-secret");
+    await expect(ticnoteSecret).toHaveAttribute("type", "password");
+    await ticnoteSecret.fill("stale-token");
+    await pasteTextIntoInput(ticnoteSecret, "Bearer pasted-data-source-token");
+    await expect(ticnoteSecret).toHaveValue("Bearer pasted-data-source-token");
+
+    await ticnoteDetail.getByTestId("data-source-test-connection").click();
+    await expect(ticnoteDetail).toHaveAttribute(
+        "data-provider-action-state",
+        "test-success",
+    );
+    expect(testPayloads.at(-1)).toMatchObject({
+        provider: "ticnote",
+        secrets: { bearerToken: "pasted-data-source-token" },
+    });
+
+    await section.locator('[data-provider="feishu-minutes"]').click();
+    const feishuDetail = section.locator(
+        '[data-provider-detail="feishu-minutes"]',
+    );
+    await feishuDetail.locator('[data-auth-mode="web-reverse"]').click();
+
+    const webCookieInput = page.locator("#feishu-minutes-source-web-cookie");
+    const webTokenInput = page.locator("#feishu-minutes-source-web-token");
+    await expect(webCookieInput).toHaveAttribute("type", "password");
+    await expect(webTokenInput).toHaveAttribute("type", "password");
+
+    await page.locator("#feishu-minutes-source-space-name").fill("cn");
+    await webCookieInput.fill("stale-cookie");
+    await pasteTextIntoInput(
+        webCookieInput,
+        "minutes_csrf_token=e2e; session=e2e",
+    );
+    await pasteTextIntoInput(webTokenInput, "x-minutes-pasted-token");
+    await expect(webCookieInput).toHaveValue(
+        "minutes_csrf_token=e2e; session=e2e",
+    );
+    await expect(webTokenInput).toHaveValue("x-minutes-pasted-token");
+
+    await feishuDetail.getByTestId("data-source-test-connection").click();
+    await expect(feishuDetail).toHaveAttribute(
+        "data-provider-action-state",
+        "test-success",
+    );
+    expect(testPayloads.at(-1)).toMatchObject({
+        authMode: "web-reverse",
+        provider: "feishu-minutes",
+        secrets: {
+            webCookie: "minutes_csrf_token=e2e; session=e2e",
+            webToken: "x-minutes-pasted-token",
+        },
     });
 });
 

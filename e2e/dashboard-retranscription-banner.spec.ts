@@ -38,6 +38,63 @@ type RetranscriptionSeedStatus =
     | "succeeded"
     | null;
 
+async function installToggleableClipboardCapture(page: Page) {
+    await page.addInitScript(() => {
+        const copiedTexts: string[] = [];
+        Object.defineProperty(window, "__betterainoteCopiedTexts", {
+            value: copiedTexts,
+            configurable: true,
+        });
+        Object.defineProperty(window, "__betterainoteRejectClipboardWrites", {
+            value: true,
+            writable: true,
+            configurable: true,
+        });
+        Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: {
+                writeText: async (text: string) => {
+                    if (
+                        (
+                            window as unknown as {
+                                __betterainoteRejectClipboardWrites: boolean;
+                            }
+                        ).__betterainoteRejectClipboardWrites
+                    ) {
+                        throw new Error("Clipboard write rejected by E2E");
+                    }
+                    copiedTexts.push(String(text));
+                },
+            },
+        });
+        Object.defineProperty(document, "execCommand", {
+            value: () => false,
+            configurable: true,
+        });
+    });
+}
+
+async function readCopiedTexts(page: Page) {
+    return page.evaluate(
+        () =>
+            (
+                window as unknown as {
+                    __betterainoteCopiedTexts: string[];
+                }
+            ).__betterainoteCopiedTexts,
+    );
+}
+
+async function setClipboardRejectWrites(page: Page, shouldReject: boolean) {
+    await page.evaluate((nextValue) => {
+        (
+            window as unknown as {
+                __betterainoteRejectClipboardWrites: boolean;
+            }
+        ).__betterainoteRejectClipboardWrites = nextValue;
+    }, shouldReject);
+}
+
 function databaseUrl(filePath: string) {
     return pathToFileURL(filePath).href;
 }
@@ -841,6 +898,97 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
         await page.getByRole("button", { name: "来源", exact: true }).click();
         await expect(page.getByTestId("source-report-loaded")).toBeVisible();
         await expect(page.getByTestId("source-report-copy-transcript")).toBeEnabled();
+    } finally {
+        await cleanupRunningRetranscriptionSeed();
+    }
+});
+
+test("dashboard transcription copy actions recover after clipboard write rejection", async ({
+    page,
+}) => {
+    await installToggleableClipboardCapture(page);
+
+    try {
+        await ensureSignedIn(page);
+        const userId = await getPlaywrightUserId();
+        await seedRetranscriptionScenario(userId, {
+            filename: "E2E dashboard clipboard rejection",
+            status: null,
+            oldText: "Speaker 1: 仪表盘复制失败后必须可以恢复。",
+        });
+        await page.route(
+            `**/api/recordings/${RETX_RECORDING_ID}/source-report`,
+            async (route) => {
+                await route.fulfill({
+                    contentType: "application/json",
+                    body: JSON.stringify({
+                        sourceProvider: "ticnote",
+                        filename: "E2E dashboard clipboard rejection",
+                        transcriptReady: true,
+                        summaryReady: true,
+                        transcript: {
+                            text: "Speaker 1: 来源恢复转录。",
+                            segmentCount: 1,
+                            segments: [
+                                {
+                                    speaker: "Speaker 1",
+                                    startMs: 0,
+                                    endMs: 1200,
+                                    text: "来源恢复转录。",
+                                },
+                            ],
+                        },
+                        summaryMarkdown: "来源恢复报告。",
+                        detail: {
+                            provider: "ticnote",
+                            title: "E2E dashboard clipboard rejection",
+                        },
+                    }),
+                });
+            },
+        );
+
+        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await page
+            .getByRole("button", {
+                name: /E2E dashboard clipboard rejection/,
+            })
+            .click();
+
+        const panel = page.getByTestId("dashboard-transcription-panel");
+        await expect(panel).toContainText("复制失败后必须可以恢复");
+
+        const localCopyButton = page.getByTestId(
+            "dashboard-copy-local-transcript",
+        );
+        await localCopyButton.click();
+        await expect(
+            page.getByText("复制转录失败，请检查浏览器剪贴板权限。"),
+        ).toBeVisible();
+        await expect(localCopyButton).toBeEnabled();
+        await expect(localCopyButton).toContainText("复制转录");
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        const sourceTranscriptButton = page.getByTestId(
+            "dashboard-copy-source-transcript",
+        );
+        await sourceTranscriptButton.click();
+        await expect(
+            page.getByText("复制失败，请检查浏览器剪贴板权限。"),
+        ).toBeVisible();
+        await expect(sourceTranscriptButton).toBeEnabled();
+        await expect(sourceTranscriptButton).toContainText("复制原始转录");
+        await expect(sourceTranscriptButton).toHaveAttribute(
+            "data-source-copy-state",
+            "ready",
+        );
+        expect(await readCopiedTexts(page)).toEqual([]);
+
+        await setClipboardRejectWrites(page, false);
+        await page.getByTestId("dashboard-copy-source-report").click();
+        await expect
+            .poll(async () => (await readCopiedTexts(page)).at(-1) ?? "")
+            .toContain("来源恢复报告");
     } finally {
         await cleanupRunningRetranscriptionSeed();
     }
