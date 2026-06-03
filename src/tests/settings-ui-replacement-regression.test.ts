@@ -201,8 +201,11 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(speakers).toContain("data-vs-state");
         expect(speakers).toContain("data-speaker-profile-row");
         expect(speakers).toContain("data-speaker-profile-busy");
+        expect(speakers).toContain('data-testid="speaker-profile-initial"');
         expect(speakers).toContain("data-vs-profile-row");
         expect(speakers).toContain("data-vs-profile-busy");
+        expect(speakers).toContain('data-testid="voiceprint-initial"');
+        expect(speakers).not.toContain("bg-background/60");
         expect(speakers).toContain("isProfileSaving");
         expect(speakers).toContain("isVoiceprintSaving");
         expect(speakers).toContain(

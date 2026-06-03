@@ -570,7 +570,10 @@ export function SpeakerProfilesPanel() {
                                     }
                                     data-speaker-profile-id={profile.id}
                                 >
-                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                    <span
+                                        className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/35 text-xs font-semibold text-foreground"
+                                        data-testid="speaker-profile-initial"
+                                    >
                                         {profile.displayName
                                             .trim()
                                             .slice(0, 1)
@@ -742,7 +745,10 @@ export function SpeakerProfilesPanel() {
                                     }
                                     data-vs-profile-id={voiceprint.id}
                                 >
-                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+                                    <span
+                                        className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/35 text-xs font-semibold text-foreground"
+                                        data-testid="voiceprint-initial"
+                                    >
                                         {voiceprint.displayName
                                             .trim()
                                             .slice(0, 1)

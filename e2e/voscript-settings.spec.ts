@@ -860,6 +860,12 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     const editedProfileRow = page.locator(
         '[data-speaker-profile-id="profile-edit-001"]',
     );
+    const editedProfileInitial = editedProfileRow.getByTestId(
+        "speaker-profile-initial",
+    );
+    await expect(editedProfileInitial).toBeVisible();
+    await expect(editedProfileInitial).toHaveClass(/bg-muted\/35/);
+    await expect(editedProfileInitial).not.toHaveClass(/bg-background\/60/);
     await editedProfileRow
         .getByTestId("speaker-profile-name")
         .fill("Speaker Renamed");
@@ -928,6 +934,10 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
     await expect(editedProfileRow).toHaveCount(0);
 
     const voiceprintRow = page.locator('[data-vs-profile-id="vp-rename-001"]');
+    const voiceprintInitial = voiceprintRow.getByTestId("voiceprint-initial");
+    await expect(voiceprintInitial).toBeVisible();
+    await expect(voiceprintInitial).toHaveClass(/bg-muted\/35/);
+    await expect(voiceprintInitial).not.toHaveClass(/bg-background\/60/);
     await voiceprintRow
         .getByTestId("voiceprint-name")
         .fill("Voiceprint Renamed");
