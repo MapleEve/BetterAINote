@@ -273,7 +273,31 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(transcription).toContain(
             'data-testid="transcription-settings-card"',
         );
+        expect(transcription).toContain("data-transcription-auto-enabled");
+        expect(transcription).toContain("data-transcription-language");
+        expect(transcription).toContain(
+            'data-testid="transcription-auto-toggle"',
+        );
+        expect(transcription).toContain('data-testid="transcription-language"');
+        expect(transcription).toContain("handleAutoTranscribeChange");
+        expect(transcription).toContain("handleTranscriptionSettingChange");
+        expect(transcription).toContain(
+            "onCheckedChange={handleAutoTranscribeChange}",
+        );
+        expect(transcription).toContain(
+            "void handleTranscriptionSettingChange",
+        );
+        expect(transcription).toContain("disabled={isSaving}");
+        expect(transcription).toContain("toast.error");
+        expect(transcription).toContain("Changes reverted.");
         expect(transcription).toContain("glass-surface flex flex-col gap-5");
+        expect(transcription).toContain(
+            "glass-surface-subtle flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3",
+        );
+        expect(transcription).toContain(
+            "glass-surface-subtle space-y-2 rounded-2xl p-4",
+        );
+        expect(transcription).not.toContain("bg-background/35");
         expect(transcription).not.toContain(
             "border border-white/10 bg-white/[0.03]",
         );

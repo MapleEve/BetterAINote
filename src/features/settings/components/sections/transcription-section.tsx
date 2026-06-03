@@ -159,7 +159,7 @@ export function TranscriptionSection() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/35 px-4 py-3">
+                <div className="glass-surface-subtle flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3">
                     <div className="min-w-0 flex-1 space-y-0.5">
                         <Label htmlFor="auto-transcribe" className="text-base">
                             {isZh
@@ -181,7 +181,7 @@ export function TranscriptionSection() {
                     />
                 </div>
 
-                <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
+                <div className="glass-surface-subtle space-y-2 rounded-2xl p-4">
                     <Label htmlFor="transcription-language">
                         {isZh
                             ? "默认转录语言"
