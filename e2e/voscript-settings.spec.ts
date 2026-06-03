@@ -829,6 +829,9 @@ test("VoScript speaker profiles create, edit, delete, and rename remote voicepri
         "data-vs-state",
         "ready",
     );
+    const speakerProfilesPanel = page.locator("[data-speaker-profiles-panel]");
+    await expect(speakerProfilesPanel).toBeVisible();
+    await expect(speakerProfilesPanel).toHaveClass(/glass-surface/);
 
     await page.getByTestId("speaker-profile-new-name").fill("Casey QA");
     const createResponse = page.waitForResponse(

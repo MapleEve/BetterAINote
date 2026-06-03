@@ -470,7 +470,7 @@ export function SpeakerProfilesPanel() {
 
     return (
         <div
-            className="flex min-h-0 flex-col gap-5 rounded-2xl border border-border/75 bg-background/25 p-4"
+            className="glass-surface flex min-h-0 flex-col gap-5 rounded-[1.1rem] p-5"
             data-speaker-profiles-panel=""
         >
             <div

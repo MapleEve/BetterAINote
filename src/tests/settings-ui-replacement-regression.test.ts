@@ -194,6 +194,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(voscript).toContain("privateTranscriptionBaseUrl");
         expect(voscript).toContain("privateTranscriptionMaxInflightJobs");
 
+        expect(speakers).toContain("data-speaker-profiles-panel");
+        expect(speakers).toContain("glass-surface");
+        expect(speakers).not.toContain("bg-background/25");
         expect(speakers).toContain("data-profiles-state");
         expect(speakers).toContain("data-vs-state");
         expect(speakers).toContain("data-speaker-profile-row");
