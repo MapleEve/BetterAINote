@@ -210,7 +210,7 @@ export function SourceProviderRows({
                             }
                             className={cn(
                                 "group flex w-full items-center gap-2 rounded-[0.7rem] border border-transparent px-2.5 py-2 text-left text-sm transition-[background-color,border-color,color,box-shadow] duration-200",
-                                "hover:border-border/70 hover:bg-background/45 focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none",
+                                "hover:border-border/70 hover:bg-accent/45 focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none",
                                 compact && "justify-center px-1.5",
                                 row.active
                                     ? "border-border/80 bg-muted/35 text-foreground shadow-xs"

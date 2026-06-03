@@ -115,11 +115,17 @@ describe("dashboard UI foundation", () => {
         }
 
         expect(sourceRows).toContain('data-testid="source-provider-rows"');
+        expect(sourceRows).toContain("data-provider={row.provider}");
+        expect(sourceRows).toContain("onSelectProvider(row.provider)");
+        expect(sourceRows).toContain("onConnectProvider(row.provider)");
+        expect(sourceRows).toContain("aria-pressed={row.active}");
+        expect(sourceRows).toContain("focus-visible:ring-[3px]");
         expect(sourceRows).toContain(
             'data-testid="source-provider-row-initial"',
         );
         expect(sourceRows).toContain('data-testid="source-provider-row-badge"');
         expect(sourceRows).toContain("bg-muted/35");
+        expect(sourceRows).not.toContain("hover:bg-background/45");
         expect(sourceRows).not.toContain("bg-background/70");
         expect(sourceRows).not.toContain("bg-background/50");
         expect(sourceRows).not.toContain("bg-background/60");
