@@ -540,7 +540,7 @@ export function RecordingList({
                             {[0, 1, 2, 3].map((item) => (
                                 <div
                                     key={item}
-                                    className="rounded-xl border border-border/45 bg-background/30 px-3 py-3"
+                                    className="rounded-xl border border-border/45 bg-muted/15 px-3 py-3"
                                 >
                                     <div className="mb-3 h-3 w-24 animate-pulse rounded bg-muted" />
                                     <div className="mb-2 h-4 w-4/5 animate-pulse rounded bg-muted" />

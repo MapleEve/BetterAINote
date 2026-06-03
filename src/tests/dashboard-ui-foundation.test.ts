@@ -213,6 +213,21 @@ describe("dashboard UI foundation", () => {
             emptyPanelTestIdStart,
         );
         const emptyPanel = recordingList.slice(emptyPanelStart, emptyPanelEnd);
+        const loadingBlockTestId = 'data-testid="recording-list-loading"';
+        const loadingBlockTestIdStart =
+            recordingList.indexOf(loadingBlockTestId);
+        const loadingBlockStart = recordingList.lastIndexOf(
+            "<div",
+            loadingBlockTestIdStart,
+        );
+        const loadingBlockEnd = recordingList.indexOf(
+            "</div>\n                    ) : null}",
+            loadingBlockTestIdStart,
+        );
+        const loadingBlock = recordingList.slice(
+            loadingBlockStart,
+            loadingBlockEnd,
+        );
 
         expect(recordingList).toContain(
             'export type RecordingListMode = "timeline" | "tags"',
@@ -263,6 +278,15 @@ describe("dashboard UI foundation", () => {
         expect(headerTotalBadge).toContain("bg-muted/35");
         expect(recordingList).not.toContain("bg-background/40");
         expect(tagCountBadge).toContain("bg-muted/35");
+        expect(loadingBlockTestIdStart).toBeGreaterThanOrEqual(0);
+        expect(loadingBlockStart).toBeGreaterThanOrEqual(0);
+        expect(loadingBlockEnd).toBeGreaterThan(loadingBlockStart);
+        expect(loadingBlock).toContain(loadingBlockTestId);
+        expect(loadingBlock).toContain("{[0, 1, 2, 3].map");
+        expect(loadingBlock).toContain("animate-pulse");
+        expect(loadingBlock).toContain("rounded bg-muted");
+        expect(loadingBlock).not.toContain("bg-background/30");
+        expect(loadingBlock).toContain("bg-muted/15");
         expect(emptyPanelTestIdStart).toBeGreaterThanOrEqual(0);
         expect(emptyPanelStart).toBeGreaterThanOrEqual(0);
         expect(emptyPanelEnd).toBeGreaterThan(emptyPanelStart);
