@@ -197,6 +197,22 @@ describe("dashboard UI foundation", () => {
             headerTotalBadgeStart,
             headerTotalBadgeEnd,
         );
+        const listStateInterpolation = ["$", "{listState}"].join("");
+        const emptyPanelTestId = [
+            "data-testid={`recording-list-",
+            listStateInterpolation,
+            "`}",
+        ].join("");
+        const emptyPanelTestIdStart = recordingList.indexOf(emptyPanelTestId);
+        const emptyPanelStart = recordingList.lastIndexOf(
+            "<div",
+            emptyPanelTestIdStart,
+        );
+        const emptyPanelEnd = recordingList.indexOf(
+            "</div>\n                    ) : null}",
+            emptyPanelTestIdStart,
+        );
+        const emptyPanel = recordingList.slice(emptyPanelStart, emptyPanelEnd);
 
         expect(recordingList).toContain(
             'export type RecordingListMode = "timeline" | "tags"',
@@ -247,6 +263,18 @@ describe("dashboard UI foundation", () => {
         expect(headerTotalBadge).toContain("bg-muted/35");
         expect(recordingList).not.toContain("bg-background/40");
         expect(tagCountBadge).toContain("bg-muted/35");
+        expect(emptyPanelTestIdStart).toBeGreaterThanOrEqual(0);
+        expect(emptyPanelStart).toBeGreaterThanOrEqual(0);
+        expect(emptyPanelEnd).toBeGreaterThan(emptyPanelStart);
+        expect(emptyPanel).toContain(
+            ["recording-list-", listStateInterpolation].join(""),
+        );
+        expect(emptyPanel).toContain('listState === "empty"');
+        expect(emptyPanel).toContain("onOpenDataSourcesSettings");
+        expect(emptyPanel).toContain('listState === "no-match"');
+        expect(emptyPanel).toContain("onClearFilters");
+        expect(emptyPanel).not.toContain("bg-background/35");
+        expect(emptyPanel).toContain("bg-muted/20");
         expect(recordingList).not.toContain("前往数据源");
         expect(recordingList).not.toContain("清除筛选");
         expect(recordingList).not.toContain("上一页");
