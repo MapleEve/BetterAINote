@@ -135,6 +135,24 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("PROVIDER_ICONS");
         expect(section).not.toContain("getProviderInitial");
         expect(section).not.toContain('isZh ? "总览" : "Overview"');
+        expect(section).toContain(
+            "border-border/70 glass-control text-muted-foreground",
+        );
+        expect(section).toContain(
+            "flex size-7 items-center justify-center rounded-lg border border-current/20 glass-control",
+        );
+        expect(section).toContain(
+            "rounded-xl border border-border/70 glass-control px-3 py-3 text-left transition-colors hover:bg-muted/45 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary",
+        );
+        expect(section).toContain(
+            "glass-surface-subtle grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)]",
+        );
+        expect(section).toContain(
+            "rounded-lg border border-border/60 glass-control px-2 py-1 text-xs font-medium text-muted-foreground",
+        );
+        expect(section).not.toContain("bg-background/20");
+        expect(section).not.toContain("bg-background/35");
+        expect(section).not.toContain("bg-background/45");
         expect(section).toContain("ProviderActionMessage");
         expect(section).toContain("ProviderDisplayStatus");
         expect(section).toContain('"testing"');
@@ -150,6 +168,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain('actionState === "testing"');
         expect(section).toContain('actionState === "saving"');
         expect(section).toContain("data-auth-mode-picker");
+        expect(section).toContain("data-auth-mode={mode}");
+        expect(section).toContain("authMode: mode");
+        expect(section).toContain("disabled={isProviderInteractionDisabled}");
         expect(section).toContain("hover:bg-muted/45");
         expect(section).not.toContain("hover:bg-background/55");
         expect(section).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
@@ -162,6 +183,12 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("handleTestSource");
         expect(section).toContain("testSourceSettings");
         expect(section).toContain("handleSaveSource");
+        expect(section).toContain("DataSourceFieldControl");
+        expect(section).toContain("updateField(source, nextField, value)");
+        expect(section).toContain("secretDrafts");
+        expect(section).toContain("Switch");
+        expect(section).toContain("onCheckedChange");
+        expect(section).toContain("enabled: checked");
         expect(section).toContain('data-testid="data-source-test-connection"');
         expect(section).toContain('data-testid="data-source-save"');
         expect(section).toContain(

@@ -112,7 +112,7 @@ const providerStatusClasses: Record<ProviderTone, string> = {
     warning:
         "border-amber-400/35 bg-amber-500/15 text-amber-700 dark:text-amber-200",
     danger: "border-destructive/35 bg-destructive/15 text-destructive dark:text-red-200",
-    neutral: "border-border/70 bg-background/45 text-muted-foreground",
+    neutral: "border-border/70 glass-control text-muted-foreground",
 };
 
 const providerBannerClasses: Record<ProviderTone, string> = {
@@ -655,7 +655,7 @@ function ProviderStateBanner({
             data-provider-banner-tone={tone}
             data-testid="data-source-provider-state-banner"
         >
-            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 bg-background/35">
+            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 glass-control">
                 <Icon className="size-4" aria-hidden="true" />
             </span>
             <span className="min-w-0">
@@ -744,7 +744,7 @@ function ProviderDetail({
                                         }),
                                     )
                                 }
-                                className="rounded-xl border border-border/70 bg-background/35 px-3 py-3 text-left transition-colors hover:bg-muted/45 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                                className="rounded-xl border border-border/70 glass-control px-3 py-3 text-left transition-colors hover:bg-muted/45 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                             >
                                 <span className="block text-sm font-semibold">
                                     {getSourceAuthModeDisplayLabel(
@@ -1291,7 +1291,7 @@ export function DataSourcesSection() {
                 </p>
             </div>
 
-            <div className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-border/75 bg-background/20 lg:grid-cols-[280px_minmax(0,1fr)]">
+            <div className="glass-surface-subtle grid min-h-0 flex-1 overflow-hidden rounded-2xl lg:grid-cols-[280px_minmax(0,1fr)]">
                 <aside
                     className="flex min-h-[16rem] flex-col gap-3 border-border/70 border-b bg-muted/20 p-3 lg:min-h-0 lg:border-r lg:border-b-0"
                     data-settings-inner-scroll=""
@@ -1309,7 +1309,7 @@ export function DataSourcesSection() {
                                     : "Choose a source to edit details."}
                             </p>
                         </div>
-                        <span className="rounded-lg border border-border/60 bg-background/35 px-2 py-1 text-xs font-medium text-muted-foreground">
+                        <span className="rounded-lg border border-border/60 glass-control px-2 py-1 text-xs font-medium text-muted-foreground">
                             {selectedSource
                                 ? getSourceProviderLabel(
                                       selectedSource.provider,
