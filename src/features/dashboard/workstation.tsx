@@ -2226,7 +2226,7 @@ export function Workstation({
                                                             "transcription.aiRename",
                                                         )
                                                     }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <Sparkles
                                                         className={
@@ -2263,7 +2263,7 @@ export function Workstation({
                                                     title={t(
                                                         "recording.cancelRename",
                                                     )}
-                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-accent/45"
+                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-muted/20 shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <X className="h-5 w-5" />
                                                 </Button>
@@ -2299,7 +2299,7 @@ export function Workstation({
                                                             "transcription.aiRename",
                                                         )
                                                     }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <Sparkles
                                                         className={

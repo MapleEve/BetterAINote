@@ -83,13 +83,36 @@ describe("dashboard UI foundation", () => {
         expect(workstation).not.toContain("hover:bg-background/45");
         expect(workstation).not.toContain("hover:bg-background/50");
 
+        const aiRenameMarker = 'data-testid="dashboard-ai-rename"';
+        const renameCancelMarker = 'data-testid="dashboard-rename-cancel"';
+        const renameActionStart = workstation.lastIndexOf(
+            "<Button",
+            workstation.indexOf(aiRenameMarker),
+        );
+        const renameActionEnd =
+            workstation.indexOf(
+                "</Button>",
+                workstation.indexOf(renameCancelMarker),
+            ) + "</Button>".length;
+        const renameActionBlock = workstation.slice(
+            renameActionStart,
+            renameActionEnd,
+        );
+
+        expect(renameActionBlock).toContain("handleAutoRename");
+        expect(renameActionBlock).toContain("handleRenameCancel");
+        expect(renameActionBlock).toContain(aiRenameMarker);
+        expect(renameActionBlock).toContain(renameCancelMarker);
+        expect(renameActionBlock).not.toContain("bg-background/30");
+        expect(renameActionBlock).toContain("bg-muted/20");
+
         for (const marker of [
             'data-testid="dashboard-favorite-all"',
             'data-testid="dashboard-favorite-transcribed"',
             'data-testid="dashboard-favorite-tags"',
             "handleFavoriteSelect",
-            'data-testid="dashboard-ai-rename"',
-            'data-testid="dashboard-rename-cancel"',
+            aiRenameMarker,
+            renameCancelMarker,
             "handleAutoRename",
             "handleRenameCancel",
         ]) {
