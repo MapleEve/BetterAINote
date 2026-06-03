@@ -195,16 +195,41 @@ describe("full UI replacement regression coverage", () => {
             "features/dashboard/components/source-filter-stack-strip.tsx",
         );
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const favoriteSurfaceStart = workstation.indexOf(
+            'onClick={() => handleFavoriteSelect("all")}',
+        );
+        const favoriteSurfaceEnd = workstation.indexOf("<SourceProviderRows");
+        const favoriteSurface = workstation.slice(
+            favoriteSurfaceStart,
+            favoriteSurfaceEnd,
+        );
 
         expect(strip).not.toContain("bg-background/65");
         expect(workstation).not.toContain("bg-background/65");
+        expect(favoriteSurfaceStart).toBeGreaterThanOrEqual(0);
+        expect(favoriteSurfaceEnd).toBeGreaterThan(favoriteSurfaceStart);
+        expect(workstation).not.toContain(
+            "data-[active=true]:bg-background/70",
+        );
+        expect(favoriteSurface).not.toContain("bg-background/50");
         expect(strip).toContain(
             'data-testid="dashboard-source-filter-provider-chip"',
         );
         expect(workstation).toContain(
             'data-testid="dashboard-library-search-filter-chip"',
         );
+        for (const testId of [
+            "dashboard-favorite-all",
+            "dashboard-favorite-transcribed",
+            "dashboard-favorite-tags",
+            "dashboard-favorite-all-count",
+            "dashboard-favorite-transcribed-count",
+            "dashboard-favorite-tags-count",
+        ]) {
+            expect(workstation).toContain(`data-testid="${testId}"`);
+        }
         expect(strip).toContain("bg-muted/35");
+        expect(workstation).toContain("data-[active=true]:bg-muted/35");
         expect(workstation).toContain("bg-muted/35");
     });
 

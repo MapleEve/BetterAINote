@@ -1791,8 +1791,9 @@ export function Workstation({
                                 data-active={
                                     activeFavorite === "all" ? "true" : "false"
                                 }
+                                data-testid="dashboard-favorite-all"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1807,8 +1808,9 @@ export function Workstation({
                                     {t("dashboardFavorites.allRecordings")}
                                 </span>
                                 <span
+                                    data-testid="dashboard-favorite-all-count"
                                     className={cn(
-                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
                                         isSidebarCollapsed && "lg:hidden",
                                     )}
                                 >
@@ -1828,8 +1830,9 @@ export function Workstation({
                                         ? "true"
                                         : "false"
                                 }
+                                data-testid="dashboard-favorite-transcribed"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1844,8 +1847,9 @@ export function Workstation({
                                     {t("dashboardFavorites.transcribed")}
                                 </span>
                                 <span
+                                    data-testid="dashboard-favorite-transcribed-count"
                                     className={cn(
-                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
                                         isSidebarCollapsed && "lg:hidden",
                                     )}
                                 >
@@ -1869,8 +1873,9 @@ export function Workstation({
                                 data-active={
                                     activeFavorite === "tags" ? "true" : "false"
                                 }
+                                data-testid="dashboard-favorite-tags"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-background/70 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1885,8 +1890,9 @@ export function Workstation({
                                     {t("dashboardFavorites.tags")}
                                 </span>
                                 <span
+                                    data-testid="dashboard-favorite-tags-count"
                                     className={cn(
-                                        "rounded-md border border-border/70 bg-background/50 px-1.5 text-[0.68rem]",
+                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
                                         isSidebarCollapsed && "lg:hidden",
                                     )}
                                 >

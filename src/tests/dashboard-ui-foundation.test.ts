@@ -13,6 +13,14 @@ describe("dashboard UI foundation", () => {
     it("keeps the web index shell scoped to the three foundation columns", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const globals = readSource("app/globals.css");
+        const favoriteSurfaceStart = workstation.indexOf(
+            'onClick={() => handleFavoriteSelect("all")}',
+        );
+        const favoriteSurfaceEnd = workstation.indexOf("<SourceProviderRows");
+        const favoriteSurface = workstation.slice(
+            favoriteSurfaceStart,
+            favoriteSurfaceEnd,
+        );
 
         expect(workstation).toContain("dashboard-workstation-grid");
         expect(workstation).toContain('data-testid="dashboard-workstation"');
@@ -35,6 +43,27 @@ describe("dashboard UI foundation", () => {
         expect(workstation).toContain("isSidebarCollapsed");
         expect(workstation).toContain("filteredRecordings");
         expect(workstation).toContain("recordingListMode");
+        expect(favoriteSurfaceStart).toBeGreaterThanOrEqual(0);
+        expect(favoriteSurfaceEnd).toBeGreaterThan(favoriteSurfaceStart);
+        expect(workstation).not.toContain(
+            "data-[active=true]:bg-background/70",
+        );
+        expect(favoriteSurface).not.toContain("bg-background/50");
+        expect(workstation).toContain("data-[active=true]:bg-muted/35");
+        expect(workstation).toContain('data-testid="dashboard-favorite-all"');
+        expect(workstation).toContain(
+            'data-testid="dashboard-favorite-transcribed"',
+        );
+        expect(workstation).toContain('data-testid="dashboard-favorite-tags"');
+        expect(workstation).toContain(
+            'data-testid="dashboard-favorite-all-count"',
+        );
+        expect(workstation).toContain(
+            'data-testid="dashboard-favorite-transcribed-count"',
+        );
+        expect(workstation).toContain(
+            'data-testid="dashboard-favorite-tags-count"',
+        );
         expect(workstation).toContain("dashboardChrome.privateWorkspace");
         expect(workstation).toContain("dashboardChrome.moreActions");
         expect(workstation).toContain("dashboardChrome.deleteLocalOnly");

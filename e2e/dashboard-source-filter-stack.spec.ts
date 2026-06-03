@@ -470,10 +470,35 @@ async function activeElementIsInsideSourceDrawer(page: Page) {
     });
 }
 
+async function expectFavoriteButtonSurface(
+    page: Page,
+    favorite: "all" | "transcribed" | "tags",
+    options: { active?: boolean } = {},
+) {
+    const favoriteButton = page.getByTestId(`dashboard-favorite-${favorite}`);
+    await expect(favoriteButton).toBeVisible();
+    await expect(favoriteButton).toHaveClass(
+        /data-\[active=true\]:bg-muted\/35/,
+    );
+    await expect(favoriteButton).not.toHaveClass(
+        /data-\[active=true\]:bg-background\/70/,
+    );
+    if (options.active) {
+        await expect(favoriteButton).toHaveAttribute("data-active", "true");
+    }
+
+    const countBadge = page.getByTestId(`dashboard-favorite-${favorite}-count`);
+    await expect(countBadge).toBeVisible();
+    await expect(countBadge).toHaveClass(/bg-muted\/35/);
+    await expect(countBadge).not.toHaveClass(/bg-background\/50/);
+}
+
 test("dashboard source filter stack exposes clear and setup actions", async ({
     page,
 }) => {
     await openDashboard(page, { connectIflyrec: true });
+
+    await expectFavoriteButtonSurface(page, "all", { active: true });
 
     const iflyrecRow = page.locator('[data-provider="iflyrec"]');
     await expect(iflyrecRow).toBeVisible();
@@ -764,7 +789,10 @@ test("dashboard source filter stack widens no-result favorite filters", async ({
             "connected",
         );
         await iflyrecRow.click();
-        await page.getByRole("button", { name: "转写记录" }).click();
+        await page.getByTestId("dashboard-favorite-transcribed").click();
+        await expectFavoriteButtonSurface(page, "transcribed", {
+            active: true,
+        });
 
         const stack = page.getByTestId("dashboard-source-filter-stack");
         await expect(stack).toBeVisible();
