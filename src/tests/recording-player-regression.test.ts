@@ -50,7 +50,10 @@ describe("dashboard recording player regressions", () => {
             "utf8",
         );
         const e2eSource = readFileSync(
-            path.join(process.cwd(), "e2e/recording-detail-workstation.spec.ts"),
+            path.join(
+                process.cwd(),
+                "e2e/recording-detail-workstation.spec.ts",
+            ),
             "utf8",
         );
 
