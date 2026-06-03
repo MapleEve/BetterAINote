@@ -188,8 +188,9 @@ export function SourceFilterStackStrip({
                             type="button"
                             variant="outline"
                             size="sm"
+                            data-testid="dashboard-source-filter-retry-sync"
                             onClick={onRetrySync}
-                            className="h-7 rounded-md border-amber-500/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
+                            className="h-7 rounded-md border-amber-500/25 bg-muted/35 px-2 text-[0.72rem] hover:bg-muted/45"
                         >
                             <RefreshCw className="size-3" />
                             {t("sourceFilterStack.retrySync")}
@@ -212,8 +213,9 @@ export function SourceFilterStackStrip({
                             type="button"
                             variant="outline"
                             size="sm"
+                            data-testid="dashboard-source-filter-widen"
                             onClick={onWidenFilters}
-                            className="h-7 rounded-md border-sky-500/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
+                            className="h-7 rounded-md border-sky-500/25 bg-muted/35 px-2 text-[0.72rem] hover:bg-muted/45"
                         >
                             {t("sourceFilterStack.widenFilter")}
                         </Button>
@@ -246,8 +248,9 @@ export function SourceFilterStackStrip({
                             type="button"
                             variant="outline"
                             size="sm"
+                            data-testid="dashboard-source-filter-open-settings"
                             onClick={() => onOpenDataSourcesSettings()}
-                            className="h-7 rounded-md border-primary/25 bg-background/55 px-2 text-[0.72rem] hover:bg-background"
+                            className="h-7 rounded-md border-primary/25 bg-muted/35 px-2 text-[0.72rem] hover:bg-muted/45"
                         >
                             {t("sourceFilterStack.openSettings")}
                         </Button>

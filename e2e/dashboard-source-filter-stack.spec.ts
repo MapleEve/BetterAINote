@@ -2,7 +2,7 @@ import path from "node:path";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
@@ -493,6 +493,13 @@ async function expectFavoriteButtonSurface(
     await expect(countBadge).not.toHaveClass(/bg-background\/50/);
 }
 
+async function expectSourceFilterStackActionSurface(action: Locator) {
+    await expect(action).toBeVisible();
+    await expect(action).toHaveClass(/bg-muted\/35/);
+    await expect(action).toHaveClass(/hover:bg-muted\/45/);
+    await expect(action).not.toHaveClass(/bg-background\/55/);
+}
+
 test("dashboard source filter stack exposes clear and setup actions", async ({
     page,
 }) => {
@@ -552,8 +559,11 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
     await iflyrecRow.click();
     await expect(stack).toBeVisible();
 
-    const settingsAction = stack.getByRole("button", { name: "前往设置" });
+    const settingsAction = stack.getByTestId(
+        "dashboard-source-filter-open-settings",
+    );
     if (await settingsAction.isVisible()) {
+        await expectSourceFilterStackActionSurface(settingsAction);
         await settingsAction.click();
         await expect(page.locator("[data-settings-shell]")).toBeVisible();
         await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
@@ -774,7 +784,11 @@ test("dashboard source filter stack retries sync errors and restores active stat
                 request.url().includes("/api/data-sources/sync") &&
                 request.method() === "POST",
         );
-        await stack.getByRole("button", { name: "重试同步" }).click();
+        const retrySyncAction = stack.getByTestId(
+            "dashboard-source-filter-retry-sync",
+        );
+        await expectSourceFilterStackActionSurface(retrySyncAction);
+        await retrySyncAction.click();
         await syncPostRequest;
 
         await expect(stack).toHaveAttribute("data-state", "active");
@@ -816,7 +830,9 @@ test("dashboard source filter stack widens no-result favorite filters", async ({
         await expect(stack).toHaveAttribute("data-state", "no-results");
         await expect(stack).toContainText("在当前筛选下没有匹配项");
 
-        await stack.getByRole("button", { name: "放宽筛选" }).click();
+        const widenAction = stack.getByTestId("dashboard-source-filter-widen");
+        await expectSourceFilterStackActionSurface(widenAction);
+        await widenAction.click();
         await expect(stack).toHaveAttribute("data-state", "active");
         await expect(
             page.getByRole("button", { name: "全部录音" }),

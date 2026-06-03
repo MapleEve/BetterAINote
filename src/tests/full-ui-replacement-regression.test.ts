@@ -178,6 +178,16 @@ describe("full UI replacement regression coverage", () => {
         expect(strip).toContain("@/components/ui/button");
         expect(strip).toContain("sourceFilterStack.clearSourceFilter");
         expect(strip).toContain("sourceFilterStack.noResultsMessage");
+        expect(strip).toContain(
+            'data-testid="dashboard-source-filter-retry-sync"',
+        );
+        expect(strip).toContain('data-testid="dashboard-source-filter-widen"');
+        expect(strip).toContain(
+            'data-testid="dashboard-source-filter-open-settings"',
+        );
+        expect(strip).toContain("bg-muted/35");
+        expect(strip).toContain("hover:bg-muted/45");
+        expect(strip).not.toContain("bg-background/55");
         expect(strip).not.toContain("放宽筛选");
         expect(strip).not.toContain("前往设置");
         expect(translations).toContain("放宽筛选");
