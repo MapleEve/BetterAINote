@@ -264,5 +264,10 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(dashboardTranscript).not.toContain("onRetry={onRetranscribe}");
         expect(dashboardTranscript).toContain("data-retx-dismiss");
+        expect(dashboardTranscript).toContain(
+            'aria-label={language === "zh-CN" ? "收起" : "Dismiss"}',
+        );
+        expect(dashboardTranscript).toContain("onClick={onDismiss}");
+        expect(dashboardTranscript).not.toContain("hover:bg-background/50");
     });
 });

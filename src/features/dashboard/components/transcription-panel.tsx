@@ -394,7 +394,7 @@ function RetranscriptionBanner({
                         type="button"
                         aria-label={language === "zh-CN" ? "收起" : "Dismiss"}
                         data-retx-dismiss=""
-                        className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-background/50 hover:text-foreground focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none"
+                        className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/45 hover:text-foreground focus-visible:ring-ring/40 focus-visible:ring-[3px] focus-visible:outline-none"
                         onClick={onDismiss}
                     >
                         <X className="size-3.5" />
