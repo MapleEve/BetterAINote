@@ -17,7 +17,7 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain("playbackDisabled");
         expect(source).toContain("data-player-state");
         expect(source).toContain("disabled={playbackDisabled}");
-        expect(source).toContain("z-[220]");
+        expect(source).toContain("z-[240]");
         expect(source).not.toContain("z-[1000]");
     });
 
