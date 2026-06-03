@@ -973,6 +973,11 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(
             mappedCard.getByTestId("speaker-review-card-status"),
         ).toContainText("已关联声纹");
+        const mappedSample = mappedCard
+            .getByTestId("speaker-review-sample")
+            .first();
+        await expect(mappedSample).toBeVisible();
+        await expect(mappedSample).toHaveClass(/glass-surface-subtle/);
         const playSampleButton = mappedCard
             .getByTestId("speaker-review-play-sample")
             .first();

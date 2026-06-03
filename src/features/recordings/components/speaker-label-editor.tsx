@@ -725,7 +725,7 @@ export function SpeakerLabelEditor({
                                                         (segment, index) => (
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
-                                                                className="space-y-3 rounded-xl border bg-background/60 p-3"
+                                                                className="glass-surface-subtle space-y-3 rounded-xl p-3"
                                                                 data-testid="speaker-review-sample"
                                                             >
                                                                 <div className="flex items-start justify-between gap-3">
