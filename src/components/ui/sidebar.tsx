@@ -34,7 +34,7 @@ function Sidebar({
     return (
         <div
             className={cn(
-                "glass-surface flex h-full min-h-0 w-64 flex-col rounded-none border-r border-white/8 bg-transparent",
+                "glass-surface flex h-full min-h-0 w-64 flex-col rounded-none border-r border-border/65 bg-transparent",
                 className,
             )}
             {...props}

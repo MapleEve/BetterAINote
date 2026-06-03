@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -11,6 +14,7 @@ import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { Sidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +48,12 @@ import {
 } from "@/features/settings/components/settings-skeletons";
 import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function readSource(relativePath: string) {
+    return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({
@@ -113,6 +123,23 @@ function render(element: React.ReactElement) {
 }
 
 describe("React surface SSR coverage", () => {
+    it("renders the shared Sidebar primitive with neutral border classes", () => {
+        const sidebarSource = readSource("components/ui/sidebar.tsx");
+
+        expect(sidebarSource).not.toContain("border-white/8");
+        expect(sidebarSource).toContain("border-border/65");
+
+        const html = render(
+            React.createElement(Sidebar, { className: "sidebar-override" }),
+        );
+
+        expect(html).toContain("glass-surface");
+        expect(html).toContain("border-r");
+        expect(html).toContain("border-border/65");
+        expect(html).toContain("sidebar-override");
+        expect(html).not.toContain("border-white/8");
+    });
+
     it("renders shared shell and primitive UI components", () => {
         const html = render(
             React.createElement(
