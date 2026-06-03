@@ -2134,7 +2134,10 @@ export function Workstation({
                                                     "dashboardChrome.searchFilter",
                                                 )}
                                             </span>
-                                            <span className="rounded-full border border-border/70 bg-background/65 px-2 py-1 font-medium text-foreground shadow-xs">
+                                            <span
+                                                className="rounded-full border border-border/70 bg-muted/35 px-2 py-1 font-medium text-foreground shadow-xs"
+                                                data-testid="dashboard-library-search-filter-chip"
+                                            >
                                                 {librarySearchFilterLabel}
                                             </span>
                                             <Button

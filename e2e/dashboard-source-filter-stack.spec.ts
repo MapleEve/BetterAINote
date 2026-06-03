@@ -495,6 +495,12 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
         /needs-setup|planned|paused|expired|connected-empty|no-results|connected|sync-error/,
     );
     await expect(stack).toContainText("讯飞听见");
+    const providerChip = stack.getByTestId(
+        "dashboard-source-filter-provider-chip",
+    );
+    await expect(providerChip).toBeVisible();
+    await expect(providerChip).toHaveClass(/bg-muted\/35/);
+    await expect(providerChip).not.toHaveClass(/bg-background\/65/);
 
     const clearSource = stack.getByRole("button", { name: "清除来源筛选" });
     await expect(clearSource).toBeVisible();

@@ -562,7 +562,7 @@ function ProviderCard({
                     "border-amber-300/45 bg-amber-500/15 shadow-xs",
                 !saved &&
                     isSelected &&
-                    "border-primary/45 bg-background/65 shadow-xs",
+                    "border-primary/45 bg-primary/10 shadow-xs",
             )}
         >
             <span

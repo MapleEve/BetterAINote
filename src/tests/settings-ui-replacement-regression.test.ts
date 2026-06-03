@@ -154,6 +154,8 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("PROVIDER_ASSET_CLASSES");
         expect(section).toContain('data-testid="data-source-provider-initial"');
         expect(section).toContain("bg-muted/35");
+        expect(section).toContain("border-primary/45 bg-primary/10 shadow-xs");
+        expect(section).not.toContain("bg-background/65");
         expect(section).not.toContain("bg-background/60");
         expect(section).toContain("handleTestSource");
         expect(section).toContain("testSourceSettings");

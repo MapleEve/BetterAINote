@@ -190,6 +190,24 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("writeBrowserStorage");
     });
 
+    it("keeps dashboard filter chips on muted subtle surfaces", () => {
+        const strip = readSource(
+            "features/dashboard/components/source-filter-stack-strip.tsx",
+        );
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(strip).not.toContain("bg-background/65");
+        expect(workstation).not.toContain("bg-background/65");
+        expect(strip).toContain(
+            'data-testid="dashboard-source-filter-provider-chip"',
+        );
+        expect(workstation).toContain(
+            'data-testid="dashboard-library-search-filter-chip"',
+        );
+        expect(strip).toContain("bg-muted/35");
+        expect(workstation).toContain("bg-muted/35");
+    });
+
     it("keeps dashboard responsive drawer and desktop collapse controls wired", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const globals = readSource("app/globals.css");

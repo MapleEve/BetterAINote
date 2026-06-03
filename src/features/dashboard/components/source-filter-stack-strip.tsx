@@ -126,7 +126,10 @@ export function SourceFilterStackStrip({
             <span className="text-muted-foreground/55" aria-hidden="true">
                 /
             </span>
-            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-background/65 px-2 py-1 font-medium text-foreground shadow-xs">
+            <span
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-muted/35 px-2 py-1 font-medium text-foreground shadow-xs"
+                data-testid="dashboard-source-filter-provider-chip"
+            >
                 <span
                     className={cn(
                         "inline-flex size-5 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-[0.66rem] font-semibold",

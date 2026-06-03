@@ -194,6 +194,9 @@ test("data sources settings tests missing details then saves a provider through 
     await ticnoteRow.click();
     await expect(section).toHaveAttribute("data-ds-selected-provider", "ticnote");
     await expect(ticnoteRow).toHaveAttribute("aria-pressed", "true");
+    const ticnoteRowClass = await ticnoteRow.getAttribute("class");
+    expect(ticnoteRowClass).toContain("bg-primary/10");
+    expect(ticnoteRowClass).not.toContain("bg-background/65");
     const ticnoteProviderInitial = ticnoteRow.getByTestId(
         "data-source-provider-initial",
     );

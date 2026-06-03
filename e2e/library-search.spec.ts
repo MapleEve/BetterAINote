@@ -549,6 +549,12 @@ test("library search groups highlights and applies global speaker tag filters", 
     await expect(searchFilter).toBeVisible();
     await expect(searchFilter).toHaveAttribute("data-library-search-filter", "tag");
     await expect(searchFilter).toContainText("Alpha tag");
+    const searchFilterChip = searchFilter.getByTestId(
+        "dashboard-library-search-filter-chip",
+    );
+    await expect(searchFilterChip).toBeVisible();
+    await expect(searchFilterChip).toHaveClass(/bg-muted\/35/);
+    await expect(searchFilterChip).not.toHaveClass(/bg-background\/65/);
 
     await searchFilter.getByRole("button", { name: "清除" }).click();
     await expect(searchFilter).toBeHidden();
