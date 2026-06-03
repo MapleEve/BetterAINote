@@ -20,4 +20,24 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain("z-[220]");
         expect(source).not.toContain("z-[1000]");
     });
+
+    it("keeps the no-audio warning on the current glass surface", () => {
+        const source = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/recordings/components/recording-player.tsx",
+            ),
+            "utf8",
+        );
+        const noAudioWarning = source.match(
+            /<div[^>]*data-testid="recording-player-no-audio-warning"[\s\S]*?<\/div>/,
+        )?.[0];
+
+        expect(noAudioWarning).toBeDefined();
+        expect(noAudioWarning).toContain("glass-surface-subtle");
+        expect(noAudioWarning).toContain("rounded-xl");
+        expect(noAudioWarning).toContain("p-4");
+        expect(noAudioWarning).not.toContain("border-white/10");
+        expect(noAudioWarning).not.toContain("bg-white/5");
+    });
 });

@@ -1472,6 +1472,22 @@ test("recording detail source copy guards missing artifacts without writing empt
             page.getByTestId("source-report-no-audio-warning"),
         ).toBeVisible();
         await expect(
+            page.getByTestId("recording-player-no-audio-warning"),
+        ).toBeVisible();
+        await expect(
+            page.getByTestId("recording-player").locator("[data-player-state]"),
+        ).toHaveAttribute("data-player-state", "disabled");
+        await expect(
+            page.getByTestId("recording-player-toggle"),
+        ).toBeDisabled();
+        await expect(
+            page.getByTestId("recording-player-speed"),
+        ).toBeDisabled();
+        await expect(page.getByTestId("recording-player-seek")).toBeDisabled();
+        await expect(
+            page.getByTestId("recording-player-volume"),
+        ).toBeDisabled();
+        await expect(
             page.getByTestId("source-report-transcript-status"),
         ).toHaveText("缺失");
         await expect(

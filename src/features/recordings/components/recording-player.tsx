@@ -118,7 +118,10 @@ export function RecordingPlayer({
                 ) : null}
 
                 {!recording.hasAudio && (
-                    <div className="mb-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
+                    <div
+                        className="glass-surface-subtle mb-4 rounded-xl p-4 text-sm text-muted-foreground"
+                        data-testid="recording-player-no-audio-warning"
+                    >
                         {language === "zh-CN"
                             ? "这个数据源当前只同步来源逐字稿或报告，没有可供本地播放或私有转录的音频文件。"
                             : "This source currently syncs source transcripts or reports only. No local audio is available for playback or private transcription."}
