@@ -258,6 +258,13 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("detailEntries.length > 0");
         expect(sourceReport).toContain("startedAt");
         expect(sourceReport).toContain("endedAt");
+        expect(sourceReport).toContain("glass-surface-subtle");
+        expect(sourceReport).toContain("border-border/70");
+        expect(sourceReport).toContain("bg-muted/35");
+        expect(sourceReport).toContain("bg-popover/60");
+        expect(sourceReport).not.toContain("border-white/10");
+        expect(sourceReport).not.toContain("bg-background/25");
+        expect(sourceReport).not.toContain("bg-background/60");
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });
 

@@ -642,14 +642,14 @@ export function SourceReportPanel({
                         {[0, 1, 2, 3].map((item) => (
                             <div
                                 key={item}
-                                className="rounded-xl border border-white/10 bg-background/25 px-4 py-3"
+                                className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3"
                             >
                                 <div className="skeleton-shimmer h-3 w-20 rounded" />
                                 <div className="skeleton-shimmer mt-3 h-5 w-28 rounded-md" />
                             </div>
                         ))}
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                    <div className="glass-surface-subtle rounded-xl p-4">
                         <div className="skeleton-shimmer h-4 w-32 rounded" />
                         <div className="mt-4 space-y-3 rounded-lg bg-muted p-4">
                             <div className="skeleton-shimmer h-3 w-11/12 rounded" />
@@ -676,7 +676,7 @@ export function SourceReportPanel({
                     ) : null}
 
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <div className="rounded-xl border border-white/10 bg-background/25 px-4 py-3">
+                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("recording.source")}
                             </p>
@@ -687,7 +687,7 @@ export function SourceReportPanel({
                                 )}
                             </p>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-background/25 px-4 py-3">
+                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("sourceReport.transcriptReady")}
                             </p>
@@ -705,7 +705,7 @@ export function SourceReportPanel({
                                     : t("sourceReport.missing")}
                             </p>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-background/25 px-4 py-3">
+                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("sourceReport.summaryReady")}
                             </p>
@@ -723,7 +723,7 @@ export function SourceReportPanel({
                                     : t("sourceReport.missing")}
                             </p>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-background/25 px-4 py-3">
+                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
                             <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
                                 {t("sourceReport.segments")}
                             </p>
@@ -733,7 +733,7 @@ export function SourceReportPanel({
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                    <div className="glass-surface-subtle rounded-xl p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <p className="text-sm font-medium">
                                 {t("sourceReport.officialReport")}
@@ -771,7 +771,7 @@ export function SourceReportPanel({
                         )}
                     </div>
 
-                    <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                    <div className="glass-surface-subtle rounded-xl p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <p className="flex items-center gap-2 text-sm font-medium">
                                 <FileText className="h-4 w-4" />
@@ -815,7 +815,7 @@ export function SourceReportPanel({
                                                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
                                                     {timeRange ? (
                                                         <span
-                                                            className="rounded-md border border-white/10 bg-background/60 px-2 py-1 font-mono text-muted-foreground"
+                                                            className="rounded-md border border-border/70 bg-popover/60 px-2 py-1 font-mono text-muted-foreground"
                                                             data-testid="source-report-segment-timestamp"
                                                         >
                                                             {timeRange}
@@ -854,7 +854,7 @@ export function SourceReportPanel({
                     </div>
 
                     {data.detail && detailEntries.length > 0 ? (
-                        <div className="rounded-xl border border-white/10 bg-background/25 p-4">
+                        <div className="glass-surface-subtle rounded-xl p-4">
                             <p className="text-sm font-medium">
                                 {t("sourceReport.sourceDetails")}
                             </p>
@@ -891,10 +891,7 @@ export function SourceReportPanel({
     if (variant === "embedded") {
         return (
             <div
-                className={cn(
-                    "rounded-xl border border-white/10 bg-background/25 p-4",
-                    className,
-                )}
+                className={cn("glass-surface-subtle rounded-xl p-4", className)}
             >
                 {header}
                 <div className="mt-4">{content}</div>
