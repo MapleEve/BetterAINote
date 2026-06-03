@@ -575,7 +575,7 @@ export function SpeakerLabelEditor({
                             </span>
                         </div>
                         <div
-                            className="max-h-72 overflow-y-auto rounded-xl bg-background/50 p-3"
+                            className="max-h-72 overflow-y-auto rounded-xl bg-muted/20 p-3"
                             data-testid="speaker-review-transcript-preview"
                         >
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -598,7 +598,7 @@ export function SpeakerLabelEditor({
                     {speakers.map((speaker) => (
                         <div
                             key={speaker.rawLabel}
-                            className="space-y-4 rounded-2xl border bg-background/35 p-4"
+                            className="glass-surface-subtle space-y-4 rounded-2xl p-4"
                             data-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
                             )}
