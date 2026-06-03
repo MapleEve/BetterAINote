@@ -744,7 +744,7 @@ function ProviderDetail({
                                         }),
                                     )
                                 }
-                                className="rounded-xl border border-border/70 bg-background/35 px-3 py-3 text-left transition-colors hover:bg-background/55 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                                className="rounded-xl border border-border/70 bg-background/35 px-3 py-3 text-left transition-colors hover:bg-muted/45 disabled:cursor-not-allowed disabled:opacity-55 data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                             >
                                 <span className="block text-sm font-semibold">
                                     {getSourceAuthModeDisplayLabel(

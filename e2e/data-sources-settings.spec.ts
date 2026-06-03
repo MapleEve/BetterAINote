@@ -586,13 +586,31 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     );
 
     const detail = section.locator('[data-provider-detail="feishu-minutes"]');
+    const oauthModeButton = detail.locator(
+        '[data-auth-mode="oauth-device-flow"]',
+    );
+    const webReverseModeButton = detail.locator(
+        '[data-auth-mode="web-reverse"]',
+    );
     await expect(detail).toBeVisible();
-    await expect(
-        detail.locator('[data-auth-mode="oauth-device-flow"]'),
-    ).toHaveAttribute("data-active", "true");
-    await expect(
-        detail.locator('[data-auth-mode="web-reverse"]'),
-    ).toHaveAttribute("data-active", "false");
+    await expect(oauthModeButton).toHaveAttribute(
+        "class",
+        /(^| )hover:bg-muted\/45( |$)/,
+    );
+    await expect(oauthModeButton).not.toHaveAttribute(
+        "class",
+        /(^| )hover:bg-background\/55( |$)/,
+    );
+    await expect(webReverseModeButton).toHaveAttribute(
+        "class",
+        /(^| )hover:bg-muted\/45( |$)/,
+    );
+    await expect(webReverseModeButton).not.toHaveAttribute(
+        "class",
+        /(^| )hover:bg-background\/55( |$)/,
+    );
+    await expect(oauthModeButton).toHaveAttribute("data-active", "true");
+    await expect(webReverseModeButton).toHaveAttribute("data-active", "false");
     await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
         "https://open.feishu.cn",
     );
@@ -627,13 +645,9 @@ test("data sources settings switches Feishu sign-in methods without saving test 
     });
     expect(savePayload).toBeNull();
 
-    await detail.locator('[data-auth-mode="web-reverse"]').click();
-    await expect(
-        detail.locator('[data-auth-mode="oauth-device-flow"]'),
-    ).toHaveAttribute("data-active", "false");
-    await expect(
-        detail.locator('[data-auth-mode="web-reverse"]'),
-    ).toHaveAttribute("data-active", "true");
+    await webReverseModeButton.click();
+    await expect(oauthModeButton).toHaveAttribute("data-active", "false");
+    await expect(webReverseModeButton).toHaveAttribute("data-active", "true");
     await expect(page.locator("#feishu-minutes-base-url")).toHaveValue(
         "https://meetings.feishu.cn",
     );
