@@ -27,6 +27,14 @@ const REAL_VOSCRIPT_TARGET_SOURCE_RECORDING_ID =
     "e2e-real-voscript-current-source";
 const REAL_VOSCRIPT_TARGET_DEVICE_ID = "e2e-real-voscript-current-device";
 const PRIVATE_TRANSCRIPTION_PROVIDER = "private-transcription";
+const DEFAULT_E2E_ROOT = path.resolve(process.cwd(), "tmp/e2e");
+const DEFAULT_E2E_DATABASE_PATH = path.join(
+    DEFAULT_E2E_ROOT,
+    "data/betterainote-e2e.db",
+);
+const DEFAULT_E2E_STORAGE_PATH = path.join(DEFAULT_E2E_ROOT, "storage");
+const DEFAULT_E2E_ENCRYPTION_KEY =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const SUPPORTED_PRIVATE_TRANSCRIBE_PROVIDERS = new Set([
     "plaud",
     "ticnote",
@@ -138,6 +146,10 @@ function requireEnv(name: string) {
     }
 
     return value;
+}
+
+function resolveTargetEnv(name: string, fallback: string) {
+    return process.env[name]?.trim() || fallback;
 }
 
 function normalizeHexKey(value: string, label: string) {
@@ -328,6 +340,66 @@ async function getSourceRecording(sourceLibrary: Client, sourceUserId: string) {
     }
 
     return recording;
+}
+
+async function hasExistingSourceTranscript(
+    sourceTranscripts: Client,
+    recordingId: string,
+) {
+    const row = await readFirst<{ count: number }>(
+        sourceTranscripts,
+        `
+            SELECT count(*) AS count
+            FROM transcriptions
+            WHERE recording_id = ?
+              AND trim(text) != ''
+            LIMIT 1
+        `,
+        [recordingId],
+    );
+
+    return Number(row?.count ?? 0) > 0;
+}
+
+async function getSourceRecordingWithTranscriptPreference(params: {
+    sourceLibrary: Client;
+    sourceTranscripts: Client;
+    sourceUserId: string;
+}) {
+    const configuredRecordingId = process.env[
+        REAL_VOSCRIPT_SOURCE_RECORDING_ID
+    ]?.trim();
+    if (configuredRecordingId) {
+        return getSourceRecording(params.sourceLibrary, params.sourceUserId);
+    }
+
+    const rows = await readAll<SourceRecordingRow>(
+        params.sourceLibrary,
+        `
+            SELECT id, source_provider, duration, start_time, end_time,
+                   filesize, file_md5, storage_path, filename
+            FROM recordings
+            WHERE user_id = ?
+              AND trim(storage_path) != ''
+              AND upstream_trashed = 0
+              AND upstream_deleted = 0
+              AND duration >= 10000
+            ORDER BY duration ASC, start_time DESC
+            LIMIT 100
+        `,
+        [params.sourceUserId],
+    );
+    const supportedRows = rows.filter((row) =>
+        SUPPORTED_PRIVATE_TRANSCRIBE_PROVIDERS.has(row.source_provider),
+    );
+
+    for (const row of supportedRows) {
+        if (await hasExistingSourceTranscript(params.sourceTranscripts, row.id)) {
+            return row;
+        }
+    }
+
+    return supportedRows[0] ?? getSourceRecording(params.sourceLibrary, params.sourceUserId);
 }
 
 function resolveStorageFile(rootPath: string, storageKey: string) {
@@ -567,10 +639,19 @@ export async function seedRealVoScriptCurrentFixture(params: {
         throw new Error(`${REAL_VOSCRIPT_E2E_GUARD}=1 is required`);
     }
 
-    const e2eRoot = requireEnv("PLAYWRIGHT_E2E_ROOT");
-    const targetDatabasePath = requireEnv("DATABASE_PATH");
-    const targetStorageRoot = requireEnv("LOCAL_STORAGE_PATH");
-    const targetEncryptionKey = requireEnv("ENCRYPTION_KEY");
+    const e2eRoot = resolveTargetEnv("PLAYWRIGHT_E2E_ROOT", DEFAULT_E2E_ROOT);
+    const targetDatabasePath = resolveTargetEnv(
+        "DATABASE_PATH",
+        DEFAULT_E2E_DATABASE_PATH,
+    );
+    const targetStorageRoot = resolveTargetEnv(
+        "LOCAL_STORAGE_PATH",
+        DEFAULT_E2E_STORAGE_PATH,
+    );
+    const targetEncryptionKey = resolveTargetEnv(
+        "ENCRYPTION_KEY",
+        DEFAULT_E2E_ENCRYPTION_KEY,
+    );
     const sourceDatabasePath = requireEnv(REAL_VOSCRIPT_SOURCE_DATABASE_PATH);
     const sourceStorageRoot = requireEnv(REAL_VOSCRIPT_SOURCE_STORAGE_PATH);
     const sourceEncryptionKey = requireEnv(REAL_VOSCRIPT_SOURCE_ENCRYPTION_KEY);
@@ -584,6 +665,7 @@ export async function seedRealVoScriptCurrentFixture(params: {
 
     const sourceCore = createDb(sourceLayout.core);
     const sourceLibrary = createDb(sourceLayout.library);
+    const sourceTranscripts = createDb(sourceLayout.transcripts);
     const targetCore = createDb(targetLayout.core);
     const targetLibrary = createDb(targetLayout.library);
     const targetTranscripts = createDb(targetLayout.transcripts);
@@ -614,9 +696,12 @@ export async function seedRealVoScriptCurrentFixture(params: {
                   targetEncryptionKey,
               )
             : null;
-        const sourceRecording = await getSourceRecording(
-            sourceLibrary,
-            sourceSettings.user_id,
+        const sourceRecording = await getSourceRecordingWithTranscriptPreference(
+            {
+                sourceLibrary,
+                sourceTranscripts,
+                sourceUserId: sourceSettings.user_id,
+            },
         );
         const sourceAudioPath = resolveStorageFile(
             sourceStorageRoot,
@@ -663,6 +748,7 @@ export async function seedRealVoScriptCurrentFixture(params: {
     } finally {
         await sourceCore.close();
         await sourceLibrary.close();
+        await sourceTranscripts.close();
         await targetCore.close();
         await targetLibrary.close();
         await targetTranscripts.close();

@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { expect, type Page, test } from "@playwright/test";
+import { buildSearchTerms } from "../src/lib/search/tokenization";
 import { ensureSignedIn } from "./helpers/auth";
 import {
     REAL_VOSCRIPT_E2E_GUARD,
@@ -14,6 +15,15 @@ import {
 
 const execFileAsync = promisify(execFile);
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
+const E2E_STORAGE_DIR = path.resolve(process.cwd(), "tmp/e2e/storage");
+const E2E_WORDS_DATABASE_PATH = path.join(
+    E2E_DATA_DIR,
+    "betterainote-e2e-words.db",
+);
+const E2E_AUTH_SECRET =
+    "playwright-better-auth-secret-0123456789abcdef-playwright";
+const E2E_ENCRYPTION_KEY =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const REAL_VOSCRIPT_TIMEOUT_MS = 20 * 60 * 1000;
 
 type WorkerSummary = {
@@ -64,6 +74,15 @@ function resolveDatabasePath() {
         : path.join(E2E_DATA_DIR, "betterainote-e2e.db");
 }
 
+function deriveSiblingDatabasePath(databasePath: string, suffix: string) {
+    const parsed = path.parse(databasePath);
+
+    return path.resolve(
+        parsed.dir || ".",
+        `${parsed.name || "betterainote"}-${suffix}${parsed.ext || ".db"}`,
+    );
+}
+
 function assertE2EPath(filePath: string) {
     const e2eRoot = path.resolve(
         process.env.PLAYWRIGHT_E2E_ROOT ??
@@ -84,6 +103,23 @@ function databaseUrl(filePath: string) {
     return pathToFileURL(filePath).href;
 }
 
+function buildWorkerEnv() {
+    const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3201";
+
+    return {
+        ...process.env,
+        APP_URL: process.env.APP_URL || baseUrl,
+        BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || E2E_AUTH_SECRET,
+        DATABASE_PATH: process.env.DATABASE_PATH || resolveDatabasePath(),
+        ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || E2E_ENCRYPTION_KEY,
+        LOCAL_STORAGE_PATH:
+            process.env.LOCAL_STORAGE_PATH || E2E_STORAGE_DIR,
+        TRANSCRIPT_WORDS_DATABASE_PATH:
+            process.env.TRANSCRIPT_WORDS_DATABASE_PATH ||
+            E2E_WORDS_DATABASE_PATH,
+    };
+}
+
 async function getPlaywrightUserId() {
     const client = createClient({ url: databaseUrl(resolveDatabasePath()) });
     try {
@@ -102,11 +138,45 @@ async function getPlaywrightUserId() {
     }
 }
 
+async function findIndexedTranscriptSearchTerm(text: string) {
+    const terms = buildSearchTerms(text).filter((term) => {
+        const length = Array.from(term).length;
+
+        return length >= 2 && length <= 24;
+    });
+    const searchDbPath = deriveSiblingDatabasePath(
+        resolveDatabasePath(),
+        "search",
+    );
+    const client = createClient({ url: databaseUrl(searchDbPath) });
+
+    try {
+        for (const term of terms) {
+            const result = await client.execute({
+                sql: `
+                    SELECT count(*) AS count
+                    FROM search_content_fts
+                    WHERE search_content_fts MATCH ?
+                      AND recording_id = ?
+                `,
+                args: [term, REAL_VOSCRIPT_TARGET_RECORDING_ID],
+            });
+            if (Number(result.rows[0]?.count ?? 0) > 0) {
+                return term;
+            }
+        }
+    } finally {
+        await client.close();
+    }
+
+    return null;
+}
+
 async function runBunJson<T>(label: string, source: string) {
     try {
         const { stdout } = await execFileAsync("bun", ["-e", source], {
             cwd: process.cwd(),
-            env: process.env,
+            env: buildWorkerEnv(),
             maxBuffer: 1024 * 1024,
             timeout: 90_000,
         });
@@ -222,14 +292,20 @@ async function waitForCompletedTranscription(page: Page) {
 
 async function querySearchForGeneratedTranscript(page: Page) {
     const state = await getTranscriptionState(page);
-    const query = state.transcript?.text.trim().split(/\s+/).find(Boolean);
-    expect(query).toBeTruthy();
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
         await runSearchWorker();
+        const query = await findIndexedTranscriptSearchTerm(
+            state.transcript?.text ?? "",
+        );
+        if (!query) {
+            await page.waitForTimeout(1_000);
+            continue;
+        }
+
         const response = await page.request.get("/api/search", {
             params: {
-                q: query ?? "",
+                q: query,
                 type: "transcript",
                 limit: "10",
             },
