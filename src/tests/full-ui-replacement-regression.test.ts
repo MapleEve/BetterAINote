@@ -419,5 +419,23 @@ describe("full UI replacement regression coverage", () => {
             expect(source).not.toContain("border-white/10");
             expect(source).not.toContain("bg-background/25");
         }
+
+        expect(transcriptionSkeletons).toContain(
+            "export function TranscriptReviewSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "export function SpeakerReviewSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "function SpeakerCardSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "function TranscriptTurnSkeleton",
+        );
+        expect(transcriptionSkeletons).toContain("bg-muted/20");
+        expect(transcriptionSkeletons).toContain("glass-surface-subtle");
+        expect(transcriptionSkeletons).toContain("rounded-2xl bg-muted/35 p-4");
+        expect(transcriptionSkeletons).not.toContain("bg-background/45");
+        expect(transcriptionSkeletons).not.toContain("bg-background/35");
     });
 });

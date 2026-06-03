@@ -82,7 +82,7 @@ export function TranscriptReviewSkeleton({
                 <Skeleton className="h-3 w-32 rounded-full" />
                 <Skeleton className="h-3 w-16 rounded-full" />
             </div>
-            <div className="max-h-72 rounded-2xl bg-background/45 p-4">
+            <div className="max-h-72 rounded-2xl bg-muted/20 p-4">
                 <SkeletonLineGroup lines={6} />
             </div>
         </div>
@@ -91,7 +91,7 @@ export function TranscriptReviewSkeleton({
 
 function SpeakerCardSkeleton() {
     return (
-        <div className="space-y-4 rounded-2xl border border-border/55 bg-background/35 p-4">
+        <div className="glass-surface-subtle space-y-4 rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3">
                 <div className="space-y-2">
                     <Skeleton className="h-4 w-24" />
