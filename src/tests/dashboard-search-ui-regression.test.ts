@@ -9,6 +9,17 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function sourceAround(source: string, marker: string, radius = 500) {
+    const markerIndex = source.indexOf(marker);
+
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+
+    return source.slice(
+        Math.max(0, markerIndex - radius),
+        markerIndex + marker.length + radius,
+    );
+}
+
 describe("dashboard search and activity overlay regression", () => {
     it("exposes a dashboard search entrypoint for the four library scopes", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
@@ -145,6 +156,40 @@ describe("dashboard search and activity overlay regression", () => {
         );
         expect(workstation).toContain("data-library-search-filter");
         expect(workstation).toContain("onApplyLibraryFilter={");
+    });
+
+    it("keeps library search chrome on shared muted and accent surfaces", () => {
+        const searchComponent = readSource(
+            "features/dashboard/components/library-search.tsx",
+        );
+        const triggerSurface = sourceAround(
+            searchComponent,
+            'data-testid="library-search-trigger"',
+        );
+        const scopeSurface = sourceAround(
+            searchComponent,
+            "data-active={scope === item.value}",
+            700,
+        );
+        const resultsGroupSurface = sourceAround(
+            searchComponent,
+            ["data-testid={`library-search-group-", "{group.value}`}"].join(
+                "$",
+            ),
+        );
+
+        expect(searchComponent).not.toContain("bg-background/35");
+        expect(searchComponent).not.toContain("bg-background/45");
+        expect(searchComponent).not.toContain("hover:bg-background/80");
+
+        expect(triggerSurface).toContain('variant="outline"');
+        expect(triggerSurface).toContain('className="h-9 w-9 rounded-xl"');
+        expect(scopeSurface).toContain("hover:bg-accent/45");
+        expect(scopeSurface).toContain("data-[active=true]:bg-muted/35");
+        expect(scopeSurface).toContain("setActiveResultIndex(0);");
+        expect(scopeSurface).toContain("focusSearchInput();");
+        expect(resultsGroupSurface).toContain("bg-muted/35");
+        expect(resultsGroupSurface).toContain("shadow-xs");
     });
 
     it("derives the activity overlay from existing workstation update and transcription state", () => {

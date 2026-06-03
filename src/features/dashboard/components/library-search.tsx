@@ -472,7 +472,7 @@ export function LibrarySearch({
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 aria-label={t("librarySearch.openSearch")}
-                className="h-9 w-9 rounded-xl border-border/70 bg-background/45"
+                className="h-9 w-9 rounded-xl"
                 data-testid="library-search-trigger"
                 onClick={() => {
                     if (open) {
@@ -556,7 +556,7 @@ export function LibrarySearch({
                                     size="sm"
                                     aria-pressed={scope === item.value}
                                     data-active={scope === item.value}
-                                    className="h-7 rounded-full border border-border/70 px-3 text-xs text-muted-foreground hover:bg-background/80 hover:text-foreground data-[active=true]:border-primary/35 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                                    className="h-7 rounded-full border border-border/70 px-3 text-xs text-muted-foreground hover:bg-accent/45 hover:text-foreground aria-[pressed=true]:bg-muted/35 aria-[pressed=true]:text-foreground data-[active=true]:border-border/80 data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs"
                                     onClick={() => {
                                         setScope(item.value);
                                         setActiveResultIndex(0);
@@ -636,7 +636,7 @@ export function LibrarySearch({
                                                 <div className="px-2 py-1 text-[0.66rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
                                                     {group.label}
                                                 </div>
-                                                <div className="overflow-hidden rounded-lg border border-border/60 bg-background/35">
+                                                <div className="overflow-hidden rounded-lg border border-border/70 bg-muted/35 shadow-xs">
                                                     {group.items.map(
                                                         ({
                                                             displayIndex,
