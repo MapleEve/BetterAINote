@@ -17,6 +17,7 @@ Vitest 测试目录，覆盖边界、服务、UI 回归和公开发布卫生。
 - `dev-with-worker-script.test.ts`
 - `dingtalk-provider.test.ts`
 - `display-settings-store.test.ts`
+- `e2e-real-voscript-guard.test.ts`
 - `e2e-reset-rules.test.ts`
 - `encryption.test.ts`
 - `errors.test.ts`
