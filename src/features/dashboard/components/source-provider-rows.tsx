@@ -219,10 +219,11 @@ export function SourceProviderRows({
                         >
                             <span
                                 className={cn(
-                                    "flex size-7 shrink-0 items-center justify-center rounded-[0.55rem] border border-border/70 bg-background/60 text-[0.72rem] font-semibold text-foreground shadow-xs",
+                                    "flex size-7 shrink-0 items-center justify-center rounded-[0.55rem] border border-border/70 bg-muted/35 text-[0.72rem] font-semibold text-foreground shadow-xs",
                                     row.active &&
                                         "border-primary/35 bg-primary/10 text-primary",
                                 )}
+                                data-testid="source-provider-row-initial"
                                 aria-hidden="true"
                             >
                                 {providerAssetClass ? (

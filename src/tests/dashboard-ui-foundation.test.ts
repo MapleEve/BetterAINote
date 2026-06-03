@@ -66,6 +66,11 @@ describe("dashboard UI foundation", () => {
         }
 
         expect(sourceRows).toContain('data-testid="source-provider-rows"');
+        expect(sourceRows).toContain(
+            'data-testid="source-provider-row-initial"',
+        );
+        expect(sourceRows).toContain("bg-muted/35");
+        expect(sourceRows).not.toContain("bg-background/60");
         expect(sourceRows).toContain("compact?: boolean");
         expect(sourceRows).toContain(
             'data-compact={compact ? "true" : "false"}',

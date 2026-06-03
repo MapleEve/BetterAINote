@@ -565,7 +565,10 @@ function ProviderCard({
                     "border-primary/45 bg-background/65 shadow-xs",
             )}
         >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background/60 text-xs font-semibold text-foreground">
+            <span
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/35 text-xs font-semibold text-foreground"
+                data-testid="data-source-provider-initial"
+            >
                 {providerAssetClass ? (
                     <span
                         className={cn(

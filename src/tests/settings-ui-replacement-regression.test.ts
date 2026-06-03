@@ -152,6 +152,9 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(section).toContain("data-auth-mode-picker");
         expect(section).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
         expect(section).toContain("PROVIDER_ASSET_CLASSES");
+        expect(section).toContain('data-testid="data-source-provider-initial"');
+        expect(section).toContain("bg-muted/35");
+        expect(section).not.toContain("bg-background/60");
         expect(section).toContain("handleTestSource");
         expect(section).toContain("testSourceSettings");
         expect(section).toContain("handleSaveSource");

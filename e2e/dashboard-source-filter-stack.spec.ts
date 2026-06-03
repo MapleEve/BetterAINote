@@ -481,6 +481,10 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
         "data-source-status",
         /needs-setup|planned|paused|expired|connected-empty|no-results|connected|sync-error/,
     );
+    const iflyrecInitial = iflyrecRow.getByTestId("source-provider-row-initial");
+    await expect(iflyrecInitial).toBeVisible();
+    await expect(iflyrecInitial).toHaveClass(/bg-muted\/35/);
+    await expect(iflyrecInitial).not.toHaveClass(/bg-background\/60/);
     await iflyrecRow.click();
     await expect(iflyrecRow).toHaveAttribute("data-active", "true");
 

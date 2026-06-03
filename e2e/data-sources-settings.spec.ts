@@ -190,12 +190,18 @@ test("data sources settings tests missing details then saves a provider through 
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section.locator('[data-provider="ticnote"]').click();
+    const ticnoteRow = section.locator('[data-provider="ticnote"]');
+    await ticnoteRow.click();
     await expect(section).toHaveAttribute("data-ds-selected-provider", "ticnote");
-    await expect(section.locator('[data-provider="ticnote"]')).toHaveAttribute(
-        "aria-pressed",
-        "true",
+    await expect(ticnoteRow).toHaveAttribute("aria-pressed", "true");
+    const ticnoteProviderInitial = ticnoteRow.getByTestId(
+        "data-source-provider-initial",
     );
+    await expect(ticnoteProviderInitial).toBeVisible();
+    const ticnoteProviderInitialClass =
+        await ticnoteProviderInitial.getAttribute("class");
+    expect(ticnoteProviderInitialClass).toContain("bg-muted/35");
+    expect(ticnoteProviderInitialClass).not.toContain("bg-background/60");
 
     const detail = section.locator('[data-provider-detail="ticnote"]');
     await expect(detail).toBeVisible();
@@ -307,7 +313,6 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(shell).toHaveAttribute("data-settings-busy", "false");
     await expect(section.locator('[data-provider="plaud"]')).toBeEnabled();
     await expect(detail).toHaveAttribute("data-provider-status", "saved");
-    const ticnoteRow = section.locator('[data-provider="ticnote"]');
     await expect(ticnoteRow).toHaveAttribute("data-provider-status", "saved");
     await expect(ticnoteRow).toHaveAttribute(
         "data-provider-status",
