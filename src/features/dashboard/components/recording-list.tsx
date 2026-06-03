@@ -450,7 +450,7 @@ export function RecordingList({
                                     ? t("recordingList.timelineTitle")
                                     : t("recordingList.tagsTitle")}
                             </p>
-                            <span className="rounded-full border border-border/70 bg-background/45 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            <span className="rounded-full border border-border/70 bg-muted/35 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                                 {totalLabel}
                             </span>
                         </div>

@@ -169,6 +169,19 @@ describe("dashboard UI foundation", () => {
             tagCountBadgeStart,
             tagCountBadgeEnd,
         );
+        const headerTotalBadgeTextStart = recordingList.indexOf("{totalLabel}");
+        const headerTotalBadgeStart = recordingList.lastIndexOf(
+            "<span",
+            headerTotalBadgeTextStart,
+        );
+        const headerTotalBadgeEnd = recordingList.indexOf(
+            "</span>",
+            headerTotalBadgeTextStart,
+        );
+        const headerTotalBadge = recordingList.slice(
+            headerTotalBadgeStart,
+            headerTotalBadgeEnd,
+        );
 
         expect(recordingList).toContain(
             'export type RecordingListMode = "timeline" | "tags"',
@@ -202,6 +215,12 @@ describe("dashboard UI foundation", () => {
         expect(tagCountBadgeStart).toBeGreaterThanOrEqual(0);
         expect(tagCountBadgeEnd).toBeGreaterThan(tagCountBadgeStart);
         expect(tagCountBadge).toContain("{selectedTagOption?.count ?? 0}");
+        expect(headerTotalBadgeTextStart).toBeGreaterThanOrEqual(0);
+        expect(headerTotalBadgeStart).toBeGreaterThanOrEqual(0);
+        expect(headerTotalBadgeEnd).toBeGreaterThan(headerTotalBadgeStart);
+        expect(headerTotalBadge).toContain("{totalLabel}");
+        expect(headerTotalBadge).not.toContain("bg-background/45");
+        expect(headerTotalBadge).toContain("bg-muted/35");
         expect(recordingList).not.toContain("bg-background/40");
         expect(tagCountBadge).toContain("bg-muted/35");
         expect(recordingList).not.toContain("前往数据源");
