@@ -162,7 +162,7 @@ export function SystemBanner({ className }: SystemBannerProps) {
             data-system-banner=""
             data-system-banner-state={state}
         >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-background/35">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-muted/35 shadow-xs">
                 <Icon className="size-4" />
             </span>
             <span className="min-w-0 flex-1">

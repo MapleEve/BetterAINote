@@ -415,8 +415,28 @@ describe("full UI replacement regression coverage", () => {
             expect(systemBanner).toContain(state);
         }
 
+        const iconSurfaceStart = systemBanner.indexOf(
+            '<span className="flex size-8',
+        );
+        const iconSurfaceEnd = systemBanner.indexOf("<Icon", iconSurfaceStart);
+        const iconSurface = systemBanner.slice(
+            iconSurfaceStart,
+            iconSurfaceEnd,
+        );
+
+        expect(iconSurfaceStart).toBeGreaterThanOrEqual(0);
+        expect(iconSurfaceEnd).toBeGreaterThan(iconSurfaceStart);
+        expect(iconSurface).toContain("border-current/20");
+        expect(iconSurface).toContain("bg-muted/35");
+        expect(iconSurface).toContain("shadow-xs");
+        expect(iconSurface).not.toContain("bg-background/35");
+        expect(systemBanner).not.toContain("bg-background/35");
+        expect(systemBanner).toContain('aria-live="polite"');
+        expect(systemBanner).toContain('data-system-banner=""');
         expect(systemBanner).toContain("data-system-banner-state");
         expect(systemBanner).toContain("betterainote:system-banner");
+        expect(systemBanner).toContain('state === "update-available"');
+        expect(systemBanner).toContain("window.location.reload()");
         expect(dashboard).toContain("<SystemBanner");
         expect(detail).toContain("<SystemBanner");
     });
