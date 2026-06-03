@@ -315,7 +315,64 @@ describe("settings UI replacement S6-S8 regressions", () => {
         expect(titleGeneration).toContain(
             'data-testid="title-generation-settings-card"',
         );
+        expect(titleGeneration).toContain(
+            'data-testid="title-generation-auto-toggle"',
+        );
+        expect(titleGeneration).toContain(
+            'data-testid="title-generation-save"',
+        );
+        expect(titleGeneration).toContain(
+            'errorTestId="title-generation-load-error"',
+        );
+        expect(titleGeneration).toContain(
+            'retryTestId="title-generation-load-retry"',
+        );
+        expect(titleGeneration).toContain('id="title-generation-base-url"');
+        expect(titleGeneration).toContain('id="title-generation-model"');
+        expect(titleGeneration).toContain('id="title-generation-api-key"');
         expect(titleGeneration).toContain("data-state={saveState}");
+        expect(titleGeneration).toContain(
+            "const handleAutoGenerateTitleChange = async (checked: boolean)",
+        );
+        expect(titleGeneration).toContain(
+            "const handleTitleGenerationConfigSave = async ()",
+        );
+        expect(titleGeneration).toContain("onCheckedChange={(checked) =>");
+        expect(titleGeneration).toContain(
+            "void handleAutoGenerateTitleChange(checked)",
+        );
+        expect(titleGeneration).toContain(
+            "onClick={() => void handleTitleGenerationConfigSave()}",
+        );
+        expect(titleGeneration.match(/onChange=\{\(event\) =>/g)).toHaveLength(
+            3,
+        );
+        expect(titleGeneration.match(/disabled=\{isSaving\}/g)).toHaveLength(5);
+        expect(titleGeneration).toContain("aria-busy={isSaving}");
+        expect(titleGeneration).toContain("toast.success");
+        expect(titleGeneration).toContain("toast.error");
+        expect(titleGeneration).toContain("AI rename settings saved");
+        expect(titleGeneration).toContain("Failed to save AI rename settings");
+        expect(titleGeneration).toContain(
+            "Failed to save settings. Changes reverted.",
+        );
+        expect(titleGeneration).toContain('setTitleGenerationApiKey("")');
+        expect(titleGeneration).toContain("if (!model)");
+        expect(titleGeneration).toContain(
+            "if (!titleGenerationApiKeySet && !apiKey)",
+        );
+        expect(titleGeneration).toContain("Rename service model is required");
+        expect(titleGeneration).toContain("Rename service API key is required");
+        expect(titleGeneration).toContain(
+            "glass-surface-subtle flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3",
+        );
+        expect(titleGeneration).toContain(
+            "glass-surface-subtle flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3",
+        );
+        expect(titleGeneration).toContain(
+            "glass-surface-subtle space-y-2 rounded-2xl p-4",
+        );
+        expect(titleGeneration).not.toContain("bg-background/35");
         expect(titleGeneration).not.toContain(
             "border border-white/10 bg-white/[0.03]",
         );

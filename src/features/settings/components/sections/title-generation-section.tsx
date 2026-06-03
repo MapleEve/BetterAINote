@@ -202,7 +202,7 @@ export function TitleGenerationSection() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/35 px-4 py-3">
+                <div className="glass-surface-subtle flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3">
                     <div className="min-w-0 flex-1 space-y-0.5">
                         <Label
                             htmlFor="auto-generate-title"
@@ -230,7 +230,7 @@ export function TitleGenerationSection() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
+                    <div className="glass-surface-subtle space-y-2 rounded-2xl p-4">
                         <Label htmlFor="title-generation-base-url">
                             {isZh ? "重命名服务地址" : "Rename service URL"}
                         </Label>
@@ -251,7 +251,7 @@ export function TitleGenerationSection() {
                                 : "OpenAI-compatible endpoint used only for filename generation."}
                         </p>
                     </div>
-                    <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
+                    <div className="glass-surface-subtle space-y-2 rounded-2xl p-4">
                         <Label htmlFor="title-generation-model">
                             {isZh ? "重命名模型" : "Rename model"}
                         </Label>
@@ -267,7 +267,7 @@ export function TitleGenerationSection() {
                     </div>
                 </div>
 
-                <div className="space-y-2 rounded-2xl border border-border/70 bg-background/35 p-4">
+                <div className="glass-surface-subtle space-y-2 rounded-2xl p-4">
                     <Label htmlFor="title-generation-api-key">
                         {isZh ? "重命名服务 API Key" : "Rename service API key"}
                     </Label>
@@ -298,7 +298,7 @@ export function TitleGenerationSection() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/35 px-4 py-3">
+                <div className="glass-surface-subtle flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
                     <p className="min-w-0 flex-1 text-xs text-muted-foreground">
                         {isZh
                             ? "上游录音平台连接在 Data Sources，私有转录服务在 VoScript。本页只负责 transcript -> title 这条链。"
