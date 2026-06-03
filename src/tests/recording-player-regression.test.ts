@@ -64,5 +64,35 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('data-testid="recording-player-speed"');
         expect(source).toContain('title="Click to cycle playback speed"');
         expect(e2eSource).toContain("playbackRate");
+
+        const dateBadgeStart = source.indexOf("suppressHydrationWarning");
+        const dateBadgeEnd = source.indexOf("formatDateTime(", dateBadgeStart);
+        const dateBadgeSurface = source.slice(
+            Math.max(0, dateBadgeStart - 240),
+            dateBadgeEnd + 240,
+        );
+
+        expect(dateBadgeStart).toBeGreaterThanOrEqual(0);
+        expect(dateBadgeEnd).toBeGreaterThan(dateBadgeStart);
+        expect(dateBadgeSurface).not.toContain("bg-background/20");
+        expect(dateBadgeSurface).toContain("bg-muted/20");
+
+        const tagManagerStart = source.indexOf(
+            'data-testid="recording-tag-manager-trigger"',
+        );
+        const tagManagerEnd = source.indexOf("</Button>", tagManagerStart);
+        const tagManagerSurface = source.slice(
+            Math.max(0, tagManagerStart - 420),
+            tagManagerEnd + "</Button>".length,
+        );
+
+        expect(tagManagerStart).toBeGreaterThanOrEqual(0);
+        expect(tagManagerEnd).toBeGreaterThan(tagManagerStart);
+        expect(tagManagerSurface).toContain("onClick={onToggleTagManager}");
+        expect(tagManagerSurface).toContain("aria-expanded={isTagManagerOpen}");
+        expect(tagManagerSurface).not.toContain("bg-background/20");
+        expect(tagManagerSurface).toContain("bg-muted/20");
+        expect(tagManagerSurface).toContain("<RecordingTagChip");
+        expect(tagManagerSurface).toContain("+{tags.length - 1}");
     });
 });

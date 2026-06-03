@@ -68,7 +68,7 @@ export function RecordingPlayer({
             <CardContent className="relative p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                     <span
-                        className="inline-flex h-7 items-center rounded-xl border border-border/45 bg-background/20 px-2.5 font-mono text-[11px] font-medium tracking-wide text-muted-foreground/75 tabular-nums backdrop-blur-xl"
+                        className="inline-flex h-7 items-center rounded-xl border border-border/45 bg-muted/20 px-2.5 font-mono text-[11px] font-medium tracking-wide text-muted-foreground/75 tabular-nums backdrop-blur-xl"
                         suppressHydrationWarning
                     >
                         {formatDateTime(
@@ -86,7 +86,7 @@ export function RecordingPlayer({
                             aria-expanded={isTagManagerOpen}
                             data-testid="recording-tag-manager-trigger"
                             className={cn(
-                                "h-7 max-w-[14rem] rounded-xl border-border/55 bg-background/20 px-2.5 text-xs shadow-none backdrop-blur-xl transition-[background-color,border-color] duration-300 ease-[var(--ease-sine)] hover:bg-accent/45",
+                                "h-7 max-w-[14rem] rounded-xl border-border/55 bg-muted/20 px-2.5 text-xs shadow-none backdrop-blur-xl transition-[background-color,border-color] duration-300 ease-[var(--ease-sine)] hover:bg-accent/45",
                                 isTagManagerOpen &&
                                     "border-primary/35 bg-primary/12 text-foreground",
                             )}
