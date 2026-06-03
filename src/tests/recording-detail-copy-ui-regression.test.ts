@@ -177,6 +177,12 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain("dashboard-workstation");
             expect(source).toContain("glass-surface");
         }
+
+        expect(error).not.toContain("hover:bg-background/70");
+        expect(error).toContain("asChild");
+        expect(error).toContain('variant="outline"');
+        expect(error).toContain('href="/dashboard"');
+        expect(error).toContain("返回录音列表");
     });
 
     it("keeps speaker review raw transcript copy available from the review toolbar", () => {

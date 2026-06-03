@@ -26,12 +26,9 @@ export default function RecordingDetailError({
                     <Button type="button" onClick={reset}>
                         重试
                     </Button>
-                    <Link
-                        href="/dashboard"
-                        className="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-background/40 px-4 font-medium text-sm transition-colors hover:bg-background/70 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
-                    >
-                        返回录音列表
-                    </Link>
+                    <Button asChild variant="outline">
+                        <Link href="/dashboard">返回录音列表</Link>
+                    </Button>
                 </div>
             </section>
         </div>
