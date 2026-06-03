@@ -903,7 +903,7 @@ export function ActivityOverlay({
                           })
                         : t("activityOverlay.open")
                 }
-                className="relative h-9 w-9 rounded-xl border-border/70 bg-background/45"
+                className="relative h-9 w-9 rounded-xl"
                 data-testid="dashboard-activity-trigger"
                 disabled={!isInteractive}
                 onClick={() => {

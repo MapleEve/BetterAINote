@@ -243,6 +243,41 @@ describe("dashboard search and activity overlay regression", () => {
         expect(activityOverlay).not.toContain("fetch(");
     });
 
+    it("keeps the activity trigger on the shared outline primitive surface", () => {
+        const activityOverlay = readSource(
+            "features/dashboard/components/activity-overlay.tsx",
+        );
+        const triggerSurface = sourceAround(
+            activityOverlay,
+            'data-testid="dashboard-activity-trigger"',
+            700,
+        );
+
+        expect(activityOverlay).not.toContain("bg-background/45");
+        expect(triggerSurface).toContain('variant="outline"');
+        expect(triggerSurface).toContain('size="icon"');
+        expect(triggerSurface).toContain(
+            'className="relative h-9 w-9 rounded-xl"',
+        );
+        expect(triggerSurface).toContain(
+            'data-testid="dashboard-activity-trigger"',
+        );
+        expect(triggerSurface).toContain("disabled={!isInteractive}");
+        expect(triggerSurface).toContain(
+            'aria-controls="dashboard-activity-panel"',
+        );
+        expect(triggerSurface).toContain("if (open) {");
+        expect(triggerSurface).toContain("closeAndReturnFocus();");
+        expect(triggerSurface).toContain("onOpenChange(true);");
+        expect(triggerSurface).toContain("actionableCount > 0");
+        expect(triggerSurface).toContain('aria-hidden="true"');
+
+        expect(activityOverlay).toContain("triggerRef.current?.focus");
+        expect(activityOverlay).toContain("TopbarOverlayPortal");
+        expect(activityOverlay).toContain("anchorRef={triggerRef}");
+        expect(activityOverlay).toContain('id="dashboard-activity-panel"');
+    });
+
     it("keeps activity dismiss, retry, and keyboard states explicit", () => {
         const activityOverlay = readSource(
             "features/dashboard/components/activity-overlay.tsx",
