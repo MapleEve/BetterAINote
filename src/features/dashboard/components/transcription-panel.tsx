@@ -359,7 +359,7 @@ function RetranscriptionBanner({
                     "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
             )}
         >
-            <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-lg border border-current/25 bg-background/45">
+            <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-lg border border-current/25 bg-muted/35 shadow-xs">
                 {isBusy ? (
                     <Loader2 className="size-3.5 animate-spin" />
                 ) : state === "completed" ? (
@@ -796,7 +796,7 @@ export function TranscriptionPanel({
                                         </div>
                                     </div>
                                     <div
-                                        className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-background/35 p-2"
+                                        className="glass-surface-subtle mt-4 flex flex-wrap items-center gap-2 rounded-xl p-2 shadow-xs"
                                         data-testid="dashboard-transcription-copy-strip"
                                     >
                                         <Button

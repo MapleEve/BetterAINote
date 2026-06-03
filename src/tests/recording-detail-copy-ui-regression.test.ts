@@ -185,6 +185,11 @@ describe("recording detail copy and title action UI regressions", () => {
         );
 
         expect(dashboardTranscript).toContain(
+            'data-testid="dashboard-retranscription-banner"',
+        );
+        expect(dashboardTranscript).toContain("data-retx-retry");
+        expect(dashboardTranscript).toContain("data-retx-dismiss");
+        expect(dashboardTranscript).toContain(
             'data-testid="dashboard-transcription-copy-strip"',
         );
         expect(dashboardTranscript).toContain(
@@ -211,6 +216,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "sourceReport.missingSourceReport",
         );
+        expect(dashboardTranscript).toContain("sourceTranscriptCopyState");
+        expect(dashboardTranscript).toContain("sourceReportCopyState");
+        expect(dashboardTranscript).toContain('"transcript"');
+        expect(dashboardTranscript).toContain('"source"');
+        expect(dashboardTranscript).toContain('"speakers"');
+        expect(dashboardTranscript).not.toContain("bg-background/45");
+        expect(dashboardTranscript).not.toContain("bg-background/35");
+        expect(dashboardTranscript).toContain("bg-muted/35");
+        expect(dashboardTranscript).toContain("shadow-xs");
     });
 
     it("keeps standalone recording route fallback states in the new shell", () => {
