@@ -174,7 +174,7 @@ export function SourceProviderRows({
                         variant="outline"
                         size="sm"
                         onClick={onClearProvider}
-                        className="h-6 rounded-full bg-background/40 px-2 text-[0.68rem] text-muted-foreground hover:text-foreground"
+                        className="h-6 rounded-full bg-muted/35 px-2 text-[0.68rem] text-muted-foreground hover:bg-accent/45 hover:text-foreground"
                     >
                         {t("sourceProviderRows.clear")}
                     </Button>

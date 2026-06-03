@@ -125,6 +125,7 @@ describe("dashboard UI foundation", () => {
         );
         expect(sourceRows).toContain('data-testid="source-provider-row-badge"');
         expect(sourceRows).toContain("bg-muted/35");
+        expect(sourceRows).not.toContain("bg-background/40");
         expect(sourceRows).not.toContain("hover:bg-background/45");
         expect(sourceRows).not.toContain("bg-background/70");
         expect(sourceRows).not.toContain("bg-background/50");
@@ -141,6 +142,9 @@ describe("dashboard UI foundation", () => {
         expect(sourceRows).not.toContain("http://");
         expect(sourceRows).not.toContain("https://");
         expect(sourceRows).toContain("@/components/ui/button");
+        expect(sourceRows).toContain('variant="outline"');
+        expect(sourceRows).toContain('size="sm"');
+        expect(sourceRows).toContain("onClick={onClearProvider}");
         expect(sourceRows).toContain("sourceProviderRows.heading");
         expect(sourceRows).toContain("sourceProviderRows.clear");
         expect(sourceRows).not.toContain("待连接");
