@@ -77,6 +77,26 @@ describe("dashboard UI foundation", () => {
         );
     });
 
+    it("keeps dashboard action hover surfaces updated without losing title and favorite interactions", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).not.toContain("hover:bg-background/45");
+        expect(workstation).not.toContain("hover:bg-background/50");
+
+        for (const marker of [
+            'data-testid="dashboard-favorite-all"',
+            'data-testid="dashboard-favorite-transcribed"',
+            'data-testid="dashboard-favorite-tags"',
+            "handleFavoriteSelect",
+            'data-testid="dashboard-ai-rename"',
+            'data-testid="dashboard-rename-cancel"',
+            "handleAutoRename",
+            "handleRenameCancel",
+        ]) {
+            expect(workstation).toContain(marker);
+        }
+    });
+
     it("renders supported source providers as local client rows without remote assets", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const sourceRows = readSource(

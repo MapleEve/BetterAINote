@@ -1793,7 +1793,7 @@ export function Workstation({
                                 }
                                 data-testid="dashboard-favorite-all"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1832,7 +1832,7 @@ export function Workstation({
                                 }
                                 data-testid="dashboard-favorite-transcribed"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -1875,7 +1875,7 @@ export function Workstation({
                                 }
                                 data-testid="dashboard-favorite-tags"
                                 className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-background/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
+                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
                                     isSidebarCollapsed &&
                                         "lg:justify-center lg:px-2",
                                 )}
@@ -2226,7 +2226,7 @@ export function Workstation({
                                                             "transcription.aiRename",
                                                         )
                                                     }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <Sparkles
                                                         className={
@@ -2263,7 +2263,7 @@ export function Workstation({
                                                     title={t(
                                                         "recording.cancelRename",
                                                     )}
-                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-background/30 shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <X className="h-5 w-5" />
                                                 </Button>
@@ -2299,7 +2299,7 @@ export function Workstation({
                                                             "transcription.aiRename",
                                                         )
                                                     }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-background/50"
+                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-background/30 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
                                                 >
                                                     <Sparkles
                                                         className={
