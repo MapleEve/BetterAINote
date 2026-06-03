@@ -40,4 +40,26 @@ describe("dashboard recording player regressions", () => {
         expect(noAudioWarning).not.toContain("border-white/10");
         expect(noAudioWarning).not.toContain("bg-white/5");
     });
+
+    it("uses the current hover surface without dropping tag or speed controls", () => {
+        const source = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/recordings/components/recording-player.tsx",
+            ),
+            "utf8",
+        );
+        const e2eSource = readFileSync(
+            path.join(process.cwd(), "e2e/recording-detail-workstation.spec.ts"),
+            "utf8",
+        );
+
+        expect(source).not.toContain("hover:bg-background/35");
+        expect(source).toContain('data-testid="recording-tag-manager-trigger"');
+        expect(source).toContain("onClick={onToggleTagManager}");
+        expect(source).toContain("aria-expanded={isTagManagerOpen}");
+        expect(source).toContain('data-testid="recording-player-speed"');
+        expect(source).toContain('title="Click to cycle playback speed"');
+        expect(e2eSource).toContain("playbackRate");
+    });
 });
