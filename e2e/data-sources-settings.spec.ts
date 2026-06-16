@@ -1338,20 +1338,24 @@ test("data sources settings rail and provider primitives match SOT computed styl
                 DETAIL_STYLE_PROPS,
             );
             await expectComputedStyleMatch(
-                sotDetail.locator(".field-row").first(),
-                detail.locator('[data-field-id="source-browser-authorization"]'),
+                sotDetail.locator("input").first().locator("xpath=../.."),
+                detail.locator(
+                    '[data-field-id="source-browser-authorization"][data-slot="field"]',
+                ),
                 DETAIL_ROW_STYLE_PROPS,
             );
             await expectComputedStyleMatch(
-                sotDetail.locator(".field-row .sm-row-ctrl").first(),
+                sotDetail.locator("input").first().locator("xpath=.."),
                 detail.locator(
-                    '[data-field-id="source-browser-authorization"] .sm-row-ctrl',
-                ),
+                    '[data-field-id="source-browser-authorization"] [data-slot="input"]',
+                ).locator("xpath=.."),
                 DETAIL_ROW_CONTROL_STYLE_PROPS,
             );
             await expectComputedStyleMatch(
-                sotDetail.locator(".field-input").first(),
-                page.locator("#dingtalk-a1-source-browser-authorization"),
+                sotDetail.locator("input").first(),
+                page.locator(
+                    '#dingtalk-a1-source-browser-authorization[data-slot="input"]',
+                ),
                 DETAIL_INPUT_STYLE_PROPS,
             );
         } finally {
@@ -1740,9 +1744,9 @@ test("data sources settings tests missing details then saves a provider through 
         /needs-setup|warn|neu/,
     );
     await expect(detail.locator(".sm-section").first()).toBeVisible();
-    await expect(detail.locator(".field-row").first()).toBeVisible();
-    await expect(detail.locator(".sm-row-ctrl").first()).toBeVisible();
-    await expect(detail.locator(".field-input").first()).toBeVisible();
+    await expect(detail.locator('[data-slot="field"]').first()).toBeVisible();
+    await expect(detail.locator('[data-slot="field-content"]').first()).toBeVisible();
+    await expect(detail.locator('[data-slot="input"]').first()).toBeVisible();
     await expect(detail.locator(".sm-actions-state")).toBeVisible();
     await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
     await expect(detail.locator(".modal-foot")).toHaveCount(0);

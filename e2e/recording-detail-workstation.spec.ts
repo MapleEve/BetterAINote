@@ -1200,6 +1200,12 @@ function speakerReviewMappingInput(card: Locator) {
     return card.getByPlaceholder("搜索或新建说话人，例如 Maple");
 }
 
+function speakerReviewMappingField(card: Locator) {
+    return card.locator('[data-slot="field"]').filter({
+        has: speakerReviewMappingInput(card),
+    });
+}
+
 function speakerReviewProfileOption(card: Locator, name: string) {
     return card.getByRole("button").filter({ hasText: name });
 }
@@ -1952,11 +1958,13 @@ async function applySotSourceReportLoadedSubStateFixture(
                 }
             });
 
-            root.querySelectorAll<HTMLButtonElement>(".sr-actions .btn").forEach(
-                (button) => {
+            root
+                .querySelectorAll<HTMLButtonElement>(
+                    ".sr-actions button",
+                )
+                .forEach((button) => {
                     button.disabled = fixture.actionState === "unavailable";
-                },
-            );
+                });
         },
         options,
     );
@@ -3473,15 +3481,15 @@ async function expectRetranscribeConfirmDialogMatchesSot(
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
-        `${sotRoot} .confirm-foot .btn.ghost`,
-        `${productRoot} .confirm-foot .btn.ghost`,
+        `${sotRoot} .confirm-foot button:nth-child(1)`,
+        `${productRoot} .confirm-foot [data-slot="button"][data-variant="outline"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
-        `${sotRoot} .confirm-foot .btn.danger`,
-        `${productRoot} .confirm-foot .btn.danger`,
+        `${sotRoot} .confirm-foot button:nth-child(2)`,
+        `${productRoot} .confirm-foot [data-slot="button"][data-variant="destructive"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
 }
@@ -3518,8 +3526,8 @@ async function prepareSotSpeakerReviewFixture(page: Page) {
                     </div>
                   </div>
                   <div class="sp-edit-actions">
-                    <button class="btn btn-sm">说话人名称</button>
-                    <button class="btn ghost btn-sm">原始标签</button>
+                    <button data-slot="button" data-variant="default" data-size="sm">说话人名称</button>
+                    <button data-slot="button" data-variant="ghost" data-size="sm">原始标签</button>
                   </div>
                 </div>
                 <div class="sp-rows sp-rows-review">
@@ -7062,7 +7070,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         await expect(speakerReviewUnlinkButton(mappedCard)).toBeEnabled();
         await captureLiveSpeakerState(
             "live speaker review linked unlink action",
-            mappedCard.locator(".field-row"),
+            speakerReviewMappingField(mappedCard),
         );
         await speakerReviewUnlinkButton(mappedCard).click();
         await expect(mappedCard).toHaveAttribute(
@@ -7077,7 +7085,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         await expect(speakerReviewConfirmUnlinkButton(mappedCard)).toBeEnabled();
         await captureLiveSpeakerState(
             "live speaker review confirm unlink state",
-            mappedCard.locator(".field-row"),
+            speakerReviewMappingField(mappedCard),
         );
         await speakerReviewCancelUnlinkButton(mappedCard).click();
         await expect(speakerReviewConfirmUnlink(mappedCard)).toBeHidden();
@@ -7099,7 +7107,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         await expect(createLongLatinOption).toBeVisible();
         await captureLiveSpeakerState(
             "live speaker review suggestion picker with saved options",
-            unmappedCard.locator(".field-row"),
+            speakerReviewMappingField(unmappedCard),
         );
 
         await speakerReviewMappingInput(unmappedCard).fill(
@@ -7110,7 +7118,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         ).toBeVisible();
         await captureLiveSpeakerState(
             "live speaker review create option",
-            unmappedCard.locator(".field-row"),
+            speakerReviewMappingField(unmappedCard),
         );
 
         await speakerReviewMappingInput(unmappedCard).fill(
@@ -7173,7 +7181,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
             .toBe(1);
         await captureLiveSpeakerState(
             "live speaker review saving disabled picker",
-            unmappedCard.locator(".field-row"),
+            speakerReviewMappingField(unmappedCard),
         );
 
         releasePatch?.();
@@ -7268,7 +7276,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         ).toBeVisible();
         await captureLiveSpeakerState(
             "live speaker review no saved speakers empty picker",
-            noSavedSpeakersCard.locator(".field-row"),
+            speakerReviewMappingField(noSavedSpeakersCard),
         );
         expect(
             pixelMismatches,
@@ -7831,7 +7839,9 @@ test("recording detail speaker review merge popover empty state matches SOT pixe
         const mergeButton = speakerReviewMergeButton(panel);
         const mergePopover = speakerReviewMergePopover(panel);
 
-        await expect(mergeButton).toHaveClass(/btn ghost btn-sm/);
+        await expect(mergeButton).toHaveAttribute("data-slot", "button");
+        await expect(mergeButton).toHaveAttribute("data-variant", "ghost");
+        await expect(mergeButton).toHaveAttribute("data-size", "sm");
         await expect(mergeButton).toHaveAttribute("aria-expanded", "false");
         await expect(mergePopover).toBeHidden();
         await expect(mergePopover).toHaveAttribute("data-open", "false");

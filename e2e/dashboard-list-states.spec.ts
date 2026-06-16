@@ -2222,7 +2222,9 @@ test("recording list paginates without leaking tweak controls across dark, light
     await expect(sotControl(page, "recording-list-first-page")).toHaveCount(0);
     await expect(sotControl(page, "recording-list-last-page")).toHaveCount(0);
     await expect(sotControl(page, "recording-list-load-more")).toHaveCount(0);
-    await expect(pagination.locator(".lsb-page-nav > .btn")).toHaveCount(2);
+    await expect(
+        pagination.locator('.lsb-page-nav > [data-slot="button"]'),
+    ).toHaveCount(2);
     await expect(pagination.locator("[data-page-prev]")).toHaveCount(1);
     await expect(pagination.locator("[data-page-next]")).toHaveCount(1);
     await expect(pagination.locator(".lsb-page-num.mono")).toHaveText("1 / 3");

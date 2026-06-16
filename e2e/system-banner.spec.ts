@@ -652,8 +652,8 @@ async function expectSystemBannerSurfaceMatch(
     await expectComputedStyleMatch(
         sotPage,
         productPage,
-        `${sotSelector} .sbn-actions .btn:first-child`,
-        `${productSelector} .sbn-actions .btn:first-child`,
+        `${sotSelector} .sbn-actions button:first-child`,
+        `${productSelector} .sbn-actions [data-slot="button"]:first-child`,
         SYSTEM_BANNER_BUTTON_STYLE_PROPS,
     );
 }
@@ -943,13 +943,24 @@ test("dashboard system banner primitives match SOT component library styles", as
             '.sys-banner[data-kind="offline"]',
         );
         await expect(
-            page.locator('.sys-banner[data-kind="offline"] .sbn-actions .btn'),
+            page.locator(
+                '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+            ),
         ).toHaveCount(2);
         await expect(
             page
-                .locator('.sys-banner[data-kind="offline"] .sbn-actions .btn')
+                .locator(
+                    '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+                )
                 .first(),
-        ).toHaveAttribute("class", "btn ghost btn-sm");
+        ).toHaveAttribute("data-variant", "ghost");
+        await expect(
+            page
+                .locator(
+                    '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+                )
+                .first(),
+        ).toHaveAttribute("data-size", "sm");
         await clearSystemBanners(page);
 
         await dispatchSystemBanner(page, { state: "permission-denied" });
@@ -961,7 +972,7 @@ test("dashboard system banner primitives match SOT component library styles", as
         );
         await expect(
             page.locator(
-                '.sys-banner[data-kind="permission-denied"] .sbn-actions .btn',
+                '.sys-banner[data-kind="permission-denied"] .sbn-actions [data-slot="button"]',
             ),
         ).toHaveCount(2);
         await clearSystemBanners(page);
@@ -985,13 +996,20 @@ test("dashboard system banner primitives match SOT component library styles", as
         await expect(
             page
                 .locator(
-                    '.sys-banner[data-kind="update-available"] .sbn-actions .btn',
+                    '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
                 )
                 .first(),
-        ).toHaveAttribute("class", "btn glass btn-sm");
+        ).toHaveAttribute("data-variant", "glass");
+        await expect(
+            page
+                .locator(
+                    '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
+                )
+                .first(),
+        ).toHaveAttribute("data-size", "sm");
         await expect(
             page.locator(
-                '.sys-banner[data-kind="update-available"] .sbn-actions .btn',
+                '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
             ),
         ).toHaveCount(3);
         await clearSystemBanners(page);
@@ -1067,17 +1085,17 @@ test("dashboard system banner primitives match SOT component library styles", as
         );
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions .btn',
+                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
             ),
         ).toHaveCount(1);
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions .btn',
+                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
             ),
         ).toBeDisabled();
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions .btn',
+                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
             ),
         ).toHaveAttribute("aria-busy", "true");
         await clearSystemBanners(page);

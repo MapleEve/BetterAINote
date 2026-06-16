@@ -266,7 +266,11 @@ async function captureActivityFixture(
             firstItem: readStyle(element.querySelector(".notif-item")),
             root: readStyle(element),
             status: readStyle(element.querySelector(".notif-status")),
-            statusButton: readStyle(element.querySelector(".notif-status .btn")),
+            statusButton: readStyle(
+                element.querySelector(
+                    '.notif-status [data-slot="button"]',
+                ),
+            ),
         };
     });
     const screenshot = await stage.screenshot({

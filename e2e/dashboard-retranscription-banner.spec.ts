@@ -800,7 +800,7 @@ async function applySotSourceReportLoadedSubStateFixture(
             });
 
             root.querySelectorAll<HTMLButtonElement>(
-                '.sr-actions :is(.btn, [data-slot="button"])',
+                ".sr-actions button",
             ).forEach((button) => {
                 button.disabled = fixture.actionState === "unavailable";
             });
@@ -1010,9 +1010,9 @@ interface RetxPixelDiff {
 
 type RetxFixtureAction =
     | { kind: "none" }
-    | { kind: "hover"; selector: string }
-    | { kind: "focus"; selector: string }
-    | { kind: "disable"; selector: string };
+    | { kind: "hover"; productSelector?: string; selector: string }
+    | { kind: "focus"; productSelector?: string; selector: string }
+    | { kind: "disable"; productSelector?: string; selector: string };
 
 type RetxPixelFrame = {
     name: string;
@@ -1664,6 +1664,10 @@ async function expectRetxPixelsMatchWithAction(
         sotLocator.evaluate((element) => element.outerHTML),
         productLocator.evaluate((element) => element.outerHTML),
     ]);
+    const productAction =
+        action.kind === "none" || !("productSelector" in action)
+            ? action
+            : { ...action, selector: action.productSelector ?? action.selector };
     const sotCapture = await captureRetxHtmlFixture(
         sotLocator.page(),
         sotHtml,
@@ -1676,7 +1680,7 @@ async function expectRetxPixelsMatchWithAction(
         productHtml,
         width,
         "var(--bg-canvas)",
-        action,
+        productAction,
     );
     const diff = await compareRetxPixels(
         page,
@@ -2004,15 +2008,15 @@ async function expectConfirmDialogMatchesSot(sotPage: Page, productPage: Page) {
     await expectSotStylePairMatch(
         sotPage,
         productPage,
-        `${sotRoot} .confirm-foot .btn.ghost`,
-        `${productRoot} .confirm-foot .btn.ghost`,
+        `${sotRoot} .confirm-foot button:nth-child(1)`,
+        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="outline"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
-        `${sotRoot} .confirm-foot .btn.danger`,
-        `${productRoot} .confirm-foot .btn.danger`,
+        `${sotRoot} .confirm-foot button:nth-child(2)`,
+        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="destructive"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
 }
@@ -3141,7 +3145,7 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             ".player-controls",
             ".round-btn.play",
             ".track",
-            ".btn.speed",
+            '[data-sot-control="dashboard-player-speed"]',
             ".lt-ind",
             ".turn p",
         ]) {
@@ -3894,42 +3898,51 @@ test("dashboard source report loaded state matches SOT pixels", async (
             {
                 action: {
                     kind: "hover",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
+                    productSelector:
+                        '[data-sot-control="open-source-record"]',
+                    selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action hover",
             },
             {
                 action: {
                     kind: "hover",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
+                    productSelector: '[data-sot-control="repull-source"]',
+                    selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action hover",
             },
             {
                 action: {
                     kind: "focus",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
+                    productSelector:
+                        '[data-sot-control="open-source-record"]',
+                    selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action focus",
             },
             {
                 action: {
                     kind: "focus",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
+                    productSelector: '[data-sot-control="repull-source"]',
+                    selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action focus",
             },
             {
                 action: {
                     kind: "disable",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
+                    productSelector:
+                        '[data-sot-control="open-source-record"]',
+                    selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action disabled",
             },
             {
                 action: {
                     kind: "disable",
-                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
+                    productSelector: '[data-sot-control="repull-source"]',
+                    selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action disabled",
             },

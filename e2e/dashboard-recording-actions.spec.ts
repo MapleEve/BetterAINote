@@ -1515,8 +1515,12 @@ async function captureConfirmDialogFixture(
 
         return {
             body: readStyle(element.querySelector(".confirm-body")),
-            dangerButton: readStyle(element.querySelector(".btn.danger")),
-            ghostButton: readStyle(element.querySelector(".btn.ghost")),
+            dangerButton: readStyle(
+                element.querySelector(".confirm-foot button:nth-child(2)"),
+            ),
+            ghostButton: readStyle(
+                element.querySelector(".confirm-foot button:nth-child(1)"),
+            ),
             head: readStyle(element.querySelector(".confirm-head")),
             root: readStyle(element),
             warn: readStyle(element.querySelector(".confirm-warn")),
@@ -1743,13 +1747,17 @@ async function expectDeleteConfirmDialogMatchesSot(
         CONFIRM_STACK_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-foot .btn.ghost"),
-        productRoot.locator(".confirm-foot .btn.ghost"),
+        sotRoot.locator(".confirm-foot button").nth(0),
+        productRoot.locator(
+            '[data-slot="dialog-footer"] [data-slot="button"][data-variant="outline"]',
+        ),
         CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-foot .btn.danger"),
-        productRoot.locator(".confirm-foot .btn.danger"),
+        sotRoot.locator(".confirm-foot button").nth(1),
+        productRoot.locator(
+            '[data-slot="dialog-footer"] [data-slot="button"][data-variant="destructive"]',
+        ),
         CONFIRM_BUTTON_STYLE_PROPS,
     );
 }

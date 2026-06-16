@@ -804,7 +804,7 @@ async function readShellMetrics(locator: Locator) {
                       fieldLabels: dedupe(
                           Array.from(
                               dataSourcesRoot.querySelectorAll<HTMLElement>(
-                                  ".field-row .field-name, [data-field-id] .field-name, .ds-fields .field-name, .sm-detail .sm-row .sm-l-t",
+                                  '[data-slot="field-label"]',
                               ),
                           ).map(textOf),
                       ),
@@ -821,7 +821,7 @@ async function readShellMetrics(locator: Locator) {
                           dedupe(
                               Array.from(
                                   dataSourcesRoot.querySelectorAll<HTMLElement>(
-                                      'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], .sm-actions button, .sm-row-ctrl button, .path-card',
+                                      'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
                                   ),
                               )
                                   .filter(isVisible)
@@ -987,6 +987,50 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             );
         }
 
+        function collectFieldLabels() {
+            const stableLabels = Array.from(
+                root.querySelectorAll<HTMLElement>(
+                    '[data-slot="field-label"]',
+                ),
+            ).map((element) => normalizeFieldLabel(textOf(element)));
+
+            if (stableLabels.length > 0) {
+                return stableLabels;
+            }
+
+            const detail = root.querySelector<HTMLElement>("#ds-detail");
+
+            return Array.from(
+                detail?.querySelectorAll<HTMLElement>("input, button, select") ??
+                    [],
+            ).map((control) => {
+                const label = control.parentElement?.parentElement
+                    ?.firstElementChild?.firstElementChild;
+
+                return normalizeFieldLabel(textOf(label));
+            });
+        }
+
+        function collectVisibleActionLabels() {
+            const stableActions = Array.from(
+                root.querySelectorAll<HTMLElement>(
+                    'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
+                ),
+            );
+            const structuralActions = Array.from(
+                root
+                    .querySelector<HTMLElement>("#ds-detail")
+                    ?.querySelectorAll<HTMLElement>("button") ?? [],
+            );
+
+            return dedupe([...stableActions, ...structuralActions]
+                .filter(isVisible)
+                .map(textOf)
+                .filter((label) =>
+                    label ? expectedActionLabelOrder.includes(label) : false,
+                ));
+        }
+
         const providerCards = Array.from(
             root.querySelectorAll<HTMLElement>(
                 '[data-sot-control="source-provider"], .sp-card[data-provider]',
@@ -1043,12 +1087,8 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 title: textOf(detail?.querySelector(".sd-title") ?? null),
             },
             fieldLabels: orderByExpected(
-                dedupe(
-                    Array.from(
-                        root.querySelectorAll<HTMLElement>(
-                            ".field-row .field-name, [data-field-id] .field-name, .ds-fields .field-name, .sm-detail .sm-row .sm-l-t",
-                        ),
-                    ).map((element) => normalizeFieldLabel(textOf(element))),
+                dedupe(collectFieldLabels()).filter((label) =>
+                    expectedFieldLabelOrder.includes(label),
                 ),
                 expectedFieldLabelOrder,
             ),
@@ -1062,20 +1102,7 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             ),
             providers: providerCards,
             visibleActionLabels: orderByExpected(
-                dedupe(
-                    Array.from(
-                        root.querySelectorAll<HTMLElement>(
-                            'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], .sm-actions button, .sm-row-ctrl button, .path-card',
-                        ),
-                    )
-                        .filter(isVisible)
-                        .map(textOf)
-                        .filter((label) =>
-                            label
-                                ? expectedActionLabelOrder.includes(label)
-                                : false,
-                        ),
-                ),
+                collectVisibleActionLabels(),
                 expectedActionLabelOrder,
             ),
         } satisfies Row117DataSourcesReadyStateEvidence;
@@ -1609,10 +1636,10 @@ async function expectRow117VoScriptReadyState(page: Page) {
     const baseUrl = section.locator("#voscript-base-url");
     const keyStatus = section.locator(".sm-key-status");
     const unavailableBanner = section.locator("[data-voscript-unavail]");
-    const keyActionRow = section.locator(".sm-row").filter({
-        hasText: "密钥操作",
-    });
     const keyActionControl = section.locator("#voscript-api-key-mode");
+    const keyActionRow = keyActionControl.locator(
+        'xpath=ancestor::*[@data-slot="field"][1]',
+    );
 
     await expect(baseUrl).toHaveValue(
         row117VoScriptReadyState.privateTranscriptionBaseUrl,
@@ -1637,11 +1664,11 @@ async function expectRow117SotVoScriptReadyState(page: Page) {
     );
     await expect(section).toBeVisible();
     await expect(section).toHaveAttribute("data-voscript-availability", "ready");
-    const baseUrl = section.locator('[data-field="voscript-url"] .sm-input');
+    const baseUrl = section.locator('[data-field="voscript-url"] input');
     const keyStatus = section.locator(".sm-key-status");
     const unavailableBanner = section.locator("[data-voscript-unavail]");
     const keyActionRow = section.locator('[data-field="voscript-key-action"]');
-    const keyActionControl = keyActionRow.locator(".sm-row-ctrl select");
+    const keyActionControl = keyActionRow.locator("select");
 
     await expect(baseUrl).toHaveValue(
         row117VoScriptReadyState.privateTranscriptionBaseUrl,
