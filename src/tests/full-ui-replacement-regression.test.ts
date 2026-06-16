@@ -828,11 +828,33 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
         expect(workstation).toContain('size="icon-lg"');
+        expect(workstation).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(workstation).toContain(
+            'import { Separator } from "@/components/ui/separator";',
+        );
         expect(workstation).toContain('className="player-seek"');
         expect(workstation).toContain('data-icon="inline-start"');
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("listMode");
         expect(workstation).toContain("detailTab");
+        expect(workstation).toContain("data-sot-source-report-pane");
+        expect(workstation).toContain("data-sot-source-report-state");
+        expect(workstation).toContain("data-sot-source-report-empty");
+        expect(workstation).toContain("data-sot-source-report-section");
+        expect(workstation).toContain("data-sot-source-report-segment");
+        expect(workstation).toContain("data-sot-source-report-meta");
+        expect(workstation).toContain("data-sot-source-report-actions");
+        expect(workstation).toContain("<Alert");
+        expect(workstation).toContain("<Card");
+        expect(workstation).toContain("<Separator");
+        expect(workstation).not.toContain('className="t-pane sr-pane"');
+        expect(workstation).not.toContain('className="sr-state"');
+        expect(workstation).not.toContain('className="sr-empty"');
+        expect(workstation).not.toContain('className="sr-section"');
+        expect(workstation).not.toContain('className="sr-seg"');
+        expect(workstation).not.toContain('className="sr-meta"');
         expect(workstation).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
         );

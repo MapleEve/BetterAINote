@@ -3688,7 +3688,9 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
         await expect(speakersPane).toBeHidden();
         await expect(sourceReportPane).toBeVisible();
         await expect(
-            dashboardSourceReport(page, "loaded").locator(".sr-section h4"),
+            dashboardSourceReport(page, "loaded").locator(
+                "[data-sot-source-report-section-title]",
+            ),
         ).toHaveText(["来源转写", "来源信息"]);
         await expect(dashboardSourceReport(page, "loaded")).toContainText(
             "来源原始转录",
@@ -3846,13 +3848,12 @@ test("dashboard source report loaded state matches SOT pixels", async (
 
         await dashboardSourceTab(page).click();
         const productLoaded = dashboardSourceReport(page, "loaded")
-            .locator('.sr-state[data-state="loaded"]')
+            .locator('[data-sot-source-report-state][data-state="loaded"]')
             .first();
         await expect(productLoaded).toBeVisible();
-        await expect(productLoaded.locator(".sr-section h4")).toHaveText([
-            "来源转写",
-            "来源信息",
-        ]);
+        await expect(
+            productLoaded.locator("[data-sot-source-report-section-title]"),
+        ).toHaveText(["来源转写", "来源信息"]);
 
         await expectRetxPixelsMatch(
             page,
@@ -3871,7 +3872,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             SOURCE_REPORT_PIXEL_FRAMES,
         );
         const productActionButtons = productLoaded.locator(
-            '.sr-actions [data-slot="button"]',
+            '[data-sot-source-report-actions] [data-slot="button"]',
         );
         await expect(productActionButtons).toHaveCount(2);
         const openSourceAction = productActionButtons.nth(0);
@@ -3894,7 +3895,9 @@ test("dashboard source report loaded state matches SOT pixels", async (
         await expect(repullSourceAction).toContainText("重新拉取来源");
 
         const sotSourceActions = sotLoaded.locator(".sr-actions").first();
-        const productSourceActions = productLoaded.locator(".sr-actions").first();
+        const productSourceActions = productLoaded
+            .locator("[data-sot-source-report-actions]")
+            .first();
         const sourceActionStates: Array<{
             action: RetxFixtureAction;
             label: string;
@@ -4045,7 +4048,7 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
 
         await dashboardSourceTab(page).click();
         const productLoaded = dashboardSourceReport(page, "loaded")
-            .locator('.sr-state[data-state="loaded"]')
+            .locator('[data-sot-source-report-state][data-state="loaded"]')
             .first();
         await expect(productLoaded).toBeVisible();
         await expect(productLoaded).toHaveAttribute(
@@ -4055,12 +4058,14 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
         await expect(productLoaded.locator('[data-sot-metric="summary-status"]')).toContainText(
             "未生成",
         );
-        await expect(productLoaded.locator(".sr-empty")).toHaveCount(0);
+        await expect(
+            productLoaded.locator("[data-sot-source-report-empty]"),
+        ).toHaveCount(0);
         await expect(sourceReportCopyButton(page)).toBeEnabled();
         expect(
             await readPseudoContent(
                 productLoaded,
-                ".sr-section:nth-of-type(2)",
+                '[data-sot-source-report-section][data-sot-section="metadata"]',
                 "::before",
             ),
         ).toBe('"来源未提供官方摘要。"');
@@ -4162,15 +4167,19 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             transcriptLabel: "未生成",
         });
         const transcriptMissing = dashboardSourceReport(page, "loaded")
-            .locator('.sr-state[data-state="loaded"]')
+            .locator('[data-sot-source-report-state][data-state="loaded"]')
             .first();
         await expect(transcriptMissing).toBeVisible();
         await expect(transcriptMissing).toHaveAttribute(
             "data-sub-state",
             "transcript-missing",
         );
-        await expect(transcriptMissing.locator(".sr-empty")).toHaveCount(0);
-        await expect(transcriptMissing.locator(".sr-segments")).toHaveCount(1);
+        await expect(
+            transcriptMissing.locator("[data-sot-source-report-empty]"),
+        ).toHaveCount(0);
+        await expect(
+            transcriptMissing.locator("[data-sot-source-report-segments]"),
+        ).toHaveCount(1);
         await expect(transcriptMissing.locator('[data-sot-metric="transcript-status"]')).toContainText(
             "未生成",
         );
@@ -4182,7 +4191,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         expect(
             await readPseudoContent(
                 transcriptMissing,
-                ".sr-section:nth-of-type(1)",
+                '[data-sot-source-report-section][data-sot-section="transcript"]',
                 "::after",
             ),
         ).toBe(
@@ -4263,14 +4272,16 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             transcriptLabel: "未生成",
         });
         const bothMissing = dashboardSourceReport(page, "loaded")
-            .locator('.sr-state[data-state="loaded"]')
+            .locator('[data-sot-source-report-state][data-state="loaded"]')
             .first();
         await expect(bothMissing).toBeVisible();
         await expect(bothMissing).toHaveAttribute(
             "data-sub-state",
             "both-missing",
         );
-        await expect(bothMissing.locator(".sr-empty")).toHaveCount(0);
+        await expect(
+            bothMissing.locator("[data-sot-source-report-empty]"),
+        ).toHaveCount(0);
         await expect(bothMissing.locator('[data-sot-metric="transcript-status"]')).toContainText(
             "未生成",
         );
@@ -4290,7 +4301,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         expect(
             await readPseudoContent(
                 bothMissing,
-                ".sr-section:nth-of-type(1)",
+                '[data-sot-source-report-section][data-sot-section="transcript"]',
                 "::after",
             ),
         ).toBe(
@@ -4299,7 +4310,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         expect(
             await readPseudoContent(
                 bothMissing,
-                ".sr-section:nth-of-type(2)",
+                '[data-sot-source-report-section][data-sot-section="metadata"]',
                 "::before",
             ),
         ).toBe('"来源未提供官方摘要。"');
@@ -4386,7 +4397,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
         await dashboardSourceTab(page).click();
         await loadingStarted;
         const productLoading = dashboardSourceReport(page, "loading")
-            .locator('.sr-state[data-state="loading"]')
+            .locator('[data-sot-source-report-state][data-state="loading"]')
             .first();
         await expect(productLoading).toBeVisible();
         const sotLoading = await openSotSourceReportState(sotPage, "loading");
@@ -4435,7 +4446,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             .click();
         await dashboardSourceTab(page).click();
         const productError = dashboardSourceReport(page, "error")
-            .locator('.sr-state[data-state="error"]')
+            .locator('[data-sot-source-report-state][data-state="error"]')
             .first();
         await expect(productError).toBeVisible();
         await expect(productError).toHaveAttribute(
@@ -4491,7 +4502,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             .click();
         await dashboardSourceTab(page).click();
         const productEmpty = dashboardSourceReport(page, "empty")
-            .locator('.sr-state[data-state="empty"]')
+            .locator('[data-sot-source-report-state][data-state="empty"]')
             .first();
         await expect(productEmpty).toBeVisible();
         await page.waitForTimeout(300);
@@ -4813,7 +4824,7 @@ test("dashboard source copy strip mirrors source report loading and failure", as
         releaseFirstReport();
         await expect(
             dashboardSourceReport(page, "error").locator(
-                '.sr-state[data-state="error"]',
+                '[data-sot-source-report-state][data-state="error"]',
             ),
         ).toHaveAttribute(
             "data-sot-error",
@@ -4831,7 +4842,9 @@ test("dashboard source copy strip mirrors source report loading and failure", as
             "来源状态恢复后的转录",
         );
         await expect(
-            dashboardSourceReport(page, "loaded").locator(".sr-section h4"),
+            dashboardSourceReport(page, "loaded").locator(
+                "[data-sot-source-report-section-title]",
+            ),
         ).toHaveText(["来源转写", "来源信息"]);
         await expect(sourceTranscriptCopyButton(page)).toBeEnabled();
         await expect(sourceReportCopyButton(page)).toBeEnabled();

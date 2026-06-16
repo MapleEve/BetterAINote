@@ -5575,14 +5575,21 @@ body[data-ds-todo="show"] .design-todo {
 [data-sot-badge="source-report-status"][data-sot-tone] {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 5px !important;
+    width: auto;
     height: 22px !important;
     padding: 0 8px !important;
     border-radius: 999px;
+    overflow: visible;
     font: 600 11px var(--font-sans);
+    letter-spacing: 0;
+    white-space: normal;
     background: var(--bg-recessed);
     border: 1px solid var(--line-hairline);
     color: var(--fg-secondary);
+    box-shadow: none;
+    transition: none;
 }
 .sr-pill .dot,
 [data-sot-badge="source-report-status"][data-sot-tone] .dot {
@@ -5771,13 +5778,23 @@ body[data-ds-todo="show"] .design-todo {
     [data-slot="button"][data-sot-control="open-source-record"],
 [data-sot-source-report-actions]
     [data-slot="button"][data-sot-control="repull-source"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 1;
     height: 26px;
     padding: 0 10px;
     border: 1px solid transparent;
     border-radius: 7px;
+    background: transparent;
     color: var(--fg-secondary);
+    box-shadow: none;
     font: 600 12px var(--font-sans);
+    letter-spacing: 0;
+    white-space: normal;
     gap: 7px;
+    overflow: visible;
+    transition: none;
 }
 .sr-actions [data-slot="button"][data-sot-control="open-source-record"]:hover,
 .sr-actions [data-slot="button"][data-sot-control="repull-source"]:hover,
@@ -5842,6 +5859,10 @@ body[data-ds-todo="show"] .design-todo {
     background: var(--bg-recessed);
     border: 1px dashed var(--line-hairline);
     border-radius: 10px;
+    overflow: visible;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 .sr-empty.err,
 [data-sot-source-report-empty][data-sot-tone="err"] {
@@ -7717,7 +7738,8 @@ body[data-ds-todo="show"] .design-todo {
     [data-sot-list="source-report-cards"] {
         grid-template-columns: repeat(2, 1fr);
     }
-    .sr-meta {
+    .sr-meta,
+    [data-sot-source-report-meta] {
         grid-template-columns: 1fr;
     }
 }
@@ -9847,12 +9869,21 @@ select::-ms-expand {
 }
 .sr-empty-title,
 [data-sot-source-report-empty-title] {
+    display: block;
+    min-height: 0;
+    overflow: visible;
     font: 600 13px / 1.35 var(--font-sans);
+    letter-spacing: 0;
     color: var(--fg-primary);
+    -webkit-box-orient: unset;
+    -webkit-line-clamp: unset;
 }
 .sr-empty-sub,
 [data-sot-source-report-empty-description] {
+    display: block;
+    justify-items: normal;
     font: 500 12px / 1.5 var(--font-sans);
+    letter-spacing: 0;
     color: var(--fg-tertiary);
     max-width: 360px;
 }

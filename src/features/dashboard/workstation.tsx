@@ -25,6 +25,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,6 +39,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
@@ -708,6 +710,91 @@ function SotSourceReportCardSkeleton({
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
         />
+    );
+}
+
+function SotSourceReportSegmentSkeleton({
+    size,
+}: {
+    size:
+        | "line-long"
+        | "line-medium"
+        | "line-short"
+        | "line-wide"
+        | "speaker"
+        | "time";
+}) {
+    return (
+        <Skeleton
+            aria-hidden="true"
+            data-sot-part="source-report-segment-skeleton"
+            data-sot-size={size}
+        />
+    );
+}
+
+function SotSourceReportState({
+    children,
+    error,
+    state,
+    subState,
+}: {
+    children: ReactNode;
+    error?: string;
+    state: "empty" | "error" | "loaded" | "loading";
+    subState?: string;
+}) {
+    return (
+        <div
+            data-sot-source-report-state
+            data-sot-panel="dashboard-source-report-state"
+            data-sot-state={state}
+            data-state={state}
+            data-sub-state={subState}
+            data-sot-error={error}
+        >
+            {children}
+        </div>
+    );
+}
+
+function SotSourceReportSection({
+    children,
+    description,
+    section,
+    title,
+}: {
+    children: ReactNode;
+    description: ReactNode;
+    section: "metadata" | "summary" | "transcript";
+    title: string;
+}) {
+    return (
+        <section data-sot-source-report-section data-sot-section={section}>
+            <Separator data-sot-source-report-section-separator />
+            <header data-sot-source-report-section-header>
+                <h4 data-sot-source-report-section-title>{title}</h4>
+                <span data-sot-source-report-section-description>
+                    {description}
+                </span>
+            </header>
+            {children}
+        </section>
+    );
+}
+
+function SotSourceReportMetaRow({
+    children,
+    label,
+}: {
+    children: ReactNode;
+    label: string;
+}) {
+    return (
+        <div data-sot-source-report-meta-row>
+            <dt>{label}</dt>
+            <dd>{children}</dd>
+        </div>
     );
 }
 
@@ -6471,17 +6558,15 @@ export function Workstation({
                                     )}
                                 </div>
                                 <div
-                                    className="t-pane sr-pane"
+                                    className="t-pane"
                                     data-tab-pane="source-report"
                                     hidden={detailTab !== "source"}
+                                    data-sot-source-report-pane
                                     data-sot-panel="dashboard-source-report"
                                     data-sot-state={sourceReportVisualState}
                                 >
                                     {sourceReportState === "loading" ? (
-                                        <div
-                                            className="sr-state"
-                                            data-state="loading"
-                                        >
+                                        <SotSourceReportState state="loading">
                                             <SotSourceReportMetricCards>
                                                 <SotSourceReportMetricCard
                                                     label="来源"
@@ -6512,80 +6597,72 @@ export function Workstation({
                                                     <SotSourceReportCardSkeleton size="count" />
                                                 </SotSourceReportMetricCard>
                                             </SotSourceReportMetricCards>
-                                            <section className="sr-section">
-                                                <header className="sr-section-head">
-                                                    <h4>来源转写</h4>
-                                                    <span className="sr-section-sub">
+                                            <SotSourceReportSection
+                                                section="transcript"
+                                                title="来源转写"
+                                                description={
+                                                    <>
                                                         正在从
                                                         {
                                                             sourceReportProviderSentenceName
                                                         }
                                                         读取…
-                                                    </span>
-                                                </header>
-                                                <div className="sr-seg skel">
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-time-skeleton"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-speaker-skeleton"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-long"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-medium"
-                                                    />
+                                                    </>
+                                                }
+                                            >
+                                                <div
+                                                    data-sot-source-report-segment
+                                                    data-sot-state="skeleton"
+                                                >
+                                                    <SotSourceReportSegmentSkeleton size="time" />
+                                                    <SotSourceReportSegmentSkeleton size="speaker" />
+                                                    <SotSourceReportSegmentSkeleton size="line-long" />
+                                                    <SotSourceReportSegmentSkeleton size="line-medium" />
                                                 </div>
-                                                <div className="sr-seg skel">
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-time-skeleton"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-speaker-skeleton"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-wide"
-                                                    />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-short"
-                                                    />
+                                                <div
+                                                    data-sot-source-report-segment
+                                                    data-sot-state="skeleton"
+                                                >
+                                                    <SotSourceReportSegmentSkeleton size="time" />
+                                                    <SotSourceReportSegmentSkeleton size="speaker" />
+                                                    <SotSourceReportSegmentSkeleton size="line-wide" />
+                                                    <SotSourceReportSegmentSkeleton size="line-short" />
                                                 </div>
-                                            </section>
-                                        </div>
+                                            </SotSourceReportSection>
+                                        </SotSourceReportState>
                                     ) : sourceReportState === "error" ? (
-                                        <div
-                                            className="sr-state"
-                                            data-state="error"
-                                            data-sot-error={
+                                        <SotSourceReportState
+                                            state="error"
+                                            error={
                                                 sourceReportError || undefined
                                             }
                                         >
-                                            <div className="sr-empty err">
+                                            <Alert
+                                                data-sot-source-report-empty
+                                                data-sot-tone="err"
+                                            >
                                                 <div
-                                                    className="sr-empty-ico"
+                                                    data-sot-source-report-empty-icon
                                                     aria-hidden="true"
                                                 >
                                                     <SotSourceReportErrorIcon />
                                                 </div>
-                                                <div className="sr-empty-title">
+                                                <AlertTitle
+                                                    data-sot-source-report-empty-title
+                                                >
                                                     无法读取来源详情
-                                                </div>
-                                                <div className="sr-empty-sub">
+                                                </AlertTitle>
+                                                <AlertDescription
+                                                    data-sot-source-report-empty-description
+                                                >
                                                     {
                                                         sourceReportProviderSentenceName
                                                     }
                                                     返回了一个错误，可能是网络抖动或来源临时不可用。
-                                                </div>
-                                                <div className="sr-empty-actions">
+                                                </AlertDescription>
+                                                <div
+                                                    data-sot-source-report-empty-actions
+                                                >
                                                     <Button
                                                         variant="primary"
                                                         size="sm"
@@ -6615,15 +6692,12 @@ export function Workstation({
                                                         查看同步日志
                                                     </Button>
                                                 </div>
-                                            </div>
-                                        </div>
+                                            </Alert>
+                                        </SotSourceReportState>
                                     ) : sourceReportData ? (
-                                        <div
-                                            className="sr-state"
-                                            data-state="loaded"
-                                            data-sub-state={
-                                                sourceReportSubState
-                                            }
+                                        <SotSourceReportState
+                                            state="loaded"
+                                            subState={sourceReportSubState}
                                         >
                                             {!selectedRecording?.hasAudio ? (
                                                 <Badge
@@ -6705,10 +6779,11 @@ export function Workstation({
                                                 </SotSourceReportMetricCard>
                                             </SotSourceReportMetricCards>
 
-                                            <section className="sr-section">
-                                                <header className="sr-section-head">
-                                                    <h4>来源转写</h4>
-                                                    <span className="sr-section-sub">
+                                            <SotSourceReportSection
+                                                section="transcript"
+                                                title="来源转写"
+                                                description={
+                                                    <>
                                                         来自
                                                         {
                                                             sourceReportProviderSentenceName
@@ -6724,13 +6799,16 @@ export function Workstation({
                                                               )
                                                             : "--"}
                                                         {" 总时长"}
-                                                    </span>
-                                                </header>
-                                                <ol className="sr-segments">
+                                                    </>
+                                                }
+                                            >
+                                                <ol
+                                                    data-sot-source-report-segments
+                                                >
                                                     {sourceReportDisplaySegments.map(
                                                         (segment, index) => (
                                                             <li
-                                                                className="sr-seg"
+                                                                data-sot-source-report-segment
                                                                 key={[
                                                                     selectedRecordingId,
                                                                     "source",
@@ -6741,7 +6819,10 @@ export function Workstation({
                                                                     index,
                                                                 ].join(":")}
                                                             >
-                                                                <span className="sr-seg-ts mono">
+                                                                <span
+                                                                    className="mono"
+                                                                    data-sot-source-report-segment-time
+                                                                >
                                                                     {[
                                                                         formatSourceReportTimestamp(
                                                                             segment.startMs,
@@ -6758,11 +6839,15 @@ export function Workstation({
                                                                         ) ||
                                                                         "--"}
                                                                 </span>
-                                                                <span className="sr-seg-speaker">
+                                                                <span
+                                                                    data-sot-source-report-segment-speaker
+                                                                >
                                                                     {segment.speaker ||
                                                                         `说话人 ${index + 1}`}
                                                                 </span>
-                                                                <p className="sr-seg-text">
+                                                                <p
+                                                                    data-sot-source-report-segment-text
+                                                                >
                                                                     {
                                                                         segment.text
                                                                     }
@@ -6771,21 +6856,25 @@ export function Workstation({
                                                         ),
                                                     )}
                                                 </ol>
-                                            </section>
+                                            </SotSourceReportSection>
 
                                             {sourceSummaryVisible ? (
-                                                <section className="sr-section sr-summary-section">
-                                                    <header className="sr-section-head">
-                                                        <h4>来源原始报告</h4>
-                                                        <span className="sr-section-sub">
+                                                <SotSourceReportSection
+                                                    section="summary"
+                                                    title="来源原始报告"
+                                                    description={
+                                                        <>
                                                             由
                                                             {
                                                                 sourceReportProviderName
                                                             }
                                                             返回的只读摘要
-                                                        </span>
-                                                    </header>
-                                                    <div className="sr-summary-body">
+                                                        </>
+                                                    }
+                                                >
+                                                    <div
+                                                        data-sot-source-report-summary-body
+                                                    >
                                                         {sourceSummaryRenderedText
                                                             .split("\n")
                                                             .map(
@@ -6794,109 +6883,83 @@ export function Workstation({
                                                                     index,
                                                                 ) => (
                                                                     <p
-                                                                        className="sr-seg-text"
                                                                         key={`${index}:${line}`}
+                                                                        data-sot-source-report-segment-text
                                                                     >
                                                                         {line}
                                                                     </p>
                                                                 ),
                                                             )}
                                                     </div>
-                                                </section>
+                                                </SotSourceReportSection>
                                             ) : null}
 
-                                            <section className="sr-section">
-                                                <header className="sr-section-head">
-                                                    <h4>来源信息</h4>
-                                                    <span className="sr-section-sub">
+                                            <SotSourceReportSection
+                                                section="metadata"
+                                                title="来源信息"
+                                                description={
+                                                    <>
                                                         由
                                                         {
                                                             sourceReportProviderName
                                                         }
                                                         返回的公开元数据
-                                                    </span>
-                                                </header>
-                                                <dl className="sr-meta">
-                                                    <div className="sr-meta-row">
-                                                        <dt>来源</dt>
-                                                        <dd>
+                                                    </>
+                                                }
+                                            >
+                                                <dl data-sot-source-report-meta>
+                                                    <SotSourceReportMetaRow label="来源">
+                                                        {
+                                                            sourceReportProviderName
+                                                        }
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="状态">
+                                                        <SotSourceReportStatusBadge
+                                                            tone={sourceReportSyncTone(
+                                                                sourceReportSyncStatusLabel,
+                                                            )}
+                                                        >
+                                                            <span className="dot" />
                                                             {
-                                                                sourceReportProviderName
+                                                                sourceReportSyncStatusLabel
                                                             }
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>状态</dt>
-                                                        <dd>
-                                                            <SotSourceReportStatusBadge
-                                                                tone={sourceReportSyncTone(
-                                                                    sourceReportSyncStatusLabel,
-                                                                )}
-                                                            >
-                                                                <span className="dot" />
-                                                                {
-                                                                    sourceReportSyncStatusLabel
-                                                                }
-                                                            </SotSourceReportStatusBadge>
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>录制于</dt>
-                                                        <dd>
-                                                            <span className="mono">
-                                                                {formatSourceReportDate(
-                                                                    sourceReportRecordedAt,
-                                                                )}
-                                                            </span>
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>最近更新</dt>
-                                                        <dd>
-                                                            <span className="mono">
-                                                                {formatSourceReportDate(
-                                                                    sourceReportUpdatedAt,
-                                                                )}
-                                                            </span>
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>可读内容</dt>
-                                                        <dd>
-                                                            {
-                                                                sourceReportReadable
-                                                            }
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>来源标题</dt>
-                                                        <dd>
-                                                            {sourceReportTitle}
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>语种</dt>
-                                                        <dd>
-                                                            {
-                                                                sourceReportLanguage
-                                                            }
-                                                        </dd>
-                                                    </div>
-                                                    <div className="sr-meta-row">
-                                                        <dt>时长</dt>
-                                                        <dd>
-                                                            <span className="mono">
-                                                                {selectedRecording
-                                                                    ? formatDuration(
-                                                                          selectedRecording.duration,
-                                                                      )
-                                                                    : "--"}
-                                                            </span>
-                                                        </dd>
-                                                    </div>
+                                                        </SotSourceReportStatusBadge>
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="录制于">
+                                                        <span className="mono">
+                                                            {formatSourceReportDate(
+                                                                sourceReportRecordedAt,
+                                                            )}
+                                                        </span>
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="最近更新">
+                                                        <span className="mono">
+                                                            {formatSourceReportDate(
+                                                                sourceReportUpdatedAt,
+                                                            )}
+                                                        </span>
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="可读内容">
+                                                        {sourceReportReadable}
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="来源标题">
+                                                        {sourceReportTitle}
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="语种">
+                                                        {sourceReportLanguage}
+                                                    </SotSourceReportMetaRow>
+                                                    <SotSourceReportMetaRow label="时长">
+                                                        <span className="mono">
+                                                            {selectedRecording
+                                                                ? formatDuration(
+                                                                      selectedRecording.duration,
+                                                                  )
+                                                                : "--"}
+                                                        </span>
+                                                    </SotSourceReportMetaRow>
                                                 </dl>
                                                 <div
-                                                    className="sr-actions"
+                                                    data-sot-source-report-actions
                                                     data-sot-panel="source-actions"
                                                 >
                                                     <Button
@@ -6963,28 +7026,33 @@ export function Workstation({
                                                               )}
                                                     </Button>
                                                 </div>
-                                            </section>
-                                        </div>
+                                            </SotSourceReportSection>
+                                        </SotSourceReportState>
                                     ) : (
-                                        <div
-                                            className="sr-state"
-                                            data-state="empty"
-                                        >
-                                            <div className="sr-empty">
+                                        <SotSourceReportState state="empty">
+                                            <Card
+                                                hasNoPadding
+                                                data-sot-source-report-empty
+                                                data-sot-tone="neutral"
+                                            >
                                                 <div
-                                                    className="sr-empty-ico"
+                                                    data-sot-source-report-empty-icon
                                                     aria-hidden="true"
                                                 >
                                                     <SotSourceReportEmptyIcon />
                                                 </div>
-                                                <div className="sr-empty-title">
+                                                <div
+                                                    data-sot-source-report-empty-title
+                                                >
                                                     这条录音没有关联来源
                                                 </div>
-                                                <div className="sr-empty-sub">
+                                                <div
+                                                    data-sot-source-report-empty-description
+                                                >
                                                     本地导入或离线录制的录音不会有来源详情。
                                                 </div>
-                                            </div>
-                                        </div>
+                                            </Card>
+                                        </SotSourceReportState>
                                     )}
                                 </div>
                                 <div
