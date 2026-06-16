@@ -24,8 +24,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
@@ -234,6 +237,42 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const TRANSCRIPT_LOADING_SKELETON_ROWS = [
+    {
+        firstLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[96%]",
+        key: "opening",
+        secondLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[88%]",
+        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[120px]",
+        thirdLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-tertiary mt-1.5 h-3.5 w-[60%]",
+    },
+    {
+        firstLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[92%]",
+        key: "middle",
+        secondLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[78%]",
+        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[140px]",
+        thirdLine: null,
+    },
+    {
+        firstLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[94%]",
+        key: "closing",
+        secondLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[82%]",
+        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[130px]",
+        thirdLine:
+            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-tertiary mt-1.5 h-3.5 w-[70%]",
+    },
+] as const;
+const TRANSCRIPT_AVATAR_TONE_CLASSES = [
+    "avatar-sm dashboard-transcript-avatar-tone-info",
+    "avatar-sm dashboard-transcript-avatar-tone-accent",
+    "avatar-sm dashboard-transcript-avatar-tone-success",
+] as const;
 
 const SOURCE_ORDER = [
     {
@@ -662,7 +701,7 @@ function getRecordingListStatus(
     }
     return {
         className: "b neu",
-        dotClassName: "dot _is-1",
+        dotClassName: "dot status-dot-muted",
         label: t("recordingList.status.pending"),
     };
 }
@@ -3524,13 +3563,14 @@ export function Workstation({
                         }
                     >
                         {source !== "all" ? (
-                            <button
-                                className="btn ghost btn-sm"
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 type="button"
                                 onClick={() => setSource("all")}
                             >
                                 {t("sourceProviderRows.clear")}
-                            </button>
+                            </Button>
                         ) : null}
                         {dataSourcesError ? (
                             <div className="src-status err">
@@ -4012,8 +4052,9 @@ export function Workstation({
                                                 <div className="ls-empty">
                                                     {t("librarySearch.error")}
                                                 </div>
-                                                <button
-                                                    className="btn ghost btn-sm"
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     type="button"
                                                     data-sot-control="library-search-retry"
                                                     data-ls-retry=""
@@ -4035,7 +4076,7 @@ export function Workstation({
                                                     }}
                                                 >
                                                     {t("librarySearch.retry")}
-                                                </button>
+                                                </Button>
                                             </div>
                                         ) : flatSearchResults.length > 0 ? (
                                             <div
@@ -4278,8 +4319,9 @@ export function Workstation({
                                                 {syncSummary}
                                             </div>
                                         </div>
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             aria-busy={syncButtonBusy}
                                             disabled={syncButtonBusy}
@@ -4304,7 +4346,7 @@ export function Workstation({
                                                   : t(
                                                         "activityOverlay.actions.update",
                                                     )}
-                                        </button>
+                                        </Button>
                                     </div>
                                     {visibleActivityItems.length > 0 ? (
                                         <ul
@@ -4430,8 +4472,9 @@ export function Workstation({
                                                         </div>
                                                         <div className="notif-actions">
                                                             {item.action ? (
-                                                                <button
-                                                                    className="btn ghost btn-sm"
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
                                                                     type="button"
                                                                     data-action-state={
                                                                         item.action ===
@@ -4465,7 +4508,7 @@ export function Workstation({
                                                                           : t(
                                                                                 "activityOverlay.actions.retry",
                                                                             )}
-                                                                </button>
+                                                                </Button>
                                                             ) : null}
                                                             <button
                                                                 className="notif-dismiss"
@@ -5101,8 +5144,9 @@ export function Workstation({
                                                   )}
                                     </div>
                                     {listState === "empty" ? (
-                                        <button
-                                            className="btn primary btn-sm"
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="recording-list-open-data-sources"
                                             onClick={() =>
@@ -5110,11 +5154,12 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.openDataSources")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                     {listState === "no-match" ? (
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="recording-list-clear-filters"
                                             onClick={() => {
@@ -5127,11 +5172,12 @@ export function Workstation({
                                             }}
                                         >
                                             {t("recordingList.clearFilters")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                     {listState === "timeline-empty" ? (
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="recording-list-clear-timeline"
                                             onClick={() =>
@@ -5139,11 +5185,12 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.clearTimeline")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                     {listState === "tag-empty" ? (
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="recording-list-clear-tag"
                                             onClick={() =>
@@ -5151,7 +5198,7 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.clearTag")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                 </div>
                             )}
@@ -5172,8 +5219,9 @@ export function Workstation({
                                         </span>
                                     </div>
                                     <div className="lsb-page-nav">
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-page-prev=""
                                             disabled={currentListPage <= 1}
@@ -5190,12 +5238,13 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.previous")}
-                                        </button>
+                                        </Button>
                                         <span className="lsb-page-num mono">
                                             {currentListPage} / {listTotalPages}
                                         </span>
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-page-next=""
                                             disabled={
@@ -5219,11 +5268,12 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.next")}
-                                        </button>
+                                        </Button>
                                     </div>
                                     {listPaginationState === "paginated" ? (
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="recording-list-load-more"
                                             onClick={() =>
@@ -5236,7 +5286,7 @@ export function Workstation({
                                             }
                                         >
                                             {t("recordingList.loadMore")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                 </div>
                             ) : null}
@@ -5310,8 +5360,8 @@ export function Workstation({
                                 <SotHeaderRenameIcon />
                             </button>
                             <div className="ai-rename-anchor rh-norm">
-                                <button
-                                    className="btn glass"
+                                <Button
+                                    variant="glass"
                                     type="button"
                                     aria-haspopup="dialog"
                                     aria-expanded={aiOpen}
@@ -5328,7 +5378,7 @@ export function Workstation({
                                 >
                                     <SotHeaderAiIcon />
                                     AI 重命名
-                                </button>
+                                </Button>
                                 {aiOpen && selectedRecording ? (
                                     <AiRenamePreview
                                         applyLabel="应用"
@@ -5616,7 +5666,7 @@ export function Workstation({
                                 ) : null}
                                 {selectedPlayerStatus ? (
                                     <SotPlayerStatusBadge
-                                        className={`${selectedPlayerStatus.className} _is-3`}
+                                        className={`${selectedPlayerStatus.className} status-badge-ready`}
                                         dotClassName={
                                             selectedPlayerStatus.dotClassName
                                         }
@@ -5708,7 +5758,7 @@ export function Workstation({
                                 >
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
-                                <div
+                                <Slider
                                     className={
                                         playbackDisabled
                                             ? "track is-disabled"
@@ -5718,63 +5768,31 @@ export function Workstation({
                                         playbackDisabled ? "true" : undefined
                                     }
                                     aria-label="播放进度"
-                                    aria-valuemax={100}
-                                    aria-valuemin={0}
-                                    aria-valuenow={Math.round(progress)}
                                     data-sot-control="dashboard-player-seek"
                                     data-sot-state={playerControlState}
                                     data-pct={playerProgressPct}
-                                    onClick={(event) => {
-                                        const rect =
-                                            event.currentTarget.getBoundingClientRect();
-                                        if (rect.width <= 0) {
-                                            return;
-                                        }
+                                    disabled={playbackDisabled}
+                                    max={100}
+                                    min={0}
+                                    step={1}
+                                    value={[progress]}
+                                    onValueChange={(values) =>
                                         seekDashboardPlayerToPercent(
-                                            ((event.clientX - rect.left) /
-                                                rect.width) *
-                                                100,
-                                        );
-                                    }}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "ArrowLeft") {
-                                            seekDashboardPlayerToPercent(
-                                                progress - 5,
-                                            );
-                                        }
-                                        if (event.key === "ArrowRight") {
-                                            seekDashboardPlayerToPercent(
-                                                progress + 5,
-                                            );
-                                        }
-                                        if (event.key === "Home") {
-                                            seekDashboardPlayerToPercent(0);
-                                        }
-                                        if (event.key === "End") {
-                                            seekDashboardPlayerToPercent(100);
-                                        }
-                                    }}
-                                    role="slider"
-                                    tabIndex={playbackDisabled ? -1 : 0}
-                                >
-                                    <div
-                                        className="track-fill"
-                                        data-pct={playerProgressPct}
-                                    />
-                                    <div
-                                        className="track-thumb"
-                                        data-pct={playerProgressPct}
-                                    />
-                                </div>
+                                            values[0] ?? 0,
+                                        )
+                                    }
+                                />
                                 <span
                                     className="time mono"
                                     data-sot-part="dashboard-player-duration"
                                 >
                                     {formatSotPlayerTime(playerDurationValue)}
                                 </span>
-                                <button
+                                <Button
                                     type="button"
-                                    className="btn ghost speed"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="speed"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -5782,7 +5800,7 @@ export function Workstation({
                                     onClick={cyclePlaybackSpeed}
                                 >
                                     {playbackSpeedLabel}
-                                </button>
+                                </Button>
                                 <div className="vol-anchor">
                                     <button
                                         className="round-btn small"
@@ -5898,8 +5916,10 @@ export function Workstation({
                                     }}
                                 />
                                 <div className="t-actions">
-                                    <button
-                                        className="btn ghost btn-sm copy-btn"
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="copy-btn"
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -5949,9 +5969,11 @@ export function Workstation({
                                                       "transcription.copyTranscript",
                                                   )}
                                         </span>
-                                    </button>
-                                    <button
-                                        className="btn ghost btn-sm copy-btn"
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="copy-btn"
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6004,9 +6026,11 @@ export function Workstation({
                                                       "sourceReport.copySourceTranscript",
                                                   )}
                                         </span>
-                                    </button>
-                                    <button
-                                        className="btn ghost btn-sm copy-btn"
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="copy-btn"
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={
@@ -6056,10 +6080,11 @@ export function Workstation({
                                                       "sourceReport.copySourceReport",
                                                   )}
                                         </span>
-                                    </button>
+                                    </Button>
                                     {detailTab === "source" ? (
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="refresh-source-report"
                                             data-sot-state={sourceReportState}
@@ -6076,7 +6101,7 @@ export function Workstation({
                                                       "sourceReport.loadingDetail",
                                                   )
                                                 : t("sourceReport.refresh")}
-                                        </button>
+                                        </Button>
                                     ) : null}
                                     <span
                                         className="retx-disabled-hint"
@@ -6087,9 +6112,10 @@ export function Workstation({
                                     >
                                         当前来源不支持私有重转写
                                     </span>
-                                    <button
+                                    <Button
                                         id="retx-btn"
-                                        className="btn ghost btn-sm"
+                                        variant="ghost"
+                                        size="sm"
                                         type="button"
                                         data-sot-control="retranscribe-recording"
                                         data-sot-state={dashboardRetxState}
@@ -6111,7 +6137,7 @@ export function Workstation({
                                         onClick={() => void retranscribe()}
                                     >
                                         重新转写
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                             <div className="transcript-body">
@@ -6154,8 +6180,9 @@ export function Workstation({
                                     </div>
                                     {dashboardRetxState === "failed" ? (
                                         <div className="retx-banner-actions">
-                                            <button
-                                                className="btn ghost btn-sm"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -6164,9 +6191,10 @@ export function Workstation({
                                                 }
                                             >
                                                 重试转写
-                                            </button>
-                                            <button
-                                                className="btn ghost btn-sm"
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6176,13 +6204,14 @@ export function Workstation({
                                                 }
                                             >
                                                 <RetxCloseIcon />
-                                            </button>
+                                            </Button>
                                         </div>
                                     ) : dashboardRetxState === "completed" &&
                                       selectedRecording ? (
                                         <div className="retx-banner-actions">
-                                            <button
-                                                className="btn ghost btn-sm"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6199,7 +6228,7 @@ export function Workstation({
                                                 }}
                                             >
                                                 <RetxCloseIcon />
-                                            </button>
+                                            </Button>
                                         </div>
                                     ) : null}
                                 </div>
@@ -6215,53 +6244,51 @@ export function Workstation({
                                     hidden={detailTab !== "transcript"}
                                 >
                                     {isTranscriptLoading ? (
-                                        [0, 1, 2].map((item) => (
-                                            <div
-                                                className="turn skel-turn"
-                                                key={`transcript-skeleton:${item}`}
-                                            >
-                                                <div className="speaker">
-                                                    <span className="sk _is-29" />
-                                                    <span
+                                        TRANSCRIPT_LOADING_SKELETON_ROWS.map(
+                                            (item) => (
+                                                <div
+                                                    className="turn skel-turn"
+                                                    key={`transcript-skeleton:${item.key}`}
+                                                >
+                                                    <div className="speaker">
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="dashboard-transcript-avatar-skeleton size-6 rounded-full"
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className={
+                                                                item.speaker
+                                                            }
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="dashboard-transcript-time-skeleton h-[11px] w-20"
+                                                        />
+                                                    </div>
+                                                    <Skeleton
+                                                        aria-hidden="true"
                                                         className={
-                                                            item === 0
-                                                                ? "sk _is-30"
-                                                                : item === 1
-                                                                  ? "sk _is-35"
-                                                                  : "sk _is-38"
+                                                            item.firstLine
                                                         }
                                                     />
-                                                    <span className="sk _is-31" />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className={
+                                                            item.secondLine
+                                                        }
+                                                    />
+                                                    {item.thirdLine ? (
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className={
+                                                                item.thirdLine
+                                                            }
+                                                        />
+                                                    ) : null}
                                                 </div>
-                                                <div
-                                                    className={
-                                                        item === 0
-                                                            ? "sk _is-32"
-                                                            : item === 1
-                                                              ? "sk _is-36"
-                                                              : "sk _is-39"
-                                                    }
-                                                />
-                                                <div
-                                                    className={
-                                                        item === 0
-                                                            ? "sk _is-33"
-                                                            : item === 1
-                                                              ? "sk _is-37"
-                                                              : "sk _is-40"
-                                                    }
-                                                />
-                                                {item === 1 ? null : (
-                                                    <div
-                                                        className={
-                                                            item === 0
-                                                                ? "sk _is-34"
-                                                                : "sk _is-41"
-                                                        }
-                                                    />
-                                                )}
-                                            </div>
-                                        ))
+                                            ),
+                                        )
                                     ) : turns.length ? (
                                         turns.map((turn, index) => {
                                             const speakerName =
@@ -6285,7 +6312,12 @@ export function Workstation({
                                                 >
                                                     <div className="speaker">
                                                         <span
-                                                            className={`avatar-sm _is-${4 + (index % 3)}`}
+                                                            className={
+                                                                TRANSCRIPT_AVATAR_TONE_CLASSES[
+                                                                    index %
+                                                                        TRANSCRIPT_AVATAR_TONE_CLASSES.length
+                                                                ]
+                                                            }
                                                         >
                                                             {avatarLabel}
                                                         </span>
@@ -6334,25 +6366,37 @@ export function Workstation({
                                                     <div className="sr-card-label">
                                                         来源
                                                     </div>
-                                                    <div className="sk _is-10" />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-card-source-skeleton"
+                                                    />
                                                 </div>
                                                 <div className="sr-card">
                                                     <div className="sr-card-label">
                                                         转写状态
                                                     </div>
-                                                    <div className="sk _is-11" />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-card-status-skeleton"
+                                                    />
                                                 </div>
                                                 <div className="sr-card">
                                                     <div className="sr-card-label">
                                                         摘要状态
                                                     </div>
-                                                    <div className="sk _is-11" />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-card-status-skeleton"
+                                                    />
                                                 </div>
                                                 <div className="sr-card">
                                                     <div className="sr-card-label">
                                                         分段数
                                                     </div>
-                                                    <div className="sk _is-12" />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-card-count-skeleton"
+                                                    />
                                                 </div>
                                             </div>
                                             <section className="sr-section">
@@ -6367,16 +6411,48 @@ export function Workstation({
                                                     </span>
                                                 </header>
                                                 <div className="sr-seg skel">
-                                                    <span className="sk _is-13" />{" "}
-                                                    <span className="sk _is-14" />
-                                                    <div className="sk _is-15" />
-                                                    <div className="sk _is-16" />
+                                                    <div className="sr-seg-skeleton-meta flex items-center gap-2">
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-time-skeleton"
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-speaker-skeleton"
+                                                        />
+                                                    </div>
+                                                    <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-long"
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-medium"
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="sr-seg skel">
-                                                    <span className="sk _is-13" />{" "}
-                                                    <span className="sk _is-14" />
-                                                    <div className="sk _is-17" />
-                                                    <div className="sk _is-18" />
+                                                    <div className="sr-seg-skeleton-meta flex items-center gap-2">
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-time-skeleton"
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-speaker-skeleton"
+                                                        />
+                                                    </div>
+                                                    <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-wide"
+                                                        />
+                                                        <Skeleton
+                                                            aria-hidden="true"
+                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-short"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </section>
                                         </div>
@@ -6405,17 +6481,19 @@ export function Workstation({
                                                     返回了一个错误，可能是网络抖动或来源临时不可用。
                                                 </div>
                                                 <div className="sr-empty-actions">
-                                                    <button
-                                                        className="btn primary btn-sm"
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
                                                         type="button"
                                                         onClick={() =>
                                                             void loadSourceReport()
                                                         }
                                                     >
                                                         重试
-                                                    </button>
-                                                    <button
-                                                        className="btn ghost btn-sm"
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         type="button"
                                                         onClick={() => {
                                                             setSearchOpen(
@@ -6430,7 +6508,7 @@ export function Workstation({
                                                         }}
                                                     >
                                                         查看同步日志
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -6464,7 +6542,7 @@ export function Workstation({
                                                                 alt=""
                                                             />
                                                         ) : (
-                                                            <span className="_is-47">
+                                                            <span className="sr-card-source-fallback font-bold text-[11px] text-muted-foreground">
                                                                 {sourceReportProviderName.charAt(
                                                                     0,
                                                                 )}
@@ -6717,8 +6795,9 @@ export function Workstation({
                                                     className="sr-actions"
                                                     data-sot-panel="source-actions"
                                                 >
-                                                    <button
-                                                        className="btn ghost btn-sm"
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         type="button"
                                                         disabled={
                                                             !sourceOpenUrl
@@ -6743,9 +6822,10 @@ export function Workstation({
                                                                 selectedRecording?.sourceProvider,
                                                             language,
                                                         )}
-                                                    </button>
-                                                    <button
-                                                        className="btn ghost btn-sm"
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         type="button"
                                                         disabled={
                                                             sourceRepullDisabled
@@ -6777,7 +6857,7 @@ export function Workstation({
                                                             : t(
                                                                   "sourceReport.repullSource",
                                                               )}
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </section>
                                         </div>
@@ -6812,12 +6892,13 @@ export function Workstation({
                                         <div className="sp-head-title">
                                             {turns.length || 0} 段说话人
                                         </div>
-                                        <button
-                                            className="btn ghost btn-sm"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                         >
                                             合并相似…
-                                        </button>
+                                        </Button>
                                     </div>
                                     <ul className="sp-rows">
                                         {(turns.length

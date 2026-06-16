@@ -10,7 +10,10 @@ function readSource(relativePath: string) {
 }
 
 const OLD_UI_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|border-border|rounded-2xl|shadow-2xl|from "@\/components\/ui\/card"|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|border-border|rounded-2xl|shadow-2xl|from "@\/components\/ui\/card"|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
+const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
+    /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 describe("dashboard SOT foundation", () => {
     it("keeps shadcn foundation primitives real without reintroducing dashboard compatibility surfaces", () => {
@@ -175,6 +178,9 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain("<SettingsDialog");
         expect(workstation).not.toMatch(OLD_UI_RE);
+        expect(workstation).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
@@ -244,7 +250,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('className: "b ok"');
         expect(workstation).toContain('className: "b info"');
         expect(workstation).toContain('className: "b neu"');
-        expect(workstation).toContain('dotClassName: "dot _is-1"');
+        expect(workstation).toContain('dotClassName: "dot status-dot-muted"');
         expect(workstation).toContain("recordingList.status.failed");
         expect(workstation).toContain("recordingList.status.pending");
         expect(workstation).not.toContain(
@@ -264,6 +270,21 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('value: "speakers"');
         expect(workstation).toContain('label: "说话人"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
+        expect(workstation).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(workstation).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(workstation).toContain(
+            'import { Slider } from "@/components/ui/slider";',
+        );
+        expect(workstation).toContain("<Button");
+        expect(workstation).toContain("<Skeleton");
+        expect(workstation).toContain("<Slider");
+        expect(workstation).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 
     it("keeps PR20 manual sync refresh and SOT sync states on real controls", () => {

@@ -316,6 +316,9 @@ const OLD_UI_CONTRACT_RE =
 const SOURCE_REPORT_LEGACY_SURFACE_RE =
     /uikit-|glass-surface|glass-control|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
+const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
+    /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -790,7 +793,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("listMode");
         expect(workstation).toContain("detailTab");
-        expect(workstation).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(workstation).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 
     it("keeps dashboard detail actions, AI rename, and retx states inline in SOT", () => {
@@ -830,11 +835,21 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("来源持有正本");
         expect(workstation).toContain("永久删除");
         expect(workstation).toContain("删除后转写、标签与 AI 标题都会一并清除");
+        expect(workstation).toContain('data-copy="source-transcript"');
+        expect(workstation).toContain('data-copy="source-report"');
+        expect(workstation).toContain(
+            'data-sot-control="copy-source-transcript"',
+        );
+        expect(workstation).toContain('data-sot-control="copy-source-report"');
+        expect(workstation).toContain('data-sot-control="open-source-record"');
+        expect(workstation).toContain('data-sot-control="repull-source"');
         expect(workstation).not.toContain('className="more-action"');
         expect(workstation).not.toContain("more-action-l");
         expect(workstation).not.toContain("more-action-meta");
         expect(workstation).toContain("void deleteRecording()");
-        expect(workstation).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(workstation).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 
     it("keeps settings and recording detail surfaces on SOT state contracts", () => {

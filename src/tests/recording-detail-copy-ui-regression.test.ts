@@ -12,6 +12,9 @@ function readSource(relativePath: string) {
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
+const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
+    /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
+
 describe("recording detail copy and title action UI regressions", () => {
     it("redacts failed transcription job errors before they reach recording detail UI", () => {
         expect(
@@ -265,6 +268,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain('data-copy="transcript"');
         expect(dashboardTranscript).toContain('data-copy="source-transcript"');
         expect(dashboardTranscript).toContain('data-copy="source-report"');
+        expect(dashboardTranscript).toContain(
+            'data-sot-control="copy-source-transcript"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-control="copy-source-report"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-control="open-source-record"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-control="repull-source"',
+        );
         expect(dashboardTranscript).toContain('data-tab-pane="transcript"');
         expect(dashboardTranscript).toContain('data-tab-pane="speakers"');
         expect(dashboardTranscript).toContain('data-tab-pane="source-report"');
@@ -288,7 +303,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toMatch(
             /\bbg-(background|card|muted)\b/,
         );
-        expect(dashboardTranscript).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(dashboardTranscript).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 
     it("keeps standalone recording route fallback states in the new shell", () => {
@@ -426,6 +443,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toMatch(
             /\bbg-(background|card|muted)\b/,
         );
-        expect(dashboardTranscript).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(dashboardTranscript).not.toMatch(
+            DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
+        );
     });
 });

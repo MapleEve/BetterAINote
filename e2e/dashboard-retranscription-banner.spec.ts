@@ -799,11 +799,11 @@ async function applySotSourceReportLoadedSubStateFixture(
                 }
             });
 
-            root.querySelectorAll<HTMLButtonElement>(".sr-actions .btn").forEach(
-                (button) => {
-                    button.disabled = fixture.actionState === "unavailable";
-                },
-            );
+            root.querySelectorAll<HTMLButtonElement>(
+                '.sr-actions :is(.btn, [data-slot="button"])',
+            ).forEach((button) => {
+                button.disabled = fixture.actionState === "unavailable";
+            });
         },
         options,
     );
@@ -2786,13 +2786,23 @@ test("dashboard player exposes SOT seek speed volume and no-audio states", async
         await expect(
             dashboardPlayerControl(page, "dashboard-player-seek"),
         ).toHaveAttribute("data-pct", /\d+/);
-        await expect(dashboardPlayer(page).locator(".track-fill")).toHaveAttribute(
-            "data-pct",
+        const seekControl = dashboardPlayerControl(
+            page,
+            "dashboard-player-seek",
+        );
+        await expect(seekControl).toHaveAttribute("data-slot", "slider");
+        await expect(seekControl.getByRole("slider")).toHaveAttribute(
+            "aria-valuenow",
             /\d+/,
         );
-        await expect(dashboardPlayer(page).locator(".track-thumb")).toHaveAttribute(
-            "data-pct",
-            /\d+/,
+        await expect(seekControl.locator('[data-slot="slider-track"]')).toHaveCount(
+            1,
+        );
+        await expect(seekControl.locator('[data-slot="slider-range"]')).toHaveCount(
+            1,
+        );
+        await expect(seekControl.locator('[data-slot="slider-thumb"]')).toHaveCount(
+            1,
         );
 
         const speedButton = dashboardPlayerControl(
@@ -3852,19 +3862,28 @@ test("dashboard source report loaded state matches SOT pixels", async (
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
         );
-        const productActionButtons = productLoaded.locator(".sr-actions .btn");
+        const productActionButtons = productLoaded.locator(
+            '.sr-actions [data-slot="button"]',
+        );
         await expect(productActionButtons).toHaveCount(2);
-        expect(
-            await productActionButtons
-                .nth(0)
-                .evaluate((element) => element.tagName.toLowerCase()),
-        ).toBe("button");
-        await expect(productActionButtons.nth(0)).toHaveClass(
-            /(^|\s)btn ghost btn-sm(\s|$)/,
+        const openSourceAction = productActionButtons.nth(0);
+        const repullSourceAction = productActionButtons.nth(1);
+        await expect(openSourceAction).toHaveAttribute(
+            "data-sot-control",
+            "open-source-record",
         );
-        await expect(productActionButtons.nth(1)).toHaveClass(
-            /(^|\s)btn ghost btn-sm(\s|$)/,
+        await expect(openSourceAction).toHaveAttribute("data-variant", "ghost");
+        await expect(openSourceAction).toHaveAttribute("data-size", "sm");
+        await expect(openSourceAction).toBeEnabled();
+        await expect(openSourceAction).toContainText("在钉钉中打开");
+        await expect(repullSourceAction).toHaveAttribute(
+            "data-sot-control",
+            "repull-source",
         );
+        await expect(repullSourceAction).toHaveAttribute("data-variant", "ghost");
+        await expect(repullSourceAction).toHaveAttribute("data-size", "sm");
+        await expect(repullSourceAction).toBeEnabled();
+        await expect(repullSourceAction).toContainText("重新拉取来源");
 
         const sotSourceActions = sotLoaded.locator(".sr-actions").first();
         const productSourceActions = productLoaded.locator(".sr-actions").first();
@@ -3873,32 +3892,44 @@ test("dashboard source report loaded state matches SOT pixels", async (
             label: string;
         }> = [
             {
-                action: { kind: "hover", selector: ".btn:nth-child(1)" },
+                action: {
+                    kind: "hover",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
+                },
                 label: "Dashboard source open action hover",
             },
             {
-                action: { kind: "hover", selector: ".btn:nth-child(2)" },
+                action: {
+                    kind: "hover",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
+                },
                 label: "Dashboard source repull action hover",
             },
             {
-                action: { kind: "focus", selector: ".btn:nth-child(1)" },
+                action: {
+                    kind: "focus",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
+                },
                 label: "Dashboard source open action focus",
             },
             {
-                action: { kind: "focus", selector: ".btn:nth-child(2)" },
+                action: {
+                    kind: "focus",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
+                },
                 label: "Dashboard source repull action focus",
             },
             {
                 action: {
                     kind: "disable",
-                    selector: ".btn:nth-child(1)",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(1)',
                 },
                 label: "Dashboard source open action disabled",
             },
             {
                 action: {
                     kind: "disable",
-                    selector: ".btn:nth-child(2)",
+                    selector: ':is(.btn, [data-slot="button"]):nth-child(2)',
                 },
                 label: "Dashboard source repull action disabled",
             },

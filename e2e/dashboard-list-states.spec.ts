@@ -2351,7 +2351,7 @@ test("recording list rows expose every SOT status badge variant", async ({
             ["row-transcribing", "b warn", "dot", "正在转写"],
             ["row-failed", "b err", "dot", "更新失败"],
             ["row-local-only", "b info", "dot", "仅本地"],
-            ["row-pending", "b neu", "dot _is-1", "待处理"],
+            ["row-pending", "b neu", "dot status-dot-muted", "待处理"],
         ] as const) {
             const badge = recordingRow(
                 page,
