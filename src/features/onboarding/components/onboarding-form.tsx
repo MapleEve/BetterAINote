@@ -14,9 +14,13 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useOnboardingDataSource } from "@/features/data-sources/use-onboarding-data-source";
@@ -93,16 +97,13 @@ function OnboardingFieldRow({
 }) {
     return (
         <Field
-            className="field-row"
             data-disabled={disabled ? "true" : undefined}
             orientation="horizontal"
         >
-            <span>
-                <Label className="field-name" htmlFor={id}>
-                    {label}
-                </Label>
-                <span className="field-desc">{description}</span>
-            </span>
+            <FieldContent>
+                <FieldLabel htmlFor={id}>{label}</FieldLabel>
+                <FieldDescription>{description}</FieldDescription>
+            </FieldContent>
             {children}
         </Field>
     );

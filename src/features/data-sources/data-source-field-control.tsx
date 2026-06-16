@@ -1,7 +1,12 @@
 import type React from "react";
 
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,16 +80,18 @@ export function DataSourceFieldControl({
     };
 
     return (
-        <div className="field-row ds-field-row" data-field-id={field.id}>
-            <div>
-                <Label className="field-name" htmlFor={fieldId}>
-                    {field.label}
-                </Label>
+        <Field
+            data-disabled={disabled ? "true" : undefined}
+            data-field-id={field.id}
+            orientation="horizontal"
+        >
+            <FieldContent>
+                <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
-                    <div className="field-desc">{field.description}</div>
+                    <FieldDescription>{field.description}</FieldDescription>
                 ) : null}
-            </div>
-            <div className="sm-row-ctrl">
+            </FieldContent>
+            <div className="flex flex-none items-center gap-2">
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
@@ -145,6 +152,6 @@ export function DataSourceFieldControl({
                     />
                 )}
             </div>
-        </div>
+        </Field>
     );
 }
