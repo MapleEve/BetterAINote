@@ -1,51 +1,37 @@
 "use client";
 
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-type SliderSpanProps = React.HTMLAttributes<HTMLSpanElement> & {
+type SliderDataAttributes = {
     [key: `data-${string}`]: string | number | boolean | undefined;
 };
 
-type SliderProps = Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    "defaultValue" | "max" | "min" | "onChange" | "step" | "type" | "value"
-> & {
-    defaultValue?: number[];
+type SliderRootProps = React.ComponentProps<typeof SliderPrimitive.Root> &
+    SliderDataAttributes;
+type SliderRangeProps = React.ComponentProps<typeof SliderPrimitive.Range> &
+    SliderDataAttributes;
+type SliderThumbProps = React.ComponentProps<typeof SliderPrimitive.Thumb> &
+    SliderDataAttributes;
+
+type SliderProps = SliderRootProps & {
     inputClassName?: string;
-    max?: number;
-    min?: number;
-    onValueChange?: (value: number[]) => void;
-    onValueCommit?: (value: number[]) => void;
-    orientation?: "horizontal" | "vertical";
-    rangeProps?: SliderSpanProps;
+    rangeProps?: SliderRangeProps;
     renderTrack?: boolean;
-    rootProps?: SliderSpanProps;
-    step?: number;
-    thumbProps?: SliderSpanProps;
-    value?: number[];
+    rootProps?: SliderRootProps;
+    thumbProps?: SliderThumbProps;
 };
 
-const DEFAULT_SLIDER_ROOT_CLASS =
+const SLIDER_ROOT_CLASS =
     "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col";
-const DEFAULT_SLIDER_RANGE_CLASS =
-    "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
-const DEFAULT_SLIDER_THUMB_CLASS =
-    "pointer-events-none absolute block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm transition-[color,box-shadow]";
-const SOT_SLIDER_RANGE_CLASS = "track-fill";
-const SOT_SLIDER_THUMB_CLASS = "track-thumb";
-
-function normalizeSliderValue(
-    value: number | null | undefined,
-    min: number,
-    max: number,
-) {
-    if (!Number.isFinite(value)) {
-        return min;
-    }
-
-    return Math.min(max, Math.max(min, value ?? min));
-}
+const SLIDER_TRACK_CLASS =
+    "relative grow overflow-hidden rounded-full bg-muted data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5";
+const SLIDER_RANGE_CLASS =
+    "absolute bg-primary data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
+const SLIDER_THUMB_CLASS =
+    "block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50";
 
 function Slider({
     className,
@@ -65,155 +51,92 @@ function Slider({
     value,
     ...props
 }: SliderProps) {
-    const { onBlur, onKeyUp, onPointerUp, ...inputProps } = props;
-    const defaultScalar = normalizeSliderValue(defaultValue?.[0], min, max);
-    const [uncontrolledValue, setUncontrolledValue] =
-        React.useState(defaultScalar);
-    const isControlled = Array.isArray(value);
-    const currentValue = normalizeSliderValue(
-        isControlled ? value?.[0] : uncontrolledValue,
-        min,
-        max,
+    const {
+        "aria-hidden": _legacyInputAriaHidden,
+        style: _legacyInputStyle,
+        tabIndex: _legacyInputTabIndex,
+        ...sliderRootProps
+    } = props;
+    const {
+        className: rootClassName,
+        style: rootStyle,
+        ...rootPrimitiveProps
+    } = rootProps ?? {};
+    const { className: rangeClassName, ...rangePrimitiveProps } =
+        rangeProps ?? {};
+    const { className: thumbClassName, ...thumbPrimitiveProps } =
+        thumbProps ?? {};
+    const sliderValues = React.useMemo(
+        () =>
+            Array.isArray(value)
+                ? value
+                : Array.isArray(defaultValue)
+                  ? defaultValue
+                  : [min],
+        [defaultValue, min, value],
     );
-    const rangePercent =
-        max > min
-            ? Math.min(
-                  100,
-                  Math.max(0, ((currentValue - min) / (max - min)) * 100),
-              )
-            : 0;
+    const thumbId = React.useId();
+    const thumbKeys = React.useMemo(() => {
+        let nextKey = 0;
 
-    const commitValue = React.useCallback(
-        (nextValue: number) => {
-            onValueCommit?.([normalizeSliderValue(nextValue, min, max)]);
-        },
-        [max, min, onValueCommit],
-    );
+        return Array.from({ length: sliderValues.length }, () => {
+            const key = `${thumbId}-${nextKey}`;
+            nextKey += 1;
 
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-        onBlur?.(event);
-        if (!event.defaultPrevented) {
-            commitValue(Number(event.currentTarget.value));
-        }
-    };
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const nextValue = normalizeSliderValue(
-            Number(event.currentTarget.value),
-            min,
-            max,
-        );
-
-        if (!isControlled) {
-            setUncontrolledValue(nextValue);
-        }
-        onValueChange?.([nextValue]);
-    };
-
-    const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        onKeyUp?.(event);
-        if (event.defaultPrevented) {
-            return;
-        }
-        if (
-            event.key === "ArrowLeft" ||
-            event.key === "ArrowRight" ||
-            event.key === "ArrowUp" ||
-            event.key === "ArrowDown" ||
-            event.key === "Home" ||
-            event.key === "End"
-        ) {
-            commitValue(Number(event.currentTarget.value));
-        }
-    };
-
-    const handlePointerUp = (event: React.PointerEvent<HTMLInputElement>) => {
-        onPointerUp?.(event);
-        if (!event.defaultPrevented) {
-            commitValue(Number(event.currentTarget.value));
-        }
-    };
-    const usesSotPlayerTrack = className?.split(/\s+/).includes("track");
+            return key;
+        });
+    }, [sliderValues.length, thumbId]);
+    const thumbAriaLabel =
+        thumbPrimitiveProps["aria-label"] ??
+        rootPrimitiveProps["aria-label"] ??
+        sliderRootProps["aria-label"];
 
     return (
-        <span
-            aria-disabled={disabled ? "true" : undefined}
-            data-disabled={disabled ? "" : undefined}
-            data-orientation={orientation}
-            {...rootProps}
+        <SliderPrimitive.Root
+            {...sliderRootProps}
+            {...rootPrimitiveProps}
+            data-slot="slider"
+            defaultValue={value === undefined ? sliderValues : defaultValue}
+            disabled={disabled}
+            max={max}
+            min={min}
+            onValueChange={onValueChange}
+            onValueCommit={onValueCommit}
+            orientation={orientation}
+            step={step}
+            style={rootStyle}
+            value={value}
             className={cn(
-                className ?? DEFAULT_SLIDER_ROOT_CLASS,
-                rootProps?.className,
+                SLIDER_ROOT_CLASS,
+                className,
+                inputClassName,
+                rootClassName,
             )}
         >
-            {renderTrack ? (
-                <span
-                    {...rangeProps}
-                    data-orientation={orientation}
+            <SliderPrimitive.Track
+                data-slot="slider-track"
+                className={cn(SLIDER_TRACK_CLASS, !renderTrack && "opacity-0")}
+            >
+                <SliderPrimitive.Range
+                    {...rangePrimitiveProps}
+                    data-slot="slider-range"
                     className={cn(
-                        rangeProps?.className ??
-                            (usesSotPlayerTrack
-                                ? SOT_SLIDER_RANGE_CLASS
-                                : DEFAULT_SLIDER_RANGE_CLASS),
+                        SLIDER_RANGE_CLASS,
+                        !renderTrack && "opacity-0",
+                        rangeClassName,
                     )}
-                    style={
-                        orientation === "vertical"
-                            ? {
-                                  height: `${rangePercent}%`,
-                                  ...rangeProps?.style,
-                              }
-                            : {
-                                  width: `${rangePercent}%`,
-                                  ...rangeProps?.style,
-                              }
-                    }
                 />
-            ) : null}
-            {renderTrack ? (
-                <span
-                    {...thumbProps}
-                    aria-hidden="true"
-                    data-orientation={orientation}
-                    className={cn(
-                        thumbProps?.className ??
-                            (usesSotPlayerTrack
-                                ? SOT_SLIDER_THUMB_CLASS
-                                : DEFAULT_SLIDER_THUMB_CLASS),
-                    )}
-                    style={
-                        orientation === "vertical"
-                            ? {
-                                  bottom: `${rangePercent}%`,
-                                  transform: "translateY(50%)",
-                                  ...thumbProps?.style,
-                              }
-                            : {
-                                  left: `${rangePercent}%`,
-                                  transform: usesSotPlayerTrack
-                                      ? "translate(-50%, -50%)"
-                                      : "translateX(-50%)",
-                                  ...thumbProps?.style,
-                              }
-                    }
+            </SliderPrimitive.Track>
+            {thumbKeys.map((thumbKey) => (
+                <SliderPrimitive.Thumb
+                    {...thumbPrimitiveProps}
+                    aria-label={thumbAriaLabel}
+                    data-slot="slider-thumb"
+                    key={thumbKey}
+                    className={cn(SLIDER_THUMB_CLASS, thumbClassName)}
                 />
-            ) : null}
-            <input
-                {...inputProps}
-                aria-orientation={orientation}
-                className={inputClassName}
-                disabled={disabled}
-                max={max}
-                min={min}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                onKeyUp={handleKeyUp}
-                onPointerUp={handlePointerUp}
-                step={step}
-                suppressHydrationWarning
-                type="range"
-                value={currentValue}
-            />
-        </span>
+            ))}
+        </SliderPrimitive.Root>
     );
 }
 

@@ -140,23 +140,75 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).not.toContain("SidebarProvider");
         expect(dialog).not.toContain("<Sidebar");
         expect(dialog).not.toContain("<Breadcrumb");
-        expect(dialog).not.toContain("SelectTrigger");
-        expect(dialog).not.toContain("SelectContent");
-        expect(dialog).not.toContain("SelectItem");
         expect(dialog).not.toMatch(OLD_UI_RE);
 
-        expect(baseDialog).toContain("DialogContext");
-        expect(baseDialog).toContain('className="scrim"');
-        expect(baseDialog).toContain('data-open="true"');
-        expect(baseDialog).toContain('role="dialog"');
-        expect(baseDialog).toContain('aria-modal="true"');
-        expect(baseDialog).not.toContain("DialogPrimitive");
+        expect(baseDialog).toContain(
+            'import * as DialogPrimitive from "@radix-ui/react-dialog";',
+        );
+        for (const primitive of [
+            "Root",
+            "Trigger",
+            "Portal",
+            "Overlay",
+            "Content",
+            "Title",
+            "Description",
+            "Close",
+        ]) {
+            expect(baseDialog).toContain(`DialogPrimitive.${primitive}`);
+        }
+        for (const slot of [
+            "dialog",
+            "dialog-trigger",
+            "dialog-portal",
+            "dialog-overlay",
+            "dialog-content",
+            "dialog-title",
+            "dialog-description",
+            "dialog-close",
+        ]) {
+            expect(baseDialog).toContain(`data-slot="${slot}"`);
+        }
+        expect(baseDialog).toContain("showCloseButton");
+        expect(baseDialog).not.toContain("DialogContext");
+        expect(baseDialog).not.toContain('className="scrim"');
         expect(globals).toContain("--z-modal");
         expect(globals).toContain("--ease-sine");
         expect(globals).toContain("--z-modal");
         expect(globals).toContain("z-index: var(--z-modal)");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");
+    });
+
+    it("keeps settings selects on the shared Radix shadcn wrapper", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const sharedSelect = readSource("components/ui/select.tsx");
+        const selectControl =
+            content.match(
+                /function SelectControl[\s\S]*?function SegmentControl/,
+            )?.[0] ?? "";
+
+        expect(content).toContain(
+            'import { Select } from "@/components/ui/select";',
+        );
+        expect(selectControl).toContain("<Select");
+        expect(selectControl).toContain("onValueChange={onChange}");
+        expect(selectControl).toContain("options={options.map");
+        expect(selectControl).toContain("value={String(value)}");
+
+        expect(sharedSelect).toContain(
+            'import * as SelectPrimitive from "@radix-ui/react-select";',
+        );
+        expect(sharedSelect).toContain("function SelectTrigger");
+        expect(sharedSelect).toContain("function SelectContent");
+        expect(sharedSelect).toContain("function SelectItem");
+        expect(sharedSelect).toContain('data-slot="select-trigger"');
+        expect(sharedSelect).toContain('data-slot="select-content"');
+        expect(sharedSelect).toContain('data-slot="select-item"');
+        expect(sharedSelect).not.toContain("<select");
+        expect(sharedSelect).not.toContain("<option");
     });
 
     it("uses the SOT monitor glyph for the local deployment header badge", () => {

@@ -64,15 +64,22 @@ describe("dashboard recording player regressions", () => {
             'data-sot-state={playbackDisabled ? "disabled" : "ready"}',
         );
         expect(source).toContain('className="round-btn play"');
-        expect(sliderSource).toContain('"track-fill"');
-        expect(sliderSource).toContain('"track-thumb"');
-        expect(source).toContain(
-            'rangeProps={{ "data-pct": playerProgressPct }}',
+        expect(sliderSource).toContain(
+            'import * as SliderPrimitive from "@radix-ui/react-slider";',
         );
-        expect(source).toContain(
-            'thumbProps={{ "data-pct": playerProgressPct }}',
+        expect(sliderSource).toContain(
+            "React.ComponentProps<typeof SliderPrimitive.Root>",
         );
-        expect(source).toContain('"data-pct": playerProgressPct');
+        expect(sliderSource).toContain("<SliderPrimitive.Root");
+        expect(sliderSource).toContain("<SliderPrimitive.Track");
+        expect(sliderSource).toContain("<SliderPrimitive.Range");
+        expect(sliderSource).toContain("<SliderPrimitive.Thumb");
+        expect(sliderSource).toContain('data-slot="slider"');
+        expect(sliderSource).toContain('data-slot="slider-track"');
+        expect(sliderSource).toContain('data-slot="slider-range"');
+        expect(sliderSource).toContain('data-slot="slider-thumb"');
+        expect(sliderSource).not.toContain("track-fill");
+        expect(sliderSource).not.toContain("track-thumb");
         expect(source).not.toContain("track-input");
         expect(source).toContain('className="vol-pop"');
         expect(source).toContain('className="round-btn small"');

@@ -530,16 +530,42 @@ describe("full UI replacement regression coverage", () => {
         expect(label).toContain('data-slot="label"');
         expect(label).not.toContain('className={cn("field-name"');
         expect(input).toContain('React.ComponentProps<"input">');
-        expect(select).toContain('className={cn("select"');
-        expect(select).toContain("<select");
-        expect(select).toContain("<option");
-        expect(select).not.toContain("SelectPrimitive");
-        expect(select).not.toContain("SelectTrigger");
-        expect(select).not.toContain("SelectContent");
-        expect(select).not.toContain("SelectItem");
-        expect(select).not.toContain("SelectValue");
-        expect(select).not.toContain("SelectGroup");
-        expect(select).not.toContain("select-panel");
+        expect(select).toContain(
+            'import * as SelectPrimitive from "@radix-ui/react-select";',
+        );
+        for (const primitive of [
+            "Root",
+            "Trigger",
+            "Portal",
+            "Content",
+            "Value",
+            "Group",
+            "Item",
+        ]) {
+            expect(select).toContain(`SelectPrimitive.${primitive}`);
+        }
+        for (const primitive of [
+            "SelectTrigger",
+            "SelectContent",
+            "SelectItem",
+            "SelectValue",
+            "SelectGroup",
+        ]) {
+            expect(select).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "select",
+            "select-trigger",
+            "select-content",
+            "select-item",
+            "select-value",
+            "select-group",
+        ]) {
+            expect(select).toContain(`data-slot="${slot}"`);
+        }
+        expect(select).not.toContain("<select");
+        expect(select).not.toContain("<option");
+        expect(select).not.toContain('className={cn("select"');
         expect(switchPrimitive).toContain(
             'import * as SwitchPrimitive from "@radix-ui/react-switch";',
         );
@@ -571,20 +597,22 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain('data-slot="toggle-group-item"');
         expect(toggleGroup).toContain("data-variant={variant}");
         expect(toggleGroup).toContain("data-size={size}");
-        expect(toaster).toContain('className="toast-stack"');
-        expect(toaster).toContain('id="toast-stack"');
-        expect(toaster).toContain('aria-live="polite"');
-        expect(toaster).toContain('role="status"');
-        expect(toaster).toContain('data-open={isOpen ? "true" : "false"}');
-        expect(toaster).toContain('className="toast-ico"');
-        expect(toaster).toContain('"toast toast-ok"');
-        expect(toaster).toContain('"toast toast-err"');
-        expect(toaster).toContain("useSonner");
-        expect(toaster).not.toContain("data-sot-item");
-        expect(toaster).not.toContain("data-sot-variant");
-        expect(toaster).not.toContain("data-sot-panel");
-        expect(toaster).not.toContain("data-sot-control");
-        expect(toaster).not.toContain("SonnerToaster");
+        expect(toaster).toContain(
+            'import { Toaster as Sonner, type ToasterProps } from "sonner";',
+        );
+        expect(toaster).toContain("<Sonner");
+        expect(toaster).toContain('theme={theme as ToasterProps["theme"]}');
+        expect(toaster).toContain('"--normal-bg": "var(--popover)"');
+        expect(toaster).toContain(
+            '"--normal-text": "var(--popover-foreground)"',
+        );
+        expect(toaster).toContain('"--normal-border": "var(--border)"');
+        expect(toaster).not.toContain("useSonner");
+        expect(toaster).not.toContain("toast-stack");
+        expect(toaster).not.toContain("toast toast-ok");
+        expect(toaster).not.toContain("toast toast-err");
+        expect(toaster).not.toContain("toast-ico");
+        expect(toaster).not.toContain("DEFAULT_TOAST_DURATION_MS");
         expect(confirmDialog).toContain('className="scrim"');
         expect(confirmDialog).toContain('data-sot-panel="confirm-dialog"');
         expect(confirmDialog).toContain('className="confirm-dialog"');
