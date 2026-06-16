@@ -249,7 +249,6 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain('"confirm-unlink"');
         expect(source).toContain('className="sp-confirm"');
         expect(source).toContain('className="sp-confirm-msg"');
-        expect(source).toContain("<em>{matchedName}</em>");
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
         expect(source).toContain('variant="ghost"');
@@ -267,6 +266,7 @@ describe("dashboard speaker label editor regressions", () => {
             openConfirmIndex,
         );
 
+        expect(confirmSlice).toMatch(/<em>\s*\{matchedName\}\s*<\/em>/);
         expect(confirmSlice).toContain(
             "handleAssignProfile(\n                                                                    speaker.rawLabel,\n                                                                    null,",
         );
