@@ -4022,8 +4022,8 @@ export function Workstation({
                                                 data-sot-part="library-search-indexing"
                                             >
                                                 <span className="inline-progress indeterminate">
-                                                    <span className="inp-track">
-                                                        <span className="inp-bar" />
+                                                    <span data-sot-part="inline-progress-track">
+                                                        <span data-sot-part="inline-progress-bar" />
                                                     </span>
                                                 </span>
                                                 <div className="ls-empty">

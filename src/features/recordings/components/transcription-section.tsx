@@ -11,6 +11,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FieldDescription } from "@/components/ui/field";
@@ -289,18 +290,22 @@ export function TranscriptionSection({
             </header>
             <div className="transcript-body">
                 {isTranscribing ? (
-                    <div className="sd-banner info">
-                        <span className="b-ic">
+                    <Alert
+                        data-sot-banner="transcription-job"
+                        data-sot-state="processing"
+                        data-sot-tone="info"
+                    >
+                        <span data-sot-banner-icon>
                             <span className="airp-spinner" aria-hidden="true" />
                         </span>
-                        <div>
-                            <div className="b-t">
+                        <div data-sot-banner-body>
+                            <div data-sot-banner-title>
                                 {jobDisplayState
                                     ? t(`transcription.${jobDisplayState}`)
                                     : t("transcription.processing")}
                             </div>
                         </div>
-                    </div>
+                    </Alert>
                 ) : null}
 
                 {!!jobError &&
@@ -308,14 +313,18 @@ export function TranscriptionSection({
                         status: jobStatus,
                         remoteStatus: jobRemoteStatus,
                     }) && (
-                        <div className="sd-banner err">
-                            <span className="b-ic">
+                        <Alert
+                            data-sot-banner="transcription-job"
+                            data-sot-state="error"
+                            data-sot-tone="err"
+                        >
+                            <span data-sot-banner-icon>
                                 <AlertCircle aria-hidden="true" />
                             </span>
-                            <div>
-                                <div className="b-t">{jobError}</div>
+                            <div data-sot-banner-body>
+                                <div data-sot-banner-title>{jobError}</div>
                             </div>
-                        </div>
+                        </Alert>
                     )}
 
                 {transcription ? (

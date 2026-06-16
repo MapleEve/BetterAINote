@@ -8157,7 +8157,7 @@ body[data-source-filter=""] .stack-strip {
     font: 500 11px / 1 var(--font-mono);
     color: var(--fg-tertiary);
 }
-.inline-progress .inp-track {
+.inline-progress [data-sot-part="inline-progress-track"] {
     position: relative;
     height: 4px;
     width: 80px;
@@ -8165,38 +8165,38 @@ body[data-source-filter=""] .stack-strip {
     background: color-mix(in srgb, var(--fg-tertiary) 18%, transparent);
     overflow: hidden;
 }
-.inline-progress .inp-bar {
+.inline-progress [data-sot-part="inline-progress-bar"] {
     position: absolute;
     inset: 0 auto 0 0;
     background: var(--signal-info);
     border-radius: inherit;
     width: 0%;
 }
-.inline-progress[data-pct="0"] .inp-bar {
+.inline-progress[data-pct="0"] [data-sot-part="inline-progress-bar"] {
     width: 0%;
 }
-.inline-progress[data-pct="25"] .inp-bar {
+.inline-progress[data-pct="25"] [data-sot-part="inline-progress-bar"] {
     width: 25%;
 }
-.inline-progress[data-pct="40"] .inp-bar {
+.inline-progress[data-pct="40"] [data-sot-part="inline-progress-bar"] {
     width: 40%;
 }
-.inline-progress[data-pct="60"] .inp-bar {
+.inline-progress[data-pct="60"] [data-sot-part="inline-progress-bar"] {
     width: 60%;
 }
-.inline-progress[data-pct="75"] .inp-bar {
+.inline-progress[data-pct="75"] [data-sot-part="inline-progress-bar"] {
     width: 75%;
 }
-.inline-progress[data-pct="90"] .inp-bar {
+.inline-progress[data-pct="90"] [data-sot-part="inline-progress-bar"] {
     width: 90%;
 }
-.inline-progress[data-pct="100"] .inp-bar {
+.inline-progress[data-pct="100"] [data-sot-part="inline-progress-bar"] {
     width: 100%;
 }
-.inline-progress.indeterminate .inp-track {
+.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
     background: color-mix(in srgb, var(--signal-info) 14%, transparent);
 }
-.inline-progress.indeterminate .inp-bar {
+.inline-progress.indeterminate [data-sot-part="inline-progress-bar"] {
     width: 36%;
     animation: sbn-sweep 1.4s linear infinite;
     background: linear-gradient(
@@ -8220,7 +8220,7 @@ body[data-source-filter=""] .stack-strip {
     flex: 1;
     min-width: 0;
 }
-.ls-state-indexing .inline-progress .inp-track {
+.ls-state-indexing .inline-progress [data-sot-part="inline-progress-track"] {
     width: 100%;
 }
 
@@ -9113,7 +9113,7 @@ select::-ms-expand {
 /* ============================================================
    4) Make the inline progress sweep visible against light bg
    ============================================================ */
-.inline-progress.indeterminate .inp-track {
+.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
     background: color-mix(in srgb, var(--signal-info) 16%, transparent);
 }
 
