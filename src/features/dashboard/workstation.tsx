@@ -46,6 +46,7 @@ import {
     SotPlayerPlayIcon,
     SotPlayerSourceTag,
     SotPlayerStatusBadge,
+    type SotPlayerStatusTone,
     SotPlayerTagChip,
     SotPlayerVolumeIcon,
     sotPlayerVolumeLevel,
@@ -665,17 +666,25 @@ function hasTranscriptContent(
     );
 }
 
+type RecordingListStatus = {
+    className: string;
+    dotClassName: string;
+    label: string;
+    tone: SotPlayerStatusTone;
+};
+
 function getRecordingListStatus(
     recording: Recording,
     transcription: TranscriptionData | null | undefined,
     job: TranscriptionJobData | null | undefined,
     t: Translator,
-) {
+): RecordingListStatus {
     if (job?.status === "failed") {
         return {
             className: "b err",
             dotClassName: "dot",
             label: t("recordingList.status.failed"),
+            tone: "err" satisfies SotPlayerStatusTone,
         };
     }
     if (isActiveTranscriptionJob(job)) {
@@ -683,6 +692,7 @@ function getRecordingListStatus(
             className: "b warn",
             dotClassName: "dot",
             label: t("recordingList.status.transcribing"),
+            tone: "warn" satisfies SotPlayerStatusTone,
         };
     }
     if (hasTranscriptContent(transcription) || transcription?.hasTranscript) {
@@ -690,6 +700,7 @@ function getRecordingListStatus(
             className: "b ok",
             dotClassName: "dot",
             label: t("recordingList.status.updated"),
+            tone: "ok" satisfies SotPlayerStatusTone,
         };
     }
     if (recording.upstreamDeleted) {
@@ -697,12 +708,14 @@ function getRecordingListStatus(
             className: "b info",
             dotClassName: "dot",
             label: t("recordingList.status.localOnly"),
+            tone: "info" satisfies SotPlayerStatusTone,
         };
     }
     return {
         className: "b neu",
         dotClassName: "dot status-dot-muted",
         label: t("recordingList.status.pending"),
+        tone: "neu" satisfies SotPlayerStatusTone,
     };
 }
 
@@ -5678,11 +5691,8 @@ export function Workstation({
                                 ) : null}
                                 {selectedPlayerStatus ? (
                                     <SotPlayerStatusBadge
-                                        className={`${selectedPlayerStatus.className} status-badge-ready`}
-                                        dotClassName={
-                                            selectedPlayerStatus.dotClassName
-                                        }
                                         label={selectedPlayerStatus.label}
+                                        tone={selectedPlayerStatus.tone}
                                     />
                                 ) : null}
                             </div>

@@ -2932,15 +2932,19 @@ test("dashboard player ready state matches SOT active player pixels", async ({
             currentSeconds: SOT_PLAYER_ACTIVE_CURRENT_SECONDS,
             durationSeconds: SOT_PLAYER_ACTIVE_DURATION_SECONDS,
         });
-        await expect(dashboardPlayer(page).locator(".src-tag")).toHaveText(
-            "钉钉",
-        );
+        await expect(
+            dashboardPlayer(page).locator(
+                '[data-sot-control="player-source-tag"]',
+            ),
+        ).toHaveText("钉钉");
         await expect(dashboardPlayer(page).locator(".utag")).toHaveText(
             "产品周会",
         );
-        await expect(dashboardPlayer(page).locator(".b.ok")).toHaveText(
-            "已更新",
-        );
+        await expect(
+            dashboardPlayer(page).locator(
+                '[data-sot-control="player-status"][data-sot-tone="ok"]',
+            ),
+        ).toHaveText("已更新");
 
         sotPage = await page.context().newPage();
         await sotPage.goto(SOT_WORKSTATION_URL, { waitUntil: "load" });

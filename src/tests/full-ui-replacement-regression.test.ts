@@ -946,7 +946,18 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain("tag-chip-action");
         expect(sotPlayerPrimitives).toContain("tag-chip-trigger");
         expect(sotPlayerPrimitives).toContain("tag-chip-inline");
-        expect(sotPlayerPrimitives).toContain("status-badge-ready");
+        expect(sotPlayerPrimitives).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-control="player-source-tag"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-control="player-status"',
+        );
+        expect(sotPlayerPrimitives).toContain("<Badge");
+        expect(sotPlayerPrimitives).toContain('variant="outline"');
+        expect(sotPlayerPrimitives).not.toContain("status-badge-ready");
         expect(sotPlayerPrimitives).not.toContain("_is-");
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');
         expect(speakerReview).toContain("data-sot-state=");

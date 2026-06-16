@@ -1,6 +1,7 @@
 "use client";
 
 import type * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import type { RecordingTag } from "@/lib/recording-tags";
 import {
     RecordingTagIconGlyph,
@@ -78,15 +79,20 @@ export function SotPlayerSourceTag({
     const badge =
         SOT_SOURCE_BADGES[provider as keyof typeof SOT_SOURCE_BADGES] ?? null;
     const sourceLabel = label ?? badge?.label ?? provider;
-    const iconClassName = badge?.icon
-        ? badge.cover
-            ? "ico cover"
-            : "ico"
-        : "ico src-ico-letter";
+    const hasImage = Boolean(badge?.icon);
 
     return (
-        <span className="src-tag">
-            <span className={iconClassName} aria-hidden="true">
+        <Badge
+            variant="outline"
+            data-sot-control="player-source-tag"
+            data-sot-provider={provider}
+        >
+            <span
+                data-sot-cover={badge?.cover ? "true" : "false"}
+                data-sot-part="source-icon"
+                data-sot-source-icon={hasImage ? "image" : "letter"}
+                aria-hidden="true"
+            >
                 {badge?.icon ? (
                     <img src={badge.icon} alt="" />
                 ) : (
@@ -95,7 +101,7 @@ export function SotPlayerSourceTag({
                 )}
             </span>
             {sourceLabel}
-        </span>
+        </Badge>
     );
 }
 
@@ -220,20 +226,24 @@ export function SotPlayerTagChip({
     );
 }
 
+export type SotPlayerStatusTone = "ok" | "warn" | "err" | "info" | "neu";
+
 export function SotPlayerStatusBadge({
-    className = "b ok status-badge-ready",
-    dotClassName = "dot",
     label = "已更新",
+    tone = "ok",
 }: {
-    className?: string;
-    dotClassName?: string;
     label?: string;
+    tone?: SotPlayerStatusTone;
 }) {
     return (
-        <span className={className}>
-            <span className={dotClassName} />
+        <Badge
+            variant="outline"
+            data-sot-control="player-status"
+            data-sot-tone={tone}
+        >
+            <span data-sot-part="status-dot" />
             {label}
-        </span>
+        </Badge>
     );
 }
 
