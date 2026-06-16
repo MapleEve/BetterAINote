@@ -730,7 +730,7 @@ async function openSotSourceReportState(
 }
 
 function stabilizeSkeletonAnimation(html: string) {
-    return `<style>.sk{animation:none!important;background-position:0 50%!important}</style>${html}`;
+    return `<style>.sk,[data-slot="skeleton"]{animation:none!important;background:linear-gradient(90deg,rgb(255 255 255 / .05) 0%,rgb(255 255 255 / .12) 50%,rgb(255 255 255 / .05) 100%)!important;background-position:0 50%!important;background-size:220% 100%!important}</style>${html}`;
 }
 
 async function readPseudoContent(
@@ -4051,7 +4051,7 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
             "data-sub-state",
             "summary-missing",
         );
-        await expect(productLoaded.locator(".sr-card").nth(2)).toContainText(
+        await expect(productLoaded.locator('[data-sot-metric="summary-status"]')).toContainText(
             "未生成",
         );
         await expect(productLoaded.locator(".sr-empty")).toHaveCount(0);
@@ -4170,10 +4170,10 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
         );
         await expect(transcriptMissing.locator(".sr-empty")).toHaveCount(0);
         await expect(transcriptMissing.locator(".sr-segments")).toHaveCount(1);
-        await expect(transcriptMissing.locator(".sr-card").nth(1)).toContainText(
+        await expect(transcriptMissing.locator('[data-sot-metric="transcript-status"]')).toContainText(
             "未生成",
         );
-        await expect(transcriptMissing.locator(".sr-card").nth(2)).toContainText(
+        await expect(transcriptMissing.locator('[data-sot-metric="summary-status"]')).toContainText(
             "已就绪",
         );
         await expect(sourceTranscriptCopyButton(page)).toBeDisabled();
@@ -4270,10 +4270,10 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             "both-missing",
         );
         await expect(bothMissing.locator(".sr-empty")).toHaveCount(0);
-        await expect(bothMissing.locator(".sr-card").nth(1)).toContainText(
+        await expect(bothMissing.locator('[data-sot-metric="transcript-status"]')).toContainText(
             "未生成",
         );
-        await expect(bothMissing.locator(".sr-card").nth(2)).toContainText(
+        await expect(bothMissing.locator('[data-sot-metric="summary-status"]')).toContainText(
             "未生成",
         );
         await expect(sourceTranscriptCopyButton(page)).toBeDisabled();

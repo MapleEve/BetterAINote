@@ -846,7 +846,7 @@ test("Plaud PR #20 sync uses SOT controls and imports paged, backfilled, and sou
             "PR20 source-only summary",
         );
         await expect(
-            dashboardSourceReport(page, "loaded").locator(".sr-pill.warn"),
+            dashboardSourceReport(page, "loaded").locator('[data-sot-badge="source-report-status"][data-sot-tone="warn"]'),
         ).toContainText("这条来源记录没有本地音频");
         await expect(
             page.locator('[data-sot-control="copy-source-transcript"]'),

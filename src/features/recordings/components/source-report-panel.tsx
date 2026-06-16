@@ -10,7 +10,9 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     getSourceProviderLabel,
@@ -146,9 +148,6 @@ const SAFE_SOURCE_DETAIL_KEYS = new Set([
 ]);
 
 const SOURCE_REPORT_LOADING_SKELETON_CLASSES = {
-    cardCount: "sr-card-count-skeleton",
-    cardSource: "sr-card-source-skeleton",
-    cardStatus: "sr-card-status-skeleton",
     segmentLineLong: "sr-seg-line-skeleton sr-seg-line-skeleton-long",
     segmentLineMedium: "sr-seg-line-skeleton sr-seg-line-skeleton-medium",
     segmentLineShort: "sr-seg-line-skeleton sr-seg-line-skeleton-short",
@@ -368,11 +367,13 @@ function sourceReportReadinessLabel(
     return isZh(language) ? "未生成" : "missing";
 }
 
-function sourceReportReadinessPillClass(label: string) {
+type SourceReportTone = "err" | "neu" | "ok" | "warn";
+
+function sourceReportReadinessTone(label: string): SourceReportTone {
     const normalized = label.toLowerCase();
-    if (label === "已就绪" || normalized === "ready") return "sr-pill ok";
+    if (label === "已就绪" || normalized === "ready") return "ok";
     if (label === "失败" || normalized.includes("failed")) {
-        return "sr-pill err";
+        return "err";
     }
     if (
         label === "生成中" ||
@@ -380,15 +381,15 @@ function sourceReportReadinessPillClass(label: string) {
         normalized.includes("loading") ||
         normalized.includes("missing")
     ) {
-        return "sr-pill warn";
+        return "warn";
     }
-    return "sr-pill";
+    return "neu";
 }
 
-function sourceReportSyncPillClass(label: string) {
+function sourceReportSyncTone(label: string): SourceReportTone {
     const normalized = label.toLowerCase();
     if (label.includes("失败") || normalized.includes("fail")) {
-        return "sr-pill err";
+        return "err";
     }
     if (
         label.includes("待") ||
@@ -396,7 +397,7 @@ function sourceReportSyncPillClass(label: string) {
         label.includes("生成中") ||
         normalized.includes("pending")
     ) {
-        return "sr-pill warn";
+        return "warn";
     }
     if (
         label.includes("已") ||
@@ -404,9 +405,9 @@ function sourceReportSyncPillClass(label: string) {
         normalized.includes("available") ||
         normalized.includes("synced")
     ) {
-        return "sr-pill ok";
+        return "ok";
     }
-    return "sr-pill";
+    return "neu";
 }
 
 function formatSourceReportStatusLabel(
@@ -473,12 +474,70 @@ function SotSourceReportEmptyIcon() {
 
 function SourceReportStatusBadge({
     children,
-    className,
+    tone,
 }: {
     children: ReactNode;
-    className: string;
+    tone: SourceReportTone;
 }) {
-    return <span className={className}>{children}</span>;
+    return (
+        <Badge
+            variant="outline"
+            data-sot-badge="source-report-status"
+            data-sot-tone={tone}
+        >
+            {children}
+        </Badge>
+    );
+}
+
+function SourceReportMetricCards({ children }: { children: ReactNode }) {
+    return <div data-sot-list="source-report-cards">{children}</div>;
+}
+
+function SourceReportMetricCard({
+    children,
+    label,
+    metric,
+    value,
+}: {
+    children: ReactNode;
+    label: string;
+    metric: "segment-count" | "source" | "summary-status" | "transcript-status";
+    value?: "number" | "skeleton" | "source";
+}) {
+    return (
+        <Card
+            hasNoPadding
+            data-sot-card="source-report-metric"
+            data-sot-metric={metric}
+        >
+            <div data-sot-part="source-report-card-label">{label}</div>
+            {value === "skeleton" ? (
+                children
+            ) : (
+                <div
+                    data-sot-part="source-report-card-value"
+                    data-sot-value={value}
+                >
+                    {children}
+                </div>
+            )}
+        </Card>
+    );
+}
+
+function SourceReportCardSkeleton({
+    size,
+}: {
+    size: "count" | "source" | "status";
+}) {
+    return (
+        <Skeleton
+            aria-hidden="true"
+            data-sot-part="source-report-card-skeleton"
+            data-sot-size={size}
+        />
+    );
 }
 
 function SourceReportMetaRow({
@@ -1103,44 +1162,36 @@ export function SourceReportPanel({
                     data-sot-state="loading"
                     data-state="loading"
                 >
-                    <div className="sr-cards">
-                        <div className="sr-card">
-                            <div className="sr-card-label">来源</div>
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardSource
-                                }
-                            />
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">转写状态</div>
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardStatus
-                                }
-                            />
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">摘要状态</div>
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardStatus
-                                }
-                            />
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">分段数</div>
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardCount
-                                }
-                            />
-                        </div>
-                    </div>
+                    <SourceReportMetricCards>
+                        <SourceReportMetricCard
+                            label="来源"
+                            metric="source"
+                            value="skeleton"
+                        >
+                            <SourceReportCardSkeleton size="source" />
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="转写状态"
+                            metric="transcript-status"
+                            value="skeleton"
+                        >
+                            <SourceReportCardSkeleton size="status" />
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="摘要状态"
+                            metric="summary-status"
+                            value="skeleton"
+                        >
+                            <SourceReportCardSkeleton size="status" />
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="分段数"
+                            metric="segment-count"
+                            value="skeleton"
+                        >
+                            <SourceReportCardSkeleton size="count" />
+                        </SourceReportMetricCard>
+                    </SourceReportMetricCards>
                     <section className="sr-section">
                         <header className="sr-section-head">
                             <h4>来源转写</h4>
@@ -1149,64 +1200,56 @@ export function SourceReportPanel({
                             </span>
                         </header>
                         <div className="sr-seg skel">
-                            <div className="sr-seg-skeleton-meta flex items-center gap-2">
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
-                                    }
-                                />
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
-                                    }
-                                />
-                            </div>
-                            <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineLong
-                                    }
-                                />
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineMedium
-                                    }
-                                />
-                            </div>
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineLong
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineMedium
+                                }
+                            />
                         </div>
                         <div className="sr-seg skel">
-                            <div className="sr-seg-skeleton-meta flex items-center gap-2">
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
-                                    }
-                                />
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
-                                    }
-                                />
-                            </div>
-                            <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineWide
-                                    }
-                                />
-                                <Skeleton
-                                    aria-hidden="true"
-                                    className={
-                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineShort
-                                    }
-                                />
-                            </div>
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineWide
+                                }
+                            />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineShort
+                                }
+                            />
                         </div>
                     </section>
                 </div>
@@ -1221,60 +1264,66 @@ export function SourceReportPanel({
                     data-sub-state={sourceReportSubState}
                 >
                     {!hasAudio ? (
-                        <span className="sr-pill warn">
+                        <Badge
+                            variant="outline"
+                            data-sot-badge="source-report-status"
+                            data-sot-tone="warn"
+                        >
                             <span className="dot" />
                             <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
-                        </span>
+                        </Badge>
                     ) : null}
 
-                    <div className="sr-cards">
-                        <div className="sr-card">
-                            <div className="sr-card-label">来源</div>
-                            <div className="sr-card-value sr-card-source">
-                                {sourceProviderIcon ? (
-                                    // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
-                                    <img src={sourceProviderIcon} alt="" />
-                                ) : (
-                                    <span className="sr-card-source-fallback font-bold text-[11px] text-muted-foreground">
-                                        {sourceProviderLetter}
-                                    </span>
+                    <SourceReportMetricCards>
+                        <SourceReportMetricCard
+                            label="来源"
+                            metric="source"
+                            value="source"
+                        >
+                            {sourceProviderIcon ? (
+                                // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
+                                <img src={sourceProviderIcon} alt="" />
+                            ) : (
+                                <span data-sot-part="source-report-card-source-fallback">
+                                    {sourceProviderLetter}
+                                </span>
+                            )}
+                            <span>{sourceProviderLabel}</span>
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="转写状态"
+                            metric="transcript-status"
+                        >
+                            <SourceReportStatusBadge
+                                tone={sourceReportReadinessTone(
+                                    sourceTranscriptStatusLabel,
                                 )}
-                                <span>{sourceProviderLabel}</span>
-                            </div>
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">转写状态</div>
-                            <div className="sr-card-value">
-                                <SourceReportStatusBadge
-                                    className={sourceReportReadinessPillClass(
-                                        sourceTranscriptStatusLabel,
-                                    )}
-                                >
-                                    <span className="dot" />
-                                    {sourceTranscriptStatusLabel}
-                                </SourceReportStatusBadge>
-                            </div>
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">摘要状态</div>
-                            <div className="sr-card-value">
-                                <SourceReportStatusBadge
-                                    className={sourceReportReadinessPillClass(
-                                        sourceSummaryStatusLabel,
-                                    )}
-                                >
-                                    <span className="dot" />
-                                    {sourceSummaryStatusLabel}
-                                </SourceReportStatusBadge>
-                            </div>
-                        </div>
-                        <div className="sr-card">
-                            <div className="sr-card-label">分段数</div>
-                            <div className="sr-card-value sr-card-num mono">
-                                {sourceReportSegmentCount}
-                            </div>
-                        </div>
-                    </div>
+                            >
+                                <span className="dot" />
+                                {sourceTranscriptStatusLabel}
+                            </SourceReportStatusBadge>
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="摘要状态"
+                            metric="summary-status"
+                        >
+                            <SourceReportStatusBadge
+                                tone={sourceReportReadinessTone(
+                                    sourceSummaryStatusLabel,
+                                )}
+                            >
+                                <span className="dot" />
+                                {sourceSummaryStatusLabel}
+                            </SourceReportStatusBadge>
+                        </SourceReportMetricCard>
+                        <SourceReportMetricCard
+                            label="分段数"
+                            metric="segment-count"
+                            value="number"
+                        >
+                            {sourceReportSegmentCount}
+                        </SourceReportMetricCard>
+                    </SourceReportMetricCards>
 
                     <section className="sr-section">
                         <header className="sr-section-head">
@@ -1353,7 +1402,7 @@ export function SourceReportPanel({
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="状态">
                                 <SourceReportStatusBadge
-                                    className={sourceReportSyncPillClass(
+                                    tone={sourceReportSyncTone(
                                         sourceReportStatusLabel,
                                     )}
                                 >

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import {
     type KeyboardEvent as ReactKeyboardEvent,
+    type ReactNode,
     useCallback,
     useEffect,
     useMemo,
@@ -24,7 +25,9 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -610,24 +613,94 @@ function sourceReportReadinessLabel(
     return readiness === true || hasReadableContent ? "已就绪" : "未生成";
 }
 
-function sourceReportReadinessPillClass(label: string) {
-    if (label === "已就绪") return "sr-pill ok";
-    if (label === "失败") return "sr-pill err";
-    if (label === "生成中" || label === "未生成") return "sr-pill warn";
-    return "sr-pill";
+type SourceReportTone = "err" | "neu" | "ok" | "warn";
+
+function sourceReportReadinessTone(label: string): SourceReportTone {
+    if (label === "已就绪") return "ok";
+    if (label === "失败") return "err";
+    if (label === "生成中" || label === "未生成") return "warn";
+    return "neu";
 }
 
-function sourceReportSyncPillClass(label: string) {
-    if (label.includes("失败")) return "sr-pill err";
+function sourceReportSyncTone(label: string): SourceReportTone {
+    if (label.includes("失败")) return "err";
     if (
         label.includes("待") ||
         label.includes("仅") ||
         label.includes("生成中")
     ) {
-        return "sr-pill warn";
+        return "warn";
     }
-    if (label.includes("已") || label.includes("同步")) return "sr-pill ok";
-    return "sr-pill";
+    if (label.includes("已") || label.includes("同步")) return "ok";
+    return "neu";
+}
+
+function SotSourceReportStatusBadge({
+    children,
+    tone,
+}: {
+    children: ReactNode;
+    tone: SourceReportTone;
+}) {
+    return (
+        <Badge
+            variant="outline"
+            data-sot-badge="source-report-status"
+            data-sot-tone={tone}
+        >
+            {children}
+        </Badge>
+    );
+}
+
+function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
+    return <div data-sot-list="source-report-cards">{children}</div>;
+}
+
+function SotSourceReportMetricCard({
+    children,
+    label,
+    metric,
+    value,
+}: {
+    children: ReactNode;
+    label: string;
+    metric: "segment-count" | "source" | "summary-status" | "transcript-status";
+    value?: "number" | "skeleton" | "source";
+}) {
+    return (
+        <Card
+            hasNoPadding
+            data-sot-card="source-report-metric"
+            data-sot-metric={metric}
+        >
+            <div data-sot-part="source-report-card-label">{label}</div>
+            {value === "skeleton" ? (
+                children
+            ) : (
+                <div
+                    data-sot-part="source-report-card-value"
+                    data-sot-value={value}
+                >
+                    {children}
+                </div>
+            )}
+        </Card>
+    );
+}
+
+function SotSourceReportCardSkeleton({
+    size,
+}: {
+    size: "count" | "source" | "status";
+}) {
+    return (
+        <Skeleton
+            aria-hidden="true"
+            data-sot-part="source-report-card-skeleton"
+            data-sot-size={size}
+        />
+    );
 }
 
 function getSourceCopyState(
@@ -6402,44 +6475,36 @@ export function Workstation({
                                             className="sr-state"
                                             data-state="loading"
                                         >
-                                            <div className="sr-cards">
-                                                <div className="sr-card">
-                                                    <div className="sr-card-label">
-                                                        来源
-                                                    </div>
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-card-source-skeleton"
-                                                    />
-                                                </div>
-                                                <div className="sr-card">
-                                                    <div className="sr-card-label">
-                                                        转写状态
-                                                    </div>
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-card-status-skeleton"
-                                                    />
-                                                </div>
-                                                <div className="sr-card">
-                                                    <div className="sr-card-label">
-                                                        摘要状态
-                                                    </div>
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-card-status-skeleton"
-                                                    />
-                                                </div>
-                                                <div className="sr-card">
-                                                    <div className="sr-card-label">
-                                                        分段数
-                                                    </div>
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        className="sr-card-count-skeleton"
-                                                    />
-                                                </div>
-                                            </div>
+                                            <SotSourceReportMetricCards>
+                                                <SotSourceReportMetricCard
+                                                    label="来源"
+                                                    metric="source"
+                                                    value="skeleton"
+                                                >
+                                                    <SotSourceReportCardSkeleton size="source" />
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="转写状态"
+                                                    metric="transcript-status"
+                                                    value="skeleton"
+                                                >
+                                                    <SotSourceReportCardSkeleton size="status" />
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="摘要状态"
+                                                    metric="summary-status"
+                                                    value="skeleton"
+                                                >
+                                                    <SotSourceReportCardSkeleton size="status" />
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="分段数"
+                                                    metric="segment-count"
+                                                    value="skeleton"
+                                                >
+                                                    <SotSourceReportCardSkeleton size="count" />
+                                                </SotSourceReportMetricCard>
+                                            </SotSourceReportMetricCards>
                                             <section className="sr-section">
                                                 <header className="sr-section-head">
                                                     <h4>来源转写</h4>
@@ -6452,48 +6517,40 @@ export function Workstation({
                                                     </span>
                                                 </header>
                                                 <div className="sr-seg skel">
-                                                    <div className="sr-seg-skeleton-meta flex items-center gap-2">
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-time-skeleton"
-                                                        />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-speaker-skeleton"
-                                                        />
-                                                    </div>
-                                                    <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-long"
-                                                        />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-medium"
-                                                        />
-                                                    </div>
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-time-skeleton"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-speaker-skeleton"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-long"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-medium"
+                                                    />
                                                 </div>
                                                 <div className="sr-seg skel">
-                                                    <div className="sr-seg-skeleton-meta flex items-center gap-2">
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-time-skeleton"
-                                                        />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-speaker-skeleton"
-                                                        />
-                                                    </div>
-                                                    <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-wide"
-                                                        />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            className="sr-seg-line-skeleton sr-seg-line-skeleton-short"
-                                                        />
-                                                    </div>
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-time-skeleton"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-speaker-skeleton"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-wide"
+                                                    />
+                                                    <Skeleton
+                                                        aria-hidden="true"
+                                                        className="sr-seg-line-skeleton sr-seg-line-skeleton-short"
+                                                    />
                                                 </div>
                                             </section>
                                         </div>
@@ -6562,85 +6619,84 @@ export function Workstation({
                                             }
                                         >
                                             {!selectedRecording?.hasAudio ? (
-                                                <div className="sr-pill warn">
+                                                <Badge
+                                                    variant="outline"
+                                                    data-sot-badge="source-report-status"
+                                                    data-sot-tone="warn"
+                                                >
                                                     <span className="dot" />
                                                     {t(
                                                         "sourceReport.sourceOnlyNoAudio",
                                                     )}
-                                                </div>
+                                                </Badge>
                                             ) : null}
-                                            <div className="sr-cards">
-                                                <div className="sr-card">
-                                                    <span className="sr-card-label">
-                                                        {t("recording.source")}
-                                                    </span>
-                                                    <div className="sr-card-value sr-card-source">
-                                                        {sourceReportProviderDefinition?.icon ? (
-                                                            <img
-                                                                src={
-                                                                    sourceReportProviderDefinition.icon
-                                                                }
-                                                                alt=""
-                                                            />
-                                                        ) : (
-                                                            <span className="sr-card-source-fallback font-bold text-[11px] text-muted-foreground">
-                                                                {sourceReportProviderName.charAt(
-                                                                    0,
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                        <span>
-                                                            {
-                                                                sourceReportProviderName
+                                            <SotSourceReportMetricCards>
+                                                <SotSourceReportMetricCard
+                                                    label={t(
+                                                        "recording.source",
+                                                    )}
+                                                    metric="source"
+                                                    value="source"
+                                                >
+                                                    {sourceReportProviderDefinition?.icon ? (
+                                                        // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
+                                                        <img
+                                                            src={
+                                                                sourceReportProviderDefinition.icon
                                                             }
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="sr-card">
-                                                    <span className="sr-card-label">
-                                                        转写状态
-                                                    </span>
-                                                    <div className="sr-card-value">
-                                                        <span
-                                                            className={sourceReportReadinessPillClass(
-                                                                sourceTranscriptStatusLabel,
+                                                            alt=""
+                                                        />
+                                                    ) : (
+                                                        <span data-sot-part="source-report-card-source-fallback">
+                                                            {sourceReportProviderName.charAt(
+                                                                0,
                                                             )}
-                                                        >
-                                                            <span className="dot" />
-                                                            {
-                                                                sourceTranscriptStatusLabel
-                                                            }
                                                         </span>
-                                                    </div>
-                                                </div>
-                                                <div className="sr-card">
-                                                    <span className="sr-card-label">
-                                                        摘要状态
-                                                    </span>
-                                                    <div className="sr-card-value">
-                                                        <span
-                                                            className={sourceReportReadinessPillClass(
-                                                                sourceSummaryStatusLabel,
-                                                            )}
-                                                        >
-                                                            <span className="dot" />
-                                                            {
-                                                                sourceSummaryStatusLabel
-                                                            }
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="sr-card">
-                                                    <span className="sr-card-label">
-                                                        分段数
-                                                    </span>
-                                                    <div className="sr-card-value sr-card-num mono">
+                                                    )}
+                                                    <span>
                                                         {
-                                                            sourceReportSegmentCount
+                                                            sourceReportProviderName
                                                         }
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                    </span>
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="转写状态"
+                                                    metric="transcript-status"
+                                                >
+                                                    <SotSourceReportStatusBadge
+                                                        tone={sourceReportReadinessTone(
+                                                            sourceTranscriptStatusLabel,
+                                                        )}
+                                                    >
+                                                        <span className="dot" />
+                                                        {
+                                                            sourceTranscriptStatusLabel
+                                                        }
+                                                    </SotSourceReportStatusBadge>
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="摘要状态"
+                                                    metric="summary-status"
+                                                >
+                                                    <SotSourceReportStatusBadge
+                                                        tone={sourceReportReadinessTone(
+                                                            sourceSummaryStatusLabel,
+                                                        )}
+                                                    >
+                                                        <span className="dot" />
+                                                        {
+                                                            sourceSummaryStatusLabel
+                                                        }
+                                                    </SotSourceReportStatusBadge>
+                                                </SotSourceReportMetricCard>
+                                                <SotSourceReportMetricCard
+                                                    label="分段数"
+                                                    metric="segment-count"
+                                                    value="number"
+                                                >
+                                                    {sourceReportSegmentCount}
+                                                </SotSourceReportMetricCard>
+                                            </SotSourceReportMetricCards>
 
                                             <section className="sr-section">
                                                 <header className="sr-section-head">
@@ -6765,8 +6821,8 @@ export function Workstation({
                                                     <div className="sr-meta-row">
                                                         <dt>状态</dt>
                                                         <dd>
-                                                            <span
-                                                                className={sourceReportSyncPillClass(
+                                                            <SotSourceReportStatusBadge
+                                                                tone={sourceReportSyncTone(
                                                                     sourceReportSyncStatusLabel,
                                                                 )}
                                                             >
@@ -6774,7 +6830,7 @@ export function Workstation({
                                                                 {
                                                                     sourceReportSyncStatusLabel
                                                                 }
-                                                            </span>
+                                                            </SotSourceReportStatusBadge>
                                                         </dd>
                                                     </div>
                                                     <div className="sr-meta-row">

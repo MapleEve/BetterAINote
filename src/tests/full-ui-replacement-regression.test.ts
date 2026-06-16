@@ -964,12 +964,28 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(sourceReport).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(sourceReport).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(sourceReport).toContain("<Badge");
+        expect(sourceReport).toContain("<Card");
+        expect(sourceReport).toContain('data-sot-list="source-report-cards"');
+        expect(sourceReport).toContain('data-sot-card="source-report-metric"');
+        expect(sourceReport).toContain('data-sot-badge="source-report-status"');
         expect(sourceReport).toContain(
             "SOURCE_REPORT_LOADING_SKELETON_CLASSES",
         );
         expect(sourceReport).toContain("<Button");
+        expect(sourceReport).not.toContain('className="sr-card"');
+        expect(sourceReport).not.toContain('className="sr-cards"');
+        expect(sourceReport).not.toContain('className="sr-pill warn"');
+        expect(sourceReport).not.toContain("sourceReportReadinessPillClass");
+        expect(sourceReport).not.toContain("sourceReportSyncPillClass");
         expect(sourceReport).not.toMatch(
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );
