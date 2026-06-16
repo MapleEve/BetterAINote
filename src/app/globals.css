@@ -3027,7 +3027,9 @@ body[data-time-style="abs"] .real-list .ts-rel {
     gap: 8px;
     margin-bottom: 18px;
 }
-.src-item {
+.src-item,
+[data-sot-control="provider-card"][data-slot="button"],
+[data-sot-control="speaker-profile-draft"][data-slot="card"] {
     display: grid;
     grid-template-columns: 36px 1fr auto auto;
     align-items: center;
@@ -3037,20 +3039,28 @@ body[data-time-style="abs"] .real-list .ts-rel {
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
     box-shadow: var(--shadow-xs);
+    color: var(--fg-primary);
+    text-align: left;
+    width: 100%;
 }
 .src-item.active,
 .src-item[data-sot-state="selected"],
-.src-item[data-sot-state="active"] {
+.src-item[data-sot-state="active"],
+[data-sot-control="provider-card"][data-sot-state="selected"],
+[data-sot-control="speaker-profile-draft"] {
     border-color: color-mix(in srgb, var(--accent) 48%, transparent);
     background: color-mix(in srgb, var(--accent) 9%, var(--bg-elevated));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
-[data-theme="dark"] .src-item {
+[data-theme="dark"] .src-item,
+[data-theme="dark"] [data-sot-control="provider-card"],
+[data-theme="dark"] [data-sot-control="speaker-profile-draft"] {
     background: rgb(255 255 255 / 0.04);
     border-color: var(--glass-border);
     box-shadow: none;
 }
-.src-item .sp-ico {
+.src-item .sp-ico,
+[data-sot-part="provider-icon"] {
     width: 36px;
     height: 36px;
     border-radius: 8px;
@@ -3062,13 +3072,15 @@ body[data-time-style="abs"] .real-list .ts-rel {
     border: 1px solid var(--line-hairline);
     overflow: hidden;
 }
-.src-item .sp-ico img {
+.src-item .sp-ico img,
+[data-sot-part="provider-icon"] img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
 }
-.src-item .sp-ico svg {
+.src-item .sp-ico svg,
+[data-sot-part="provider-icon"] svg {
     width: 18px;
     height: 18px;
     stroke: currentColor;
@@ -3077,17 +3089,21 @@ body[data-time-style="abs"] .real-list .ts-rel {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.src-item .sp-ico.cover img {
+.src-item .sp-ico.cover img,
+[data-sot-part="provider-icon"][data-sot-cover="true"] img {
     object-fit: cover;
 }
-.src-item .src-meta {
+.src-item .src-meta,
+[data-sot-part="provider-meta"] {
     min-width: 0;
 }
-.src-item .src-name {
+.src-item .src-name,
+[data-sot-part="provider-name"] {
     font: 600 14px var(--font-sans);
     color: var(--fg-primary);
 }
-.src-item .src-hint {
+.src-item .src-hint,
+[data-sot-part="provider-hint"] {
     font: 500 12px var(--font-sans);
     color: var(--fg-tertiary);
     margin-top: 2px;

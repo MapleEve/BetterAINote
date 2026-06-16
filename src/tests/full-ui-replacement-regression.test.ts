@@ -751,8 +751,22 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-panel="onboarding-steps"');
         expect(onboarding).toContain('data-sot-panel="onboarding-current"');
         expect(onboarding).toContain('data-sot-control="provider-card"');
+        expect(onboarding).toContain(
+            'data-sot-control="speaker-profile-draft"',
+        );
+        expect(onboarding).toContain('data-sot-part="provider-icon"');
+        expect(onboarding).toContain('data-sot-part="provider-meta"');
+        expect(onboarding).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(onboarding).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
         expect(onboarding).toContain('data-sot-control="source-auth-mode"');
         expect(onboarding).toContain('data-sot-control="save-enter"');
+        expect(onboarding).not.toContain("src-item");
+        expect(onboarding).not.toContain("sp-ico");
+        expect(onboarding).not.toContain("src-meta");
         expect(onboarding).not.toContain('className="app"');
         expect(onboarding).not.toContain('className="panel"');
         expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);

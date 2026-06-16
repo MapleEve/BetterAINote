@@ -14,6 +14,7 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
     Field,
     FieldContent,
@@ -30,7 +31,6 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import { cn } from "@/lib/utils";
 
 interface OnboardingFormProps {
     onConnected?: () => void;
@@ -479,9 +479,14 @@ function SourceStep({
                     const asset = PROVIDER_ASSETS[item.provider];
 
                     return (
-                        <button
-                            className={cn("src-item", isActive && "active")}
+                        <Button
+                            variant="ghost"
                             data-sot-control="provider-card"
+                            data-sot-cover={
+                                item.provider === "feishu-minutes"
+                                    ? "true"
+                                    : "false"
+                            }
                             data-sot-provider={item.provider}
                             data-sot-state={isActive ? "selected" : "idle"}
                             disabled={isSaving}
@@ -490,11 +495,12 @@ function SourceStep({
                             type="button"
                         >
                             <span
-                                className={cn(
-                                    "sp-ico",
-                                    item.provider === "feishu-minutes" &&
-                                        "cover",
-                                )}
+                                data-sot-part="provider-icon"
+                                data-sot-cover={
+                                    item.provider === "feishu-minutes"
+                                        ? "true"
+                                        : "false"
+                                }
                             >
                                 {asset ? (
                                     <img src={asset} alt="" />
@@ -502,15 +508,17 @@ function SourceStep({
                                     <ProviderIcon />
                                 )}
                             </span>
-                            <span className="src-meta">
-                                <span className="src-name">{item.label}</span>
-                                <span className="src-hint">
+                            <span data-sot-part="provider-meta">
+                                <span data-sot-part="provider-name">
+                                    {item.label}
+                                </span>
+                                <span data-sot-part="provider-hint">
                                     {isActive
                                         ? "将作为首次连接来源"
                                         : "可在后续设置里继续补充"}
                                 </span>
                             </span>
-                        </button>
+                        </Button>
                     );
                 })}
             </div>
@@ -724,21 +732,21 @@ function SpeakersStep({
     return (
         <>
             <div className="src-list" data-sot-list="speaker-profiles">
-                <div
-                    className="src-item active"
+                <Card
+                    hasNoPadding
                     data-sot-control="speaker-profile-draft"
                     data-sot-state={speakerState}
                 >
-                    <span className="sp-ico">
+                    <span data-sot-part="provider-icon">
                         <UserRound />
                     </span>
-                    <span className="src-meta">
-                        <span className="src-name">第一个说话人</span>
-                        <span className="src-hint">
+                    <span data-sot-part="provider-meta">
+                        <span data-sot-part="provider-name">第一个说话人</span>
+                        <span data-sot-part="provider-hint">
                             可先留空，工作台内继续校对
                         </span>
                     </span>
-                </div>
+                </Card>
             </div>
             <OnboardingFieldRow
                 description="例如主持人、自己或常见会议成员"

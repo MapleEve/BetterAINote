@@ -33,6 +33,19 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("默认转写");
         expect(source).toContain("说话人档案");
         expect(source).toContain("保存并进入工作台");
+        expect(source).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(source).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(source).toContain('data-sot-control="provider-card"');
+        expect(source).toContain('data-sot-control="speaker-profile-draft"');
+        expect(source).toContain('data-sot-part="provider-icon"');
+        expect(source).toContain('data-sot-part="provider-meta"');
+        expect(source).not.toContain("src-item");
+        expect(source).not.toContain("sp-ico");
+        expect(source).not.toContain("src-meta");
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
