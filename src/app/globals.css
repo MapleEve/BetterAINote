@@ -2546,36 +2546,64 @@ body[data-time-style="abs"] .real-list .ts-rel {
     width: 40%;
 }
 
-.skel-detail {
+.skel-detail,
+[data-sot-panel="recording-detail-loading"] {
     display: flex;
     flex-direction: column;
     gap: 14px;
     flex: 1;
     min-height: 0;
 }
-.skel-detail .player-meta {
+.skel-detail .player-meta,
+[data-sot-panel="recording-detail-loading"]
+    [data-sot-part="detail-player-meta"] {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 12px;
 }
-.skel-detail .player-controls {
+.skel-detail .player-controls,
+[data-sot-panel="recording-detail-loading"]
+    [data-sot-part="detail-player-controls"] {
     display: flex;
     align-items: center;
     gap: 12px;
 }
-.skel-detail .transcript-head {
+.skel-detail .transcript-head,
+[data-sot-panel="recording-detail-loading"]
+    [data-sot-part="detail-transcript-head"] {
     display: flex;
     align-items: center;
     padding: 12px 14px;
     border-bottom: 1px solid var(--line-hairline);
 }
-.skel-detail .transcript {
+.skel-detail .transcript,
+[data-sot-panel="recording-detail-loading"]
+    [data-sot-part="detail-transcript"] {
     flex: 1;
     min-height: 0;
 }
-[data-theme="dark"] .skel-detail .transcript-head {
+[data-theme="dark"] .skel-detail .transcript-head,
+[data-theme="dark"]
+    [data-sot-panel="recording-detail-loading"]
+    [data-sot-part="detail-transcript-head"] {
     border-bottom-color: var(--glass-border-soft);
+}
+[data-sot-panel="recording-detail-loading"] [data-sot-part="detail-avatar"] {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+[data-sot-panel="recording-detail-loading"] [data-sot-part="detail-bar"] {
+    width: 80px;
+    height: 8px;
+    border-radius: 4px;
+}
+[data-sot-panel="recording-detail-loading"] [data-sot-size="90"] {
+    width: 90%;
+}
+[data-sot-panel="recording-detail-loading"] [data-sot-size="60"] {
+    width: 60%;
 }
 
 /* ===========================================================

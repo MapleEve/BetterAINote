@@ -16,6 +16,22 @@ const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
 describe("dashboard SOT foundation", () => {
+    it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
+        const loading = readSource("app/(app)/dashboard/loading.tsx");
+
+        expect(loading).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(loading).toContain('aria-busy="true"');
+        expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('data-sot-panel="recording-list-loading"');
+        expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(loading).not.toContain('className="skel-list"');
+        expect(loading).not.toContain('className="skel-detail"');
+        expect(loading).not.toContain('className="sk sk-title"');
+        expect(loading).not.toContain('className="sk sk-bar"');
+    });
+
     it("keeps shadcn foundation primitives real without reintroducing dashboard compatibility surfaces", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const card = readSource("components/ui/card.tsx");

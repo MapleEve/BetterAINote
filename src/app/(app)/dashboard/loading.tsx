@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function DashboardLoading() {
     return (
         <div className="app" aria-busy="true">
@@ -18,51 +20,66 @@ export default function DashboardLoading() {
                 </header>
                 <div className="workspace">
                     <section className="panel">
-                        <div className="skel-list" aria-hidden="true">
-                            <div className="day skel-day">
-                                <span className="sk sk-day-l" />
-                                <span className="line" />
+                        <div
+                            data-sot-panel="recording-list-loading"
+                            aria-hidden="true"
+                        >
+                            <div data-sot-part="skeleton-day">
+                                <Skeleton data-sot-part="skeleton-day-label" />
+                                <span data-sot-part="skeleton-day-line" />
                             </div>
-                            <div className="row skel-row">
-                                <div className="body">
-                                    <div className="sk sk-title" />
-                                    <div className="meta">
-                                        <span className="sk sk-meta-t" />
-                                        <span className="sk sk-meta-tag" />
+                            <div data-sot-part="skeleton-row">
+                                <div data-sot-part="skeleton-row-body">
+                                    <Skeleton data-sot-part="skeleton-title" />
+                                    <div data-sot-part="skeleton-meta">
+                                        <Skeleton data-sot-part="skeleton-meta-time" />
+                                        <Skeleton data-sot-part="skeleton-meta-tag" />
                                     </div>
                                 </div>
-                                <div className="right">
-                                    <span className="sk sk-utag" />
+                                <div data-sot-part="skeleton-row-tail">
+                                    <Skeleton data-sot-part="skeleton-tag" />
                                 </div>
                             </div>
-                            <div className="row skel-row">
-                                <div className="body">
-                                    <div className="sk sk-title sk-w-80" />
-                                    <div className="meta">
-                                        <span className="sk sk-meta-t" />
-                                        <span className="sk sk-meta-tag" />
-                                        <span className="sk sk-meta-pill" />
+                            <div data-sot-part="skeleton-row">
+                                <div data-sot-part="skeleton-row-body">
+                                    <Skeleton
+                                        data-sot-part="skeleton-title"
+                                        data-sot-size="80"
+                                    />
+                                    <div data-sot-part="skeleton-meta">
+                                        <Skeleton data-sot-part="skeleton-meta-time" />
+                                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                                        <Skeleton data-sot-part="skeleton-meta-pill" />
                                     </div>
                                 </div>
-                                <div className="right" />
+                                <div data-sot-part="skeleton-row-tail" />
                             </div>
                         </div>
                     </section>
                     <section className="detail panel">
-                        <div className="skel-detail" aria-hidden="true">
-                            <div className="player-meta">
-                                <span className="sk sk-av" />
-                                <span className="sk sk-bar" />
+                        <div
+                            data-sot-panel="recording-detail-loading"
+                            aria-hidden="true"
+                        >
+                            <div data-sot-part="detail-player-meta">
+                                <Skeleton data-sot-part="detail-avatar" />
+                                <Skeleton data-sot-part="detail-bar" />
                             </div>
-                            <div className="player-controls">
-                                <span className="sk sk-bar" />
-                                <span className="sk sk-bar sk-w-60" />
+                            <div data-sot-part="detail-player-controls">
+                                <Skeleton data-sot-part="detail-bar" />
+                                <Skeleton
+                                    data-sot-part="detail-bar"
+                                    data-sot-size="60"
+                                />
                             </div>
-                            <div className="transcript-head">
-                                <span className="sk sk-bar" />
+                            <div data-sot-part="detail-transcript-head">
+                                <Skeleton data-sot-part="detail-bar" />
                             </div>
-                            <div className="transcript">
-                                <span className="sk sk-w-90" />
+                            <div data-sot-part="detail-transcript">
+                                <Skeleton
+                                    data-sot-part="detail-bar"
+                                    data-sot-size="90"
+                                />
                             </div>
                         </div>
                     </section>

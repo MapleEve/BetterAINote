@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function RecordingLoading() {
     return (
         <div className="app" aria-busy="true">
@@ -9,20 +11,29 @@ export default function RecordingLoading() {
                     </div>
                 </header>
                 <section className="detail panel">
-                    <div className="skel-detail" aria-hidden="true">
-                        <div className="player-meta">
-                            <span className="sk sk-av" />
-                            <span className="sk sk-bar" />
+                    <div
+                        data-sot-panel="recording-detail-loading"
+                        aria-hidden="true"
+                    >
+                        <div data-sot-part="detail-player-meta">
+                            <Skeleton data-sot-part="detail-avatar" />
+                            <Skeleton data-sot-part="detail-bar" />
                         </div>
-                        <div className="player-controls">
-                            <span className="sk sk-bar" />
-                            <span className="sk sk-bar sk-w-60" />
+                        <div data-sot-part="detail-player-controls">
+                            <Skeleton data-sot-part="detail-bar" />
+                            <Skeleton
+                                data-sot-part="detail-bar"
+                                data-sot-size="60"
+                            />
                         </div>
-                        <div className="transcript-head">
-                            <span className="sk sk-bar" />
+                        <div data-sot-part="detail-transcript-head">
+                            <Skeleton data-sot-part="detail-bar" />
                         </div>
-                        <div className="transcript">
-                            <span className="sk sk-w-90" />
+                        <div data-sot-part="detail-transcript">
+                            <Skeleton
+                                data-sot-part="detail-bar"
+                                data-sot-size="90"
+                            />
                         </div>
                     </div>
                 </section>

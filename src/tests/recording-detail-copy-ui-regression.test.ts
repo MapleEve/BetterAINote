@@ -359,8 +359,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
         expect(loading).toContain('aria-busy="true"');
-        expect(loading).toContain('className="skel-detail"');
-        expect(loading).toContain('className="sk sk-bar"');
+        expect(loading).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(loading).not.toContain('className="skel-detail"');
+        expect(loading).not.toContain('className="sk sk-bar"');
     });
 
     it("keeps speaker review raw transcript copy available from the review toolbar", () => {
