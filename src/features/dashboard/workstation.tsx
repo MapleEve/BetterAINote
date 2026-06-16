@@ -1083,74 +1083,92 @@ function SotSourceReportEmptyIcon() {
 
 function SotRecordingListSkeleton() {
     return (
-        <div className="skel-list" data-sot-panel="recording-list-loading">
-            <div className="day skel-day">
-                <span className="sk sk-day-l" />
-                <span className="line" />
+        <div data-sot-panel="recording-list-loading">
+            <div data-sot-part="skeleton-day">
+                <Skeleton data-sot-part="skeleton-day-label" />
+                <span data-sot-part="skeleton-day-line" />
             </div>
-            <div className="row skel-row">
-                <div className="body">
-                    <div className="sk sk-title" />
-                    <div className="meta">
-                        <span className="sk sk-meta-t" />
-                        <span className="sk sk-meta-tag" />
-                        <span className="sk sk-meta-pill" />
+            <div data-sot-part="skeleton-row">
+                <div data-sot-part="skeleton-row-body">
+                    <Skeleton data-sot-part="skeleton-title" />
+                    <div data-sot-part="skeleton-meta">
+                        <Skeleton data-sot-part="skeleton-meta-time" />
+                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                        <Skeleton data-sot-part="skeleton-meta-pill" />
                     </div>
                 </div>
-                <div className="right">
-                    <span className="sk sk-utag" />
+                <div data-sot-part="skeleton-row-tail">
+                    <Skeleton data-sot-part="skeleton-tag" />
                 </div>
             </div>
-            <div className="row skel-row">
-                <div className="body">
-                    <div className="sk sk-title sk-w-90" />
-                    <div className="meta">
-                        <span className="sk sk-meta-t" />
-                        <span className="sk sk-meta-tag" />
-                        <span className="sk sk-meta-pill sk-w-70" />
+            <div data-sot-part="skeleton-row">
+                <div data-sot-part="skeleton-row-body">
+                    <Skeleton
+                        data-sot-part="skeleton-title"
+                        data-sot-size="90"
+                    />
+                    <div data-sot-part="skeleton-meta">
+                        <Skeleton data-sot-part="skeleton-meta-time" />
+                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                        <Skeleton
+                            data-sot-part="skeleton-meta-pill"
+                            data-sot-size="70"
+                        />
                     </div>
                 </div>
-                <div className="right">
-                    <span className="sk sk-utag" />
+                <div data-sot-part="skeleton-row-tail">
+                    <Skeleton data-sot-part="skeleton-tag" />
                 </div>
             </div>
-            <div className="day skel-day">
-                <span className="sk sk-day-l sk-w-40" />
-                <span className="line" />
+            <div data-sot-part="skeleton-day">
+                <Skeleton
+                    data-sot-part="skeleton-day-label"
+                    data-sot-size="40"
+                />
+                <span data-sot-part="skeleton-day-line" />
             </div>
-            <div className="row skel-row">
-                <div className="body">
-                    <div className="sk sk-title sk-w-80" />
-                    <div className="meta">
-                        <span className="sk sk-meta-t" />
-                        <span className="sk sk-meta-tag" />
-                        <span className="sk sk-meta-pill" />
+            <div data-sot-part="skeleton-row">
+                <div data-sot-part="skeleton-row-body">
+                    <Skeleton
+                        data-sot-part="skeleton-title"
+                        data-sot-size="80"
+                    />
+                    <div data-sot-part="skeleton-meta">
+                        <Skeleton data-sot-part="skeleton-meta-time" />
+                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                        <Skeleton data-sot-part="skeleton-meta-pill" />
                     </div>
                 </div>
-                <div className="right" />
+                <div data-sot-part="skeleton-row-tail" />
             </div>
-            <div className="row skel-row">
-                <div className="body">
-                    <div className="sk sk-title sk-w-70" />
-                    <div className="meta">
-                        <span className="sk sk-meta-t" />
-                        <span className="sk sk-meta-tag" />
+            <div data-sot-part="skeleton-row">
+                <div data-sot-part="skeleton-row-body">
+                    <Skeleton
+                        data-sot-part="skeleton-title"
+                        data-sot-size="70"
+                    />
+                    <div data-sot-part="skeleton-meta">
+                        <Skeleton data-sot-part="skeleton-meta-time" />
+                        <Skeleton data-sot-part="skeleton-meta-tag" />
                     </div>
                 </div>
-                <div className="right">
-                    <span className="sk sk-utag" />
+                <div data-sot-part="skeleton-row-tail">
+                    <Skeleton data-sot-part="skeleton-tag" />
                 </div>
             </div>
-            <div className="row skel-row">
-                <div className="body">
-                    <div className="sk sk-title sk-w-85" />
-                    <div className="meta">
-                        <span className="sk sk-meta-t" />
-                        <span className="sk sk-meta-tag" />
-                        <span className="sk sk-meta-pill" />
+            <div data-sot-part="skeleton-row">
+                <div data-sot-part="skeleton-row-body">
+                    <Skeleton
+                        data-sot-part="skeleton-title"
+                        data-sot-size="85"
+                    />
+                    <div data-sot-part="skeleton-meta">
+                        <Skeleton data-sot-part="skeleton-meta-time" />
+                        <Skeleton data-sot-part="skeleton-meta-tag" />
+                        <Skeleton data-sot-part="skeleton-meta-pill" />
                     </div>
                 </div>
-                <div className="right" />
+                <div data-sot-part="skeleton-row-tail" />
             </div>
         </div>
     );

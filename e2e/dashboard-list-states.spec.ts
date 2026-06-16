@@ -2322,9 +2322,16 @@ test("recording list loading state restores the SOT skeleton list", async ({
     await expect(panel).toHaveAttribute("data-sot-state", "loading");
     const skeleton = panel.locator('[data-sot-panel="recording-list-loading"]');
     await expect(skeleton).toBeVisible();
-    await expect(skeleton.locator(".day.skel-day")).toHaveCount(2);
-    await expect(skeleton.locator(".row.skel-row")).toHaveCount(5);
-    await expect(skeleton.locator(".sk.sk-title")).toHaveCount(5);
+    await expect(skeleton.locator('[data-sot-part="skeleton-day"]')).toHaveCount(
+        2,
+    );
+    await expect(skeleton.locator('[data-sot-part="skeleton-row"]')).toHaveCount(
+        5,
+    );
+    await expect(
+        skeleton.locator('[data-sot-part="skeleton-title"]'),
+    ).toHaveCount(5);
+    await expect(skeleton.locator('[data-slot="skeleton"]')).toHaveCount(24);
     await expect(panel.locator(".list-scroll > .list-state-block")).toHaveCount(0);
 
     releaseDisplaySettings?.();

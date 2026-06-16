@@ -236,12 +236,16 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("data-rec={");
         expect(workstation).not.toContain("function tagClass(");
         expect(workstation).toContain("function SotRecordingListSkeleton()");
-        expect(workstation).toContain('className="skel-list"');
-        expect(workstation).toContain('className="day skel-day"');
-        expect(workstation).toContain('className="row skel-row"');
+        expect(workstation).toContain("<Skeleton");
         expect(workstation).toContain(
             'data-sot-panel="recording-list-loading"',
         );
+        expect(workstation).toContain('data-sot-part="skeleton-row"');
+        expect(workstation).toContain('data-sot-part="skeleton-title"');
+        expect(workstation).not.toContain('className="skel-list"');
+        expect(workstation).not.toContain('className="day skel-day"');
+        expect(workstation).not.toContain('className="row skel-row"');
+        expect(workstation).not.toContain('className="sk sk-title"');
         expect(workstation).toContain('listState === "loading"');
         expect(workstation).toContain("<SotRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");

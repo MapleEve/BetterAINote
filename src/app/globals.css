@@ -2358,7 +2358,8 @@ body[data-time-style="abs"] .real-list .ts-rel {
 /* ===========================================================
    Skeleton placeholders
    =========================================================== */
-.sk {
+.sk,
+[data-slot="skeleton"] {
     display: inline-block;
     vertical-align: middle;
     background: linear-gradient(
@@ -2372,7 +2373,8 @@ body[data-time-style="abs"] .real-list .ts-rel {
     border-radius: 6px;
     height: 12px;
 }
-[data-theme="dark"] .sk {
+[data-theme="dark"] .sk,
+[data-theme="dark"] [data-slot="skeleton"] {
     background: linear-gradient(
         90deg,
         rgb(255 255 255 / 0.05) 0%,
@@ -2454,67 +2456,94 @@ body[data-time-style="abs"] .real-list .ts-rel {
     width: 60%;
 }
 
-.skel-list {
+.skel-list,
+[data-sot-panel="recording-list-loading"] {
     padding: 4px;
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
-.skel-list .skel-day {
+.skel-list .skel-day,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day"] {
     padding: 14px 10px 6px;
     display: flex;
     align-items: center;
     gap: 10px;
 }
-.skel-list .sk-day-l {
+.skel-list .sk-day-l,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day-label"] {
     width: 100px;
     height: 11px;
 }
-.skel-list .skel-day .line {
+.skel-list .skel-day .line,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day-line"] {
     flex: 1;
     height: 1px;
     background: var(--line-hairline);
 }
-.skel-list .skel-row {
+.skel-list .skel-row,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-row"] {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: 14px;
     padding: 11px 12px;
 }
-.skel-list .skel-row .body {
+.skel-list .skel-row .body,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-row-body"] {
     display: flex;
     flex-direction: column;
     gap: 6px;
     min-width: 0;
 }
-.skel-list .skel-row .meta {
+.skel-list .skel-row .meta,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta"] {
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.skel-list .sk-title {
+.skel-list .sk-title,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-title"] {
     width: 100%;
     height: 13px;
 }
-.skel-list .sk-meta-t {
+.skel-list .sk-meta-t,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-time"] {
     width: 80px;
     height: 11px;
 }
-.skel-list .sk-meta-tag {
+.skel-list .sk-meta-tag,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-tag"] {
     width: 64px;
     height: 18px;
     border-radius: 6px;
 }
-.skel-list .sk-meta-pill {
+.skel-list .sk-meta-pill,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-pill"] {
     width: 64px;
     height: 18px;
     border-radius: 999px;
 }
-.skel-list .sk-utag {
+.skel-list .sk-utag,
+[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-tag"] {
     width: 80px;
     height: 22px;
     border-radius: 6px;
+}
+[data-sot-panel="recording-list-loading"] [data-sot-size="90"] {
+    width: 90%;
+}
+[data-sot-panel="recording-list-loading"] [data-sot-size="85"] {
+    width: 85%;
+}
+[data-sot-panel="recording-list-loading"] [data-sot-size="80"] {
+    width: 80%;
+}
+[data-sot-panel="recording-list-loading"] [data-sot-size="70"] {
+    width: 70%;
+}
+[data-sot-panel="recording-list-loading"] [data-sot-size="40"] {
+    width: 40%;
 }
 
 .skel-detail {
