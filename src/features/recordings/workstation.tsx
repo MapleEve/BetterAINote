@@ -7,6 +7,14 @@ import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     Field,
     FieldContent,
     FieldDescription,
@@ -251,36 +259,6 @@ export function RecordingWorkstation({
         recording.sourceProvider,
         recording.tags,
     ]);
-
-    useEffect(() => {
-        if (!moreOpen) {
-            return;
-        }
-
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target;
-            if (
-                target instanceof Node &&
-                moreAnchorRef.current?.contains(target)
-            ) {
-                return;
-            }
-            setMoreOpen(false);
-        };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setMoreOpen(false);
-                moreTriggerRef.current?.focus({ preventScroll: true });
-            }
-        };
-
-        document.addEventListener("pointerdown", handlePointerDown);
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [moreOpen]);
 
     useEffect(() => {
         if (!autoRenameDisabledReason) {
@@ -971,142 +949,150 @@ export function RecordingWorkstation({
                                 data-more-anchor
                                 ref={moreAnchorRef}
                             >
-                                <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    type="button"
-                                    aria-label={t(
-                                        "dashboardChrome.moreActions",
-                                    )}
-                                    aria-haspopup="menu"
-                                    aria-expanded={moreOpen}
-                                    data-more-trigger
-                                    ref={moreTriggerRef}
-                                    onClick={() => setMoreOpen((open) => !open)}
+                                <DropdownMenu
+                                    modal={false}
+                                    open={moreOpen}
+                                    onOpenChange={setMoreOpen}
                                 >
-                                    <svg
-                                        data-icon="inline-start"
-                                        viewBox="0 0 24 24"
-                                        aria-hidden="true"
-                                        focusable="false"
-                                    >
-                                        <circle cx="12" cy="5" r="1" />
-                                        <circle cx="12" cy="12" r="1" />
-                                        <circle cx="12" cy="19" r="1" />
-                                    </svg>
-                                </Button>
-                                <div
-                                    className="more-menu"
-                                    id="recording-detail-more-menu"
-                                    role="menu"
-                                    aria-label={t(
-                                        "dashboardChrome.moreActions",
-                                    )}
-                                    data-more-menu
-                                    data-open={moreOpen ? "true" : "false"}
-                                    data-sot-local-delete-available={
-                                        localDeleteAvailable ? "true" : "false"
-                                    }
-                                    data-sot-state={moreActionsState}
-                                    hidden={!moreOpen}
-                                >
-                                    <button
-                                        className="more-menu-item"
-                                        type="button"
-                                        role="menuitem"
-                                        onClick={handleMoreRename}
-                                    >
-                                        {moreActionsShowPrimaryIcons ? (
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                aria-hidden="true"
-                                                focusable="false"
-                                            >
-                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                            </svg>
-                                        ) : null}
-                                        重命名
-                                    </button>
-                                    <button
-                                        className="more-menu-item"
-                                        type="button"
-                                        role="menuitem"
-                                        onClick={handleMoreAutoRename}
-                                    >
-                                        {moreActionsShowPrimaryIcons ? (
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                aria-hidden="true"
-                                                focusable="false"
-                                            >
-                                                <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-                                            </svg>
-                                        ) : null}
-                                        {t("transcription.aiRename")}
-                                    </button>
-                                    {moreActionsShowRetranscribe ? (
-                                        <button
-                                            className="more-menu-item"
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
                                             type="button"
-                                            role="menuitem"
-                                            onClick={() =>
-                                                void handleMoreRetranscribe()
-                                            }
+                                            aria-label={t(
+                                                "dashboardChrome.moreActions",
+                                            )}
+                                            aria-haspopup="menu"
+                                            aria-expanded={moreOpen}
+                                            data-more-trigger
+                                            ref={moreTriggerRef}
                                         >
-                                            {moreActionsShowPrimaryIcons ? (
-                                                <svg
-                                                    viewBox="0 0 24 24"
-                                                    aria-hidden="true"
-                                                    focusable="false"
-                                                >
-                                                    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                                                    <path d="M3 3v5h5" />
-                                                </svg>
-                                            ) : null}
-                                            {t("transcription.retranscribe")}
-                                        </button>
-                                    ) : null}
-                                    {moreActionsShowSeparator ? (
-                                        <div className="more-menu-sep" />
-                                    ) : null}
-                                    <button
-                                        className="more-menu-item is-danger"
-                                        type="button"
-                                        role="menuitem"
-                                        disabled={!localDeleteAvailable}
-                                        aria-disabled={!localDeleteAvailable}
-                                        onClick={() =>
-                                            void handleDeleteLocalRecording()
-                                        }
-                                    >
-                                        {moreActionsShowDeleteIcon ? (
                                             <svg
+                                                data-icon="inline-start"
                                                 viewBox="0 0 24 24"
                                                 aria-hidden="true"
                                                 focusable="false"
                                             >
-                                                {moreActionsState ===
-                                                "upstream-deleted" ? (
-                                                    <path d="M3 6h18" />
-                                                ) : (
-                                                    <>
-                                                        <path d="M3 6h18" />
-                                                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                        <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                    </>
-                                                )}
+                                                <circle cx="12" cy="5" r="1" />
+                                                <circle cx="12" cy="12" r="1" />
+                                                <circle cx="12" cy="19" r="1" />
                                             </svg>
-                                        ) : null}
-                                        删除本地副本
-                                        {recording.sourceProvider ? (
-                                            <span className="more-menu-hint">
-                                                {recording.upstreamDeleted
-                                                    ? "上游已删除"
-                                                    : "来源持有正本"}
-                                            </span>
-                                        ) : null}
-                                    </button>
-                                </div>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="end"
+                                        sideOffset={6}
+                                        id="recording-detail-more-menu"
+                                        aria-label={t(
+                                            "dashboardChrome.moreActions",
+                                        )}
+                                        data-more-menu
+                                        data-open={moreOpen ? "true" : "false"}
+                                        data-sot-menu="recording-more-actions"
+                                        data-sot-local-delete-available={
+                                            localDeleteAvailable
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        data-sot-state={moreActionsState}
+                                    >
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem
+                                                data-sot-menu-item="rename"
+                                                onSelect={handleMoreRename}
+                                            >
+                                                {moreActionsShowPrimaryIcons ? (
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                                    </svg>
+                                                ) : null}
+                                                重命名
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                data-sot-menu-item="ai-rename"
+                                                onSelect={handleMoreAutoRename}
+                                            >
+                                                {moreActionsShowPrimaryIcons ? (
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+                                                    </svg>
+                                                ) : null}
+                                                {t("transcription.aiRename")}
+                                            </DropdownMenuItem>
+                                            {moreActionsShowRetranscribe ? (
+                                                <DropdownMenuItem
+                                                    data-sot-menu-item="retranscribe"
+                                                    onSelect={() =>
+                                                        void handleMoreRetranscribe()
+                                                    }
+                                                >
+                                                    {moreActionsShowPrimaryIcons ? (
+                                                        <svg
+                                                            viewBox="0 0 24 24"
+                                                            aria-hidden="true"
+                                                            focusable="false"
+                                                        >
+                                                            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                                            <path d="M3 3v5h5" />
+                                                        </svg>
+                                                    ) : null}
+                                                    {t(
+                                                        "transcription.retranscribe",
+                                                    )}
+                                                </DropdownMenuItem>
+                                            ) : null}
+                                            {moreActionsShowSeparator ? (
+                                                <DropdownMenuSeparator data-sot-menu-separator="delete" />
+                                            ) : null}
+                                            <DropdownMenuItem
+                                                data-sot-menu-item="delete-local"
+                                                data-sot-tone="danger"
+                                                disabled={!localDeleteAvailable}
+                                                aria-disabled={
+                                                    !localDeleteAvailable
+                                                }
+                                                onSelect={() =>
+                                                    void handleDeleteLocalRecording()
+                                                }
+                                            >
+                                                {moreActionsShowDeleteIcon ? (
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        {moreActionsState ===
+                                                        "upstream-deleted" ? (
+                                                            <path d="M3 6h18" />
+                                                        ) : (
+                                                            <>
+                                                                <path d="M3 6h18" />
+                                                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                                <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                            </>
+                                                        )}
+                                                    </svg>
+                                                ) : null}
+                                                删除本地副本
+                                                {recording.sourceProvider ? (
+                                                    <span data-sot-menu-hint="">
+                                                        {recording.upstreamDeleted
+                                                            ? "上游已删除"
+                                                            : "来源持有正本"}
+                                                    </span>
+                                                ) : null}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </header>
 

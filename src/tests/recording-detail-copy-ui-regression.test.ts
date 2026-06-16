@@ -236,7 +236,33 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain('className="more-anchor rh-norm"');
         expect(detailWorkstation).toContain("data-more-anchor");
         expect(detailWorkstation).toContain("data-more-trigger");
-        expect(detailWorkstation).toContain('className="more-menu"');
+        expect(detailWorkstation).toContain(
+            'from "@/components/ui/dropdown-menu"',
+        );
+        expect(detailWorkstation).toContain("<DropdownMenu");
+        expect(detailWorkstation).toContain("open={moreOpen}");
+        expect(detailWorkstation).toContain("<DropdownMenuTrigger asChild>");
+        expect(detailWorkstation).toContain("<DropdownMenuContent");
+        expect(detailWorkstation).toContain("data-more-menu");
+        expect(detailWorkstation).toContain(
+            'data-sot-menu="recording-more-actions"',
+        );
+        expect(detailWorkstation).toContain('data-sot-menu-item="rename"');
+        expect(detailWorkstation).toContain('data-sot-menu-item="ai-rename"');
+        expect(detailWorkstation).toContain(
+            'data-sot-menu-item="retranscribe"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-menu-item="delete-local"',
+        );
+        expect(detailWorkstation).toContain('data-sot-tone="danger"');
+        expect(detailWorkstation).toContain("<DropdownMenuSeparator");
+        expect(detailWorkstation).toContain('data-sot-menu-separator="delete"');
+        expect(detailWorkstation).toContain("data-sot-menu-hint");
+        expect(detailWorkstation).not.toContain('className="more-menu"');
+        expect(detailWorkstation).not.toContain('className="more-menu-item"');
+        expect(detailWorkstation).not.toContain('className="more-menu-sep"');
+        expect(detailWorkstation).not.toContain('className="more-menu-hint"');
         expect(detailWorkstation).toContain("handleMoreRetranscribe");
         expect(detailWorkstation).toContain("handleDeleteLocalRecording");
         expect(detailWorkstation).toContain("SotPlayerSourceTag");

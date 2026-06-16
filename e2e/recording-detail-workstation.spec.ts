@@ -5941,7 +5941,9 @@ test("recording detail retranscribe confirmation restores SOT dialog and backend
             exact: true,
         });
         await headerMoreButton.click();
-        const headerMoreMenu = recordingHeader(page).locator(".more-menu");
+        const headerMoreMenu = page.locator(
+            '[data-sot-menu="recording-more-actions"][data-more-menu]',
+        );
         await expect(headerMoreMenu).toHaveAttribute("data-open", "true");
         await expect(
             headerMoreMenu.getByRole("menuitem", {
