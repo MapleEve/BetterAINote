@@ -495,8 +495,16 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("useSettingsSectionBusy");
         expect(content).toContain("isDataSourcesBusy");
         expect(content).toContain('data-sot-list="source-auth-modes"');
+        expect(content).toContain("<ToggleGroup");
+        expect(content).toContain("<ToggleGroupItem");
         expect(content).toContain("data-sot-auth-mode={mode}");
+        expect(content).toContain('data-sot-part="source-auth-mode-title"');
+        expect(content).toContain(
+            'data-sot-part="source-auth-mode-description"',
+        );
         expect(content).toContain("authMode: mode");
+        expect(content).not.toContain('className="path-picker"');
+        expect(content).not.toContain("path-card");
         expect(content).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
         expect(content).toContain('data-sot-part="source-provider-mark"');
         expect(content).toContain("getSourceProviderSettingsLabel");

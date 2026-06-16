@@ -1127,19 +1127,37 @@ function DataSourcesSettingsPanel({
                         ) : null}
 
                         {selectedSource.authModes.length > 1 ? (
-                            <div
-                                className="path-picker"
+                            <ToggleGroup
+                                aria-label={
+                                    isZh ? "选择登录方式" : "Select auth mode"
+                                }
+                                disabled={interactionDisabled}
                                 data-sot-list="source-auth-modes"
+                                onValueChange={(mode) => {
+                                    if (!mode) {
+                                        return;
+                                    }
+                                    updateSource(
+                                        selectedSource.provider,
+                                        (current) => ({
+                                            ...current,
+                                            authMode: mode,
+                                        }),
+                                    );
+                                }}
+                                size="lg"
+                                spacing={2}
+                                type="single"
+                                value={selectedSource.authMode}
+                                variant="outline"
                             >
                                 {selectedSource.authModes.map((mode) => {
                                     const active =
                                         selectedSource.authMode === mode;
 
                                     return (
-                                        <button
+                                        <ToggleGroupItem
                                             key={mode}
-                                            type="button"
-                                            className={`path-card${active ? " active" : ""}`}
                                             aria-pressed={active}
                                             data-sot-auth-mode={mode}
                                             data-sot-control="source-auth-mode"
@@ -1147,23 +1165,15 @@ function DataSourcesSettingsPanel({
                                                 active ? "selected" : "idle"
                                             }
                                             disabled={interactionDisabled}
-                                            onClick={() =>
-                                                updateSource(
-                                                    selectedSource.provider,
-                                                    (current) => ({
-                                                        ...current,
-                                                        authMode: mode,
-                                                    }),
-                                                )
-                                            }
+                                            value={mode}
                                         >
-                                            <span className="pc-t">
+                                            <span data-sot-part="source-auth-mode-title">
                                                 {getSourceAuthModeDisplayLabel(
                                                     mode,
                                                     language,
                                                 )}
                                             </span>
-                                            <span className="pc-h">
+                                            <span data-sot-part="source-auth-mode-description">
                                                 {mode === "web-reverse"
                                                     ? isZh
                                                         ? "网页登录信息。"
@@ -1172,10 +1182,10 @@ function DataSourcesSettingsPanel({
                                                       ? "授权信息。"
                                                       : "Access details."}
                                             </span>
-                                        </button>
+                                        </ToggleGroupItem>
                                     );
                                 })}
-                            </div>
+                            </ToggleGroup>
                         ) : selectedSource.provider !== "dingtalk-a1" ? (
                             <div data-sot-section-group>
                                 <Field orientation="horizontal">

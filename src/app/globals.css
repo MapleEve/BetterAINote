@@ -2983,39 +2983,52 @@ body[data-time-style="abs"] .real-list .ts-rel {
 }
 
 /* Login-path picker (Open Platform vs Web session) */
-.path-picker {
+.path-picker,
+[data-sot-list="source-auth-modes"] {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-bottom: 18px;
+    width: 100%;
 }
-.path-card {
+.path-card,
+[data-sot-control="source-auth-mode"][data-sot-auth-mode] {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: auto;
+    white-space: normal;
     padding: 12px 14px;
     border-radius: 10px;
     cursor: pointer;
     text-align: left;
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
+    box-shadow: none;
+    color: inherit;
 }
-[data-theme="dark"] .path-card {
+[data-theme="dark"] .path-card,
+[data-theme="dark"] [data-sot-control="source-auth-mode"][data-sot-auth-mode] {
     background: rgb(255 255 255 / 0.04);
     border-color: var(--glass-border);
 }
-.path-card.active {
+.path-card.active,
+[data-sot-control="source-auth-mode"][data-sot-state="selected"] {
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
-.path-card .pc-t {
+.path-card .pc-t,
+[data-sot-part="source-auth-mode-title"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.path-card .pc-h {
+.path-card .pc-h,
+[data-sot-part="source-auth-mode-description"] {
     font: 500 11.5px / 1.5 var(--font-sans);
     color: var(--fg-tertiary);
 }
