@@ -125,7 +125,9 @@ describe("dashboard speaker label editor regressions", () => {
     it("exposes a reachable live no-match row state for unmapped open selections", () => {
         expect(source).toContain("const getSpeakerRowState = useCallback(");
         expect(source).toContain("data-state={getSpeakerRowState(speaker)}");
-        expect(source).toContain('return hasLiveNoMatch ? "no-match" : undefined;');
+        expect(source).toContain(
+            'return hasLiveNoMatch ? "no-match" : undefined;',
+        );
         expect(source).toContain("speakerReview.noMatchingSpeakers");
         const rowSubIndex = source.indexOf('className="sp-row-sub mono"');
         expect(rowSubIndex).toBeGreaterThan(-1);
@@ -199,7 +201,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("Record<string, SpeakerSaveError>");
         expect(source).toContain("[rawLabel]: failedPayload");
         expect(source).toContain('return "error";');
-        expect(source).toContain("<ul className=\"sp-rows sp-rows-review\">");
+        expect(source).toContain('<ul className="sp-rows sp-rows-review">');
         expect(source).toContain("<li");
         expect(source).toContain('className="sp-row-sub is-danger"');
         expect(source).toContain("speakerReview.saveFailedRetry");
@@ -237,26 +239,34 @@ describe("dashboard speaker label editor regressions", () => {
     it("keeps speaker save failure retry copy localized", () => {
         expect(i18nSource).toContain('retry: "重试"');
         expect(i18nSource).toContain('retry: "Retry"');
-        expect(i18nSource).toContain(
-            'saveFailedRetry: "保存失败 · 请重试"',
-        );
+        expect(i18nSource).toContain('saveFailedRetry: "保存失败 · 请重试"');
         expect(i18nSource).toContain('saveFailedRetry: "Save failed · retry"');
     });
 
     it("opens the SOT confirm-unlink state before patching a matched speaker", () => {
         expect(source).toContain("confirmUnlinkFor");
-        expect(source).toContain('data-state={');
+        expect(source).toContain("data-state={");
         expect(source).toContain('"confirm-unlink"');
-        expect(source).toContain('className="sp-confirm"');
-        expect(source).toContain('className="sp-confirm-msg"');
+        expect(source).toContain('data-sot-confirm="speaker-unlink"');
+        expect(source).toContain("data-sot-confirm-message");
+        expect(source).toContain("data-sot-confirm-subject");
+        expect(source).toContain('data-sot-confirm-action="cancel"');
+        expect(source).toContain('data-sot-confirm-action="confirm"');
+        expect(source).not.toContain('className="sp-confirm"');
+        expect(source).not.toContain('className="sp-confirm-msg"');
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
         expect(source).toContain('variant="ghost"');
         expect(source).toContain('variant="danger"');
 
-        const confirmStart = source.indexOf('className="sp-confirm"');
-        const confirmEnd = source.indexOf("</div>", confirmStart);
-        const confirmSlice = source.slice(confirmStart, confirmEnd + 6);
+        const confirmStart = source.indexOf(
+            'data-sot-confirm="speaker-unlink"',
+        );
+        const confirmEnd = source.indexOf("</Card>", confirmStart);
+        const confirmSlice = source.slice(
+            confirmStart,
+            confirmEnd + "</Card>".length,
+        );
         const openConfirmIndex = source.indexOf(
             "setConfirmUnlinkFor(\n                                                                    speaker.rawLabel",
             confirmEnd,
@@ -266,7 +276,9 @@ describe("dashboard speaker label editor regressions", () => {
             openConfirmIndex,
         );
 
-        expect(confirmSlice).toMatch(/<em>\s*\{matchedName\}\s*<\/em>/);
+        expect(confirmSlice).toMatch(
+            /<em\s+data-sot-confirm-subject\s*>\s*\{matchedName\}\s*<\/em>/,
+        );
         expect(confirmSlice).toContain(
             "handleAssignProfile(\n                                                                    speaker.rawLabel,\n                                                                    null,",
         );

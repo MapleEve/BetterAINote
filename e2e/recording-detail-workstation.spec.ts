@@ -1248,7 +1248,7 @@ function speakerReviewUnlinkButton(card: Locator) {
 }
 
 function speakerReviewConfirmUnlink(card: Locator) {
-    return card.locator(".sp-confirm");
+    return card.locator('[data-sot-confirm="speaker-unlink"]');
 }
 
 function speakerReviewCancelUnlinkButton(card: Locator) {
@@ -2088,6 +2088,70 @@ function stabilizeSkeletonAnimation(html: string) {
 
 function stabilizeTagManagerPopover(html: string) {
     return `<style>.sot-pixel-stage .tagm-panel{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;pointer-events:auto!important}</style>${html}`;
+}
+
+function appendClassForDataHook(
+    html: string,
+    dataHook: string,
+    className: string,
+) {
+    const tagPattern = new RegExp(`(<[^>]*${dataHook}[^>]*)(>)`);
+    const match = html.match(tagPattern);
+    if (!match || match[1].includes(className)) {
+        return html;
+    }
+
+    const openingTag = match[1];
+    const nextOpeningTag = openingTag.includes(' class="')
+        ? openingTag.replace(/ class="([^"]*)"/, ` class="$1 ${className}"`)
+        : `${openingTag} class="${className}"`;
+
+    return html.replace(tagPattern, `${nextOpeningTag}$2`);
+}
+
+function appendAttributeForClass(
+    html: string,
+    className: string,
+    attribute: string,
+) {
+    const attributeName = attribute.split("=")[0];
+    const tagPattern = new RegExp(
+        `(<[^>]*class="[^"]*\\b${className}\\b[^"]*"[^>]*)(>)`,
+    );
+    const match = html.match(tagPattern);
+    if (!match || match[1].includes(attributeName)) {
+        return html;
+    }
+
+    return html.replace(tagPattern, `$1 ${attribute}$2`);
+}
+
+function bridgeSpeakerUnlinkConfirmSotContract(html: string) {
+    let nextHtml = appendClassForDataHook(
+        html,
+        'data-sot-confirm="speaker-unlink"',
+        "sp-confirm",
+    );
+    nextHtml = appendClassForDataHook(
+        nextHtml,
+        "data-sot-confirm-message",
+        "sp-confirm-msg",
+    );
+    nextHtml = appendAttributeForClass(
+        nextHtml,
+        "sp-confirm",
+        'data-sot-confirm="speaker-unlink"',
+    );
+    nextHtml = appendAttributeForClass(
+        nextHtml,
+        "sp-confirm-msg",
+        "data-sot-confirm-message",
+    );
+
+    return nextHtml.replace(
+        /(<em)(?![^>]*data-sot-confirm-subject)([^>]*>)/,
+        "$1 data-sot-confirm-subject$2",
+    );
 }
 
 async function expectTransformedSotPixelsMatch(
@@ -7059,6 +7123,9 @@ test("SpeakerRow component-library states match product CSS pixels", async ({
                 testInfo,
                 `SpeakerRow component-library ${card.states.join("-")} static state`,
                 stage,
+                card.states.includes("unlink-confirm")
+                    ? bridgeSpeakerUnlinkConfirmSotContract
+                    : undefined,
             );
         }
 
@@ -7074,7 +7141,11 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
     let sotPage: Page | null = null;
     let noSavedSpeakersPage: Page | null = null;
     const pixelMismatches: Array<{ diff: SotPixelDiff; label: string }> = [];
-    const captureLiveSpeakerState = async (label: string, locator: Locator) => {
+    const captureLiveSpeakerState = async (
+        label: string,
+        locator: Locator,
+        transformHtml: (html: string) => string = (html) => html,
+    ) => {
         const diff =
             await expectLiveProductDomUnderSotCssMatchesProductCssPixels(
                 locator.page(),
@@ -7082,6 +7153,7 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
                 testInfo,
                 label,
                 locator,
+                transformHtml,
             );
         if (
             !diff.dimensionsMatch ||
@@ -7128,13 +7200,16 @@ test("live speaker review business states match SOT CSS vs product CSS pixels", 
         );
         await expect(speakerReviewConfirmUnlink(mappedCard)).toBeVisible();
         await expect(
-            speakerReviewConfirmUnlink(mappedCard).locator(".sp-confirm-msg em"),
+            speakerReviewConfirmUnlink(mappedCard).locator(
+                "[data-sot-confirm-subject]",
+            ),
         ).toHaveText(SPEAKER_REVIEW_PROFILE_ZH_NAME);
         await expect(speakerReviewCancelUnlinkButton(mappedCard)).toBeEnabled();
         await expect(speakerReviewConfirmUnlinkButton(mappedCard)).toBeEnabled();
         await captureLiveSpeakerState(
             "live speaker review confirm unlink state",
             speakerReviewMappingField(mappedCard),
+            bridgeSpeakerUnlinkConfirmSotContract,
         );
         await speakerReviewCancelUnlinkButton(mappedCard).click();
         await expect(speakerReviewConfirmUnlink(mappedCard)).toBeHidden();
@@ -7656,7 +7731,7 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeVisible();
         await expect(
             speakerReviewConfirmUnlink(unmappedCard).locator(
-                ".sp-confirm-msg em",
+                "[data-sot-confirm-subject]",
             ),
         ).toHaveText(SPEAKER_REVIEW_PROFILE_LATIN_NAME);
         await expect(speakerReviewCancelUnlinkButton(unmappedCard)).toBeEnabled();
@@ -7729,7 +7804,7 @@ test("recording detail speaker review maps labels and stays stable on narrow scr
         await expect(speakerReviewConfirmUnlink(unmappedCard)).toBeVisible();
         await expect(
             speakerReviewConfirmUnlink(unmappedCard).locator(
-                ".sp-confirm-msg em",
+                "[data-sot-confirm-subject]",
             ),
         ).toHaveText(SPEAKER_REVIEW_CREATED_NAME);
         expect(speakerPatchPayloads).toHaveLength(

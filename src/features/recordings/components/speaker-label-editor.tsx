@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -1387,12 +1388,27 @@ export function SpeakerLabelEditor({
                                             </FieldContent>
                                             {speaker.matchedProfileId ? (
                                                 isConfirmingUnlink ? (
-                                                    <div className="sp-confirm">
-                                                        <p className="sp-confirm-msg">
+                                                    <Card
+                                                        hasNoPadding
+                                                        data-sot-confirm="speaker-unlink"
+                                                        data-sot-confirm-state={
+                                                            isSpeakerSaving
+                                                                ? "saving"
+                                                                : "idle"
+                                                        }
+                                                        aria-busy={
+                                                            isSpeakerSaving
+                                                        }
+                                                    >
+                                                        <p
+                                                            data-sot-confirm-message
+                                                        >
                                                             {t(
                                                                 "speakerReview.confirmUnlinkMessagePrefix",
                                                             )}
-                                                            <em>
+                                                            <em
+                                                                data-sot-confirm-subject
+                                                            >
                                                                 {matchedName}
                                                             </em>
                                                             {t(
@@ -1403,6 +1419,7 @@ export function SpeakerLabelEditor({
                                                             type="button"
                                                             size="sm"
                                                             variant="ghost"
+                                                            data-sot-confirm-action="cancel"
                                                             disabled={
                                                                 isSpeakerSaving
                                                             }
@@ -1418,6 +1435,7 @@ export function SpeakerLabelEditor({
                                                             type="button"
                                                             size="sm"
                                                             variant="danger"
+                                                            data-sot-confirm-action="confirm"
                                                             disabled={
                                                                 isSpeakerSaving
                                                             }
@@ -1432,7 +1450,7 @@ export function SpeakerLabelEditor({
                                                                 "speakerReview.unlink",
                                                             )}
                                                         </Button>
-                                                    </div>
+                                                    </Card>
                                                 ) : (
                                                     <div className="sp-edit-actions">
                                                         <Button
