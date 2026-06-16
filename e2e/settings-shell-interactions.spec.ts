@@ -750,19 +750,26 @@ async function readShellMetrics(locator: Locator) {
                       ),
                   ).map((providerCard) => {
                       const statusElement =
+                          providerCard.querySelector<HTMLElement>(
+                              "[data-sot-provider-status]",
+                          ) ??
                           providerCard.querySelector<HTMLElement>(".sp-status");
+                      const labelElement =
+                          providerCard.querySelector<HTMLElement>(
+                              "[data-sot-provider-name]",
+                          ) ??
+                          providerCard.querySelector<HTMLElement>(".sp-name");
                       const provider =
                           providerCard.getAttribute("data-sot-provider") ??
                           providerCard.getAttribute("data-provider");
 
                       return {
-                          label: textOf(
-                              providerCard.querySelector(".sp-name"),
-                          ),
+                          label: textOf(labelElement),
                           normalizedProvider: normalizeProvider(provider),
                           provider,
                           status:
                               providerCard.getAttribute("data-sot-status") ??
+                              statusElement?.getAttribute("data-sot-status") ??
                               statusFromClass(statusElement),
                           statusLabel: textOf(statusElement),
                       };
@@ -1041,17 +1048,25 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             ),
         ).map((providerCard) => {
             const statusElement =
+                providerCard.querySelector<HTMLElement>(
+                    "[data-sot-provider-status]",
+                ) ??
                 providerCard.querySelector<HTMLElement>(".sp-status");
+            const labelElement =
+                providerCard.querySelector<HTMLElement>(
+                    "[data-sot-provider-name]",
+                ) ?? providerCard.querySelector<HTMLElement>(".sp-name");
             const provider =
                 providerCard.getAttribute("data-sot-provider") ??
                 providerCard.getAttribute("data-provider");
 
             return {
-                label: textOf(providerCard.querySelector(".sp-name")),
+                label: textOf(labelElement),
                 normalizedProvider: normalizeProvider(provider),
                 provider,
                 status:
                     providerCard.getAttribute("data-sot-status") ??
+                    statusElement?.getAttribute("data-sot-status") ??
                     statusFromClass(statusElement),
                 statusLabel: textOf(statusElement),
             };

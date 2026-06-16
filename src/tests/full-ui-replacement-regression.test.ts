@@ -929,6 +929,14 @@ describe("full UI replacement regression coverage", () => {
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
+        expect(settings).toContain("data-sot-provider-card");
+        expect(settings).toContain("data-sot-provider-icon");
+        expect(settings).toContain("data-sot-provider-meta");
+        expect(settings).toContain("data-sot-provider-status");
+        expect(settings).not.toContain("sp-card");
+        expect(settings).not.toContain("sp-ico");
+        expect(settings).not.toContain("sp-meta");
+        expect(settings).not.toContain("sp-status");
         expect(settings).toContain('data-sot-control="source-test"');
         expect(settings).toContain('data-sot-control="source-save"');
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');

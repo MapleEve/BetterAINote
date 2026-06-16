@@ -1272,11 +1272,11 @@ test("data sources settings rail and provider primitives match SOT computed styl
             '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
         );
         await dingtalkTile.click();
-        await expect(dingtalkTile).toHaveClass(/\bactive\b/);
-        await expect(dingtalkTile).not.toHaveClass(/\bdim\b/);
-        await expect(ticnoteTile).not.toHaveClass(/\bdim\b/);
-        await expect(feishuTile).toHaveClass(/\bdim\b/);
-        await expect(iflyrecTile).toHaveClass(/\bdim\b/);
+        await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
+        await expect(dingtalkTile).toHaveAttribute("data-dimmed", "false");
+        await expect(ticnoteTile).toHaveAttribute("data-dimmed", "false");
+        await expect(feishuTile).toHaveAttribute("data-dimmed", "true");
+        await expect(iflyrecTile).toHaveAttribute("data-dimmed", "true");
 
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-card.active"),
@@ -1290,22 +1290,30 @@ test("data sources settings rail and provider primitives match SOT computed styl
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-status.ok").first(),
-            dingtalkTile.locator(".sp-status.ok"),
+            dingtalkTile.locator(
+                '[data-sot-provider-status][data-sot-tone="ok"]',
+            ),
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-status.info").first(),
-            ticnoteTile.locator(".sp-status.info"),
+            ticnoteTile.locator(
+                '[data-sot-provider-status][data-sot-tone="info"]',
+            ),
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-card.dim .sp-status.neu").first(),
-            feishuTile.locator(".sp-status.neu"),
+            feishuTile.locator(
+                '[data-sot-provider-status][data-sot-tone="neu"]',
+            ),
             PROVIDER_STATUS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage.locator("#pcard .sp-card.dim .sp-status.warn").first(),
-            iflyrecTile.locator(".sp-status.warn"),
+            iflyrecTile.locator(
+                '[data-sot-provider-status][data-sot-tone="warn"]',
+            ),
             PROVIDER_STATUS_STYLE_PROPS,
         );
 

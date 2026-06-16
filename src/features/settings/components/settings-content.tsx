@@ -144,13 +144,6 @@ interface ProviderStatus {
     tone: ProviderTone;
 }
 
-function providerStatusClassName(
-    baseClassName: "sp-status",
-    status: ProviderStatus,
-) {
-    return `${baseClassName} ${status.tone}${status.state === "syncing" ? " syncing" : ""}`;
-}
-
 function hasSavedSetup(source: DataSourceDisplayState) {
     return (
         source.connected ||
@@ -483,12 +476,15 @@ function DataSourceProviderTile({
         status.state === "expired";
 
     return (
-        <button
+        <Button
             type="button"
-            className={`sp-card${isSelected ? " active" : ""}${
-                isDimmed ? " dim" : ""
-            }`}
+            variant="ghost"
             aria-pressed={isSelected}
+            data-provider={source.provider}
+            data-selected={isSelected ? "true" : "false"}
+            data-dimmed={isDimmed ? "true" : "false"}
+            data-state={isSelected ? "selected" : "idle"}
+            data-sot-provider-card=""
             data-sot-control="source-provider"
             data-sot-provider={source.provider}
             data-sot-state={isSelected ? "selected" : "idle"}
@@ -497,7 +493,10 @@ function DataSourceProviderTile({
             onClick={onSelect}
         >
             <span
-                className={`sp-ico${source.provider === "feishu-minutes" ? " cover" : ""}`}
+                data-sot-provider-icon=""
+                data-sot-cover={
+                    source.provider === "feishu-minutes" ? "true" : undefined
+                }
                 data-sot-part="source-provider-mark"
             >
                 {source.provider === "iflyrec" ? (
@@ -509,21 +508,28 @@ function DataSourceProviderTile({
                     <Icon aria-hidden="true" />
                 )}
             </span>
-            <span className="sp-meta">
-                <span className="sp-name">{displayName}</span>
-                <span className="sp-hint">
+            <span
+                data-sot-provider-meta=""
+                data-sot-part="source-provider-meta"
+            >
+                <span data-sot-provider-name="">{displayName}</span>
+                <span data-sot-provider-hint="">
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
             </span>
             <Badge
                 variant="outline"
-                className={providerStatusClassName("sp-status", status)}
+                data-sot-provider-status=""
+                data-sot-state={status.state}
+                data-sot-status={status.state}
+                data-sot-tone={status.tone}
+                data-state={status.state}
             >
-                <span className="dot" />
+                <span data-sot-provider-status-dot="" />
                 {status.label}
             </Badge>
-        </button>
+        </Button>
     );
 }
 
