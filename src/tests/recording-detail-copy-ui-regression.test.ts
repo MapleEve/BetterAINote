@@ -426,10 +426,41 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("/rename/auto");
         expect(dashboardWorkstation).toContain("aria-busy={");
         expect(dashboardWorkstation).toContain('aria-label="更多操作"');
-        expect(dashboardWorkstation).toContain('role="menu"');
-        expect(dashboardWorkstation).toContain('role="menuitem"');
-        expect(dashboardWorkstation).toContain('className="more-menu-item"');
-        expect(dashboardWorkstation).toContain('className="more-menu-sep"');
+        expect(dashboardWorkstation).toContain(
+            'from "@/components/ui/dropdown-menu"',
+        );
+        expect(dashboardWorkstation).toContain("<DropdownMenu");
+        expect(dashboardWorkstation).toContain("open={moreOpen}");
+        expect(dashboardWorkstation).toContain("onOpenChange={(open) =>");
+        expect(dashboardWorkstation).toContain("<DropdownMenuTrigger asChild>");
+        expect(dashboardWorkstation).toContain("<DropdownMenuContent");
+        expect(dashboardWorkstation).toContain(
+            'data-sot-menu="recording-more-actions"',
+        );
+        expect(dashboardWorkstation).toContain('data-sot-menu-item="rename"');
+        expect(dashboardWorkstation).toContain(
+            'data-sot-menu-item="ai-rename"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'data-sot-menu-item="retranscribe"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'data-sot-menu-item="delete-local"',
+        );
+        expect(dashboardWorkstation).toContain('data-sot-tone="danger"');
+        expect(dashboardWorkstation).toContain("<DropdownMenuSeparator");
+        expect(dashboardWorkstation).toContain(
+            'data-sot-menu-separator="delete"',
+        );
+        expect(dashboardWorkstation).toContain("data-sot-menu-hint");
+        expect(dashboardWorkstation).not.toContain('className="more-menu"');
+        expect(dashboardWorkstation).not.toContain(
+            'className="more-menu-item"',
+        );
+        expect(dashboardWorkstation).not.toContain('className="more-menu-sep"');
+        expect(dashboardWorkstation).not.toContain(
+            'className="more-menu-hint"',
+        );
         expect(dashboardWorkstation).toContain("AI 重命名");
         expect(dashboardWorkstation).toContain("重新转写");
         expect(dashboardWorkstation).toContain("来源持有正本");
