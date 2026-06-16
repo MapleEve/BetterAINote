@@ -270,19 +270,18 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
     return (
         <main
-            className="onboarding-sot-canvas"
             data-sot-layout="onboarding-workstation"
             data-sot-ready={isMounted ? "true" : "false"}
             data-sot-surface="onboarding"
         >
-            <section className="card">
-                <div className="card-h">上手 / Onboarding · 4 步</div>
-                <div className="card-sub">
+            <Card hasNoPadding data-sot-card="onboarding">
+                <div data-sot-part="card-heading">上手 / Onboarding · 4 步</div>
+                <div data-sot-part="card-sub">
                     连接来源 → 选默认转写 → 设置说话人档案 → 完成
                 </div>
                 <div
-                    className="frame"
                     data-pct={progressPct}
+                    data-sot-frame="onboarding"
                     data-sot-panel="onboarding-current"
                     data-sot-provider={provider}
                     data-sot-state={isFinishing ? "saving" : onboardingState}
@@ -405,7 +404,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         ) : null}
                     </div>
                 </div>
-            </section>
+            </Card>
         </main>
     );
 }

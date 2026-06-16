@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 import {
@@ -102,85 +103,88 @@ export function LoginForm({
 
     return (
         <main
-            className="auth-sot-canvas"
             data-sot-layout="auth-workstation"
             data-sot-surface={`${intent}-workstation`}
         >
-            <form
-                className="card"
+            <Card
+                hasNoPadding
+                data-sot-card="auth"
                 data-sot-surface={surfaceName}
                 data-sot-ready={isMounted ? "true" : "false"}
                 data-sot-state={surfaceState}
-                onSubmit={handleSubmit}
             >
-                <div className="card-h">{cardHeading}</div>
-                <div className="card-sub">邮箱 + 链接 · 不要密码</div>
-                <div className="frame" data-sot-frame="auth">
-                    <img
-                        className="auth-mark"
-                        src="/assets/logo-mark-steel.svg"
-                        alt=""
-                    />{" "}
-                    <div className="auth-title">{title}</div>
-                    <div className="auth-sub">{subtitle}</div>
-                    <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        defaultValue=""
-                        required
-                        disabled={!isMounted || isLoading}
-                        autoComplete="email"
-                        aria-invalid={invalid}
-                        className="mx-auto mb-2 max-w-[280px]"
-                        data-sot-control="auth-email"
-                        data-sot-state={
-                            invalid
-                                ? "error"
-                                : isLoading || isLocalLoading
-                                  ? "saving"
-                                  : "ready"
-                        }
-                        placeholder="mei@example.com"
-                    />
-                    {formState ? (
-                        <div
-                            className={cn(
-                                "field-help",
-                                formState.kind === "error" ? "err" : "ok",
-                            )}
-                            role={
-                                formState.kind === "error" ? "alert" : "status"
+                <form onSubmit={handleSubmit}>
+                    <div data-sot-part="card-heading">{cardHeading}</div>
+                    <div data-sot-part="card-sub">邮箱 + 链接 · 不要密码</div>
+                    <div data-sot-frame="auth">
+                        <img
+                            className="auth-mark"
+                            src="/assets/logo-mark-steel.svg"
+                            alt=""
+                        />{" "}
+                        <div className="auth-title">{title}</div>
+                        <div className="auth-sub">{subtitle}</div>
+                        <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            defaultValue=""
+                            required
+                            disabled={!isMounted || isLoading}
+                            autoComplete="email"
+                            aria-invalid={invalid}
+                            className="mx-auto mb-2 max-w-[280px]"
+                            data-sot-control="auth-email"
+                            data-sot-state={
+                                invalid
+                                    ? "error"
+                                    : isLoading || isLocalLoading
+                                      ? "saving"
+                                      : "ready"
                             }
-                            data-auth-form-state={formState.kind}
+                            placeholder="mei@example.com"
+                        />
+                        {formState ? (
+                            <div
+                                className={cn(
+                                    "field-help",
+                                    formState.kind === "error" ? "err" : "ok",
+                                )}
+                                role={
+                                    formState.kind === "error"
+                                        ? "alert"
+                                        : "status"
+                                }
+                                data-auth-form-state={formState.kind}
+                            >
+                                {formState.message}
+                            </div>
+                        ) : null}
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={!isMounted || isLoading}
+                            aria-busy={isLoading}
+                            data-sot-control="send-login-link"
                         >
-                            {formState.message}
+                            {isLoading ? "发送中..." : "发送登录链接"}
+                        </Button>
+                        <div className="auth-local-row">
+                            或{" "}
+                            <button
+                                type="button"
+                                className="auth-local-link"
+                                disabled={!isMounted || isLocalLoading}
+                                aria-busy={isLocalLoading}
+                                data-sot-control="local-only"
+                                onClick={() => void handleLocalUse()}
+                            >
+                                {isLocalLoading ? "启动中..." : "仅本地使用"}
+                            </button>
                         </div>
-                    ) : null}
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        disabled={!isMounted || isLoading}
-                        aria-busy={isLoading}
-                        data-sot-control="send-login-link"
-                    >
-                        {isLoading ? "发送中..." : "发送登录链接"}
-                    </Button>
-                    <div className="auth-local-row">
-                        或{" "}
-                        <button
-                            type="button"
-                            className="auth-local-link"
-                            disabled={!isMounted || isLocalLoading}
-                            aria-busy={isLocalLoading}
-                            data-sot-control="local-only"
-                            onClick={() => void handleLocalUse()}
-                        >
-                            {isLocalLoading ? "启动中..." : "仅本地使用"}
-                        </button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </Card>
         </main>
     );
 }

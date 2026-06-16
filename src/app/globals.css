@@ -1616,27 +1616,33 @@ button {
 }
 
 /* ======== System reference cards / auth / onboarding ======== */
-.card {
+.card,
+[data-sot-card] {
+    display: block;
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
     border-radius: 14px;
     padding: 18px;
     box-shadow: var(--shadow-xs);
 }
-.card + .card {
+.card + .card,
+[data-sot-card] + [data-sot-card] {
     margin-top: 14px;
 }
-.card-h {
+.card-h,
+[data-sot-part="card-heading"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
     margin: 0 0 4px;
 }
-.card-h + .card-sub {
+.card-h + .card-sub,
+[data-sot-part="card-heading"] + [data-sot-part="card-sub"] {
     font: 12px / 1.5 var(--font-sans);
     color: var(--fg-tertiary);
     margin: 0 0 14px;
 }
-.frame {
+.frame,
+[data-sot-frame] {
     background: var(--bg-canvas);
     border: 1px solid var(--line-hairline);
     border-radius: 12px;
@@ -1653,7 +1659,9 @@ button {
     color: var(--signal-success);
 }
 .auth-sot-canvas,
-.onboarding-sot-canvas {
+.onboarding-sot-canvas,
+[data-sot-layout="auth-workstation"],
+[data-sot-layout="onboarding-workstation"] {
     min-height: 100svh;
     display: grid;
     place-items: center;
@@ -1661,7 +1669,8 @@ button {
     background: var(--bg-canvas);
     color: var(--fg-primary);
 }
-.auth-sot-canvas > .card {
+.auth-sot-canvas > .card,
+[data-sot-card="auth"] {
     width: min(420px, 100%);
     min-height: 388.75px;
 }
@@ -1710,10 +1719,12 @@ button {
     color: var(--fg-disabled);
     cursor: not-allowed;
 }
-.onboarding-sot-canvas > .card {
+.onboarding-sot-canvas > .card,
+[data-sot-card="onboarding"] {
     width: min(420px, 100%);
 }
-.onboarding-sot-canvas .frame {
+.onboarding-sot-canvas .frame,
+[data-sot-frame="onboarding"] {
     padding: 18px;
 }
 .onboarding-progress {

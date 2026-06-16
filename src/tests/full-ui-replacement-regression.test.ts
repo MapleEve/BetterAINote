@@ -713,10 +713,16 @@ describe("full UI replacement regression coverage", () => {
         );
 
         expect(login).toContain('data-sot-layout="auth-workstation"');
+        expect(login).toContain('import { Card } from "@/components/ui/card";');
+        expect(login).toContain("<Card");
+        expect(login).toContain('data-sot-card="auth"');
         expect(login).toContain("data-sot-surface={surfaceName}");
         expect(login).toContain("data-sot-state={surfaceState}");
-        expect(login).toContain('className="card"');
-        expect(login).toContain('className="frame"');
+        expect(login).toContain('data-sot-frame="auth"');
+        expect(login).toContain('data-sot-part="card-heading"');
+        expect(login).not.toContain('className="auth-sot-canvas"');
+        expect(login).not.toContain('className="card"');
+        expect(login).not.toContain('className="frame"');
         expect(login).toContain(
             'import { Input } from "@/components/ui/input";',
         );
@@ -745,8 +751,13 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-layout="onboarding-workstation"',
         );
         expect(onboarding).toContain('data-sot-surface="onboarding"');
-        expect(onboarding).toContain('className="card"');
-        expect(onboarding).toContain('className="frame"');
+        expect(onboarding).toContain("<Card");
+        expect(onboarding).toContain('data-sot-card="onboarding"');
+        expect(onboarding).toContain('data-sot-frame="onboarding"');
+        expect(onboarding).toContain('data-sot-part="card-heading"');
+        expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
+        expect(onboarding).not.toContain('className="card"');
+        expect(onboarding).not.toContain('className="frame"');
         expect(onboarding).toContain('className="onboarding-progress"');
         expect(onboarding).toContain('data-sot-panel="onboarding-steps"');
         expect(onboarding).toContain('data-sot-panel="onboarding-current"');

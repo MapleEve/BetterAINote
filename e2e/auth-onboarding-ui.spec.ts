@@ -745,7 +745,7 @@ async function captureOnboardingDefaultSourcePixelEvidence(
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
             page,
             stageWidth: 420,
-            targetSelector: ".onboarding-sot-canvas > .card",
+            targetSelector: '[data-sot-card="onboarding"]',
         }),
     ]);
     const diff = await compareSotPixels(
@@ -761,7 +761,7 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         fixture: {
             productStageWidth: 420,
             sotStageWidth: 856,
-            targetSelector: '[data-sot-layout="onboarding-workstation"] > .card',
+            targetSelector: '[data-sot-card="onboarding"]',
         },
         pixelDiff: diff,
         residual: {
@@ -1019,7 +1019,7 @@ async function expectOnboardingDefaultSourcePixelsMatch(
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
             page,
             stageWidth: 420,
-            targetSelector: ".onboarding-sot-canvas > .card",
+            targetSelector: '[data-sot-card="onboarding"]',
         }),
     ]);
     const diff = await compareSotPixels(
@@ -1148,7 +1148,7 @@ test("SOT onboarding default source card matches §09 pixels", async ({
             page,
             testInfo,
             sotPage,
-            page.locator('[data-sot-layout="onboarding-workstation"] > .card'),
+            page.locator('[data-sot-card="onboarding"]'),
         );
     } finally {
         await sotPage.close();
@@ -1183,7 +1183,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         const loginCard = page.locator('[data-sot-surface="auth-login"]');
         await expect(loginCard).toHaveAttribute("data-sot-state", "idle");
         await expect(
-            loginCard.locator('[data-sot-frame="auth"].frame'),
+            loginCard.locator('[data-sot-frame="auth"]'),
         ).toBeVisible();
         await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
         frames.push({
@@ -1222,7 +1222,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await sotControl(page, "auth-email").fill("mei@example.com");
         const mobileLoginCard = page.locator('[data-sot-surface="auth-login"]');
         await expect(
-            mobileLoginCard.locator('[data-sot-frame="auth"].frame'),
+            mobileLoginCard.locator('[data-sot-frame="auth"]'),
         ).toBeVisible();
         await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
         frames.push({
@@ -1254,7 +1254,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await forceDarkTheme(page);
         await goToOnboardingState(page, "transcription");
         const onboardingCard = page.locator(
-            '[data-sot-layout="onboarding-workstation"] > .card',
+            '[data-sot-card="onboarding"]',
         );
         const onboardingPanel = currentOnboardingPanel(page);
         await expect(onboardingPanel).toHaveAttribute(
@@ -1297,7 +1297,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
         await forceDarkTheme(page);
         await goToOnboardingState(page, "transcription");
         const mobileOnboardingCard = page.locator(
-            '[data-sot-layout="onboarding-workstation"] > .card',
+            '[data-sot-card="onboarding"]',
         );
         await expect(currentOnboardingPanel(page)).toHaveAttribute(
             "data-sot-state",
@@ -1524,10 +1524,10 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     const emailInput = sotControl(page, "auth-email");
     await expect(page.locator('[data-sot-layout="auth-workstation"]')).toBeVisible();
     await expect(form).toBeVisible();
-    await expect(form).toHaveClass(/card/);
+    await expect(form).toHaveAttribute("data-sot-card", "auth");
     await expect(form).toHaveAttribute("data-sot-state", "idle");
-    await expect(form.locator(".card-h")).toContainText("登录 / Sign in");
-    await expect(form.locator('[data-sot-frame="auth"].frame')).toBeVisible();
+    await expect(form.locator('[data-sot-part="card-heading"]')).toContainText("登录 / Sign in");
+    await expect(form.locator('[data-sot-frame="auth"]')).toBeVisible();
     await expect(emailInput).toBeEditable();
     await expect(emailInput).toHaveAttribute("data-slot", "input");
     await expect(emailInput).toHaveAttribute("aria-invalid", "false");
@@ -1606,8 +1606,8 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
 
     const panel = currentOnboardingPanel(page);
     await expect(page.locator('[data-sot-layout="onboarding-workstation"]')).toBeVisible();
-    await expect(page.locator('[data-sot-layout="onboarding-workstation"] > .card')).toBeVisible();
-    await expect(panel).toHaveClass(/frame/);
+    await expect(page.locator('[data-sot-card="onboarding"]')).toBeVisible();
+    await expect(panel).toHaveAttribute("data-sot-frame", "onboarding");
     await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
     await expect(sotPanel(page, "onboarding-steps")).toBeVisible();
     await expect(sotControl(page, "onboarding-step")).toHaveCount(4);
