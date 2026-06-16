@@ -2923,17 +2923,95 @@ body[data-time-style="abs"] .real-list .ts-rel {
     position: relative;
     display: inline-flex;
 }
-.notif-trigger {
+[data-sot-control="dashboard-activity"],
+.activity-pixel-stage .notif-trigger {
     position: relative;
 }
-.notif-badge {
+.activity-pixel-stage .icon-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.activity-pixel-stage .icon-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.activity-pixel-stage .btn {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--line-hairline);
+    border-radius: 9px;
+    background: var(--bg-elevated);
+    color: var(--fg-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    font: 600 12.5px var(--font-sans);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+.activity-pixel-stage .btn.ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--fg-secondary);
+    box-shadow: none;
+}
+.activity-pixel-stage .btn.btn-sm {
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+}
+.activity-pixel-stage .btn[disabled],
+.activity-pixel-stage .btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.activity-pixel-stage .btn[aria-busy="true"] {
+    pointer-events: none;
+}
+.activity-pixel-stage .btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.activity-pixel-stage .notif-close {
+    width: 26px;
+    height: 26px;
+}
+.activity-pixel-stage .notif-close svg {
+    width: 12px;
+    height: 12px;
+}
+[data-sot-part="dashboard-activity-badge"],
+.activity-pixel-stage .notif-badge {
     position: absolute;
     top: 2px;
     right: 2px;
     display: inline-flex;
     pointer-events: none;
 }
-.notif-trigger[data-unread="0"] .notif-badge {
+[data-sot-control="dashboard-activity"][data-unread="0"]
+    [data-sot-part="dashboard-activity-badge"],
+.activity-pixel-stage .notif-trigger[data-unread="0"] .notif-badge {
     display: none;
 }
 .notif-panel {
@@ -4119,7 +4197,9 @@ body[data-drawer="open"] .drawer-scrim {
         max-height: calc(100dvh - 96px);
     }
 }
-.notif-trigger .notif-badge {
+[data-sot-control="dashboard-activity"]
+    [data-sot-part="dashboard-activity-badge"],
+.activity-pixel-stage .notif-trigger .notif-badge {
     min-width: 16px;
     height: 16px;
     padding: 0 4px;
@@ -8157,7 +8237,8 @@ body[data-source-filter=""] .stack-strip {
     font: 500 11px / 1 var(--font-mono);
     color: var(--fg-tertiary);
 }
-.inline-progress [data-sot-part="inline-progress-track"] {
+.inline-progress [data-sot-part="inline-progress-track"],
+.activity-pixel-stage .inline-progress .inp-track {
     position: relative;
     height: 4px;
     width: 80px;
@@ -8165,7 +8246,8 @@ body[data-source-filter=""] .stack-strip {
     background: color-mix(in srgb, var(--fg-tertiary) 18%, transparent);
     overflow: hidden;
 }
-.inline-progress [data-sot-part="inline-progress-bar"] {
+.inline-progress [data-sot-part="inline-progress-bar"],
+.activity-pixel-stage .inline-progress .inp-bar {
     position: absolute;
     inset: 0 auto 0 0;
     background: var(--signal-info);
@@ -8193,10 +8275,12 @@ body[data-source-filter=""] .stack-strip {
 .inline-progress[data-pct="100"] [data-sot-part="inline-progress-bar"] {
     width: 100%;
 }
-.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
+.inline-progress.indeterminate [data-sot-part="inline-progress-track"],
+.activity-pixel-stage .inline-progress.indeterminate .inp-track {
     background: color-mix(in srgb, var(--signal-info) 14%, transparent);
 }
-.inline-progress.indeterminate [data-sot-part="inline-progress-bar"] {
+.inline-progress.indeterminate [data-sot-part="inline-progress-bar"],
+.activity-pixel-stage .inline-progress.indeterminate .inp-bar {
     width: 36%;
     animation: sbn-sweep 1.4s linear infinite;
     background: linear-gradient(
@@ -9113,7 +9197,8 @@ select::-ms-expand {
 /* ============================================================
    4) Make the inline progress sweep visible against light bg
    ============================================================ */
-.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
+.inline-progress.indeterminate [data-sot-part="inline-progress-track"],
+.activity-pixel-stage .inline-progress.indeterminate .inp-track {
     background: color-mix(in srgb, var(--signal-info) 16%, transparent);
 }
 

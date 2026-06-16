@@ -4237,7 +4237,6 @@ export function Workstation({
                                 ref={activityTriggerRef}
                                 variant="ghost"
                                 size="icon-sm"
-                                className="notif-trigger"
                                 type="button"
                                 aria-label={t("activityOverlay.open")}
                                 aria-expanded={activityOpen}
@@ -4256,10 +4255,7 @@ export function Workstation({
                                 }}
                             >
                                 <Bell data-icon="inline-start" />
-                                <span
-                                    className="notif-badge"
-                                    data-sot-part="dashboard-activity-badge"
-                                >
+                                <span data-sot-part="dashboard-activity-badge">
                                     {activityBadgeCount > 99
                                         ? "99+"
                                         : activityBadgeCount}
