@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudDownload } from "lucide-react";
+import { CloudDownload, LoaderCircle } from "lucide-react";
 import {
     type ReactNode,
     useCallback,
@@ -1031,7 +1031,10 @@ export function SourceReportPanel({
                 >
                     {isLoading ? (
                         <>
-                            <span className="btn-spinner" aria-hidden="true" />
+                            <LoaderCircle
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
                             {t("sourceReport.loadingDetail")}
                         </>
                     ) : (

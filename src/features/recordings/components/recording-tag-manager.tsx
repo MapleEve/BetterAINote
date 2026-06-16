@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -437,11 +438,13 @@ export function RecordingTagManager({
                                         data-sot-tag-icon={tag.icon}
                                         data-sot-tag-id={tag.id}
                                         data-sot-tag-name={tag.name}
+                                        data-busy={saving ? "true" : "false"}
                                         className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
                                     >
                                         {saving ? (
-                                            <span
-                                                className="btn-spinner"
+                                            <LoaderCircle
+                                                className="tg-ico"
+                                                data-icon="inline-start"
                                                 aria-hidden="true"
                                             />
                                         ) : null}
@@ -634,8 +637,8 @@ export function RecordingTagManager({
                             onClick={() => void handleDeleteTag()}
                         >
                             {deletingTagId === deleteTarget.id ? (
-                                <span
-                                    className="btn-spinner"
+                                <LoaderCircle
+                                    data-icon="inline-start"
                                     aria-hidden="true"
                                 />
                             ) : null}
@@ -775,8 +778,8 @@ export function RecordingTagManager({
                             onClick={() => void handleCreateTag()}
                         >
                             {isCreating ? (
-                                <span
-                                    className="btn-spinner"
+                                <LoaderCircle
+                                    data-icon="inline-start"
                                     aria-hidden="true"
                                 />
                             ) : null}
@@ -912,8 +915,9 @@ export function RecordingTagManager({
                                                     className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
                                                 >
                                                     {saving ? (
-                                                        <span
-                                                            className="btn-spinner"
+                                                        <LoaderCircle
+                                                            className="tg-ico"
+                                                            data-icon="inline-start"
                                                             aria-hidden="true"
                                                         />
                                                     ) : (

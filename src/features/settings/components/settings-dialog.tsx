@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import {
     addBrowserWindowEventListener,
@@ -552,17 +553,23 @@ export function SettingsDialog(props: SettingsDialogProps) {
                             </div>
                         </div>
 
-                        <DialogClose
-                            className="icon-btn ghost-btn"
-                            aria-label={t("settingsDialog.close")}
-                            data-sot-control="settings-close"
-                            data-sot-state={isSettingsBusy ? "busy" : "idle"}
-                            onClick={handleCloseSettings}
-                            onKeyDown={handleCloseKeyDown}
-                            disabled={isSettingsBusy}
-                            type="button"
-                        >
-                            <X aria-hidden="true" />
+                        <DialogClose asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={t("settingsDialog.close")}
+                                data-sot-control="settings-close"
+                                data-sot-state={
+                                    isSettingsBusy ? "busy" : "idle"
+                                }
+                                data-state={isSettingsBusy ? "busy" : "idle"}
+                                onClick={handleCloseSettings}
+                                onKeyDown={handleCloseKeyDown}
+                                disabled={isSettingsBusy}
+                                type="button"
+                            >
+                                <X aria-hidden="true" />
+                            </Button>
                         </DialogClose>
                     </header>
 

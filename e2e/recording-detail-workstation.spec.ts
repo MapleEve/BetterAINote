@@ -8338,7 +8338,9 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         await expect(tagsPanel.locator(".tagm-sel-chip")).toHaveCount(0);
         await expect(tagsPanel.locator(".tagm-create")).toHaveCount(0);
         await expect(tagsPanel.locator(".tagm-opt")).toHaveCount(2);
-        await expect(tagsPanel.locator(".btn-spinner")).toHaveCount(1);
+        await expect(tagsPanel.locator('.tagm-opt[data-busy="true"]')).toHaveCount(
+            1,
+        );
 
         const sotSavingPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Saving") .tagm-panel')
