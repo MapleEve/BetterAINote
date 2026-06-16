@@ -1250,10 +1250,10 @@ test("dashboard Activity controls match SOT component-library pixels", async ({
 
     const runtimeTrigger = sotControl(page, "dashboard-activity");
     await expect(runtimeTrigger).toBeVisible();
-    await expect(runtimeTrigger).toHaveAttribute(
-        "class",
-        "icon-btn notif-trigger",
-    );
+    await expect(runtimeTrigger).toHaveAttribute("data-slot", "button");
+    await expect(runtimeTrigger).toHaveAttribute("data-variant", "ghost");
+    await expect(runtimeTrigger).toHaveAttribute("data-size", "icon-sm");
+    await expect(runtimeTrigger).toHaveClass(/notif-trigger/);
     await expect(
         runtimeTrigger.locator('[data-sot-part="dashboard-activity-badge"]'),
     ).toHaveClass("notif-badge");

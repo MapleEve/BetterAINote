@@ -787,9 +787,12 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'className="avatar"\n                            type="button"',
         );
-        expect(workstation).not.toContain(
-            'className="icon-btn"\n                            type="button"\n                            aria-label="设置"',
-        );
+        expect(workstation).toContain("<Button");
+        expect(workstation).toContain('variant="ghost"');
+        expect(workstation).toContain('size="icon-sm"');
+        expect(workstation).toContain('size="icon-lg"');
+        expect(workstation).toContain('className="player-seek"');
+        expect(workstation).toContain('data-icon="inline-start"');
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("listMode");
         expect(workstation).toContain("detailTab");
@@ -907,6 +910,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain("<Button");
         expect(tagManager).toContain("<Input");
+        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
+        expect(tagManager).toContain('variant="primary"');
+        expect(tagManager).toContain('size="icon-sm"');
+        expect(tagManager).not.toContain("tagm-add-btn");
         expect(tagManager).not.toContain("mergeTagManagerClassName");
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");

@@ -969,8 +969,9 @@ export function RecordingWorkstation({
                                 data-more-anchor
                                 ref={moreAnchorRef}
                             >
-                                <button
-                                    className="icon-btn"
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
                                     type="button"
                                     aria-label={t(
                                         "dashboardChrome.moreActions",
@@ -982,6 +983,7 @@ export function RecordingWorkstation({
                                     onClick={() => setMoreOpen((open) => !open)}
                                 >
                                     <svg
+                                        data-icon="inline-start"
                                         viewBox="0 0 24 24"
                                         aria-hidden="true"
                                         focusable="false"
@@ -990,7 +992,7 @@ export function RecordingWorkstation({
                                         <circle cx="12" cy="12" r="1" />
                                         <circle cx="12" cy="19" r="1" />
                                     </svg>
-                                </button>
+                                </Button>
                                 <div
                                     className="more-menu"
                                     id="recording-detail-more-menu"

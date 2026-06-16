@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import {
     formatSotPlayerDate,
@@ -35,20 +36,6 @@ interface RecordingPlayerProps {
 const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
     "--font-mono":
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-};
-
-const sotTransportButtonStyle: CSSProperties = {
-    paddingLeft: 6,
-    paddingRight: 6,
-};
-
-const sotSeekSliderInputStyle: CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    margin: 0,
-    opacity: 0,
 };
 
 const sotVolumeSliderRootStyle: CSSProperties = {
@@ -176,8 +163,10 @@ export function RecordingPlayer({
                 data-sot-panel="recording-player-controls"
                 data-sot-state={controlsState}
             >
-                <button
-                    className="round-btn"
+                <Button
+                    className="rounded-full"
+                    variant="ghost"
+                    size="icon-sm"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
@@ -186,13 +175,14 @@ export function RecordingPlayer({
                     data-sot-state={controlState}
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(-5)}
-                    style={sotTransportButtonStyle}
                 >
                     <SotPlayerBackIcon />
-                </button>
+                </Button>
 
-                <button
-                    className="round-btn play"
+                <Button
+                    className="rounded-full"
+                    variant="default"
+                    size="icon"
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -216,10 +206,12 @@ export function RecordingPlayer({
                     }
                 >
                     {isPlaying ? <SotPlayerPauseIcon /> : <SotPlayerPlayIcon />}
-                </button>
+                </Button>
 
-                <button
-                    className="round-btn"
+                <Button
+                    className="rounded-full"
+                    variant="ghost"
+                    size="icon-sm"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
@@ -228,10 +220,9 @@ export function RecordingPlayer({
                     data-sot-state={controlState}
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(5)}
-                    style={sotTransportButtonStyle}
                 >
                     <SotPlayerForwardIcon />
-                </button>
+                </Button>
 
                 <span
                     className="time mono"
@@ -241,7 +232,10 @@ export function RecordingPlayer({
                 </span>
 
                 <Slider
-                    className={playbackDisabled ? "track is-disabled" : "track"}
+                    className={cn(
+                        "min-w-0 flex-1",
+                        playbackDisabled ? "cursor-default" : "cursor-pointer",
+                    )}
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
@@ -289,14 +283,8 @@ export function RecordingPlayer({
                         tabIndex: playbackDisabled ? -1 : 0,
                     }}
                     step={1}
-                    style={{
-                        ...sotSeekSliderInputStyle,
-                        cursor: playbackDisabled ? "default" : "pointer",
-                    }}
-                    tabIndex={-1}
                     thumbProps={{ "data-pct": playerProgressPct }}
                     value={[progress]}
-                    aria-hidden="true"
                 />
 
                 <span
@@ -311,7 +299,7 @@ export function RecordingPlayer({
                     onClick={cyclePlaybackSpeed}
                     variant="ghost"
                     size="sm"
-                    className="speed"
+                    className="min-w-12 font-mono tabular-nums"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -326,8 +314,10 @@ export function RecordingPlayer({
                 </Button>
 
                 <div className="vol-anchor">
-                    <button
-                        className="round-btn small"
+                    <Button
+                        className="rounded-full"
+                        variant="ghost"
+                        size="icon-sm"
                         type="button"
                         aria-label={
                             language === "zh-CN"
@@ -356,7 +346,7 @@ export function RecordingPlayer({
                         onClick={() => setVolumeOpen((open) => !open)}
                     >
                         <SotPlayerVolumeIcon volume={volume} />
-                    </button>
+                    </Button>
                     <div
                         className="vol-pop"
                         data-open={volumePopoverOpen ? "true" : "false"}

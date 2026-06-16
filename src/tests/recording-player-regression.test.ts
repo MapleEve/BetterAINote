@@ -56,6 +56,10 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/components/ui/slider.tsx"),
             "utf8",
         );
+        const buttonSource = readFileSync(
+            path.join(process.cwd(), "src/components/ui/button.tsx"),
+            "utf8",
+        );
 
         expect(source).toContain('className="player"');
         expect(source).not.toContain("data-has-no-padding");
@@ -63,7 +67,16 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain(
             'data-sot-state={playbackDisabled ? "disabled" : "ready"}',
         );
-        expect(source).toContain('className="round-btn play"');
+        expect(buttonSource).toContain('data-slot="button"');
+        expect(buttonSource).toContain("buttonVariants");
+        expect(source).toContain("<Button");
+        expect(source).toContain('variant="default"');
+        expect(source).toContain('variant="ghost"');
+        expect(source).toContain('size="icon"');
+        expect(source).toContain('size="icon-sm"');
+        expect(source).toContain('data-sot-control="recording-player-back"');
+        expect(source).toContain('data-sot-control="recording-player-play"');
+        expect(source).toContain('data-sot-control="recording-player-forward"');
         expect(sliderSource).toContain(
             'import * as SliderPrimitive from "@radix-ui/react-slider";',
         );
@@ -80,9 +93,8 @@ describe("dashboard recording player regressions", () => {
         expect(sliderSource).toContain('data-slot="slider-thumb"');
         expect(sliderSource).not.toContain("track-fill");
         expect(sliderSource).not.toContain("track-thumb");
-        expect(source).not.toContain("track-input");
+        expect(source).toContain('"data-sot-control": "recording-player-seek"');
         expect(source).toContain('className="vol-pop"');
-        expect(source).toContain('className="round-btn small"');
         expect(source).toContain('className="vol-num mono"');
         expect(source).toContain('data-sot-control="recording-player-volume"');
         expect(source).toContain(
@@ -113,11 +125,12 @@ describe("dashboard recording player regressions", () => {
         expect(speedControlSource).toContain("<Button");
         expect(speedControlSource).toContain('variant="ghost"');
         expect(speedControlSource).toContain('size="sm"');
-        expect(speedControlSource).toContain('className="speed"');
+        expect(speedControlSource).toContain("min-w-12");
+        expect(speedControlSource).toContain("font-mono");
+        expect(speedControlSource).toContain("tabular-nums");
         expect(speedControlSource).toContain(
             'data-sot-control="recording-player-speed"',
         );
-        expect(source).not.toContain('className="btn ghost speed"');
         expect(source).toContain("togglePlayPause");
         expect(source).toContain("seekToSliderValue");
         expect(source).toContain("setVolume");

@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
+import type { ComponentProps } from "react";
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -45,9 +46,14 @@ const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
     (item) => item !== "slate",
 );
 
-function TagManagerXIcon() {
+function TagManagerXIcon(props: ComponentProps<"svg">) {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            {...props}
+        >
             <path d="M18 6 6 18M6 6l12 12" />
         </svg>
     );
@@ -396,16 +402,18 @@ export function RecordingTagManager({
             <header className="tagm-head">
                 <span className="tagm-title">{title}</span>
                 {showCloseButton ? (
-                    <button
-                        className="icon-btn tagm-close"
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="tagm-close"
                         type="button"
                         aria-label="关闭"
                         data-sot-control="recording-tag-manager-close"
                         data-sot-state="idle"
                         onClick={() => onClose?.()}
                     >
-                        <TagManagerXIcon />
-                    </button>
+                        <TagManagerXIcon data-icon="inline-start" />
+                    </Button>
                 ) : null}
             </header>
 
@@ -980,15 +988,16 @@ export function RecordingTagManager({
                                 }}
                                 placeholder="新建标签…"
                             />
-                            <button
+                            <Button
                                 type="button"
                                 aria-label="添加"
-                                className="tagm-add-btn"
+                                variant="primary"
+                                size="icon-sm"
                                 data-sot-control="recording-tag-create"
                                 data-sot-state="idle"
                             >
                                 +
-                            </button>
+                            </Button>
                         </div>
                         {hasNoTags ? null : (
                             <div className="tagm-meta-row">

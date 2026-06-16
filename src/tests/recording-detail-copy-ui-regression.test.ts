@@ -86,6 +86,10 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-control="open-source-record"',
             'data-sot-control="repull-source"',
         ];
+        const sourceReportCopyControls = [
+            'data-sot-control="copy-source-transcript"',
+            'data-sot-control="copy-source-report"',
+        ];
 
         expect(sourceReport).toContain("handleCopySourceTranscript");
         expect(sourceReport).toContain("handleCopySourceReport");
@@ -143,11 +147,25 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(controlSource).toContain("<Button");
             expect(controlSource).toContain('variant="ghost"');
             expect(controlSource).toContain('size="sm"');
+            expect(controlSource).toContain("data-sot-control=");
+            expect(controlSource).not.toContain("copy-btn");
+        }
+        for (const control of sourceReportCopyControls) {
+            const controlIndex = sourceReport.indexOf(control);
+            expect(controlIndex).toBeGreaterThanOrEqual(0);
+            const controlSource = sourceReport.slice(
+                Math.max(0, controlIndex - 320),
+                controlIndex + 320,
+            );
+            expect(controlSource).toContain("data-copy=");
+            expect(controlSource).toContain("data-copy-state=");
         }
         expect(sourceReport).not.toContain('className="btn ghost btn-sm"');
         expect(sourceReport).not.toContain(
             'className="btn ghost btn-sm copy-btn"',
         );
+        expect(sourceReport).not.toContain('className="copy-btn"');
+        expect(sourceReport).toContain('data-icon="inline-start"');
         expect(sourceReport).not.toMatch(
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );
@@ -446,5 +464,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
         );
+    });
+
+    it("keeps recording tag creation controls on shadcn buttons", () => {
+        const tagManager = readSource(
+            "features/recordings/components/recording-tag-manager.tsx",
+        );
+
+        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
+        expect(tagManager).toContain("<Button");
+        expect(tagManager).toContain('variant="primary"');
+        expect(tagManager).toContain('size="icon-sm"');
+        expect(tagManager).toContain('aria-label="添加"');
+        expect(tagManager).not.toContain("tagm-add-btn");
     });
 });

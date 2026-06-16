@@ -769,8 +769,9 @@ export function SpeakerLabelEditor({
                             >
                                 <header className="sp-merge-head">
                                     <span>合并相似说话人</span>
-                                    <button
-                                        className="icon-btn"
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
                                         data-spk-merge-close
                                         type="button"
                                         aria-label="关闭"
@@ -778,14 +779,13 @@ export function SpeakerLabelEditor({
                                             setIsMergePopoverOpen(false)
                                         }
                                     >
-                                        <svg
+                                        <X
+                                            data-icon="inline-start"
                                             viewBox="0 0 24 24"
                                             aria-hidden="true"
                                             focusable="false"
-                                        >
-                                            <path d="M18 6 6 18M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                                        />
+                                    </Button>
                                 </header>
                                 <div className="sp-merge-empty">
                                     <div

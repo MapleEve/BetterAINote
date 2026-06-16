@@ -1157,23 +1157,37 @@ function playerControlsPanel(page: Page) {
 }
 
 function playerBackButton(page: Page) {
-    return page.locator('[data-sot-control="recording-player-back"]');
+    return page
+        .locator('[data-slot="button"][data-sot-control="recording-player-back"]')
+        .first();
 }
 
 function playerToggleButton(page: Page, _name: string | RegExp = /播放|暂停/) {
-    return page.locator('[data-sot-control="recording-player-play"]').first();
+    return page
+        .locator('[data-slot="button"][data-sot-control="recording-player-play"]')
+        .first();
 }
 
 function playerForwardButton(page: Page) {
-    return page.locator('[data-sot-control="recording-player-forward"]');
+    return page
+        .locator(
+            '[data-slot="button"][data-sot-control="recording-player-forward"]',
+        )
+        .first();
 }
 
 function playerSpeedButton(page: Page) {
-    return page.locator('[data-sot-control="recording-player-speed"]').first();
+    return page
+        .locator(
+            '[data-slot="button"][data-sot-control="recording-player-speed"]',
+        )
+        .first();
 }
 
 function playerSeekSlider(page: Page) {
-    return page.locator('[data-sot-control="recording-player-seek"]').first();
+    return page
+        .locator('[data-slot="slider"][data-sot-control="recording-player-seek"]')
+        .first();
 }
 
 function playerVolumeSlider(page: Page) {
@@ -1185,7 +1199,11 @@ function playerVolumeSlider(page: Page) {
 }
 
 function playerVolumeButton(page: Page) {
-    return page.locator('[data-sot-control="recording-player-volume"]');
+    return page
+        .locator(
+            '[data-slot="button"][data-sot-control="recording-player-volume"]',
+        )
+        .first();
 }
 
 function playerAudio(page: Page) {
@@ -2705,7 +2723,7 @@ async function capturePlayerResponsiveFrame(
                 volumeAnchor: read(".vol-anchor"),
                 volumePopover: read(".vol-pop"),
                 volumeTrigger: read(
-                    '.vol-anchor > [data-sot-control="recording-player-volume"], [data-sot-control="recording-player-volume"], .vol-anchor > button, .player-controls > .round-btn.small, .player-controls > .icon-btn.vol',
+                    '.vol-anchor > [data-slot="button"][data-sot-control="recording-player-volume"], [data-slot="button"][data-sot-control="recording-player-volume"], .vol-anchor > button[data-slot="button"], .player-controls > [data-slot="button"][data-sot-control="recording-player-volume"]',
                 ),
             },
             viewport: {
@@ -8737,7 +8755,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             "新建标签…",
         );
         const tagCreateButton = tagsPanel.locator(
-            '[data-sot-control="recording-tag-create"]',
+            '[data-slot="button"][data-sot-control="recording-tag-create"]',
         );
         await expect(tagCreateButton).toHaveAttribute(
             "data-sot-state",

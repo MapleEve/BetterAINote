@@ -508,7 +508,7 @@ button {
 .sidebar-collapsed .nav-section-label,
 .sidebar-collapsed .nav-item span:not(.src-dot):not(.src-ico),
 .sidebar-collapsed .sync-text,
-.sidebar-collapsed .sync-pill .icon-btn {
+.sidebar-collapsed .sync-pill [data-sot-control="dashboard-sync"] {
     display: none;
 }
 .sidebar-collapsed .brand {
@@ -946,35 +946,6 @@ button {
     border: 1px solid var(--line-hairline);
 }
 
-.icon-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 8px;
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
-    color: var(--fg-secondary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13.3333px;
-    transition: background var(--duration-fast) var(--ease-out);
-}
-.icon-btn:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-.icon-btn svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
 .avatar {
     width: 30px;
     height: 30px;
@@ -1362,86 +1333,12 @@ button {
     align-items: center;
     gap: 12px;
 }
-.round-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--fg-secondary);
-    font-size: 13.3333px;
-    box-shadow: var(--shadow-xs);
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--ease-out);
-}
-.round-btn:hover {
-    background: white;
-    color: var(--fg-primary);
-}
-[data-theme="dark"] .round-btn:hover {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg-primary);
-}
-.round-btn:active {
-    transform: scale(0.96);
-}
-.round-btn.small {
-    width: 30px;
-    height: 30px;
-}
-.round-btn svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-.round-btn.play {
-    width: 44px;
-    height: 44px;
-    padding: 1px 6px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border-color: color-mix(in srgb, var(--accent) 60%, black 8%);
-    color: white;
-    box-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-}
-.round-btn.play svg {
-    width: 18px;
-    height: 18px;
-    fill: white;
-    stroke: white;
-}
-
 .time {
     font: 500 12px var(--font-mono);
     color: var(--fg-tertiary);
     letter-spacing: 0.03em;
     min-width: 44px;
     text-align: center;
-}
-.track {
-    flex: 1;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--graphite-200);
-    position: relative;
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.04);
-}
-.track.is-disabled {
-    opacity: 0.55;
 }
 /* Transcript — solid surface */
 .transcript {
@@ -3393,7 +3290,7 @@ body[data-time-style="abs"] .real-list .ts-rel {
 .sidebar .nav-item.nav-source.is-connected-idle + .src-action.is-done {
     display: inline-flex !important;
 }
-.sidebar .sync-pill .icon-btn[disabled] {
+.sidebar .sync-pill [data-sot-control="dashboard-sync"][disabled] {
     pointer-events: none;
 }
 .sidebar .nav-item.nav-source.is-sync-error:hover .count,
@@ -3858,12 +3755,9 @@ body[data-drawer="open"] .drawer-scrim {
 .sp-bar > span {
     display: block;
 }
-.player-controls.is-disabled .track,
-.player-controls.is-disabled .speed {
+.player-controls.is-disabled [data-slot="slider"],
+.player-controls.is-disabled [data-sot-control$="player-speed"] {
     pointer-events: none;
-}
-.track {
-    position: relative;
 }
 .vol-anchor {
     position: relative;
@@ -3988,20 +3882,6 @@ body[data-drawer="open"] .drawer-scrim {
 }
 .tagm-create-row {
     display: flex;
-}
-.tagm-add-btn {
-    display: inline-flex;
-    position: relative;
-}
-.tagm-add-btn[aria-disabled="true"] {
-    pointer-events: none;
-}
-.tagm-add-btn[aria-busy="true"] {
-    pointer-events: none;
-}
-.tagm-add-btn[aria-busy="true"]::after {
-    position: absolute;
-    inset: 0;
 }
 .tagm-meta-row {
     display: flex;
@@ -4256,9 +4136,6 @@ body[data-drawer="open"] .drawer-scrim {
 /* ---------- Library Search (header → right-aligned panel) ---------- */
 .ls-anchor {
     margin-left: 0;
-}
-.ls-trigger {
-    /* uses .icon-btn baseline */
 }
 .ls-panel {
     width: 460px;
@@ -4990,7 +4867,7 @@ body[data-drawer="open"] .drawer-scrim {
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-danger) 22%, transparent);
 }
-.sync-pill .icon-btn[disabled] {
+.sync-pill [data-sot-control="dashboard-sync"][disabled] {
     opacity: 0.5;
 }
 
@@ -5121,10 +4998,6 @@ body[data-ds-todo="show"] .design-todo {
     flex: 1;
 }
 
-/* AI rename trigger inside rec-head */
-.rh-ai-trigger {
-    /* uses .icon-btn baseline */
-}
 .rh-edit,
 .rh-norm {
     display: inline-flex;
@@ -6321,31 +6194,6 @@ body[data-ds-todo="show"] .design-todo {
 .tagm-create-row .field-input:focus {
     outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
     outline-offset: 1px;
-}
-.tagm-add-btn {
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 6px;
-    background: var(--accent);
-    border: 1px solid var(--accent);
-    font: 600 14px / 1 var(--font-sans);
-    color: var(--accent);
-    cursor: pointer;
-}
-.tagm-add-btn:hover {
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    color: var(--accent);
-}
-.tagm-add-btn[aria-disabled="true"] {
-    opacity: 0.5;
-}
-.tagm-add-btn[aria-busy="true"]::after {
-    content: "";
-    border-radius: 6px;
-    background: rgb(255 255 255 / 0.15);
 }
 .tagm-meta-row {
     align-items: center;
@@ -7732,7 +7580,6 @@ body[data-ds-todo="show"] .design-todo {
    define a custom :focus-visible (e.g. avatar, settings rail)
    keep their own.
    ============================================================ */
-.icon-btn:focus-visible,
 .chip-f:focus-visible,
 .lt-tab:focus-visible,
 .sr-item:focus-visible,
@@ -7766,7 +7613,6 @@ body[data-ds-todo="show"] .design-todo {
 /* Consistent disabled state for actionable buttons so every
    surface dims the same way. Existing custom `.is-disabled` and
    `[disabled]` styles take precedence where they exist. */
-.icon-btn[disabled],
 .chip-f[disabled],
 .src-action[disabled],
 .tw-btn[disabled] {
@@ -8355,7 +8201,7 @@ body[data-source-filter=""] .stack-strip {
     body[data-sidebar="collapsed"] .nav-item .count,
     body[data-sidebar="collapsed"] .src-action,
     body[data-sidebar="collapsed"] .sync-text,
-    body[data-sidebar="collapsed"] .sync-pill .icon-btn {
+    body[data-sidebar="collapsed"] .sync-pill [data-sot-control="dashboard-sync"] {
         display: none;
     }
     body[data-sidebar="collapsed"] .brand {
@@ -9682,8 +9528,7 @@ select::-ms-expand {
 .app *:focus {
     outline: none;
 }
-.app .icon-btn:focus-visible,
-.app .round-btn:focus-visible {
+.app [data-slot="button"]:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
@@ -9691,8 +9536,7 @@ select::-ms-expand {
    6) Component-library docs — additional chrome resets for the
    showcase cards (mirrors .app rule above)
    ============================================================ */
-.cl-shell .icon-btn:focus-visible,
-.cl-shell .round-btn:focus-visible,
+.cl-shell [data-slot="button"]:focus-visible,
 .cl-shell .more-menu-item:focus-visible,
 .cl-shell .ls-item:focus-visible,
 .cl-shell .tagm-opt:focus-visible {
@@ -9761,13 +9605,19 @@ select::-ms-expand {
     color: var(--fg-tertiary);
 }
 /* Gate player controls when no audio. */
-.player[data-no-audio="true"] .player-controls .round-btn,
-.player[data-no-audio="true"] .player-controls .track,
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-back"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-play"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-forward"],
+.player[data-no-audio="true"] .player-controls [data-slot="slider"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-speed"],
 .player[data-no-audio="true"] .player-controls .time {
     opacity: 0.42;
     pointer-events: none;
 }
-.player[data-no-audio="true"] .player-controls .round-btn {
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-back"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-play"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-forward"],
+.player[data-no-audio="true"] .player-controls [data-sot-control$="player-speed"] {
     cursor: not-allowed;
 }
 
@@ -10175,19 +10025,19 @@ select::-ms-expand {
 }
 
 /* ---- Copy actions (transcript / source transcript / source report) ---- */
-.copy-btn {
+[data-slot="button"][data-copy] {
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
-.copy-btn .copy-ico {
+[data-slot="button"][data-copy] .copy-ico {
     width: 14px;
     height: 14px;
     display: inline-grid;
     place-items: center;
     position: relative;
 }
-.copy-btn .copy-ico svg {
+[data-slot="button"][data-copy] .copy-ico svg {
     width: 14px;
     height: 14px;
     position: absolute;
@@ -10196,34 +10046,34 @@ select::-ms-expand {
         opacity 180ms var(--ease-out),
         transform 180ms var(--ease-out);
 }
-.copy-btn .copy-ico-default {
+[data-slot="button"][data-copy] .copy-ico-default {
     opacity: 1;
     transform: scale(1);
 }
-.copy-btn .copy-ico-ok {
+[data-slot="button"][data-copy] .copy-ico-ok {
     opacity: 0;
     transform: scale(0.7);
 }
-.copy-btn[data-copy-state="ok"] .copy-ico-default {
+[data-slot="button"][data-copy][data-copy-state="ok"] .copy-ico-default {
     opacity: 0;
     transform: scale(0.7);
 }
-.copy-btn[data-copy-state="ok"] .copy-ico-ok {
+[data-slot="button"][data-copy][data-copy-state="ok"] .copy-ico-ok {
     opacity: 1;
     transform: scale(1);
     color: var(--signal-success);
 }
-.copy-btn[data-copy-state="ok"] {
+[data-slot="button"][data-copy][data-copy-state="ok"] {
     color: var(--signal-success);
     border-color: color-mix(in srgb, var(--signal-success) 36%, transparent);
     background: color-mix(in srgb, var(--signal-success) 10%, transparent);
 }
-.copy-btn[data-copy-state="err"] {
+[data-slot="button"][data-copy][data-copy-state="err"] {
     color: var(--signal-danger);
     border-color: color-mix(in srgb, var(--signal-danger) 36%, transparent);
 }
-.copy-btn[disabled],
-.copy-btn[aria-disabled="true"] {
+[data-slot="button"][data-copy][disabled],
+[data-slot="button"][data-copy][aria-disabled="true"] {
     opacity: 0.42;
     cursor: not-allowed;
     pointer-events: none;
@@ -10237,13 +10087,9 @@ select::-ms-expand {
     flex-wrap: wrap;
 }
 
-/* Per-tab visibility is driven by the `hidden` attribute (set by the
-   transcript-tab switcher in index.html). Without this !important
-   override, the baseline `.copy-btn { display: inline-flex }` keeps
-   the off-tab buttons visible — the QA bug where 复制转录 still showed
-   up on the 来源详情 tab AND, when clicked there, copied an empty
-   string into the clipboard. */
-.copy-btn[hidden] {
+/* Per-tab visibility is driven by the `hidden` attribute so off-tab copy
+   actions stay hidden even though shadcn buttons render inline-flex. */
+[data-slot="button"][data-copy][hidden] {
     display: none !important;
 }
 
@@ -10667,14 +10513,6 @@ select::-ms-expand {
 .cl-wide-card {
     grid-column: 1 / -1;
 }
-.icon-btn.is-hover-demo {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-.round-btn.is-hover-demo {
-    background: #fff;
-    color: var(--fg-primary);
-}
 .chip-f.is-hover-demo {
     background: rgba(0, 0, 0, 0.04);
 }
@@ -10688,8 +10526,6 @@ select::-ms-expand {
     background: rgba(0, 0, 0, 0.03);
 }
 
-.icon-btn.is-focus-demo,
-.round-btn.is-focus-demo,
 .chip-f.is-focus-demo,
 .lt-tab.is-focus-demo,
 .ls-chip.is-focus-demo,

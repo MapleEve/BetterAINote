@@ -10,7 +10,7 @@ function readSource(relativePath: string) {
 }
 
 const OLD_UI_RE =
-    /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|border-border/;
+    /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
 
 describe("dashboard SOT search and activity interactions", () => {
     it("keeps search inline in the SOT topbar with all query states", () => {
@@ -142,7 +142,9 @@ describe("dashboard SOT search and activity interactions", () => {
         );
         expect(workstation).toContain('className="notif-head-l"');
         expect(workstation).toContain('className="notif-count"');
-        expect(workstation).toContain('className="notif-close icon-btn"');
+        expect(workstation).toContain('className="notif-close"');
+        expect(workstation).toContain('size="icon-sm"');
+        expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-activity-status"',

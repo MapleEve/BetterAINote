@@ -976,7 +976,7 @@ function RetxCloseIcon() {
 
 function SotCopyIcon() {
     return (
-        <span className="copy-ico" aria-hidden="true">
+        <span className="copy-ico" data-icon="inline-start" aria-hidden="true">
             <svg
                 className="copy-ico-default"
                 viewBox="0 0 24 24"
@@ -3790,8 +3790,9 @@ export function Workstation({
                             </div>
                             <div className="sync-sub">{syncSummary}</div>
                         </div>
-                        <button
-                            className="icon-btn"
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
@@ -3800,8 +3801,8 @@ export function Workstation({
                             data-sot-state={syncButtonState}
                             onClick={() => void runManualSync()}
                         >
-                            <RefreshCw />
-                        </button>
+                            <RefreshCw data-icon="inline-start" />
+                        </Button>
                     </div>
                 </div>
             </aside>
@@ -3834,16 +3835,18 @@ export function Workstation({
                         </svg>{" "}
                         <span className="dot-active" aria-hidden="true" />
                     </button>
-                    <button
-                        className="icon-btn sidebar-toggle"
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="sidebar-toggle"
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
                         data-sot-state={collapsed ? "collapsed" : "expanded"}
                         onClick={() => setCollapsed((value) => !value)}
                     >
-                        <PanelLeft />
-                    </button>
+                        <PanelLeft data-icon="inline-start" />
+                    </Button>
                     <div className="crumbs">
                         <span className="crumb">
                             {favorite === "all"
@@ -3859,9 +3862,11 @@ export function Workstation({
                     </div>
                     <div className="topbar-actions">
                         <div className="ls-anchor" ref={searchOverlayRef}>
-                            <button
+                            <Button
                                 ref={searchTriggerRef}
-                                className="icon-btn ls-trigger"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="ls-trigger"
                                 type="button"
                                 aria-label={t("librarySearch.openSearch")}
                                 aria-expanded={searchOpen}
@@ -3875,8 +3880,8 @@ export function Workstation({
                                     setSearchOpen((open) => !open);
                                 }}
                             >
-                                <Search />
-                            </button>
+                                <Search data-icon="inline-start" />
+                            </Button>
                             {searchOpen ? (
                                 <div
                                     className="ls-panel"
@@ -4228,9 +4233,11 @@ export function Workstation({
                             ) : null}
                         </div>
                         <div className="notif-anchor" ref={activityOverlayRef}>
-                            <button
+                            <Button
                                 ref={activityTriggerRef}
-                                className="icon-btn notif-trigger"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="notif-trigger"
                                 type="button"
                                 aria-label={t("activityOverlay.open")}
                                 aria-expanded={activityOpen}
@@ -4248,7 +4255,7 @@ export function Workstation({
                                     setActivityOpen((open) => !open);
                                 }}
                             >
-                                <Bell />
+                                <Bell data-icon="inline-start" />
                                 <span
                                     className="notif-badge"
                                     data-sot-part="dashboard-activity-badge"
@@ -4257,7 +4264,7 @@ export function Workstation({
                                         ? "99+"
                                         : activityBadgeCount}
                                 </span>
-                            </button>
+                            </Button>
                             {activityOpen ? (
                                 <div
                                     className="notif-panel"
@@ -4285,8 +4292,10 @@ export function Workstation({
                                                 )}
                                             </span>
                                         </div>
-                                        <button
-                                            className="notif-close icon-btn"
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="notif-close"
                                             type="button"
                                             aria-label={t(
                                                 "activityOverlay.close",
@@ -4298,8 +4307,8 @@ export function Workstation({
                                                 })
                                             }
                                         >
-                                            <X />
-                                        </button>
+                                            <X data-icon="inline-start" />
+                                        </Button>
                                     </header>
                                     <div
                                         className="notif-status"
@@ -5349,8 +5358,10 @@ export function Workstation({
                                     </span>
                                 </>
                             ) : null}
-                            <button
-                                className="icon-btn rh-norm"
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className="rh-norm"
                                 type="button"
                                 aria-label="重命名"
                                 title="重命名"
@@ -5358,7 +5369,7 @@ export function Workstation({
                                 onClick={() => setEditingTitle(true)}
                             >
                                 <SotHeaderRenameIcon />
-                            </button>
+                            </Button>
                             <div className="ai-rename-anchor rh-norm">
                                 <Button
                                     variant="glass"
@@ -5424,8 +5435,10 @@ export function Workstation({
                             </div>
                             {editingTitle ? (
                                 <>
-                                    <button
-                                        className="icon-btn rh-edit rh-edit-save"
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rh-edit rh-edit-save"
                                         type="button"
                                         aria-label="保存新标题"
                                         title="保存"
@@ -5433,9 +5446,11 @@ export function Workstation({
                                         onClick={() => void renameRecording()}
                                     >
                                         <SotHeaderApplyIcon />
-                                    </button>
-                                    <button
-                                        className="icon-btn rh-edit"
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rh-edit"
                                         type="button"
                                         aria-label="取消重命名"
                                         title="取消"
@@ -5448,12 +5463,13 @@ export function Workstation({
                                         }}
                                     >
                                         <SotHeaderCloseIcon />
-                                    </button>
+                                    </Button>
                                 </>
                             ) : null}
                             <div className="more-anchor rh-norm">
-                                <button
-                                    className="icon-btn"
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
                                     type="button"
                                     aria-label="更多操作"
                                     aria-haspopup="menu"
@@ -5468,7 +5484,7 @@ export function Workstation({
                                     }}
                                 >
                                     <SotHeaderMoreIcon />
-                                </button>
+                                </Button>
                                 {moreOpen ? (
                                     <div
                                         className="more-menu"
@@ -5704,8 +5720,10 @@ export function Workstation({
                                 data-sot-panel="dashboard-recording-player-controls"
                                 data-sot-state={playerControlsState}
                             >
-                                <button
-                                    className="round-btn"
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full"
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -5716,9 +5734,11 @@ export function Workstation({
                                     }
                                 >
                                     <SotPlayerBackIcon />
-                                </button>
-                                <button
-                                    className="round-btn play"
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-lg"
+                                    className="play rounded-full"
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -5738,9 +5758,11 @@ export function Workstation({
                                     ) : (
                                         <SotPlayerPlayIcon />
                                     )}
-                                </button>
-                                <button
-                                    className="round-btn"
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full"
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -5751,7 +5773,7 @@ export function Workstation({
                                     }
                                 >
                                     <SotPlayerForwardIcon />
-                                </button>
+                                </Button>
                                 <span
                                     className="time mono"
                                     data-sot-part="dashboard-player-current-time"
@@ -5759,11 +5781,7 @@ export function Workstation({
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
                                 <Slider
-                                    className={
-                                        playbackDisabled
-                                            ? "track is-disabled"
-                                            : "track"
-                                    }
+                                    className="player-seek"
                                     aria-disabled={
                                         playbackDisabled ? "true" : undefined
                                     }
@@ -5792,7 +5810,7 @@ export function Workstation({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="speed"
+                                    className="min-w-12 font-mono tabular-nums"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -5802,8 +5820,10 @@ export function Workstation({
                                     {playbackSpeedLabel}
                                 </Button>
                                 <div className="vol-anchor">
-                                    <button
-                                        className="round-btn small"
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rounded-full"
                                         type="button"
                                         aria-label={`音量 ${volume}`}
                                         aria-expanded={volumePopoverOpen}
@@ -5828,7 +5848,7 @@ export function Workstation({
                                         }
                                     >
                                         <SotPlayerVolumeIcon volume={volume} />
-                                    </button>
+                                    </Button>
                                     <div
                                         className="vol-pop"
                                         data-open={
@@ -5919,7 +5939,6 @@ export function Workstation({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="copy-btn"
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -5973,7 +5992,6 @@ export function Workstation({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="copy-btn"
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6030,7 +6048,6 @@ export function Workstation({
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="copy-btn"
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={

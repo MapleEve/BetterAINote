@@ -420,7 +420,7 @@ function formatSourceReportStatusLabel(
 
 function SotCopyIcon() {
     return (
-        <span className="copy-ico" aria-hidden="true">
+        <span className="copy-ico" data-icon="inline-start" aria-hidden="true">
             <svg
                 className="copy-ico-default"
                 viewBox="0 0 24 24"
@@ -950,7 +950,6 @@ export function SourceReportPanel({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="copy-btn"
                             type="button"
                             data-copy="source-transcript"
                             data-copy-state={
@@ -986,7 +985,6 @@ export function SourceReportPanel({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="copy-btn"
                             type="button"
                             data-copy="source-report"
                             data-copy-state={

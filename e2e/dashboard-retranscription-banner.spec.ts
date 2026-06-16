@@ -2821,8 +2821,10 @@ test("dashboard player exposes SOT seek speed volume and no-audio states", async
             page,
             "dashboard-player-volume",
         );
-        await expect(volumeButton).toHaveClass(/round-btn/);
-        await expect(volumeButton).toHaveClass(/small/);
+        await expect(volumeButton).toHaveAttribute("data-slot", "button");
+        await expect(volumeButton).toHaveAttribute("data-variant", "ghost");
+        await expect(volumeButton).toHaveAttribute("data-size", "icon-sm");
+        await expect(volumeButton).toHaveClass(/rounded-full/);
         await expect(volumeButton).toHaveAttribute("data-sot-state", "closed");
         await volumeButton.click();
         await expect(volumeButton).toHaveAttribute("data-sot-state", "open");
@@ -3114,11 +3116,6 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
                 '.topbar-actions > .avatar[data-sot-control="dashboard-settings"]',
             ),
         ).toHaveCount(1);
-        await expect(
-            page.locator(
-                '.topbar-actions > button.icon-btn[data-sot-control="dashboard-settings"]',
-            ),
-        ).toHaveCount(0);
         expect(await readSotBox(page, ".topbar-actions")).toEqual(
             await readSotBox(sotPage, ".topbar-actions"),
         );
@@ -3143,8 +3140,8 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
 
         for (const selector of [
             ".player-controls",
-            ".round-btn.play",
-            ".track",
+            '[data-sot-control="dashboard-player-play"][data-slot="button"]',
+            '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
             '[data-sot-control="dashboard-player-speed"]',
             ".lt-ind",
             ".turn p",
@@ -3639,7 +3636,9 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
         await expect(transcriptPane).toBeVisible();
         await expect(speakersPane).toBeHidden();
         await expect(sourceReportPane).toBeHidden();
-        await expect(page.locator(".copy-btn[data-copy]")).toHaveCount(3);
+        await expect(
+            page.locator('[data-slot="button"][data-copy]'),
+        ).toHaveCount(3);
         await expect(page.getByText("复制这段转录")).toBeVisible();
         await expect(localTranscriptCopyButton(page)).toBeVisible();
         await expect(localTranscriptCopyButton(page)).toBeEnabled();
