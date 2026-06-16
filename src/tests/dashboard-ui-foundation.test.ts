@@ -9,130 +9,176 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
-describe("dashboard UI foundation", () => {
-    it("keeps the web index shell scoped to the three foundation columns", () => {
+const OLD_UI_RE =
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|border-border|rounded-2xl|shadow-2xl|from "@\/components\/ui\/card"|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
+describe("dashboard SOT foundation", () => {
+    it("keeps shadcn foundation primitives real without reintroducing dashboard compatibility surfaces", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const sourceFilterStrip = readSource(
-            "features/dashboard/components/source-filter-stack-strip.tsx",
-        );
-        const globals = readSource("app/globals.css");
-        const favoriteSurfaceStart = workstation.indexOf(
-            'onClick={() => handleFavoriteSelect("all")}',
-        );
-        const favoriteSurfaceEnd = workstation.indexOf("<SourceProviderRows");
-        const favoriteSurface = workstation.slice(
-            favoriteSurfaceStart,
-            favoriteSurfaceEnd,
-        );
+        const card = readSource("components/ui/card.tsx");
+        const breadcrumb = readSource("components/ui/breadcrumb.tsx");
+        const sidebar = readSource("components/ui/sidebar.tsx");
 
-        expect(workstation).toContain("dashboard-workstation-grid");
-        expect(workstation).toContain('data-testid="dashboard-workstation"');
-        expect(workstation).toContain(
-            "lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)]",
-        );
-        expect(workstation).toContain("lg:col-span-2");
-        expect(workstation).toContain("lg:col-start-2 lg:row-start-2");
-        expect(workstation).toContain("lg:col-start-3 lg:row-start-2");
-        expect(workstation).toContain('data-testid="dashboard-source-rail"');
-        expect(workstation).toContain(
-            'data-testid="dashboard-source-drawer-trigger"',
-        );
-        expect(workstation).toContain(
-            'data-testid="dashboard-sidebar-collapse-trigger"',
-        );
-        expect(workstation).toContain("<SourceProviderRows");
-        expect(workstation).toContain("<SourceFilterStackStrip");
-        expect(workstation).toContain("isSourceDrawerOpen");
-        expect(workstation).toContain("isSidebarCollapsed");
-        expect(workstation).toContain("filteredRecordings");
-        expect(workstation).toContain("recordingListMode");
-        expect(favoriteSurfaceStart).toBeGreaterThanOrEqual(0);
-        expect(favoriteSurfaceEnd).toBeGreaterThan(favoriteSurfaceStart);
-        expect(workstation).not.toContain(
-            "data-[active=true]:bg-background/70",
-        );
-        expect(workstation).not.toContain("bg-background/28");
-        expect(workstation).toContain("border-b bg-muted/20");
-        expect(sourceFilterStrip).not.toContain("bg-background/28");
-        expect(sourceFilterStrip).toContain("border-b bg-muted/20");
-        expect(favoriteSurface).not.toContain("bg-background/50");
-        expect(workstation).toContain("data-[active=true]:bg-muted/35");
-        expect(workstation).toContain('data-testid="dashboard-favorite-all"');
-        expect(workstation).toContain(
-            'data-testid="dashboard-favorite-transcribed"',
-        );
-        expect(workstation).toContain('data-testid="dashboard-favorite-tags"');
-        expect(workstation).toContain(
-            'data-testid="dashboard-favorite-all-count"',
-        );
-        expect(workstation).toContain(
-            'data-testid="dashboard-favorite-transcribed-count"',
-        );
-        expect(workstation).toContain(
-            'data-testid="dashboard-favorite-tags-count"',
-        );
-        expect(workstation).toContain("dashboardChrome.privateWorkspace");
-        expect(workstation).toContain("dashboardChrome.moreActions");
-        expect(workstation).toContain("dashboardChrome.deleteLocalOnly");
-        expect(workstation).toContain("@/components/ui/button");
-        expect(workstation).not.toContain("私人工作空间");
-        expect(workstation).not.toContain("当前录音暂无额外本地操作");
-        expect(globals).toContain(".dashboard-workstation");
-        expect(globals).toContain(".dashboard-list-panel");
-        expect(globals).toContain(
-            '.dashboard-workstation-grid[data-sidebar-collapsed="true"]',
-        );
-    });
+        for (const primitiveSource of [card, breadcrumb, sidebar]) {
+            expect(primitiveSource.trim()).not.toBe("export {};");
+        }
 
-    it("keeps dashboard action hover surfaces updated without losing title and favorite interactions", () => {
-        const workstation = readSource("features/dashboard/workstation.tsx");
-
-        expect(workstation).not.toContain("hover:bg-background/45");
-        expect(workstation).not.toContain("hover:bg-background/50");
-
-        const aiRenameMarker = 'data-testid="dashboard-ai-rename"';
-        const renameCancelMarker = 'data-testid="dashboard-rename-cancel"';
-        const renameActionStart = workstation.lastIndexOf(
-            "<Button",
-            workstation.indexOf(aiRenameMarker),
-        );
-        const renameActionEnd =
-            workstation.indexOf(
-                "</Button>",
-                workstation.indexOf(renameCancelMarker),
-            ) + "</Button>".length;
-        const renameActionBlock = workstation.slice(
-            renameActionStart,
-            renameActionEnd,
-        );
-
-        expect(renameActionBlock).toContain("handleAutoRename");
-        expect(renameActionBlock).toContain("handleRenameCancel");
-        expect(renameActionBlock).toContain(aiRenameMarker);
-        expect(renameActionBlock).toContain(renameCancelMarker);
-        expect(renameActionBlock).not.toContain("bg-background/30");
-        expect(renameActionBlock).toContain("bg-muted/20");
-
-        for (const marker of [
-            'data-testid="dashboard-favorite-all"',
-            'data-testid="dashboard-favorite-transcribed"',
-            'data-testid="dashboard-favorite-tags"',
-            "handleFavoriteSelect",
-            aiRenameMarker,
-            renameCancelMarker,
-            "handleAutoRename",
-            "handleRenameCancel",
+        for (const primitive of [
+            "Card",
+            "CardHeader",
+            "CardTitle",
+            "CardDescription",
+            "CardAction",
+            "CardContent",
+            "CardFooter",
         ]) {
-            expect(workstation).toContain(marker);
+            expect(card).toMatch(new RegExp(`function ${primitive}\\(`));
+            expect(card).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "card",
+            "card-header",
+            "card-title",
+            "card-description",
+            "card-action",
+            "card-content",
+            "card-footer",
+        ]) {
+            expect(card).toContain(`data-slot="${slot}"`);
+        }
+        expect(card).toContain("bg-card text-card-foreground");
+
+        for (const primitive of [
+            "Breadcrumb",
+            "BreadcrumbList",
+            "BreadcrumbItem",
+            "BreadcrumbLink",
+            "BreadcrumbPage",
+            "BreadcrumbSeparator",
+            "BreadcrumbEllipsis",
+        ]) {
+            expect(breadcrumb).toMatch(new RegExp(`function ${primitive}\\(`));
+            expect(breadcrumb).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "breadcrumb",
+            "breadcrumb-list",
+            "breadcrumb-item",
+            "breadcrumb-link",
+            "breadcrumb-page",
+            "breadcrumb-separator",
+            "breadcrumb-ellipsis",
+        ]) {
+            expect(breadcrumb).toContain(`data-slot="${slot}"`);
+        }
+        expect(breadcrumb).toContain('aria-label="breadcrumb"');
+        expect(breadcrumb).toContain('aria-current="page"');
+
+        for (const primitive of [
+            "Sidebar",
+            "SidebarProvider",
+            "SidebarContent",
+            "SidebarGroup",
+            "SidebarMenu",
+            "SidebarMenuButton",
+            "SidebarMenuItem",
+            "SidebarTrigger",
+            "useSidebar",
+        ]) {
+            expect(sidebar).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "sidebar-wrapper",
+            "sidebar",
+            "sidebar-content",
+            "sidebar-group",
+            "sidebar-menu",
+            "sidebar-menu-button",
+            "sidebar-trigger",
+        ]) {
+            expect(sidebar).toContain(`data-slot="${slot}"`);
+        }
+        for (const contract of [
+            'data-sidebar="sidebar"',
+            'data-sidebar="content"',
+            'data-sidebar="group"',
+            'data-sidebar="menu"',
+            'data-sidebar="menu-button"',
+            'data-sidebar="trigger"',
+            "data-state={state}",
+            'data-collapsible={collapsed ? collapsible : ""}',
+        ]) {
+            expect(sidebar).toContain(contract);
+        }
+        expect(sidebar).toContain("const SidebarContext = React.createContext");
+        expect(sidebar).toContain("--sidebar-width");
+
+        for (const dashboardImport of [
+            '@/components/ui/card',
+            '@/components/ui/breadcrumb',
+            '@/components/ui/sidebar',
+        ]) {
+            expect(workstation).not.toContain(dashboardImport);
         }
     });
 
-    it("renders supported source providers as local client rows without remote assets", () => {
+    it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const sourceRows = readSource(
-            "features/dashboard/components/source-provider-rows.tsx",
+
+        for (const removed of [
+            "ActivityOverlay",
+            "LibrarySearch",
+            "RecordingList",
+            "SourceFilterStackStrip",
+            "SourceProviderRows",
+            "SyncStatus",
+            "TranscriptionPanel",
+        ]) {
+            expect(workstation).not.toMatch(new RegExp(`<${removed}[\\s/>]`));
+            expect(workstation).not.toContain(
+                `./components/${removed
+                    .replace(
+                        /[A-Z]/g,
+                        (match, index) =>
+                            `${index ? "-" : ""}${match.toLowerCase()}`,
+                    )
+                    .replace("source-provider-rows", "source-provider-rows")}`,
+            );
+        }
+
+        expect(workstation).toContain(
+            'data-sot-surface="dashboard-workstation"',
         );
-        const translations = readSource("lib/i18n.ts");
+        expect(workstation).toContain(
+            'data-sot-state={hydrated ? "ready" : "loading"}',
+        );
+        expect(workstation).toContain('className="sidebar glass glass-strong"');
+        expect(workstation).toContain('id="drawer-scrim"');
+        expect(workstation).toContain('id="drawer-trigger"');
+        expect(workstation).not.toContain("data-drawer-open=");
+        expect(workstation).not.toContain(
+            'data-sot-surface="dashboard-source-rail"',
+        );
+        expect(workstation).toContain('data-sot-control="dashboard-search"');
+        expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(workstation).toContain('data-sot-control="dashboard-settings"');
+        expect(workstation).toContain(
+            'data-empty={selectedRecording ? "false" : "true"}',
+        );
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-retranscription"',
+        );
+        expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        expect(workstation).toContain('aria-label="详情标签"');
+        expect(workstation).toContain(
+            'aria-label={isPlaying ? "暂停" : "播放"}',
+        );
+        expect(workstation).toContain("<SettingsDialog");
+        expect(workstation).not.toMatch(OLD_UI_RE);
+    });
+
+    it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
 
         for (const provider of [
             "dingtalk-a1",
@@ -144,200 +190,134 @@ describe("dashboard UI foundation", () => {
             expect(workstation).toContain(provider);
         }
 
-        expect(sourceRows).toContain('data-testid="source-provider-rows"');
-        expect(sourceRows).toContain("data-provider={row.provider}");
-        expect(sourceRows).toContain("onSelectProvider(row.provider)");
-        expect(sourceRows).toContain("onConnectProvider(row.provider)");
-        expect(sourceRows).toContain("aria-pressed={row.active}");
-        expect(sourceRows).toContain("focus-visible:ring-[3px]");
-        expect(sourceRows).toContain(
-            'data-testid="source-provider-row-initial"',
+        expect(workstation).toContain('data-sot-list="dashboard-sources"');
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-source-provider"',
         );
-        expect(sourceRows).toContain('data-testid="source-provider-row-badge"');
-        expect(sourceRows).toContain("bg-muted/35");
-        expect(sourceRows).not.toContain("bg-background/40");
-        expect(sourceRows).not.toContain("hover:bg-background/45");
-        expect(sourceRows).not.toContain("bg-background/70");
-        expect(sourceRows).not.toContain("bg-background/50");
-        expect(sourceRows).not.toContain("bg-background/60");
-        expect(sourceRows).toContain("compact?: boolean");
-        expect(sourceRows).toContain(
-            'data-compact={compact ? "true" : "false"}',
+        expect(workstation).toContain('data-sot-part="source-provider-status"');
+        expect(workstation).toContain("sourceRowDisabled(");
+        expect(workstation).toContain("sourceActionKind(");
+        expect(workstation).toContain("disabled={disabledSourceRow}");
+        expect(workstation).toContain('"src-action is-reauth"');
+        expect(workstation).toContain('? "retry-sync"');
+        expect(workstation).not.toContain('className="src-action is-busy"');
+        expect(workstation).toContain("data-source-status={item.status}");
+        expect(workstation).toContain("sourceNeedsSettings(");
+        expect(workstation).toContain('openSettings("data-sources")');
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-source-filter-stack"',
         );
-        expect(sourceRows).toContain("data-connected");
-        expect(sourceRows).toContain("onSelectProvider");
-        expect(sourceRows).not.toContain("fetch(");
-        expect(sourceRows).not.toContain("process.");
-        expect(sourceRows).not.toContain("window.");
-        expect(sourceRows).not.toContain("http://");
-        expect(sourceRows).not.toContain("https://");
-        expect(sourceRows).toContain("@/components/ui/button");
-        expect(sourceRows).toContain('variant="outline"');
-        expect(sourceRows).toContain('size="sm"');
-        expect(sourceRows).toContain("onClick={onClearProvider}");
-        expect(sourceRows).toContain("sourceProviderRows.heading");
-        expect(sourceRows).toContain("sourceProviderRows.clear");
-        expect(sourceRows).not.toContain("待连接");
-        expect(sourceRows).not.toContain("需要重新登录");
-        expect(translations).toContain("待连接");
-        expect(translations).toContain("Re-auth required");
+        expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(workstation).toContain(
+            'data-sot-control="recording-list-timeline-filter"',
+        );
+        expect(workstation).toContain('className="tag-filter"');
+        expect(workstation).toContain("data-tag-filter-trigger");
+        expect(workstation).toContain("data-tag-filter-list");
+        expect(workstation).toContain('role="listbox"');
+        expect(workstation).toContain('role="option"');
+        expect(workstation).toContain("data-tag-value={option.value}");
+        expect(workstation).toContain(
+            'data-sot-control="recording-list-tag-filter-trigger"',
+        );
+        expect(workstation).toContain("tagFilterValue(tag.id)");
+        expect(workstation).toContain('"untagged"');
+        expect(workstation).toContain("displayTag?: RecordingTag");
+        expect(workstation).toContain("displayTag: tag");
+        expect(workstation).toContain("entry.displayTag ??");
+        expect(workstation).toContain("recordingTagColorClassName");
+        expect(workstation).toContain("<RecordingTagIconGlyph");
+        expect(workstation).toContain("data-rec={");
+        expect(workstation).not.toContain("function tagClass(");
+        expect(workstation).toContain("function SotRecordingListSkeleton()");
+        expect(workstation).toContain('className="skel-list"');
+        expect(workstation).toContain('className="day skel-day"');
+        expect(workstation).toContain('className="row skel-row"');
+        expect(workstation).toContain(
+            'data-sot-panel="recording-list-loading"',
+        );
+        expect(workstation).toContain('listState === "loading"');
+        expect(workstation).toContain("<SotRecordingListSkeleton />");
+        expect(workstation).toContain("function getRecordingListStatus(");
+        expect(workstation).toContain('className: "b err"');
+        expect(workstation).toContain('className: "b warn"');
+        expect(workstation).toContain('className: "b ok"');
+        expect(workstation).toContain('className: "b info"');
+        expect(workstation).toContain('className: "b neu"');
+        expect(workstation).toContain('dotClassName: "dot _is-1"');
+        expect(workstation).toContain("recordingList.status.failed");
+        expect(workstation).toContain("recordingList.status.pending");
+        expect(workstation).not.toContain(
+            'className="filter-row"\n                                    data-sot-panel="recording-list-tag-filter"',
+        );
+        expect(workstation).toContain('aria-label="列表模式"');
+        expect(workstation).toContain("<SegmentedTabs");
+        expect(workstation).toContain('value: "timeline"');
+        expect(workstation).toContain("recordingList.timeTab");
+        expect(workstation).toContain('value: "tags"');
+        expect(workstation).toContain("recordingList.tagsTab");
+        expect(workstation).toContain('value: "source"');
+        expect(workstation).toContain('label: "来源详情"');
+        expect(workstation).toContain('tabKey: "source-report"');
+        expect(workstation).toContain('value: "transcript"');
+        expect(workstation).toContain('label: "转写"');
+        expect(workstation).toContain('value: "speakers"');
+        expect(workstation).toContain('label: "说话人"');
+        expect(workstation).toContain('hidden={detailTab !== "transcript"}');
     });
 
-    it("keeps recording list timeline and tag modes controlled by the shell", () => {
-        const recordingList = readSource(
-            "features/dashboard/components/recording-list.tsx",
+    it("keeps PR20 manual sync refresh and SOT sync states on real controls", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        expect(workstation).toContain("useBrowserRouteController");
+        expect(workstation).toContain("async function runManualSync()");
+        expect(workstation).toContain("await manualSync()");
+        expect(workstation).toContain(
+            "await Promise.all([refreshStatus(), loadDataSources()])",
         );
-        const translations = readSource("lib/i18n.ts");
-        const tagCountBadgeStart = recordingList.indexOf(
-            "{selectedTagOption?.label ??",
+        expect(workstation).toContain("refreshBrowserRoute(router)");
+        expect(workstation).toContain('data-sot-panel="dashboard-sync"');
+        expect(workstation).toContain('data-sot-control="dashboard-sync"');
+        expect(workstation).toContain("data-sync-state={syncButtonState}");
+        expect(workstation).toContain("aria-busy={syncButtonBusy}");
+        expect(workstation).toContain("disabled={syncButtonBusy}");
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-activity-sync"',
         );
-        const tagCountBadgeEnd = recordingList.indexOf(
-            "</SelectTrigger>",
-            tagCountBadgeStart,
-        );
-        const tagCountBadge = recordingList.slice(
-            tagCountBadgeStart,
-            tagCountBadgeEnd,
-        );
-        const tagSelectStart = recordingList.indexOf(
-            "<Select\n                            value={tagFilter}",
-        );
-        const tagSelectTriggerStart = recordingList.indexOf(
-            '<SelectTrigger className="h-11 w-full',
-            tagSelectStart,
-        );
-        const tagSelectTriggerEnd = recordingList.indexOf(
-            "</SelectTrigger>",
-            tagSelectTriggerStart,
-        );
-        const tagSelectTrigger = recordingList.slice(
-            tagSelectStart,
-            tagSelectTriggerEnd,
-        );
-        const headerTotalBadgeTextStart = recordingList.indexOf("{totalLabel}");
-        const headerTotalBadgeStart = recordingList.lastIndexOf(
-            "<span",
-            headerTotalBadgeTextStart,
-        );
-        const headerTotalBadgeEnd = recordingList.indexOf(
-            "</span>",
-            headerTotalBadgeTextStart,
-        );
-        const headerTotalBadge = recordingList.slice(
-            headerTotalBadgeStart,
-            headerTotalBadgeEnd,
-        );
-        const listStateInterpolation = ["$", "{listState}"].join("");
-        const emptyPanelTestId = [
-            "data-testid={`recording-list-",
-            listStateInterpolation,
-            "`}",
-        ].join("");
-        const emptyPanelTestIdStart = recordingList.indexOf(emptyPanelTestId);
-        const emptyPanelStart = recordingList.lastIndexOf(
-            "<div",
-            emptyPanelTestIdStart,
-        );
-        const emptyPanelEnd = recordingList.indexOf(
-            "</div>\n                    ) : null}",
-            emptyPanelTestIdStart,
-        );
-        const emptyPanel = recordingList.slice(emptyPanelStart, emptyPanelEnd);
-        const loadingBlockTestId = 'data-testid="recording-list-loading"';
-        const loadingBlockTestIdStart =
-            recordingList.indexOf(loadingBlockTestId);
-        const loadingBlockStart = recordingList.lastIndexOf(
-            "<div",
-            loadingBlockTestIdStart,
-        );
-        const loadingBlockEnd = recordingList.indexOf(
-            "</div>\n                    ) : null}",
-            loadingBlockTestIdStart,
-        );
-        const loadingBlock = recordingList.slice(
-            loadingBlockStart,
-            loadingBlockEnd,
+    });
+
+    it("keeps SOT global tokens and system banner state semantics available", () => {
+        const globals = readSource("app/globals.css");
+        const banner = readSource(
+            "features/dashboard/components/system-banner.tsx",
         );
 
-        expect(recordingList).toContain(
-            'export type RecordingListMode = "timeline" | "tags"',
-        );
-        expect(recordingList).toContain("mode?: RecordingListMode");
-        expect(recordingList).toContain("onModeChange?");
-        expect(recordingList).toContain("contextLabel?");
-        expect(recordingList).toContain("filterStack?");
-        expect(recordingList).toContain("libraryTotalCount?");
-        expect(recordingList).toContain("isLoading?");
-        expect(recordingList).toContain("data-list-state={listState}");
-        expect(recordingList).toContain('data-testid="recording-list-loading"');
-        expect(recordingList).toContain("recording-list-");
-        expect(recordingList).toContain("getSourceProviderLabel");
-        expect(recordingList).toContain('data-testid="recording-list-panel"');
-        expect(recordingList).toContain("@/components/ui/button");
-        expect(recordingList).toContain("recordingList.openDataSources");
-        expect(recordingList).toContain("recordingList.pageStatus");
-        expect(recordingList).toContain(
-            "Math.max(1, Math.floor(itemsPerPage))",
-        );
-        expect(recordingList).not.toContain("Math.min(itemsPerPage, 8)");
-        expect(recordingList).toContain(
-            'data-testid="recording-list-first-page"',
-        );
-        expect(recordingList).toContain(
-            'data-testid="recording-list-last-page"',
-        );
-        expect(recordingList).toContain("recordingList.first");
-        expect(recordingList).toContain("recordingList.last");
-        expect(tagCountBadgeStart).toBeGreaterThanOrEqual(0);
-        expect(tagCountBadgeEnd).toBeGreaterThan(tagCountBadgeStart);
-        expect(tagCountBadge).toContain("{selectedTagOption?.count ?? 0}");
-        expect(tagSelectStart).toBeGreaterThanOrEqual(0);
-        expect(tagSelectTriggerStart).toBeGreaterThan(tagSelectStart);
-        expect(tagSelectTriggerEnd).toBeGreaterThan(tagSelectTriggerStart);
-        expect(tagSelectTrigger).toContain("SelectTrigger");
-        expect(tagSelectTrigger).toContain("value={tagFilter}");
-        expect(tagSelectTrigger).toContain("onValueChange={(value) => {");
-        expect(tagSelectTrigger).toContain("setTagFilter(value as TagFilter)");
-        expect(tagSelectTrigger).not.toContain("bg-background/30");
-        expect(tagSelectTrigger).toContain("bg-muted/20");
-        expect(headerTotalBadgeTextStart).toBeGreaterThanOrEqual(0);
-        expect(headerTotalBadgeStart).toBeGreaterThanOrEqual(0);
-        expect(headerTotalBadgeEnd).toBeGreaterThan(headerTotalBadgeStart);
-        expect(headerTotalBadge).toContain("{totalLabel}");
-        expect(headerTotalBadge).not.toContain("bg-background/45");
-        expect(headerTotalBadge).toContain("bg-muted/35");
-        expect(recordingList).not.toContain("bg-background/40");
-        expect(tagCountBadge).toContain("bg-muted/35");
-        expect(loadingBlockTestIdStart).toBeGreaterThanOrEqual(0);
-        expect(loadingBlockStart).toBeGreaterThanOrEqual(0);
-        expect(loadingBlockEnd).toBeGreaterThan(loadingBlockStart);
-        expect(loadingBlock).toContain(loadingBlockTestId);
-        expect(loadingBlock).toContain("{[0, 1, 2, 3].map");
-        expect(loadingBlock).toContain("animate-pulse");
-        expect(loadingBlock).toContain("rounded bg-muted");
-        expect(loadingBlock).not.toContain("bg-background/30");
-        expect(loadingBlock).toContain("bg-muted/15");
-        expect(emptyPanelTestIdStart).toBeGreaterThanOrEqual(0);
-        expect(emptyPanelStart).toBeGreaterThanOrEqual(0);
-        expect(emptyPanelEnd).toBeGreaterThan(emptyPanelStart);
-        expect(emptyPanel).toContain(
-            ["recording-list-", listStateInterpolation].join(""),
-        );
-        expect(emptyPanel).toContain('listState === "empty"');
-        expect(emptyPanel).toContain("onOpenDataSourcesSettings");
-        expect(emptyPanel).toContain('listState === "no-match"');
-        expect(emptyPanel).toContain("onClearFilters");
-        expect(emptyPanel).not.toContain("bg-background/35");
-        expect(emptyPanel).toContain("bg-muted/20");
-        expect(recordingList).not.toContain("前往数据源");
-        expect(recordingList).not.toContain("清除筛选");
-        expect(recordingList).not.toContain("上一页");
-        expect(recordingList).not.toContain("下一页");
-        expect(recordingList).not.toContain("第一页");
-        expect(recordingList).not.toContain("最后一页");
-        expect(translations).toContain("前往数据源");
-        expect(translations).toContain("Open data sources");
-        expect(translations).toContain("第一页");
-        expect(translations).toContain("First");
+        for (const token of [
+            "BetterAINote · Graphite Glass Design System",
+            "--bg-canvas:",
+            "--bg-elevated:",
+            "--fg-primary:",
+            "--z-modal:",
+            "@supports not (color: oklch(",
+        ]) {
+            expect(globals).toContain(token);
+        }
+
+        expect(banner).toContain('className={cn("sys-banner", className)}');
+        expect(banner).toContain("getBannerA11y(banner.state)");
+        expect(banner).toContain("data-kind={banner.state}");
+        expect(banner).toContain("data-pct={progress ?? undefined}");
+        expect(banner).toContain('"sbn-progress"');
+        expect(banner).toContain('"btn ghost btn-sm"');
+        expect(banner).toContain("<SystemBannerIcon");
+        expect(banner).toContain("visibleBanners.length === 0");
+        expect(banner).toContain('banner.state === "update-available"');
+        expect(banner).toContain("window.location.reload()");
+        expect(banner).not.toContain("lucide-react");
+        expect(banner).not.toContain("@/components/ui/button");
+        expect(banner).not.toContain("data-system-banner");
+        expect(banner).not.toContain("data-sot-panel");
+        expect(banner).not.toContain("data-sot-state");
+        expect(banner).not.toMatch(OLD_UI_RE);
     });
 });

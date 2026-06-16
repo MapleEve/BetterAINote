@@ -1,6 +1,9 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { recordings, transcriptionJobs } from "@/db/schema/library";
-import type { transcriptions } from "@/db/schema/transcripts";
+import type {
+    transcriptions,
+    transcriptSegments,
+} from "@/db/schema/transcripts";
 import {
     isRecordingTagColor,
     isRecordingTagIcon,
@@ -9,6 +12,7 @@ import {
 import { sanitizeTranscriptionJobLastError } from "@/lib/transcription/public-errors";
 import {
     applySpeakerMap,
+    buildDisplaySegments,
     buildTranscriptMetrics,
     mergeSpeakerMaps,
 } from "@/lib/transcription/voice-transcribe-metadata";
@@ -16,6 +20,7 @@ import type { Recording } from "@/types/recording";
 
 type RecordingRow = InferSelectModel<typeof recordings>;
 type TranscriptionRow = InferSelectModel<typeof transcriptions>;
+type TranscriptSegmentRow = InferSelectModel<typeof transcriptSegments>;
 type TranscriptionJobRow = InferSelectModel<typeof transcriptionJobs>;
 
 export type RecordingListRow = Pick<
@@ -57,6 +62,16 @@ export type RecordingTranscriptionJobRow = Pick<
     "recordingId" | "status" | "remoteStatus" | "lastError" | "updatedAt"
 >;
 
+export type RecordingTranscriptSegmentRow = Pick<
+    TranscriptSegmentRow,
+    | "recordingId"
+    | "rawSpeakerLabel"
+    | "startMs"
+    | "endMs"
+    | "sortSeqMs"
+    | "text"
+>;
+
 export type RecordingTagRow = {
     recordingId: string;
     tagId: string;
@@ -65,16 +80,20 @@ export type RecordingTagRow = {
     tagIcon: string;
 };
 
+export type DashboardTranscriptSegment = {
+    text: string;
+    speakerLabel?: string;
+    displaySpeaker?: string;
+    startMs?: number | null;
+    endMs?: number | null;
+};
+
 export type DashboardTranscriptionData = {
     hasTranscript: boolean;
     text?: string;
     language?: string;
     speakerMap?: Record<string, string>;
-    segments?: NonNullable<
-        ReturnType<
-            typeof import("@/lib/transcription/voice-transcribe-metadata").buildDisplaySegments
-        >
-    >;
+    segments?: DashboardTranscriptSegment[];
 };
 
 export type DashboardTranscriptionJobData = {
@@ -88,6 +107,7 @@ export type RecordingDetailTranscriptionData = {
     detectedLanguage?: string;
     transcriptionType?: string;
     speakerMap?: Record<string, string> | null;
+    segments?: DashboardTranscriptSegment[];
 };
 
 export type RecordingDetailTranscriptionJobData = DashboardTranscriptionJobData;
@@ -119,8 +139,8 @@ export function buildRecordingTagMap(rows: RecordingTagRow[]) {
         tags.push({
             id: row.tagId,
             name: row.tagName,
-            color: isRecordingTagColor(row.tagColor) ? row.tagColor : "gray",
-            icon: isRecordingTagIcon(row.tagIcon) ? row.tagIcon : "tag",
+            color: isRecordingTagColor(row.tagColor) ? row.tagColor : "purple",
+            icon: isRecordingTagIcon(row.tagIcon) ? row.tagIcon : "grid",
         });
         tagsByRecordingId.set(row.recordingId, tags);
     }
@@ -138,17 +158,141 @@ export function serializeRecordingWithTags(
     };
 }
 
-export function buildDashboardTranscriptionMap(
-    rows: DashboardTranscriptionRow[],
+function groupTranscriptSegmentsByRecordingId(
+    rows: RecordingTranscriptSegmentRow[],
 ) {
-    return new Map<string, DashboardTranscriptionData>(
-        rows.map((row) => [
-            row.recordingId,
+    const rowsByRecordingId = new Map<
+        string,
+        RecordingTranscriptSegmentRow[]
+    >();
+
+    for (const row of rows) {
+        const rowsForRecording = rowsByRecordingId.get(row.recordingId) ?? [];
+        rowsForRecording.push(row);
+        rowsByRecordingId.set(row.recordingId, rowsForRecording);
+    }
+
+    return rowsByRecordingId;
+}
+
+function secondsToMs(value: unknown) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        return null;
+    }
+
+    return Math.max(0, Math.round(value * 1000));
+}
+
+export function buildSerializedTranscriptSegments(
+    rows: RecordingTranscriptSegmentRow[],
+    speakerMap: Record<string, string> | null | undefined,
+): DashboardTranscriptSegment[] {
+    return [...rows]
+        .sort((left, right) => left.sortSeqMs - right.sortSeqMs)
+        .flatMap((row) => {
+            const text = row.text.trim();
+            if (!text) {
+                return [];
+            }
+
+            const speakerLabel = row.rawSpeakerLabel?.trim() || undefined;
+            const displaySpeaker =
+                (speakerLabel && speakerMap?.[speakerLabel]?.trim()) ||
+                speakerLabel;
+
+            return [
+                {
+                    text,
+                    speakerLabel,
+                    displaySpeaker,
+                    startMs: row.startMs,
+                    endMs: row.endMs,
+                },
+            ];
+        });
+}
+
+function buildProviderPayloadSegments(
+    transcription: RecordingTranscriptionRow,
+    speakerMap: Record<string, string> | null | undefined,
+): DashboardTranscriptSegment[] {
+    return (
+        buildDisplaySegments(transcription.providerPayload, speakerMap) ?? []
+    ).flatMap((segment) => {
+        const text = segment.text?.trim();
+        if (!text) {
+            return [];
+        }
+
+        return [
             {
-                hasTranscript: Boolean(row.hasTranscript),
-                language: row.detectedLanguage || undefined,
+                text,
+                speakerLabel: segment.speakerLabel,
+                displaySpeaker: segment.displaySpeaker,
+                startMs: secondsToMs(segment.start),
+                endMs: secondsToMs(segment.end),
             },
-        ]),
+        ];
+    });
+}
+
+function buildTranscriptSegments(
+    transcription: RecordingTranscriptionRow,
+    segmentRows: RecordingTranscriptSegmentRow[] | undefined,
+    speakerMap: Record<string, string> | null | undefined,
+) {
+    const storedSegments = buildSerializedTranscriptSegments(
+        segmentRows ?? [],
+        speakerMap,
+    );
+    if (storedSegments.length > 0) {
+        return storedSegments;
+    }
+
+    const providerSegments = buildProviderPayloadSegments(
+        transcription,
+        speakerMap,
+    );
+    return providerSegments.length > 0 ? providerSegments : undefined;
+}
+
+export function buildDashboardTranscriptionMap(
+    rows: Array<DashboardTranscriptionRow | RecordingTranscriptionRow>,
+    segmentRows: RecordingTranscriptSegmentRow[] = [],
+) {
+    const segmentsByRecordingId =
+        groupTranscriptSegmentsByRecordingId(segmentRows);
+
+    return new Map<string, DashboardTranscriptionData>(
+        rows.map((row) => {
+            const fullRow =
+                "text" in row ? (row as RecordingTranscriptionRow) : null;
+            const metadataRow = fullRow
+                ? null
+                : (row as DashboardTranscriptionRow);
+            const speakerMap = fullRow
+                ? mergeSpeakerMaps(fullRow.speakerMap, fullRow.providerPayload)
+                : null;
+
+            return [
+                row.recordingId,
+                {
+                    hasTranscript: fullRow
+                        ? Boolean(fullRow.text?.trim())
+                        : Boolean(metadataRow?.hasTranscript),
+                    text: fullRow?.text || undefined,
+                    language: row.detectedLanguage || undefined,
+                    speakerMap: speakerMap ?? undefined,
+                    segments: fullRow
+                        ? buildTranscriptSegments(
+                              fullRow,
+                              segmentsByRecordingId.get(row.recordingId),
+                              speakerMap,
+                          )
+                        : undefined,
+                },
+            ];
+        }),
     );
 }
 
@@ -169,16 +313,27 @@ export function buildDashboardTranscriptionJobMap(
 
 export function serializeRecordingDetailTranscription(
     transcription: RecordingTranscriptionRow | null,
+    segmentRows: RecordingTranscriptSegmentRow[] = [],
 ): RecordingDetailTranscriptionData | undefined {
     if (!transcription) {
         return undefined;
     }
 
+    const speakerMap = mergeSpeakerMaps(
+        transcription.speakerMap,
+        transcription.providerPayload,
+    );
+
     return {
         text: transcription.text,
         detectedLanguage: transcription.detectedLanguage || undefined,
         transcriptionType: transcription.transcriptionType || undefined,
-        speakerMap: transcription.speakerMap ?? undefined,
+        speakerMap: speakerMap ?? undefined,
+        segments: buildTranscriptSegments(
+            transcription,
+            segmentRows,
+            speakerMap,
+        ),
     };
 }
 

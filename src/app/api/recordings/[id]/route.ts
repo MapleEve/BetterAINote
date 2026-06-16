@@ -4,6 +4,7 @@ import {
     deleteRecordingForUser,
     getRecordingDetailReadModel,
     RecordingDeleteError,
+    serializeRecordingDetailTranscription,
 } from "@/server/modules/recordings";
 
 export async function GET(
@@ -23,7 +24,9 @@ export async function GET(
         }
 
         const { id } = await params;
-        const detail = await getRecordingDetailReadModel(session.user.id, id);
+        const detail = await getRecordingDetailReadModel(session.user.id, id, {
+            includeSegments: true,
+        });
         const recording = detail?.recording;
 
         if (!recording) {
@@ -35,7 +38,11 @@ export async function GET(
 
         return NextResponse.json({
             recording,
-            transcription: detail.transcription,
+            transcription:
+                serializeRecordingDetailTranscription(
+                    detail.transcription,
+                    detail.transcriptSegments,
+                ) ?? null,
             enhancement: null,
         });
     } catch (error) {

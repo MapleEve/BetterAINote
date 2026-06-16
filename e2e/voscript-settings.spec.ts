@@ -1,17 +1,83 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+
+const VOSCRIPT_KEY_KEEP = "__keep_voscript_key__";
+const VOSCRIPT_KEY_CLEAR = "__clear_voscript_key__";
+
+type VoScriptSettingsPayload = {
+    privateTranscriptionApiKeySet: boolean;
+    privateTranscriptionBaseUrl: string | null;
+    privateTranscriptionDenoiseModel: "none" | "deepfilternet" | "noisereduce";
+    privateTranscriptionMaxInflightJobs: number;
+    privateTranscriptionMaxSpeakers: number;
+    privateTranscriptionMinSpeakers: number;
+    privateTranscriptionNoRepeatNgramSize: number;
+    privateTranscriptionSnrThreshold: number | null;
+};
+
+function voscriptSettings(
+    overrides: Partial<VoScriptSettingsPayload> = {},
+): VoScriptSettingsPayload {
+    return {
+        privateTranscriptionApiKeySet: true,
+        privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+        privateTranscriptionDenoiseModel: "none",
+        privateTranscriptionMaxInflightJobs: 1,
+        privateTranscriptionMaxSpeakers: 0,
+        privateTranscriptionMinSpeakers: 0,
+        privateTranscriptionNoRepeatNgramSize: 0,
+        privateTranscriptionSnrThreshold: null,
+        ...overrides,
+    };
+}
 
 async function resetDisplayToChinese(page: Page) {
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
             dateTimeFormat: "relative",
+            displayDensity: "comfy",
             itemsPerPage: 50,
             recordingListSortOrder: "newest",
-            theme: "system",
+            theme: "dark",
             uiLanguage: "zh-CN",
         },
     });
     expect(resetResponse.ok()).toBe(true);
+}
+
+function settingsShell(page: Page) {
+    return page.locator('[data-sot-surface="settings-shell"]');
+}
+
+function settingsSection(page: Page, section: "transcription" | "voscript") {
+    return page.locator(
+        `[data-sot-surface="settings-section"][data-sot-section="${section}"]`,
+    );
+}
+
+function sectionSaveButton(section: Locator, saveId?: string) {
+    if (saveId) {
+        return section.locator(
+            `[data-save-id="${saveId}"] [data-sot-control="settings-save"]`,
+        );
+    }
+
+    return section.locator('[data-sot-control="settings-save"]');
+}
+
+async function expectSectionReady(
+    page: Page,
+    sectionName: "transcription" | "voscript",
+) {
+    const shell = settingsShell(page);
+    const section = settingsSection(page, sectionName);
+
+    await expect(shell).toHaveAttribute("data-sot-section", sectionName);
+    await expect(shell).toHaveAttribute("data-sot-state", "idle");
+    await expect(shell).toHaveAttribute("aria-busy", "false");
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(section).toHaveAttribute("aria-busy", "false");
 }
 
 test("VoScript settings shows settings load failure and retries", async ({
@@ -41,34 +107,7 @@ test("VoScript settings shows settings load failure and retries", async ({
 
         await route.fulfill({
             contentType: "application/json",
-            body: JSON.stringify({
-                privateTranscriptionApiKeySet: true,
-                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-                privateTranscriptionDenoiseModel: "none",
-                privateTranscriptionMaxInflightJobs: 1,
-                privateTranscriptionMaxSpeakers: 0,
-                privateTranscriptionMinSpeakers: 0,
-                privateTranscriptionNoRepeatNgramSize: 0,
-                privateTranscriptionSnrThreshold: null,
-            }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ profiles: [] }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: [],
-            }),
+            body: JSON.stringify(voscriptSettings()),
         });
     });
 
@@ -76,30 +115,329 @@ test("VoScript settings shows settings load failure and retries", async ({
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator('[data-settings-section="voscript"]');
-    await expect(section).toHaveAttribute("data-voscript-load-state", "error");
-    await expect(page.getByTestId("voscript-load-error")).toContainText(
-        "VoScript settings temporarily unavailable",
-    );
-    await expect(page.getByTestId("voscript-save")).toHaveCount(0);
+    const section = settingsSection(page, "voscript");
+    await expect(section).toHaveAttribute("data-sot-state", "error");
+    await expect(section.getByText("加载失败")).toBeVisible();
+    await expect(
+        section.getByText("VoScript settings temporarily unavailable"),
+    ).toBeVisible();
+    await expect(sectionSaveButton(section)).toHaveCount(0);
 
-    await page.getByTestId("voscript-load-retry").click();
-    await expect(section).toHaveAttribute("data-voscript-load-state", "ready");
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "configured",
-    );
-    await expect(page.getByTestId("voscript-save")).toBeEnabled();
+    await section.getByRole("button", { name: "重试" }).click();
+    await expectSectionReady(page, "voscript");
+    await expect(
+        section.getByRole("heading", { name: "VoScript 服务" }),
+    ).toBeVisible();
+    await expect(
+        sectionSaveButton(section, "voscript-connection"),
+    ).toBeEnabled();
+    await expect(sectionSaveButton(section, "voscript-params")).toBeEnabled();
     expect(settingsGets).toBe(2);
 });
 
-test("VoScript settings tests the current connection and keeps speaker rows scroll-stable", async ({
+test("VoScript settings saves current SOT controls and keeps the shell scroll-stable", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
 
-    let connectionTestPayload: Record<string, unknown> | null = null;
     let settingsSavePayload: Record<string, unknown> | null = null;
+    let releaseSettingsSave = () => {};
+    let notifySettingsSaveStarted = () => {};
+    const settingsSaveStarted = new Promise<void>((resolve) => {
+        notifySettingsSaveStarted = resolve;
+    });
+    const pendingSettingsSave = new Promise<void>((resolve) => {
+        releaseSettingsSave = resolve;
+    });
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        settingsSavePayload = route.request().postDataJSON();
+        notifySettingsSaveStarted();
+        await pendingSettingsSave;
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const saveButton = sectionSaveButton(section, "voscript-params");
+
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-updated.e2e.example",
+    );
+    await section.locator("#voscript-api-key").fill("typed-e2e-key");
+    await section.locator("#voscript-min-speakers").fill("1");
+    await section.locator("#voscript-max-speakers").fill("3");
+    await section.locator("#voscript-no-repeat-ngram").fill("4");
+    await section.locator("#voscript-snr-threshold").fill("12.5");
+    await section.locator("#voscript-max-inflight-jobs").fill("2");
+    await section
+        .getByRole("combobox", { name: "降噪模型" })
+        .selectOption("deepfilternet");
+
+    const saveResponse = page.waitForResponse(
+        (response) =>
+            response.url().endsWith("/api/settings/voscript") &&
+            response.request().method() === "PUT" &&
+            response.ok(),
+    );
+    await Promise.all([settingsSaveStarted, saveButton.click()]);
+    await expect(settingsShell(page)).toHaveAttribute("data-sot-state", "busy");
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expect(section).toHaveAttribute("aria-busy", "true");
+    await expect(saveButton).toBeDisabled();
+    await expect(saveButton).toHaveAttribute("aria-busy", "true");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "saving");
+    await expect(saveButton).toContainText("保存中");
+
+    releaseSettingsSave();
+    await saveResponse;
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expect(saveButton).toContainText("已保存");
+    await expect(section.locator("#voscript-api-key")).toHaveValue("");
+    expect(settingsSavePayload).toMatchObject({
+        privateTranscriptionApiKey: "typed-e2e-key",
+        privateTranscriptionBaseUrl: "https://voscript-updated.e2e.example",
+        privateTranscriptionDenoiseModel: "deepfilternet",
+        privateTranscriptionMaxInflightJobs: 2,
+        privateTranscriptionMaxSpeakers: 3,
+        privateTranscriptionMinSpeakers: 1,
+        privateTranscriptionNoRepeatNgramSize: 4,
+        privateTranscriptionSnrThreshold: 12.5,
+    });
+
+    await section.hover();
+    await page.mouse.wheel(0, 1200);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(settingsShell(page)).toHaveAttribute(
+        "data-sot-section",
+        "voscript",
+    );
+});
+
+test("VoScript settings blocks invalid no-repeat n-gram inline before saving", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let settingsPutCount = 0;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        settingsPutCount += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 500,
+            body: JSON.stringify({ error: "Unexpected VoScript PUT" }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const ngramField = section.locator('[data-field="no-repeat-ngram"]');
+    const ngramInput = section.locator("#voscript-no-repeat-ngram");
+    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const saveButton = sectionSaveButton(section, "voscript-params");
+
+    await ngramInput.fill("1");
+
+    await expect(ngramField).toHaveAttribute("data-field-state", "invalid");
+    await expect(ngramInput).toHaveAttribute("aria-invalid", "true");
+    await expect(ngramField.locator("[data-field-msg]")).toHaveText(
+        "只支持 0 或 ≥ 3",
+    );
+
+    await saveButton.click();
+
+    await expect(ngramInput).toHaveValue("1");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+    await expect(ngramField.locator("[data-field-msg]")).toBeVisible();
+    await expect(paramsSave).toContainText("只支持 0 或 ≥ 3");
+    await expect.poll(() => settingsPutCount).toBe(0);
+
+    await ngramInput.fill("2");
+    await expect(ngramInput).toHaveValue("2");
+    await saveButton.click();
+    await expect(ngramInput).toHaveValue("2");
+    await expect.poll(() => settingsPutCount).toBe(0);
+});
+
+test("VoScript settings blocks negative speaker bounds inline before saving", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let settingsPutCount = 0;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(
+                    voscriptSettings({
+                        privateTranscriptionMaxSpeakers: 4,
+                        privateTranscriptionMinSpeakers: 1,
+                    }),
+                ),
+            });
+            return;
+        }
+
+        settingsPutCount += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 500,
+            body: JSON.stringify({ error: "Unexpected VoScript PUT" }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const minSpeakerField = section.locator('[data-field="min-speakers"]');
+    const maxSpeakerField = section.locator('[data-field="max-speakers"]');
+    const minSpeakerInput = section.locator("#voscript-min-speakers");
+    const maxSpeakerInput = section.locator("#voscript-max-speakers");
+    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const saveButton = sectionSaveButton(section, "voscript-params");
+
+    await minSpeakerInput.fill("-1");
+    await expect(minSpeakerField).toHaveAttribute(
+        "data-field-state",
+        "invalid",
+    );
+    await expect(minSpeakerInput).toHaveAttribute("aria-invalid", "true");
+    await expect(minSpeakerField.locator("[data-field-msg]")).toHaveText(
+        "不能为负数",
+    );
+
+    await saveButton.click();
+
+    await expect(minSpeakerInput).toHaveValue("-1");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+    await expect(paramsSave).toContainText("不能为负数");
+    await expect.poll(() => settingsPutCount).toBe(0);
+
+    await minSpeakerInput.fill("1");
+    await maxSpeakerInput.fill("-2");
+    await expect(maxSpeakerField).toHaveAttribute(
+        "data-field-state",
+        "invalid",
+    );
+    await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
+    await expect(maxSpeakerField.locator("[data-field-msg]")).toHaveText(
+        "不能为负数",
+    );
+
+    await saveButton.click();
+
+    await expect(maxSpeakerInput).toHaveValue("-2");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+    await expect(paramsSave).toContainText("不能为负数");
+    await expect.poll(() => settingsPutCount).toBe(0);
+});
+
+test("VoScript settings blocks max speaker bounds below min before saving", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let settingsPutCount = 0;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(
+                    voscriptSettings({
+                        privateTranscriptionMaxSpeakers: 4,
+                        privateTranscriptionMinSpeakers: 1,
+                    }),
+                ),
+            });
+            return;
+        }
+
+        settingsPutCount += 1;
+        await route.fulfill({
+            contentType: "application/json",
+            status: 500,
+            body: JSON.stringify({ error: "Unexpected VoScript PUT" }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const maxSpeakerField = section.locator('[data-field="max-speakers"]');
+    const minSpeakerInput = section.locator("#voscript-min-speakers");
+    const maxSpeakerInput = section.locator("#voscript-max-speakers");
+    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const saveButton = sectionSaveButton(section, "voscript-params");
+
+    await minSpeakerInput.fill("5");
+    await maxSpeakerInput.fill("3");
+
+    await expect(maxSpeakerField).toHaveAttribute(
+        "data-field-state",
+        "invalid",
+    );
+    await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
+    await expect(maxSpeakerField.locator("[data-field-msg]")).toHaveText(
+        "最多说话人数必须 ≥ 最少说话人数",
+    );
+
+    await saveButton.click();
+
+    await expect(minSpeakerInput).toHaveValue("5");
+    await expect(maxSpeakerInput).toHaveValue("3");
+    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+    await expect(paramsSave).toContainText(
+        "最多说话人数必须 ≥ 最少说话人数",
+    );
+    await expect.poll(() => settingsPutCount).toBe(0);
+});
+
+test("VoScript settings tests the service connection without persisting settings", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    const testPayloads: Record<string, unknown>[] = [];
+    let settingsPutCount = 0;
+    let testAttempts = 0;
     let releaseConnectionTest = () => {};
     let notifyConnectionTestStarted = () => {};
     const connectionTestStarted = new Promise<void>((resolve) => {
@@ -110,17 +448,28 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
     });
 
     await page.route("**/api/settings/voscript/test", async (route) => {
-        connectionTestPayload = route.request().postDataJSON();
-        notifyConnectionTestStarted();
-        await pendingConnectionTest;
+        testAttempts += 1;
+        testPayloads.push(route.request().postDataJSON());
+
+        if (testAttempts === 1) {
+            notifyConnectionTestStarted();
+            await pendingConnectionTest;
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    available: true,
+                    providerName: "voice-transcribe",
+                    success: true,
+                    voiceprintCount: 2,
+                }),
+            });
+            return;
+        }
+
         await route.fulfill({
             contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                providerName: "voice-transcribe",
-                success: true,
-                voiceprintCount: 2,
-            }),
+            status: 502,
+            body: JSON.stringify({ error: "VoScript upstream unreachable" }),
         });
     });
 
@@ -128,214 +477,105 @@ test("VoScript settings tests the current connection and keeps speaker rows scro
         if (route.request().method() === "GET") {
             await route.fulfill({
                 contentType: "application/json",
-                body: JSON.stringify({
-                    privateTranscriptionApiKeySet: true,
-                    privateTranscriptionBaseUrl:
-                        "https://voscript.e2e.example",
-                    privateTranscriptionDenoiseModel: "none",
-                    privateTranscriptionMaxInflightJobs: 1,
-                    privateTranscriptionMaxSpeakers: 0,
-                    privateTranscriptionMinSpeakers: 0,
-                    privateTranscriptionNoRepeatNgramSize: 0,
-                    privateTranscriptionSnrThreshold: null,
-                }),
+                body: JSON.stringify(voscriptSettings()),
             });
             return;
         }
 
-        settingsSavePayload = route.request().postDataJSON();
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ success: true }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                profiles: [
-                    {
-                        assignmentCount: 3,
-                        createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName:
-                            "跨区域产品评审主持人 Alexandra Chen-Li 负责超长姓名换行稳定性",
-                        id: "profile-long",
-                        updatedAt: "2026-05-03T00:00:00.000Z",
-                        voiceprintRef: null,
-                    },
-                ],
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: [
-                    {
-                        createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName:
-                            "Remote Voiceprint With Very Long Latin Name For Layout Acceptance",
-                        id: "vp-long-001",
-                        updatedAt: "2026-05-02T00:00:00.000Z",
-                    },
-                ],
-            }),
-        });
+        settingsPutCount += 1;
+        await route.continue();
     });
 
     await ensureSignedIn(page);
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    const shell = page.locator("[data-settings-shell]");
-    const section = page.locator('[data-settings-section="voscript"]');
-    await expect(shell).toBeVisible();
-    await expect(shell).toHaveAttribute(
-        "data-settings-active-section",
-        "voscript",
-    );
-    await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "configured",
-    );
-    await expect(section).toHaveAttribute("data-voscript-test-state", "idle");
-    await expect(section).toHaveAttribute(
-        "data-voscript-interaction-disabled",
-        "false",
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const testButton = section.locator('[data-sot-control="voscript-test"]');
+    const connectionSaveButton = sectionSaveButton(
+        section,
+        "voscript-connection",
     );
 
-    const baseUrlInput = page.locator("#private-transcription-base-url");
-    const apiKeyInput = page.locator("#private-transcription-api-key");
-    await baseUrlInput.fill("https://voscript-updated.e2e.example");
-    await expect(section).toHaveAttribute("data-voscript-availability", "draft");
-    await expect(page.getByText("服务地址有未保存修改")).toBeVisible();
-    await baseUrlInput.fill("https://voscript.e2e.example");
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "configured",
+    await expect(section.locator("[data-voscript-unavail]")).toHaveCount(0);
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-test.e2e.example",
     );
+    await section.locator("#voscript-api-key").fill("typed-test-key");
 
-    await expect(page.locator("[data-speaker-profile-row]")).toBeVisible();
-    await expect(page.locator("[data-vs-profile-row]")).toBeVisible();
-    const profileBox = await page
-        .locator("[data-speaker-profile-row]")
-        .first()
-        .boundingBox();
-    expect(profileBox?.width ?? 0).toBeGreaterThan(520);
-    expect(profileBox?.height ?? 0).toBeLessThan(180);
-
-    await apiKeyInput.fill("typed-e2e-key");
-    await page.getByTestId("voscript-test-connection").click();
+    await testButton.click();
     await connectionTestStarted;
-    await expect(section).toHaveAttribute(
-        "data-voscript-test-state",
-        "testing",
-    );
-    await expect(section).toHaveAttribute(
-        "data-voscript-interaction-disabled",
-        "true",
-    );
-    await expect(baseUrlInput).toBeDisabled();
-    await expect(apiKeyInput).toBeDisabled();
-    await expect(page.getByTestId("voscript-test-connection")).toBeDisabled();
-    await expect(page.getByTestId("voscript-save")).toBeDisabled();
+    await expect(settingsShell(page)).toHaveAttribute("data-sot-state", "busy");
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expect(testButton).toHaveAttribute("data-sot-state", "testing");
+    await expect(testButton).toHaveAttribute("aria-busy", "true");
+    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
 
+    const successResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/voscript/test") &&
+            response.request().method() === "POST" &&
+            response.ok(),
+    );
     releaseConnectionTest();
-    await expect(section).toHaveAttribute(
-        "data-voscript-test-state",
-        "success",
-    );
-    await expect(section).toHaveAttribute(
-        "data-voscript-interaction-disabled",
-        "false",
-    );
-    await expect(baseUrlInput).toBeEnabled();
-    await expect(apiKeyInput).toBeEnabled();
-    await expect(page.getByTestId("voscript-test-connection")).toBeEnabled();
-    await expect(page.getByTestId("voscript-save")).toBeEnabled();
-    await expect(page.getByTestId("voscript-connection-message")).toContainText(
-        "连接测试通过",
-    );
-    expect(connectionTestPayload).toMatchObject({
-        privateTranscriptionApiKey: "typed-e2e-key",
-        privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-    });
-    expect(settingsSavePayload).toBeNull();
+    await successResponse;
 
-    await section.hover();
-    await page.mouse.wheel(0, 1200);
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
-    await expect(shell).toHaveAttribute(
-        "data-settings-active-section",
-        "voscript",
+    expect(testPayloads[0]).toMatchObject({
+        privateTranscriptionApiKey: "typed-test-key",
+        privateTranscriptionBaseUrl: "https://voscript-test.e2e.example",
+    });
+    expect(settingsPutCount).toBe(0);
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(testButton).toHaveAttribute("data-sot-state", "test-success");
+    await expect(testButton).toContainText("连接正常");
+    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
+
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-failing.e2e.example",
     );
+    const failedResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/voscript/test") &&
+            response.request().method() === "POST" &&
+            response.status() === 502,
+    );
+    await testButton.click();
+    await failedResponse;
+
+    expect(testPayloads[1]).toMatchObject({
+        privateTranscriptionApiKey: "typed-test-key",
+        privateTranscriptionBaseUrl: "https://voscript-failing.e2e.example",
+    });
+    expect(settingsPutCount).toBe(0);
+    await expect(testButton).toHaveAttribute("data-sot-state", "test-error");
+    await expect(section.locator("[data-voscript-unavail]")).toBeVisible();
+    await expect(
+        section.getByText("VoScript upstream unreachable", { exact: true }),
+    ).toBeVisible();
+    await expect(connectionSaveButton).toHaveAttribute("data-sot-state", "idle");
 });
 
-test("VoScript settings clears stored API key when service URL is cleared", async ({
+test("VoScript settings clears a stored API key through the SOT key action", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
 
-    let settings: Record<string, unknown> = {
-        privateTranscriptionApiKeySet: true,
-        privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-        privateTranscriptionDenoiseModel: "none",
-        privateTranscriptionMaxInflightJobs: 1,
-        privateTranscriptionMaxSpeakers: 0,
-        privateTranscriptionMinSpeakers: 0,
-        privateTranscriptionNoRepeatNgramSize: 0,
-        privateTranscriptionSnrThreshold: null,
-    };
     let savePayload: Record<string, unknown> | null = null;
 
     await page.route("**/api/settings/voscript", async (route) => {
         if (route.request().method() === "GET") {
             await route.fulfill({
                 contentType: "application/json",
-                body: JSON.stringify(settings),
+                body: JSON.stringify(voscriptSettings()),
             });
             return;
         }
 
         savePayload = route.request().postDataJSON();
-        settings = {
-            ...settings,
-            privateTranscriptionApiKeySet:
-                savePayload?.privateTranscriptionApiKey === null
-                    ? false
-                    : settings.privateTranscriptionApiKeySet,
-            privateTranscriptionBaseUrl:
-                typeof savePayload?.privateTranscriptionBaseUrl === "string"
-                    ? savePayload.privateTranscriptionBaseUrl
-                    : null,
-        };
         await route.fulfill({
             contentType: "application/json",
             body: JSON.stringify({ success: true }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ profiles: [] }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: [],
-            }),
         });
     });
 
@@ -343,102 +583,76 @@ test("VoScript settings clears stored API key when service URL is cleared", asyn
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator('[data-settings-section="voscript"]');
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "configured",
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const apiKeyInput = section.locator("#voscript-api-key");
+    const keyMode = section.getByRole("combobox", { name: "密钥操作" });
+    const savedKeyDescription = section.getByText(
+        "当前账号已保存一把 VoScript key。输入新 key 可替换。",
     );
-    await expect(page.locator("#private-transcription-api-key")).toHaveAttribute(
-        "placeholder",
-        /已存储/,
+    const emptyKeyDescription = section.getByText(
+        "输入私有 VoScript 服务的 API key。",
     );
 
-    await page.locator("#private-transcription-base-url").fill("");
-    await expect(
-        page.getByText("保存后将清空 VoScript 连接和已保存的 API Key。"),
-    ).toBeVisible();
-    await page.getByTestId("voscript-save").click();
+    await expect(savedKeyDescription).toBeVisible();
+    await expect(keyMode).toHaveValue(VOSCRIPT_KEY_KEEP);
+    await keyMode.selectOption(VOSCRIPT_KEY_CLEAR);
+    await expect(apiKeyInput).toBeDisabled();
 
-    await expect(page.getByTestId("voscript-save-message")).toContainText(
-        "VoScript 服务地址已清空",
+    const saveButton = sectionSaveButton(section, "voscript-connection");
+    await saveButton.click();
+    await expect(saveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
     );
     expect(savePayload).toMatchObject({
         privateTranscriptionApiKey: null,
-        privateTranscriptionBaseUrl: null,
+        privateTranscriptionBaseUrl: "https://voscript.e2e.example",
     });
-    await expect(page.locator("#private-transcription-api-key")).toHaveAttribute(
-        "placeholder",
-        "vt_...",
-    );
+    await expect(keyMode).toHaveCount(0);
+    await expect(apiKeyInput).toBeEnabled();
+    await expect(apiKeyInput).toHaveValue("");
+    await expect(savedKeyDescription).toHaveCount(0);
+    await expect(section.getByText("已存储", { exact: true })).toHaveCount(0);
+    await expect(emptyKeyDescription).toBeVisible();
 });
 
-test("VoScript settings validates connection, save, and unavailable states", async ({
+test("VoScript settings surfaces backend save errors and recovers on retry", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
 
-    let connectionTestCalls = 0;
     const settingsSavePayloads: Record<string, unknown>[] = [];
-    let releaseSettingsSave = () => {};
-    let notifySettingsSaveStarted = () => {};
-    const settingsSaveStarted = new Promise<void>((resolve) => {
-        notifySettingsSaveStarted = resolve;
-    });
-    const pendingSettingsSave = new Promise<void>((resolve) => {
-        releaseSettingsSave = resolve;
-    });
-
-    await page.route("**/api/settings/voscript/test", async (route) => {
-        connectionTestCalls += 1;
-        await route.fulfill({
-            contentType: "application/json",
-            status: 502,
-            body: JSON.stringify({ error: "VoScript test rejected" }),
-        });
-    });
+    let saveAttempts = 0;
 
     await page.route("**/api/settings/voscript", async (route) => {
         if (route.request().method() === "GET") {
             await route.fulfill({
                 contentType: "application/json",
-                body: JSON.stringify({
-                    privateTranscriptionApiKeySet: false,
-                    privateTranscriptionBaseUrl: null,
-                    privateTranscriptionDenoiseModel: "none",
-                    privateTranscriptionMaxInflightJobs: 1,
-                    privateTranscriptionMaxSpeakers: 0,
-                    privateTranscriptionMinSpeakers: 0,
-                    privateTranscriptionNoRepeatNgramSize: 0,
-                    privateTranscriptionSnrThreshold: null,
-                }),
+                body: JSON.stringify(
+                    voscriptSettings({
+                        privateTranscriptionApiKeySet: false,
+                        privateTranscriptionBaseUrl: null,
+                    }),
+                ),
             });
             return;
         }
 
+        saveAttempts += 1;
         settingsSavePayloads.push(route.request().postDataJSON());
-        notifySettingsSaveStarted();
-        await pendingSettingsSave;
+        if (saveAttempts === 1) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 400,
+                body: JSON.stringify({ error: "E2E VoScript save rejected" }),
+            });
+            return;
+        }
+
         await route.fulfill({
             contentType: "application/json",
             body: JSON.stringify({ success: true }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ profiles: [] }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: false,
-                reason: "请先保存可用的 VoScript 服务连接。",
-                voiceprints: [],
-            }),
         });
     });
 
@@ -446,152 +660,93 @@ test("VoScript settings validates connection, save, and unavailable states", asy
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    const section = page.locator('[data-settings-section="voscript"]');
-    const baseUrlInput = page.locator("#private-transcription-base-url");
-    const maxInflightInput = page.locator(
-        "#private-transcription-max-inflight-jobs",
-    );
-    const repeatInput = page.locator(
-        "#private-transcription-no-repeat-ngram-size",
-    );
-    const snrInput = page.locator("#private-transcription-snr-threshold");
-    const saveButton = page.getByTestId("voscript-save");
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const saveButton = sectionSaveButton(section, "voscript-connection");
 
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "unavailable",
+    await section.locator("#voscript-base-url").fill(
+        "https://bad-voscript.e2e.example",
     );
-    await expect(maxInflightInput).toBeDisabled();
-    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
-        "data-vs-state",
-        "disabled",
-    );
-    await expect(page.locator("[data-vs-state]")).toContainText(
-        "请先保存可用的 VoScript 服务连接。",
-    );
-
-    await page.getByTestId("voscript-test-connection").click();
-    await expect(section).toHaveAttribute("data-voscript-test-state", "error");
-    await expect(page.getByTestId("voscript-connection-message")).toContainText(
-        "请先填写 VoScript 服务地址",
-    );
-    expect(connectionTestCalls).toBe(0);
-
-    await baseUrlInput.fill("https://bad-voscript.e2e.example");
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "draft",
-    );
-    await expect(
-        section.locator("[data-voscript-service-state]"),
-    ).toHaveAttribute("data-voscript-service-state", "draft");
-    await expect(page.getByText("服务地址待保存")).toBeVisible();
-    await expect(maxInflightInput).toBeEnabled();
-    await page.getByTestId("voscript-test-connection").click();
-    await expect(section).toHaveAttribute("data-voscript-test-state", "error");
-    await expect(page.getByTestId("voscript-connection-message")).toContainText(
-        "VoScript test rejected",
-    );
-    expect(connectionTestCalls).toBe(1);
-
-    await maxInflightInput.fill("-1");
     await saveButton.click();
-    await expect(section).toHaveAttribute("data-voscript-save-state", "error");
-    await expect(page.getByTestId("voscript-save-message")).toContainText(
-        "本地调度活跃任务上限必须是非负整数",
-    );
-    expect(settingsSavePayloads).toEqual([]);
+    await expect(saveButton).toHaveAttribute("data-sot-state", "error");
+    await expect(section.getByText("E2E VoScript save rejected")).toBeVisible();
+    expect(settingsSavePayloads).toHaveLength(1);
 
-    await maxInflightInput.fill("2");
-    await repeatInput.fill("2");
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-recovered.e2e.example",
+    );
     await saveButton.click();
-    await expect(section).toHaveAttribute("data-voscript-save-state", "error");
-    await expect(page.getByTestId("voscript-save-message")).toContainText(
-        "重复抑制长度必须为 0，或大于等于 3 的整数",
-    );
-    expect(settingsSavePayloads).toEqual([]);
-
-    await repeatInput.fill("3");
-    await snrInput.fill("");
-    await baseUrlInput.fill("");
-    await expect(section).toHaveAttribute(
-        "data-voscript-availability",
-        "unavailable",
-    );
-    await expect(maxInflightInput).toBeDisabled();
-    await Promise.all([settingsSaveStarted, saveButton.click()]);
-    await expect(section).toHaveAttribute("data-voscript-save-state", "saving");
-    await expect(saveButton).toHaveAttribute("aria-busy", "true");
-
-    releaseSettingsSave();
-    await expect(section).toHaveAttribute("data-voscript-save-state", "saved");
-    await expect(page.getByTestId("voscript-save-message")).toContainText(
-        "VoScript 服务地址已清空",
-    );
+    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    expect(settingsSavePayloads).toHaveLength(2);
     expect(settingsSavePayloads.at(-1)).toMatchObject({
+        privateTranscriptionBaseUrl: "https://voscript-recovered.e2e.example",
+    });
+});
+
+test("VoScript settings saves an empty service URL as nullable backend state", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    await section.locator("#voscript-base-url").fill("");
+    await section.locator("#voscript-snr-threshold").fill("");
+
+    const saveButton = sectionSaveButton(section, "voscript-connection");
+    await saveButton.click();
+    await expect(saveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
+    );
+    expect(savePayload).toMatchObject({
         privateTranscriptionBaseUrl: null,
-        privateTranscriptionMaxInflightJobs: 2,
         privateTranscriptionSnrThreshold: null,
     });
+    expect(savePayload).not.toHaveProperty("privateTranscriptionApiKey");
 });
 
-test("VoScript remote voiceprint delete confirmation stays above the settings shell", async ({
+test("VoScript settings save speaker bounds through SOT controls", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
 
-    let deleteCalls = 0;
-    let remoteVoiceprints = [
-        {
-            createdAt: "2026-05-01T00:00:00.000Z",
-            displayName: "Remote Voiceprint Pending Delete",
-            id: "vp-delete-001",
-            updatedAt: "2026-05-02T00:00:00.000Z",
-        },
-    ];
+    const speakerPayloads: Record<string, unknown>[] = [];
 
     await page.route("**/api/settings/voscript", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                privateTranscriptionApiKeySet: true,
-                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-                privateTranscriptionDenoiseModel: "none",
-                privateTranscriptionMaxInflightJobs: 1,
-                privateTranscriptionMaxSpeakers: 0,
-                privateTranscriptionMinSpeakers: 0,
-                privateTranscriptionNoRepeatNgramSize: 0,
-                privateTranscriptionSnrThreshold: null,
-            }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ profiles: [] }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: remoteVoiceprints,
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints/vp-delete-001", async (route) => {
-        if (route.request().method() !== "DELETE") {
-            await route.continue();
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(
+                    voscriptSettings({ privateTranscriptionMaxSpeakers: 2 }),
+                ),
+            });
             return;
         }
 
-        deleteCalls += 1;
-        remoteVoiceprints = [];
+        speakerPayloads.push(route.request().postDataJSON());
         await route.fulfill({
             contentType: "application/json",
             body: JSON.stringify({ success: true }),
@@ -602,666 +757,92 @@ test("VoScript remote voiceprint delete confirmation stays above the settings sh
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    const shell = page.locator("[data-settings-shell]");
-    const row = page.locator("[data-vs-profile-row]");
-    await expect(shell).toHaveCSS("z-index", "600");
-    await expect(row).toBeVisible();
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    await expect(
+        section.getByRole("heading", { name: "VoScript 服务" }),
+    ).toBeVisible();
+    await section.locator("#voscript-min-speakers").fill("2");
+    await section.locator("#voscript-max-speakers").fill("5");
 
-    await row.getByRole("button", { name: "删除" }).click();
-
-    const confirmDialog = page.getByRole("dialog", {
-        name: "确认操作",
-        exact: true,
-    });
-    await expect(confirmDialog).toBeVisible();
-    await expect(confirmDialog).toHaveCSS("z-index", "710");
-    await expect(page.locator('[data-slot="dialog-overlay"]').last()).toHaveCSS(
-        "z-index",
-        "700",
+    const saveButton = sectionSaveButton(section, "voscript-params");
+    await saveButton.click();
+    await expect(saveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
     );
-
-    await confirmDialog.getByRole("button", { name: "取消" }).click();
-    await expect(confirmDialog).not.toBeVisible();
-    expect(deleteCalls).toBe(0);
-    await expect(row).toBeVisible();
-
-    await row.getByRole("button", { name: "删除" }).click();
-    await page
-        .getByRole("dialog", { name: "确认操作", exact: true })
-        .getByRole("button", { name: "确认" })
-        .click();
-
-    await expect.poll(() => deleteCalls).toBe(1);
-    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
-        "data-vs-state",
-        "empty",
-    );
-    await expect(row).toHaveCount(0);
-});
-
-test("VoScript speaker profiles create, edit, delete, and rename remote voiceprints", async ({
-    page,
-}) => {
-    await page.setViewportSize({ width: 1180, height: 680 });
-
-    const profilePosts: Record<string, unknown>[] = [];
-    const profilePatches: Record<string, unknown>[] = [];
-    let profileDeletes = 0;
-    const voiceprintPatches: Record<string, unknown>[] = [];
-    let releaseProfileCreate = () => {};
-    let notifyProfileCreateStarted = () => {};
-    const profileCreateStarted = new Promise<void>((resolve) => {
-        notifyProfileCreateStarted = resolve;
-    });
-    const pendingProfileCreate = new Promise<void>((resolve) => {
-        releaseProfileCreate = resolve;
-    });
-    let releaseProfilePatch = () => {};
-    let notifyProfilePatchStarted = () => {};
-    const profilePatchStarted = new Promise<void>((resolve) => {
-        notifyProfilePatchStarted = resolve;
-    });
-    const pendingProfilePatch = new Promise<void>((resolve) => {
-        releaseProfilePatch = resolve;
-    });
-    let releaseVoiceprintPatch = () => {};
-    let notifyVoiceprintPatchStarted = () => {};
-    const voiceprintPatchStarted = new Promise<void>((resolve) => {
-        notifyVoiceprintPatchStarted = resolve;
-    });
-    const pendingVoiceprintPatch = new Promise<void>((resolve) => {
-        releaseVoiceprintPatch = resolve;
-    });
-
-    let localProfiles = [
+    expect(speakerPayloads).toEqual([
         {
-            assignmentCount: 1,
-            createdAt: "2026-05-01T00:00:00.000Z",
-            displayName: "Speaker Pending Edit",
-            id: "profile-edit-001",
-            updatedAt: "2026-05-02T00:00:00.000Z",
-            voiceprintRef: null,
+            privateTranscriptionBaseUrl: "https://voscript.e2e.example",
+            privateTranscriptionDenoiseModel: "none",
+            privateTranscriptionMaxInflightJobs: 1,
+            privateTranscriptionMaxSpeakers: 5,
+            privateTranscriptionMinSpeakers: 2,
+            privateTranscriptionNoRepeatNgramSize: 0,
+            privateTranscriptionSnrThreshold: null,
         },
-    ];
-    let remoteVoiceprints = [
-        {
-            createdAt: "2026-05-01T00:00:00.000Z",
-            displayName: "Voiceprint Pending Rename",
-            id: "vp-rename-001",
-            updatedAt: "2026-05-02T00:00:00.000Z",
-        },
-    ];
-
-    await page.route("**/api/settings/voscript", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                privateTranscriptionApiKeySet: true,
-                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-                privateTranscriptionDenoiseModel: "none",
-                privateTranscriptionMaxInflightJobs: 1,
-                privateTranscriptionMaxSpeakers: 0,
-                privateTranscriptionMinSpeakers: 0,
-                privateTranscriptionNoRepeatNgramSize: 0,
-                privateTranscriptionSnrThreshold: null,
-            }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        if (route.request().method() === "POST") {
-            const payload = route.request().postDataJSON();
-            profilePosts.push(payload);
-            notifyProfileCreateStarted();
-            await pendingProfileCreate;
-            localProfiles = [
-                ...localProfiles,
-                {
-                    assignmentCount: 0,
-                    createdAt: "2026-05-03T00:00:00.000Z",
-                    displayName: String(payload.displayName),
-                    id: "profile-created-001",
-                    updatedAt: "2026-05-03T00:00:00.000Z",
-                    voiceprintRef: null,
-                },
-            ];
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify({ profile: localProfiles.at(-1) }),
-            });
-            return;
-        }
-
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ profiles: localProfiles }),
-        });
-    });
-
-    await page.route(/\/api\/speakers\/profiles\/[^/]+$/, async (route) => {
-        const profileId = route.request().url().split("/").pop() ?? "";
-        if (route.request().method() === "PATCH") {
-            const payload = route.request().postDataJSON();
-            profilePatches.push(payload);
-            notifyProfilePatchStarted();
-            await pendingProfilePatch;
-            localProfiles = localProfiles.map((profile) =>
-                profile.id === profileId
-                    ? {
-                          ...profile,
-                          displayName: String(payload.displayName),
-                          updatedAt: "2026-05-04T00:00:00.000Z",
-                      }
-                    : profile,
-            );
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify({
-                    profile: localProfiles.find(
-                        (profile) => profile.id === profileId,
-                    ),
-                }),
-            });
-            return;
-        }
-
-        if (route.request().method() === "DELETE") {
-            profileDeletes += 1;
-            localProfiles = localProfiles.filter(
-                (profile) => profile.id !== profileId,
-            );
-            await route.fulfill({
-                contentType: "application/json",
-                body: JSON.stringify({ success: true }),
-            });
-            return;
-        }
-
-        await route.continue();
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: remoteVoiceprints,
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints/vp-rename-001", async (route) => {
-        if (route.request().method() !== "PATCH") {
-            await route.continue();
-            return;
-        }
-
-        const payload = route.request().postDataJSON();
-        voiceprintPatches.push(payload);
-        notifyVoiceprintPatchStarted();
-        await pendingVoiceprintPatch;
-        remoteVoiceprints = remoteVoiceprints.map((voiceprint) => ({
-            ...voiceprint,
-            displayName: String(payload.displayName),
-            updatedAt: "2026-05-04T00:00:00.000Z",
-        }));
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({ voiceprint: remoteVoiceprints[0] }),
-        });
-    });
-
-    await ensureSignedIn(page);
-    await resetDisplayToChinese(page);
-    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
-
-    const shell = page.locator("[data-settings-shell]");
-    await expect(shell).toHaveAttribute(
-        "data-settings-active-section",
-        "voscript",
-    );
-    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
-        "data-profiles-state",
-        "ready",
-    );
-    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
-        "data-vs-state",
-        "ready",
-    );
-    const speakerProfilesPanel = page.locator("[data-speaker-profiles-panel]");
-    await expect(speakerProfilesPanel).toBeVisible();
-    await expect(speakerProfilesPanel).toHaveClass(/glass-surface/);
-
-    await page.getByTestId("speaker-profile-new-name").fill("Casey QA");
-    const createResponse = page.waitForResponse(
-        (response) =>
-            response.url().endsWith("/api/speakers/profiles") &&
-            response.request().method() === "POST" &&
-            response.ok(),
-    );
-    await page.getByTestId("speaker-profile-create").click();
-    await profileCreateStarted;
-    await expect(page.getByTestId("speaker-profile-new-name")).toBeDisabled();
-    await expect(page.getByTestId("speaker-profile-create")).toBeDisabled();
-    await expect(page.getByTestId("speaker-profile-create")).toHaveAttribute(
-        "aria-busy",
-        "true",
-    );
-    releaseProfileCreate();
-    await createResponse;
-    expect(profilePosts).toEqual([{ displayName: "Casey QA" }]);
-    await expect(
-        page.locator('[data-speaker-profile-id="profile-created-001"]'),
-    ).toBeVisible();
-    await expect(page.getByTestId("speaker-profile-new-name")).toBeEnabled();
-    await expect(page.getByTestId("speaker-profile-new-name")).toHaveValue("");
-
-    const editedProfileRow = page.locator(
-        '[data-speaker-profile-id="profile-edit-001"]',
-    );
-    const editedProfileInitial = editedProfileRow.getByTestId(
-        "speaker-profile-initial",
-    );
-    await expect(editedProfileInitial).toBeVisible();
-    await expect(editedProfileInitial).toHaveClass(/bg-muted\/35/);
-    await expect(editedProfileInitial).not.toHaveClass(/bg-background\/60/);
-    await editedProfileRow
-        .getByTestId("speaker-profile-name")
-        .fill("Speaker Renamed");
-    const profilePatchResponse = page.waitForResponse(
-        (response) =>
-            response
-                .url()
-                .endsWith("/api/speakers/profiles/profile-edit-001") &&
-            response.request().method() === "PATCH" &&
-            response.ok(),
-    );
-    await editedProfileRow.getByTestId("speaker-profile-save").click();
-    await profilePatchStarted;
-    await expect(editedProfileRow).toHaveAttribute(
-        "data-speaker-profile-busy",
-        "true",
-    );
-    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toBeDisabled();
-    await expect(editedProfileRow.getByTestId("speaker-profile-save")).toBeDisabled();
-    await expect(editedProfileRow.getByTestId("speaker-profile-save")).toHaveAttribute(
-        "aria-busy",
-        "true",
-    );
-    await expect(
-        editedProfileRow.getByTestId("speaker-profile-delete"),
-    ).toBeDisabled();
-    releaseProfilePatch();
-    await profilePatchResponse;
-    expect(profilePatches.at(-1)).toEqual({ displayName: "Speaker Renamed" });
-    await expect(editedProfileRow).toHaveAttribute(
-        "data-speaker-profile-busy",
-        "false",
-    );
-    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toBeEnabled();
-    await expect(editedProfileRow.getByTestId("speaker-profile-name")).toHaveValue(
-        "Speaker Renamed",
-    );
-
-    await editedProfileRow.getByTestId("speaker-profile-delete").click();
-    const confirmDialog = page.getByRole("dialog", {
-        name: "确认操作",
-        exact: true,
-    });
-    await expect(confirmDialog).toBeVisible();
-    await confirmDialog.getByRole("button", { name: "取消" }).click();
-    await expect(confirmDialog).not.toBeVisible();
-    expect(profileDeletes).toBe(0);
-    await expect(editedProfileRow).toBeVisible();
-
-    await editedProfileRow.getByTestId("speaker-profile-delete").click();
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith(
-                    "/api/speakers/profiles/profile-edit-001",
-                ) &&
-                response.request().method() === "DELETE" &&
-                response.ok(),
-        ),
-        page
-            .getByRole("dialog", { name: "确认操作", exact: true })
-            .getByRole("button", { name: "确认" })
-            .click(),
     ]);
-    expect(profileDeletes).toBe(1);
-    await expect(editedProfileRow).toHaveCount(0);
-
-    const voiceprintRow = page.locator('[data-vs-profile-id="vp-rename-001"]');
-    const voiceprintInitial = voiceprintRow.getByTestId("voiceprint-initial");
-    await expect(voiceprintInitial).toBeVisible();
-    await expect(voiceprintInitial).toHaveClass(/bg-muted\/35/);
-    await expect(voiceprintInitial).not.toHaveClass(/bg-background\/60/);
-    await voiceprintRow
-        .getByTestId("voiceprint-name")
-        .fill("Voiceprint Renamed");
-    const voiceprintPatchResponse = page.waitForResponse(
-        (response) =>
-            response.url().endsWith("/api/voiceprints/vp-rename-001") &&
-            response.request().method() === "PATCH" &&
-            response.ok(),
-    );
-    await voiceprintRow.getByTestId("voiceprint-rename").click();
-    await voiceprintPatchStarted;
-    await expect(voiceprintRow).toHaveAttribute(
-        "data-vs-profile-busy",
-        "true",
-    );
-    await expect(voiceprintRow.getByTestId("voiceprint-name")).toBeDisabled();
-    await expect(voiceprintRow.getByTestId("voiceprint-rename")).toBeDisabled();
-    await expect(voiceprintRow.getByTestId("voiceprint-rename")).toHaveAttribute(
-        "aria-busy",
-        "true",
-    );
-    await expect(voiceprintRow.getByTestId("voiceprint-delete")).toBeDisabled();
-    releaseVoiceprintPatch();
-    await voiceprintPatchResponse;
-    expect(voiceprintPatches.at(-1)).toEqual({
-        displayName: "Voiceprint Renamed",
-    });
-    await expect(voiceprintRow).toHaveAttribute(
-        "data-vs-profile-busy",
-        "false",
-    );
-    await expect(voiceprintRow.getByTestId("voiceprint-name")).toBeEnabled();
-    await expect(voiceprintRow.getByTestId("voiceprint-name")).toHaveValue(
-        "Voiceprint Renamed",
-    );
-
-    await page.mouse.wheel(0, 1200);
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
 
-test("VoScript speaker profile mutation failures keep inputs recoverable", async ({
+test("VoScript speaker bounds recover when VoScript settings load fails first", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
 
-    let profileGets = 0;
-    let voiceprintGets = 0;
-    const profilePatches: Record<string, unknown>[] = [];
-    const voiceprintPatches: Record<string, unknown>[] = [];
-    let releaseProfilePatch = () => {};
-    let notifyProfilePatchStarted = () => {};
-    const profilePatchStarted = new Promise<void>((resolve) => {
-        notifyProfilePatchStarted = resolve;
-    });
-    const pendingProfilePatch = new Promise<void>((resolve) => {
-        releaseProfilePatch = resolve;
-    });
-    let releaseVoiceprintPatch = () => {};
-    let notifyVoiceprintPatchStarted = () => {};
-    const voiceprintPatchStarted = new Promise<void>((resolve) => {
-        notifyVoiceprintPatchStarted = resolve;
-    });
-    const pendingVoiceprintPatch = new Promise<void>((resolve) => {
-        releaseVoiceprintPatch = resolve;
-    });
+    let voscriptGets = 0;
 
     await page.route("**/api/settings/voscript", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                privateTranscriptionApiKeySet: true,
-                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-                privateTranscriptionDenoiseModel: "none",
-                privateTranscriptionMaxInflightJobs: 1,
-                privateTranscriptionMaxSpeakers: 0,
-                privateTranscriptionMinSpeakers: 0,
-                privateTranscriptionNoRepeatNgramSize: 0,
-                privateTranscriptionSnrThreshold: null,
-            }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        profileGets += 1;
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                profiles: [
-                    {
-                        assignmentCount: 2,
-                        createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName: "Speaker Mutation Target",
-                        id: "profile-failure-001",
-                        updatedAt: "2026-05-02T00:00:00.000Z",
-                        voiceprintRef: null,
-                    },
-                ],
-            }),
-        });
-    });
-
-    await page.route(/\/api\/speakers\/profiles\/[^/]+$/, async (route) => {
-        if (route.request().method() !== "PATCH") {
+        if (route.request().method() !== "GET") {
             await route.continue();
             return;
         }
 
-        profilePatches.push(route.request().postDataJSON());
-        notifyProfilePatchStarted();
-        await pendingProfilePatch;
-        await route.fulfill({
-            contentType: "application/json",
-            status: 409,
-            body: JSON.stringify({
-                error: "E2E speaker profile update rejected",
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        voiceprintGets += 1;
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                available: true,
-                reason: null,
-                voiceprints: [
-                    {
-                        createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName: "Voiceprint Mutation Target",
-                        id: "vp-failure-001",
-                        updatedAt: "2026-05-02T00:00:00.000Z",
-                    },
-                ],
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints/vp-failure-001", async (route) => {
-        if (route.request().method() !== "PATCH") {
-            await route.continue();
-            return;
-        }
-
-        voiceprintPatches.push(route.request().postDataJSON());
-        notifyVoiceprintPatchStarted();
-        await pendingVoiceprintPatch;
-        await route.fulfill({
-            contentType: "application/json",
-            status: 502,
-            body: JSON.stringify({
-                error: "E2E remote voiceprint rename rejected",
-            }),
-        });
-    });
-
-    await ensureSignedIn(page);
-    await resetDisplayToChinese(page);
-    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
-
-    const profileRow = page.locator(
-        '[data-speaker-profile-id="profile-failure-001"]',
-    );
-    const profileNameInput = profileRow.getByTestId("speaker-profile-name");
-    const profileSaveButton = profileRow.getByTestId("speaker-profile-save");
-    const profileDeleteButton = profileRow.getByTestId(
-        "speaker-profile-delete",
-    );
-    await expect(profileRow).toBeVisible();
-    await expect(profileNameInput).toHaveValue("Speaker Mutation Target");
-    const profileGetsBeforeMutation = profileGets;
-
-    await profileNameInput.fill("Speaker Rename Not Saved");
-    const profilePatchResponse = page.waitForResponse(
-        (response) =>
-            response
-                .url()
-                .endsWith("/api/speakers/profiles/profile-failure-001") &&
-            response.request().method() === "PATCH" &&
-            response.status() === 409,
-    );
-    await profileSaveButton.click();
-    await profilePatchStarted;
-    await expect(profileRow).toHaveAttribute(
-        "data-speaker-profile-busy",
-        "true",
-    );
-    await expect(profileNameInput).toBeDisabled();
-    await expect(profileSaveButton).toBeDisabled();
-    await expect(profileDeleteButton).toBeDisabled();
-
-    releaseProfilePatch();
-    await profilePatchResponse;
-    await expect(profileRow).toHaveAttribute(
-        "data-speaker-profile-busy",
-        "false",
-    );
-    await expect(profileNameInput).toBeEnabled();
-    await expect(profileSaveButton).toBeEnabled();
-    await expect(profileDeleteButton).toBeEnabled();
-    await expect(profileNameInput).toHaveValue("Speaker Rename Not Saved");
-    await expect(
-        page
-            .getByLabel("Notifications alt+T")
-            .getByText("E2E speaker profile update rejected"),
-    ).toBeVisible();
-    expect(profilePatches).toEqual([
-        { displayName: "Speaker Rename Not Saved" },
-    ]);
-    expect(profileGets).toBe(profileGetsBeforeMutation);
-
-    const voiceprintRow = page.locator('[data-vs-profile-id="vp-failure-001"]');
-    const voiceprintNameInput = voiceprintRow.getByTestId("voiceprint-name");
-    const voiceprintRenameButton =
-        voiceprintRow.getByTestId("voiceprint-rename");
-    const voiceprintDeleteButton =
-        voiceprintRow.getByTestId("voiceprint-delete");
-    await expect(voiceprintRow).toBeVisible();
-    await expect(voiceprintNameInput).toHaveValue("Voiceprint Mutation Target");
-    const voiceprintGetsBeforeMutation = voiceprintGets;
-
-    await voiceprintNameInput.fill("Voiceprint Rename Not Saved");
-    const voiceprintPatchResponse = page.waitForResponse(
-        (response) =>
-            response.url().endsWith("/api/voiceprints/vp-failure-001") &&
-            response.request().method() === "PATCH" &&
-            response.status() === 502,
-    );
-    await voiceprintRenameButton.click();
-    await voiceprintPatchStarted;
-    await expect(voiceprintRow).toHaveAttribute(
-        "data-vs-profile-busy",
-        "true",
-    );
-    await expect(voiceprintNameInput).toBeDisabled();
-    await expect(voiceprintRenameButton).toBeDisabled();
-    await expect(voiceprintDeleteButton).toBeDisabled();
-
-    releaseVoiceprintPatch();
-    await voiceprintPatchResponse;
-    await expect(voiceprintRow).toHaveAttribute(
-        "data-vs-profile-busy",
-        "false",
-    );
-    await expect(voiceprintNameInput).toBeEnabled();
-    await expect(voiceprintRenameButton).toBeEnabled();
-    await expect(voiceprintDeleteButton).toBeEnabled();
-    await expect(voiceprintNameInput).toHaveValue(
-        "Voiceprint Rename Not Saved",
-    );
-    await expect(
-        page
-            .getByLabel("Notifications alt+T")
-            .getByText("E2E remote voiceprint rename rejected"),
-    ).toBeVisible();
-    expect(voiceprintPatches).toEqual([
-        { displayName: "Voiceprint Rename Not Saved" },
-    ]);
-    expect(voiceprintGets).toBe(voiceprintGetsBeforeMutation);
-});
-
-test("VoScript speaker profile panels recover from load errors", async ({
-    page,
-}) => {
-    await page.setViewportSize({ width: 1180, height: 680 });
-
-    let profileGets = 0;
-    let voiceprintGets = 0;
-
-    await page.route("**/api/settings/voscript", async (route) => {
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                privateTranscriptionApiKeySet: true,
-                privateTranscriptionBaseUrl: "https://voscript.e2e.example",
-                privateTranscriptionDenoiseModel: "none",
-                privateTranscriptionMaxInflightJobs: 1,
-                privateTranscriptionMaxSpeakers: 0,
-                privateTranscriptionMinSpeakers: 0,
-                privateTranscriptionNoRepeatNgramSize: 0,
-                privateTranscriptionSnrThreshold: null,
-            }),
-        });
-    });
-
-    await page.route("**/api/speakers/profiles", async (route) => {
-        profileGets += 1;
-        if (profileGets === 1) {
-            await route.fulfill({
-                contentType: "application/json",
-                status: 500,
-                body: JSON.stringify({ error: "Profiles temporarily down" }),
-            });
-            return;
-        }
-
-        await route.fulfill({
-            contentType: "application/json",
-            body: JSON.stringify({
-                profiles: [
-                    {
-                        assignmentCount: 0,
-                        createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName: "Recovered Speaker",
-                        id: "profile-recovered-001",
-                        updatedAt: "2026-05-01T00:00:00.000Z",
-                        voiceprintRef: null,
-                    },
-                ],
-            }),
-        });
-    });
-
-    await page.route("**/api/voiceprints", async (route) => {
-        voiceprintGets += 1;
-        if (voiceprintGets === 1) {
+        voscriptGets += 1;
+        if (voscriptGets === 1) {
             await route.fulfill({
                 contentType: "application/json",
                 status: 502,
-                body: JSON.stringify({ error: "Voiceprints temporarily down" }),
+                body: JSON.stringify({ error: "VoScript speaker bounds down" }),
             });
             return;
         }
 
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify(
+                voscriptSettings({
+                    privateTranscriptionMaxSpeakers: 4,
+                    privateTranscriptionMinSpeakers: 1,
+                }),
+            ),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    const section = settingsSection(page, "voscript");
+    await expect(section).toHaveAttribute("data-sot-state", "error");
+    await expect(section.getByText("VoScript speaker bounds down")).toBeVisible();
+
+    await section.getByRole("button", { name: "重试" }).click();
+    await expectSectionReady(page, "voscript");
+    await expect(section.locator("#voscript-min-speakers")).toHaveValue("1");
+    await expect(section.locator("#voscript-max-speakers")).toHaveValue("4");
+    expect(voscriptGets).toBe(2);
+});
+
+test("VoScript settings loads remote voiceprint state from the SOT settings surface", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let voiceprintCalls = 0;
+    let voscriptSavePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/voiceprints**", async (route) => {
+        voiceprintCalls += 1;
         await route.fulfill({
             contentType: "application/json",
             body: JSON.stringify({
@@ -1270,12 +851,33 @@ test("VoScript speaker profile panels recover from load errors", async ({
                 voiceprints: [
                     {
                         createdAt: "2026-05-01T00:00:00.000Z",
-                        displayName: "Recovered Voiceprint",
-                        id: "vp-recovered-001",
-                        updatedAt: "2026-05-01T00:00:00.000Z",
+                        displayName: "Remote Voiceprint Should Stay Remote",
+                        id: "vp-not-loaded-001",
+                        updatedAt: "2026-05-02T00:00:00.000Z",
                     },
                 ],
             }),
+        });
+    });
+    await page.route("**/api/speakers/profiles**", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ profiles: [] }),
+        });
+    });
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        voscriptSavePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
         });
     });
 
@@ -1283,46 +885,28 @@ test("VoScript speaker profile panels recover from load errors", async ({
     await resetDisplayToChinese(page);
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
-    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
-        "data-profiles-state",
-        "error",
-    );
-    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
-        "data-vs-state",
-        "error",
-    );
-
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith("/api/speakers/profiles") &&
-                response.request().method() === "GET" &&
-                response.ok(),
-        ),
-        page.getByTestId("speaker-profiles-refresh").click(),
-    ]);
-    await expect(page.locator("[data-profiles-state]")).toHaveAttribute(
-        "data-profiles-state",
-        "ready",
-    );
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    await expect(section.getByText("声纹库", { exact: true })).toBeVisible();
     await expect(
-        page.locator('[data-speaker-profile-id="profile-recovered-001"]'),
-    ).toBeVisible();
-
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().endsWith("/api/voiceprints") &&
-                response.request().method() === "GET" &&
-                response.ok(),
-        ),
-        page.getByTestId("voiceprints-refresh").click(),
-    ]);
-    await expect(page.locator("[data-vs-state]")).toHaveAttribute(
-        "data-vs-state",
-        "ready",
-    );
+        section.locator('[data-sot-control="speaker-voiceprint-name"]'),
+    ).toHaveValue("Remote Voiceprint Should Stay Remote");
     await expect(
-        page.locator('[data-vs-profile-id="vp-recovered-001"]'),
-    ).toBeVisible();
+        page.getByRole("dialog", { name: "确认操作", exact: true }),
+    ).toHaveCount(0);
+
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-without-voiceprints.e2e.example",
+    );
+    const saveButton = sectionSaveButton(section, "voscript-connection");
+    await saveButton.click();
+    await expect(saveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
+    );
+    expect(voscriptSavePayload).toMatchObject({
+        privateTranscriptionBaseUrl:
+            "https://voscript-without-voiceprints.e2e.example",
+    });
+    expect(voiceprintCalls).toBeGreaterThan(0);
 });

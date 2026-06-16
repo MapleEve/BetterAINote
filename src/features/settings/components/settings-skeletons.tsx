@@ -1,5 +1,6 @@
 "use client";
 
+import type { Ref } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -17,29 +18,32 @@ export function SettingsCardSkeleton({
 }: SettingsCardSkeletonProps) {
     return (
         <div
-            className={cn(
-                "glass-surface content-fade-in flex flex-col gap-5 rounded-[1.1rem] p-6",
-                className,
-            )}
+            className={cn("settings-main", className)}
+            data-sot-panel="settings-card-skeleton"
+            data-sot-state="loading"
         >
-            <div className="flex flex-col gap-2">
-                <Skeleton className="h-5 w-36" />
-                <Skeleton className="h-4 w-2/3" />
+            <div className="empty-hint">
+                <Skeleton className="eh-t" />
+                <Skeleton className="eh-h" />
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div>
                 {makeSkeletonKeys("field", fields).map((fieldKey, index) => (
                     <div
                         key={fieldKey}
-                        className="glass-surface-subtle rounded-2xl p-4"
+                        className="sm-row"
+                        data-sot-part="settings-skeleton-row"
                     >
-                        <div className="mb-3 flex items-center justify-between gap-4">
-                            <Skeleton className="h-4 w-32" />
+                        <span className="sm-row-label">
+                            <Skeleton className="sm-l-t" />
+                            <Skeleton className="sm-l-h" />
+                        </span>
+                        <span className="sm-row-ctrl">
                             {index === 0 ? (
-                                <Skeleton className="h-6 w-11 rounded-full" />
+                                <Skeleton className="sync-dot" />
                             ) : null}
-                        </div>
-                        <Skeleton className="h-10 w-full rounded-xl" />
+                            <Skeleton className="sm-input" />
+                        </span>
                     </div>
                 ))}
             </div>
@@ -51,21 +55,35 @@ interface SettingsSectionSkeletonProps {
     cards?: number;
     className?: string;
     fieldsPerCard?: number;
+    scrollRef?: Ref<HTMLDivElement>;
+    section?: string;
+    surface?: string;
 }
 
 export function SettingsSectionSkeleton({
     cards = 2,
     className,
     fieldsPerCard = 2,
+    scrollRef,
+    section,
+    surface,
 }: SettingsSectionSkeletonProps) {
     return (
-        <div className={cn("flex flex-col gap-6", className)}>
-            <div className="flex flex-col gap-2">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-72" />
+        <div
+            ref={scrollRef}
+            aria-busy="true"
+            className={cn("settings-main", className)}
+            data-sot-panel="settings-section-skeleton"
+            data-sot-section={section}
+            data-sot-state="loading"
+            data-sot-surface={surface}
+        >
+            <div className="empty-hint">
+                <Skeleton className="eh-t" />
+                <Skeleton className="eh-h" />
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div>
                 {makeSkeletonKeys("settings-card", cards).map((cardKey) => (
                     <SettingsCardSkeleton
                         key={cardKey}
@@ -83,19 +101,22 @@ interface SettingsListSkeletonProps {
 
 export function SettingsListSkeleton({ rows = 3 }: SettingsListSkeletonProps) {
     return (
-        <div className="space-y-3">
+        <div
+            className="settings-main"
+            data-sot-panel="settings-list-skeleton"
+            data-sot-state="loading"
+        >
             {makeSkeletonKeys("settings-row", rows).map((rowKey) => (
-                <div key={rowKey} className="rounded-lg border bg-muted/20 p-3">
-                    <div className="mb-3 flex flex-wrap gap-3">
-                        <Skeleton className="h-3 w-24" />
-                        <Skeleton className="h-3 w-20" />
-                        <Skeleton className="h-3 w-28" />
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]">
-                        <Skeleton className="h-10 rounded-xl" />
-                        <Skeleton className="h-9 w-16 rounded-full" />
-                        <Skeleton className="h-9 w-16 rounded-full" />
-                    </div>
+                <div key={rowKey} className="sm-row">
+                    <span className="sm-row-label">
+                        <Skeleton className="sm-l-t" />
+                        <Skeleton className="sm-l-h" />
+                    </span>
+                    <span className="sm-row-ctrl">
+                        <Skeleton className="sm-input" />
+                        <Skeleton className="btn" />
+                        <Skeleton className="btn" />
+                    </span>
                 </div>
             ))}
         </div>

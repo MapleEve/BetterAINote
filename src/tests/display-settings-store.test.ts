@@ -12,11 +12,12 @@ import {
 function DisplaySettingsProbe() {
     const {
         hasLoaded,
-        settings: { itemsPerPage, recordingListSortOrder },
+        settings: { displayDensity, itemsPerPage, recordingListSortOrder },
     } = useDisplaySettingsStore();
 
     return React.createElement("output", {
         "data-has-loaded": String(hasLoaded),
+        "data-density": displayDensity,
         "data-items-per-page": String(itemsPerPage),
         "data-sort-order": recordingListSortOrder,
     });
@@ -41,6 +42,7 @@ describe("display settings store", () => {
                     dateTimeFormat: "absolute",
                     recordingListSortOrder: "oldest",
                     itemsPerPage: 25,
+                    displayDensity: "compact",
                     theme: "dark",
                 }),
                 {
@@ -61,6 +63,7 @@ describe("display settings store", () => {
             dateTimeFormat: "absolute",
             recordingListSortOrder: "oldest",
             itemsPerPage: 25,
+            displayDensity: "compact",
             theme: "dark",
         });
 
@@ -74,6 +77,7 @@ describe("display settings store", () => {
                 dateTimeFormat: "absolute",
                 recordingListSortOrder: "oldest",
                 itemsPerPage: 25,
+                displayDensity: "compact",
                 theme: "dark",
             },
         });
@@ -87,6 +91,7 @@ describe("display settings store", () => {
                     dateTimeFormat: "absolute",
                     recordingListSortOrder: "oldest",
                     itemsPerPage: 25,
+                    displayDensity: "compact",
                     theme: "dark",
                 }),
                 {
@@ -112,6 +117,7 @@ describe("display settings store", () => {
         );
 
         expect(html).toContain('data-has-loaded="false"');
+        expect(html).toContain('data-density="comfy"');
         expect(html).toContain('data-items-per-page="50"');
         expect(html).toContain('data-sort-order="newest"');
     });
@@ -124,7 +130,8 @@ describe("display settings store", () => {
                     dateTimeFormat: "iso",
                     recordingListSortOrder: "newest",
                     itemsPerPage: 50,
-                    theme: "system",
+                    displayDensity: "comfy",
+                    theme: "dark",
                 }),
                 {
                     status: 200,
@@ -164,6 +171,7 @@ describe("display settings store", () => {
                         dateTimeFormat: "absolute",
                         recordingListSortOrder: "oldest",
                         itemsPerPage: 25,
+                        displayDensity: "compact",
                         theme: "dark",
                     }),
                     {
@@ -204,10 +212,11 @@ describe("display settings store", () => {
                     JSON.stringify({
                         uiLanguage: "zh-CN",
                         dateTimeFormat: "relative",
-                        recordingListSortOrder: "newest",
-                        itemsPerPage: 50,
-                        theme: "system",
-                    }),
+                    recordingListSortOrder: "newest",
+                    itemsPerPage: 50,
+                    displayDensity: "comfy",
+                    theme: "dark",
+                }),
                     {
                         status: 200,
                         headers: { "Content-Type": "application/json" },
@@ -230,6 +239,7 @@ describe("display settings store", () => {
         await ensureDisplaySettingsLoaded();
 
         const savePromise = saveDisplaySettings({
+            displayDensity: "compact",
             uiLanguage: "en",
             itemsPerPage: 100,
         });
@@ -238,6 +248,7 @@ describe("display settings store", () => {
             isSaving: true,
             settings: {
                 uiLanguage: "en",
+                displayDensity: "compact",
                 itemsPerPage: 100,
             },
         });
@@ -251,6 +262,7 @@ describe("display settings store", () => {
             isSaving: false,
             settings: {
                 uiLanguage: "zh-CN",
+                displayDensity: "comfy",
                 itemsPerPage: 50,
             },
         });

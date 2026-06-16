@@ -6,6 +6,7 @@ import type {
     SourceMaturityStage,
     SourceProvider,
 } from "./catalog";
+import type { SourceSyncStatus } from "./types";
 
 export interface DataSourceUiState {
     provider: SourceProvider;
@@ -56,6 +57,7 @@ export interface DataSourceFormField {
     spellCheck?: boolean;
     className?: string;
     options?: DataSourceFieldOption[];
+    readOnly?: boolean;
 }
 
 export interface SourceCapabilityDisplayItem {
@@ -112,4 +114,8 @@ export interface DataSourceDisplayState {
     capabilities: SourceCapabilitySet;
     secretsConfigured: Record<string, boolean>;
     lastSync: string | null;
+    syncStatus: SourceSyncStatus;
+    lastSyncError: string | null;
+    lastSyncStartedAt: string | null;
+    lastSyncFinishedAt: string | null;
 }

@@ -1,26 +1,25 @@
 export const RECORDING_TAG_COLORS = [
-    "gray",
+    "purple",
+    "blue",
     "red",
     "orange",
-    "yellow",
     "green",
-    "blue",
-    "purple",
+    "slate",
 ] as const;
 
 export const RECORDING_TAG_ICONS = [
+    "grid",
+    "user",
+    "heart",
+    "clock",
     "tag",
-    "briefcase",
     "star",
-    "bookmark",
+    "dialog",
     "flag",
-    "pin",
-    "users",
+    "book",
+    "bulb",
+    "file",
     "mic",
-    "calendar",
-    "folder",
-    "sparkles",
-    "check",
 ] as const;
 
 export type RecordingTagColor = (typeof RECORDING_TAG_COLORS)[number];
@@ -31,6 +30,7 @@ export type RecordingTag = {
     name: string;
     color: RecordingTagColor;
     icon: RecordingTagIcon;
+    recordingCount?: number;
 };
 
 export const MAX_RECORDING_TAG_NAME_LENGTH = 12;

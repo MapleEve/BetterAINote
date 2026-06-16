@@ -1,12 +1,28 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
+    getSearchIndexingProgress,
     SEARCH_ENTITY_TYPES,
     type SearchEntityType,
     searchLibrary,
 } from "@/server/modules/search";
 
 class SearchValidationError extends Error {}
+const SEARCH_PUBLIC_FAILURE_MESSAGE = "Failed to search library";
+
+function searchErrorResponse(error: unknown) {
+    if (error instanceof SearchValidationError) {
+        return {
+            body: { error: error.message },
+            status: 400,
+        };
+    }
+
+    return {
+        body: { error: SEARCH_PUBLIC_FAILURE_MESSAGE },
+        status: 500,
+    };
+}
 
 function noStoreJson(body: unknown, init?: ResponseInit) {
     return NextResponse.json(body, {
@@ -61,26 +77,26 @@ export async function GET(request: Request) {
 
         const url = new URL(request.url);
         const query = url.searchParams.get("q") ?? "";
+        const entityTypes = parseEntityTypes(url);
+        const indexing = await getSearchIndexingProgress({
+            userId: session.user.id,
+        });
+
+        if (indexing.active) {
+            return noStoreJson({ results: [], indexing });
+        }
+
         const results = await searchLibrary({
             userId: session.user.id,
             query,
-            entityTypes: parseEntityTypes(url),
+            entityTypes,
             limit: parseLimit(url.searchParams.get("limit")),
         });
 
         return noStoreJson({ results });
     } catch (error) {
         console.error("Error searching library:", error);
-        return noStoreJson(
-            {
-                error:
-                    error instanceof SearchValidationError
-                        ? error.message
-                        : error instanceof Error
-                          ? error.message
-                          : "Failed to search library",
-            },
-            { status: error instanceof SearchValidationError ? 400 : 500 },
-        );
+        const response = searchErrorResponse(error);
+        return noStoreJson(response.body, { status: response.status });
     }
 }

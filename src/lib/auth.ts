@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { anonymous, magicLink } from "better-auth/plugins";
 import { coreDb } from "@/db";
 import { coreSchema } from "@/db/schema/core";
 import { isBuildRuntime } from "@/lib/platform/runtime";
@@ -144,6 +145,22 @@ export const auth = betterAuth({
     secret: resolveAuthSecret(),
     baseURL: resolveAuthBaseUrl(),
     trustedOrigins: resolveTrustedOrigins,
+    plugins: [
+        magicLink({
+            expiresIn: 60 * 10,
+            async sendMagicLink({ email, url }) {
+                if (process.env.NODE_ENV !== "production") {
+                    console.info(
+                        `[BetterAINote] Magic login link requested for ${email}: ${url}`,
+                    );
+                }
+            },
+        }),
+        anonymous({
+            emailDomainName: "local.betterainote.test",
+            generateName: () => "本地工作空间",
+        }),
+    ],
 });
 
 export type Session = typeof auth.$Infer.Session;

@@ -4,7 +4,6 @@
 仪表盘页面入口，组合 library-search、recording-list、transcription-panel 和轮询状态。
 
 ## 真实文件
-- `loading.tsx`
 - `page.tsx`
 
 ## 下级入口

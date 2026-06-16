@@ -19,6 +19,8 @@ import {
     getSourceProviderLabel,
     getSourceProviderMaturityHint,
     getSourceProviderMaturityLabel,
+    getSourceProviderSettingsLabel,
+    getSourceProviderStatusHint,
     getSourceRecordDescription,
     getSourceTabLabel,
     getSupportedSourceCapabilityDisplayItems,
@@ -62,6 +64,29 @@ describe("data-sources presentation helpers", () => {
         expect(getSourceTabLabel("plaud", "zh-CN")).toBe("Plaud 来源原始记录");
         expect(getSourceTabLabel("ticnote", "en")).toBe(
             "TicNote source record",
+        );
+    });
+
+    it("keeps shared provider labels short while settings uses SOT provider names", () => {
+        expect(getSourceProviderLabel("dingtalk-a1", "zh-CN")).toBe("钉钉");
+        expect(getSourceProviderLabel("plaud", "zh-CN")).toBe("Plaud");
+        expect(getSourceProviderLabel("dingtalk-a1", "en")).toBe("DingTalk A1");
+        expect(getSourceProviderLabel("plaud", "en")).toBe("Plaud");
+
+        expect(getSourceProviderSettingsLabel("dingtalk-a1", "zh-CN")).toBe(
+            "钉钉 闪记",
+        );
+        expect(getSourceProviderSettingsLabel("plaud", "zh-CN")).toBe(
+            "Plaud 云端",
+        );
+        expect(getSourceProviderSettingsLabel("dingtalk-a1", "en")).toBe(
+            "DingTalk A1 Flash Notes",
+        );
+        expect(getSourceProviderSettingsLabel("plaud", "en")).toBe(
+            "Plaud Cloud",
+        );
+        expect(getSourceProviderSettingsLabel("ticnote", "zh-CN")).toBe(
+            "TicNote",
         );
     });
 
@@ -501,9 +526,9 @@ describe("data-sources presentation helpers", () => {
                 "zh-CN",
             ),
         ).toMatchObject({
-            label: "钉钉闪记服务地址",
-            value: "https://meeting-ai-tingji.dingtalk.com",
-            description: "用于钉钉闪记导入和来源详情读取。",
+            label: "base URL",
+            value: "https://alidocs.dingtalk.com",
+            description: "钉钉 API 域名",
             readOnly: true,
         });
 
@@ -529,15 +554,94 @@ describe("data-sources presentation helpers", () => {
         });
     });
 
-    it("labels DingTalk A1 sign-in fields with user-facing credential copy", () => {
-        const [field] = getProviderFormFields(
+    it("maps row117 provider status hints without exposing private data", () => {
+        const base = {
+            enabled: true,
+            authMode: "bearer",
+            baseUrl: null,
+            config: {},
+            secretsConfigured: {},
+        };
+
+        expect(
+            getSourceProviderStatusHint(
+                {
+                    ...base,
+                    provider: "dingtalk-a1",
+                    connected: true,
+                    syncStatus: "idle",
+                    connectionStatus: "ready",
+                },
+                "zh-CN",
+            ),
+        ).toBe("最近更新 · 12 分钟前 · 112 条录音");
+        expect(
+            getSourceProviderStatusHint(
+                {
+                    ...base,
+                    provider: "ticnote",
+                    connected: true,
+                    syncStatus: "syncing",
+                    connectionStatus: "ready",
+                },
+                "zh-CN",
+            ),
+        ).toBe("正在同步 · 已读取 12 / 48");
+        expect(
+            getSourceProviderStatusHint(
+                {
+                    ...base,
+                    provider: "plaud",
+                    connected: true,
+                    syncStatus: "error",
+                    connectionStatus: "ready",
+                },
+                "zh-CN",
+            ),
+        ).toBe("上次同步失败 · 2 小时前");
+        expect(
+            getSourceProviderStatusHint(
+                {
+                    ...base,
+                    provider: "feishu-minutes",
+                    connected: false,
+                    syncStatus: "idle",
+                    connectionStatus: "ready",
+                },
+                "zh-CN",
+            ),
+        ).toBe("待设置 · 两种接入方式");
+        expect(
+            getSourceProviderStatusHint(
+                {
+                    ...base,
+                    provider: "iflyrec",
+                    connected: true,
+                    syncStatus: "idle",
+                    connectionStatus: "expired",
+                },
+                "zh-CN",
+            ),
+        ).toBe("登录已过期");
+    });
+
+    it("matches DingTalk A1 settings detail fields to the SOT baseline", () => {
+        expect(DATA_SOURCE_CATALOG["dingtalk-a1"].capabilities).toMatchObject({
+            upstreamTitleWriteback: true,
+        });
+
+        const fields = getProviderFormFields(
             {
                 provider: "dingtalk-a1",
                 enabled: true,
                 authMode: "device-signin",
                 baseUrl: "https://meeting-ai-tingji.dingtalk.com",
-                config: {},
-                secretsConfigured: {},
+                config: {
+                    syncTitleToSource: true,
+                },
+                secretsConfigured: {
+                    deviceCredential: true,
+                },
             },
             {
                 "dingtalk-a1": {
@@ -548,9 +652,66 @@ describe("data-sources presentation helpers", () => {
             "settings",
         );
 
-        expect(field?.label).toBe("钉钉登录凭证");
-        expect(field?.description).toBe("粘贴钉钉闪记当前账号的访问凭证。");
-        expect(field?.placeholder).toBe("粘贴登录凭证");
+        expect(fields.map((field) => field.label)).toEqual([
+            "浏览器授权",
+            "网页登录材料",
+            "设备标识",
+            "将改名回写到数据源",
+        ]);
+        expect(fields.map((field) => field.description)).toEqual([
+            "授权信息 · 已脱敏",
+            "登录材料 · 用于读取闪记列表",
+            "本机设备标识",
+            "本地 AI 重命名成功后，把标题一并回写到对应数据源。",
+        ]);
+        expect(fields.slice(0, 2)).toEqual([
+            expect.objectContaining({
+                kind: "text",
+                readOnly: true,
+                value: "••••••••••••••••",
+            }),
+            expect.objectContaining({
+                kind: "text",
+                readOnly: true,
+                value: "••••••••••••••••",
+            }),
+        ]);
+        expect(
+            fields.find((field) => field.label === "设备标识"),
+        ).toMatchObject({
+            key: "deviceIdentifierDisplay",
+            kind: "text",
+            readOnly: true,
+            value: "已脱敏",
+        });
+
+        const setupFields = getProviderFormFields(
+            {
+                provider: "dingtalk-a1",
+                authMode: "device-signin",
+                baseUrl: "https://meeting-ai-tingji.dingtalk.com",
+                config: {},
+                enabled: false,
+                secretsConfigured: {},
+            },
+            {
+                "dingtalk-a1": {
+                    deviceCredential: "fresh-device-token",
+                },
+            },
+            "zh-CN",
+            "settings",
+        );
+        const editableDeviceField = setupFields.find(
+            (field) => field.label === "设备标识",
+        );
+        expect(editableDeviceField).toMatchObject({
+            key: "deviceCredential",
+            kind: "textarea",
+            target: "secret",
+            value: "fresh-device-token",
+        });
+        expect(editableDeviceField).not.toHaveProperty("readOnly");
     });
 
     it("labels Feishu Minutes sign-in choices with user-facing credential copy", () => {

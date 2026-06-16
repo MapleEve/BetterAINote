@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -8,71 +8,550 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
-describe("full UI replacement regression coverage", () => {
-    it("keeps global tokens on the graphite glass system instead of the old warm chrome", () => {
-        const globals = readSource("app/globals.css");
-        const rootLayout = readSource("app/layout.tsx");
-        const appLayout = readSource("app/(app)/layout.tsx");
+function extractCssBlock(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
 
-        expect(globals).toContain("--graphite-100");
-        expect(globals).toContain("--steel-500");
-        expect(globals).toContain("BetterAINote Graphite Glass design system");
-        expect(globals).toContain("--page-background");
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return source.slice(openBraceIndex + 1, index);
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function extractCssBlockRange(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
+
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return {
+                    startLine: source.slice(0, markerIndex).split("\n").length,
+                    endLine: source.slice(0, index).split("\n").length,
+                };
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function cssLineProperty(lines: string[], index: number) {
+    for (let cursor = index; cursor >= 0; cursor -= 1) {
+        const line = lines[cursor];
+        const declaration = line.match(/^\s*([\w-]+|--[\w-]+)\s*:/);
+        if (declaration) return declaration[1];
+        if (/^\s*[.#:@[]?[\w-]/.test(line) && line.includes("{")) break;
+    }
+    return null;
+}
+
+function isLineInside(line: number, range: { startLine: number; endLine: number }) {
+    return line >= range.startLine && line <= range.endLine;
+}
+
+function expectTokenOklchFallbackOrder(source: string, marker: string) {
+    const block = extractCssBlock(source, marker);
+    const lines = block.split("\n");
+    const missingFallbacks: string[] = [];
+
+    for (const [index, line] of lines.entries()) {
+        const match = line.match(/^\s*(--[\w-]+):\s*(oklch\(|color-mix\()/);
+        if (!match) continue;
+
+        const fallback = lines[index - 1]?.trim() ?? "";
+        const hasSameTokenFallback = fallback.startsWith(`${match[1]}:`);
+        const hasRgbFallback =
+            /\brgba?\(/.test(fallback) || /\brgb\(/.test(fallback);
+
+        if (!hasSameTokenFallback || !hasRgbFallback) {
+            missingFallbacks.push(
+                `${marker} ${match[1]} lacks immediate rgb/rgba fallback`,
+            );
+        }
+    }
+
+    expect(missingFallbacks).toEqual([]);
+}
+
+type ColorDeclarationFinding = {
+    line: number;
+    property: string | null;
+    text: string;
+};
+
+const MODERN_COLOR_RE = /\b(oklch|color-mix)\(/;
+
+const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
+    "background",
+    "border",
+    "border-bottom",
+    "border-bottom-color",
+    "border-color",
+    "box-shadow",
+    "color",
+    "outline",
+    "scrollbar-color",
+    "text-decoration-color",
+]);
+
+function splitVarArguments(content: string) {
+    let depth = 0;
+    for (let index = 0; index < content.length; index += 1) {
+        const character = content[index];
+        if (character === "(") depth += 1;
+        if (character === ")") depth -= 1;
+        if (character === "," && depth === 0) {
+            return [
+                content.slice(0, index).trim(),
+                content.slice(index + 1).trim(),
+            ];
+        }
+    }
+    return [content.trim()];
+}
+
+function collectVarFallbackArguments(line: string) {
+    const fallbacks: string[] = [];
+    let searchFrom = 0;
+
+    while (searchFrom < line.length) {
+        const varIndex = line.indexOf("var(", searchFrom);
+        if (varIndex < 0) break;
+
+        let depth = 1;
+        let cursor = varIndex + "var(".length;
+        for (; cursor < line.length; cursor += 1) {
+            const character = line[cursor];
+            if (character === "(") depth += 1;
+            if (character === ")") {
+                depth -= 1;
+                if (depth === 0) break;
+            }
+        }
+
+        if (depth !== 0) break;
+
+        const [, fallback] = splitVarArguments(
+            line.slice(varIndex + "var(".length, cursor),
+        );
+        if (fallback) fallbacks.push(fallback);
+        searchFrom = cursor + 1;
+    }
+
+    return fallbacks;
+}
+
+function isSafeColorFallbackArgument(argument: string) {
+    return /^(#[\da-f]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|transparent|white|black)$/i.test(
+        argument.trim(),
+    );
+}
+
+function collectGlobalColorFallbackFindings(source: string) {
+    const lines = source.split("\n");
+    const rootRange = extractCssBlockRange(source, ":root");
+    const darkRange = extractCssBlockRange(source, '.dark,\n[data-theme="dark"]');
+    const fallbackOnlyRange = extractCssBlockRange(
+        source,
+        "@supports not (color: oklch(",
+    );
+    const tokenModernColorDeclarations: ColorDeclarationFinding[] = [];
+    const fallbackOnlyModernColorDeclarations: ColorDeclarationFinding[] = [];
+    const nonTokenSupportedPathDeclarations: ColorDeclarationFinding[] = [];
+    const unexpectedSupportedPathDeclarations: ColorDeclarationFinding[] = [];
+    const unsafeVarFallbackArguments: Array<ColorDeclarationFinding & { fallback: string }> =
+        [];
+
+    for (const [index, line] of lines.entries()) {
+        if (!MODERN_COLOR_RE.test(line)) continue;
+
+        const lineNumber = index + 1;
+        if (/^\s*@supports\s+not\s+\(color:\s*oklch\(/.test(line)) {
+            continue;
+        }
+
+        const property = cssLineProperty(lines, index);
+        const finding = { line: lineNumber, property, text: line.trim() };
+        const isTokenDeclaration =
+            property?.startsWith("--") &&
+            (isLineInside(lineNumber, rootRange) ||
+                isLineInside(lineNumber, darkRange));
+
+        if (isTokenDeclaration) {
+            tokenModernColorDeclarations.push(finding);
+        } else if (isLineInside(lineNumber, fallbackOnlyRange)) {
+            fallbackOnlyModernColorDeclarations.push(finding);
+        } else {
+            nonTokenSupportedPathDeclarations.push(finding);
+            if (!property || !CSS_SUPPORTED_PATH_COLOR_PROPERTIES.has(property)) {
+                unexpectedSupportedPathDeclarations.push(finding);
+            }
+        }
+
+        for (const fallback of collectVarFallbackArguments(line)) {
+            if (
+                MODERN_COLOR_RE.test(fallback) ||
+                !isSafeColorFallbackArgument(fallback)
+            ) {
+                unsafeVarFallbackArguments.push({ ...finding, fallback });
+            }
+        }
+    }
+
+    return {
+        tokenModernColorDeclarations,
+        fallbackOnlyModernColorDeclarations,
+        nonTokenSupportedPathDeclarations,
+        unexpectedSupportedPathDeclarations,
+        unsafeVarFallbackArguments,
+    };
+}
+
+function listSourceFiles(directory: string): string[] {
+    const files: string[] = [];
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        const fullPath = path.join(directory, entry.name);
+        if (entry.isDirectory()) {
+            files.push(...listSourceFiles(fullPath));
+        } else if (/\.[cm]?[jt]sx?$/.test(entry.name)) {
+            files.push(fullPath);
+        }
+    }
+    return files;
+}
+
+function collectInlineModernColorFindings() {
+    const tagVisualsPath = "features/recordings/components/recording-tag-visuals.tsx";
+    const catalogSwatches: string[] = [];
+    const unexpectedModernColorLines: Array<{
+        file: string;
+        line: number;
+        text: string;
+    }> = [];
+    const unexpectedTagSwatchCalls: Array<{ line: number; text: string }> = [];
+
+    for (const filePath of listSourceFiles(ROOT)) {
+        const relativePath = path.relative(ROOT, filePath).split(path.sep).join("/");
+        if (relativePath.startsWith("tests/")) continue;
+
+        const lines = readFileSync(filePath, "utf8").split("\n");
+        for (const [index, line] of lines.entries()) {
+            if (!MODERN_COLOR_RE.test(line)) continue;
+
+            const catalogMatch = line.match(
+                /^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("oklch\([^)]+\)"\),$/,
+            );
+            if (relativePath === tagVisualsPath && catalogMatch) {
+                catalogSwatches.push(catalogMatch[1]);
+            } else {
+                unexpectedModernColorLines.push({
+                    file: `src/${relativePath}`,
+                    line: index + 1,
+                    text: line.trim(),
+                });
+            }
+        }
+    }
+
+    const tagVisualLines = readSource(tagVisualsPath).split("\n");
+    for (const [index, line] of tagVisualLines.entries()) {
+        if (!line.includes("tagSwatchStyle(")) continue;
+        if (/^\s*function tagSwatchStyle\(/.test(line)) continue;
+        if (
+            !/^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("oklch\([^)]+\)"\),$/.test(
+                line,
+            )
+        ) {
+            unexpectedTagSwatchCalls.push({
+                line: index + 1,
+                text: line.trim(),
+            });
+        }
+    }
+
+    return {
+        catalogSwatches,
+        unexpectedModernColorLines,
+        unexpectedTagSwatchCalls,
+    };
+}
+
+const OLD_UI_CONTRACT_RE =
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
+describe("full UI replacement regression coverage", () => {
+    it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
+        const globals = readSource("app/globals.css");
+        const breadcrumb = readSource("components/ui/breadcrumb.tsx");
+        const card = readSource("components/ui/card.tsx");
+        const button = readSource("components/ui/button.tsx");
+        const dialog = readSource("components/ui/dialog.tsx");
+        const input = readSource("components/ui/input.tsx");
+        const label = readSource("components/ui/label.tsx");
+        const select = readSource("components/ui/select.tsx");
+        const sidebar = readSource("components/ui/sidebar.tsx");
+        const switchPrimitive = readSource("components/ui/switch.tsx");
+        const toaster = readSource("components/ui/sonner.tsx");
+        const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
+
+        expect(globals).toContain(
+            "BetterAINote · Graphite Glass Design System",
+        );
+        expect(globals).toContain("--graphite-100: rgb(");
+        expect(globals).toContain("--graphite-100: oklch(");
+        expect(globals).toContain("--steel-500: rgb(");
+        expect(globals).toContain("--steel-500: oklch(");
         expect(globals).toContain("--bg-canvas:");
         expect(globals).toContain("--bg-elevated:");
         expect(globals).toContain("--fg-primary:");
-        expect(globals).toContain("--line-hairline:");
-        expect(globals).toContain("--accent-hover:");
-        expect(globals).toContain("--accent-pressed:");
-        expect(globals).toContain("--accent-soft:");
-        expect(globals).toContain("--glass-tint-strong:");
-        expect(globals).toContain("--glass-border-soft:");
-        expect(globals).toContain("--glass-shadow-cast:");
-        expect(globals).toContain("--shadow-focus:");
-        expect(globals).toContain("--bg-canvas: oklch(0.185 0.004 250)");
-        expect(globals).toContain("--bg-elevated: oklch(0.215 0.004 250)");
-        expect(globals).toContain("--accent-brand: oklch(0.7 0.092 226)");
-        expect(globals).toContain(
-            "--glass-tint-strong: rgb(255 255 255 / 0.08)",
-        );
-        expect(globals).toContain("--background: var(--bg-canvas)");
-        expect(globals).toContain("--primary: var(--accent-brand)");
-        expect(globals).toContain("--accent: var(--accent-soft)");
-        expect(globals).toContain(
-            "box-shadow: var(--shadow-inset), var(--glass-shadow-cast)",
-        );
-        expect(globals).not.toContain("Hardware Design System");
-        expect(globals).not.toContain("Graphite, Paper, Brass");
-        expect(globals).not.toContain("warm beige");
-        for (const forbidden of [
-            "--rack-background",
-            "--accent-purple",
-            "--accent-cyan",
-            "--metal-base",
-            "--warm-beige",
-            "--neomorph-raised",
-            "--glow-cyan",
-            ".rack-container",
-            ".knob",
-            ".record-button",
-            ".info-card",
-            ".circular-progress",
-            ".rack-module",
-            ".settings-panel",
-            ".settings-backdrop",
-            ".xy-pad",
-            ".cassette-indicator",
-            ".tape-deck",
+        expect(globals).toContain("@supports not (color: oklch(");
+        expectTokenOklchFallbackOrder(globals, ":root");
+        expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
+        expect(
+            extractCssBlock(globals, "@supports not (color: oklch("),
+        ).not.toMatch(/\b(oklch|color-mix)\(/);
+        for (const token of [
+            "BetterAINote · Graphite Glass Design System",
+            "--bg-canvas:",
+            "--bg-elevated:",
+            "--fg-primary:",
+            "--z-modal:",
+            "@supports not (color: oklch(",
         ]) {
-            expect(globals).not.toContain(forbidden);
+            expect(globals).toContain(token);
         }
-        expect(rootLayout).not.toContain("next/font");
-        expect(rootLayout).toContain("<Toaster />");
-        expect(appLayout).not.toContain("<Footer");
-        expect(appLayout).not.toContain("<Toaster");
+
+        expect(card.trim()).not.toBe("export {};");
+        for (const primitive of [
+            "Card",
+            "CardHeader",
+            "CardTitle",
+            "CardDescription",
+            "CardAction",
+            "CardContent",
+            "CardFooter",
+        ]) {
+            expect(card).toMatch(new RegExp(`function ${primitive}\\(`));
+            expect(card).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "card",
+            "card-header",
+            "card-title",
+            "card-description",
+            "card-action",
+            "card-content",
+            "card-footer",
+        ]) {
+            expect(card).toContain(`data-slot="${slot}"`);
+        }
+        expect(card).toContain("bg-card text-card-foreground");
+
+        expect(breadcrumb.trim()).not.toBe("export {};");
+        for (const primitive of [
+            "Breadcrumb",
+            "BreadcrumbList",
+            "BreadcrumbItem",
+            "BreadcrumbLink",
+            "BreadcrumbPage",
+            "BreadcrumbSeparator",
+            "BreadcrumbEllipsis",
+        ]) {
+            expect(breadcrumb).toMatch(new RegExp(`function ${primitive}\\(`));
+            expect(breadcrumb).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "breadcrumb",
+            "breadcrumb-list",
+            "breadcrumb-item",
+            "breadcrumb-link",
+            "breadcrumb-page",
+            "breadcrumb-separator",
+            "breadcrumb-ellipsis",
+        ]) {
+            expect(breadcrumb).toContain(`data-slot="${slot}"`);
+        }
+        expect(breadcrumb).toContain('aria-label="breadcrumb"');
+        expect(breadcrumb).toContain('aria-current="page"');
+
+        expect(sidebar.trim()).not.toBe("export {};");
+        for (const primitive of [
+            "Sidebar",
+            "SidebarProvider",
+            "SidebarContent",
+            "SidebarGroup",
+            "SidebarMenu",
+            "SidebarMenuButton",
+            "SidebarMenuItem",
+            "SidebarTrigger",
+            "useSidebar",
+        ]) {
+            expect(sidebar).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "sidebar-wrapper",
+            "sidebar",
+            "sidebar-content",
+            "sidebar-group",
+            "sidebar-menu",
+            "sidebar-menu-button",
+            "sidebar-trigger",
+        ]) {
+            expect(sidebar).toContain(`data-slot="${slot}"`);
+        }
+        for (const contract of [
+            'data-sidebar="sidebar"',
+            'data-sidebar="content"',
+            'data-sidebar="group"',
+            'data-sidebar="menu"',
+            'data-sidebar="menu-button"',
+            'data-sidebar="trigger"',
+            "data-state={state}",
+            'data-collapsible={collapsed ? collapsible : ""}',
+        ]) {
+            expect(sidebar).toContain(contract);
+        }
+        expect(sidebar).toContain("const SidebarContext = React.createContext");
+        expect(sidebar).toContain("--sidebar-width");
+        expect(button).toContain("type ButtonVariant =");
+        expect(button).toContain("type ButtonSize =");
+        expect(button).not.toContain("asChild");
+        expect(button).not.toContain("React.cloneElement");
+        expect(button).not.toContain("@radix-ui/react-slot");
+        expect(button).not.toContain("Slot");
+        expect(dialog).toContain("DialogContext");
+        expect(dialog).toContain("<DialogContext.Provider value={value}>");
+        expect(dialog).toContain('className="scrim"');
+        expect(dialog).toContain('data-open="true"');
+        expect(dialog).toContain('role="dialog"');
+        expect(dialog).not.toContain("DialogPrimitive");
+        expect(dialog).toContain("showCloseButton");
+        expect(dialog).toContain('aria-label="关闭"');
+        expect(dialog).not.toContain('"modal"');
+        for (const primitive of [
+            "DialogHeader",
+            "DialogFooter",
+            "DialogTitle",
+            "DialogDescription",
+        ]) {
+            expect(dialog).toMatch(new RegExp(`function ${primitive}\\(`));
+        }
+        for (const slot of [
+            "dialog-trigger",
+            "dialog-close",
+            "dialog-content",
+            "dialog-header",
+            "dialog-footer",
+            "dialog-title",
+            "dialog-description",
+        ]) {
+            expect(dialog).toContain(`data-slot="${slot}"`);
+        }
+        expect(dialog).not.toContain("DialogPortal");
+        expect(dialog).not.toContain("@radix-ui/react-dialog");
+        expect(label).toContain('React.ComponentProps<"label">');
+        expect(label).toContain("<label");
+        expect(label).toContain('className={cn("field-name"');
+        expect(label).not.toContain("LabelPrimitive");
+        expect(input).toContain('React.ComponentProps<"input">');
+        expect(select).toContain('className={cn("select"');
+        expect(select).toContain("<select");
+        expect(select).toContain("<option");
+        expect(select).not.toContain("SelectPrimitive");
+        expect(select).not.toContain("SelectTrigger");
+        expect(select).not.toContain("SelectContent");
+        expect(select).not.toContain("SelectItem");
+        expect(select).not.toContain("SelectValue");
+        expect(select).not.toContain("SelectGroup");
+        expect(select).not.toContain("select-panel");
+        expect(switchPrimitive).toContain('className={cn("toggle"');
+        expect(switchPrimitive).toContain('role="switch"');
+        expect(switchPrimitive).toContain("aria-checked={isChecked}");
+        expect(switchPrimitive).toContain('className="t-knob"');
+        expect(switchPrimitive).not.toContain("SwitchPrimitive");
+        expect(toaster).toContain('className="toast-stack"');
+        expect(toaster).toContain('id="toast-stack"');
+        expect(toaster).toContain('aria-live="polite"');
+        expect(toaster).toContain('role="status"');
+        expect(toaster).toContain('data-open={isOpen ? "true" : "false"}');
+        expect(toaster).toContain('className="toast-ico"');
+        expect(toaster).toContain('"toast toast-ok"');
+        expect(toaster).toContain('"toast toast-err"');
+        expect(toaster).toContain("useSonner");
+        expect(toaster).not.toContain("data-sot-item");
+        expect(toaster).not.toContain("data-sot-variant");
+        expect(toaster).not.toContain("data-sot-panel");
+        expect(toaster).not.toContain("data-sot-control");
+        expect(toaster).not.toContain("SonnerToaster");
+        expect(confirmDialog).toContain('className="scrim"');
+        expect(confirmDialog).toContain('data-sot-panel="confirm-dialog"');
+        expect(confirmDialog).toContain('className="confirm-dialog"');
+        expect(confirmDialog).toContain('role="dialog"');
+        expect(confirmDialog).toContain('aria-modal="true"');
+        expect(confirmDialog).toContain('<h3 id="confirm-title">');
+        expect(confirmDialog).toContain('className="retx-modal-list"');
+        expect(confirmDialog).toContain('className="confirm-warn"');
+        expect(confirmDialog).toContain('className="btn danger btn-sm"');
+        expect(confirmDialog).not.toContain("ConfirmVariant");
+        expect(confirmDialog).not.toContain("btn primary btn-sm");
+        expect(confirmDialog).not.toContain("<dialog");
+        expect(globals).toContain("margin: 12px auto;");
+        expect(globals).toContain(".confirm-head h3");
+        expect(globals).not.toContain(".confirm-head h2");
+        expect(globals).not.toContain("--z-confirm-modal");
+        expect(globals).not.toContain("Hardware Design System");
+        expect(globals).not.toContain("warm beige");
     });
 
-    it("keeps auth and onboarding on shared graphite primitives without product MetalButton usage", () => {
+    it("classifies non-token modern CSS colors without fallback-only leakage", () => {
+        const globals = readSource("app/globals.css");
+        const findings = collectGlobalColorFallbackFindings(globals);
+
+        expect(findings.tokenModernColorDeclarations.length).toBeGreaterThan(0);
+        expect(findings.nonTokenSupportedPathDeclarations.length).toBeGreaterThan(
+            0,
+        );
+        expect(findings.fallbackOnlyModernColorDeclarations).toEqual([]);
+        expect(findings.unexpectedSupportedPathDeclarations).toEqual([]);
+        expect(findings.unsafeVarFallbackArguments).toEqual([]);
+    });
+
+    it("keeps inline OKLCH tag swatches limited to the SOT catalog", () => {
+        const findings = collectInlineModernColorFindings();
+
+        expect(findings.catalogSwatches).toEqual([
+            "red",
+            "orange",
+            "green",
+            "blue",
+            "purple",
+            "slate",
+        ]);
+        expect(findings.unexpectedModernColorLines).toEqual([]);
+        expect(findings.unexpectedTagSwatchCalls).toEqual([]);
+    });
+
+    it("keeps auth and onboarding on the SOT card/frame structure", () => {
         const login = readSource("features/auth/components/login-form.tsx");
         const register = readSource(
             "features/auth/components/register-form.tsx",
@@ -80,421 +559,194 @@ describe("full UI replacement regression coverage", () => {
         const onboarding = readSource(
             "features/onboarding/components/onboarding-form.tsx",
         );
-        const authLayout = readSource("app/(auth)/layout.tsx");
-        const onboardingPage = readSource("app/(app)/onboarding/page.tsx");
 
-        for (const source of [login, register, onboarding]) {
-            expect(source).toContain("@/components/ui/button");
-            expect(source).toContain("@/components/ui/card");
-            expect(source).not.toContain("@/components/metal-button");
-            expect(source).not.toContain('variant="cyan"');
-            expect(source).not.toContain("text-accent-cyan");
-        }
-
+        expect(login).toContain('data-sot-layout="auth-workstation"');
+        expect(login).toContain("data-sot-surface={surfaceName}");
+        expect(login).toContain("data-sot-state={surfaceState}");
+        expect(login).toContain('className="card"');
+        expect(login).toContain('className="frame"');
+        expect(login).toContain('"inp"');
+        expect(login).toContain('"btn primary"');
+        expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain("data-auth-form-state");
-        expect(login).toContain("aria-busy={isLoading}");
-        expect(register).toContain("data-auth-form-state");
-        expect(register).toContain("aria-busy={isLoading}");
+        expect(login).not.toContain('className="app"');
+        expect(login).not.toContain('className="panel"');
+        expect(login).not.toContain('className="modal-foot"');
+        expect(register).toContain("<LoginForm");
+        expect(register).toContain('intent="setup"');
         for (const source of [login, register]) {
-            expect(source).not.toContain("bg-background/22");
-            expect(source).toContain(
-                "glass-surface-subtle rounded-2xl px-4 py-3",
-            );
+            expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
         }
-        expect(authLayout).toContain("dashboard-workstation");
-        expect(onboardingPage).toContain("dashboard-workstation");
-        expect(onboarding).toContain("data-onboarding-surface");
-        expect(onboarding).toContain("glass-nav-item");
-        expect(onboarding).toContain("PROVIDER_ICONS");
-        expect(onboarding).not.toContain("bg-background/24");
+
         expect(onboarding).toContain(
-            "glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6",
+            'data-sot-layout="onboarding-workstation"',
         );
-        expect(onboarding).not.toContain("item.label.slice(0, 1)");
+        expect(onboarding).toContain('data-sot-surface="onboarding"');
+        expect(onboarding).toContain('className="card"');
+        expect(onboarding).toContain('className="frame"');
+        expect(onboarding).toContain('className="onboarding-progress"');
+        expect(onboarding).toContain('data-sot-panel="onboarding-steps"');
+        expect(onboarding).toContain('data-sot-panel="onboarding-current"');
+        expect(onboarding).toContain('data-sot-control="provider-card"');
+        expect(onboarding).toContain('data-sot-control="source-auth-mode"');
+        expect(onboarding).toContain('data-sot-control="save-enter"');
+        expect(onboarding).not.toContain('className="app"');
+        expect(onboarding).not.toContain('className="panel"');
+        expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
-    it("bridges dashboard provider rows to data-source configuration states", () => {
+    it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const rows = readSource(
-            "features/dashboard/components/source-provider-rows.tsx",
-        );
-        const dataSourcesSection = readSource(
-            "features/settings/components/sections/data-sources-section.tsx",
-        );
-        const translations = readSource("lib/i18n.ts");
 
-        expect(workstation).toContain("useDataSourcesSettings(language)");
-        expect(workstation).toContain("getDashboardSourceStatus");
-        expect(workstation).toContain("connected-empty");
-        expect(workstation).toContain("favoriteScopedProviderCounts");
-        expect(workstation).toContain("sync-error");
-        expect(workstation).toContain('"expired"');
-        expect(workstation).toContain("connectionStatus");
         expect(workstation).toContain(
-            "SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY",
+            'data-sot-surface="dashboard-workstation"',
         );
-        expect(workstation).toContain("no-results");
-        expect(workstation).toContain("<SourceFilterStackStrip");
-        expect(workstation).not.toContain("connected: count > 0");
-        expect(rows).toContain("data-source-status");
-        expect(rows).toContain("PROVIDER_ICONS");
-        expect(rows).not.toContain("PROVIDER_MARKS");
-        expect(rows).toContain('"paused"');
-        expect(rows).toContain('"needs-setup"');
-        expect(rows).toContain('"expired"');
-        expect(rows).toContain('"planned"');
-        expect(rows).toContain('"no-results"');
-        expect(rows).toContain("PROVIDER_ASSET_CLASSES");
-        expect(rows).toContain("/assets/sources/dingtalk.svg");
-        expect(rows).toContain("@/components/ui/button");
-        expect(rows).toContain('data-testid="source-provider-row-badge"');
-        expect(rows).toContain("bg-muted/35");
-        expect(rows).not.toContain("bg-background/70");
-        expect(rows).not.toContain("bg-background/50");
-        expect(rows).toContain("sourceProviderRows.status.syncError");
-        expect(rows).toContain("sourceProviderRows.badge.connect");
-        expect(rows).not.toContain("同步异常");
-        expect(rows).not.toContain("待开放");
-        expect(rows).not.toContain("需要重新登录");
-        expect(dataSourcesSection).toContain("getSourceProviderLabel");
-        expect(dataSourcesSection).not.toContain("{source.displayName}");
-        expect(dataSourcesSection).not.toContain(
-            "{selectedSource?.displayName",
-        );
-        expect(translations).toContain("同步异常");
-        expect(translations).toContain("Re-auth required");
-    });
-
-    it("keeps the stacked source filter strip wired to real dashboard actions", () => {
-        const strip = readSource(
-            "features/dashboard/components/source-filter-stack-strip.tsx",
-        );
-        const workstation = readSource("features/dashboard/workstation.tsx");
-        const recordingList = readSource(
-            "features/dashboard/components/recording-list.tsx",
-        );
-        const translations = readSource("lib/i18n.ts");
-
-        expect(strip).toContain('data-testid="dashboard-source-filter-stack"');
-        expect(strip).toContain('state === "sync-error"');
-        expect(strip).toContain('state === "no-results"');
-        expect(strip).toContain('state === "needs-setup"');
-        expect(strip).toContain('status === "expired"');
-        expect(strip).toContain("onClearSource");
-        expect(strip).toContain("onClearAll");
-        expect(strip).toContain("onRetrySync");
-        expect(strip).toContain("onWidenFilters");
-        expect(strip).toContain("onOpenDataSourcesSettings");
-        expect(strip).toContain("@/components/ui/button");
-        expect(strip).toContain("sourceFilterStack.clearSourceFilter");
-        expect(strip).toContain("sourceFilterStack.noResultsMessage");
-        expect(strip).toContain(
-            'data-testid="dashboard-source-filter-retry-sync"',
-        );
-        expect(strip).toContain('data-testid="dashboard-source-filter-widen"');
-        expect(strip).toContain(
-            'data-testid="dashboard-source-filter-open-settings"',
-        );
-        expect(strip).toContain("bg-muted/35");
-        expect(strip).toContain("hover:bg-muted/45");
-        expect(strip).toContain("border-b bg-muted/20");
-        expect(strip).not.toContain("bg-background/28");
-        expect(strip).not.toContain("bg-background/55");
-        expect(strip).not.toContain("放宽筛选");
-        expect(strip).not.toContain("前往设置");
-        expect(translations).toContain("放宽筛选");
-        expect(translations).toContain("Open settings");
-        expect(workstation).toContain('writeBrowserHash("data-sources")');
-        expect(workstation).toContain("dashboardFavorites.allRecordings");
-        expect(recordingList).toContain("filterStack?");
-        expect(recordingList).toContain('"loading"');
-        expect(recordingList).toContain('"no-match"');
-        expect(recordingList).toContain('"timeline-empty"');
-        expect(recordingList).toContain('"tag-empty"');
-        expect(workstation).toContain("handleClearDashboardFilters");
-        expect(workstation).toContain("handleOpenDataSourcesSettings");
-        expect(workstation).toContain("writeBrowserStorage");
-    });
-
-    it("keeps dashboard filter chips on muted subtle surfaces", () => {
-        const strip = readSource(
-            "features/dashboard/components/source-filter-stack-strip.tsx",
-        );
-        const workstation = readSource("features/dashboard/workstation.tsx");
-        const favoriteSurfaceStart = workstation.indexOf(
-            'onClick={() => handleFavoriteSelect("all")}',
-        );
-        const favoriteSurfaceEnd = workstation.indexOf("<SourceProviderRows");
-        const favoriteSurface = workstation.slice(
-            favoriteSurfaceStart,
-            favoriteSurfaceEnd,
-        );
-
-        expect(strip).not.toContain("bg-background/65");
-        expect(workstation).not.toContain("bg-background/65");
-        expect(workstation).not.toContain("bg-background/28");
-        expect(workstation).toContain("border-b bg-muted/20");
-        expect(favoriteSurfaceStart).toBeGreaterThanOrEqual(0);
-        expect(favoriteSurfaceEnd).toBeGreaterThan(favoriteSurfaceStart);
+        expect(workstation).toContain('className="sidebar glass glass-strong"');
+        expect(workstation).toContain('id="drawer-scrim"');
+        expect(workstation).toContain('id="drawer-trigger"');
+        expect(workstation).not.toContain("data-drawer-open=");
         expect(workstation).not.toContain(
-            "data-[active=true]:bg-background/70",
+            'data-sot-surface="dashboard-source-rail"',
         );
-        expect(favoriteSurface).not.toContain("bg-background/50");
-        expect(strip).toContain(
-            'data-testid="dashboard-source-filter-provider-chip"',
+        expect(workstation).toContain('data-sot-list="dashboard-sources"');
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-source-provider"',
         );
         expect(workstation).toContain(
-            'data-testid="dashboard-library-search-filter-chip"',
+            'data-sot-panel="dashboard-source-filter-stack"',
         );
-        for (const testId of [
-            "dashboard-favorite-all",
-            "dashboard-favorite-transcribed",
-            "dashboard-favorite-tags",
-            "dashboard-favorite-all-count",
-            "dashboard-favorite-transcribed-count",
-            "dashboard-favorite-tags-count",
-        ]) {
-            expect(workstation).toContain(`data-testid="${testId}"`);
-        }
-        expect(strip).toContain("bg-muted/35");
-        expect(workstation).toContain("data-[active=true]:bg-muted/35");
-        expect(workstation).toContain("bg-muted/35");
+        expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(workstation).toContain('data-sot-control="dashboard-search"');
+        expect(workstation).toContain('data-sot-panel="library-search"');
+        expect(workstation).toContain('data-sot-list="library-search-results"');
+        expect(workstation).toContain("groupedSearchResults.map");
+        expect(workstation).toContain("group.results.map");
+        expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(workstation).toContain('data-sot-panel="dashboard-activity"');
+        expect(workstation).toContain("visibleActivityItems.map");
+        expect(workstation).toContain('data-sot-control="dashboard-settings"');
+        expect(workstation).toContain(
+            'className="avatar"\n                            type="button"',
+        );
+        expect(workstation).not.toContain(
+            'className="icon-btn"\n                            type="button"\n                            aria-label="设置"',
+        );
+        expect(workstation).toContain('openSettings("data-sources")');
+        expect(workstation).toContain("listMode");
+        expect(workstation).toContain("detailTab");
+        expect(workstation).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
-    it("keeps dashboard responsive drawer and desktop collapse controls wired", () => {
+    it("keeps dashboard detail actions, AI rename, and retx states inline in SOT", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
-        const globals = readSource("app/globals.css");
-
-        expect(workstation).toContain("isSourceDrawerOpen");
-        expect(workstation).toContain("setSourceDrawerOpen(false)");
-        expect(workstation).toContain("dashboard-source-drawer-trigger");
-        expect(workstation).toContain("dashboard-source-drawer-scrim");
-        expect(workstation).toContain("dashboard-sidebar-collapse-trigger");
-        expect(workstation).toContain("PanelLeftClose");
-        expect(workstation).toContain("PanelLeftOpen");
-        expect(workstation).toContain("data-source-drawer");
-        expect(workstation).toContain("data-sidebar-collapsed");
-        expect(globals).toContain(
-            '.dashboard-workstation-grid[data-sidebar-collapsed="true"]',
+        const aiRenamePreview = readSource(
+            "features/recordings/components/ai-rename-preview-card.tsx",
         );
+
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-retranscription"',
+        );
+        expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        expect(workstation).toContain('aria-label="详情标签"');
+        expect(workstation).toContain(
+            'aria-label={isPlaying ? "暂停" : "播放"}',
+        );
+        expect(workstation).toContain("previewAutoRename");
+        expect(workstation).toContain("applyAiRename");
+        expect(workstation).toContain("<AiRenamePreview");
+        expect(workstation).toContain("state={aiState}");
+        expect(workstation).toContain('title="AI 标题预览"');
+        expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
+        expect(aiRenamePreview).toContain("data-sot-state={state}");
+        expect(aiRenamePreview).toContain("aria-label={title}");
+        expect(workstation).toContain("onApply={applyAiRename}");
+        expect(workstation).toContain('aria-label="更多操作"');
+        expect(workstation).toContain('role="menu"');
+        expect(workstation).toContain('role="menuitem"');
+        expect(workstation).toContain('className="more-menu-item"');
+        expect(workstation).toContain('className="more-menu-sep"');
+        expect(workstation).toContain('className="more-menu-hint"');
+        expect(workstation).toContain("AI 重命名");
+        expect(workstation).toContain("重新转写");
+        expect(workstation).toContain("重新转写这条录音？");
+        expect(workstation).toContain("确认重新转写");
+        expect(workstation).toContain("逐字稿将重新生成 · 估计 1 ~ 3 分钟");
+        expect(workstation).toContain("来源持有正本");
+        expect(workstation).toContain("永久删除");
+        expect(workstation).toContain("删除后转写、标签与 AI 标题都会一并清除");
+        expect(workstation).not.toContain('className="more-action"');
+        expect(workstation).not.toContain("more-action-l");
+        expect(workstation).not.toContain("more-action-meta");
+        expect(workstation).toContain("void deleteRecording()");
+        expect(workstation).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
-    it("keeps search overlay keyboard activation and active result state wired", () => {
-        const search = readSource(
-            "features/dashboard/components/library-search.tsx",
+    it("keeps settings and recording detail surfaces on SOT state contracts", () => {
+        const settings = readSource(
+            "features/settings/components/settings-content.tsx",
         );
-
-        expect(search).toContain("handleInputKeyDown");
-        expect(search).toContain('event.key === "ArrowDown"');
-        expect(search).toContain('event.key === "ArrowUp"');
-        expect(search).toContain('event.key === "Enter"');
-        expect(search).toContain('role="combobox"');
-        expect(search).toContain('role="listbox"');
-        expect(search).toContain("aria-activedescendant");
-        expect(search).toContain("scrollIntoView");
-        expect(search).toContain("data-active");
-        expect(search).toContain("getTargetRecordingId");
-        expect(search).toContain("handleRetrySearch");
-        expect(search).toContain("data-ls-retry");
-    });
-
-    it("keeps dashboard transcript hints on graphite tokens instead of source-blue panels", () => {
-        const transcriptionPanel = readSource(
-            "features/dashboard/components/transcription-panel.tsx",
+        const detail = readSource("features/recordings/workstation.tsx");
+        const player = readSource(
+            "features/recordings/components/recording-player.tsx",
         );
-
-        expect(transcriptionPanel).toContain(
-            'data-testid="dashboard-local-transcript-hint"',
+        const tagManager = readSource(
+            "features/recordings/components/recording-tag-manager.tsx",
         );
-        expect(transcriptionPanel).toContain("glass-surface-subtle");
-        expect(transcriptionPanel).toContain("border-primary/20");
-        expect(transcriptionPanel).toContain("bg-primary/8");
-        expect(transcriptionPanel).not.toContain(
-            "border-white/10 bg-background/25",
-        );
-        expect(transcriptionPanel).not.toContain("border-white/10");
-        expect(transcriptionPanel).not.toContain("bg-background/25");
-        expect(transcriptionPanel).not.toContain("border-blue-");
-        expect(transcriptionPanel).not.toContain("bg-blue-");
-        expect(transcriptionPanel).not.toContain("text-blue-");
-        expect(transcriptionPanel).not.toContain("dark:border-blue");
-        expect(transcriptionPanel).not.toContain("dark:bg-blue");
-    });
-
-    it("keeps source detail public-field filtered before rendering nested values", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const speakerReview = readSource(
+            "features/recordings/components/speaker-label-editor.tsx",
+        );
 
+        expect(settings).toContain('data-sot-surface="settings-data-sources"');
+        expect(settings).toContain('data-sot-panel="source-provider-detail"');
+        expect(settings).toContain('data-sot-control="source-test"');
+        expect(settings).toContain('data-sot-control="source-save"');
+        expect(detail).toContain('data-sot-surface="recording-workstation"');
+        expect(detail).toContain("data-rename-mode=");
+        expect(detail).toContain(
+            "data-local-only={String(recording.upstreamDeleted)}",
+        );
+        expect(detail).toContain("data-more-anchor");
+        expect(detail).toContain("data-more-trigger");
+        expect(detail).toContain('className="more-menu"');
+        expect(detail).toContain("handleMoreRetranscribe");
+        expect(player).toContain('data-sot-surface="recording-player"');
+        expect(player).toContain("data-sot-state=");
+        expect(player).toContain("aria-label={");
+        expect(player).toContain('title="Click to cycle playback speed"');
+        expect(tagManager).toContain('data-sot-panel="recording-tag-manager"');
+        expect(tagManager).toContain('data-sot-control="recording-tag-toggle"');
+        expect(tagManager).toContain('className="tagm-panel"');
+        expect(tagManager).toContain('className="tagm-body"');
+        expect(tagManager).toContain('className="tagm-delete-confirm"');
+        expect(tagManager).not.toContain("mergeTagManagerClassName");
+        expect(tagManager).not.toContain("transcript t-pane");
+        expect(tagManager).not.toContain("className?: string");
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
-        expect(sourceReport).toContain("SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN");
-        expect(sourceReport).toContain("isSafeSourceDetailField");
         expect(sourceReport).toContain(
-            ".filter(([key]) => isSafeSourceDetailField(key))",
+            'data-sot-panel="recording-source-report"',
         );
-        expect(sourceReport).toContain("detailEntries.length > 0");
-        expect(sourceReport).toContain("startedAt");
-        expect(sourceReport).toContain("endedAt");
-        expect(sourceReport).toContain("glass-surface-subtle");
-        expect(sourceReport).toContain("border-border/70");
-        expect(sourceReport).toContain("bg-muted/35");
-        expect(sourceReport).toContain("bg-popover/60");
-        const segmentTimestampIndex = sourceReport.indexOf(
-            'data-testid="source-report-segment-timestamp"',
+        expect(sourceReport).toContain(
+            'data-sot-panel="recording-source-report-state"',
         );
-        const segmentSpeakerIndex = sourceReport.indexOf(
-            "formatTranscriptSpeaker(",
-            segmentTimestampIndex,
+        expect(sourceReport).toContain("data-sot-state={sourceReportState}");
+        expect(speakerReview).toContain('data-sot-panel="speaker-review"');
+        expect(speakerReview).toContain("data-sot-state=");
+        expect(speakerReview).toContain("<section");
+        expect(speakerReview).toContain(
+            "data-sot-speaker-label={speaker.rawLabel}",
         );
-        const segmentArticleStart = sourceReport.lastIndexOf(
-            "<article",
-            segmentTimestampIndex,
-        );
-        const segmentArticleRegion = sourceReport.slice(
-            segmentArticleStart,
-            segmentSpeakerIndex + "formatTranscriptSpeaker(".length,
-        );
-
-        expect(segmentArticleStart).toBeGreaterThanOrEqual(0);
-        expect(segmentTimestampIndex).toBeGreaterThan(segmentArticleStart);
-        expect(segmentSpeakerIndex).toBeGreaterThan(segmentTimestampIndex);
-        expect(segmentArticleRegion).toContain(
-            'data-testid="source-report-segment-timestamp"',
-        );
-        expect(segmentArticleRegion).toContain("formatTranscriptSpeaker(");
-        expect(segmentArticleRegion).toContain("bg-muted/20");
-        expect(segmentArticleRegion).not.toContain("bg-background/45");
-        expect(sourceReport).not.toContain("border-white/10");
-        expect(sourceReport).not.toContain("bg-background/25");
-        expect(sourceReport).not.toContain("bg-background/60");
-        expect(sourceReport).not.toContain("JSON.stringify(data.detail");
-    });
-
-    it("keeps AI rename as a preview/apply flow instead of direct apply only", () => {
-        const route = readSource(
-            "app/api/recordings/[id]/rename/auto/route.ts",
-        );
-        const sharedCard = readSource(
-            "features/recordings/components/ai-rename-preview-card.tsx",
-        );
-        const dashboard = readSource("features/dashboard/workstation.tsx");
-        const detail = readSource("features/recordings/workstation.tsx");
-
-        expect(route).toContain("readAutoRenameMode");
-        expect(route).toContain('body?.mode === "preview"');
-        expect(sharedCard).toContain("data-ai-rename-preview");
-        expect(sharedCard).toContain('data-testid="ai-rename-apply"');
-        expect(sharedCard).toContain('data-testid="ai-rename-cancel"');
-        expect(sharedCard).toContain('data-testid="ai-rename-regenerate"');
-        expect(sharedCard).toContain("ai-rename-card-action");
-        expect(sharedCard).toContain('"accepted"');
-
-        expect(dashboard).toContain("handleOpenTitleGenerationSettings");
-        expect(detail).toContain("actionHref={");
-        expect(detail).toContain("/settings#title-generation");
-
-        for (const source of [dashboard, detail]) {
-            expect(source).toContain("autoRenamePreview");
-            expect(source).toContain("handleAutoRenamePreviewApply");
-            expect(source).toContain("AiRenamePreviewCard");
-            expect(source).toContain('JSON.stringify({ mode: "preview" })');
-            expect(source).toContain("aiRenameLocalOnlyHint");
-            expect(source).toContain("aiRenameWritebackHint");
-            expect(source).toContain("aiRenameOpenSettings");
-            expect(source).toContain("autoRenameError");
-            expect(source).toContain('state="loading"');
-            expect(source).toContain('state="review"');
-            expect(source).toContain('state="accepted"');
-            expect(source).toContain('state="error"');
-            expect(source).toContain('state="unavailable"');
-            expect(source).toContain("aiRenameAccepted");
-        }
-    });
-
-    it("keeps system banners and source logo assets in the React surface", () => {
-        const systemBanner = readSource(
-            "features/dashboard/components/system-banner.tsx",
-        );
-        const dashboard = readSource("features/dashboard/workstation.tsx");
-        const detail = readSource("features/recordings/workstation.tsx");
-
-        for (const state of [
-            "offline",
-            "permission-denied",
-            "db-locked",
-            "update-available",
-            "import-progress",
-            "export-progress",
+        for (const source of [
+            settings,
+            detail,
+            player,
+            tagManager,
+            sourceReport,
+            speakerReview,
         ]) {
-            expect(systemBanner).toContain(state);
+            expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
         }
-
-        const iconSurfaceStart = systemBanner.indexOf(
-            '<span className="flex size-8',
-        );
-        const iconSurfaceEnd = systemBanner.indexOf("<Icon", iconSurfaceStart);
-        const iconSurface = systemBanner.slice(
-            iconSurfaceStart,
-            iconSurfaceEnd,
-        );
-
-        expect(iconSurfaceStart).toBeGreaterThanOrEqual(0);
-        expect(iconSurfaceEnd).toBeGreaterThan(iconSurfaceStart);
-        expect(iconSurface).toContain("border-current/20");
-        expect(iconSurface).toContain("bg-muted/35");
-        expect(iconSurface).toContain("shadow-xs");
-        expect(iconSurface).not.toContain("bg-background/35");
-        expect(systemBanner).not.toContain("bg-background/35");
-        expect(systemBanner).toContain('aria-live="polite"');
-        expect(systemBanner).toContain('data-system-banner=""');
-        expect(systemBanner).toContain("data-system-banner-state");
-        expect(systemBanner).toContain("betterainote:system-banner");
-        expect(systemBanner).toContain('state === "update-available"');
-        expect(systemBanner).toContain("window.location.reload()");
-        expect(dashboard).toContain("<SystemBanner");
-        expect(detail).toContain("<SystemBanner");
-    });
-
-    it("keeps settings and recording detail surfaces on shared glass interaction states", () => {
-        const playback = readSource(
-            "features/settings/components/sections/playback-section.tsx",
-        );
-        const transcriptionSection = readSource(
-            "features/recordings/components/transcription-section.tsx",
-        );
-        const transcriptionSkeletons = readSource(
-            "features/recordings/components/transcription-skeletons.tsx",
-        );
-
-        expect(playback).toContain('id="default-volume"');
-        expect(playback).toContain("disabled={isSaving}");
-        expect(playback).toContain("pendingVolumeSaveRef");
-        expect(playback).toContain(
-            "updatePlaybackSettings({ defaultVolume: volume })",
-        );
-
-        for (const source of [transcriptionSection, transcriptionSkeletons]) {
-            expect(source).toContain("glass-surface-subtle");
-            expect(source).not.toContain("border-white/10");
-            expect(source).not.toContain("bg-background/25");
-        }
-
-        expect(transcriptionSkeletons).toContain(
-            "export function TranscriptReviewSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "export function SpeakerReviewSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "function SpeakerCardSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain(
-            "function TranscriptTurnSkeleton",
-        );
-        expect(transcriptionSkeletons).toContain("bg-muted/20");
-        expect(transcriptionSkeletons).toContain("glass-surface-subtle");
-        expect(transcriptionSkeletons).toContain("rounded-2xl bg-muted/35 p-4");
-        expect(transcriptionSkeletons).not.toContain("bg-background/45");
-        expect(transcriptionSkeletons).not.toContain("bg-background/35");
     });
 });

@@ -56,10 +56,10 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
-        const section = readFileSync(
+        const settingsContent = readFileSync(
             path.join(
                 ROOT,
-                "features/settings/components/sections/data-sources-section.tsx",
+                "features/settings/components/settings-content.tsx",
             ),
             "utf8",
         );
@@ -71,8 +71,11 @@ describe("frontend data-source routing regression", () => {
         expect(hook).toContain("testSourceSettings");
         expect(hook).not.toContain("@/server");
         expect(hook).not.toContain("@/db");
-        expect(section).toContain("testSourceSettings(source)");
-        expect(section).not.toContain("Connection details look complete");
+        expect(settingsContent).toContain("testSourceSettings(source)");
+        expect(settingsContent).toContain('data-sot-control="source-test"');
+        expect(settingsContent).not.toContain(
+            "Connection details look complete",
+        );
     });
 
     it("keeps onboarding on the unified data-sources flow", () => {
@@ -94,8 +97,8 @@ describe("frontend data-source routing regression", () => {
 
         expect(onboardingForm).toContain("/api/data-sources");
         expect(onboardingForm).not.toContain("/api/plaud/connect");
-        expect(onboardingPage).toContain("hasCompletedOnboarding");
         expect(onboardingModule).toContain("sourceConnections");
+        expect(onboardingModule).toContain("hasCompletedOnboarding");
         expect(onboardingPage).not.toContain("plaudConnections");
         expect(onboardingModule).not.toContain("plaudConnections");
     });
@@ -108,10 +111,10 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
-        const dataSourcesSection = readFileSync(
+        const settingsContent = readFileSync(
             path.join(
                 ROOT,
-                "features/settings/components/sections/data-sources-section.tsx",
+                "features/settings/components/settings-content.tsx",
             ),
             "utf8",
         );
@@ -119,11 +122,11 @@ describe("frontend data-source routing regression", () => {
         expect(onboardingForm).not.toContain('provider === "plaud"');
         expect(onboardingForm).not.toContain('targetProvider === "plaud"');
         expect(onboardingForm).not.toContain("handlePlaudSave");
-        expect(dataSourcesSection).not.toContain("handlePlaudSave");
-        expect(dataSourcesSection).not.toContain('source.provider !== "plaud"');
+        expect(settingsContent).not.toContain("handlePlaudSave");
+        expect(settingsContent).not.toContain('source.provider !== "plaud"');
     });
 
-    it("keeps settings IA on the three-layer data source structure with legacy section aliases", () => {
+    it("keeps settings IA on the three-layer data source structure with canonical SOT sections", () => {
         const settingsTypes = readFileSync(
             path.join(ROOT, "types/settings.ts"),
             "utf8",
@@ -143,41 +146,42 @@ describe("frontend data-source routing regression", () => {
             path.join(ROOT, "features/dashboard/workstation.tsx"),
             "utf8",
         );
-        const dataSourcesSection = readFileSync(
-            path.join(
-                ROOT,
-                "features/settings/components/sections/data-sources-section.tsx",
-            ),
-            "utf8",
-        );
-
         expect(settingsTypes).toContain('"appearance"');
         expect(settingsTypes).toContain('"misc"');
         expect(settingsDialog).toContain("normalizeSettingsSection");
-        expect(settingsDialog).toContain('display: "appearance"');
-        expect(settingsDialog).toContain('sync: "misc"');
-        expect(settingsDialog).toContain('playback: "misc"');
+        expect(settingsDialog).not.toContain("legacySectionAliases");
+        expect(settingsDialog).not.toContain('display: "appearance"');
+        expect(settingsDialog).not.toContain('sync: "misc"');
+        expect(settingsDialog).not.toContain('playback: "misc"');
         expect(settingsDialog).toContain(
             "export function normalizeSettingsSection",
         );
         expect(settingsDialog).toContain("settingsDialog.sections.appearance");
         expect(settingsDialog).toContain("settingsDialog.sections.misc");
         expect(settingsContent).toContain('case "appearance"');
-        expect(settingsContent).toContain('case "display"');
         expect(settingsContent).toContain('case "misc"');
-        expect(settingsContent).toContain('case "sync"');
-        expect(settingsContent).toContain('case "playback"');
-        expect(settingsContent).toContain("<MiscSection />");
-        expect(dataSourcesSection).toContain("selectedProvider");
-        expect(dataSourcesSection).toContain("renderProviderOverview");
-        expect(dataSourcesSection).not.toContain(
+        expect(settingsContent).not.toContain('case "display"');
+        expect(settingsContent).not.toContain('case "sync"');
+        expect(settingsContent).not.toContain('case "playback"');
+        expect(settingsContent).toContain(
+            "<MiscSettingsPanel scrollRef={scrollRef} />",
+        );
+        expect(settingsContent).toContain(
+            "<DataSourcesSettingsPanel scrollRef={scrollRef} />",
+        );
+        expect(settingsContent).toContain("selectedProvider");
+        expect(settingsContent).toContain("DataSourcesSettingsPanel");
+        expect(settingsContent).not.toContain(
             "getSupportedSourceCapabilityDisplayItems",
         );
-        expect(dataSourcesSection).not.toContain("renderCapabilityMatrix");
-        expect(workstation).toContain("readBrowserHash");
-        expect(workstation).toContain("normalizeSettingsSection");
-        expect(workstation).toContain("hashchange");
+        expect(settingsContent).not.toContain("renderCapabilityMatrix");
+        expect(workstation).toContain("window.history.replaceState");
+        expect(workstation).toContain("openSettings");
         expect(workstation).toContain("setSettingsOpen(true)");
+        expect(workstation).toContain("useBrowserRouteController");
+        expect(workstation).toContain("refreshBrowserRoute(router)");
+        expect(workstation).toContain("await manualSync()");
+        expect(workstation).toContain("await Promise.all([");
     });
 
     it("hides sensitive provider secret replacement inputs in settings", () => {
@@ -201,7 +205,8 @@ describe("frontend data-source routing regression", () => {
         expect(fieldControl).toContain("password");
         expect(fieldControl).toContain("sensitive: sensitiveTextField");
         expect(settingFieldControl).toContain("onPaste");
-        expect(settingFieldControl).toContain('clipboardData.getData("text")');
+        expect(settingFieldControl).toContain("clipboardData.getData");
+        expect(settingFieldControl).toContain('"text"');
         expect(settingFieldControl).toContain("preventDefault");
     });
 
@@ -217,11 +222,8 @@ describe("frontend data-source routing regression", () => {
             ),
             "utf8",
         );
-        const transcriptionPanel = readFileSync(
-            path.join(
-                ROOT,
-                "features/dashboard/components/transcription-panel.tsx",
-            ),
+        const dashboardWorkstation = readFileSync(
+            path.join(ROOT, "features/dashboard/workstation.tsx"),
             "utf8",
         );
         const sourceReportPanel = readFileSync(
@@ -242,18 +244,35 @@ describe("frontend data-source routing regression", () => {
         expect(transcriptionSection).not.toContain(
             "disabled={isTranscribing || !canTranscribe}",
         );
-        expect(transcriptionPanel).not.toContain('sourceProvider === "plaud"');
-        expect(transcriptionPanel).toContain('id: "source"');
-        expect(transcriptionPanel).toContain("<SourceReportPanel");
-        expect(transcriptionPanel).toContain('variant="embedded"');
+        expect(dashboardWorkstation).not.toContain(
+            'sourceProvider === "plaud"',
+        );
+        expect(dashboardWorkstation).toContain('value: "source"');
+        expect(dashboardWorkstation).toContain('label: "来源详情"');
+        expect(dashboardWorkstation).toContain('tabKey: "source-report"');
+        expect(dashboardWorkstation).toContain('detailTab === "source"');
+        expect(dashboardWorkstation).toContain('data-tab-pane="source-report"');
+        expect(dashboardWorkstation).toContain(
+            "selectedRecording.sourceProvider",
+        );
+        expect(dashboardWorkstation).toContain("formatAbsoluteDate(");
+        expect(dashboardWorkstation).toContain(
+            'data-sot-panel="dashboard-source-report"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'data-sot-control="copy-source-transcript"',
+        );
+        expect(dashboardWorkstation).toContain(
+            'data-sot-control="copy-source-report"',
+        );
         expect(sourceReportPanel).not.toContain('sourceProvider === "plaud"');
         expect(sourceReportPanel).not.toContain(
             ['t("sourceReport.detail', 'Payload")'].join(""),
         );
         expect(sourceReportPanel).not.toContain("JSON.stringify(data.detail");
-        expect(sourceReportPanel).toContain('t("sourceReport.sourceDetails")');
+        expect(sourceReportPanel).toContain("<h4>来源信息</h4>");
         expect(sourceReportPanel).toContain("formatTranscriptTimeRange");
-        expect(sourceReportPanel).toContain("data.transcript.segments");
+        expect(sourceReportPanel).toContain("sourceReportDisplaySegments");
         expect(sourceReportPanel).toContain("segment.startMs");
         expect(sourceReportPanel).toContain("segment.endMs");
     });

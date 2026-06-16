@@ -9,26 +9,32 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+const OLD_UI_CONTRACT_RE =
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
 describe("onboarding UI replacement regression", () => {
-    it("keeps onboarding as a four-step wizard surface", () => {
+    it("keeps onboarding as a four-step SOT workstation surface", () => {
         const source = readSource(
             "features/onboarding/components/onboarding-form.tsx",
         );
 
-        expect(source).toContain('data-testid="onboarding-wizard"');
-        expect(source).toContain('data-testid="onboarding-stepper"');
-        expect(source).toContain('data-onboarding-step="source"');
-        expect(source).toContain('data-onboarding-step="auth"');
-        expect(source).toContain('data-onboarding-step="privacy"');
-        expect(source).toContain('data-onboarding-step="finish"');
-        expect(source).toContain("数据源选择");
-        expect(source).toContain("认证与服务地址");
-        expect(source).toContain("权限与私有化");
-        expect(source).toContain("保存进入工作台");
-        expect(source).not.toContain("bg-background/24");
-        expect(source).toContain(
-            "glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6",
-        );
+        expect(source).toContain('data-sot-layout="onboarding-workstation"');
+        expect(source).toContain('data-sot-surface="onboarding"');
+        expect(source).toContain('data-sot-panel="onboarding-steps"');
+        expect(source).toContain('data-sot-panel="onboarding-current"');
+        expect(source).toContain("data-sot-progress={visibleStep}");
+        expect(source).toContain('data-sot-control="onboarding-step"');
+        expect(source).toContain("data-sot-step={step.id}");
+        expect(source).toContain('"source"');
+        expect(source).toContain('"transcription"');
+        expect(source).toContain('"speakers"');
+        expect(source).toContain('"finish"');
+        expect(source).toContain("连接来源");
+        expect(source).toContain("默认转写");
+        expect(source).toContain("说话人档案");
+        expect(source).toContain("保存并进入工作台");
+        expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
+        expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
     it("preserves the unified data-source connection and dashboard routing behavior", () => {
@@ -54,26 +60,24 @@ describe("onboarding UI replacement regression", () => {
         );
 
         expect(source).toContain('id="source-provider"');
-        expect(source).toContain("lg:hidden");
-        expect(source).toContain("data-onboarding-state");
-        expect(source).toContain('data-testid="onboarding-state-matrix"');
-        expect(source).toContain('data-testid="onboarding-save-enter"');
-        expect(source).toContain("aria-busy={isSaving}");
-        expect(source).toContain("disabled={isSaving}");
+        expect(source).toContain("onboardingState");
+        expect(source).toContain('data-sot-control="matrix-row"');
+        expect(source).toContain('data-sot-control="save-enter"');
+        expect(source).toContain("aria-busy={isSaving || isFinishing}");
+        expect(source).toContain("disabled={isSaving || isFinishing}");
         expect(source).toContain("保存中...");
-        expect(source).toContain('<SelectContent className="z-[650]">');
-        expect(source).toContain('selectContentClassName="z-[650]"');
         expect(source).not.toContain("z-[200]");
 
         const readOnlyMatrixRow = source.slice(
-            source.indexOf("function ReadOnlyMatrixRow"),
+            source.indexOf("function MatrixRow"),
             source.indexOf("function WizardActions"),
         );
 
-        expect(readOnlyMatrixRow).toContain("data-state={state}");
+        expect(readOnlyMatrixRow).toContain("data-sot-state={state}");
+        expect(readOnlyMatrixRow).toContain('data-sot-control="matrix-row"');
         expect(readOnlyMatrixRow).toContain("{label}");
         expect(readOnlyMatrixRow).toContain("{value}");
-        expect(readOnlyMatrixRow).toContain("glass-surface-subtle");
-        expect(readOnlyMatrixRow).not.toContain("bg-background/45");
+        expect(readOnlyMatrixRow).not.toMatch(/\bbg-(background|card|muted)\b/);
+        expect(readOnlyMatrixRow).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 });

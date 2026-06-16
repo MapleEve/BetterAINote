@@ -1,27 +1,15 @@
 "use client";
 
-import {
-    ArrowLeft,
-    CalendarDays,
-    CheckCircle,
-    Clock3,
-    CloudOff,
-    Copy,
-    Database,
-    HardDrive,
-    Pencil,
-    Sparkles,
-    X,
-} from "lucide-react";
+import { ArrowLeft, Copy } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
-import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
+import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import {
@@ -31,7 +19,6 @@ import {
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import { TranscriptionSection } from "@/features/recordings/components/transcription-section";
 import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
-import { canRecordingSyncTitleUpstream } from "@/lib/data-sources/catalog";
 import {
     canRecordingPrivateTranscribe,
     canRecordingRename,
@@ -45,10 +32,6 @@ import {
     navigateBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import {
-    startBrowserTimeout,
-    stopBrowserTimeout,
-} from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
@@ -72,29 +55,12 @@ interface RecordingWorkstationProps {
     transcriptionJob?: TranscriptionJob;
 }
 
-interface SourceReportCopyPayload {
-    transcript?: {
-        text?: string | null;
-        segments?: Array<{
-            speaker?: string | null;
-            startMs?: number | null;
-            endMs?: number | null;
-            text?: string | null;
-        }>;
-    } | null;
-    summaryMarkdown?: string | null;
-    error?: string;
-}
-
 interface RawTranscriptCopyPayload {
     transcript?: {
         text?: string | null;
     } | null;
     error?: string;
 }
-
-type SourceCopyKind = "source-transcript" | "source-report";
-type SourceCopyState = "ready" | "missing" | "loading" | "error";
 
 function createSourceReportAvailability(
     sourceProvider: string | null | undefined,
@@ -104,25 +70,6 @@ function createSourceReportAvailability(
         transcriptAvailable: false,
         reportAvailable: false,
     };
-}
-
-function formatCopyTimestamp(valueMs: number | null | undefined) {
-    if (valueMs == null || !Number.isFinite(valueMs)) {
-        return null;
-    }
-
-    const totalSeconds = Math.max(0, Math.floor(valueMs / 1000));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-            .toString()
-            .padStart(2, "0")}`;
-    }
-
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function applySpeakerMap(
@@ -147,33 +94,15 @@ function applySpeakerMap(
     return result;
 }
 
-function buildSourceTranscriptCopyText(payload: SourceReportCopyPayload) {
-    const transcript = payload.transcript;
-    if (!transcript) {
-        return "";
+async function readResponseError(response: Response, fallback: string) {
+    try {
+        const data = (await response.json()) as { error?: unknown };
+        return typeof data.error === "string" && data.error.trim()
+            ? data.error
+            : fallback;
+    } catch {
+        return fallback;
     }
-
-    const segments = transcript.segments ?? [];
-    if (segments.length === 0) {
-        return transcript.text ?? "";
-    }
-
-    return segments
-        .map((segment) => {
-            const start = formatCopyTimestamp(segment.startMs);
-            const end = formatCopyTimestamp(segment.endMs);
-            const timeRange =
-                start && end ? `${start} - ${end}` : (start ?? end);
-            const heading = [timeRange, segment.speaker]
-                .filter(Boolean)
-                .join(" · ");
-
-            return heading
-                ? `${heading}\n${segment.text ?? ""}`.trim()
-                : (segment.text ?? "");
-        })
-        .filter((segment) => segment.trim())
-        .join("\n\n");
 }
 
 export function RecordingWorkstation({
@@ -182,9 +111,11 @@ export function RecordingWorkstation({
     transcriptionJob,
 }: RecordingWorkstationProps) {
     const { language, t } = useLanguage();
+    const confirm = useConfirmDialog();
     const router = useBrowserRouteController();
     const { settings: titleGenerationSettings } =
         useTitleGenerationSettingsStore();
+    const [hydrated, setHydrated] = useState(false);
     const [filename, setFilename] = useState(recording.filename);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState(recording.filename);
@@ -194,21 +125,16 @@ export function RecordingWorkstation({
     const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
         null,
     );
-    const [autoRenameAcceptedTitle, setAutoRenameAcceptedTitle] = useState<
-        string | null
-    >(null);
     const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
+    const [autoRenameUnavailableOpen, setAutoRenameUnavailableOpen] =
+        useState(false);
     const [activeTranscriptTab, setActiveTranscriptTab] = useState<
         "source" | "local" | "speakers"
     >("source");
     const [copyingAction, setCopyingAction] = useState<
-        | "local"
-        | "raw-transcript"
-        | "source-transcript"
-        | "source-report"
-        | null
+        "local" | "raw-transcript" | null
     >(null);
-    const [sourceReportAvailability, setSourceReportAvailability] =
+    const [, setSourceReportAvailability] =
         useState<SourceReportAvailabilitySnapshot>(() =>
             createSourceReportAvailability(recording.sourceProvider),
         );
@@ -226,6 +152,10 @@ export function RecordingWorkstation({
         recording.tags,
     );
     const [tagManagerOpen, setTagManagerOpen] = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
+    const moreAnchorRef = useRef<HTMLDivElement>(null);
+    const moreTriggerRef = useRef<HTMLButtonElement>(null);
+    const autoRenameRequestIdRef = useRef(0);
     const previousRecordingIdRef = useRef(recording.id);
     const canRenameRecording = canRecordingRename(recording.sourceProvider);
     const renameActionLabel = t(
@@ -257,11 +187,6 @@ export function RecordingWorkstation({
             !isAutoRenaming &&
             !isApplyingAutoRename,
     );
-    const autoRenamePreviewMessage = canRecordingSyncTitleUpstream(
-        recording.sourceProvider,
-    )
-        ? t("transcription.aiRenameWritebackHint")
-        : t("transcription.aiRenameLocalOnlyHint");
     const showLocalTranscriptTab =
         !recording.sourceProvider ||
         canPrivateTranscribe ||
@@ -272,6 +197,27 @@ export function RecordingWorkstation({
             recording.hasAudio,
             language,
         );
+    const localDeleteAvailable = Boolean(
+        !recording.sourceProvider || recording.upstreamDeleted,
+    );
+    const moreActionsState = !recording.sourceProvider
+        ? "local-only"
+        : recording.upstreamDeleted
+          ? "upstream-deleted"
+          : "upstream";
+    const moreActionsShowRetranscribe =
+        moreActionsState === "local-only" || moreActionsState === "upstream";
+    const moreActionsShowSeparator =
+        moreActionsState === "local-only" ||
+        moreActionsState === "upstream-deleted";
+    const moreActionsShowPrimaryIcons = moreActionsState === "local-only";
+    const moreActionsShowDeleteIcon =
+        moreActionsState === "local-only" ||
+        moreActionsState === "upstream-deleted";
+
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
 
     useEffect(() => {
         if (previousRecordingIdRef.current !== recording.id) {
@@ -280,10 +226,11 @@ export function RecordingWorkstation({
             setFilename(recording.filename);
             setRenameValue(recording.filename);
             setAutoRenamePreview(null);
-            setAutoRenameAcceptedTitle(null);
             setAutoRenameError(null);
+            setAutoRenameUnavailableOpen(false);
             setRecordingTags(recording.tags);
             setTagManagerOpen(false);
+            setMoreOpen(false);
             setSourceReportAvailability(
                 createSourceReportAvailability(recording.sourceProvider),
             );
@@ -296,16 +243,40 @@ export function RecordingWorkstation({
     ]);
 
     useEffect(() => {
-        if (!autoRenameAcceptedTitle) {
+        if (!moreOpen) {
             return;
         }
 
-        const timer = startBrowserTimeout(() => {
-            setAutoRenameAcceptedTitle(null);
-        }, 6000);
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (
+                target instanceof Node &&
+                moreAnchorRef.current?.contains(target)
+            ) {
+                return;
+            }
+            setMoreOpen(false);
+        };
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setMoreOpen(false);
+                moreTriggerRef.current?.focus({ preventScroll: true });
+            }
+        };
 
-        return () => stopBrowserTimeout(timer);
-    }, [autoRenameAcceptedTitle]);
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [moreOpen]);
+
+    useEffect(() => {
+        if (!autoRenameDisabledReason) {
+            setAutoRenameUnavailableOpen(false);
+        }
+    }, [autoRenameDisabledReason]);
 
     useEffect(() => {
         setRecordingTags(recording.tags);
@@ -427,14 +398,18 @@ export function RecordingWorkstation({
     const handleAutoRename = useCallback(async () => {
         if (!canAutoRenameRecording) {
             if (autoRenameDisabledReason) {
-                toast.error(autoRenameDisabledReason);
+                setAutoRenameError(null);
+                setAutoRenamePreview(null);
+                setAutoRenameUnavailableOpen(true);
             }
             return;
         }
 
         setAutoRenameError(null);
-        setAutoRenameAcceptedTitle(null);
+        setAutoRenameUnavailableOpen(false);
         setIsAutoRenaming(true);
+        const requestId = autoRenameRequestIdRef.current + 1;
+        autoRenameRequestIdRef.current = requestId;
         try {
             const response = await fetch(
                 `/api/recordings/${recording.id}/rename/auto`,
@@ -445,6 +420,9 @@ export function RecordingWorkstation({
                 },
             );
             const data = await response.json();
+            if (autoRenameRequestIdRef.current !== requestId) {
+                return;
+            }
             if (!response.ok) {
                 const message =
                     data.error || t("transcription.autoRenameFailed");
@@ -460,17 +438,25 @@ export function RecordingWorkstation({
             }
         } catch {
             const message = t("transcription.autoRenameFailed");
+            if (autoRenameRequestIdRef.current !== requestId) {
+                return;
+            }
             setAutoRenameError(message);
             toast.error(message);
         } finally {
-            setIsAutoRenaming(false);
+            if (autoRenameRequestIdRef.current === requestId) {
+                setIsAutoRenaming(false);
+            }
         }
     }, [autoRenameDisabledReason, canAutoRenameRecording, recording.id, t]);
 
     const handleAutoRenamePreviewCancel = useCallback(() => {
+        autoRenameRequestIdRef.current += 1;
+        setIsAutoRenaming(false);
+        setIsApplyingAutoRename(false);
         setAutoRenamePreview(null);
-        setAutoRenameAcceptedTitle(null);
         setAutoRenameError(null);
+        setAutoRenameUnavailableOpen(false);
     }, []);
 
     const handleAutoRenamePreviewApply = useCallback(async () => {
@@ -499,7 +485,6 @@ export function RecordingWorkstation({
             setFilename(nextFilename);
             setRenameValue(nextFilename);
             setAutoRenamePreview(null);
-            setAutoRenameAcceptedTitle(nextFilename);
             setAutoRenameError(null);
             toast.success(
                 t("transcription.autoRenameSuccess", {
@@ -512,6 +497,119 @@ export function RecordingWorkstation({
             setIsApplyingAutoRename(false);
         }
     }, [autoRenamePreview, recording.id, t]);
+
+    const handleMoreRename = useCallback(() => {
+        setMoreOpen(false);
+        handleRenameStart();
+    }, [handleRenameStart]);
+
+    const handleMoreAutoRename = useCallback(() => {
+        setMoreOpen(false);
+        void handleAutoRename();
+    }, [handleAutoRename]);
+
+    const handleMoreRetranscribe = useCallback(async () => {
+        setMoreOpen(false);
+        moreTriggerRef.current?.focus({ preventScroll: true });
+        if (!canPrivateTranscribe) {
+            toast.error(
+                transcriptionUnavailableReason ??
+                    t("transcription.failedToLoad"),
+            );
+            return;
+        }
+
+        const confirmed = await confirm({
+            title: t("transcription.retranscribeConfirmTitle"),
+            description: t("transcription.retranscribeConfirmDescription"),
+            details: [
+                t("transcription.retranscribeConfirmDetailTranscript"),
+                t("transcription.retranscribeConfirmDetailSpeakers"),
+                t("transcription.retranscribeConfirmDetailSource"),
+            ],
+            confirmLabel: t("transcription.retranscribeConfirmLabel"),
+            cancelLabel: t("common.cancel"),
+        });
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/recordings/${recording.id}/transcribe`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ force: true }),
+                },
+            );
+            if (!response.ok) {
+                toast.error(
+                    await readResponseError(
+                        response,
+                        t("transcription.failedToLoad"),
+                    ),
+                );
+                return;
+            }
+            toast.success(t("transcription.requeuedSuccess"));
+        } catch {
+            toast.error(t("transcription.failedToLoad"));
+        }
+    }, [
+        canPrivateTranscribe,
+        confirm,
+        recording.id,
+        t,
+        transcriptionUnavailableReason,
+    ]);
+
+    const handleDeleteLocalRecording = useCallback(async () => {
+        if (!localDeleteAvailable) {
+            return;
+        }
+
+        setMoreOpen(false);
+        moreTriggerRef.current?.focus({ preventScroll: true });
+        const confirmed = await confirm({
+            title: "删除本地副本？",
+            description: recording.upstreamDeleted
+                ? "这条录音在来源系统中已被删除，本地仅留存缓存副本。"
+                : "这条录音只保存在本地。",
+            warning: "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
+            confirmLabel: "永久删除",
+            cancelLabel: t("common.cancel"),
+        });
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/recordings/${recording.id}`, {
+                method: "DELETE",
+            });
+            if (!response.ok) {
+                toast.error(
+                    await readResponseError(
+                        response,
+                        t("recording.deleteFailed"),
+                    ),
+                );
+                return;
+            }
+            toast.success(t("recording.deleteSuccess"));
+            navigateBrowserRoute(router, "/dashboard");
+        } catch {
+            toast.error(t("recording.deleteFailed"));
+        }
+    }, [
+        confirm,
+        localDeleteAvailable,
+        recording.id,
+        recording.upstreamDeleted,
+        router,
+        t,
+    ]);
 
     const handleCopyLocalTranscript = useCallback(async () => {
         const copyText = localTranscriptCopyText;
@@ -565,116 +663,6 @@ export function RecordingWorkstation({
         }
     }, [recording.id, t, transcription?.text]);
 
-    const handleCopySourceMaterial = useCallback(
-        async (kind: SourceCopyKind) => {
-            if (!recording.sourceProvider) {
-                toast.error(t("sourceReport.missingSourceTranscript"));
-                return;
-            }
-
-            setCopyingAction(kind);
-            try {
-                const response = await fetch(
-                    `/api/recordings/${recording.id}/source-report`,
-                    { cache: "no-store" },
-                );
-                const payload =
-                    (await response.json()) as SourceReportCopyPayload;
-
-                if (!response.ok) {
-                    setSourceReportAvailability({
-                        state: "error",
-                        transcriptAvailable: false,
-                        reportAvailable: false,
-                    });
-                    toast.error(payload.error ?? t("sourceReport.copyFailed"));
-                    return;
-                }
-
-                const copyText =
-                    kind === "source-transcript"
-                        ? buildSourceTranscriptCopyText(payload)
-                        : (payload.summaryMarkdown ?? "");
-
-                if (!copyText.trim()) {
-                    toast.error(
-                        kind === "source-transcript"
-                            ? t("sourceReport.missingSourceTranscript")
-                            : t("sourceReport.missingSourceReport"),
-                    );
-                    return;
-                }
-
-                await writeBrowserClipboardText(copyText);
-                toast.success(
-                    kind === "source-transcript"
-                        ? t("sourceReport.sourceTranscriptCopied")
-                        : t("sourceReport.sourceReportCopied"),
-                );
-            } catch {
-                toast.error(t("sourceReport.copyFailed"));
-            } finally {
-                setCopyingAction(null);
-            }
-        },
-        [recording.id, recording.sourceProvider, t],
-    );
-
-    const getSourceCopyState = useCallback(
-        (kind: SourceCopyKind): SourceCopyState => {
-            if (!recording.sourceProvider) {
-                return "missing";
-            }
-
-            if (sourceReportAvailability.state === "loaded") {
-                const available =
-                    kind === "source-transcript"
-                        ? sourceReportAvailability.transcriptAvailable
-                        : sourceReportAvailability.reportAvailable;
-                return available ? "ready" : "missing";
-            }
-
-            if (sourceReportAvailability.state === "missing") {
-                return "missing";
-            }
-
-            if (sourceReportAvailability.state === "error") {
-                return "error";
-            }
-
-            return "loading";
-        },
-        [recording.sourceProvider, sourceReportAvailability],
-    );
-    const sourceTranscriptCopyState = getSourceCopyState("source-transcript");
-    const sourceReportCopyState = getSourceCopyState("source-report");
-    const sourceTranscriptCopyDisabled =
-        copyingAction === "source-transcript" ||
-        !recording.sourceProvider ||
-        sourceTranscriptCopyState === "missing" ||
-        sourceTranscriptCopyState === "loading";
-    const sourceReportCopyDisabled =
-        copyingAction === "source-report" ||
-        !recording.sourceProvider ||
-        sourceReportCopyState === "missing" ||
-        sourceReportCopyState === "loading";
-    const sourceTranscriptCopyTitle =
-        sourceTranscriptCopyState === "loading"
-            ? t("sourceReport.loadingDetail")
-            : sourceTranscriptCopyState === "error"
-              ? t("sourceReport.failedFetch")
-              : sourceTranscriptCopyState === "missing"
-                ? t("sourceReport.missingSourceTranscript")
-                : t("sourceReport.copySourceTranscript");
-    const sourceReportCopyTitle =
-        sourceReportCopyState === "loading"
-            ? t("sourceReport.loadingDetail")
-            : sourceReportCopyState === "error"
-              ? t("sourceReport.failedFetch")
-              : sourceReportCopyState === "missing"
-                ? t("sourceReport.missingSourceReport")
-                : t("sourceReport.copySourceReport");
-
     const durationLabel = `${Math.floor(recording.duration / 60000)}:${(
         (recording.duration % 60000) /
         1000
@@ -691,524 +679,709 @@ export function RecordingWorkstation({
         recording.sourceProvider,
         language,
     );
+    const autoRenameSubtitle = "仅本次预览，不会写回来源";
+    const autoRenameUnavailableMessage = !titleGenerationProviderConfigured
+        ? "AI 重命名服务尚未配置或暂时不可用。"
+        : autoRenameDisabledReason;
+    const autoRenameUnavailableHint = !titleGenerationProviderConfigured
+        ? "前往设置 → AI 重命名服务以启用。"
+        : null;
+    const autoRenamePanel =
+        isAutoRenaming && !autoRenamePreview ? (
+            <AiRenamePreview
+                applyLabel="应用"
+                bodyLabel={t("transcription.aiRenameSuggestedTitle")}
+                cancelLabel="取消"
+                closeLabel={t("transcription.aiRenameClosePreview")}
+                isApplying={false}
+                isRegenerating={isAutoRenaming}
+                message="正在根据转写生成标题…"
+                onApply={handleAutoRenamePreviewApply}
+                onCancel={handleAutoRenamePreviewCancel}
+                onRegenerate={handleAutoRename}
+                regenerateLabel="生成中…"
+                state="loading"
+                subtitle={autoRenameSubtitle}
+                title={t("transcription.aiRenamePreview")}
+            />
+        ) : autoRenameError ? (
+            <AiRenamePreview
+                applyLabel="应用"
+                bodyLabel={t("transcription.aiRenameSuggestedTitle")}
+                cancelLabel="取消"
+                closeLabel={t("transcription.aiRenameClosePreview")}
+                isApplying={false}
+                isRegenerating={isAutoRenaming}
+                message="这次没拿到结果，可能是转写太短或模型暂时不可用。"
+                onApply={handleAutoRenamePreviewApply}
+                onCancel={handleAutoRenamePreviewCancel}
+                onRegenerate={handleAutoRename}
+                regenerateLabel="重试"
+                state="error"
+                subtitle={autoRenameSubtitle}
+                title={t("transcription.aiRenamePreview")}
+            />
+        ) : autoRenamePreview ? (
+            <AiRenamePreview
+                applyLabel="应用"
+                bodyLabel={t("transcription.aiRenameSuggestedTitle")}
+                cancelLabel="取消"
+                closeLabel={t("transcription.aiRenameClosePreview")}
+                filename={autoRenamePreview}
+                isApplying={isApplyingAutoRename}
+                isRegenerating={isAutoRenaming}
+                message="确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                onApply={handleAutoRenamePreviewApply}
+                onCancel={handleAutoRenamePreviewCancel}
+                onRegenerate={handleAutoRename}
+                originalFilename={filename}
+                regenerateLabel={t("transcription.aiRenameRegenerate")}
+                state="review"
+                subtitle={autoRenameSubtitle}
+                title={t("transcription.aiRenamePreview")}
+            />
+        ) : autoRenameUnavailableOpen && autoRenameDisabledReason ? (
+            <AiRenamePreview
+                bodyLabel={t("transcription.aiRenameSuggestedTitle")}
+                closeLabel={t("transcription.aiRenameClosePreview")}
+                hint={autoRenameUnavailableHint}
+                isApplying={false}
+                isRegenerating={false}
+                message={autoRenameUnavailableMessage}
+                onCancel={handleAutoRenamePreviewCancel}
+                onApply={handleAutoRenamePreviewApply}
+                onRegenerate={handleAutoRename}
+                applyLabel="应用"
+                cancelLabel="取消"
+                regenerateLabel="重新生成"
+                state="unavailable"
+                subtitle={autoRenameSubtitle}
+                title={t("transcription.aiRenamePreview")}
+            />
+        ) : null;
 
     return (
         <div
-            className="dashboard-workstation flex min-h-svh flex-col overflow-hidden px-3 py-3 sm:px-4 sm:py-4"
-            data-testid="recording-detail-workstation"
+            className="app"
+            data-hydrated={hydrated ? "true" : "false"}
+            data-sot-surface="recording-workstation"
+            data-sot-state={hydrated ? "ready" : "loading"}
         >
-            <div className="mx-auto flex min-h-0 w-full max-w-[1280px] flex-1 flex-col gap-4">
-                <header className="glass-surface relative z-[200] flex min-h-14 items-center gap-3 overflow-visible rounded-2xl px-3 py-2">
-                    <Button
+            <aside
+                className="sidebar glass glass-strong"
+                data-sot-surface="recording-source-rail"
+            >
+                <div className="brand">
+                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <div className="brand-text">
+                        <div className="brand-name">BetterAINote</div>
+                        <div className="brand-sub">私人工作空间</div>
+                    </div>
+                </div>
+                <nav className="nav" aria-label="录音详情导航">
+                    <div className="nav-section-label">录音</div>
+                    <button
+                        className="nav-item is-selected"
+                        type="button"
                         onClick={() =>
                             navigateBrowserRoute(router, "/dashboard")
                         }
-                        variant="outline"
-                        size="icon"
-                        aria-label={t("recording.backToDashboard")}
-                        className="h-10 w-10 shrink-0 rounded-xl"
                     >
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-
-                    <div className="min-w-0 flex-1">
-                        {isRenaming ? (
-                            <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                <Input
-                                    value={renameValue}
-                                    onChange={(event) =>
-                                        setRenameValue(event.target.value)
-                                    }
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter") {
-                                            handleRenameSave();
-                                        }
-                                        if (event.key === "Escape") {
-                                            handleRenameCancel();
-                                        }
-                                    }}
-                                    className="h-10 min-w-0 flex-1 rounded-xl py-1 text-base font-semibold sm:text-lg"
-                                    autoFocus
-                                    disabled={isSavingRename}
-                                    data-testid="recording-rename-input"
-                                />
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleAutoRename}
-                                    disabled={!canAutoRenameRecording}
-                                    data-testid="recording-ai-rename"
-                                    title={
-                                        autoRenameDisabledReason ??
-                                        t("transcription.aiRename")
-                                    }
-                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                >
-                                    <Sparkles
-                                        className={
-                                            isAutoRenaming
-                                                ? "h-4 w-4 animate-pulse"
-                                                : "h-4 w-4"
-                                        }
-                                    />
-                                    <span className="hidden sm:inline">
-                                        {t("transcription.aiRename")}
-                                    </span>
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="outline"
-                                    onClick={handleRenameSave}
-                                    disabled={isSavingRename}
-                                    aria-busy={isSavingRename}
-                                    aria-label={t("recording.saveRename")}
-                                    className="h-10 w-10 shrink-0 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
-                                    data-testid="recording-rename-save"
-                                >
-                                    <CheckCircle className="h-5 w-5" />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="outline"
-                                    onClick={handleRenameCancel}
-                                    disabled={isSavingRename}
-                                    aria-label={t("recording.cancelRename")}
-                                    className="h-10 w-10 shrink-0 rounded-xl border-border/60 bg-muted/20 shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                    data-testid="recording-rename-cancel"
-                                >
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
-                                    {filename}
-                                </h1>
-                                {recording.upstreamDeleted && (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
-                                        <CloudOff className="h-3 w-3" />
-                                        {t("recording.localOnly")}
-                                    </span>
-                                )}
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleAutoRename}
-                                    disabled={!canAutoRenameRecording}
-                                    aria-busy={isAutoRenaming}
-                                    data-testid="recording-ai-rename"
-                                    title={
-                                        autoRenameDisabledReason ??
-                                        t("transcription.aiRename")
-                                    }
-                                    className="h-10 shrink-0 rounded-xl border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                >
-                                    <Sparkles
-                                        className={
-                                            isAutoRenaming
-                                                ? "h-4 w-4 animate-pulse"
-                                                : "h-4 w-4"
-                                        }
-                                    />
-                                    <span className="hidden sm:inline">
-                                        {t("transcription.aiRename")}
-                                    </span>
-                                </Button>
-                                {canRenameRecording ? (
-                                    <Button
-                                        size="icon"
-                                        variant="outline"
-                                        onClick={handleRenameStart}
-                                        aria-label={renameActionLabel}
-                                        title={renameActionLabel}
-                                        className="shrink-0"
-                                        data-testid="recording-rename-start"
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                ) : null}
-                            </div>
-                        )}
-                        <p className="mt-1 truncate text-sm text-muted-foreground">
-                            {startTimeLabel}
-                        </p>
-                    </div>
-
-                    <div className="hidden shrink-0 items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-xl md:flex">
-                        <Database className="h-3.5 w-3.5" />
-                        <span>{sourceLabel}</span>
+                        <ArrowLeft />
+                        <span>{t("recording.backToDashboard")}</span>
+                    </button>
+                </nav>
+            </aside>
+            <main className="main">
+                <header className="topbar">
+                    <div className="crumbs">
+                        <span className="crumb">录音</span>
+                        <span className="crumb-sep">/</span>
+                        <span className="crumb-current">{filename}</span>
                     </div>
                 </header>
-
-                <SystemBanner />
-
-                <div
-                    className="glass-surface-subtle flex flex-wrap items-center gap-2 rounded-2xl p-2"
-                    data-testid="recording-detail-copy-strip"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyLocalTranscript}
-                        disabled={
-                            copyingAction === "local" ||
-                            !localTranscriptCopyText.trim()
-                        }
-                        aria-busy={copyingAction === "local"}
-                        data-testid="recording-copy-local-transcript"
-                        className="h-9 rounded-xl"
+                <div className="workspace">
+                    <section
+                        className="panel"
+                        data-sot-panel="recording-detail-list"
+                        aria-label="当前录音"
                     >
-                        <Copy className="h-4 w-4" />
-                        {copyingAction === "local"
-                            ? t("common.copying")
-                            : t("transcription.copyTranscript")}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyRawTranscript}
-                        disabled={
-                            copyingAction === "raw-transcript" ||
-                            !transcription?.text?.trim()
-                        }
-                        aria-busy={copyingAction === "raw-transcript"}
-                        data-testid="recording-copy-raw-transcript"
-                        className="h-9 rounded-xl"
-                    >
-                        <Copy className="h-4 w-4" />
-                        {copyingAction === "raw-transcript"
-                            ? t("common.copying")
-                            : t("speakerReview.copyRawTranscript")}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                            handleCopySourceMaterial("source-transcript")
-                        }
-                        disabled={sourceTranscriptCopyDisabled}
-                        aria-busy={copyingAction === "source-transcript"}
-                        title={sourceTranscriptCopyTitle}
-                        data-source-copy-state={sourceTranscriptCopyState}
-                        data-testid="recording-copy-source-transcript"
-                        className="h-9 rounded-xl"
-                    >
-                        <Copy className="h-4 w-4" />
-                        {copyingAction === "source-transcript"
-                            ? t("common.copying")
-                            : t("sourceReport.copySourceTranscript")}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                            handleCopySourceMaterial("source-report")
-                        }
-                        disabled={sourceReportCopyDisabled}
-                        aria-busy={copyingAction === "source-report"}
-                        title={sourceReportCopyTitle}
-                        data-source-copy-state={sourceReportCopyState}
-                        data-testid="recording-copy-source-report"
-                        className="h-9 rounded-xl"
-                    >
-                        <Copy className="h-4 w-4" />
-                        {copyingAction === "source-report"
-                            ? t("common.copying")
-                            : t("sourceReport.copySourceReport")}
-                    </Button>
-                </div>
-
-                {isAutoRenaming && !autoRenamePreview ? (
-                    <AiRenamePreviewCard
-                        className="mx-0"
-                        isApplying={false}
-                        isRegenerating={isAutoRenaming}
-                        message={t("dashboardChrome.aiRenamePreviewLoading")}
-                        state="loading"
-                        title={t("transcription.aiRename")}
-                    />
-                ) : autoRenameError ? (
-                    <AiRenamePreviewCard
-                        className="mx-0"
-                        isApplying={false}
-                        isRegenerating={isAutoRenaming}
-                        message={autoRenameError}
-                        onRegenerate={handleAutoRename}
-                        regenerateLabel={t("transcription.aiRenameRegenerate")}
-                        state="error"
-                        title={t("transcription.autoRenameFailed")}
-                    />
-                ) : autoRenamePreview ? (
-                    <AiRenamePreviewCard
-                        applyLabel={t("transcription.aiRenameApply")}
-                        cancelLabel={t("transcription.aiRenameCancelPreview")}
-                        className="mx-0"
-                        filename={autoRenamePreview}
-                        isApplying={isApplyingAutoRename}
-                        isRegenerating={isAutoRenaming}
-                        message={autoRenamePreviewMessage}
-                        onApply={handleAutoRenamePreviewApply}
-                        onCancel={handleAutoRenamePreviewCancel}
-                        onRegenerate={handleAutoRename}
-                        regenerateLabel={t("transcription.aiRenameRegenerate")}
-                        state="review"
-                        title={t("transcription.aiRenamePreview")}
-                    />
-                ) : autoRenameAcceptedTitle ? (
-                    <AiRenamePreviewCard
-                        className="mx-0"
-                        filename={autoRenameAcceptedTitle}
-                        isApplying={false}
-                        isRegenerating={false}
-                        message={t("transcription.aiRenameAcceptedHint")}
-                        state="accepted"
-                        title={t("transcription.aiRenameAccepted")}
-                    />
-                ) : autoRenameDisabledReason ? (
-                    <AiRenamePreviewCard
-                        actionLabel={
-                            !titleGenerationProviderConfigured
-                                ? t("transcription.aiRenameOpenSettings")
-                                : undefined
-                        }
-                        actionHref={
-                            !titleGenerationProviderConfigured
-                                ? "/settings#title-generation"
-                                : undefined
-                        }
-                        actionTestId="ai-rename-open-settings"
-                        className="mx-0"
-                        isApplying={false}
-                        isRegenerating={false}
-                        message={autoRenameDisabledReason}
-                        state="unavailable"
-                        title={t("transcription.aiRename")}
-                    />
-                ) : null}
-
-                <main className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,1.08fr)]">
-                    <section className="min-h-0 space-y-4 overflow-y-auto overscroll-contain pr-0 lg:pr-1">
-                        <RecordingPlayer
-                            recording={taggedRecording}
-                            tags={recordingTags}
-                            isTagManagerOpen={tagManagerOpen}
-                            onToggleTagManager={() =>
-                                setTagManagerOpen((open) => !open)
-                            }
-                            tagManagerPanel={
-                                <RecordingTagManager
-                                    variant="popover"
-                                    recording={taggedRecording}
-                                    availableTags={tagCatalog}
-                                    onAvailableTagsChange={setTagCatalog}
-                                    onRecordingTagsChange={applyRecordingTags}
-                                />
-                            }
-                        />
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t("recording.details")}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid gap-3 text-sm sm:grid-cols-2">
-                                    <div className="glass-surface-subtle rounded-xl p-3">
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <Clock3 className="h-3.5 w-3.5" />
-                                            {t("recording.duration")}
-                                        </div>
-                                        <div className="mt-2 font-mono font-medium">
+                        <div className="list-header">
+                            <div className="lh-titlebar">
+                                <h2 className="lh-title">当前录音</h2>
+                            </div>
+                        </div>
+                        <div className="real-list">
+                            <div className="row active">
+                                <div className="body">
+                                    <div className="title">{filename}</div>
+                                    <div className="meta">
+                                        <span className="dur mono">
                                             {durationLabel}
-                                        </div>
-                                    </div>
-                                    <div className="glass-surface-subtle rounded-xl p-3">
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <HardDrive className="h-3.5 w-3.5" />
-                                            {t("recording.fileSize")}
-                                        </div>
-                                        <div className="mt-2 font-medium">
-                                            {fileSizeLabel}
-                                        </div>
-                                    </div>
-                                    <div className="glass-surface-subtle rounded-xl p-3">
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <CalendarDays className="h-3.5 w-3.5" />
-                                            {t("recording.date")}
-                                        </div>
-                                        <div className="mt-2 font-medium">
-                                            {startTimeLabel}
-                                        </div>
-                                    </div>
-                                    <div className="glass-surface-subtle rounded-xl p-3">
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <Database className="h-3.5 w-3.5" />
-                                            {t("recording.source")}
-                                        </div>
-                                        <div className="mt-2 font-medium">
+                                        </span>
+                                        <span className="src-tag">
                                             {sourceLabel}
-                                        </div>
+                                        </span>
+                                        <span className="b ok">
+                                            <span className="dot" />
+                                            已打开
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="mt-3 rounded-xl border border-border/55 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                                    <span className="mr-2 font-medium text-foreground">
-                                        {t("recording.device")}
-                                    </span>
-                                    <span className="font-mono">
-                                        {recording.providerDeviceId}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </section>
+                    <section className="detail">
+                        <header
+                            className="rec-head"
+                            data-rename-mode={
+                                isSavingRename
+                                    ? "saving"
+                                    : isRenaming
+                                      ? "editing"
+                                      : "normal"
+                            }
+                            data-local-only={String(recording.upstreamDeleted)}
+                        >
+                            <h2 className="rec-h2" data-rh-title>
+                                {filename}
+                            </h2>
+                            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: SOT rec-head local badge keeps aria-label on this span. */}
+                            <span
+                                className="rec-h2-local"
+                                data-rh-local
+                                aria-label={t("recording.localOnly")}
+                            >
+                                {t("recording.localOnly")}
+                            </span>
+                            <Input
+                                value={renameValue}
+                                onChange={(event) =>
+                                    setRenameValue(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        handleRenameSave();
+                                    }
+                                    if (event.key === "Escape") {
+                                        handleRenameCancel();
+                                    }
+                                }}
+                                className="rec-h2-input"
+                                data-rh-input
+                                aria-label="录音标题"
+                                maxLength={120}
+                                autoFocus={isRenaming}
+                                disabled={isSavingRename}
+                            />
+                            <span
+                                className="rec-h2-status"
+                                data-rh-status
+                                aria-live="polite"
+                            >
+                                {isSavingRename ? "正在保存…" : ""}
+                            </span>
 
-                    <section className="min-h-0 overflow-y-auto overscroll-contain">
-                        {recording.sourceProvider ? (
-                            <div className="flex flex-col gap-4">
-                                <div className="glass-surface rounded-2xl p-4">
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div className="flex flex-col gap-1">
-                                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                                {t("recording.sourceRecord")}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {t(
-                                                    "recording.sourceRecordDescription",
+                            {canRenameRecording ? (
+                                <Button
+                                    size="icon"
+                                    onClick={handleRenameStart}
+                                    aria-label="重命名"
+                                    title="重命名"
+                                    className="rh-norm"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                    </svg>
+                                </Button>
+                            ) : null}
+
+                            <div
+                                className="ai-rename-anchor rh-norm"
+                                data-rh-ai-anchor
+                            >
+                                <Button
+                                    variant="glass"
+                                    onClick={handleAutoRename}
+                                    disabled={
+                                        isAutoRenaming || isApplyingAutoRename
+                                    }
+                                    aria-haspopup="dialog"
+                                    aria-expanded={Boolean(autoRenamePanel)}
+                                    aria-busy={isAutoRenaming}
+                                    title={
+                                        autoRenameDisabledReason ??
+                                        t("transcription.aiRename")
+                                    }
+                                    data-rh-ai-trigger
+                                    data-sot-control="ai-rename"
+                                    data-sot-state={
+                                        autoRenameDisabledReason
+                                            ? "unavailable"
+                                            : autoRenamePanel
+                                              ? "open"
+                                              : "idle"
+                                    }
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+                                    </svg>
+                                    {t("transcription.aiRename")}
+                                </Button>
+                                {autoRenamePanel}
+                            </div>
+
+                            <Button
+                                size="icon"
+                                onClick={handleRenameSave}
+                                disabled={isSavingRename}
+                                aria-busy={isSavingRename}
+                                aria-label="保存新标题"
+                                title="保存（Enter）"
+                                className="rh-edit rh-edit-save"
+                                data-rh-edit-save
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M20 6 9 17l-5-5" />
+                                </svg>
+                            </Button>
+                            <Button
+                                size="icon"
+                                onClick={handleRenameCancel}
+                                disabled={isSavingRename}
+                                aria-label={t("recording.cancelRename")}
+                                title="取消（Esc）"
+                                className="rh-edit"
+                                data-rh-edit-cancel
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M18 6 6 18M6 6l12 12" />
+                                </svg>
+                            </Button>
+                            <div
+                                className="more-anchor rh-norm"
+                                data-more-anchor
+                                ref={moreAnchorRef}
+                            >
+                                <button
+                                    className="icon-btn"
+                                    type="button"
+                                    aria-label={t(
+                                        "dashboardChrome.moreActions",
+                                    )}
+                                    aria-haspopup="menu"
+                                    aria-expanded={moreOpen}
+                                    data-more-trigger
+                                    ref={moreTriggerRef}
+                                    onClick={() => setMoreOpen((open) => !open)}
+                                >
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        aria-hidden="true"
+                                        focusable="false"
+                                    >
+                                        <circle cx="12" cy="5" r="1" />
+                                        <circle cx="12" cy="12" r="1" />
+                                        <circle cx="12" cy="19" r="1" />
+                                    </svg>
+                                </button>
+                                <div
+                                    className="more-menu"
+                                    id="recording-detail-more-menu"
+                                    role="menu"
+                                    aria-label={t(
+                                        "dashboardChrome.moreActions",
+                                    )}
+                                    data-more-menu
+                                    data-open={moreOpen ? "true" : "false"}
+                                    data-sot-local-delete-available={
+                                        localDeleteAvailable ? "true" : "false"
+                                    }
+                                    data-sot-state={moreActionsState}
+                                    hidden={!moreOpen}
+                                >
+                                    <button
+                                        className="more-menu-item"
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={handleMoreRename}
+                                    >
+                                        {moreActionsShowPrimaryIcons ? (
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                aria-hidden="true"
+                                                focusable="false"
+                                            >
+                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                            </svg>
+                                        ) : null}
+                                        重命名
+                                    </button>
+                                    <button
+                                        className="more-menu-item"
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={handleMoreAutoRename}
+                                    >
+                                        {moreActionsShowPrimaryIcons ? (
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                aria-hidden="true"
+                                                focusable="false"
+                                            >
+                                                <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+                                            </svg>
+                                        ) : null}
+                                        {t("transcription.aiRename")}
+                                    </button>
+                                    {moreActionsShowRetranscribe ? (
+                                        <button
+                                            className="more-menu-item"
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() =>
+                                                void handleMoreRetranscribe()
+                                            }
+                                        >
+                                            {moreActionsShowPrimaryIcons ? (
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                    focusable="false"
+                                                >
+                                                    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                                    <path d="M3 3v5h5" />
+                                                </svg>
+                                            ) : null}
+                                            {t("transcription.retranscribe")}
+                                        </button>
+                                    ) : null}
+                                    {moreActionsShowSeparator ? (
+                                        <div className="more-menu-sep" />
+                                    ) : null}
+                                    <button
+                                        className="more-menu-item is-danger"
+                                        type="button"
+                                        role="menuitem"
+                                        disabled={!localDeleteAvailable}
+                                        aria-disabled={!localDeleteAvailable}
+                                        onClick={() =>
+                                            void handleDeleteLocalRecording()
+                                        }
+                                    >
+                                        {moreActionsShowDeleteIcon ? (
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                aria-hidden="true"
+                                                focusable="false"
+                                            >
+                                                {moreActionsState ===
+                                                "upstream-deleted" ? (
+                                                    <path d="M3 6h18" />
+                                                ) : (
+                                                    <>
+                                                        <path d="M3 6h18" />
+                                                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                        <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                    </>
                                                 )}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                                {t("recording.localTranscript")}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {t(
-                                                    "recording.localWorkflowDescription",
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <SegmentedTabs
-                                        className="mt-4"
-                                        items={[
-                                            {
-                                                value: "source",
-                                                label: getSourceTabLabel(
-                                                    recording.sourceProvider,
-                                                    language,
-                                                ),
-                                            },
-                                            ...(showLocalTranscriptTab
-                                                ? [
-                                                      {
-                                                          value: "local" as const,
-                                                          label: t(
-                                                              "recording.localTranscript",
-                                                          ),
-                                                      },
-                                                  ]
-                                                : []),
-                                            {
-                                                value: "speakers",
-                                                label: t("speakerReview.title"),
-                                            },
-                                        ]}
-                                        value={activeTranscriptTab}
-                                        onValueChange={setActiveTranscriptTab}
-                                    />
-                                    <p className="mt-3 text-sm text-muted-foreground">
-                                        {showLocalTranscriptTab
-                                            ? t("recording.transcriptTabsHint")
-                                            : (transcriptionUnavailableReason ??
-                                              t(
-                                                  "recording.transcriptTabsHint",
-                                              ))}
-                                    </p>
+                                            </svg>
+                                        ) : null}
+                                        删除本地副本
+                                        {recording.sourceProvider ? (
+                                            <span className="more-menu-hint">
+                                                {recording.upstreamDeleted
+                                                    ? "上游已删除"
+                                                    : "来源持有正本"}
+                                            </span>
+                                        ) : null}
+                                    </button>
                                 </div>
-                                {activeTranscriptTab === "source" ? (
-                                    <SourceReportPanel
-                                        hasAudio={recording.hasAudio}
-                                        recordingId={recording.id}
-                                        sourceProvider={
-                                            recording.sourceProvider
-                                        }
-                                        autoLoad
-                                        onAvailabilityChange={
-                                            setSourceReportAvailability
-                                        }
-                                    />
-                                ) : activeTranscriptTab === "local" ? (
-                                    <TranscriptionSection
-                                        recordingId={recording.id}
-                                        canTranscribe={canPrivateTranscribe}
-                                        transcribeUnavailableReason={
-                                            transcriptionUnavailableReason
-                                        }
-                                        initialTranscription={
-                                            transcription?.text
-                                        }
-                                        initialLanguage={
-                                            transcription?.detectedLanguage
-                                        }
-                                        initialType={
-                                            transcription?.transcriptionType
-                                        }
-                                        initialSpeakerMap={liveSpeakerMap}
-                                        initialJobStatus={
-                                            transcriptionJob?.status
-                                        }
-                                        initialJobRemoteStatus={
-                                            transcriptionJob?.remoteStatus
-                                        }
-                                        initialJobError={
-                                            transcriptionJob?.lastError
-                                        }
-                                        showSpeakerReview={false}
-                                    />
-                                ) : transcription?.text?.trim() ? (
-                                    <div className="glass-surface rounded-2xl p-4">
-                                        <SpeakerLabelEditor
-                                            recordingId={recording.id}
-                                            speakerMap={liveSpeakerMap}
-                                            onSpeakerMapChanged={
-                                                setLiveSpeakerMap
+                            </div>
+                        </header>
+
+                        <SystemBanner />
+
+                        <div className="real-detail">
+                            <section className="detail">
+                                <RecordingPlayer
+                                    recording={taggedRecording}
+                                    tags={recordingTags}
+                                    isTagManagerOpen={tagManagerOpen}
+                                    onToggleTagManager={() =>
+                                        setTagManagerOpen((open) => !open)
+                                    }
+                                    tagManagerPanel={
+                                        <RecordingTagManager
+                                            variant="popover"
+                                            recording={taggedRecording}
+                                            availableTags={tagCatalog}
+                                            onAvailableTagsChange={
+                                                setTagCatalog
+                                            }
+                                            onRecordingTagsChange={
+                                                applyRecordingTags
+                                            }
+                                            onClose={() =>
+                                                setTagManagerOpen(false)
                                             }
                                         />
+                                    }
+                                />
+
+                                <div className="panel">
+                                    <div className="transcript-head">
+                                        <h2 className="rec-h2">
+                                            {t("recording.details")}
+                                        </h2>
                                     </div>
-                                ) : (
-                                    <div className="glass-surface-subtle rounded-2xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                        {t(
-                                            "transcription.noTranscriptAvailable",
-                                        )}
+                                    <div className="transcript-body">
+                                        <div className="field-row">
+                                            <div>
+                                                <div className="field-name">
+                                                    {t("recording.duration")}
+                                                </div>
+                                                <div className="field-desc">
+                                                    {durationLabel}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="field-row">
+                                            <div>
+                                                <div className="field-name">
+                                                    {t("recording.fileSize")}
+                                                </div>
+                                                <div className="field-desc">
+                                                    {fileSizeLabel}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="field-row">
+                                            <div>
+                                                <div className="field-name">
+                                                    {t("recording.date")}
+                                                </div>
+                                                <div className="field-desc">
+                                                    {startTimeLabel}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="field-row">
+                                            <div>
+                                                <div className="field-name">
+                                                    {t("recording.source")}
+                                                </div>
+                                                <div className="field-desc">
+                                                    {sourceLabel}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="field-row">
+                                            <div>
+                                                <div className="field-name">
+                                                    {t("recording.device")}
+                                                </div>
+                                                <div className="field-desc">
+                                                    {recording.providerDeviceId}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ) : (
-                            <TranscriptionSection
-                                recordingId={recording.id}
-                                canTranscribe={canPrivateTranscribe}
-                                transcribeUnavailableReason={
-                                    transcriptionUnavailableReason
-                                }
-                                initialTranscription={transcription?.text}
-                                initialLanguage={
-                                    transcription?.detectedLanguage
-                                }
-                                initialType={transcription?.transcriptionType}
-                                initialSpeakerMap={liveSpeakerMap}
-                                initialJobStatus={transcriptionJob?.status}
-                                initialJobRemoteStatus={
-                                    transcriptionJob?.remoteStatus
-                                }
-                                initialJobError={transcriptionJob?.lastError}
-                            />
-                        )}
+                                </div>
+                            </section>
+
+                            <section className="transcript">
+                                <div className="detail">
+                                    <div className="transcript">
+                                        <div className="transcript-head">
+                                            <h2 className="rec-h2">
+                                                {t("recording.sourceRecord")}
+                                            </h2>
+                                            <div className="t-actions">
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    onClick={
+                                                        handleCopyLocalTranscript
+                                                    }
+                                                    disabled={
+                                                        copyingAction ===
+                                                            "local" ||
+                                                        !localTranscriptCopyText.trim()
+                                                    }
+                                                    aria-busy={
+                                                        copyingAction ===
+                                                        "local"
+                                                    }
+                                                >
+                                                    <Copy />
+                                                    {copyingAction === "local"
+                                                        ? t("common.copying")
+                                                        : t(
+                                                              "transcription.copyTranscript",
+                                                          )}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    onClick={
+                                                        handleCopyRawTranscript
+                                                    }
+                                                    disabled={
+                                                        copyingAction ===
+                                                            "raw-transcript" ||
+                                                        !transcription?.text?.trim()
+                                                    }
+                                                    aria-busy={
+                                                        copyingAction ===
+                                                        "raw-transcript"
+                                                    }
+                                                >
+                                                    <Copy />
+                                                    {copyingAction ===
+                                                    "raw-transcript"
+                                                        ? t("common.copying")
+                                                        : t(
+                                                              "speakerReview.copyRawTranscript",
+                                                          )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="transcript-body">
+                                            <div className="field-row">
+                                                <div>
+                                                    <p className="field-name">
+                                                        {t(
+                                                            "recording.sourceRecord",
+                                                        )}
+                                                    </p>
+                                                    <p className="field-desc">
+                                                        {t(
+                                                            "recording.sourceRecordDescription",
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="field-row">
+                                                <div>
+                                                    <p className="field-name">
+                                                        {t(
+                                                            "recording.localTranscript",
+                                                        )}
+                                                    </p>
+                                                    <p className="field-desc">
+                                                        {t(
+                                                            "recording.localWorkflowDescription",
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <SegmentedTabs
+                                                items={[
+                                                    {
+                                                        value: "source",
+                                                        label: getSourceTabLabel(
+                                                            recording.sourceProvider,
+                                                            language,
+                                                        ),
+                                                    },
+                                                    ...(showLocalTranscriptTab
+                                                        ? [
+                                                              {
+                                                                  value: "local" as const,
+                                                                  label: t(
+                                                                      "recording.localTranscript",
+                                                                  ),
+                                                              },
+                                                          ]
+                                                        : []),
+                                                    {
+                                                        value: "speakers",
+                                                        label: t(
+                                                            "speakerReview.title",
+                                                        ),
+                                                    },
+                                                ]}
+                                                value={activeTranscriptTab}
+                                                onValueChange={
+                                                    setActiveTranscriptTab
+                                                }
+                                            />
+                                            <p className="field-desc">
+                                                {showLocalTranscriptTab
+                                                    ? t(
+                                                          "recording.transcriptTabsHint",
+                                                      )
+                                                    : (transcriptionUnavailableReason ??
+                                                      t(
+                                                          "recording.transcriptTabsHint",
+                                                      ))}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {activeTranscriptTab === "source" ? (
+                                        <SourceReportPanel
+                                            hasAudio={recording.hasAudio}
+                                            recordingId={recording.id}
+                                            sourceProvider={
+                                                recording.sourceProvider
+                                            }
+                                            autoLoad
+                                            onAvailabilityChange={
+                                                setSourceReportAvailability
+                                            }
+                                        />
+                                    ) : activeTranscriptTab === "local" ? (
+                                        <TranscriptionSection
+                                            recordingId={recording.id}
+                                            canTranscribe={canPrivateTranscribe}
+                                            transcribeUnavailableReason={
+                                                transcriptionUnavailableReason
+                                            }
+                                            initialTranscription={
+                                                transcription?.text
+                                            }
+                                            initialLanguage={
+                                                transcription?.detectedLanguage
+                                            }
+                                            initialType={
+                                                transcription?.transcriptionType
+                                            }
+                                            initialSpeakerMap={liveSpeakerMap}
+                                            initialJobStatus={
+                                                transcriptionJob?.status
+                                            }
+                                            initialJobRemoteStatus={
+                                                transcriptionJob?.remoteStatus
+                                            }
+                                            initialJobError={
+                                                transcriptionJob?.lastError
+                                            }
+                                            showSpeakerReview={false}
+                                        />
+                                    ) : transcription?.text?.trim() ? (
+                                        <div className="transcript t-pane">
+                                            <SpeakerLabelEditor
+                                                recordingId={recording.id}
+                                                speakerMap={liveSpeakerMap}
+                                                onSpeakerMapChanged={
+                                                    setLiveSpeakerMap
+                                                }
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="detail-empty">
+                                            {t(
+                                                "transcription.noTranscriptAvailable",
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </div>
                     </section>
-                </main>
-            </div>
+                </div>
+            </main>
         </div>
     );
 }

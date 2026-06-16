@@ -422,7 +422,7 @@ describe("useRecordingPlayback", () => {
             hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
 
         expect(playback.volume).toBe(75);
-        expect(playback.playbackSpeedLabel).toBe("1x");
+        expect(playback.playbackSpeedLabel).toBe("1.0×");
 
         audio.dispatch("ended");
         expect(onEnded).not.toHaveBeenCalled();
@@ -438,12 +438,59 @@ describe("useRecordingPlayback", () => {
             hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
 
         expect(playback.volume).toBe(35);
-        expect(playback.playbackSpeedLabel).toBe("1.5x");
+        expect(playback.playbackSpeedLabel).toBe("1.5×");
         expect(audio.volume).toBeCloseTo(0.35);
         expect(audio.playbackRate).toBe(1.5);
 
         audio.dispatch("ended");
         expect(onEnded).toHaveBeenCalledTimes(1);
+    });
+
+    it("cycles playback speed through the SOT options without 0.5x", async () => {
+        const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    defaultPlaybackSpeed: 2.0,
+                    defaultVolume: 75,
+                    autoPlayNext: false,
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+        const audio = createAudioElementStub();
+
+        vi.stubGlobal("fetch", fetchMock);
+
+        hookHarness.render(
+            () =>
+                useRecordingPlayback({
+                    audioUrl: "https://example.com/audio.mp3",
+                }),
+            {
+                beforeEffects(playback) {
+                    playback.audioRef.current =
+                        audio as unknown as HTMLAudioElement;
+                },
+            },
+        );
+
+        await ensurePlaybackSettingsLoaded();
+        hookHarness.flush();
+
+        let playback =
+            hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
+        expect(playback.playbackSpeedLabel).toBe("2.0×");
+
+        playback.cyclePlaybackSpeed();
+        hookHarness.flush();
+        playback =
+            hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
+
+        expect(playback.playbackSpeedLabel).toBe("0.75×");
+        expect(audio.playbackRate).toBe(0.75);
     });
 
     it("does not surface browser playback aborts as user-facing failures", async () => {
@@ -477,5 +524,44 @@ describe("useRecordingPlayback", () => {
 
         expect(consoleError).not.toHaveBeenCalled();
         expect(toastError).not.toHaveBeenCalled();
+    });
+
+    it("surfaces non-abort playback failures through the SOT toast lane", async () => {
+        const consoleError = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        const audio = createAudioElementStub();
+        const playError = Object.assign(new Error("play blocked"), {
+            name: "NotAllowedError",
+        });
+        audio.play.mockRejectedValueOnce(playError);
+
+        hookHarness.render(
+            () =>
+                useRecordingPlayback({
+                    audioUrl: "https://example.com/audio.mp3",
+                }),
+            {
+                beforeEffects(playback) {
+                    playback.audioRef.current =
+                        audio as unknown as HTMLAudioElement;
+                },
+            },
+        );
+
+        const playback =
+            hookHarness.getResult<ReturnType<typeof useRecordingPlayback>>();
+        playback.togglePlayPause();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(consoleError).toHaveBeenCalledWith(
+            "Error playing audio:",
+            playError,
+        );
+        expect(toastError).toHaveBeenCalledWith("Failed to play audio", {
+            duration: 10_000,
+            id: "recording-player-playback-error",
+        });
     });
 });

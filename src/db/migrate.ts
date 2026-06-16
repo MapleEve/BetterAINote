@@ -24,6 +24,69 @@ async function migrateDatabase(databasePath: string, migrationsFolder: string) {
     }
 }
 
+async function ensureCoreCompatibilityColumns(databasePath: string) {
+    const client = createClient({ url: resolveDatabaseUrl(databasePath) });
+
+    try {
+        const usersColumns = await client.execute("PRAGMA table_info(users)");
+        const hasAnonymousColumn = usersColumns.rows.some(
+            (row) => row.name === "is_anonymous",
+        );
+
+        if (!hasAnonymousColumn) {
+            await client.execute(
+                "ALTER TABLE users ADD COLUMN is_anonymous integer DEFAULT 0 NOT NULL",
+            );
+        }
+
+        const userSettingsColumns = await client.execute(
+            "PRAGMA table_info(user_settings)",
+        );
+        const hasDisplayDensityColumn = userSettingsColumns.rows.some(
+            (row) => row.name === "display_density",
+        );
+
+        if (!hasDisplayDensityColumn) {
+            await client.execute(
+                "ALTER TABLE user_settings ADD COLUMN display_density text DEFAULT 'comfy' NOT NULL",
+            );
+        }
+
+        const sourceConnectionColumns = await client.execute(
+            "PRAGMA table_info(source_connections)",
+        );
+        const sourceConnectionColumnNames = new Set(
+            sourceConnectionColumns.rows.map((row) => row.name),
+        );
+
+        if (!sourceConnectionColumnNames.has("sync_status")) {
+            await client.execute(
+                "ALTER TABLE source_connections ADD COLUMN sync_status text DEFAULT 'idle' NOT NULL",
+            );
+        }
+
+        if (!sourceConnectionColumnNames.has("last_sync_error")) {
+            await client.execute(
+                "ALTER TABLE source_connections ADD COLUMN last_sync_error text",
+            );
+        }
+
+        if (!sourceConnectionColumnNames.has("last_sync_started_at")) {
+            await client.execute(
+                "ALTER TABLE source_connections ADD COLUMN last_sync_started_at integer",
+            );
+        }
+
+        if (!sourceConnectionColumnNames.has("last_sync_finished_at")) {
+            await client.execute(
+                "ALTER TABLE source_connections ADD COLUMN last_sync_finished_at integer",
+            );
+        }
+    } finally {
+        await client.close();
+    }
+}
+
 const runMigrate = async () => {
     const databasePath = process.env.DATABASE_PATH;
     if (!databasePath) {
@@ -36,6 +99,7 @@ const runMigrate = async () => {
     console.log("⏳ Running BetterAINote shard migrations...");
 
     await migrateDatabase(layout.core, "./src/db/migrations/core");
+    await ensureCoreCompatibilityColumns(layout.core);
     await migrateDatabase(layout.library, "./src/db/migrations/library");
     await migrateDatabase(
         layout.transcripts,

@@ -22,6 +22,7 @@ import {
     buildSourceAudioArchivePlan,
     downloadSourceAudioBuffer,
 } from "@/lib/data-sources/utils";
+import { DEFAULT_TRANSCRIPTION_SETTINGS } from "@/lib/settings/defaults";
 import { createUserStorageProvider } from "@/lib/storage/factory";
 import {
     resolveUniqueRecordingArchiveKey,
@@ -624,7 +625,52 @@ async function updateConnectionLastSync(
         .update(sourceConnections)
         .set({
             lastSync: syncedAt,
+            syncStatus: "idle",
+            lastSyncError: null,
+            lastSyncFinishedAt: syncedAt,
             updatedAt: syncedAt,
+        })
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, provider),
+            ),
+        );
+}
+
+async function markConnectionSyncStarted(
+    userId: string,
+    provider: ResolvedSourceConnection["provider"],
+    startedAt: Date,
+) {
+    await db
+        .update(sourceConnections)
+        .set({
+            syncStatus: "syncing",
+            lastSyncStartedAt: startedAt,
+            lastSyncError: null,
+            updatedAt: startedAt,
+        })
+        .where(
+            and(
+                eq(sourceConnections.userId, userId),
+                eq(sourceConnections.provider, provider),
+            ),
+        );
+}
+
+async function markConnectionSyncError(
+    userId: string,
+    provider: ResolvedSourceConnection["provider"],
+    finishedAt: Date,
+) {
+    await db
+        .update(sourceConnections)
+        .set({
+            syncStatus: "error",
+            lastSyncFinishedAt: finishedAt,
+            lastSyncError: PUBLIC_DATA_SOURCE_IMPORT_ERROR,
+            updatedAt: finishedAt,
         })
         .where(
             and(
@@ -639,6 +685,12 @@ async function syncProviderRecordings(
     context: SyncContext,
     storage: Awaited<ReturnType<typeof createUserStorageProvider>>,
 ): Promise<SyncResult> {
+    await markConnectionSyncStarted(
+        context.userId,
+        connection.provider,
+        new Date(),
+    );
+
     const client = createSourceProviderClient(connection);
     const sourceRecordings = await client.listRecordings();
     sourceRecordings.sort(
@@ -729,7 +781,9 @@ export async function syncRecordingsForUser(
 
         const context: SyncContext = {
             userId,
-            autoTranscribe: settings?.autoTranscribe ?? false,
+            autoTranscribe:
+                settings?.autoTranscribe ??
+                DEFAULT_TRANSCRIPTION_SETTINGS.autoTranscribe,
         };
 
         for (const connection of workerSyncConnections) {
@@ -751,6 +805,21 @@ export async function syncRecordingsForUser(
                     provider: connection.provider,
                     error: summarizeSyncError(error),
                 });
+                try {
+                    await markConnectionSyncError(
+                        context.userId,
+                        connection.provider,
+                        new Date(),
+                    );
+                } catch (statusError) {
+                    console.error(
+                        "Failed to persist source provider sync status:",
+                        {
+                            provider: connection.provider,
+                            error: summarizeSyncError(statusError),
+                        },
+                    );
+                }
                 result.errors.push(PUBLIC_DATA_SOURCE_IMPORT_ERROR);
             }
         }

@@ -26,6 +26,18 @@ function makeParams(id: string) {
     return { params: Promise.resolve({ id }) };
 }
 
+const WORKER_SOURCE_ACTIONS = {
+    openSource: {
+        available: false,
+        url: null,
+        reason: "source-open-unavailable",
+    },
+    repullSource: {
+        available: true,
+        reason: null,
+    },
+};
+
 describe("source-report route", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -153,6 +165,7 @@ describe("source-report route", () => {
                 sections: ["transcript", "summary", "detail"],
                 language: "zh",
             },
+            sourceActions: WORKER_SOURCE_ACTIONS,
         });
     });
 
@@ -320,6 +333,7 @@ describe("source-report route", () => {
                 status: "available",
                 sections: ["transcript", "summary", "detail"],
             },
+            sourceActions: WORKER_SOURCE_ACTIONS,
         });
     });
 
@@ -397,6 +411,7 @@ describe("source-report route", () => {
                 status: "available",
                 sections: ["transcript", "summary", "detail"],
             },
+            sourceActions: WORKER_SOURCE_ACTIONS,
         });
     });
 
@@ -442,6 +457,75 @@ describe("source-report route", () => {
         expect(body.summaryMarkdown).toBe("## Summary\n- Follow up");
         expect(JSON.stringify(body)).not.toContain("ai_content");
         expect(JSON.stringify(body)).not.toContain('"category"');
+    });
+
+    it("returns only sanitized safe source-page links for open-source actions", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-safe-open",
+                                sourceProvider: "feishu-minutes",
+                                filename: "Safe Source Link",
+                                sourceMetadata: {
+                                    recording: {
+                                        minute_url:
+                                            "https://meetings.feishu.cn/minutes/min-safe?token=secret#fragment",
+                                        mediaUrl:
+                                            "https://files.example.test/audio.mp4?signature=secret",
+                                    },
+                                },
+                            },
+                        ]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockResolvedValue([
+                        {
+                            artifactType: "official-detail",
+                            provider: "feishu-minutes",
+                            payload: {
+                                mediaUrl:
+                                    "https://files.example.test/detail-audio.mp4?signature=secret",
+                                signedUrl:
+                                    "https://files.example.test/private?signature=secret",
+                            },
+                        },
+                    ]),
+                }),
+            });
+
+        const response = await GETSourceReport(
+            makeRequest(
+                "http://localhost/api/recordings/rec-safe-open/source-report",
+            ),
+            makeParams("rec-safe-open"),
+        );
+
+        expect(response.status).toBe(200);
+
+        const body = await response.json();
+        const serialized = JSON.stringify(body);
+
+        expect(body.sourceActions).toEqual({
+            openSource: {
+                available: true,
+                url: "https://meetings.feishu.cn/minutes/min-safe",
+                reason: null,
+            },
+            repullSource: {
+                available: true,
+                reason: null,
+            },
+        });
+        expect(serialized).not.toContain("token=secret");
+        expect(serialized).not.toContain("fragment");
+        expect(serialized).not.toContain("signature=secret");
+        expect(serialized).not.toContain("files.example.test");
     });
 
     it("does not expose sensitive provider detail fields or values", async () => {
@@ -513,6 +597,7 @@ describe("source-report route", () => {
             createdAt: "2026-04-23T10:00:00.000Z",
             updatedAt: "2026-04-23T10:05:00.000Z",
         });
+        expect(body.sourceActions).toEqual(WORKER_SOURCE_ACTIONS);
         expect(serialized).not.toContain("upstream-secret-rec");
         expect(serialized).not.toContain("secret-org");
         expect(serialized).not.toContain("Private Roadmap");

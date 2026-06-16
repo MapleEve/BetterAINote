@@ -12,37 +12,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useLanguage } from "@/components/language-provider";
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarProvider,
-} from "@/components/ui/sidebar";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import {
     addBrowserWindowEventListener,
     readBrowserHash,
@@ -53,7 +23,6 @@ import {
     writeBrowserHash,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
-import { cn } from "@/lib/utils";
 import type { CanonicalSettingsSection } from "@/types/settings";
 import {
     type SettingsBusyContextValue,
@@ -149,46 +118,12 @@ const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 
 const STORAGE_KEY = "settings-last-section";
 
-const legacySectionAliases: Record<string, CanonicalSettingsSection> = {
-    display: "appearance",
-    sync: "misc",
-    playback: "misc",
-};
-
-function getSettingsUserDisplayName(
-    user: SettingsUserSummary | undefined,
-    t: (key: string) => string,
-) {
-    const name = user?.name?.trim();
-    if (name) {
-        return name;
-    }
-
-    const email = user?.email?.trim();
-    if (email) {
-        return email.split("@")[0] || email;
-    }
-
-    return t("settingsDialog.localDeployment");
-}
-
-function getSettingsUserSubtitle(
-    user: SettingsUserSummary | undefined,
-    t: (key: string) => string,
-) {
-    return user?.email?.trim() || t("settingsDialog.singleUserSelfHosted");
-}
-
-function getSettingsUserInitial(displayName: string) {
-    return Array.from(displayName.trim())[0]?.toLocaleUpperCase() ?? "B";
-}
-
 function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) {
         return false;
     }
 
-    if (target.closest("[data-settings-nav-item]")) {
+    if (target.closest('[data-sot-control="settings-nav"]')) {
         return false;
     }
 
@@ -201,8 +136,7 @@ function shouldBypassSettingsKeyboardNav(target: EventTarget | null) {
                     "select",
                     "button",
                     "a[href]",
-                    '[data-slot="select-content"]',
-                    '[data-slot="select-item"]',
+                    ".ls-result",
                     '[role="button"]',
                     '[role="combobox"]',
                     '[role="listbox"]',
@@ -220,14 +154,28 @@ export function normalizeSettingsSection(
         return null;
     }
 
-    const alias = legacySectionAliases[value];
-    if (alias) {
-        return alias;
-    }
-
     return orderedSettingsNav.some((item) => item.id === value)
         ? (value as CanonicalSettingsSection)
         : null;
+}
+
+function getSettingsSectionIndex(section: CanonicalSettingsSection): number {
+    return Math.max(
+        orderedSettingsNav.findIndex((item) => item.id === section),
+        0,
+    );
+}
+
+function resolveInitialSettingsSection(): CanonicalSettingsSection {
+    const hashSection = normalizeSettingsSection(readBrowserHash());
+    if (hashSection) {
+        return hashSection;
+    }
+
+    const storageSection = normalizeSettingsSection(
+        readBrowserStorage(STORAGE_KEY),
+    );
+    return storageSection ?? orderedSettingsNav[0].id;
 }
 
 export function SettingsDialog(props: SettingsDialogProps) {
@@ -236,6 +184,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
         React.useState<CanonicalSettingsSection>(orderedSettingsNav[0].id);
     const [keyboardSelectedIndex, setKeyboardSelectedIndex] =
         React.useState<number>(0);
+    const [hasResolvedInitialSection, setHasResolvedInitialSection] =
+        React.useState(false);
     const [busySections, setBusySections] = React.useState<
         Record<string, true>
     >({});
@@ -244,13 +194,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
     const returnFocusRef = React.useRef<HTMLElement | null>(null);
     const previousOpenRef = React.useRef(false);
 
-    const activeNavItem = orderedSettingsNav.find(
-        (item) => item.id === activeSection,
-    );
-    const isDataSourcesSection = activeSection === "data-sources";
-    const settingsUserName = getSettingsUserDisplayName(props.user, t);
-    const settingsUserSubtitle = getSettingsUserSubtitle(props.user, t);
-    const settingsUserInitial = getSettingsUserInitial(settingsUserName);
+    const settingsUserName = t("settingsDialog.localDeployment");
+    const settingsUserSubtitle = t("settingsDialog.singleUserSelfHosted");
     const isSettingsBusy = Object.keys(busySections).length > 0;
     const setSettingsSectionBusy = React.useCallback(
         (section: string, busy: boolean) => {
@@ -273,6 +218,13 @@ export function SettingsDialog(props: SettingsDialogProps) {
         },
         [],
     );
+    const applyActiveSettingsSection = React.useCallback(
+        (section: CanonicalSettingsSection) => {
+            setActiveSection(section);
+            setKeyboardSelectedIndex(getSettingsSectionIndex(section));
+        },
+        [],
+    );
     const busyContextValue = React.useMemo<SettingsBusyContextValue>(
         () => ({
             isSettingsBusy,
@@ -290,13 +242,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
         },
         [isSettingsBusy, props.onOpenChange],
     );
-    const handleCloseSettings = React.useCallback(() => {
-        if (isSettingsBusy) {
-            return;
-        }
-
-        props.onOpenChange(false);
-    }, [isSettingsBusy, props.onOpenChange]);
     const restoreReturnFocus = React.useCallback(
         (forceFocus = false) => {
             const target =
@@ -311,7 +256,11 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         activeElement === document.body ||
                         activeElement === document.documentElement ||
                         !(activeElement instanceof HTMLElement) ||
-                        Boolean(activeElement.closest("[data-settings-shell]"));
+                        Boolean(
+                            activeElement.closest(
+                                '[data-sot-surface="settings-shell"]',
+                            ),
+                        );
 
                     if (shouldRestoreFocus) {
                         target.focus({ preventScroll: true });
@@ -326,6 +275,14 @@ export function SettingsDialog(props: SettingsDialogProps) {
         },
         [props.returnFocusRef],
     );
+    const handleCloseSettings = React.useCallback(() => {
+        if (isSettingsBusy) {
+            return;
+        }
+
+        restoreReturnFocus(true);
+        props.onOpenChange(false);
+    }, [isSettingsBusy, props.onOpenChange, restoreReturnFocus]);
 
     const handleCloseKeyDown = React.useCallback(
         (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -360,44 +317,37 @@ export function SettingsDialog(props: SettingsDialogProps) {
     );
 
     React.useEffect(() => {
-        if (!props.open) return;
-
-        const hash = readBrowserHash();
-        const validSection = normalizeSettingsSection(hash);
-
-        if (validSection) {
-            setActiveSection(validSection);
-            setKeyboardSelectedIndex(
-                orderedSettingsNav.findIndex(
-                    (item) => item.id === validSection,
-                ),
-            );
+        if (!props.open) {
+            setHasResolvedInitialSection(false);
             return;
         }
 
-        const lastSection = readBrowserStorage(STORAGE_KEY);
-        const validLastSection = normalizeSettingsSection(lastSection);
-
-        if (validLastSection) {
-            setActiveSection(validLastSection);
-            setKeyboardSelectedIndex(
-                orderedSettingsNav.findIndex(
-                    (item) => item.id === validLastSection,
-                ),
-            );
-            return;
-        }
-
-        setActiveSection(orderedSettingsNav[0].id);
-        setKeyboardSelectedIndex(0);
-    }, [props.open]);
+        applyActiveSettingsSection(resolveInitialSettingsSection());
+        setHasResolvedInitialSection(true);
+    }, [applyActiveSettingsSection, props.open]);
 
     React.useEffect(() => {
         if (!props.open) return;
 
+        const handleHashChange = () => {
+            const validSection = normalizeSettingsSection(readBrowserHash());
+            if (!validSection) return;
+            applyActiveSettingsSection(validSection);
+        };
+
+        addBrowserWindowEventListener("hashchange", handleHashChange);
+
+        return () => {
+            removeBrowserWindowEventListener("hashchange", handleHashChange);
+        };
+    }, [applyActiveSettingsSection, props.open]);
+
+    React.useEffect(() => {
+        if (!props.open || !hasResolvedInitialSection) return;
+
         writeBrowserHash(activeSection);
         writeBrowserStorage(STORAGE_KEY, activeSection);
-    }, [activeSection, props.open]);
+    }, [activeSection, hasResolvedInitialSection, props.open]);
 
     React.useEffect(() => {
         const wasOpen = previousOpenRef.current;
@@ -425,9 +375,31 @@ export function SettingsDialog(props: SettingsDialogProps) {
     React.useEffect(() => {
         if (!props.open) return;
 
+        const { body, documentElement } = document;
+        const previousHtmlOverflow = documentElement.style.overflow;
+        const previousHtmlOverscroll = documentElement.style.overscrollBehavior;
+        const previousBodyOverflow = body.style.overflow;
+        const previousBodyOverscroll = body.style.overscrollBehavior;
+
+        documentElement.style.overflow = "hidden";
+        documentElement.style.overscrollBehavior = "none";
+        body.style.overflow = "hidden";
+        body.style.overscrollBehavior = "none";
+
+        return () => {
+            documentElement.style.overflow = previousHtmlOverflow;
+            documentElement.style.overscrollBehavior = previousHtmlOverscroll;
+            body.style.overflow = previousBodyOverflow;
+            body.style.overscrollBehavior = previousBodyOverscroll;
+        };
+    }, [props.open]);
+
+    React.useEffect(() => {
+        if (!props.open) return;
+
         const timer = startBrowserTimeout(() => {
             const firstButton = navBoundaryRef.current?.querySelector(
-                '[data-settings-nav="first"]',
+                '[data-sot-nav="first"]',
             ) as HTMLButtonElement | null;
             firstButton?.focus();
         }, 100);
@@ -438,13 +410,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
     React.useEffect(() => {
         if (!props.open) return;
 
-        scrollBodyRef.current?.setAttribute(
-            "data-settings-active-section",
-            activeSection,
-        );
+        scrollBodyRef.current?.setAttribute("data-sot-section", activeSection);
         scrollBodyRef.current?.scrollTo({ top: 0, left: 0 });
         scrollBodyRef.current
-            ?.querySelectorAll<HTMLElement>("[data-settings-inner-scroll]")
+            ?.querySelectorAll<HTMLElement>("[data-sot-inner-scroll]")
             .forEach((node) => {
                 node.scrollTop = 0;
                 node.scrollLeft = 0;
@@ -529,19 +498,32 @@ export function SettingsDialog(props: SettingsDialogProps) {
     return (
         <Dialog open={props.open} onOpenChange={handleDialogOpenChange}>
             <DialogContent
-                data-settings-shell=""
-                data-settings-active-section={activeSection}
-                data-settings-busy={isSettingsBusy ? "true" : "false"}
+                data-sot-busy={isSettingsBusy ? "true" : "false"}
+                data-sot-section={activeSection}
+                data-sot-state={isSettingsBusy ? "busy" : "idle"}
+                data-sot-surface="settings-shell"
+                aria-label={t("settingsDialog.title")}
                 aria-busy={isSettingsBusy}
                 onCloseAutoFocus={handleCloseAutoFocus}
                 onEscapeKeyDown={handleEscapeKeyDown}
                 onInteractOutside={(event) => {
+                    const target = event.target;
+                    if (
+                        target instanceof HTMLElement &&
+                        target.closest(
+                            '[data-sot-panel="confirm-dialog"], .confirm-dialog',
+                        )
+                    ) {
+                        event.preventDefault();
+                        return;
+                    }
+
                     if (isSettingsBusy) {
                         event.preventDefault();
                     }
                 }}
                 showCloseButton={false}
-                className="[--settings-dialog-height:calc(100svh-1rem)] h-(--settings-dialog-height) min-h-(--settings-dialog-height) max-h-(--settings-dialog-height) w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden p-0 sm:[--settings-dialog-height:min(94svh,980px)] sm:w-[min(96vw,920px)] sm:max-w-none"
+                className="settings"
                 style={
                     {
                         "--tw-enter-scale": "1",
@@ -549,239 +531,115 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     } as React.CSSProperties
                 }
             >
-                <DialogTitle className="sr-only">
-                    {t("settingsDialog.title")}
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                    {t("settingsDialog.description")}
-                </DialogDescription>
-
                 <SettingsBusyProvider value={busyContextValue}>
-                    <SidebarProvider className="min-h-0 flex-1 items-stretch">
-                        <Sidebar className="hidden md:flex border-r border-border/65 shadow-none before:hidden after:hidden backdrop-blur-none">
-                            <SidebarContent className="gap-0 p-0">
-                                <div
-                                    className="flex h-16 shrink-0 items-center gap-3 border-b border-border/65 px-4"
-                                    data-testid="settings-user-summary"
-                                >
-                                    <span
-                                        className="glass-control flex size-10 shrink-0 items-center justify-center rounded-full font-semibold text-primary text-sm"
-                                        aria-hidden="true"
-                                        data-testid="settings-user-avatar"
-                                    >
-                                        {settingsUserInitial}
-                                    </span>
-                                    <div className="min-w-0">
-                                        <h2 className="truncate text-sm font-semibold">
-                                            {settingsUserName}
-                                        </h2>
-                                        <p className="truncate text-muted-foreground text-xs">
-                                            {settingsUserSubtitle}
-                                        </p>
-                                    </div>
-                                </div>
-                                <SidebarGroup className="p-4">
-                                    <SidebarGroupContent>
-                                        <nav
-                                            ref={navBoundaryRef}
-                                            aria-label={t(
-                                                "settingsDialog.title",
-                                            )}
-                                            className="flex flex-col gap-4"
-                                        >
-                                            {settingsNavGroups.map((group) => (
-                                                <div
-                                                    key={group.labelKey}
-                                                    className="flex flex-col gap-1"
-                                                >
-                                                    <h3 className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
-                                                        {t(group.labelKey)}
-                                                    </h3>
-                                                    <SidebarMenu>
-                                                        {group.items.map(
-                                                            (item) => {
-                                                                const itemIndex =
-                                                                    orderedSettingsNav.findIndex(
-                                                                        (
-                                                                            entry,
-                                                                        ) =>
-                                                                            entry.id ===
-                                                                            item.id,
-                                                                    );
-
-                                                                return (
-                                                                    <SidebarMenuItem
-                                                                        key={
-                                                                            item.id
-                                                                        }
-                                                                    >
-                                                                        <SidebarMenuButton
-                                                                            data-settings-nav-item={
-                                                                                item.id
-                                                                            }
-                                                                            data-settings-nav={
-                                                                                itemIndex ===
-                                                                                0
-                                                                                    ? "first"
-                                                                                    : undefined
-                                                                            }
-                                                                            isActive={
-                                                                                activeSection ===
-                                                                                item.id
-                                                                            }
-                                                                            data-keyboard-selected={
-                                                                                keyboardSelectedIndex ===
-                                                                                itemIndex
-                                                                            }
-                                                                            onClick={() =>
-                                                                                !isSettingsBusy &&
-                                                                                setActiveSection(
-                                                                                    item.id,
-                                                                                )
-                                                                            }
-                                                                            disabled={
-                                                                                isSettingsBusy
-                                                                            }
-                                                                            aria-label={`${t(item.labelKey)} ${t("settingsDialog.title")}`}
-                                                                            aria-current={
-                                                                                activeSection ===
-                                                                                item.id
-                                                                                    ? "page"
-                                                                                    : undefined
-                                                                            }
-                                                                            className="transition-all duration-200"
-                                                                        >
-                                                                            <item.icon
-                                                                                data-icon="inline-start"
-                                                                                aria-hidden="true"
-                                                                            />
-                                                                            <span>
-                                                                                {t(
-                                                                                    item.labelKey,
-                                                                                )}
-                                                                            </span>
-                                                                        </SidebarMenuButton>
-                                                                    </SidebarMenuItem>
-                                                                );
-                                                            },
-                                                        )}
-                                                    </SidebarMenu>
-                                                </div>
-                                            ))}
-                                        </nav>
-                                    </SidebarGroupContent>
-                                </SidebarGroup>
-                            </SidebarContent>
-                        </Sidebar>
-
-                        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
-                            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/65 py-0 pl-4 pr-3">
-                                <div className="flex flex-1 items-center gap-2">
-                                    <Breadcrumb>
-                                        <BreadcrumbList>
-                                            <BreadcrumbItem className="hidden md:block">
-                                                <BreadcrumbPage>
-                                                    {t("settingsDialog.title")}
-                                                </BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                            <BreadcrumbSeparator className="hidden md:block" />
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage>
-                                                    {activeNavItem
-                                                        ? t(
-                                                              activeNavItem.labelKey,
-                                                          )
-                                                        : t(
-                                                              "settingsDialog.title",
-                                                          )}
-                                                </BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </BreadcrumbList>
-                                    </Breadcrumb>
-                                </div>
-
-                                <div className="md:hidden">
-                                    <Select
-                                        value={activeSection}
-                                        onValueChange={(value) =>
-                                            !isSettingsBusy &&
-                                            setActiveSection(
-                                                value as CanonicalSettingsSection,
-                                            )
-                                        }
-                                        disabled={isSettingsBusy}
-                                    >
-                                        <SelectTrigger
-                                            className="w-[180px]"
-                                            aria-label={t(
-                                                "settingsDialog.title",
-                                            )}
-                                        >
-                                            <SelectValue>
-                                                {activeNavItem
-                                                    ? t(activeNavItem.labelKey)
-                                                    : t("settingsDialog.title")}
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {orderedSettingsNav.map((item) => (
-                                                <SelectItem
-                                                    key={item.id}
-                                                    value={item.id}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <item.icon className="h-4 w-4" />
-                                                        <span>
-                                                            {t(item.labelKey)}
-                                                        </span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <DialogClose
-                                    className="glass-control inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground shadow-none transition-[background-color,color,border-color,opacity] duration-200 hover:bg-accent/45 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                                    aria-label={t("settingsDialog.close")}
-                                    data-testid="settings-close"
-                                    onClick={handleCloseSettings}
-                                    onKeyDown={handleCloseKeyDown}
-                                    disabled={isSettingsBusy}
-                                    type="button"
-                                >
-                                    <X className="h-4 w-4" />
-                                    <span className="sr-only">
-                                        {t("settingsDialog.close")}
-                                    </span>
-                                </DialogClose>
-                            </header>
-
-                            <div
-                                ref={scrollBodyRef}
-                                data-settings-scroll-body=""
-                                data-settings-active-section={activeSection}
-                                className={cn(
-                                    "flex min-h-0 flex-1 flex-col overscroll-contain",
-                                    isDataSourcesSection
-                                        ? "overflow-y-auto p-4 lg:overflow-hidden lg:p-0"
-                                        : "gap-4 overflow-y-auto p-4 pt-6",
-                                )}
+                    <header className="settings-head">
+                        <div
+                            className="settings-user settings-user-local"
+                            data-sot-part="settings-user-summary"
+                        >
+                            <span
+                                className="local-badge"
+                                aria-hidden="true"
+                                data-sot-part="settings-user-avatar"
                             >
-                                <div
-                                    key={activeSection}
-                                    className={cn(
-                                        "animate-in fade-in-0 min-h-0 duration-200",
-                                        isDataSourcesSection &&
-                                            "flex flex-1 flex-col",
-                                    )}
-                                >
-                                    <SettingsContent
-                                        activeSection={activeSection}
-                                    />
-                                </div>
+                                <Monitor />
+                            </span>
+                            <div>
+                                <h2 className="su-name">{settingsUserName}</h2>
+                                <p className="su-mail">
+                                    {settingsUserSubtitle}
+                                </p>
                             </div>
-                        </main>
-                    </SidebarProvider>
+                        </div>
+
+                        <DialogClose
+                            className="icon-btn ghost-btn"
+                            aria-label={t("settingsDialog.close")}
+                            data-sot-control="settings-close"
+                            data-sot-state={isSettingsBusy ? "busy" : "idle"}
+                            onClick={handleCloseSettings}
+                            onKeyDown={handleCloseKeyDown}
+                            disabled={isSettingsBusy}
+                            type="button"
+                        >
+                            <X aria-hidden="true" />
+                        </DialogClose>
+                    </header>
+
+                    <div className="settings-body">
+                        {/* biome-ignore lint/a11y/useSemanticElements: SOT settings rail is aside[role=navigation]. */}
+                        <aside
+                            className="settings-rail"
+                            ref={navBoundaryRef}
+                            role="navigation"
+                            aria-label={t("settingsDialog.title")}
+                        >
+                            {settingsNavGroups.map((group) => (
+                                <div key={group.labelKey} className="sr-group">
+                                    <div className="sr-group-label">
+                                        {t(group.labelKey)}
+                                    </div>
+                                    {group.items.map((item) => {
+                                        const itemIndex =
+                                            orderedSettingsNav.findIndex(
+                                                (entry) => entry.id === item.id,
+                                            );
+
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                data-sot-control="settings-nav"
+                                                data-sot-nav={
+                                                    itemIndex === 0
+                                                        ? "first"
+                                                        : undefined
+                                                }
+                                                data-sot-section={item.id}
+                                                data-sot-state={
+                                                    activeSection === item.id
+                                                        ? "selected"
+                                                        : "idle"
+                                                }
+                                                data-keyboard-selected={
+                                                    keyboardSelectedIndex ===
+                                                    itemIndex
+                                                }
+                                                onClick={() =>
+                                                    !isSettingsBusy &&
+                                                    setActiveSection(item.id)
+                                                }
+                                                disabled={isSettingsBusy}
+                                                aria-label={`${t(item.labelKey)} ${t("settingsDialog.title")}`}
+                                                aria-current={
+                                                    activeSection === item.id
+                                                        ? "page"
+                                                        : undefined
+                                                }
+                                                className={
+                                                    activeSection === item.id
+                                                        ? "sr-item active"
+                                                        : "sr-item"
+                                                }
+                                                type="button"
+                                            >
+                                                <item.icon
+                                                    data-icon="inline-start"
+                                                    aria-hidden="true"
+                                                />
+                                                <span>{t(item.labelKey)}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </aside>
+
+                        <SettingsContent
+                            key={activeSection}
+                            activeSection={activeSection}
+                            scrollRef={scrollBodyRef}
+                        />
+                    </div>
                 </SettingsBusyProvider>
             </DialogContent>
         </Dialog>

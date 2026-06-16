@@ -3,11 +3,12 @@ import { requireAuth } from "@/lib/auth-server";
 
 export default async function SettingsPage() {
     const session = await requireAuth();
+
     return (
         <SettingsPageContent
             user={{
-                email: session.user.email ?? null,
-                name: session.user.name ?? null,
+                email: session.user.email,
+                name: session.user.name,
             }}
         />
     );

@@ -27,6 +27,8 @@ vi.mock("@/lib/data-sources/providers/plaud/client", () => ({
 }));
 
 import { GET, PUT } from "@/app/api/data-sources/route";
+import { POST as DISCONNECT } from "@/app/api/data-sources/disconnect/route";
+import { POST as RECONNECT } from "@/app/api/data-sources/reconnect/route";
 import { POST as TEST } from "@/app/api/data-sources/test/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
@@ -91,6 +93,55 @@ describe("data sources route", () => {
                     config: expect.objectContaining({
                         syncTitleToSource: true,
                     }),
+                }),
+            ]),
+        });
+    });
+
+    it("serializes provider sync runtime state from saved source connections", async () => {
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockResolvedValue([
+                    {
+                        id: "source-connection-1",
+                        userId: "user-1",
+                        provider: "ticnote",
+                        enabled: true,
+                        authMode: "bearer",
+                        baseUrl: "https://voice-api.ticnote.cn/api",
+                        config: {
+                            region: "cn",
+                        },
+                        secretConfig: JSON.stringify({
+                            bearerToken: "encrypted-token",
+                        }),
+                        lastSync: new Date("2026-04-18T09:00:00.000Z"),
+                        syncStatus: "error",
+                        lastSyncError: "导入失败，请稍后重试",
+                        lastSyncStartedAt: new Date(
+                            "2026-04-18T09:01:00.000Z",
+                        ),
+                        lastSyncFinishedAt: new Date(
+                            "2026-04-18T09:02:00.000Z",
+                        ),
+                    },
+                ]),
+            }),
+        });
+
+        const response = await GET(
+            new Request("http://localhost/api/data-sources"),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({
+            sources: expect.arrayContaining([
+                expect.objectContaining({
+                    provider: "ticnote",
+                    syncStatus: "error",
+                    lastSyncError: "导入失败，请稍后重试",
+                    lastSyncStartedAt: "2026-04-18T09:01:00.000Z",
+                    lastSyncFinishedAt: "2026-04-18T09:02:00.000Z",
                 }),
             ]),
         });
@@ -873,6 +924,394 @@ describe("data sources route", () => {
         expect(db.select).not.toHaveBeenCalled();
         expect(db.insert).not.toHaveBeenCalled();
         expect(db.update).not.toHaveBeenCalled();
+    });
+
+    it("disconnects an existing source without deleting imported state or calling the provider client", async () => {
+        const updateWhere = vi.fn().mockResolvedValue(undefined);
+        const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
+
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([
+                        {
+                            id: "source-connection-1",
+                            userId: "user-1",
+                            provider: "plaud",
+                            enabled: true,
+                            authMode: "bearer",
+                            baseUrl: "https://api.plaud.ai",
+                            config: {
+                                server: "global",
+                                syncTitleToSource: true,
+                            },
+                            secretConfig: JSON.stringify({
+                                bearerToken: "saved-token",
+                            }),
+                            lastSync: new Date("2026-04-18T09:00:00.000Z"),
+                            syncStatus: "error",
+                            lastSyncError: "导入失败，请稍后重试",
+                            lastSyncStartedAt: new Date(
+                                "2026-04-18T09:01:00.000Z",
+                            ),
+                            lastSyncFinishedAt: new Date(
+                                "2026-04-18T09:02:00.000Z",
+                            ),
+                        },
+                    ]),
+                }),
+            }),
+        });
+        (db.update as Mock).mockReturnValueOnce({ set: updateSet });
+
+        const response = await DISCONNECT(
+            new Request("http://localhost/api/data-sources/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "plaud" }),
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(PlaudClient).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                enabled: false,
+                secretConfig: null,
+                syncStatus: "idle",
+                lastSyncError: null,
+                lastSyncStartedAt: null,
+                lastSyncFinishedAt: null,
+                updatedAt: expect.any(Date),
+            }),
+        );
+
+        const updateValues = updateSet.mock.calls[0]?.[0];
+        expect(updateValues).not.toHaveProperty("authMode");
+        expect(updateValues).not.toHaveProperty("baseUrl");
+        expect(updateValues).not.toHaveProperty("config");
+        expect(updateValues).not.toHaveProperty("lastSync");
+    });
+
+    it("disconnect returns success without inserting a missing source row", async () => {
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+
+        const response = await DISCONNECT(
+            new Request("http://localhost/api/data-sources/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "plaud" }),
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(PlaudClient).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid providers for disconnect and reconnect before database access", async () => {
+        const disconnectResponse = await DISCONNECT(
+            new Request("http://localhost/api/data-sources/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "unknown" }),
+            }),
+        );
+        const reconnectResponse = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "unknown" }),
+            }),
+        );
+
+        expect(disconnectResponse.status).toBe(400);
+        expect(reconnectResponse.status).toBe(400);
+        await expect(disconnectResponse.json()).resolves.toEqual({
+            error: "provider must be one of the supported data sources",
+        });
+        await expect(reconnectResponse.json()).resolves.toEqual({
+            error: "provider must be one of the supported data sources",
+        });
+        expect(db.select).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it("rejects unauthenticated disconnect and reconnect requests", async () => {
+        (auth.api.getSession as unknown as Mock).mockResolvedValue(null);
+
+        const disconnectResponse = await DISCONNECT(
+            new Request("http://localhost/api/data-sources/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "plaud" }),
+            }),
+        );
+        const reconnectResponse = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ provider: "plaud" }),
+            }),
+        );
+
+        expect(disconnectResponse.status).toBe(401);
+        expect(reconnectResponse.status).toBe(401);
+        expect(db.select).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it("reconnect force-validates existing source settings and clears sync failure state", async () => {
+        const updateWhere = vi.fn().mockResolvedValue(undefined);
+        const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
+        const insertValues = vi.fn().mockResolvedValue(undefined);
+        const testConnection = vi.fn().mockResolvedValue(true);
+        const listDevices = vi.fn().mockResolvedValue({
+            data_devices: [
+                {
+                    sn: "device-1",
+                    name: "Plaud Note",
+                    model: "PN-001",
+                    version_number: 12,
+                },
+            ],
+        });
+
+        (PlaudClient as unknown as Mock).mockImplementation(function () {
+            return {
+                testConnection,
+                listDevices,
+            };
+        });
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "source-connection-1",
+                                userId: "user-1",
+                                provider: "plaud",
+                                enabled: false,
+                                authMode: "bearer",
+                                baseUrl: "https://api.plaud.ai",
+                                config: {
+                                    server: "global",
+                                    customApiBase: "",
+                                    syncTitleToSource: true,
+                                },
+                                secretConfig: JSON.stringify({
+                                    bearerToken: "saved-token",
+                                }),
+                                lastSync: new Date(
+                                    "2026-04-18T09:00:00.000Z",
+                                ),
+                                syncStatus: "error",
+                                lastSyncError: "导入失败，请稍后重试",
+                                lastSyncStartedAt: new Date(
+                                    "2026-04-18T09:01:00.000Z",
+                                ),
+                                lastSyncFinishedAt: new Date(
+                                    "2026-04-18T09:02:00.000Z",
+                                ),
+                            },
+                        ]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([]),
+                    }),
+                }),
+            });
+        (db.update as Mock).mockReturnValueOnce({ set: updateSet });
+        (db.insert as Mock).mockReturnValueOnce({ values: insertValues });
+
+        const response = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "plaud",
+                    enabled: false,
+                    authMode: "bearer",
+                    config: {
+                        server: "global",
+                        customApiBase: "",
+                        syncTitleToSource: true,
+                    },
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(PlaudClient).toHaveBeenCalledWith(
+            "saved-token",
+            "https://api.plaud.ai",
+        );
+        expect(testConnection).toHaveBeenCalled();
+        expect(listDevices).toHaveBeenCalled();
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                enabled: true,
+                authMode: "bearer",
+                baseUrl: "https://api.plaud.ai",
+                config: expect.objectContaining({
+                    server: "global",
+                    syncTitleToSource: true,
+                }),
+                secretConfig: 'encrypted:{"bearerToken":"saved-token"}',
+                syncStatus: "idle",
+                lastSyncError: null,
+                lastSyncStartedAt: null,
+                lastSyncFinishedAt: null,
+                updatedAt: expect.any(Date),
+            }),
+        );
+        expect(insertValues).toHaveBeenCalledWith(
+            expect.objectContaining({
+                userId: "user-1",
+                provider: "plaud",
+                providerDeviceId: "device-1",
+                name: "Plaud Note",
+                model: "PN-001",
+                versionNumber: 12,
+            }),
+        );
+    });
+
+    it("does not enable a source when reconnect validation fails", async () => {
+        const testConnection = vi.fn().mockResolvedValue(false);
+        const listDevices = vi.fn();
+
+        (PlaudClient as unknown as Mock).mockImplementation(function () {
+            return {
+                testConnection,
+                listDevices,
+            };
+        });
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([
+                        {
+                            id: "source-connection-1",
+                            userId: "user-1",
+                            provider: "plaud",
+                            enabled: false,
+                            authMode: "bearer",
+                            baseUrl: "https://api.plaud.ai",
+                            config: {
+                                server: "global",
+                            },
+                            secretConfig: JSON.stringify({
+                                bearerToken: "saved-token",
+                            }),
+                            lastSync: null,
+                        },
+                    ]),
+                }),
+            }),
+        });
+
+        const response = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "plaud",
+                    enabled: false,
+                    authMode: "bearer",
+                    config: {
+                        server: "global",
+                    },
+                    secrets: {},
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+            error: "未能连接数据源",
+        });
+        expect(testConnection).toHaveBeenCalled();
+        expect(listDevices).not.toHaveBeenCalled();
+        expect(db.update).not.toHaveBeenCalled();
+        expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it("reconnect creates a missing source row as enabled with reset sync state", async () => {
+        const insertValues = vi.fn().mockResolvedValue(undefined);
+        const testConnection = vi.fn().mockResolvedValue(true);
+        const listDevices = vi.fn().mockResolvedValue({ data_devices: [] });
+
+        (PlaudClient as unknown as Mock).mockImplementation(function () {
+            return {
+                testConnection,
+                listDevices,
+            };
+        });
+        (db.select as Mock).mockReturnValueOnce({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi.fn().mockResolvedValue([]),
+                }),
+            }),
+        });
+        (db.insert as Mock).mockReturnValueOnce({ values: insertValues });
+
+        const response = await RECONNECT(
+            new Request("http://localhost/api/data-sources/reconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "plaud",
+                    enabled: false,
+                    authMode: "bearer",
+                    config: {
+                        server: "global",
+                    },
+                    secrets: {
+                        bearerToken: "new-token",
+                    },
+                }),
+            }),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({ success: true });
+        expect(insertValues).toHaveBeenCalledWith(
+            expect.objectContaining({
+                userId: "user-1",
+                provider: "plaud",
+                enabled: true,
+                authMode: "bearer",
+                baseUrl: "https://api.plaud.ai",
+                secretConfig: 'encrypted:{"bearerToken":"new-token"}',
+                syncStatus: "idle",
+                lastSyncError: null,
+                lastSyncStartedAt: null,
+                lastSyncFinishedAt: null,
+                createdAt: expect.any(Date),
+                updatedAt: expect.any(Date),
+            }),
+        );
     });
 
     it("rejects saving TicNote with a sanitized validation failure reason", async () => {

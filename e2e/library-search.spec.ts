@@ -1,8 +1,18 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
-import { expect, type Page, test } from "@playwright/test";
-import { ensureSignedIn } from "./helpers/auth";
+import {
+    expect,
+    type Locator,
+    type Page,
+    test,
+    type TestInfo,
+} from "@playwright/test";
+import { ensureSignedIn, putJsonWithRetry } from "./helpers/auth";
+import {
+    SOT_COMPONENT_LIBRARY_URL,
+    SOT_WORKSTATION_URL,
+} from "./helpers/sot-fixtures";
 
 const E2E_DATA_DIR = path.resolve(process.cwd(), "tmp/e2e/data");
 const SEARCH_RECORDING_ID = "e2e-library-search-target";
@@ -46,6 +56,22 @@ function databaseUrl(filePath: string) {
 
 const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
+
+type LibrarySearchPixelTarget = "panel" | "body";
+type WebIndexSearchState =
+    | "no-query"
+    | "loading"
+    | "results"
+    | "no-results"
+    | "error";
+
+const CANONICAL_SEARCH_SCOPE_LABELS = [
+    "全部",
+    "录音",
+    "逐字稿",
+    "说话人",
+    "标签",
+] as const;
 
 async function getPlaywrightUserId() {
     const client = createClient({ url: databaseUrl(CORE_DB) });
@@ -173,29 +199,328 @@ async function resetDisplaySettings(
     page: Page,
     overrides: Record<string, unknown> = {},
 ) {
-    const resetResponse = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: "system",
-            uiLanguage: "zh-CN",
-            ...overrides,
-        },
+    const resetResponse = await putJsonWithRetry(page, "/api/settings/display", {
+        dateTimeFormat: "relative",
+        itemsPerPage: 50,
+        recordingListSortOrder: "newest",
+        theme: "dark",
+        uiLanguage: "zh-CN",
+        ...overrides,
     });
     expect(resetResponse.ok()).toBe(true);
 }
 
-async function openLibrarySearch(page: Page) {
-    const trigger = page.getByTestId("library-search-trigger").first();
-    const panel = page.getByTestId("library-search-panel");
+async function openSotComponentLibrary(page: Page) {
+    await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+        document.body.dataset.theme = "light";
+    });
+}
 
+async function openSotWebIndexSearch(page: Page) {
+    await page.goto(SOT_WORKSTATION_URL, { waitUntil: "load" });
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "light";
+        document.body.dataset.theme = "light";
+    });
+    await page.locator("#ls-trigger").click();
+    const panel = page.locator("#ls-panel");
+    await expect(panel).toHaveAttribute("data-open", "true");
+    await expect(panel).toBeVisible();
+    return panel;
+}
+
+async function setSotWebIndexSearchState(
+    page: Page,
+    state: WebIndexSearchState,
+) {
+    const panel = page.locator("#ls-panel");
+    await page.evaluate((nextState) => {
+        (
+            window as Window & {
+                __lsSetState?: (state: string) => void;
+            }
+        ).__lsSetState?.(nextState);
+    }, state);
+    await expect(panel).toHaveAttribute("data-state", state);
+    return panel;
+}
+
+async function expectCanonicalSearchScopeChips(panel: Locator) {
+    const chips = panel.locator(".ls-scope .ls-chip");
+    await expect(chips).toHaveCount(CANONICAL_SEARCH_SCOPE_LABELS.length);
+    await expect(chips).toHaveText([...CANONICAL_SEARCH_SCOPE_LABELS]);
+}
+
+async function prepareSearchDashboard(
+    page: Page,
+    routeHandler?: Parameters<Page["route"]>[1],
+) {
+    await page.unroute("**/api/search?**").catch(() => undefined);
+    if (routeHandler) {
+        await page.route("**/api/search?**", routeHandler);
+    }
+    const dashboardHydrated = page
+        .waitForResponse(
+            (response) =>
+                response.url().includes("/api/recording-tags") &&
+                response.ok(),
+            { timeout: 15_000 },
+        )
+        .catch(() => null);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    if (new URL(page.url()).pathname.endsWith("/login")) {
+        await ensureSignedIn(page);
+    }
+    await dashboardHydrated;
+
+    return openLibrarySearch(page);
+}
+
+function sotSearchPanel(page: Page, state: string) {
+    return page.locator(`#search .ls-panel[data-state="${state}"]`).first();
+}
+
+function searchPixelLocator(
+    panel: Locator,
+    target: LibrarySearchPixelTarget,
+) {
+    return target === "panel" ? panel : panel.locator(".ls-body").first();
+}
+
+async function captureSearchPixelDataUrl(
+    page: Page,
+    locator: Locator,
+    target: LibrarySearchPixelTarget,
+) {
+    const fixtureId = `sot-search-pixel-${Date.now()}-${Math.random()
+        .toString(16)
+        .slice(2)}`;
+    await locator.first().evaluate(
+        (element, params) => {
+            document.getElementById(params.fixtureId)?.remove();
+
+            const host = document.createElement("div");
+            host.id = params.fixtureId;
+            host.style.position = "fixed";
+            host.style.left = "32px";
+            host.style.top = "32px";
+            host.style.zIndex = "2147483647";
+            host.style.pointerEvents = "none";
+            host.style.background = "transparent";
+
+            const stage = document.createElement("div");
+            stage.style.width = "560px";
+            stage.style.height = params.target === "panel" ? "620px" : "420px";
+            stage.style.padding = "40px";
+            stage.style.boxSizing = "border-box";
+            stage.style.background = "var(--bg-canvas)";
+
+            const clone = element.cloneNode(true) as HTMLElement;
+            clone.removeAttribute("hidden");
+            clone.removeAttribute("aria-hidden");
+            clone.removeAttribute("inert");
+            clone.style.position = "relative";
+            clone.style.inset = "auto";
+            clone.style.top = "auto";
+            clone.style.right = "auto";
+            clone.style.bottom = "auto";
+            clone.style.left = "auto";
+            clone.style.margin = "0";
+            clone.style.opacity = "1";
+            clone.style.transform = "translateY(0) scale(1)";
+            clone.style.pointerEvents = "auto";
+            if (params.target === "body") {
+                clone.style.width = "460px";
+            } else {
+                clone.dataset.open = "true";
+            }
+
+            for (const input of clone.querySelectorAll("input")) {
+                input.setAttribute("value", input.value);
+            }
+
+            stage.appendChild(clone);
+            host.appendChild(stage);
+            document.body.appendChild(host);
+        },
+        { fixtureId, target },
+    );
+
+    const screenshotTarget = page.locator(`#${fixtureId} > div`).first();
+    await expect(screenshotTarget).toBeVisible();
+    await page.waitForTimeout(250);
+    const screenshot = await screenshotTarget.screenshot({
+        animations: "disabled",
+        omitBackground: true,
+        scale: "css",
+    });
+    await page.evaluate((id) => {
+        document.getElementById(id)?.remove();
+    }, fixtureId);
+
+    return {
+        dataUrl: `data:image/png;base64,${screenshot.toString("base64")}`,
+        screenshot,
+    };
+}
+
+async function expectSearchPixelMatch(
+    page: Page,
+    testInfo: TestInfo,
+    sotPage: Page,
+    state: string,
+    productPanel: Locator,
+    target: LibrarySearchPixelTarget,
+    options: {
+        maxChannelDelta?: number;
+        maxDifferingPixels?: number;
+    } = {},
+) {
+    const [sotCapture, productCapture] = await Promise.all([
+        captureSearchPixelDataUrl(
+            sotPage,
+            searchPixelLocator(sotSearchPanel(sotPage, state), target),
+            target,
+        ),
+        captureSearchPixelDataUrl(
+            page,
+            searchPixelLocator(productPanel, target),
+            target,
+        ),
+    ]);
+    const diff = await page.evaluate(
+        async ({ expected, actual }) => {
+            const loadImage = (src: string) =>
+                new Promise<HTMLImageElement>((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = () =>
+                        reject(new Error(`Failed to decode screenshot ${src}`));
+                    image.src = src;
+                });
+            const [expectedImage, actualImage] = await Promise.all([
+                loadImage(expected),
+                loadImage(actual),
+            ]);
+
+            if (
+                expectedImage.naturalWidth !== actualImage.naturalWidth ||
+                expectedImage.naturalHeight !== actualImage.naturalHeight
+            ) {
+                return {
+                    dimensionsMatch: false,
+                    differingPixels: -1,
+                    expectedHeight: expectedImage.naturalHeight,
+                    expectedWidth: expectedImage.naturalWidth,
+                    maxChannelDelta: -1,
+                    productHeight: actualImage.naturalHeight,
+                    productWidth: actualImage.naturalWidth,
+                };
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = expectedImage.naturalWidth;
+            canvas.height = expectedImage.naturalHeight;
+            const context = canvas.getContext("2d", {
+                willReadFrequently: true,
+            });
+            if (!context) {
+                throw new Error("Canvas 2D context unavailable");
+            }
+
+            context.drawImage(expectedImage, 0, 0);
+            const expectedData = context.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height,
+            ).data;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(actualImage, 0, 0);
+            const actualData = context.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height,
+            ).data;
+
+            let differingPixels = 0;
+            let maxChannelDelta = 0;
+            for (let index = 0; index < expectedData.length; index += 4) {
+                const pixelDelta = Math.max(
+                    Math.abs(expectedData[index] - actualData[index]),
+                    Math.abs(expectedData[index + 1] - actualData[index + 1]),
+                    Math.abs(expectedData[index + 2] - actualData[index + 2]),
+                    Math.abs(expectedData[index + 3] - actualData[index + 3]),
+                );
+                if (pixelDelta > 0) {
+                    differingPixels += 1;
+                    maxChannelDelta = Math.max(maxChannelDelta, pixelDelta);
+                }
+            }
+
+            return {
+                dimensionsMatch: true,
+                differingPixels,
+                expectedHeight: expectedImage.naturalHeight,
+                expectedWidth: expectedImage.naturalWidth,
+                maxChannelDelta,
+                productHeight: actualImage.naturalHeight,
+                productWidth: actualImage.naturalWidth,
+            };
+        },
+        { actual: productCapture.dataUrl, expected: sotCapture.dataUrl },
+    );
+
+    if (
+        !diff.dimensionsMatch ||
+        diff.differingPixels !== 0 ||
+        diff.maxChannelDelta !== 0
+    ) {
+        const name = `library-search-${state}-${target}`
+            .replace(/[^a-z0-9]+/gi, "-")
+            .replace(/^-|-$/g, "")
+            .toLowerCase();
+        await testInfo.attach(`${name}-sot.png`, {
+            body: sotCapture.screenshot,
+            contentType: "image/png",
+        });
+        await testInfo.attach(`${name}-product.png`, {
+            body: productCapture.screenshot,
+            contentType: "image/png",
+        });
+        await testInfo.attach(`${name}-diff.json`, {
+            body: Buffer.from(JSON.stringify(diff, null, 2)),
+            contentType: "application/json",
+        });
+    }
+
+    expect(diff.dimensionsMatch, `${state}/${target}`).toBe(true);
+    expect(diff.productHeight, `${state}/${target}`).toBe(diff.expectedHeight);
+    expect(diff.productWidth, `${state}/${target}`).toBe(diff.expectedWidth);
+    expect(diff.differingPixels, `${state}/${target}`).toBeLessThanOrEqual(
+        options.maxDifferingPixels ?? 0,
+    );
+    expect(diff.maxChannelDelta, `${state}/${target}`).toBeLessThanOrEqual(
+        options.maxChannelDelta ?? 0,
+    );
+}
+
+async function openLibrarySearch(page: Page) {
+    const trigger = sotControl(page, "dashboard-search").first();
+    const panel = sotPanel(page, "library-search");
+
+    await expect(
+        page.locator('[data-sot-surface="dashboard-workstation"]'),
+    ).toHaveAttribute("data-sot-state", "ready");
     await expect(trigger).toBeVisible();
     for (let attempt = 0; attempt < 3; attempt += 1) {
         await trigger.click();
         if (
             await panel
-                .isVisible({ timeout: 1_000 })
+                .isVisible({ timeout: 3_000 })
                 .catch(() => false)
         ) {
             return panel;
@@ -203,7 +528,7 @@ async function openLibrarySearch(page: Page) {
         await trigger.press("Enter");
         if (
             await panel
-                .isVisible({ timeout: 1_000 })
+                .isVisible({ timeout: 3_000 })
                 .catch(() => false)
         ) {
             return panel;
@@ -215,11 +540,102 @@ async function openLibrarySearch(page: Page) {
     return panel;
 }
 
+function sotControl(page: Page, name: string) {
+    return page.locator(`[data-sot-control="${name}"]`);
+}
+
+function sotPanel(page: Page, name: string) {
+    return page.locator(`[data-sot-panel="${name}"]`);
+}
+
+function sotList(page: Page, name: string) {
+    return page.locator(`[data-sot-list="${name}"]`);
+}
+
+function sotSearchResult(page: Page, type: string, index?: number) {
+    const indexSelector =
+        typeof index === "number" ? `[data-sot-result-index="${index}"]` : "";
+    return page.locator(
+        `[data-sot-control="library-search-result"][data-sot-result-type="${type}"]${indexSelector}`,
+    );
+}
+
+async function selectDashboardRecordingForTagManager(
+    page: Page,
+    recordingId: string,
+) {
+    const allRecordingsFilter = page.locator(
+        '[data-sot-control="dashboard-favorite"][data-sot-filter="all"]',
+    );
+    const recordingList = page.locator(
+        '[data-sot-surface="dashboard-recording-list"]',
+    );
+    const recordingRow = page.locator(
+        `[data-sot-control="dashboard-recording-row"][data-sot-recording-id="${recordingId}"]`,
+    );
+
+    await expect(allRecordingsFilter).toBeVisible();
+    if (
+        (await allRecordingsFilter.getAttribute("data-sot-state")) !==
+        "selected"
+    ) {
+        await allRecordingsFilter.click();
+    }
+    await expect(recordingList).toHaveAttribute(
+        "data-sot-list-mode",
+        "timeline",
+    );
+    await expect(recordingList).toHaveAttribute("data-sot-state", "ready");
+    await expect(recordingRow).toBeVisible();
+    await recordingRow.click();
+    await expect(recordingRow).toHaveAttribute("data-sot-state", "selected");
+    await expect(sotControl(page, "recording-tag-manager")).toBeVisible();
+}
+
+async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
+    const outsideChromeTarget = page
+        .locator(
+            '[data-sot-surface="dashboard-workstation"] main .crumb-current',
+        )
+        .first();
+
+    await expect(outsideChromeTarget).toBeVisible();
+    const clickPoint = await outsideChromeTarget.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        const x = rect.left + Math.min(8, Math.max(1, rect.width / 2));
+        const y = rect.top + Math.min(8, Math.max(1, rect.height / 2));
+        const hit = document.elementFromPoint(x, y);
+        const unsafeTarget = hit?.closest(
+            [
+                "a",
+                "button",
+                "input",
+                "select",
+                "textarea",
+                "nav",
+                '[role="button"]',
+                '[data-sot-control]',
+                '[data-sot-panel]',
+            ].join(","),
+        );
+
+        return {
+            hitTag: hit?.tagName ?? null,
+            unsafeTarget: Boolean(unsafeTarget),
+            x,
+            y,
+        };
+    });
+
+    expect(clickPoint.unsafeTarget, clickPoint.hitTag ?? "missing hit target").toBe(
+        false,
+    );
+    await page.mouse.click(clickPoint.x, clickPoint.y);
+}
+
 async function openDashboardMoreMenu(page: Page) {
-    const trigger = page
-        .getByTestId("dashboard-detail-more-actions")
-        .getByRole("button");
-    const menu = page.getByTestId("dashboard-detail-more-menu");
+    const trigger = page.getByRole("button", { name: "更多操作" });
+    const menu = page.getByRole("menu", { name: "更多操作" });
 
     await expect(trigger).toBeVisible();
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -240,24 +656,12 @@ async function openDashboardMoreMenu(page: Page) {
 
 async function expectOverlayHitTarget(
     page: Page,
-    testId: "dashboard-activity-panel" | "library-search-panel",
+    panelName: "dashboard-activity" | "library-search",
 ) {
-    const panel = page.getByTestId(testId);
+    const panel = sotPanel(page, panelName);
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
 
-    const portalState = await panel.evaluate((node) => ({
-        isDirectBodyChild: node.parentElement === document.body,
-        isInsideLibrarySearchRoot: Boolean(
-            node.closest('[data-testid="library-search"]'),
-        ),
-    }));
-    expect(portalState.isDirectBodyChild).toBe(true);
-    if (testId === "library-search-panel") {
-        expect(portalState.isInsideLibrarySearchRoot).toBe(false);
-    }
-
-    const result = await panel.evaluate((node, panelTestId) => {
+    const result = await panel.evaluate((node) => {
         const rect = node.getBoundingClientRect();
         const topPoint = {
             x: rect.left + rect.width / 2,
@@ -275,10 +679,10 @@ async function expectOverlayHitTarget(
 
         return {
             containsBottomHit: Boolean(
-                bottomHit?.closest(`[data-testid="${panelTestId}"]`) === node,
+                bottomHit?.closest("[data-sot-panel]") === node,
             ),
             containsTopHit: Boolean(
-                topHit?.closest(`[data-testid="${panelTestId}"]`) === node,
+                topHit?.closest("[data-sot-panel]") === node,
             ),
             bottom: rect.bottom,
             height: rect.height,
@@ -289,7 +693,7 @@ async function expectOverlayHitTarget(
             viewportHeight: window.innerHeight,
             viewportWidth: window.innerWidth,
         };
-    }, testId);
+    });
 
     expect(result.width).toBeGreaterThan(0);
     expect(result.height).toBeGreaterThan(0);
@@ -309,18 +713,18 @@ async function expectOverlayHitTarget(
 
 async function expectOverlayAnchoredToTrigger(
     page: Page,
-    panelTestId: "dashboard-activity-panel" | "library-search-panel",
-    triggerTestId: "dashboard-activity-trigger" | "library-search-trigger",
+    panelName: "dashboard-activity" | "library-search",
+    triggerName: "dashboard-activity" | "dashboard-search",
 ) {
-    const panel = page.getByTestId(panelTestId);
-    const trigger = page.getByTestId(triggerTestId);
+    const panel = sotPanel(page, panelName);
+    const trigger = sotControl(page, triggerName);
     await expect(panel).toBeVisible();
     await expect(trigger).toBeVisible();
 
     const metrics = await panel.evaluate((node, triggerId) => {
         const panelRect = node.getBoundingClientRect();
         const triggerNode = document.querySelector(
-            `[data-testid="${triggerId}"]`,
+            `[data-sot-control="${triggerId}"]`,
         );
         if (!triggerNode) {
             throw new Error(`Missing trigger: ${triggerId}`);
@@ -337,32 +741,37 @@ async function expectOverlayAnchoredToTrigger(
             panelTop: panelRect.top,
             triggerBottom: triggerRect.bottom,
         };
-    }, triggerTestId);
+    }, triggerName);
 
     expect(Math.abs(metrics.panelTop - (metrics.triggerBottom + 8))).toBeLessThanOrEqual(16);
     expect(Math.abs(metrics.panelRightOffset - metrics.expectedRight)).toBeLessThanOrEqual(16);
 }
 
-async function expectMobileOverlayLayout(
+async function expectViewportBoundOverlayLayout(
     page: Page,
-    panelTestId: "dashboard-activity-panel" | "library-search-panel",
+    panelName: "dashboard-activity" | "library-search",
 ) {
-    const panel = page.getByTestId(panelTestId);
+    const panel = sotPanel(page, panelName);
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveAttribute("data-topbar-overlay-portal", "true");
 
     const metrics = await panel.evaluate((node) => {
         const rect = node.getBoundingClientRect();
         return {
+            bottom: rect.bottom,
             left: rect.left,
-            right: window.innerWidth - rect.right,
+            right: rect.right,
+            top: rect.top,
+            viewportHeight: window.innerHeight,
             viewportWidth: window.innerWidth,
             width: rect.width,
         };
     });
 
-    expect(Math.abs(metrics.left - 12)).toBeLessThanOrEqual(2);
-    expect(Math.abs(metrics.right - 12)).toBeLessThanOrEqual(2);
+    expect(metrics.left).toBeGreaterThanOrEqual(0);
+    expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight);
+    expect(metrics.width).toBeGreaterThan(0);
     expect(metrics.width).toBeLessThanOrEqual(metrics.viewportWidth);
 }
 
@@ -391,6 +800,205 @@ function healthySyncStatus() {
         },
     };
 }
+
+test("library search keeps Web/index five-chip scope canonical while matching component-library body primitives", async ({
+    page,
+}, testInfo) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 1280, height: 760 });
+    await ensureSignedIn(page);
+    await resetDisplaySettings(page, { theme: "light", uiLanguage: "zh-CN" });
+
+    const sotPage = await page.context().newPage();
+    const sotIndexPage = await page.context().newPage();
+    try {
+        await openSotComponentLibrary(sotPage);
+        await openSotWebIndexSearch(sotIndexPage);
+
+        let panel = await prepareSearchDashboard(page);
+        await expect(panel).toHaveAttribute("data-state", "no-query");
+        await expectCanonicalSearchScopeChips(
+            await setSotWebIndexSearchState(sotIndexPage, "no-query"),
+        );
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "no-query",
+            panel,
+            "panel",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+
+        let releaseLoading = () => {};
+        const loadingGate = new Promise<void>((resolve) => {
+            releaseLoading = resolve;
+        });
+        panel = await prepareSearchDashboard(page, async (route) => {
+            await loadingGate;
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ results: [] }),
+            });
+        });
+        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
+        await expect(panel).toHaveAttribute("data-state", "loading");
+        await expectCanonicalSearchScopeChips(
+            await setSotWebIndexSearchState(sotIndexPage, "loading"),
+        );
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "loading",
+            panel,
+            "body",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+        releaseLoading();
+        await expect(panel).toHaveAttribute("data-state", "no-results");
+
+        panel = await prepareSearchDashboard(page, async (route) => {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    results: [
+                        buildSearchResult({
+                            entityType: "recording",
+                            entityId: "sot-recording-alpha",
+                            recordingId: "sot-recording-alpha",
+                            title: "产品周会 · Q2 priorities review",
+                            body: "产品周会",
+                            source: "钉钉 · 今天 14:00 · 47:18",
+                        }),
+                        buildSearchResult({
+                            entityType: "recording",
+                            entityId: "sot-recording-beta",
+                            recordingId: "sot-recording-beta",
+                            title: "客服培训复盘 — 含周会跟进",
+                            body: "客服培训复盘",
+                            source: "TicNote · 昨天 15:00 · 33:42",
+                        }),
+                        buildSearchResult({
+                            entityType: "transcript",
+                            entityId: "sot-transcript-alpha",
+                            recordingId: "sot-recording-alpha",
+                            title: "产品周会",
+                            body: "「这次周会主要对齐 Q2 priorities…」",
+                            source: "dingtalk",
+                            startMs: 192_000,
+                            endMs: 210_000,
+                        }),
+                        buildSearchResult({
+                            entityType: "tag",
+                            entityId: "sot-tag-alpha",
+                            recordingId: null,
+                            title: "产品周会",
+                            body: "2 条录音",
+                            tags: ["产品周会"],
+                            source: null,
+                        }),
+                    ],
+                }),
+            });
+        });
+        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
+        await expect(panel).toHaveAttribute("data-state", "results");
+        await expectCanonicalSearchScopeChips(
+            await setSotWebIndexSearchState(sotIndexPage, "results"),
+        );
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "results",
+            panel,
+            "body",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+
+        panel = await prepareSearchDashboard(page, async (route) => {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({ results: [] }),
+            });
+        });
+        await panel.locator('[data-sot-control="library-search-input"]').fill("xyzqq");
+        await expect(panel).toHaveAttribute("data-state", "no-results");
+        await expectCanonicalSearchScopeChips(
+            await setSotWebIndexSearchState(sotIndexPage, "no-results"),
+        );
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "no-results",
+            panel,
+            "body",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+
+        panel = await prepareSearchDashboard(page, async (route) => {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 503,
+                body: JSON.stringify({ error: "Search failed" }),
+            });
+        });
+        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
+        await expect(panel).toHaveAttribute("data-state", "error");
+        await expectCanonicalSearchScopeChips(
+            await setSotWebIndexSearchState(sotIndexPage, "error"),
+        );
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "error",
+            panel,
+            "body",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+
+        panel = await prepareSearchDashboard(page, async (route) => {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    results: [],
+                    indexing: {
+                        active: true,
+                        pendingJobs: 3,
+                        indexingJobs: 2,
+                        completedJobs: 2,
+                        totalJobs: 5,
+                    },
+                }),
+            });
+        });
+        await panel.locator('[data-sot-control="library-search-input"]').fill("周会");
+        await expect(panel).toHaveAttribute("data-state", "indexing");
+        await expectCanonicalSearchScopeChips(sotSearchPanel(sotPage, "indexing"));
+        await expectCanonicalSearchScopeChips(panel);
+        await expectSearchPixelMatch(
+            page,
+            testInfo,
+            sotPage,
+            "indexing",
+            panel,
+            "panel",
+            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+        );
+    } finally {
+        await page.unroute("**/api/search?**").catch(() => undefined);
+        await sotPage.close();
+        await sotIndexPage.close();
+    }
+});
 
 test("library search keeps error retry and keyboard focus paths live", async ({
     page,
@@ -427,20 +1035,86 @@ test("library search keeps error retry and keyboard focus paths live", async ({
 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
-    await expect(panel).toHaveCSS("z-index", "220");
 
-    const input = panel.getByRole("combobox", {
-        name: "搜索录音、逐字稿、说话人、标签",
-    });
+    const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("retry-check");
-    await expect(page.getByTestId("library-search-error")).toBeVisible();
+    const errorState = panel.locator('[data-sot-part="library-search-error"]');
+    await expect(errorState).toHaveClass(/ls-state-error/);
+    await expect(errorState.locator(".ls-empty")).toHaveText(
+        "检索失败 · 请稍后再试",
+    );
 
-    await page.locator("[data-ls-retry]").click();
-    await expect(page.getByTestId("library-search-no-results")).toBeVisible();
+    await sotControl(page, "library-search-retry").click();
+    await expect(panel).toHaveAttribute("data-sot-state", "no-results");
 
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
-    await expect(page.getByTestId("library-search-trigger")).toBeFocused();
+    await expect(sotControl(page, "dashboard-search")).toBeFocused();
+});
+
+test("library search restores the SOT indexing state while the local index rebuilds", async ({
+    page,
+}) => {
+    await page.route("**/api/search?**", async (route) => {
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({
+                results: [],
+                indexing: {
+                    active: true,
+                    pendingJobs: 3,
+                    indexingJobs: 2,
+                    completedJobs: 0,
+                    totalJobs: 5,
+                },
+            }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    const dashboardHydrated = page
+        .waitForResponse(
+            (response) =>
+                response.url().includes("/api/recording-tags") &&
+                response.ok(),
+            { timeout: 15_000 },
+        )
+        .catch(() => null);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await dashboardHydrated;
+
+    const panel = await openLibrarySearch(page);
+    const input = panel.locator('[data-sot-control="library-search-input"]');
+
+    await input.fill("周会");
+    await expect(panel).toHaveAttribute("data-state", "indexing");
+    await expect(panel).toHaveAttribute("data-sot-state", "indexing");
+    await expect(input).toHaveAttribute("aria-disabled", "true");
+    await expect(input).toHaveJSProperty("readOnly", true);
+    await expect(
+        panel.locator('[data-sot-part="library-search-indexing"]'),
+    ).toContainText("正在重建本地搜索索引 · 0 / 5 来源完成");
+    await expect(
+        panel.locator('[data-sot-part="library-search-indexing"]'),
+    ).toHaveClass(/ls-state-indexing/);
+    await expect(panel.locator(".inline-progress.indeterminate")).toBeVisible();
+    await expect(sotControl(page, "library-search-scope")).toHaveCount(5);
+    await expect(
+        sotControl(page, "library-search-scope").filter({ hasText: "全部" }),
+    ).toBeDisabled();
+    await expect(
+        sotControl(page, "library-search-scope").filter({ hasText: "录音" }),
+    ).toBeDisabled();
+    await expect(
+        sotControl(page, "library-search-scope").filter({ hasText: "逐字稿" }),
+    ).toBeDisabled();
+    await expect(
+        sotControl(page, "library-search-scope").filter({ hasText: "说话人" }),
+    ).toBeDisabled();
+    await expect(
+        sotControl(page, "library-search-scope").filter({ hasText: "标签" }),
+    ).toBeDisabled();
+    await expect(sotList(page, "library-search-results")).toHaveCount(0);
 });
 
 test("library search groups highlights and applies global speaker tag filters", async ({
@@ -521,42 +1195,53 @@ test("library search groups highlights and applies global speaker tag filters", 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
 
-    const input = panel.getByRole("combobox", {
-        name: "搜索录音、逐字稿、说话人、标签",
-    });
+    const input = panel.locator('[data-sot-control="library-search-input"]');
+    await expect(input).not.toHaveAttribute("role", "combobox");
+    await expect(input).toHaveAttribute("placeholder", "搜索录音、转写、说话人、标签");
     await input.fill("Alpha");
 
-    await expect(page.getByTestId("library-search-results")).toBeVisible();
-    await expect(page.getByTestId("library-search-group-recording")).toBeVisible();
-    await expect(page.getByTestId("library-search-group-transcript")).toBeVisible();
-    await expect(page.getByTestId("library-search-group-speaker")).toBeVisible();
-    await expect(page.getByTestId("library-search-group-tag")).toBeVisible();
-    await expect(page.getByTestId("library-search-highlight").first()).toBeVisible();
-
-    const speakerResult = page.locator(
-        '[data-testid^="library-search-result-speaker-"]',
+    await expect(sotList(page, "library-search-results")).toBeVisible();
+    await expect(sotList(page, "library-search-results")).toHaveClass(
+        /ls-state-results/,
     );
-    await expect(speakerResult).toHaveAttribute("data-result-mode", "filter");
+    await expect(panel.locator(".ls-result")).toHaveCount(0);
+    await expect(panel.locator(".ls-item")).toHaveCount(4);
+    await expect(panel.locator(".ls-item-title").first()).toBeVisible();
+    await expect(panel.locator(".ls-item-meta").first()).toBeVisible();
+    await expect(
+        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="recording"]'),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="transcript"]'),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="speaker"]'),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-group="library-search-results"][data-sot-result-type="tag"]'),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-part="library-search-highlight"]').first(),
+    ).toBeVisible();
 
-    const tagResult = page.locator(
-        '[data-testid^="library-search-result-tag-"]',
-    );
-    await expect(tagResult).toHaveAttribute("data-result-mode", "filter");
+    const speakerResult = sotSearchResult(page, "speaker");
+    await expect(speakerResult).toHaveAttribute("data-sot-result-mode", "filter");
+
+    const tagResult = sotSearchResult(page, "tag");
+    await expect(tagResult).toHaveAttribute("data-sot-result-mode", "filter");
     await tagResult.click();
 
     await expect(panel).toBeHidden();
-    const searchFilter = page.getByTestId("dashboard-library-search-filter");
+    const searchFilter = sotPanel(page, "dashboard-library-search-filter");
     await expect(searchFilter).toBeVisible();
-    await expect(searchFilter).toHaveAttribute("data-library-search-filter", "tag");
+    await expect(searchFilter).toHaveAttribute("data-sot-filter", "tag");
     await expect(searchFilter).toContainText("Alpha tag");
-    const searchFilterChip = searchFilter.getByTestId(
-        "dashboard-library-search-filter-chip",
+    const searchFilterChip = searchFilter.locator(
+        '[data-sot-part="library-search-filter-chip"]',
     );
     await expect(searchFilterChip).toBeVisible();
-    await expect(searchFilterChip).toHaveClass(/bg-muted\/35/);
-    await expect(searchFilterChip).not.toHaveClass(/bg-background\/65/);
 
-    await searchFilter.getByRole("button", { name: "清除" }).click();
+    await sotControl(page, "library-search-filter-clear").click();
     await expect(searchFilter).toBeHidden();
 });
 
@@ -582,30 +1267,33 @@ test("library search clear button resets query results and focus", async ({
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const panel = await openLibrarySearch(page);
-    const input = panel.getByRole("combobox", {
-        name: "搜索录音、逐字稿、说话人、标签",
-    });
+    const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("Alpha");
 
-    await expect(page.getByTestId("library-search-results")).toBeVisible();
+    await expect(sotList(page, "library-search-results")).toBeVisible();
     await expect(
-        page.getByTestId("library-search-highlight").first(),
+        page.locator('[data-sot-part="library-search-highlight"]').first(),
     ).toBeVisible();
-    await expect(page.getByTestId("library-search-result-tag-0")).toContainText(
-        "Alpha clear tag",
-    );
+    await expect(sotSearchResult(page, "tag", 0)).toContainText("Alpha clear tag");
 
-    await panel.getByRole("button", { name: "清空搜索" }).click();
+    const clearButton = panel.locator(
+        '[data-sot-control="library-search-clear"]',
+    );
+    await expect(clearButton).toBeVisible();
+    await expect(clearButton).toHaveAccessibleName("清空");
+    await clearButton.click();
 
     await expect(input).toHaveValue("");
     await expect(input).toBeFocused();
-    await expect(panel).toHaveAttribute("data-state", "no-query");
-    await expect(page.getByTestId("library-search-no-query")).toBeVisible();
-    await expect(page.getByTestId("library-search-results")).toHaveCount(0);
-    await expect(page.getByTestId("library-search-highlight")).toHaveCount(0);
-    await expect(page.getByTestId("library-search-result-tag-0")).toHaveCount(
-        0,
-    );
+    await expect(panel).toHaveAttribute("data-sot-state", "no-query");
+    await expect(
+        panel.locator('[data-sot-part="library-search-empty"]'),
+    ).toBeVisible();
+    await expect(sotList(page, "library-search-results")).toHaveCount(0);
+    await expect(
+        page.locator('[data-sot-part="library-search-highlight"]'),
+    ).toHaveCount(0);
+    await expect(sotSearchResult(page, "tag", 0)).toHaveCount(0);
     await expect(page.getByText("没有找到与「Alpha」相关的内容")).toHaveCount(0);
     await page.waitForTimeout(300);
     expect(requestedQueries).not.toContain("");
@@ -631,30 +1319,23 @@ test("library search keeps keyboard active results visible before Enter actions"
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const panel = await openLibrarySearch(page);
-    await expect(panel.getByRole("combobox")).toHaveAttribute(
-        "aria-controls",
-        "library-search-results-listbox",
-    );
-    const input = panel.getByRole("combobox", {
-        name: "搜索录音、逐字稿、说话人、标签",
-    });
+    const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("Alpha");
-    await expect(page.getByTestId("library-search-results")).toHaveAttribute(
-        "role",
-        "listbox",
+    await expect(sotList(page, "library-search-results")).toHaveClass(
+        /ls-state-results/,
     );
 
     for (let index = 0; index < 11; index += 1) {
         await page.keyboard.press("ArrowDown");
     }
 
-    const activeResult = page.getByTestId("library-search-result-tag-11");
-    await expect(activeResult).toHaveAttribute("data-active", "true");
+    const activeResult = sotSearchResult(page, "tag", 11);
+    await expect(activeResult).toHaveAttribute("data-sot-state", "active");
     await expect(activeResult).toBeInViewport();
 
     const activeResultIsInsideScroller = await activeResult.evaluate((node) => {
         const scrollRegion = node.closest(
-            '[data-testid="library-search-scroll-region"]',
+            '[data-sot-region="library-search-scroll"]',
         );
         if (!scrollRegion) {
             return false;
@@ -672,9 +1353,9 @@ test("library search keeps keyboard active results visible before Enter actions"
     await page.keyboard.press("Enter");
 
     await expect(panel).toBeHidden();
-    const searchFilter = page.getByTestId("dashboard-library-search-filter");
+    const searchFilter = sotPanel(page, "dashboard-library-search-filter");
     await expect(searchFilter).toBeVisible();
-    await expect(searchFilter).toHaveAttribute("data-library-search-filter", "tag");
+    await expect(searchFilter).toHaveAttribute("data-sot-filter", "tag");
     await expect(searchFilter).toContainText("Alpha tag 12");
 });
 
@@ -750,41 +1431,43 @@ test("library search sends scoped requests and opens transcript hits", async ({
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const otherRecording = page.locator(
-        `[data-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
+        `[data-sot-recording-id="${SEARCH_OTHER_RECORDING_ID}"]`,
     );
     const targetRecording = page.locator(
-        `[data-recording-id="${SEARCH_RECORDING_ID}"]`,
+        `[data-sot-recording-id="${SEARCH_RECORDING_ID}"]`,
     );
-    await expect(otherRecording).toHaveAttribute("data-selected", "true");
-    await expect(targetRecording).toHaveAttribute("data-selected", "false");
+    await expect(otherRecording).toHaveAttribute("data-sot-state", "selected");
+    await expect(targetRecording).toHaveAttribute("data-sot-state", "idle");
 
     const panel = await openLibrarySearch(page);
-    const input = panel.getByRole("combobox", {
-        name: "搜索录音、逐字稿、说话人、标签",
-    });
+    const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("Alpha");
-    await expect(page.getByTestId("library-search-results")).toBeVisible();
+    await expect(sotList(page, "library-search-results")).toBeVisible();
 
-    await panel.getByRole("button", { name: "逐字稿" }).click();
+    await sotControl(page, "library-search-scope")
+        .filter({ hasText: "逐字稿" })
+        .click();
     await transcriptSearchStarted;
     await expect(input).toBeFocused();
-    await expect(page.getByTestId("library-search-loading")).toBeVisible();
+    await expect(
+        panel.locator('[data-sot-part="library-search-loading"]'),
+    ).toBeVisible();
     releaseTranscriptSearch();
     await expect
         .poll(() => requestedTypes)
         .toContain("transcript");
-    await expect(page.getByTestId("library-search-result-transcript-1")).toBeVisible();
+    await expect(sotSearchResult(page, "transcript", 1)).toBeVisible();
 
     await page.keyboard.press("ArrowDown");
-    await expect(page.getByTestId("library-search-result-transcript-1")).toHaveAttribute(
-        "data-active",
-        "true",
+    await expect(sotSearchResult(page, "transcript", 1)).toHaveAttribute(
+        "data-sot-state",
+        "active",
     );
     await page.keyboard.press("Enter");
 
     await expect(panel).toBeHidden();
-    await expect(targetRecording).toHaveAttribute("data-selected", "true");
-    await expect(otherRecording).toHaveAttribute("data-selected", "false");
+    await expect(targetRecording).toHaveAttribute("data-sot-state", "selected");
+    await expect(otherRecording).toHaveAttribute("data-sot-state", "idle");
 });
 
 test("topbar overlays stay layered, mutually exclusive, and close across outside click and settings", async ({
@@ -822,30 +1505,33 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
         .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     await dashboardHydrated;
+    await selectDashboardRecordingForTagManager(
+        page,
+        SEARCH_OTHER_RECORDING_ID,
+    );
 
-    const searchTrigger = page.getByTestId("library-search-trigger");
-    const searchPanel = page.getByTestId("library-search-panel");
-    const activityTrigger = page.getByTestId("dashboard-activity-trigger");
-    const activityPanel = page.getByTestId("dashboard-activity-panel");
-    const settingsTrigger = page.getByTestId("dashboard-settings-trigger");
-    const moreMenu = page.getByTestId("dashboard-detail-more-menu");
-    const tagManagerTrigger = page.getByTestId("recording-tag-manager-trigger");
-    const tagManager = page.getByTestId("recording-tag-manager");
+    const searchTrigger = sotControl(page, "dashboard-search");
+    const searchPanel = sotPanel(page, "library-search");
+    const activityTrigger = sotControl(page, "dashboard-activity");
+    const activityPanel = sotPanel(page, "dashboard-activity");
+    const settingsTrigger = sotControl(page, "dashboard-settings");
+    const moreMenu = page.getByRole("menu", { name: "更多操作" });
+    const tagManagerTrigger = sotControl(page, "recording-tag-manager");
+    const tagManager = sotPanel(page, "recording-tag-manager");
 
     await openDashboardMoreMenu(page);
 
     await openLibrarySearch(page);
     await expect(moreMenu).toBeHidden();
     await expect(searchPanel).toBeVisible();
-    await expect(searchPanel).toHaveCSS("z-index", "220");
     await expectOverlayAnchoredToTrigger(
         page,
-        "library-search-panel",
-        "library-search-trigger",
+        "library-search",
+        "dashboard-search",
     );
-    await expectOverlayHitTarget(page, "library-search-panel");
+    await expectOverlayHitTarget(page, "library-search");
 
-    await page.mouse.click(16, 220);
+    await clickDashboardChromeOutsideTopbarOverlays(page);
     await expect(searchPanel).toHaveCount(0);
 
     await tagManagerTrigger.click();
@@ -856,17 +1542,16 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await activityTrigger.click();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
-    await expect(activityPanel).toHaveCSS("z-index", "220");
     await expectOverlayAnchoredToTrigger(
         page,
-        "dashboard-activity-panel",
-        "dashboard-activity-trigger",
+        "dashboard-activity",
+        "dashboard-activity",
     );
-    await expectOverlayHitTarget(page, "dashboard-activity-panel");
+    await expectOverlayHitTarget(page, "dashboard-activity");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
 
-    await page.mouse.click(16, 220);
+    await clickDashboardChromeOutsideTopbarOverlays(page);
     await expect(activityPanel).toHaveCount(0);
     await openDashboardMoreMenu(page);
     await activityTrigger.click();
@@ -879,10 +1564,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(searchTrigger).toHaveAttribute("aria-expanded", "true");
     await expect(activityTrigger).toHaveAttribute("aria-expanded", "false");
 
-    await page
-        .getByTestId("dashboard-detail-more-actions")
-        .getByRole("button")
-        .focus();
+    await page.getByRole("button", { name: "更多操作" }).focus();
     await page.keyboard.press("Enter");
     await expect(searchPanel).toHaveCount(0);
     await expect(moreMenu).toBeVisible();
@@ -898,19 +1580,19 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(tagManager).toBeHidden();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toHaveCount(0);
-    await expect(page.locator("[data-settings-shell]")).toBeVisible();
+    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeVisible();
 
-    await page.getByTestId("settings-close").click();
-    await expect(page.locator("[data-settings-shell]")).toBeHidden();
+    await sotControl(page, "settings-close").click();
+    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeHidden();
 
     await tagManagerTrigger.click();
     await expect(tagManager).toBeVisible();
     await settingsTrigger.click();
     await expect(tagManager).toBeHidden();
-    await expect(page.locator("[data-settings-shell]")).toBeVisible();
+    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeVisible();
 
-    await page.getByTestId("settings-close").click();
-    await expect(page.locator("[data-settings-shell]")).toBeHidden();
+    await sotControl(page, "settings-close").click();
+    await expect(page.locator('[data-sot-surface="settings-shell"]')).toBeHidden();
 
     await activityTrigger.click();
     await expect(activityPanel).toBeVisible();
@@ -918,19 +1600,27 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await expect(activityPanel).toHaveCount(0);
     await expect(activityTrigger).toBeFocused();
 
+    await page.setViewportSize({ width: 820, height: 900 });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+
+    await openLibrarySearch(page);
+    await expect(searchPanel).toBeVisible();
+    await expectViewportBoundOverlayLayout(page, "library-search");
+    await expectOverlayHitTarget(page, "library-search");
+
     await page.setViewportSize({ width: 390, height: 740 });
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     await openLibrarySearch(page);
     await expect(searchPanel).toBeVisible();
-    await expectMobileOverlayLayout(page, "library-search-panel");
-    await expectOverlayHitTarget(page, "library-search-panel");
+    await expectViewportBoundOverlayLayout(page, "library-search");
+    await expectOverlayHitTarget(page, "library-search");
 
     await activityTrigger.click();
     await expect(searchPanel).toHaveCount(0);
     await expect(activityPanel).toBeVisible();
-    await expectMobileOverlayLayout(page, "dashboard-activity-panel");
-    await expectOverlayHitTarget(page, "dashboard-activity-panel");
+    await expectViewportBoundOverlayLayout(page, "dashboard-activity");
+    await expectOverlayHitTarget(page, "dashboard-activity");
 });
 
 test("library search follows display language across visible copy and aria labels", async ({
@@ -943,16 +1633,15 @@ test("library search follows display language across visible copy and aria label
     try {
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
-        await expect(
-            page.getByRole("button", { name: "Open search" }),
-        ).toBeVisible();
+        await expect(sotControl(page, "dashboard-search").first()).toHaveAttribute(
+            "aria-label",
+            "Search",
+        );
 
         const panel = await openLibrarySearch(page);
         await expect(panel).toHaveAttribute("aria-label", "Search library");
 
-        const input = panel.getByRole("combobox", {
-            name: "Search recordings, transcripts, speakers, tags",
-        });
+        const input = panel.locator('[data-sot-control="library-search-input"]');
         await expect(input).toHaveAttribute(
             "placeholder",
             "Search recordings, transcripts, speakers, tags",
@@ -962,15 +1651,15 @@ test("library search follows display language across visible copy and aria label
             panel.getByText("Recordings", { exact: true }),
         ).toBeVisible();
         await expect(
-            page.getByTestId("library-search-no-query"),
+            panel.locator('[data-sot-part="library-search-empty"]'),
         ).toContainText(
             "Search recordings, transcript segments, speakers, or tags",
         );
 
         await input.fill("Alpha");
-        await expect(page.getByTestId("library-search-no-results")).toContainText(
-            'No content found for "Alpha"',
-        );
+        await expect(
+            panel.locator('[data-sot-part="library-search-empty"]'),
+        ).toContainText('No content found for "Alpha"');
     } finally {
         await resetDisplaySettings(page);
     }

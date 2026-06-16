@@ -1,0 +1,342 @@
+/* ============================================================
+   BetterAINote · Graphite Glass Design System
+   ------------------------------------------------------------
+   Cool Apple-graphite neutrals + restrained steel-blue accent
+   + Liquid Glass surfaces, inspired by MarginNote's content-
+   first composure.
+   ============================================================ */
+
+:root {
+    /* -----------------------------------------------------------
+       PALETTE — Graphite (cool neutrals)
+       ----------------------------------------------------------- */
+    --graphite-50:  oklch(0.985 0.002 250);   /* paper-white */
+    --graphite-100: oklch(0.965 0.003 250);   /* canvas */
+    --graphite-150: oklch(0.945 0.004 250);   /* surface raised */
+    --graphite-200: oklch(0.915 0.005 250);   /* hairline */
+    --graphite-300: oklch(0.860 0.006 250);   /* divider */
+    --graphite-400: oklch(0.745 0.008 250);   /* icon mute */
+    --graphite-500: oklch(0.605 0.010 250);   /* secondary text */
+    --graphite-600: oklch(0.470 0.012 252);   /* body */
+    --graphite-700: oklch(0.345 0.014 254);   /* primary text */
+    --graphite-800: oklch(0.245 0.014 256);   /* heading */
+    --graphite-900: oklch(0.165 0.012 258);   /* deep ink */
+    --graphite-950: oklch(0.110 0.010 258);   /* obsidian */
+
+    /* PALETTE — Steel (restrained accent, replaces brass) */
+    --steel-50:  oklch(0.965 0.014 235);
+    --steel-100: oklch(0.925 0.026 232);
+    --steel-200: oklch(0.860 0.044 230);
+    --steel-300: oklch(0.770 0.062 228);
+    --steel-400: oklch(0.660 0.078 226);
+    --steel-500: oklch(0.555 0.090 224);   /* primary accent */
+    --steel-600: oklch(0.470 0.095 222);
+    --steel-700: oklch(0.385 0.085 222);
+    --steel-800: oklch(0.300 0.060 224);
+
+    /* PALETTE — Semantic signal colors (kept calm) */
+    --signal-success: oklch(0.620 0.130 158);
+    --signal-warning: oklch(0.730 0.140 78);
+    --signal-danger:  oklch(0.585 0.180 25);
+    --signal-info:    oklch(0.620 0.090 224);
+
+    /* -----------------------------------------------------------
+       SEMANTIC TOKENS — Light mode (default, "Pro" graphite)
+       ----------------------------------------------------------- */
+    --bg-canvas:        var(--graphite-100);
+    --bg-elevated:      var(--graphite-50);
+    --bg-recessed:      var(--graphite-150);
+    --bg-overlay:       oklch(0.99 0.003 250 / 0.72);
+
+    --fg-primary:       var(--graphite-800);
+    --fg-secondary:     var(--graphite-600);
+    --fg-tertiary:      var(--graphite-500);
+    --fg-disabled:      var(--graphite-400);
+    --fg-on-accent:     var(--graphite-50);
+
+    --line-hairline:    color-mix(in srgb, var(--graphite-300) 56%, transparent);
+    --line-strong:      var(--graphite-300);
+    --line-focus:       var(--steel-500);
+
+    --accent:           var(--steel-500);
+    --accent-hover:     var(--steel-600);
+    --accent-pressed:   var(--steel-700);
+    --accent-soft:      color-mix(in srgb, var(--steel-500) 12%, transparent);
+    --accent-on:        oklch(0.985 0.003 250);
+
+    /* -----------------------------------------------------------
+       LIQUID GLASS surfaces (Apple-style, layered)
+       ----------------------------------------------------------- */
+    --glass-tint-strong: color-mix(in srgb, var(--graphite-50) 70%, transparent);
+    --glass-tint-base:   color-mix(in srgb, var(--graphite-50) 58%, transparent);
+    --glass-tint-subtle: color-mix(in srgb, var(--graphite-100) 48%, transparent);
+    --glass-border:      color-mix(in srgb, white 38%, transparent);
+    --glass-border-soft: color-mix(in srgb, white 22%, transparent);
+    --glass-blur:        24px;
+    --glass-blur-sm:     14px;
+    --glass-saturate:    140%;
+
+    --glass-highlight-top:    rgb(255 255 255 / 0.55);
+    --glass-highlight-bottom: rgb(255 255 255 / 0.05);
+    --glass-shadow-cast:      0 12px 32px rgb(20 22 28 / 0.10),
+                              0 2px 6px  rgb(20 22 28 / 0.06);
+    --glass-shadow-lift:      0 22px 56px rgb(20 22 28 / 0.14),
+                              0 4px 10px  rgb(20 22 28 / 0.08);
+
+    /* -----------------------------------------------------------
+       ELEVATION (cool, restrained — never theatrical)
+       ----------------------------------------------------------- */
+    --shadow-xs: 0 1px 1px rgb(20 22 28 / 0.04),
+                 0 1px 2px rgb(20 22 28 / 0.04);
+    --shadow-sm: 0 1px 2px rgb(20 22 28 / 0.05),
+                 0 2px 6px rgb(20 22 28 / 0.05);
+    --shadow-md: 0 2px 4px rgb(20 22 28 / 0.05),
+                 0 6px 14px rgb(20 22 28 / 0.07);
+    --shadow-lg: 0 4px 10px rgb(20 22 28 / 0.06),
+                 0 14px 32px rgb(20 22 28 / 0.10);
+    --shadow-xl: 0 8px 18px rgb(20 22 28 / 0.08),
+                 0 26px 60px rgb(20 22 28 / 0.14);
+    --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.55),
+                    inset 0 -1px 0 rgb(20 22 28 / 0.04);
+    --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--steel-500) 28%, transparent);
+
+    /* -----------------------------------------------------------
+       RADIUS — Apple-ish soft squircles
+       ----------------------------------------------------------- */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-2xl: 28px;
+    --radius-pill: 999px;
+
+    /* -----------------------------------------------------------
+       SPACING — 4px base
+       ----------------------------------------------------------- */
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3:  12px;
+    --space-4:  16px;
+    --space-5:  20px;
+    --space-6:  24px;
+    --space-8:  32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+
+    /* -----------------------------------------------------------
+       MOTION — Apple "liquid" eases
+       ----------------------------------------------------------- */
+    --ease-sine:    cubic-bezier(0.37, 0.00, 0.63, 1.00);
+    --ease-out:     cubic-bezier(0.22, 1.00, 0.36, 1.00);
+    --ease-in-out:  cubic-bezier(0.65, 0.00, 0.35, 1.00);
+    --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1.00);
+    --duration-fast: 140ms;
+    --duration-base: 240ms;
+    --duration-slow: 420ms;
+
+    /* -----------------------------------------------------------
+       TYPE — Chinese-first system stacks
+       ----------------------------------------------------------- */
+
+    --font-sans:
+        "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont,
+        "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI",
+        Roboto, "Hiragino Sans GB", system-ui, sans-serif;
+    --font-display:
+        "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont,
+        "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+    --font-mono:
+        ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas,
+        "Liberation Mono", monospace;
+    --font-serif:
+        ui-serif, "New York", "Songti SC", Georgia,
+        "Source Han Serif SC", serif;
+
+    /* TYPE SCALE — display & body */
+    --text-display: 48px;   --lh-display: 1.08;  --ls-display: -0.022em;
+    --text-h1:      32px;   --lh-h1:      1.15;  --ls-h1:      -0.018em;
+    --text-h2:      24px;   --lh-h2:      1.25;  --ls-h2:      -0.012em;
+    --text-h3:      20px;   --lh-h3:      1.30;  --ls-h3:      -0.008em;
+    --text-h4:      17px;   --lh-h4:      1.35;  --ls-h4:      -0.004em;
+    --text-body:    15px;   --lh-body:    1.55;  --ls-body:     0em;
+    --text-body-sm: 13px;   --lh-body-sm: 1.50;  --ls-body-sm:  0em;
+    --text-caption: 12px;   --lh-caption: 1.45;  --ls-caption:  0.002em;
+    --text-micro:   11px;   --lh-micro:   1.40;  --ls-micro:    0.04em;
+
+    --weight-regular:  400;
+    --weight-medium:   500;
+    --weight-semibold: 600;
+    --weight-bold:     700;
+}
+
+/* ===========================================================
+   DARK MODE — Obsidian graphite (true Apple Pro look)
+   =========================================================== */
+.dark, [data-theme="dark"] {
+    /* macOS-restrained: deep neutral graphite, no purple cast.
+       Surfaces step in tiny lightness deltas — no big jumps, no gradients. */
+    --bg-canvas:        oklch(0.185 0.004 250);   /* near-black, faintly cool */
+    --bg-elevated:      oklch(0.215 0.004 250);   /* one step up — sidebars/panels */
+    --bg-recessed:      oklch(0.165 0.004 250);   /* inputs/wells */
+    --bg-overlay:       oklch(0.215 0.004 250 / 0.74);
+
+    --fg-primary:       oklch(0.965 0.003 250);
+    --fg-secondary:     oklch(0.745 0.005 250);
+    --fg-tertiary:      oklch(0.555 0.006 250);
+    --fg-disabled:      oklch(0.395 0.006 250);
+    --fg-on-accent:     oklch(0.985 0.003 250);
+
+    --line-hairline:    rgb(255 255 255 / 0.07);
+    --line-strong:      rgb(255 255 255 / 0.13);
+
+    --accent:           oklch(0.700 0.092 226);
+    --accent-hover:     oklch(0.745 0.094 226);
+    --accent-pressed:   oklch(0.625 0.090 224);
+    --accent-soft:      color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-on:        oklch(0.110 0.004 250);
+
+    /* Liquid glass — actually translucent so backdrop-filter shows.
+       NOT a flat lifted card. Let what's behind bleed through. */
+    --glass-tint-strong: rgb(255 255 255 / 0.08);
+    --glass-tint-base:   rgb(255 255 255 / 0.05);
+    --glass-tint-subtle: rgb(255 255 255 / 0.03);
+    --glass-border:      rgb(255 255 255 / 0.10);
+    --glass-border-soft: rgb(255 255 255 / 0.06);
+    --glass-highlight-top:    rgb(255 255 255 / 0.07);
+    --glass-highlight-bottom: rgb(255 255 255 / 0.00);
+    --glass-shadow-cast:      0 16px 40px rgb(0 0 0 / 0.45),
+                              0 2px 6px   rgb(0 0 0 / 0.30);
+    --glass-shadow-lift:      0 28px 64px rgb(0 0 0 / 0.55),
+                              0 6px 14px  rgb(0 0 0 / 0.36);
+
+    --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.30);
+    --shadow-sm: 0 2px 6px rgb(0 0 0 / 0.32);
+    --shadow-md: 0 6px 14px rgb(0 0 0 / 0.36);
+    --shadow-lg: 0 14px 32px rgb(0 0 0 / 0.44);
+    --shadow-xl: 0 26px 60px rgb(0 0 0 / 0.55);
+    --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.06),
+                    inset 0 -1px 0 rgb(0 0 0 / 0.20);
+}
+
+/* ===========================================================
+   BASE / RESET
+   =========================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    background: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    letter-spacing: var(--ls-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11", "rlig", "calt";
+}
+
+button {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: transparent;
+    border: 0;
+    margin: 0;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ===========================================================
+   SEMANTIC TYPE — drop-in classes
+   =========================================================== */
+.t-display, h1.display {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: var(--lh-display);
+    letter-spacing: var(--ls-display);
+    font-weight: var(--weight-bold);
+    color: var(--fg-primary);
+}
+.t-h1, h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+    letter-spacing: var(--ls-h1);
+    font-weight: var(--weight-semibold);
+    color: var(--fg-primary);
+    margin: 0;
+}
+.t-h2, h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: var(--ls-h2);
+    font-weight: var(--weight-semibold);
+    color: var(--fg-primary);
+    margin: 0;
+}
+.t-h3, h3 {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: var(--ls-h3);
+    font-weight: var(--weight-semibold);
+    color: var(--fg-primary);
+    margin: 0;
+}
+.t-h4, h4 {
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+    letter-spacing: var(--ls-h4);
+    font-weight: var(--weight-semibold);
+    color: var(--fg-primary);
+    margin: 0;
+}
+.t-body, p {
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    letter-spacing: var(--ls-body);
+    color: var(--fg-secondary);
+    margin: 0;
+}
+.t-body-sm { font-size: var(--text-body-sm); line-height: var(--lh-body-sm); color: var(--fg-secondary); }
+.t-caption { font-size: var(--text-caption); line-height: var(--lh-caption); letter-spacing: var(--ls-caption); color: var(--fg-tertiary); }
+.t-micro {
+    font-size: var(--text-micro);
+    line-height: var(--lh-micro);
+    letter-spacing: var(--ls-micro);
+    text-transform: uppercase;
+    font-weight: var(--weight-semibold);
+    color: var(--fg-tertiary);
+}
+.t-mono, code, pre, kbd { font-family: var(--font-mono); font-size: 13px; }
+.t-tabular { font-variant-numeric: tabular-nums; }
+
+/* ===========================================================
+   GLASS PRIMITIVES
+   =========================================================== */
+.glass {
+    position: relative;
+    background:
+        linear-gradient(180deg, var(--glass-highlight-top), var(--glass-highlight-bottom) 60%, transparent),
+        var(--glass-tint-base);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--glass-shadow-cast), var(--shadow-inset);
+}
+.glass-strong { background: var(--glass-tint-strong); }
+.glass-subtle {
+    background: var(--glass-tint-subtle);
+    backdrop-filter: blur(var(--glass-blur-sm)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(120%);
+    box-shadow: var(--shadow-sm);
+}
+.glass-lift { box-shadow: var(--glass-shadow-lift), var(--shadow-inset); }

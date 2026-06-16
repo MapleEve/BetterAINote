@@ -15,6 +15,7 @@ import {
     type PersistedSourceConnectionState,
     type SourceConnectionStateDefaults,
     type SourceProvider,
+    type SourceSyncStatus,
     SourceProviderSettingsError,
 } from "@/lib/data-sources/types";
 import { ServiceUrlValidationError } from "@/lib/service-url";
@@ -94,6 +95,16 @@ export function hasConfiguredSourceSecrets(params: {
     });
 }
 
+function resolveSourceSyncStatus(
+    status: string | null | undefined,
+): SourceSyncStatus {
+    if (status === "syncing" || status === "error") {
+        return status;
+    }
+
+    return "idle";
+}
+
 function toPersistedSourceConnectionState(
     existing: {
         userId: string;
@@ -104,6 +115,10 @@ function toPersistedSourceConnectionState(
         config: Record<string, unknown> | null;
         secretConfig: string | null;
         lastSync?: Date | null;
+        syncStatus?: string | null;
+        lastSyncError?: string | null;
+        lastSyncStartedAt?: Date | null;
+        lastSyncFinishedAt?: Date | null;
     } | null,
 ): SourceConnectionRowLike {
     if (!existing) {
@@ -119,6 +134,10 @@ function toPersistedSourceConnectionState(
         config: existing.config,
         secretConfig: existing.secretConfig,
         lastSync: existing.lastSync ?? null,
+        syncStatus: resolveSourceSyncStatus(existing.syncStatus),
+        lastSyncError: existing.lastSyncError ?? null,
+        lastSyncStartedAt: existing.lastSyncStartedAt ?? null,
+        lastSyncFinishedAt: existing.lastSyncFinishedAt ?? null,
     };
 }
 
@@ -134,6 +153,10 @@ export async function prepareSourceConnectionWrite(params: {
         config: Record<string, unknown> | null;
         secretConfig: string | null;
         lastSync?: Date | null;
+        syncStatus?: string | null;
+        lastSyncError?: string | null;
+        lastSyncStartedAt?: Date | null;
+        lastSyncFinishedAt?: Date | null;
     } | null;
     body: DataSourcesRequestBody;
     forceValidate?: boolean;

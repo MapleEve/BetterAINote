@@ -1,25 +1,21 @@
 "use client";
 
 import {
+    AlertCircle,
+    Bell,
     CheckCircle,
-    CloudOff,
+    CloudDownload,
     FileText,
-    Menu,
     Mic,
-    MoreHorizontal,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Pencil,
+    PanelLeft,
+    Plus,
     RefreshCw,
     Search,
-    Sparkles,
     Tags,
-    Trash2,
     X,
 } from "lucide-react";
 import {
-    type MouseEvent as ReactMouseEvent,
-    startTransition,
+    type KeyboardEvent as ReactKeyboardEvent,
     useCallback,
     useEffect,
     useMemo,
@@ -27,118 +23,105 @@ import {
     useState,
 } from "react";
 import { toast } from "sonner";
-import { Logo } from "@/components/icons/logo";
 import { useLanguage } from "@/components/language-provider";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Input } from "@/components/ui/input";
-import { SyncStatus } from "@/features/dashboard/components/sync-status";
-import { useDataSourcesSettings } from "@/features/data-sources/use-data-sources-settings";
-import { AiRenamePreviewCard } from "@/features/recordings/components/ai-rename-preview-card";
-import { RecordingPlayer } from "@/features/recordings/components/recording-player";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { SystemBanner } from "@/features/dashboard/components/system-banner";
+import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import {
-    normalizeSettingsSection,
-    SettingsDialog,
-} from "@/features/settings/components/settings-dialog";
-import { useTitleGenerationSettingsStore } from "@/features/settings/title-generation-settings-store";
+    RecordingTagIconGlyph,
+    recordingTagColorClassName,
+} from "@/features/recordings/components/recording-tag-visuals";
+import {
+    formatSotPlayerDate,
+    formatSotPlayerTime,
+    SotPlayerBackIcon,
+    SotPlayerForwardIcon,
+    SotPlayerNoAudioIcon,
+    SotPlayerPauseIcon,
+    SotPlayerPlayIcon,
+    SotPlayerSourceTag,
+    SotPlayerStatusBadge,
+    SotPlayerTagChip,
+    SotPlayerVolumeIcon,
+    sotPlayerVolumeLevel,
+} from "@/features/recordings/components/sot-player-primitives";
+import { SettingsDialog } from "@/features/settings/components/settings-dialog";
+import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
+import { usePlaybackSettingsStore } from "@/features/settings/playback-settings-store";
 import { useAutoSync } from "@/hooks/use-auto-sync";
+import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import {
-    canRecordingSyncTitleUpstream,
-    DATA_SOURCE_PROVIDERS,
-    isSourceProvider,
-    type SourceProvider,
-} from "@/lib/data-sources/catalog";
-import {
-    canRecordingPrivateTranscribe,
-    canRecordingRename,
-    getPrivateTranscriptionUnavailableMessage,
-    getRecordingRenameActionKey,
+    type DataSourceDisplayState,
     getSourceProviderLabel,
 } from "@/lib/data-sources/presentation";
+import type { UiLanguage } from "@/lib/i18n";
 import {
     refreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import {
-    addBrowserWindowEventListener,
-    readBrowserHash,
-    removeBrowserWindowEventListener,
-    startBrowserInterval,
-    startBrowserTimeout,
-    stopBrowserInterval,
-    stopBrowserTimeout,
-    writeBrowserHash,
-    writeBrowserStorage,
-} from "@/lib/platform/browser-shell";
+import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
-import { isActiveTranscriptionJob } from "@/lib/transcription/job-display";
-import { cn } from "@/lib/utils";
+import {
+    getTranscriptionJobDisplayState,
+    isActiveTranscriptionJob,
+} from "@/lib/transcription/job-display";
+import { getDataSources, runDataSourcesSync } from "@/services/data-sources";
 import type { Recording } from "@/types/recording";
-import { ActivityOverlay } from "./components/activity-overlay";
-import {
-    LibrarySearch,
-    type LibrarySearchFilter,
-} from "./components/library-search";
-import {
-    RecordingList,
-    type RecordingListMode,
-} from "./components/recording-list";
-import { SourceFilterStackStrip } from "./components/source-filter-stack-strip";
-import {
-    type SourceProviderRowModel,
-    type SourceProviderRowStatus,
-    SourceProviderRows,
-} from "./components/source-provider-rows";
-import { SystemBanner } from "./components/system-banner";
-import { TranscriptionPanel } from "./components/transcription-panel";
-import {
-    areDashboardTranscriptionJobsEqual,
-    getDashboardTranscriptionPollingKey,
-    resolveDashboardTranscriptionPoll,
-} from "./transcription-polling";
+import type { CanonicalSettingsSection } from "@/types/settings";
 
-interface TranscriptionData {
+type TranscriptionData = {
     hasTranscript?: boolean;
-    text?: string;
-    language?: string;
-    speakerMap?: Record<string, string>;
+    text?: string | null;
+    language?: string | null;
+    speakerMap?: Record<string, string> | null;
     segments?: TranscriptSegmentData[] | null;
-}
+};
 
-interface TranscriptSegmentData {
-    id: number;
-    start: number | null;
-    end: number | null;
-    text: string;
-    speakerLabel: string;
-    speakerId?: string | null;
-    speakerName?: string | null;
-    similarity?: number | null;
-    hasOverlap?: boolean | null;
+type TranscriptSegmentData = {
+    text?: string | null;
+    speakerLabel?: string | null;
     displaySpeaker?: string | null;
-}
+    startMs?: number | null;
+    endMs?: number | null;
+};
 
-interface TranscriptionJobData {
+type TranscriptTurn = {
+    text: string;
+    speakerName?: string | null;
+    startMs?: number | null;
+    endMs?: number | null;
+};
+
+type TranscriptionJobData = {
     status: string;
     remoteStatus?: string | null;
     lastError?: string | null;
-}
+};
 
-interface TranscriptionPollTranscriptData {
-    text?: string | null;
-    detectedLanguage?: string | null;
-    speakerMap?: Record<string, string> | null;
-    segments?: TranscriptSegmentData[] | null;
-}
+type SearchResultType = "recording" | "transcript" | "speaker" | "tag";
+type SearchResult = {
+    entityType: SearchResultType;
+    entityId: string;
+    recordingId: string | null;
+    title: string | null;
+    body: string;
+    speaker: string | null;
+    source: string | null;
+    tags?: string[];
+    startMs?: number | null;
+    endMs?: number | null;
+};
+type SearchIndexingProgress = {
+    active: boolean;
+    pendingJobs: number;
+    indexingJobs: number;
+    completedJobs: number;
+    totalJobs: number;
+};
 
-interface TranscriptionPollResponseData {
-    transcript?: TranscriptionPollTranscriptData | null;
-    job?: TranscriptionJobData | null;
-}
-
-interface WorkstationProps {
+type WorkstationProps = {
     recordings: Recording[];
     transcriptions: Map<string, TranscriptionData>;
     transcriptionJobs: Map<string, TranscriptionJobData>;
@@ -146,156 +129,1041 @@ interface WorkstationProps {
         email?: string | null;
         name?: string | null;
     };
-}
+};
 
-type DashboardFavorite = "all" | "transcribed" | "tags";
-type TopbarOverlay = "search" | "activity";
+type Favorite = "all" | "transcribed" | "tags";
+type DetailTab = "transcript" | "speakers" | "source";
+type ListMode = "timeline" | "tags";
+type TagFilterValue = "all" | "untagged" | `tag:${string}`;
+type TimelineFilter = "all" | "today" | "yesterday" | "earlier";
+type RecordingListState =
+    | "loading"
+    | "ready"
+    | "empty"
+    | "no-match"
+    | "timeline-empty"
+    | "tag-empty";
+type SearchScope = "all" | SearchResultType;
+type LibrarySearchFilter = {
+    type: "speaker" | "tag";
+    label: string;
+};
+type AiRenameState = "loading" | "review" | "error" | "unavailable";
+type RetxState =
+    | "idle"
+    | "queued"
+    | "running"
+    | "failed"
+    | "completed"
+    | "unavailable";
+type DashboardCopyAction =
+    | "local-transcript"
+    | "source-transcript"
+    | "source-report"
+    | null;
+type DashboardCopyFeedback = {
+    action: Exclude<DashboardCopyAction, null>;
+    state: "ok" | "err";
+} | null;
+type SourceReportViewState = "idle" | "loading" | "loaded" | "error";
+type SourceReportCopyState = "ready" | "missing" | "loading" | "error";
+type SourceRepullState = "idle" | "loading" | "success" | "error";
+type SourceReportSegment = {
+    speaker?: string | null;
+    startMs?: number | null;
+    endMs?: number | null;
+    text?: string | null;
+};
+type SourceActionAvailability = {
+    available?: boolean;
+    reason?: string | null;
+};
+type SourceOpenAction = SourceActionAvailability & {
+    url?: string | null;
+};
+type SourceReportData = {
+    sourceProvider?: string;
+    filename?: string;
+    transcriptReady?: boolean | string;
+    summaryReady?: boolean | string;
+    transcript?: {
+        text?: string | null;
+        segmentCount?: number | null;
+        segments?: SourceReportSegment[];
+    } | null;
+    summaryMarkdown?: string | null;
+    detail?: Record<string, unknown> | null;
+    sourceActions?: {
+        openSource?: SourceOpenAction | null;
+        repullSource?: SourceActionAvailability | null;
+    } | null;
+};
+type SourceReportSnapshot = {
+    recordingId: string | null;
+    state: SourceReportViewState;
+    data: SourceReportData | null;
+    error: string;
+};
+type SourceStatus =
+    | "loading"
+    | "connected"
+    | "connected-empty"
+    | "syncing"
+    | "sync-error"
+    | "no-results"
+    | "needs-setup"
+    | "expired"
+    | "paused"
+    | "planned";
+type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
+type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
+type ActivityItem = {
+    id: string;
+    tone: ActivityTone;
+    title: string;
+    body: string;
+    action?: "sync" | "settings" | "recording";
+    recordingId?: string;
+};
+type Translator = (
+    key: string,
+    replacements?: Record<string, string | number>,
+) => string;
+
 const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
-const DASHBOARD_DRAWER_FOCUSABLE_SELECTOR =
-    'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
+    'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-const DASHBOARD_SOURCE_ORDER = [
-    "dingtalk-a1",
-    "ticnote",
-    "plaud",
-    "feishu-minutes",
-    "iflyrec",
-] satisfies SourceProvider[];
+const SOURCE_ORDER = [
+    {
+        key: "dingtalk-a1",
+        label: "钉钉",
+        icon: "/assets/sources/dingtalk.svg",
+        cover: false,
+    },
+    {
+        key: "ticnote",
+        label: "TicNote",
+        icon: "/assets/sources/ticnote.png",
+        cover: false,
+    },
+    {
+        key: "plaud",
+        label: "Plaud",
+        icon: "/assets/sources/plaud.png",
+        cover: true,
+    },
+    {
+        key: "feishu-minutes",
+        label: "飞书妙记",
+        icon: "/assets/sources/feishu.jpeg",
+        cover: true,
+    },
+    {
+        key: "iflyrec",
+        label: "讯飞听见",
+        icon: null,
+        cover: false,
+    },
+] as const;
 
-const DASHBOARD_SOURCES = DASHBOARD_SOURCE_ORDER.filter((provider) =>
-    DATA_SOURCE_PROVIDERS.includes(provider),
-);
+const SEARCH_SCOPES: { value: SearchScope; label: string }[] = [
+    { value: "all", label: "全部" },
+    { value: "recording", label: "录音" },
+    { value: "transcript", label: "逐字稿" },
+    { value: "speaker", label: "说话人" },
+    { value: "tag", label: "标签" },
+];
+const SEARCH_RESULT_TYPES: SearchResultType[] = [
+    "recording",
+    "transcript",
+    "speaker",
+    "tag",
+];
 
-function recordingHasTranscript(transcription: TranscriptionData | undefined) {
-    return Boolean(transcription?.text?.trim() || transcription?.hasTranscript);
+const FAVORITES: { value: Favorite; label: string; icon: typeof Mic }[] = [
+    { value: "all", label: "全部录音", icon: Mic },
+    { value: "transcribed", label: "转写记录", icon: FileText },
+    { value: "tags", label: "标签", icon: Tags },
+];
+const TIMELINE_FILTERS: {
+    value: TimelineFilter;
+    labelKey: string;
+}[] = [
+    { value: "all", labelKey: "recordingList.timeline.all" },
+    { value: "today", labelKey: "recordingList.timeline.today" },
+    { value: "yesterday", labelKey: "recordingList.timeline.yesterday" },
+    { value: "earlier", labelKey: "recordingList.timeline.earlier" },
+];
+
+function tagFilterValue(tagId: string): TagFilterValue {
+    return `tag:${tagId}`;
 }
 
-function recordingMatchesDashboardFavorite(
-    recording: Recording,
-    favorite: DashboardFavorite,
-    transcriptions: Map<string, TranscriptionData>,
-) {
-    if (favorite === "transcribed") {
-        return recordingHasTranscript(transcriptions.get(recording.id));
-    }
-
-    return true;
+function tagIdFromFilter(value: TagFilterValue) {
+    return value.startsWith("tag:") ? value.slice(4) : null;
 }
 
-function normalizeSearchFilterText(value: string | null | undefined) {
-    return value?.trim().toLocaleLowerCase() ?? "";
-}
-
-function getUserDisplayName(
-    user: WorkstationProps["user"],
-    t: (key: string) => string,
-) {
-    const name = user?.name?.trim();
-    if (name) {
-        return name;
-    }
-
-    const email = user?.email?.trim();
-    if (email) {
-        return email.split("@")[0] || email;
-    }
-
-    return t("settingsDialog.localDeployment");
-}
-
-function getUserInitial(displayName: string) {
-    return Array.from(displayName.trim())[0]?.toLocaleUpperCase() ?? "B";
-}
-
-function recordingMatchesLibrarySearchFilter(
-    recording: Recording,
-    filter: LibrarySearchFilter | null,
-    transcription: TranscriptionData | undefined,
-) {
-    if (!filter) {
-        return true;
-    }
-
-    const filterId = normalizeSearchFilterText(filter.id);
-    const filterLabel = normalizeSearchFilterText(filter.label);
-
-    if (filter.kind === "tag") {
-        return recording.tags.some((tag) => {
-            const tagId = normalizeSearchFilterText(tag.id);
-            const tagName = normalizeSearchFilterText(tag.name);
-            return (
-                tagId === filterId ||
-                tagName === filterLabel ||
-                tagName.includes(filterLabel)
-            );
-        });
-    }
-
-    const speakerCandidates = [
-        ...Object.keys(transcription?.speakerMap ?? {}),
-        ...Object.values(transcription?.speakerMap ?? {}),
-        ...(transcription?.segments ?? []).flatMap((segment) => [
-            segment.speakerId,
-            segment.speakerLabel,
-            segment.speakerName,
-            segment.displaySpeaker,
-        ]),
-    ].map(normalizeSearchFilterText);
-
-    return speakerCandidates.some(
-        (candidate) =>
-            Boolean(candidate) &&
-            (candidate === filterId ||
-                candidate === filterLabel ||
-                candidate.includes(filterLabel)),
+function providerLabel(provider: string, language: UiLanguage) {
+    return (
+        getSourceProviderLabel(provider, language) ??
+        SOURCE_ORDER.find((source) => source.key === provider)?.label ??
+        provider
     );
 }
 
-function getDashboardSourceStatus(params: {
-    configured: boolean;
-    enabled: boolean;
-    hasCurrentFilterMatch: boolean;
-    isLoading: boolean;
-    isPlanned: boolean;
-    hasCount: boolean;
-    hasSyncError: boolean;
-    isSyncing: boolean;
-    isExpired: boolean;
-}): SourceProviderRowStatus {
-    if (params.isLoading) {
-        return "loading";
+function sourceOpenLabel(
+    provider: string | null | undefined,
+    language: UiLanguage,
+) {
+    if (!provider) {
+        return language === "zh-CN" ? "在来源中打开" : "Open in source";
     }
 
-    if (params.isPlanned) {
-        return "planned";
+    const label = providerLabel(provider, language);
+    return language === "zh-CN" ? `在${label}中打开` : `Open in ${label}`;
+}
+
+function sourceDefinition(provider: string | null | undefined) {
+    return SOURCE_ORDER.find((source) => source.key === provider) ?? null;
+}
+
+function sourceReportDetailText(
+    detail: Record<string, unknown> | null | undefined,
+    keys: string[],
+) {
+    for (const key of keys) {
+        const value = detail?.[key];
+        if (typeof value === "string" && value.trim()) {
+            return value.trim();
+        }
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return String(value);
+        }
+    }
+    return null;
+}
+
+function formatDuration(value: number) {
+    const seconds =
+        value > 10_000 ? Math.floor(value / 1000) : Math.floor(value);
+    if (!Number.isFinite(seconds) || seconds <= 0) return "00:00";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) {
+        return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function formatSourceReportDate(value: string | null | undefined) {
+    if (!value) return "--";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatAbsoluteDate(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("zh-CN", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
+}
+
+function formatRelativeDate(value: string) {
+    const date = new Date(value);
+    const diff = Date.now() - date.getTime();
+    if (Number.isNaN(date.getTime()) || diff < 0) return "刚刚";
+    const hours = Math.floor(diff / 3_600_000);
+    if (hours < 1) return "1 小时内";
+    if (hours < 24) return `${hours} 小时前`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} 天前`;
+    return formatAbsoluteDate(value);
+}
+
+function getDayBucket(value: string) {
+    const bucket = getTimelineFilter(value);
+    if (bucket === "today") return "今天";
+    if (bucket === "yesterday") return "昨天";
+    return "更早";
+}
+
+function getTimelineFilter(value: string): TimelineFilter {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "earlier";
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayDiff = Math.floor(
+        (today.getTime() - start.getTime()) / 86_400_000,
+    );
+    if (dayDiff === 0) return "today";
+    if (dayDiff === 1) return "yesterday";
+    return "earlier";
+}
+
+function transcriptTurns(
+    transcription: TranscriptionData | null | undefined,
+): TranscriptTurn[] {
+    const segmentTurns =
+        transcription?.segments?.flatMap((segment) => {
+            const text = segment.text?.trim();
+            if (!text) {
+                return [];
+            }
+
+            return [
+                {
+                    text,
+                    speakerName:
+                        segment.displaySpeaker?.trim() ||
+                        segment.speakerLabel?.trim() ||
+                        null,
+                    startMs: segment.startMs,
+                    endMs: segment.endMs,
+                },
+            ];
+        }) ?? [];
+    if (segmentTurns.length > 0) {
+        return segmentTurns;
     }
 
-    if (!params.configured) {
-        return "needs-setup";
+    const trimmed = transcription?.text?.trim();
+    if (!trimmed) return [];
+    const paragraphs = trimmed
+        .split(/\n{2,}/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    const turns = paragraphs.length > 0 ? paragraphs : [trimmed];
+    return turns.map((text) => ({ text }));
+}
+
+function formatSourceTimestamp(valueMs: number | null | undefined) {
+    if (valueMs == null || !Number.isFinite(valueMs)) {
+        return null;
     }
 
-    if (!params.enabled) {
-        return "paused";
+    const totalSeconds = Math.max(0, Math.floor(valueMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
     }
 
-    if (params.isExpired) {
-        return "expired";
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function formatSourceReportTimestamp(valueMs: number | null | undefined) {
+    const timestamp = formatSourceTimestamp(valueMs);
+    if (!timestamp) return null;
+    const parts = timestamp.split(":");
+    if (parts.length === 2) {
+        return `${parts[0].padStart(2, "0")}:${parts[1]}`;
+    }
+    return timestamp;
+}
+
+function formatTranscriptTurnTimestamp(
+    startMs: number | null | undefined,
+    endMs: number | null | undefined,
+) {
+    const start = formatSourceReportTimestamp(startMs);
+    const end = formatSourceReportTimestamp(endMs);
+    if (start && end && start !== end) {
+        return `${start} – ${end}`;
+    }
+    return start ?? end;
+}
+
+function formatTranscriptAvatarLabel(speakerName: string, index: number) {
+    const trimmed = speakerName.trim();
+    const genericMatch = trimmed.match(/^(?:Speaker|说话人)\s*(\d+)$/i);
+    if (genericMatch?.[1]) {
+        return genericMatch[1];
     }
 
-    if (params.isSyncing) {
+    return Array.from(trimmed)[0] ?? `${index + 1}`;
+}
+
+function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
+    const timestamp = formatSourceTimestamp(valueMs);
+    if (!timestamp) return "--";
+    const parts = timestamp.split(":");
+    if (parts.length === 2) {
+        return `${parts[0].padStart(2, "0")}:${parts[1]}`;
+    }
+    return timestamp;
+}
+
+function buildSourceTranscriptCopyText(report: SourceReportData | null) {
+    const transcript = report?.transcript;
+    if (!transcript) {
+        return "";
+    }
+
+    const segments = transcript.segments ?? [];
+    if (segments.length === 0) {
+        return transcript.text ?? "";
+    }
+
+    return segments
+        .map((segment) => {
+            const start = formatSourceTimestamp(segment.startMs);
+            const end = formatSourceTimestamp(segment.endMs);
+            const timeRange =
+                start && end ? `${start} - ${end}` : (start ?? end);
+            const heading = [timeRange, segment.speaker]
+                .filter(Boolean)
+                .join(" · ");
+            const body = segment.text ?? "";
+            return heading ? `${heading}\n${body}`.trim() : body;
+        })
+        .filter((segment) => segment.trim())
+        .join("\n\n");
+}
+
+function getSourceReportSubState(
+    transcriptAvailable: boolean,
+    reportAvailable: boolean,
+) {
+    if (transcriptAvailable && reportAvailable) return "complete";
+    if (!transcriptAvailable && !reportAvailable) return "both-missing";
+    if (!transcriptAvailable) return "transcript-missing";
+    return "summary-missing";
+}
+
+function formatSourceSummaryDisplayText(markdown: string) {
+    return markdown
+        .split(/\r?\n/)
+        .map((line) =>
+            line
+                .trim()
+                .replace(/^#{1,6}\s+/, "")
+                .replace(/^[-*]\s+/, ""),
+        )
+        .filter(Boolean)
+        .join("\n");
+}
+
+function sourceSummaryHasDisplayHeading(markdown: string) {
+    return /^#{1,6}\s+\S/m.test(markdown);
+}
+
+function sourceReportReadinessLabel(
+    readiness: boolean | string | null | undefined,
+    hasReadableContent: boolean,
+) {
+    if (typeof readiness === "string" && readiness.trim()) {
+        return readiness.trim();
+    }
+    return readiness === true || hasReadableContent ? "已就绪" : "未生成";
+}
+
+function sourceReportReadinessPillClass(label: string) {
+    if (label === "已就绪") return "sr-pill ok";
+    if (label === "失败") return "sr-pill err";
+    if (label === "生成中" || label === "未生成") return "sr-pill warn";
+    return "sr-pill";
+}
+
+function sourceReportSyncPillClass(label: string) {
+    if (label.includes("失败")) return "sr-pill err";
+    if (
+        label.includes("待") ||
+        label.includes("仅") ||
+        label.includes("生成中")
+    ) {
+        return "sr-pill warn";
+    }
+    if (label.includes("已") || label.includes("同步")) return "sr-pill ok";
+    return "sr-pill";
+}
+
+function getSourceCopyState(
+    sourceState: SourceReportViewState,
+    available: boolean,
+): SourceReportCopyState {
+    if (sourceState === "error") return "error";
+    if (sourceState === "loaded") {
+        return available ? "ready" : "missing";
+    }
+    return "loading";
+}
+
+function getUserDisplayName(user: WorkstationProps["user"]) {
+    return user?.name?.trim() || user?.email?.split("@")[0] || "BetterAINote";
+}
+
+function hasTranscript(
+    recording: Recording,
+    transcriptions: Map<string, TranscriptionData>,
+) {
+    const transcription = transcriptions.get(recording.id);
+    return Boolean(
+        transcription?.hasTranscript || hasTranscriptContent(transcription),
+    );
+}
+
+function hasTranscriptContent(
+    transcription: TranscriptionData | null | undefined,
+) {
+    return Boolean(
+        transcription?.text?.trim() ||
+            transcription?.segments?.some((segment) =>
+                Boolean(segment.text?.trim()),
+            ),
+    );
+}
+
+function getRecordingListStatus(
+    recording: Recording,
+    transcription: TranscriptionData | null | undefined,
+    job: TranscriptionJobData | null | undefined,
+    t: Translator,
+) {
+    if (job?.status === "failed") {
+        return {
+            className: "b err",
+            dotClassName: "dot",
+            label: t("recordingList.status.failed"),
+        };
+    }
+    if (isActiveTranscriptionJob(job)) {
+        return {
+            className: "b warn",
+            dotClassName: "dot",
+            label: t("recordingList.status.transcribing"),
+        };
+    }
+    if (hasTranscriptContent(transcription) || transcription?.hasTranscript) {
+        return {
+            className: "b ok",
+            dotClassName: "dot",
+            label: t("recordingList.status.updated"),
+        };
+    }
+    if (recording.upstreamDeleted) {
+        return {
+            className: "b info",
+            dotClassName: "dot",
+            label: t("recordingList.status.localOnly"),
+        };
+    }
+    return {
+        className: "b neu",
+        dotClassName: "dot _is-1",
+        label: t("recordingList.status.pending"),
+    };
+}
+
+function getRetxStateFromActiveJob(
+    job: TranscriptionJobData | null | undefined,
+): Extract<RetxState, "queued" | "running"> | null {
+    const displayState = getTranscriptionJobDisplayState(job);
+    if (!displayState) {
+        return null;
+    }
+
+    return displayState === "queuedLocal" || displayState === "queuedRemote"
+        ? "queued"
+        : "running";
+}
+
+function getSourceStatusClass(status: SourceStatus, active: boolean) {
+    if (active && (status === "connected" || status === "connected-empty")) {
+        return "nav-item nav-source is-active-filter";
+    }
+
+    const stateClass =
+        status === "syncing" || status === "loading"
+            ? "is-syncing"
+            : status === "sync-error"
+              ? "is-sync-error"
+              : status === "expired"
+                ? "is-expired"
+                : status === "no-results"
+                  ? "is-no-results"
+                  : status === "planned" || status === "paused"
+                    ? "is-disabled"
+                    : status === "connected" || status === "connected-empty"
+                      ? "is-connected-idle"
+                      : "is-needs-setup";
+
+    return `nav-item nav-source ${stateClass}`;
+}
+
+function getSourceRowState(status: SourceStatus, active: boolean) {
+    if (status === "syncing" || status === "loading") {
         return "syncing";
     }
-
-    if (params.hasSyncError) {
+    if (status === "sync-error") {
         return "sync-error";
     }
-
-    if (params.hasCount && !params.hasCurrentFilterMatch) {
+    if (status === "expired") {
+        return "expired";
+    }
+    if (status === "no-results") {
         return "no-results";
     }
+    if (status === "planned" || status === "paused") {
+        return "disabled";
+    }
+    if (status === "needs-setup") {
+        return "needs-setup";
+    }
+    return active ? "connected-active" : "connected-idle";
+}
 
-    return params.hasCount ? "connected" : "connected-empty";
+function sourceRowDisabled(status: SourceStatus) {
+    return status === "planned" || status === "paused";
+}
+
+function sourceActionKind(status: SourceStatus) {
+    if (status === "sync-error") return "retry";
+    if (status === "needs-setup") return "connect";
+    if (status === "expired") return "reauth";
+    return null;
+}
+
+function getFavoriteLabel(value: Favorite, t: Translator) {
+    switch (value) {
+        case "all":
+            return t("dashboardFavorites.allRecordings");
+        case "transcribed":
+            return t("dashboardFavorites.transcribed");
+        case "tags":
+            return t("dashboardFavorites.tags");
+    }
+}
+
+function getSourceStatusLabel(status: SourceStatus, t: Translator) {
+    switch (status) {
+        case "loading":
+            return t("sourceProviderRows.status.loading");
+        case "connected":
+            return t("sourceProviderRows.status.connected");
+        case "connected-empty":
+            return t("sourceProviderRows.status.connectedEmpty");
+        case "syncing":
+            return t("sourceProviderRows.status.syncing");
+        case "sync-error":
+            return t("sourceProviderRows.status.syncError");
+        case "no-results":
+            return t("sourceProviderRows.status.noResults");
+        case "expired":
+            return t("sourceProviderRows.status.expired");
+        case "paused":
+            return t("sourceProviderRows.status.paused");
+        case "planned":
+            return t("sourceProviderRows.status.planned");
+        case "needs-setup":
+            return t("sourceProviderRows.status.needsSetup");
+    }
+}
+
+function sourceNeedsSettings(status: SourceStatus) {
+    return status === "needs-setup" || status === "expired";
+}
+
+function syncStateLabel(state: SyncButtonState, t: Translator) {
+    switch (state) {
+        case "queued":
+            return t("activityOverlay.actions.queued");
+        case "running":
+            return t("activityOverlay.actions.updatingShort");
+        case "success":
+            return t("activityOverlay.actions.done");
+        case "error":
+            return t("activityOverlay.actions.retry");
+        case "idle":
+            return t("activityOverlay.actions.update");
+    }
+}
+
+function syncSystemBannerState(error: string | null | undefined) {
+    if (!error) return null;
+    const normalized = error.toLowerCase();
+    if (
+        normalized.includes("sqlite_busy") ||
+        normalized.includes("database is locked") ||
+        normalized.includes("database locked") ||
+        normalized.includes("db locked") ||
+        normalized.includes("数据库") ||
+        normalized.includes("占用")
+    ) {
+        return "db-locked" as const;
+    }
+    if (
+        normalized.includes("eacces") ||
+        normalized.includes("eperm") ||
+        normalized.includes("permission denied") ||
+        normalized.includes("permission") ||
+        normalized.includes("denied") ||
+        normalized.includes("权限") ||
+        normalized.includes("未授权") ||
+        normalized.includes("完全磁盘访问")
+    ) {
+        return "permission-denied" as const;
+    }
+    return null;
+}
+
+function activityItemKind(item: ActivityItem) {
+    if (item.id === "worker-unavailable") return "worker-down";
+    if (item.id === "source-sync-error") return "sync-error";
+    if (item.id === "source-sync-queued") return "queued";
+    if (item.id === "source-sync-running") return "queued";
+    if (item.id === "source-sync-summary" && item.tone === "warn") {
+        return "partial-failed";
+    }
+    if (item.id.startsWith("transcription-active-")) return "transcription";
+    if (item.id.startsWith("transcription-failed-")) return "sync-error";
+    if (item.action === "settings") return "setup";
+    return item.tone;
+}
+
+function searchResultAction(result: SearchResult) {
+    if (result.entityType === "tag" || result.entityType === "speaker") {
+        return "filter";
+    }
+    return result.recordingId ? "open" : "disabled";
+}
+
+function searchResultFilterLabel(result: SearchResult) {
+    if (result.entityType === "speaker") {
+        return result.speaker || result.title || result.body;
+    }
+    return result.title || result.tags?.[0] || result.body;
+}
+
+function SotSearchInputIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+        </svg>
+    );
+}
+
+function SotSearchTagIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 3h7v7H3z" />
+            <path d="M14 3h7v7h-7z" />
+        </svg>
+    );
+}
+
+function SotHeaderRenameIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+        </svg>
+    );
+}
+
+function SotHeaderAiIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+        </svg>
+    );
+}
+
+function SotHeaderApplyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+    );
+}
+
+function SotHeaderCloseIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+    );
+}
+
+function SotHeaderMoreIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="5" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="12" cy="19" r="1" />
+        </svg>
+    );
+}
+
+function RetxWarnIcon() {
+    return (
+        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent .retx-banner-ico wrapper.
+        <svg className="retx-ico-warn" viewBox="0 0 24 24">
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <circle cx="12" cy="12" r="10" />
+        </svg>
+    );
+}
+
+function RetxOkIcon() {
+    return (
+        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent .retx-banner-ico wrapper.
+        <svg className="retx-ico-ok" viewBox="0 0 24 24">
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+    );
+}
+
+function RetxCloseIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+    );
+}
+
+function SotCopyIcon() {
+    return (
+        <span className="copy-ico" aria-hidden="true">
+            <svg
+                className="copy-ico-default"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <svg
+                className="copy-ico-ok"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <path d="M20 6 9 17l-5-5" />
+            </svg>
+        </span>
+    );
+}
+
+function SotTranscriptEmptyIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+    );
+}
+
+function SotDetailEmptyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+        </svg>
+    );
+}
+
+function DashboardDetailEmptyState() {
+    return (
+        <div className="detail-empty" data-detail-empty="">
+            <div className="detail-empty-ico" aria-hidden="true">
+                <SotDetailEmptyIcon />
+            </div>
+            <div className="detail-empty-title">请选择一条录音</div>
+            <div className="detail-empty-sub">
+                在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
+            </div>
+        </div>
+    );
+}
+
+function SotSourceReportErrorIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5" />
+            <circle cx="12" cy="16" r=".8" fill="currentColor" />
+        </svg>
+    );
+}
+
+function SotSourceReportEmptyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="6" width="18" height="14" rx="2" />
+            <path d="M8 6V4h8v2" />
+        </svg>
+    );
+}
+
+function SotRecordingListSkeleton() {
+    return (
+        <div className="skel-list" data-sot-panel="recording-list-loading">
+            <div className="day skel-day">
+                <span className="sk sk-day-l" />
+                <span className="line" />
+            </div>
+            <div className="row skel-row">
+                <div className="body">
+                    <div className="sk sk-title" />
+                    <div className="meta">
+                        <span className="sk sk-meta-t" />
+                        <span className="sk sk-meta-tag" />
+                        <span className="sk sk-meta-pill" />
+                    </div>
+                </div>
+                <div className="right">
+                    <span className="sk sk-utag" />
+                </div>
+            </div>
+            <div className="row skel-row">
+                <div className="body">
+                    <div className="sk sk-title sk-w-90" />
+                    <div className="meta">
+                        <span className="sk sk-meta-t" />
+                        <span className="sk sk-meta-tag" />
+                        <span className="sk sk-meta-pill sk-w-70" />
+                    </div>
+                </div>
+                <div className="right">
+                    <span className="sk sk-utag" />
+                </div>
+            </div>
+            <div className="day skel-day">
+                <span className="sk sk-day-l sk-w-40" />
+                <span className="line" />
+            </div>
+            <div className="row skel-row">
+                <div className="body">
+                    <div className="sk sk-title sk-w-80" />
+                    <div className="meta">
+                        <span className="sk sk-meta-t" />
+                        <span className="sk sk-meta-tag" />
+                        <span className="sk sk-meta-pill" />
+                    </div>
+                </div>
+                <div className="right" />
+            </div>
+            <div className="row skel-row">
+                <div className="body">
+                    <div className="sk sk-title sk-w-70" />
+                    <div className="meta">
+                        <span className="sk sk-meta-t" />
+                        <span className="sk sk-meta-tag" />
+                    </div>
+                </div>
+                <div className="right">
+                    <span className="sk sk-utag" />
+                </div>
+            </div>
+            <div className="row skel-row">
+                <div className="body">
+                    <div className="sk sk-title sk-w-85" />
+                    <div className="meta">
+                        <span className="sk sk-meta-t" />
+                        <span className="sk sk-meta-tag" />
+                        <span className="sk sk-meta-pill" />
+                    </div>
+                </div>
+                <div className="right" />
+            </div>
+        </div>
+    );
+}
+
+function searchResultTitle(result: SearchResult, t: Translator) {
+    if (result.entityType === "transcript") {
+        return (
+            result.body || result.title || t("librarySearch.types.transcript")
+        );
+    }
+
+    return (
+        result.title ||
+        result.body ||
+        result.speaker ||
+        result.tags?.[0] ||
+        t("librarySearch.untitledResult")
+    );
+}
+
+function searchResultMeta(result: SearchResult, t: Translator) {
+    if (result.entityType === "transcript") {
+        const timestamp = formatLibrarySearchTimestamp(result.startMs);
+        return `${result.title || t("librarySearch.types.transcript")} · ${timestamp}`;
+    }
+    if (result.entityType === "tag") {
+        return result.body || result.tags?.[0] || t("librarySearch.types.tag");
+    }
+    if (result.entityType === "speaker") {
+        return (
+            result.body || result.speaker || t("librarySearch.types.speaker")
+        );
+    }
+    return result.source || result.body || t("librarySearch.types.recording");
+}
+
+function highlightSearchText(value: string, query: string) {
+    const needle = query.trim();
+    if (!needle) return value;
+    const lowerValue = value.toLocaleLowerCase();
+    const lowerNeedle = needle.toLocaleLowerCase();
+    const index = lowerValue.indexOf(lowerNeedle);
+    if (index < 0) return value;
+
+    return (
+        <>
+            {value.slice(0, index)}
+            <mark data-sot-part="library-search-highlight">
+                {value.slice(index, index + needle.length)}
+            </mark>
+            {value.slice(index + needle.length)}
+        </>
+    );
+}
+
+async function readResponseError(response: Response, fallback: string) {
+    try {
+        const data = (await response.json()) as { error?: unknown };
+        return typeof data.error === "string" && data.error.trim()
+            ? data.error
+            : fallback;
+    } catch {
+        return fallback;
+    }
 }
 
 export function Workstation({
@@ -304,715 +1172,148 @@ export function Workstation({
     transcriptionJobs,
     user,
 }: WorkstationProps) {
-    const { language, t } = useLanguage();
     const confirm = useConfirmDialog();
+    const { language, t } = useLanguage();
     const router = useBrowserRouteController();
-    const moreActionsRef = useRef<HTMLDivElement | null>(null);
-    const sourceDrawerRef = useRef<HTMLElement | null>(null);
-    const sourceDrawerTriggerRef = useRef<HTMLButtonElement | null>(null);
-    const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
-    const wasSettingsOpenRef = useRef(false);
-    const { isLoading: areDataSourcesLoading, sources: dataSourceStates } =
-        useDataSourcesSettings(language);
-    const { settings: titleGenerationSettings } =
-        useTitleGenerationSettingsStore();
-
-    const [currentRecording, setCurrentRecording] = useState<Recording | null>(
-        recordings[0] ?? null,
-    );
+    const { hasLoaded: displaySettingsLoaded, settings: displaySettings } =
+        useDisplaySettingsStore();
+    const { hasLoaded: playbackSettingsLoaded, settings: playbackSettings } =
+        usePlaybackSettingsStore();
+    const [hydrated, setHydrated] = useState(false);
     const [liveRecordings, setLiveRecordings] = useState(recordings);
-    const [activeFavorite, setActiveFavorite] =
-        useState<DashboardFavorite>("all");
-    const [activeSourceProvider, setActiveSourceProvider] =
-        useState<SourceProvider | null>(null);
+    const [liveTranscriptions, setLiveTranscriptions] =
+        useState(transcriptions);
+    const loadingTranscriptIdsRef = useRef<Set<string>>(new Set());
+    const [loadingTranscriptIds, setLoadingTranscriptIds] = useState<
+        Set<string>
+    >(() => new Set());
+    const [liveJobs, setLiveJobs] = useState(transcriptionJobs);
+    const [favorite, setFavorite] = useState<Favorite>("all");
+    const [source, setSource] = useState("all");
+    const [selectedId, setSelectedId] = useState(recordings[0]?.id ?? "");
+    const [collapsed, setCollapsed] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [listMode, setListMode] = useState<ListMode>("timeline");
+    const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>("all");
+    const [selectedTagFilter, setSelectedTagFilter] =
+        useState<TagFilterValue>("all");
+    const [tagFilterOpen, setTagFilterOpen] = useState(false);
+    const [listPage, setListPage] = useState(1);
+    const [detailTab, setDetailTab] = useState<DetailTab>("transcript");
+    const [query, setQuery] = useState("");
+    const [searchScope, setSearchScope] = useState<SearchScope>("all");
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchError, setSearchError] = useState("");
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [searchIndexing, setSearchIndexing] =
+        useState<SearchIndexingProgress | null>(null);
+    const [activeSearchIndex, setActiveSearchIndex] = useState(0);
     const [librarySearchFilter, setLibrarySearchFilter] =
         useState<LibrarySearchFilter | null>(null);
-    const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [isSourceDrawerOpen, setSourceDrawerOpen] = useState(false);
-    const [recordingListMode, setRecordingListMode] =
-        useState<RecordingListMode>("timeline");
-    const [tagCatalog, setTagCatalog] = useState<RecordingTag[]>(() =>
-        Array.from(
-            new Map(
-                recordings
-                    .flatMap((recording) => recording.tags)
-                    .map((tag) => [tag.id, tag]),
-            ).values(),
-        ),
-    );
-    const [, setIsTranscribing] = useState(false);
-    const [isRenaming, setIsRenaming] = useState(false);
-    const [renameValue, setRenameValue] = useState("");
-    const [isSavingRename, setIsSavingRename] = useState(false);
-    const [isAutoRenaming, setIsAutoRenaming] = useState(false);
-    const [isApplyingAutoRename, setIsApplyingAutoRename] = useState(false);
-    const [autoRenamePreview, setAutoRenamePreview] = useState<string | null>(
-        null,
-    );
-    const [autoRenameAcceptedTitle, setAutoRenameAcceptedTitle] = useState<
-        string | null
+    const [volumeOpen, setVolumeOpen] = useState(false);
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [draftTitle, setDraftTitle] = useState(recordings[0]?.filename ?? "");
+    const [renaming, setRenaming] = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
+    const [tagOpen, setTagOpen] = useState(false);
+    const [availableTags, setAvailableTags] = useState<RecordingTag[]>([]);
+    const [tagLoadError, setTagLoadError] = useState("");
+    const [aiOpen, setAiOpen] = useState(false);
+    const [aiState, setAiState] = useState<AiRenameState>("loading");
+    const [aiPreviewTitle, setAiPreviewTitle] = useState("");
+    const [aiError, setAiError] = useState("");
+    const [aiApplying, setAiApplying] = useState(false);
+    const [titleGenerationConfigured, setTitleGenerationConfigured] = useState<
+        boolean | null
     >(null);
-    const [autoRenameError, setAutoRenameError] = useState<string | null>(null);
-    const [settingsOpen, setSettingsOpen] = useState(false);
-    const [activeTopbarOverlay, setActiveTopbarOverlay] =
-        useState<TopbarOverlay | null>(null);
-    const [isMoreActionsOpen, setMoreActionsOpen] = useState(false);
-    const [tagManagerOpen, setTagManagerOpen] = useState(false);
-    const dashboardUserName = getUserDisplayName(user, t);
-    const dashboardUserInitial = getUserInitial(dashboardUserName);
-    const [liveTranscriptions, setLiveTranscriptions] = useState(
-        () => new Map(transcriptions),
+    const [retxState, setRetxState] = useState<RetxState>("idle");
+    const [dismissedCompletedRetxIds, setDismissedCompletedRetxIds] = useState<
+        Set<string>
+    >(() => new Set());
+    const [copyingAction, setCopyingAction] =
+        useState<DashboardCopyAction>(null);
+    const [copyFeedback, setCopyFeedback] =
+        useState<DashboardCopyFeedback>(null);
+    const [sourceReport, setSourceReport] = useState<SourceReportSnapshot>({
+        recordingId: recordings[0]?.id ?? null,
+        state: "idle",
+        data: null,
+        error: "",
+    });
+    const [sourceRepullState, setSourceRepullState] =
+        useState<SourceRepullState>("idle");
+    const [dataSources, setDataSources] = useState<DataSourceDisplayState[]>(
+        [],
     );
-    const [liveTranscriptionJobs, setLiveTranscriptionJobs] = useState(
-        () => new Map(transcriptionJobs),
+    const [dataSourcesLoading, setDataSourcesLoading] = useState(true);
+    const [dataSourcesError, setDataSourcesError] = useState("");
+    const [activityOpen, setActivityOpen] = useState(false);
+    const [dismissedActivityIds, setDismissedActivityIds] = useState<
+        Set<string>
+    >(() => new Set());
+    const [activitySyncActionState, setActivitySyncActionState] = useState<
+        "idle" | "busy" | "done" | "error"
+    >("idle");
+    const [searchRetry, setSearchRetry] = useState(0);
+    const sourceDrawerRef = useRef<HTMLElement | null>(null);
+    const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const searchTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const activityTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const searchOverlayRef = useRef<HTMLDivElement | null>(null);
+    const activityOverlayRef = useRef<HTMLDivElement | null>(null);
+    const tagFilterRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
+    const restoreActivityFocusRef = useRef(false);
+    const copyFeedbackTimerRef = useRef<number | null>(null);
+    const sourceReportRequestRef = useRef<{
+        controller: AbortController;
+        id: number;
+        recordingId: string;
+    } | null>(null);
+    const sourceReportRequestIdRef = useRef(0);
+    const selectedRecordingIdRef = useRef<string | null>(
+        recordings[0]?.id ?? null,
     );
-    const [loadingTranscriptIds, setLoadingTranscriptIds] = useState(
-        () => new Set<string>(),
-    );
-    const loadingTranscriptIdsRef = useRef(new Set<string>());
 
-    const openSettingsFromHash = useCallback(() => {
-        if (normalizeSettingsSection(readBrowserHash())) {
-            setSettingsOpen(true);
+    const loadDataSources = useCallback(async () => {
+        setDataSourcesLoading(true);
+        setDataSourcesError("");
+        try {
+            const data = await getDataSources();
+            setDataSources(data.sources);
+        } catch {
+            setDataSources([]);
+            setDataSourcesError("数据源状态加载失败");
+        } finally {
+            setDataSourcesLoading(false);
         }
     }, []);
 
-    useEffect(() => {
-        openSettingsFromHash();
-        addBrowserWindowEventListener("hashchange", openSettingsFromHash);
-
-        return () =>
-            removeBrowserWindowEventListener(
-                "hashchange",
-                openSettingsFromHash,
-            );
-    }, [openSettingsFromHash]);
-
-    useEffect(() => {
-        const wasOpen = wasSettingsOpenRef.current;
-        wasSettingsOpenRef.current = settingsOpen;
-
-        if (!settingsOpen && wasOpen) {
-            let attempts = 0;
-            const restoreTriggerFocus = () => {
-                attempts += 1;
-                const trigger = settingsTriggerRef.current;
-                if (!trigger || !document.contains(trigger)) {
-                    return;
-                }
-
-                const activeElement = document.activeElement;
-                const shouldRestoreFocus =
-                    activeElement === trigger ||
-                    activeElement === document.body ||
-                    activeElement === document.documentElement ||
-                    !(activeElement instanceof HTMLElement) ||
-                    Boolean(activeElement.closest("[data-settings-shell]"));
-
-                if (!shouldRestoreFocus) {
-                    stopBrowserInterval(interval);
-                    return;
-                }
-
-                trigger.focus({ preventScroll: true });
-
-                if (attempts >= 40) {
-                    stopBrowserInterval(interval);
-                }
-            };
-            const interval = startBrowserInterval(() => {
-                restoreTriggerFocus();
-            }, 50);
-            const timer = startBrowserTimeout(() => {
-                stopBrowserInterval(interval);
-            }, 2500);
-
-            restoreTriggerFocus();
-
-            return () => {
-                stopBrowserInterval(interval);
-                stopBrowserTimeout(timer);
-            };
-        }
-    }, [settingsOpen]);
-
-    const currentTranscription = currentRecording
-        ? liveTranscriptions.get(currentRecording.id)
-        : undefined;
-    const currentTranscriptionHasTranscript = Boolean(
-        currentTranscription?.hasTranscript,
-    );
-    const currentTranscriptionText = currentTranscription?.text ?? "";
-    const currentTranscriptionJob = currentRecording
-        ? liveTranscriptionJobs.get(currentRecording.id)
-        : undefined;
-    const currentRecordingId = currentRecording?.id ?? null;
-    const currentTranscriptionPollingKey = getDashboardTranscriptionPollingKey(
-        currentRecordingId,
-        currentTranscriptionJob,
-    );
-
-    useEffect(() => {
-        setAutoRenameAcceptedTitle((current) =>
-            current || currentRecordingId === null ? null : current,
-        );
-    }, [currentRecordingId]);
-
-    useEffect(() => {
-        if (!autoRenameAcceptedTitle) {
-            return;
-        }
-
-        const timer = startBrowserTimeout(() => {
-            setAutoRenameAcceptedTitle(null);
-        }, 6000);
-
-        return () => stopBrowserTimeout(timer);
-    }, [autoRenameAcceptedTitle]);
-    const currentHasTranscript = Boolean(
-        currentTranscription?.text?.trim() ||
-            currentTranscription?.hasTranscript,
-    );
-    const isCurrentTranscriptLoading = Boolean(
-        currentRecording && loadingTranscriptIds.has(currentRecording.id),
-    );
-    const canRenameCurrentRecording = currentRecording
-        ? canRecordingRename(currentRecording.sourceProvider)
-        : false;
-    const currentRenameActionLabel = currentRecording
-        ? t(getRecordingRenameActionKey(currentRecording.sourceProvider))
-        : t("dashboard.renameRecording");
-    const titleGenerationProviderConfigured = Boolean(
-        titleGenerationSettings.titleGenerationApiKeySet &&
-            titleGenerationSettings.titleGenerationModel?.trim(),
-    );
-    const autoRenameDisabledReason = !titleGenerationProviderConfigured
-        ? t("transcription.aiRenameConfigureFirst")
-        : !currentHasTranscript
-          ? t("transcription.aiRenameNeedsTranscript")
-          : !canRenameCurrentRecording
-            ? currentRenameActionLabel
-            : null;
-    const canAutoRenameCurrentRecording = Boolean(
-        currentRecording &&
-            canRenameCurrentRecording &&
-            currentHasTranscript &&
-            titleGenerationProviderConfigured &&
-            !isSavingRename &&
-            !isAutoRenaming &&
-            !isApplyingAutoRename,
-    );
-    const autoRenamePreviewMessage =
-        currentRecording &&
-        canRecordingSyncTitleUpstream(currentRecording.sourceProvider)
-            ? t("transcription.aiRenameWritebackHint")
-            : t("transcription.aiRenameLocalOnlyHint");
-    const currentCanPrivateTranscribe = currentRecording
-        ? canRecordingPrivateTranscribe({
-              sourceProvider: currentRecording.sourceProvider,
-              hasAudio: currentRecording.hasAudio,
-          })
-        : false;
-    const currentTranscribeUnavailableReason = currentRecording
-        ? getPrivateTranscriptionUnavailableMessage(
-              currentRecording.sourceProvider,
-              currentRecording.hasAudio,
-              language,
-          )
-        : null;
-
-    useEffect(() => {
-        setLiveTranscriptions(new Map(transcriptions));
-    }, [transcriptions]);
-
-    useEffect(() => {
-        setLiveTranscriptionJobs(new Map(transcriptionJobs));
-    }, [transcriptionJobs]);
-
-    useEffect(() => {
-        setAutoRenamePreview(null);
-        setIsRenaming(false);
-        setRenameValue(currentRecording?.filename ?? "");
-        setMoreActionsOpen(false);
-        if (!currentRecording?.id) {
-            setIsApplyingAutoRename(false);
-            setIsAutoRenaming(false);
-        }
-    }, [currentRecording?.filename, currentRecording?.id]);
-
-    useEffect(() => {
-        if (!isMoreActionsOpen) {
-            return;
-        }
-
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target;
-            if (!(target instanceof Node)) {
-                return;
+    const closeActivityOverlay = useCallback(
+        (options: { restoreFocus?: boolean } = {}) => {
+            if (options.restoreFocus) {
+                restoreActivityFocusRef.current = true;
+                activityTriggerRef.current?.focus({ preventScroll: true });
+                window.setTimeout(() => {
+                    activityTriggerRef.current?.focus({ preventScroll: true });
+                }, 0);
+                window.setTimeout(() => {
+                    activityTriggerRef.current?.focus({ preventScroll: true });
+                    restoreActivityFocusRef.current = false;
+                }, 50);
             }
-            if (!moreActionsRef.current?.contains(target)) {
-                setMoreActionsOpen(false);
-            }
-        };
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                setMoreActionsOpen(false);
-            }
-        };
-
-        document.addEventListener("pointerdown", handlePointerDown);
-        document.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [isMoreActionsOpen]);
-
-    useEffect(() => {
-        if (isRenaming) {
-            setTagManagerOpen(false);
-        }
-    }, [isRenaming]);
-
-    const closeSourceDrawer = useCallback(
-        (options: { returnFocus?: boolean } = {}) => {
-            setSourceDrawerOpen(false);
-            if (options.returnFocus === false) {
-                return;
-            }
-
-            startBrowserTimeout(() => {
-                sourceDrawerTriggerRef.current?.focus({ preventScroll: true });
-            }, 0);
+            setActivityOpen(false);
         },
         [],
     );
 
     useEffect(() => {
-        if (settingsOpen) {
-            setActiveTopbarOverlay(null);
-            setSourceDrawerOpen(false);
-        }
-    }, [settingsOpen]);
-
-    useEffect(() => {
-        if (!isSourceDrawerOpen) {
-            return;
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                closeSourceDrawer();
-                return;
-            }
-
-            if (event.key !== "Tab") {
-                return;
-            }
-
-            const focusable = Array.from(
-                sourceDrawerRef.current?.querySelectorAll<HTMLElement>(
-                    DASHBOARD_DRAWER_FOCUSABLE_SELECTOR,
-                ) ?? [],
-            ).filter(
-                (node) =>
-                    !node.hasAttribute("disabled") &&
-                    node.getAttribute("aria-hidden") !== "true",
-            );
-
-            if (focusable.length === 0) {
-                event.preventDefault();
-                return;
-            }
-
-            const first = focusable[0];
-            const last = focusable.at(-1) ?? first;
-            const activeElement = document.activeElement;
-
-            if (!sourceDrawerRef.current?.contains(activeElement)) {
-                event.preventDefault();
-                first.focus({ preventScroll: true });
-                return;
-            }
-
-            if (event.shiftKey && activeElement === first) {
-                event.preventDefault();
-                last.focus({ preventScroll: true });
-                return;
-            }
-
-            if (!event.shiftKey && activeElement === last) {
-                event.preventDefault();
-                first.focus({ preventScroll: true });
-            }
-        };
-
-        const focusTimer = startBrowserTimeout(() => {
-            const firstFocusable =
-                sourceDrawerRef.current?.querySelector<HTMLElement>(
-                    DASHBOARD_DRAWER_FOCUSABLE_SELECTOR,
-                );
-            firstFocusable?.focus({ preventScroll: true });
-        }, 0);
-
-        addBrowserWindowEventListener("keydown", handleKeyDown);
-        return () => {
-            stopBrowserTimeout(focusTimer);
-            removeBrowserWindowEventListener("keydown", handleKeyDown);
-        };
-    }, [closeSourceDrawer, isSourceDrawerOpen]);
-
-    useEffect(() => {
-        const recordingId = currentRecording?.id;
-        if (!recordingId) {
-            return;
-        }
-
-        const isTranscriptLoading =
-            loadingTranscriptIdsRef.current.has(recordingId);
-
-        if (
-            !currentTranscriptionHasTranscript ||
-            currentTranscriptionText.trim()
-        ) {
-            if (!isTranscriptLoading) {
-                return;
-            }
-
-            setLoadingTranscriptIds((previous) => {
-                if (!previous.has(recordingId)) {
-                    loadingTranscriptIdsRef.current = previous;
-                    return previous;
-                }
-
-                const next = new Set(previous);
-                next.delete(recordingId);
-                loadingTranscriptIdsRef.current = next;
-                return next;
-            });
-            return;
-        }
-
-        if (isTranscriptLoading) {
-            return;
-        }
-
-        let cancelled = false;
-        setLoadingTranscriptIds((previous) => {
-            if (previous.has(recordingId)) {
-                loadingTranscriptIdsRef.current = previous;
-                return previous;
-            }
-
-            const next = new Set(previous);
-            next.add(recordingId);
-            loadingTranscriptIdsRef.current = next;
-            return next;
-        });
-
-        const loadTranscript = async () => {
-            try {
-                const response = await fetch(
-                    `/api/recordings/${recordingId}/transcript/speakers`,
-                    { cache: "no-store" },
-                );
-
-                if (cancelled) {
-                    return;
-                }
-
-                if (response.status === 404) {
-                    setLiveTranscriptions((previous) => {
-                        const previousTranscript = previous.get(recordingId);
-                        if (
-                            previousTranscript &&
-                            !previousTranscript.hasTranscript &&
-                            !previousTranscript.text?.trim()
-                        ) {
-                            return previous;
-                        }
-
-                        const next = new Map(previous);
-                        next.set(recordingId, {
-                            ...next.get(recordingId),
-                            hasTranscript: false,
-                            text: "",
-                            segments: null,
-                        });
-                        return next;
-                    });
-                    return;
-                }
-
-                if (!response.ok) {
-                    return;
-                }
-
-                const data = await response.json();
-                if (cancelled || !data?.transcript) {
-                    return;
-                }
-
-                const segments = data.transcript.segments ?? null;
-                const transcriptText =
-                    data.transcript.rawText ??
-                    data.transcript.displayText ??
-                    "";
-                const hasTranscriptContent = Boolean(
-                    transcriptText.trim() ||
-                        segments?.some((segment: TranscriptSegmentData) =>
-                            segment.text.trim(),
-                        ),
-                );
-
-                setLiveTranscriptions((previous) => {
-                    const previousTranscript = previous.get(recordingId);
-                    if (!hasTranscriptContent) {
-                        if (
-                            previousTranscript &&
-                            !previousTranscript.hasTranscript &&
-                            !previousTranscript.text?.trim()
-                        ) {
-                            return previous;
-                        }
-
-                        const next = new Map(previous);
-                        next.set(recordingId, {
-                            ...previousTranscript,
-                            hasTranscript: false,
-                            text: "",
-                            segments: null,
-                        });
-                        return next;
-                    }
-
-                    const next = new Map(previous);
-                    next.set(recordingId, {
-                        hasTranscript: true,
-                        text: transcriptText,
-                        language: data.transcript.detectedLanguage ?? undefined,
-                        speakerMap: data.speakerMap ?? undefined,
-                        segments,
-                    });
-                    return next;
-                });
-            } catch {
-                // The explicit transcript panel actions still surface user-facing errors.
-            } finally {
-                if (!cancelled) {
-                    setLoadingTranscriptIds((previous) => {
-                        if (!previous.has(recordingId)) {
-                            loadingTranscriptIdsRef.current = previous;
-                            return previous;
-                        }
-
-                        const next = new Set(previous);
-                        next.delete(recordingId);
-                        loadingTranscriptIdsRef.current = next;
-                        return next;
-                    });
-                }
-            }
-        };
-
-        void loadTranscript();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [
-        currentRecording?.id,
-        currentTranscriptionHasTranscript,
-        currentTranscriptionText,
-    ]);
-
-    useEffect(() => {
-        setLiveRecordings(recordings);
-        setCurrentRecording((previous) => {
-            if (!previous) return recordings[0] ?? null;
-            return (
-                recordings.find((recording) => recording.id === previous.id) ??
-                recordings[0] ??
-                null
-            );
-        });
-    }, [recordings]);
-
-    useEffect(() => {
-        const tagsById = new Map<string, RecordingTag>();
-        for (const recording of liveRecordings) {
-            for (const tag of recording.tags) {
-                tagsById.set(tag.id, tag);
-            }
-        }
-        setTagCatalog((previous) => {
-            for (const tag of previous) {
-                tagsById.set(tag.id, tag);
-            }
-            return Array.from(tagsById.values()).sort((a, b) =>
-                a.name.localeCompare(b.name),
-            );
-        });
-    }, [liveRecordings]);
-
-    useEffect(() => {
-        let cancelled = false;
-
-        const loadTags = async () => {
-            try {
-                const response = await fetch("/api/recording-tags", {
-                    cache: "no-store",
-                });
-                if (!response.ok) {
-                    return;
-                }
-                const data = await response.json();
-                if (!cancelled && Array.isArray(data.tags)) {
-                    setTagCatalog(data.tags);
-                }
-            } catch {
-                // Tag catalog is additive; recordings still carry their assigned tags.
-            }
-        };
-
-        void loadTags();
-
-        return () => {
-            cancelled = true;
-        };
+        setHydrated(true);
     }, []);
-
-    const applyRecordingTags = useCallback(
-        (recordingId: string, tags: RecordingTag[]) => {
-            setLiveRecordings((previous) =>
-                previous.map((recording) =>
-                    recording.id === recordingId
-                        ? { ...recording, tags }
-                        : recording,
-                ),
-            );
-            setCurrentRecording((previous) =>
-                previous?.id === recordingId ? { ...previous, tags } : previous,
-            );
-        },
-        [],
-    );
-
-    useEffect(() => {
-        setIsTranscribing(isActiveTranscriptionJob(currentTranscriptionJob));
-    }, [currentTranscriptionJob]);
-
-    useEffect(() => {
-        if (!currentRecordingId || !currentTranscriptionPollingKey) {
-            return;
-        }
-
-        let cancelled = false;
-        const poll = async () => {
-            try {
-                const response = await fetch(
-                    `/api/recordings/${currentRecordingId}/transcribe`,
-                    {
-                        cache: "no-store",
-                    },
-                );
-                if (!response.ok) {
-                    return;
-                }
-
-                const data =
-                    (await response.json()) as TranscriptionPollResponseData;
-                if (cancelled) {
-                    return;
-                }
-
-                const result =
-                    resolveDashboardTranscriptionPoll<TranscriptionPollTranscriptData>(
-                        data,
-                    );
-
-                if (result.state === "active") {
-                    setLiveTranscriptionJobs((previous) => {
-                        const current = previous.get(currentRecordingId);
-                        if (
-                            areDashboardTranscriptionJobsEqual(
-                                current,
-                                result.job,
-                            )
-                        ) {
-                            return previous;
-                        }
-
-                        const next = new Map(previous);
-                        next.set(currentRecordingId, result.job);
-                        return next;
-                    });
-                    return;
-                }
-
-                if (result.state === "completed") {
-                    setLiveTranscriptions((previous) => {
-                        const next = new Map(previous);
-                        next.set(currentRecordingId, {
-                            text: result.transcript.text || "",
-                            language:
-                                result.transcript.detectedLanguage || undefined,
-                            speakerMap:
-                                result.transcript.speakerMap ?? undefined,
-                            segments: result.transcript.segments ?? null,
-                        });
-                        return next;
-                    });
-                    setLiveTranscriptionJobs((previous) => {
-                        if (!previous.has(currentRecordingId)) {
-                            return previous;
-                        }
-
-                        const next = new Map(previous);
-                        next.delete(currentRecordingId);
-                        return next;
-                    });
-                    setIsTranscribing(false);
-                    return;
-                }
-
-                if (result.state === "failed") {
-                    setLiveTranscriptionJobs((previous) => {
-                        const current = previous.get(currentRecordingId);
-                        if (
-                            areDashboardTranscriptionJobsEqual(
-                                current,
-                                result.job,
-                            )
-                        ) {
-                            return previous;
-                        }
-
-                        const next = new Map(previous);
-                        next.set(currentRecordingId, result.job);
-                        return next;
-                    });
-                    setIsTranscribing(false);
-                }
-            } catch {
-                // Ignore polling errors and try again on the next interval.
-            }
-        };
-
-        void poll();
-        const intervalId = startBrowserInterval(() => {
-            void poll();
-        }, 3000);
-
-        return () => {
-            cancelled = true;
-            stopBrowserInterval(intervalId);
-        };
-    }, [currentRecordingId, currentTranscriptionPollingKey]);
 
     const {
         autoSyncEnabled,
@@ -1022,1588 +1323,5555 @@ export function Workstation({
         lastSyncResult,
         manualSync,
         workerStatus,
+        refreshStatus,
     } = useAutoSync({
         onSuccess: ({ queued, newRecordings }) => {
             if (queued) {
-                toast.success(t("dashboard.syncQueued"));
+                toast.success("同步请求已排队");
                 return;
             }
-
-            const count = newRecordings ?? 0;
-            if (count > 0) {
-                setCurrentRecording(null);
-            }
-            startTransition(() => {
-                refreshBrowserRoute(router);
-            });
             toast.success(
-                count > 0
-                    ? t("dashboard.syncNewRecordings", {
-                          count,
-                          suffix: count !== 1 ? "s" : "",
-                      })
-                    : t("dashboard.syncCompleteNoNew"),
+                newRecordings && newRecordings > 0
+                    ? `同步完成，新增 ${newRecordings} 条录音`
+                    : "同步完成，没有新录音",
             );
         },
         onError: (error) => {
-            toast.error(error);
+            toast.error(error || "同步失败");
         },
     });
+    const syncSystemBannerKind = syncSystemBannerState(
+        workerStatus?.lastError ?? lastSyncResult?.error,
+    );
 
-    const providerCounts = useMemo(() => {
-        const counts = new Map<SourceProvider, number>();
-        for (const provider of DASHBOARD_SOURCES) {
-            counts.set(provider, 0);
-        }
+    useEffect(() => {
+        window.dispatchEvent(
+            new CustomEvent("betterainote:system-banner", {
+                detail: {
+                    id: "source-sync-system",
+                    state: syncSystemBannerKind,
+                },
+            }),
+        );
+    }, [syncSystemBannerKind]);
 
+    useEffect(() => {
+        void loadDataSources();
+    }, [loadDataSources]);
+
+    useEffect(() => {
+        setLiveRecordings(recordings);
+        setSelectedId(recordings[0]?.id ?? "");
+    }, [recordings]);
+
+    useEffect(() => {
+        setLiveTranscriptions(transcriptions);
+    }, [transcriptions]);
+
+    useEffect(() => {
+        setLiveJobs(transcriptionJobs);
+    }, [transcriptionJobs]);
+
+    const sourceCounts = useMemo(() => {
+        const counts = new Map<string, number>();
         for (const recording of liveRecordings) {
-            if (isSourceProvider(recording.sourceProvider)) {
-                counts.set(
-                    recording.sourceProvider,
-                    (counts.get(recording.sourceProvider) ?? 0) + 1,
-                );
-            }
-        }
-
-        return counts;
-    }, [liveRecordings]);
-
-    const favoriteScopedProviderCounts = useMemo(() => {
-        const counts = new Map<SourceProvider, number>();
-        for (const provider of DASHBOARD_SOURCES) {
-            counts.set(provider, 0);
-        }
-
-        for (const recording of liveRecordings) {
-            if (!isSourceProvider(recording.sourceProvider)) {
-                continue;
-            }
-
-            if (
-                !recordingMatchesDashboardFavorite(
-                    recording,
-                    activeFavorite,
-                    liveTranscriptions,
-                )
-            ) {
-                continue;
-            }
-
             counts.set(
                 recording.sourceProvider,
                 (counts.get(recording.sourceProvider) ?? 0) + 1,
             );
         }
-
         return counts;
-    }, [activeFavorite, liveRecordings, liveTranscriptions]);
+    }, [liveRecordings]);
 
-    const dataSourceStateByProvider = useMemo(
+    const filteredRecordings = useMemo(() => {
+        const normalizedQuery = query.trim().toLocaleLowerCase();
+        return liveRecordings.filter((recording) => {
+            if (source !== "all" && recording.sourceProvider !== source) {
+                return false;
+            }
+            if (librarySearchFilter?.type === "tag") {
+                const tagMatch = recording.tags.some(
+                    (tag) =>
+                        tag.id === librarySearchFilter.label ||
+                        tag.name === librarySearchFilter.label,
+                );
+                if (!tagMatch) return false;
+            }
+            if (librarySearchFilter?.type === "speaker") {
+                const speakerNames = Object.values(
+                    liveTranscriptions.get(recording.id)?.speakerMap ?? {},
+                );
+                const speakerMatch = speakerNames.some(
+                    (name) => name === librarySearchFilter.label,
+                );
+                if (!speakerMatch) return false;
+            }
+            if (
+                favorite === "transcribed" &&
+                !hasTranscript(recording, liveTranscriptions)
+            ) {
+                return false;
+            }
+            if (favorite === "tags" && recording.tags.length === 0) {
+                return false;
+            }
+            if (!normalizedQuery) return true;
+            return [
+                recording.filename,
+                recording.sourceProvider,
+                ...recording.tags.map((tag) => tag.name),
+                liveTranscriptions.get(recording.id)?.text ?? "",
+            ]
+                .join(" ")
+                .toLocaleLowerCase()
+                .includes(normalizedQuery);
+        });
+    }, [
+        favorite,
+        librarySearchFilter,
+        liveRecordings,
+        liveTranscriptions,
+        query,
+        source,
+    ]);
+    const itemsPerPage = Math.max(1, displaySettings.itemsPerPage || 50);
+    const timelineCounts = useMemo(() => {
+        const counts: Record<TimelineFilter, number> = {
+            all: filteredRecordings.length,
+            today: 0,
+            yesterday: 0,
+            earlier: 0,
+        };
+        for (const recording of filteredRecordings) {
+            const bucket = getTimelineFilter(recording.startTime);
+            counts[bucket] += 1;
+        }
+        return counts;
+    }, [filteredRecordings]);
+    const tagFilterOptions = useMemo(() => {
+        const tags = new Map<
+            string,
+            { id: string; name: string; count: number }
+        >();
+        let untagged = 0;
+        for (const recording of filteredRecordings) {
+            if (recording.tags.length === 0) {
+                untagged += 1;
+                continue;
+            }
+            for (const tag of recording.tags) {
+                const existing = tags.get(tag.id);
+                if (existing) {
+                    existing.count += 1;
+                } else {
+                    tags.set(tag.id, {
+                        id: tag.id,
+                        name: tag.name,
+                        count: 1,
+                    });
+                }
+            }
+        }
+        const options: Array<{
+            value: TagFilterValue;
+            label: string;
+            count: number;
+        }> = [
+            {
+                value: "all",
+                label: t("recordingList.timeline.all"),
+                count: filteredRecordings.length,
+            },
+        ];
+        Array.from(tags.values())
+            .sort((a, b) =>
+                a.name.localeCompare(
+                    b.name,
+                    language === "zh-CN" ? "zh-CN" : "en",
+                ),
+            )
+            .forEach((tag) => {
+                options.push({
+                    value: tagFilterValue(tag.id),
+                    label: tag.name,
+                    count: tag.count,
+                });
+            });
+        if (untagged > 0) {
+            options.push({
+                value: "untagged",
+                label: t("recordingList.untagged"),
+                count: untagged,
+            });
+        }
+        return options;
+    }, [filteredRecordings, language, t]);
+    const selectedTagOption =
+        tagFilterOptions.find((option) => option.value === selectedTagFilter) ??
+        tagFilterOptions[0];
+    const listEntries = useMemo(() => {
+        const entries: {
+            groupId: string;
+            groupLabel: string;
+            recording: Recording;
+            displayTag?: RecordingTag;
+        }[] = [];
+
+        if (listMode === "tags") {
+            for (const recording of filteredRecordings) {
+                if (selectedTagFilter === "untagged") {
+                    if (recording.tags.length === 0) {
+                        entries.push({
+                            groupId: "untagged",
+                            groupLabel: t("recordingList.untagged"),
+                            recording,
+                        });
+                    }
+                    continue;
+                }
+
+                const selectedTagId = tagIdFromFilter(selectedTagFilter);
+                const matchingTags = selectedTagId
+                    ? recording.tags.filter((tag) => tag.id === selectedTagId)
+                    : recording.tags;
+
+                if (matchingTags.length === 0) {
+                    if (selectedTagFilter === "all") {
+                        entries.push({
+                            groupId: "untagged",
+                            groupLabel: t("recordingList.untagged"),
+                            recording,
+                        });
+                    }
+                    continue;
+                }
+
+                for (const tag of matchingTags) {
+                    entries.push({
+                        displayTag: tag,
+                        groupId: tag.id,
+                        groupLabel: tag.name,
+                        recording,
+                    });
+                }
+            }
+            return entries;
+        }
+
+        for (const recording of filteredRecordings) {
+            const bucket = getTimelineFilter(recording.startTime);
+            if (timelineFilter !== "all" && bucket !== timelineFilter) {
+                continue;
+            }
+            entries.push({
+                groupId: bucket,
+                groupLabel: getDayBucket(recording.startTime),
+                recording,
+            });
+        }
+        return entries;
+    }, [filteredRecordings, listMode, selectedTagFilter, t, timelineFilter]);
+    const listHasExternalFilter =
+        source !== "all" ||
+        query.trim().length > 0 ||
+        librarySearchFilter !== null;
+    const listState: RecordingListState = !displaySettingsLoaded
+        ? "loading"
+        : liveRecordings.length === 0
+          ? "empty"
+          : filteredRecordings.length === 0
+            ? listMode === "tags" && !listHasExternalFilter
+                ? "tag-empty"
+                : "no-match"
+            : listEntries.length > 0
+              ? "ready"
+              : listMode === "tags"
+                ? "tag-empty"
+                : timelineFilter !== "all"
+                  ? "timeline-empty"
+                  : "no-match";
+    const listTotalPages = Math.max(
+        1,
+        Math.ceil(listEntries.length / itemsPerPage),
+    );
+    const currentListPage = Math.min(listPage, listTotalPages);
+    const pagedListEntries =
+        listState === "ready"
+            ? listEntries.slice(
+                  (currentListPage - 1) * itemsPerPage,
+                  currentListPage * itemsPerPage,
+              )
+            : [];
+    const listPaginationState =
+        currentListPage === 1
+            ? "paginated-first"
+            : currentListPage === listTotalPages
+              ? "paginated-last"
+              : "paginated";
+    const listLoadedCount =
+        listPaginationState === "paginated-last"
+            ? listEntries.length
+            : pagedListEntries.length;
+    const listPageStatusKey =
+        listPaginationState === "paginated-last"
+            ? "recordingList.pageStatusLast"
+            : listPaginationState === "paginated"
+              ? "recordingList.pageStatusMiddle"
+              : "recordingList.pageStatusFirst";
+    const groupedListEntries = useMemo(() => {
+        const groups: {
+            id: string;
+            label: string;
+            entries: typeof pagedListEntries;
+        }[] = [];
+        for (const entry of pagedListEntries) {
+            const existing = groups.find((group) => group.id === entry.groupId);
+            if (existing) {
+                existing.entries.push(entry);
+            } else {
+                groups.push({
+                    entries: [entry],
+                    id: entry.groupId,
+                    label: entry.groupLabel,
+                });
+            }
+        }
+        return groups;
+    }, [pagedListEntries]);
+
+    const listEligibleRecordings = useMemo(() => {
+        const seen = new Set<string>();
+        const recordings: Recording[] = [];
+        for (const entry of listEntries) {
+            if (seen.has(entry.recording.id)) continue;
+            seen.add(entry.recording.id);
+            recordings.push(entry.recording);
+        }
+        return recordings;
+    }, [listEntries]);
+
+    const listResetKey = useMemo(
         () =>
-            new Map(
-                dataSourceStates.map((source) => [source.provider, source]),
-            ),
-        [dataSourceStates],
+            [
+                filteredRecordings
+                    .map((recording) => recording.id)
+                    .join("\u0000"),
+                itemsPerPage,
+                listMode,
+                selectedTagFilter,
+                timelineFilter,
+            ].join("\u0001"),
+        [
+            filteredRecordings,
+            itemsPerPage,
+            listMode,
+            selectedTagFilter,
+            timelineFilter,
+        ],
     );
 
+    useEffect(() => {
+        if (!listResetKey) return;
+        setListPage((page) => (page === 1 ? page : 1));
+    }, [listResetKey]);
+
+    useEffect(() => {
+        setListPage((page) => Math.min(Math.max(page, 1), listTotalPages));
+    }, [listTotalPages]);
+
+    useEffect(() => {
+        if (
+            tagFilterOptions.some(
+                (option) => option.value === selectedTagFilter,
+            )
+        ) {
+            return;
+        }
+        setSelectedTagFilter("all");
+    }, [selectedTagFilter, tagFilterOptions]);
+    const dataSourceByProvider = useMemo(
+        () =>
+            new Map(
+                dataSources.map((dataSource) => [
+                    dataSource.provider,
+                    dataSource,
+                ]),
+            ),
+        [dataSources],
+    );
     const hasSyncError = Boolean(
         lastSyncResult?.success === false ||
             workerStatus?.lastError ||
             (workerStatus?.lastSummary?.errorCount ?? 0) > 0,
     );
-
-    const sourceRows = useMemo<SourceProviderRowModel[]>(
+    const sourceRows = useMemo(
         () =>
-            DASHBOARD_SOURCES.map((provider) => {
-                const count = providerCounts.get(provider) ?? 0;
-                const currentFilterCount =
-                    favoriteScopedProviderCounts.get(provider) ?? 0;
-                const source = dataSourceStateByProvider.get(provider);
-                const configured = Boolean(source?.connected);
-                const enabled = source?.enabled ?? false;
-                const status = getDashboardSourceStatus({
-                    configured,
-                    enabled,
-                    hasCurrentFilterMatch:
-                        activeFavorite === "all" || currentFilterCount > 0,
-                    hasCount: count > 0,
-                    hasSyncError: hasSyncError && configured,
-                    isExpired: source?.connectionStatus === "expired",
-                    isLoading: areDataSourcesLoading && !source,
-                    isPlanned: source?.runtimeStatus === "planned",
-                    isSyncing: isAutoSyncing && configured,
-                });
+            SOURCE_ORDER.map((item) => {
+                const dataSource = dataSourceByProvider.get(item.key);
+                const count = sourceCounts.get(item.key) ?? 0;
+                const active = source === item.key;
+                const connected = Boolean(dataSource?.connected);
+                const enabled = dataSource?.enabled ?? false;
+                const planned = dataSource?.runtimeStatus === "planned";
+                const status: SourceStatus =
+                    dataSourcesLoading && !dataSource
+                        ? "loading"
+                        : planned
+                          ? "planned"
+                          : !connected
+                            ? "needs-setup"
+                            : !enabled
+                              ? "paused"
+                              : dataSource?.connectionStatus === "expired"
+                                ? "expired"
+                                : isAutoSyncing
+                                  ? "syncing"
+                                  : hasSyncError
+                                    ? "sync-error"
+                                    : active &&
+                                        count > 0 &&
+                                        filteredRecordings.length === 0
+                                      ? "no-results"
+                                      : count > 0
+                                        ? "connected"
+                                        : "connected-empty";
 
                 return {
-                    provider,
-                    label: getSourceProviderLabel(provider, language),
+                    ...item,
+                    active,
+                    connected,
                     count,
-                    active: activeSourceProvider === provider,
-                    connected: configured,
-                    updating: status === "syncing",
+                    label: providerLabel(item.key, language),
                     status,
+                    statusLabel: getSourceStatusLabel(status, t),
                 };
             }),
         [
-            activeSourceProvider,
-            activeFavorite,
-            areDataSourcesLoading,
-            dataSourceStateByProvider,
-            favoriteScopedProviderCounts,
+            dataSourceByProvider,
+            dataSourcesLoading,
+            filteredRecordings.length,
             hasSyncError,
             isAutoSyncing,
             language,
-            providerCounts,
+            source,
+            sourceCounts,
+            t,
         ],
     );
+    const selectedSourceRow = useMemo(
+        () => sourceRows.find((row) => row.key === source) ?? null,
+        [source, sourceRows],
+    );
+    const sourceFilterStackState =
+        source === "all"
+            ? "idle"
+            : selectedSourceRow?.status === "sync-error"
+              ? "sync-error"
+              : selectedSourceRow?.status === "no-results"
+                ? "no-results"
+                : sourceNeedsSettings(selectedSourceRow?.status ?? "connected")
+                  ? (selectedSourceRow?.status ?? "needs-setup")
+                  : "active";
+    const sourceFilterStackMessage = selectedSourceRow
+        ? selectedSourceRow.status === "sync-error"
+            ? t("sourceFilterStack.syncErrorMessage", {
+                  provider: selectedSourceRow.label,
+              })
+            : selectedSourceRow.status === "no-results"
+              ? t("sourceFilterStack.noResultsMessage", {
+                    count: selectedSourceRow.count,
+                    provider: selectedSourceRow.label,
+                })
+              : selectedSourceRow.status === "paused"
+                ? t("sourceFilterStack.pausedMessage", {
+                      provider: selectedSourceRow.label,
+                  })
+                : selectedSourceRow.status === "expired"
+                  ? t("sourceFilterStack.expiredMessage", {
+                        provider: selectedSourceRow.label,
+                    })
+                  : selectedSourceRow.status === "planned"
+                    ? t("sourceFilterStack.plannedMessage", {
+                          provider: selectedSourceRow.label,
+                      })
+                    : selectedSourceRow.status === "needs-setup"
+                      ? t("sourceFilterStack.needsSetupMessage", {
+                            provider: selectedSourceRow.label,
+                        })
+                      : ""
+        : "";
+    const syncButtonState: SyncButtonState = isAutoSyncing
+        ? workerStatus?.manualTriggerRequestedAt && !workerStatus.isRunning
+            ? "queued"
+            : "running"
+        : hasSyncError
+          ? "error"
+          : lastSyncResult?.success
+            ? "success"
+            : "idle";
+    const syncButtonBusy =
+        syncButtonState === "queued" || syncButtonState === "running";
+    const partialSyncErrorCount = workerStatus?.lastSummary?.errorCount ?? 0;
+    const syncStatusLabel =
+        syncButtonState === "error" && partialSyncErrorCount > 0
+            ? t("activityOverlay.status.partialUpdateFailedTitle")
+            : syncStateLabel(syncButtonState, t);
+    const syncSummary =
+        syncButtonState === "error"
+            ? partialSyncErrorCount > 0
+                ? t("activityOverlay.status.partialUpdateFailed", {
+                      count: partialSyncErrorCount,
+                  })
+                : workerStatus?.lastError ||
+                  lastSyncResult?.error ||
+                  t("activityOverlay.status.updateRequestFailed")
+            : syncButtonState === "success"
+              ? t("activityOverlay.items.sourceUpdateCompleteTitle")
+              : lastSyncTime
+                ? t("activityOverlay.status.lastUpdatedAt", {
+                      time: formatRelativeDate(lastSyncTime.toISOString()),
+                  })
+                : autoSyncEnabled
+                  ? nextSyncTime
+                      ? t("activityOverlay.status.nextUpdateAt", {
+                            time: formatRelativeDate(
+                                nextSyncTime.toISOString(),
+                            ),
+                        })
+                      : t("activityOverlay.status.waitingForAutoUpdate")
+                  : t("activityOverlay.status.autoUpdatePaused");
 
-    const filteredRecordings = useMemo(() => {
-        return liveRecordings.filter((recording) => {
-            if (
-                activeSourceProvider &&
-                recording.sourceProvider !== activeSourceProvider
-            ) {
-                return false;
-            }
-
-            return recordingMatchesDashboardFavorite(
-                recording,
-                activeFavorite,
-                liveTranscriptions,
-            )
-                ? recordingMatchesLibrarySearchFilter(
-                      recording,
-                      librarySearchFilter,
-                      liveTranscriptions.get(recording.id),
-                  )
-                : false;
-        });
-    }, [
-        activeFavorite,
-        activeSourceProvider,
-        librarySearchFilter,
-        liveRecordings,
-        liveTranscriptions,
-    ]);
-
-    const activeFavoriteLabel =
-        activeFavorite === "transcribed"
-            ? t("dashboardFavorites.transcribed")
-            : activeFavorite === "tags"
-              ? t("dashboardFavorites.tags")
-              : t("dashboardFavorites.allRecordings");
-    const activeSourceLabel = activeSourceProvider
-        ? getSourceProviderLabel(activeSourceProvider, language)
+    const selectedRecording =
+        listEligibleRecordings.find(
+            (recording) => recording.id === selectedId,
+        ) ??
+        listEligibleRecordings[0] ??
+        null;
+    const selectedRecordingId = selectedRecording?.id ?? null;
+    const selectedTranscription = selectedRecording
+        ? liveTranscriptions.get(selectedRecording.id)
+        : undefined;
+    const selectedJob = selectedRecording
+        ? liveJobs.get(selectedRecording.id)
+        : undefined;
+    const selectedRecordingHasAudio = Boolean(selectedRecording?.audioUrl);
+    const selectedRecordingHasSource = Boolean(
+        selectedRecording?.sourceProvider,
+    );
+    const {
+        audioRef,
+        audioSrc,
+        currentTime,
+        cyclePlaybackSpeed,
+        duration: playbackDuration,
+        isPlaying,
+        playbackSpeedLabel,
+        progress,
+        seekToSliderValue,
+        setVolume,
+        togglePlayPause,
+        volume,
+    } = useRecordingPlayback({
+        audioUrl: selectedRecording?.audioUrl,
+        onEnded: handleAudioEnded,
+    });
+    const playbackDisabled =
+        !selectedRecording || !selectedRecording.hasAudio || !audioSrc;
+    const volumeMuted = volume === 0;
+    const volumePopoverOpen = volumeOpen && !playbackDisabled;
+    const playerControlsState = playbackDisabled
+        ? "disabled"
+        : volumeMuted
+          ? "muted"
+          : isPlaying
+            ? "playing"
+            : "ready";
+    const playerControlState = playbackDisabled ? "disabled" : "ready";
+    const playerProgressPct = Math.max(0, Math.min(100, Math.round(progress)));
+    const playerDurationValue =
+        playbackDuration > 0
+            ? playbackDuration
+            : (selectedRecording?.duration ?? 0);
+    const selectedPlayerTag = selectedRecording?.tags[0] ?? null;
+    const selectedPlayerStatus = selectedRecording
+        ? getRecordingListStatus(
+              selectedRecording,
+              selectedTranscription,
+              selectedJob,
+              t,
+          )
         : null;
-    const listContextLabel = activeSourceLabel
-        ? `${activeFavoriteLabel} / ${activeSourceLabel}`
-        : activeFavoriteLabel;
-    const librarySearchFilterLabel = librarySearchFilter
-        ? `${librarySearchFilter.kind === "tag" ? t("dashboardFavorites.tagFilter") : t("dashboardFavorites.speakerFilter")}: ${librarySearchFilter.label}`
-        : null;
-    const expandedListContextLabel = librarySearchFilterLabel
-        ? `${listContextLabel} / ${librarySearchFilterLabel}`
-        : listContextLabel;
-    const activeSourceRow =
-        activeSourceProvider !== null
-            ? (sourceRows.find(
-                  (row) => row.provider === activeSourceProvider,
-              ) ?? null)
-            : null;
-    const activeSourceTotalCount = activeSourceRow?.count ?? 0;
 
     useEffect(() => {
+        if (playbackDisabled) {
+            setVolumeOpen(false);
+        }
+    }, [playbackDisabled]);
+
+    const completedRetxDismissed = selectedRecording
+        ? dismissedCompletedRetxIds.has(selectedRecording.id)
+        : false;
+    const dashboardRetxState: RetxState =
+        retxState !== "idle"
+            ? retxState
+            : !selectedRecording || !selectedRecordingHasAudio
+              ? "unavailable"
+              : selectedJob
+                ? isActiveTranscriptionJob(selectedJob)
+                    ? (getRetxStateFromActiveJob(selectedJob) ?? "running")
+                    : selectedJob.status === "failed"
+                      ? "failed"
+                      : selectedJob.status === "succeeded"
+                        ? completedRetxDismissed
+                            ? "idle"
+                            : "completed"
+                        : "idle"
+                : "idle";
+    const dashboardRetxTitle =
+        dashboardRetxState === "completed"
+            ? "重新转写完成"
+            : dashboardRetxState === "failed"
+              ? "本次重新转写失败"
+              : dashboardRetxState === "running"
+                ? "正在重新转写"
+                : dashboardRetxState === "queued"
+                  ? "转写任务已加入队列"
+                  : "重新转写";
+    const dashboardRetxSub =
+        dashboardRetxState === "completed"
+            ? "逐字稿、说话人映射与摘要已刷新。"
+            : dashboardRetxState === "failed"
+              ? "VoScript worker 暂时不可达 · 原稿未被覆盖。"
+              : dashboardRetxState === "running"
+                ? "已完成 12% · 当前结果仍可阅读，完成后自动刷新。"
+                : dashboardRetxState === "queued"
+                  ? "正在等待工作器领取，期间可继续浏览。"
+                  : "新任务会保持当前转写可见，完成后替换结果。";
+    const turns = transcriptTurns(selectedTranscription);
+    const localTranscriptText = selectedTranscription?.text ?? "";
+    const isTranscriptLoading = selectedRecordingId
+        ? loadingTranscriptIds.has(selectedRecordingId)
+        : false;
+    const sourceReportState =
+        sourceReport.recordingId === selectedRecordingId
+            ? sourceReport.state
+            : "idle";
+    const sourceReportVisualState =
+        sourceReportState === "idle" ? "empty" : sourceReportState;
+    const sourceReportData =
+        sourceReport.recordingId === selectedRecordingId
+            ? sourceReport.data
+            : null;
+    const sourceReportError =
+        sourceReport.recordingId === selectedRecordingId
+            ? sourceReport.error
+            : "";
+    const sourceTranscriptCopyText =
+        buildSourceTranscriptCopyText(sourceReportData);
+    const sourceTranscriptAvailable = Boolean(sourceTranscriptCopyText.trim());
+    const sourceSummaryText = sourceReportData?.summaryMarkdown?.trim() ?? "";
+    const sourceSummaryRenderedText =
+        formatSourceSummaryDisplayText(sourceSummaryText);
+    const sourceSummaryVisible =
+        sourceSummaryRenderedText &&
+        sourceSummaryHasDisplayHeading(sourceSummaryText);
+    const sourceSummaryAvailable =
+        Boolean(sourceSummaryText) || sourceReportData?.summaryReady === true;
+    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+        sourceReportData?.transcriptReady,
+        sourceTranscriptAvailable,
+    );
+    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+        sourceReportData?.summaryReady,
+        sourceSummaryAvailable,
+    );
+    const sourceReportSubState = getSourceReportSubState(
+        sourceTranscriptAvailable,
+        sourceSummaryAvailable,
+    );
+    const sourceTranscriptCopyState = getSourceCopyState(
+        sourceReportState,
+        sourceTranscriptAvailable,
+    );
+    const localTranscriptCopyState: SourceReportCopyState = isTranscriptLoading
+        ? "loading"
+        : localTranscriptText.trim()
+          ? "ready"
+          : "missing";
+    const localTranscriptCopyDisabled =
+        copyingAction === "local-transcript" ||
+        localTranscriptCopyState !== "ready";
+    const sourceTranscriptCopyDisabled =
+        copyingAction === "source-transcript" ||
+        sourceTranscriptCopyState !== "ready";
+    const showCopyFeedback = useCallback(
+        (action: Exclude<DashboardCopyAction, null>, state: "ok" | "err") => {
+            if (copyFeedbackTimerRef.current) {
+                window.clearTimeout(copyFeedbackTimerRef.current);
+            }
+            setCopyFeedback({ action, state });
+            copyFeedbackTimerRef.current = window.setTimeout(() => {
+                setCopyFeedback((current) =>
+                    current?.action === action ? null : current,
+                );
+                copyFeedbackTimerRef.current = null;
+            }, 1500);
+        },
+        [],
+    );
+    const sourceOpenAction = sourceReportData?.sourceActions?.openSource;
+    const sourceOpenUrl =
+        sourceOpenAction?.available && sourceOpenAction.url
+            ? sourceOpenAction.url
+            : null;
+    const sourceOpenControlState = sourceReportData
+        ? sourceOpenUrl
+            ? "ready"
+            : "unavailable"
+        : sourceReportState === "loading"
+          ? "loading"
+          : "unavailable";
+    const sourceRepullAction = sourceReportData?.sourceActions?.repullSource;
+    const sourceRepullAvailable = Boolean(sourceRepullAction?.available);
+    const sourceRepullControlState =
+        sourceRepullState === "loading"
+            ? "loading"
+            : sourceRepullState === "error"
+              ? "error"
+              : sourceRepullAvailable
+                ? "ready"
+                : sourceReportData
+                  ? "unavailable"
+                  : sourceReportState === "loading"
+                    ? "loading"
+                    : "unavailable";
+    const sourceRepullDisabled =
+        sourceRepullState === "loading" ||
+        syncButtonBusy ||
+        !sourceRepullAvailable;
+    const sourceReportProvider =
+        sourceReportData?.sourceProvider ?? selectedRecording?.sourceProvider;
+    const sourceReportProviderDefinition =
+        sourceDefinition(sourceReportProvider);
+    const sourceReportMetadata = sourceReportData?.detail ?? null;
+    const sourceReportProviderName =
+        sourceReportDetailText(sourceReportMetadata, [
+            "providerName",
+            "sourceName",
+            "sourceProviderName",
+        ]) ??
+        (sourceReportProvider
+            ? providerLabel(sourceReportProvider, language)
+            : "--");
+    const sourceReportProviderSentenceName =
+        sourceReportDetailText(sourceReportMetadata, [
+            "providerSentenceName",
+            "sourceSentenceName",
+        ]) ?? sourceReportProviderName.replace(/\s+/g, "");
+    const sourceReportTitle =
+        sourceReportDetailText(sourceReportMetadata, [
+            "sourceTitle",
+            "title",
+        ]) ??
+        sourceReportData?.filename ??
+        selectedRecording?.filename ??
+        "--";
+    const sourceReportRecordedAt =
+        sourceReportDetailText(sourceReportMetadata, [
+            "recordedAt",
+            "startTime",
+            "createdAt",
+        ]) ?? selectedRecording?.startTime;
+    const sourceReportUpdatedAt =
+        sourceReportDetailText(sourceReportMetadata, [
+            "updatedAt",
+            "syncedAt",
+            "modifiedAt",
+        ]) ?? sourceReportRecordedAt;
+    const sourceReportLanguage =
+        sourceReportDetailText(sourceReportMetadata, [
+            "language",
+            "locale",
+            "lang",
+        ]) ?? "简体中文 (zh-CN)";
+    const sourceReportReadable =
+        sourceReportDetailText(sourceReportMetadata, [
+            "readableContent",
+            "assets",
+            "availableContent",
+        ]) ?? "音频 · 转写 · 摘要 · 说话人";
+    const sourceReportSyncStatusLabel =
+        sourceReportDetailText(sourceReportMetadata, [
+            "statusLabel",
+            "syncStatusLabel",
+            "sourceStatusLabel",
+        ]) ?? "已同步";
+    const sourceReportRawSegments =
+        sourceReportData?.transcript?.segments ?? [];
+    const sourceReportTranscriptText =
+        sourceReportData?.transcript?.text?.trim() ?? "";
+    const sourceReportDisplaySegments: SourceReportSegment[] =
+        sourceReportRawSegments.length > 0
+            ? sourceReportRawSegments
+            : sourceReportTranscriptText
+              ? [
+                    {
+                        speaker: sourceReportProviderName,
+                        startMs: null,
+                        endMs: null,
+                        text: sourceReportTranscriptText,
+                    },
+                ]
+              : [];
+    const sourceReportSegmentCount =
+        sourceReportData?.transcript?.segmentCount ??
+        sourceReportDisplaySegments.length;
+    const sourceReportCopyText = sourceReportData
+        ? [
+              `来源：${sourceReportProviderName}`,
+              `转写状态：${sourceTranscriptStatusLabel}`,
+              `摘要状态：${sourceSummaryStatusLabel}`,
+              `分段数：${sourceReportSegmentCount}`,
+              "",
+              "来源信息",
+              `来源：${sourceReportProviderName}`,
+              `状态：${sourceReportSyncStatusLabel}`,
+              `录制于：${formatSourceReportDate(sourceReportRecordedAt)}`,
+              `最近更新：${formatSourceReportDate(sourceReportUpdatedAt)}`,
+              `可读内容：${sourceReportReadable}`,
+              `来源标题：${sourceReportTitle}`,
+              `语种：${sourceReportLanguage}`,
+              `时长：${selectedRecording ? formatDuration(selectedRecording.duration) : "--"}`,
+              sourceSummaryText ? "" : null,
+              sourceSummaryText || null,
+          ]
+              .filter((line): line is string => line !== null)
+              .join("\n")
+              .trim()
+        : "";
+    const sourceReportCopyState = getSourceCopyState(
+        sourceReportState,
+        Boolean(sourceReportCopyText.trim()),
+    );
+    const sourceReportCopyDisabled =
+        copyingAction === "source-report" || sourceReportCopyState !== "ready";
+    const localDeleteAvailable = Boolean(
+        selectedRecording &&
+            (!selectedRecording.sourceProvider ||
+                selectedRecording.upstreamDeleted),
+    );
+    const moreActionsState = !selectedRecording
+        ? "empty"
+        : !selectedRecording.sourceProvider
+          ? "local-only"
+          : selectedRecording.upstreamDeleted
+            ? "upstream-deleted"
+            : "upstream";
+    const moreActionsShowRetranscribe =
+        moreActionsState === "local-only" || moreActionsState === "upstream";
+    const moreActionsShowSeparator =
+        moreActionsState === "local-only" ||
+        moreActionsState === "upstream-deleted";
+    const moreActionsShowPrimaryIcons = moreActionsState === "local-only";
+    const moreActionsShowDeleteIcon =
+        moreActionsState === "local-only" ||
+        moreActionsState === "upstream-deleted";
+    const hasSelectedTranscript = Boolean(selectedTranscription?.hasTranscript);
+    const aiUnavailableIsService = Boolean(
+        selectedRecording &&
+            titleGenerationConfigured === false &&
+            hasSelectedTranscript,
+    );
+    const aiUnavailableReason = selectedRecording
+        ? titleGenerationConfigured === true && !hasSelectedTranscript
+            ? "需要先生成本地转录"
+            : aiUnavailableIsService
+              ? "AI 重命名服务尚未配置或暂时不可用。"
+              : ""
+        : "请选择录音";
+    const aiUnavailableHint = aiUnavailableIsService
+        ? "前往设置 → AI 重命名服务以启用。"
+        : null;
+    const applyDashboardRecordingTags = useCallback(
+        (recordingId: string, tags: RecordingTag[]) => {
+            setLiveRecordings((items) =>
+                items.map((item) =>
+                    item.id === recordingId ? { ...item, tags } : item,
+                ),
+            );
+        },
+        [],
+    );
+    const recordingNameById = useMemo(
+        () =>
+            new Map(
+                liveRecordings.map((recording) => [
+                    recording.id,
+                    recording.filename,
+                ]),
+            ),
+        [liveRecordings],
+    );
+    const activityItems = useMemo<ActivityItem[]>(() => {
+        const items: ActivityItem[] = [];
+
+        if (isAutoSyncing || workerStatus?.isRunning) {
+            items.push({
+                id: "source-sync-running",
+                tone: "loading",
+                title: t("activityOverlay.items.sourceUpdatingTitle"),
+                body: t("activityOverlay.items.sourceUpdatingBody"),
+                action: "sync",
+            });
+        } else if (workerStatus?.manualTriggerRequestedAt) {
+            items.push({
+                id: "source-sync-queued",
+                tone: "loading",
+                title: t("activityOverlay.items.updateQueuedTitle"),
+                body: t("activityOverlay.items.updateQueuedBody"),
+            });
+        }
+
+        if (lastSyncResult?.success === false) {
+            items.push({
+                id: "source-sync-error",
+                tone: "error",
+                title: t("activityOverlay.items.sourceUpdateFailedTitle"),
+                body:
+                    lastSyncResult.error ??
+                    t("activityOverlay.items.sourceUpdateFailedBody"),
+                action: "sync",
+            });
+        } else if (workerStatus && !workerStatus.healthy) {
+            items.push({
+                id: "worker-unavailable",
+                tone: "error",
+                title: t("activityOverlay.status.autoUpdateUnavailable"),
+                body:
+                    workerStatus.lastError ??
+                    t("activityOverlay.status.workerNotResponding"),
+                action: "settings",
+            });
+        }
+
         if (
-            currentRecording &&
-            filteredRecordings.some(
-                (recording) => recording.id === currentRecording.id,
+            lastSyncResult?.success &&
+            (lastSyncResult.newRecordings ?? 0) > 0
+        ) {
+            items.push({
+                id: "source-sync-success",
+                tone: "success",
+                title: t("activityOverlay.items.sourceUpdateCompleteTitle"),
+                body: t("activityOverlay.items.importedRecordings", {
+                    count: lastSyncResult.newRecordings ?? 0,
+                }),
+            });
+        } else if (workerStatus?.lastSummary) {
+            const summary = workerStatus.lastSummary;
+            items.push({
+                id: "source-sync-summary",
+                tone: summary.errorCount > 0 ? "warn" : "success",
+                title: t(
+                    summary.errorCount > 0
+                        ? "activityOverlay.items.sourceUpdatePartialTitle"
+                        : "activityOverlay.items.lastUpdateCompleteTitle",
+                ),
+                body: t(
+                    summary.errorCount > 0
+                        ? "activityOverlay.items.syncPartialSummary"
+                        : "activityOverlay.items.syncSummary",
+                    {
+                        errors: summary.errorCount,
+                        new: summary.newRecordings,
+                        removed: summary.removedRecordings,
+                        updated: summary.updatedRecordings,
+                    },
+                ),
+                action: summary.errorCount > 0 ? "sync" : undefined,
+            });
+        }
+
+        for (const [recordingId, job] of liveJobs) {
+            const name =
+                recordingNameById.get(recordingId) ??
+                t("activityOverlay.items.untitledRecording");
+            if (isActiveTranscriptionJob(job)) {
+                items.push({
+                    id: `transcription-active-${recordingId}`,
+                    tone: "loading",
+                    title: name,
+                    body: t("activityOverlay.items.transcriptionActive", {
+                        status:
+                            t(
+                                `activityOverlay.remoteStatus.${job.remoteStatus ?? job.status}`,
+                            ) ||
+                            job.remoteStatus ||
+                            job.status,
+                    }),
+                    action: "recording",
+                    recordingId,
+                });
+                continue;
+            }
+            if (job.status === "failed") {
+                items.push({
+                    id: `transcription-failed-${recordingId}`,
+                    tone: "warn",
+                    title: t("activityOverlay.items.transcriptionFailedTitle", {
+                        name,
+                    }),
+                    body:
+                        job.lastError ??
+                        t("activityOverlay.items.transcriptionFailedBody"),
+                    action: "recording",
+                    recordingId,
+                });
+            }
+        }
+
+        return items;
+    }, [
+        isAutoSyncing,
+        lastSyncResult,
+        liveJobs,
+        recordingNameById,
+        t,
+        workerStatus,
+    ]);
+    const visibleActivityItems = activityItems.filter(
+        (item) => !dismissedActivityIds.has(item.id),
+    );
+    const activityBadgeCount = visibleActivityItems.filter(
+        (item) => item.tone === "error" || item.tone === "warn" || item.action,
+    ).length;
+    const searchPanelState = searchIndexing?.active
+        ? "indexing"
+        : searchError
+          ? "error"
+          : searchLoading
+            ? "loading"
+            : query.trim()
+              ? searchResults.length
+                  ? "results"
+                  : "no-results"
+              : "no-query";
+    const groupedSearchResults = useMemo(() => {
+        let index = 0;
+        return SEARCH_RESULT_TYPES.map((type) => {
+            const results = searchResults
+                .filter((result) => result.entityType === type)
+                .map((result) => ({ index: index++, result }));
+
+            return { type, results };
+        }).filter((group) => group.results.length > 0);
+    }, [searchResults]);
+    const flatSearchResults = groupedSearchResults.flatMap(
+        (group) => group.results,
+    );
+    const activityPanelState = visibleActivityItems.some(
+        (item) => item.tone === "loading",
+    )
+        ? "loading"
+        : visibleActivityItems.some(
+                (item) => item.tone === "error" || item.tone === "warn",
             )
+          ? "error"
+          : visibleActivityItems.length > 0
+            ? "default"
+            : "empty";
+
+    const loadSourceReport = useCallback(async () => {
+        if (!selectedRecordingId || !selectedRecordingHasSource) {
+            setSourceReport({
+                recordingId: selectedRecordingId,
+                state: "idle",
+                data: null,
+                error: "",
+            });
+            return;
+        }
+
+        sourceReportRequestRef.current?.controller.abort();
+        const requestId = sourceReportRequestIdRef.current + 1;
+        sourceReportRequestIdRef.current = requestId;
+        const controller = new AbortController();
+        sourceReportRequestRef.current = {
+            controller,
+            id: requestId,
+            recordingId: selectedRecordingId,
+        };
+
+        setSourceReport({
+            recordingId: selectedRecordingId,
+            state: "loading",
+            data: null,
+            error: "",
+        });
+
+        try {
+            const response = await fetch(
+                `/api/recordings/${selectedRecordingId}/source-report`,
+                { cache: "no-store", signal: controller.signal },
+            );
+            const payload = (await response.json().catch(() => ({}))) as
+                | (SourceReportData & { error?: string })
+                | { error?: string };
+
+            if (
+                controller.signal.aborted ||
+                sourceReportRequestRef.current?.id !== requestId ||
+                selectedRecordingIdRef.current !== selectedRecordingId
+            ) {
+                return;
+            }
+
+            if (!response.ok) {
+                setSourceReport({
+                    recordingId: selectedRecordingId,
+                    state: "error",
+                    data: null,
+                    error: payload.error ?? "加载来源记录失败",
+                });
+                return;
+            }
+
+            const report = payload as SourceReportData;
+            setSourceReport({
+                recordingId: selectedRecordingId,
+                state: "loaded",
+                data: report,
+                error: "",
+            });
+        } catch (error) {
+            if (
+                controller.signal.aborted ||
+                sourceReportRequestRef.current?.id !== requestId ||
+                selectedRecordingIdRef.current !== selectedRecordingId
+            ) {
+                return;
+            }
+
+            if (error instanceof DOMException && error.name === "AbortError") {
+                return;
+            }
+
+            setSourceReport({
+                recordingId: selectedRecordingId,
+                state: "error",
+                data: null,
+                error: "加载来源记录失败",
+            });
+        } finally {
+            if (sourceReportRequestRef.current?.id === requestId) {
+                sourceReportRequestRef.current = null;
+            }
+        }
+    }, [selectedRecordingHasSource, selectedRecordingId]);
+
+    const handleCopyLocalTranscript = useCallback(async () => {
+        if (!localTranscriptText.trim()) {
+            toast.error(t("transcription.noTranscript"));
+            return;
+        }
+
+        setCopyingAction("local-transcript");
+        try {
+            await writeBrowserClipboardText(localTranscriptText);
+            showCopyFeedback("local-transcript", "ok");
+            toast.success(t("transcription.transcriptCopied"));
+        } catch {
+            showCopyFeedback("local-transcript", "err");
+            toast.error(t("transcription.copyTranscriptFailed"));
+        } finally {
+            setCopyingAction(null);
+        }
+    }, [localTranscriptText, showCopyFeedback, t]);
+
+    const handleCopySourceMaterial = useCallback(
+        async (kind: "source-transcript" | "source-report") => {
+            const copyText =
+                kind === "source-transcript"
+                    ? sourceTranscriptCopyText
+                    : sourceReportCopyText;
+
+            if (!copyText.trim()) {
+                toast.error(
+                    kind === "source-transcript"
+                        ? t("sourceReport.missingSourceTranscript")
+                        : t("sourceReport.missingSourceReport"),
+                );
+                return;
+            }
+
+            setCopyingAction(kind);
+            try {
+                await writeBrowserClipboardText(copyText);
+                showCopyFeedback(kind, "ok");
+                toast.success(
+                    kind === "source-transcript"
+                        ? t("sourceReport.sourceTranscriptCopied")
+                        : t("sourceReport.sourceReportCopied"),
+                );
+            } catch {
+                showCopyFeedback(kind, "err");
+                toast.error(t("sourceReport.copyFailed"));
+            } finally {
+                setCopyingAction(null);
+            }
+        },
+        [showCopyFeedback, sourceReportCopyText, sourceTranscriptCopyText, t],
+    );
+
+    const handleOpenSourceRecord = useCallback(() => {
+        if (!sourceOpenUrl) {
+            toast.error(t("sourceReport.openSourceUnavailable"));
+            return;
+        }
+
+        window.open(sourceOpenUrl, "_blank", "noopener,noreferrer");
+    }, [sourceOpenUrl, t]);
+
+    const handleRepullSource = useCallback(async () => {
+        if (!selectedRecordingId || sourceRepullDisabled) {
+            if (!sourceRepullAvailable) {
+                toast.error(t("sourceReport.repullUnavailable"));
+            }
+            return;
+        }
+
+        setSourceRepullState("loading");
+        try {
+            await runDataSourcesSync();
+            await Promise.all([refreshStatus(), loadDataSources()]);
+            refreshBrowserRoute(router);
+            await loadSourceReport();
+            setSourceRepullState("success");
+            toast.success(t("sourceReport.repullComplete"));
+        } catch {
+            setSourceRepullState("error");
+            toast.error(t("sourceReport.repullFailed"));
+        }
+    }, [
+        loadDataSources,
+        loadSourceReport,
+        refreshStatus,
+        router,
+        selectedRecordingId,
+        sourceRepullAvailable,
+        sourceRepullDisabled,
+        t,
+    ]);
+
+    const markTranscriptLoading = useCallback((recordingId: string) => {
+        setLoadingTranscriptIds((previous) => {
+            if (previous.has(recordingId)) {
+                return previous;
+            }
+            const next = new Set(previous);
+            next.add(recordingId);
+            return next;
+        });
+    }, []);
+
+    const clearTranscriptLoading = useCallback((recordingId: string) => {
+        setLoadingTranscriptIds((previous) => {
+            if (!previous.has(recordingId)) {
+                return previous;
+            }
+            const next = new Set(previous);
+            next.delete(recordingId);
+            return next;
+        });
+    }, []);
+
+    useEffect(() => {
+        const recordingId = selectedRecordingId;
+        if (
+            !recordingId ||
+            !selectedTranscription?.hasTranscript ||
+            hasTranscriptContent(selectedTranscription) ||
+            loadingTranscriptIdsRef.current.has(recordingId)
         ) {
             return;
         }
 
-        const nextRecording = filteredRecordings[0] ?? null;
-        if ((currentRecording?.id ?? null) === (nextRecording?.id ?? null)) {
-            return;
-        }
+        loadingTranscriptIdsRef.current.add(recordingId);
+        markTranscriptLoading(recordingId);
+        let active = true;
 
-        setCurrentRecording(nextRecording);
-    }, [currentRecording, filteredRecordings]);
+        fetch(`/api/recordings/${recordingId}`, {
+            headers: { Accept: "application/json" },
+        })
+            .then((response) => (response.ok ? response.json() : null))
+            .then(
+                (
+                    data: {
+                        transcription?: {
+                            text?: string | null;
+                            detectedLanguage?: string | null;
+                            speakerMap?: Record<string, string> | null;
+                            segments?: TranscriptSegmentData[] | null;
+                        } | null;
+                    } | null,
+                ) => {
+                    if (!active) return;
+                    const transcription = data?.transcription;
+                    if (!hasTranscriptContent(transcription ?? null)) {
+                        return;
+                    }
 
-    const handleFavoriteSelect = useCallback((favorite: DashboardFavorite) => {
-        setActiveFavorite(favorite);
-        setRecordingListMode(favorite === "tags" ? "tags" : "timeline");
-        setSourceDrawerOpen(false);
-    }, []);
-
-    const handleRecordingListModeChange = useCallback(
-        (nextMode: RecordingListMode) => {
-            setRecordingListMode(nextMode);
-            setActiveFavorite((previous) => {
-                if (nextMode === "tags") return "tags";
-                return previous === "tags" ? "all" : previous;
+                    setLiveTranscriptions((previous) => {
+                        const current = previous.get(recordingId);
+                        const next = new Map(previous);
+                        next.set(recordingId, {
+                            ...current,
+                            hasTranscript: true,
+                            text: transcription?.text ?? undefined,
+                            language:
+                                transcription?.detectedLanguage ?? undefined,
+                            speakerMap:
+                                transcription?.speakerMap ??
+                                current?.speakerMap,
+                            segments:
+                                transcription?.segments ?? current?.segments,
+                        });
+                        return next;
+                    });
+                },
+            )
+            .finally(() => {
+                if (!active) return;
+                loadingTranscriptIdsRef.current.delete(recordingId);
+                clearTranscriptLoading(recordingId);
             });
-        },
-        [],
-    );
 
-    const handleSync = useCallback(async () => {
-        await manualSync();
-    }, [manualSync]);
+        return () => {
+            active = false;
+        };
+    }, [
+        clearTranscriptLoading,
+        markTranscriptLoading,
+        selectedRecordingId,
+        selectedTranscription,
+    ]);
 
-    const setSearchOverlayOpen = useCallback((open: boolean) => {
-        if (open) {
-            setMoreActionsOpen(false);
-            setTagManagerOpen(false);
-            setSourceDrawerOpen(false);
-            setActiveTopbarOverlay("search");
+    useEffect(() => {
+        if (!selectedRecording) {
+            selectedRecordingIdRef.current = null;
+            sourceReportRequestRef.current?.controller.abort();
+            sourceReportRequestRef.current = null;
+            sourceReportRequestIdRef.current += 1;
+            setSourceReport({
+                recordingId: null,
+                state: "idle",
+                data: null,
+                error: "",
+            });
+            return;
+        }
+        if (selectedRecordingIdRef.current === selectedRecording.id) {
+            return;
+        }
+        selectedRecordingIdRef.current = selectedRecording.id;
+        setSelectedId(selectedRecording.id);
+        setDraftTitle(selectedRecording.filename);
+        setRetxState("idle");
+        sourceReportRequestRef.current?.controller.abort();
+        sourceReportRequestRef.current = null;
+        sourceReportRequestIdRef.current += 1;
+        setSourceReport({
+            recordingId: selectedRecording.id,
+            state: "idle",
+            data: null,
+            error: "",
+        });
+        setCopyingAction(null);
+        setCopyFeedback(null);
+        if (copyFeedbackTimerRef.current) {
+            window.clearTimeout(copyFeedbackTimerRef.current);
+            copyFeedbackTimerRef.current = null;
+        }
+        setAiState("loading");
+        setAiPreviewTitle("");
+        setAiError("");
+        setAiApplying(false);
+    }, [selectedRecording]);
+
+    useEffect(() => {
+        return () => {
+            if (copyFeedbackTimerRef.current) {
+                window.clearTimeout(copyFeedbackTimerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (
+            detailTab !== "source" ||
+            !selectedRecordingId ||
+            !selectedRecordingHasSource ||
+            (sourceReport.recordingId === selectedRecordingId &&
+                sourceReport.state !== "idle")
+        ) {
             return;
         }
 
-        setActiveTopbarOverlay((previous) => {
-            return previous === "search" ? null : previous;
-        });
-    }, []);
+        void loadSourceReport();
+    }, [
+        detailTab,
+        loadSourceReport,
+        selectedRecordingId,
+        selectedRecordingHasSource,
+        sourceReport.recordingId,
+        sourceReport.state,
+    ]);
 
-    const setActivityOverlayOpen = useCallback((open: boolean) => {
-        if (open) {
-            setMoreActionsOpen(false);
-            setTagManagerOpen(false);
-            setSourceDrawerOpen(false);
-            setActiveTopbarOverlay("activity");
-            return;
+    useEffect(() => {
+        if (settingsOpen) {
+            setSearchOpen(false);
+            closeActivityOverlay();
+            setDrawerOpen(false);
+            setMoreOpen(false);
+            setTagOpen(false);
+            setTagFilterOpen(false);
         }
+    }, [closeActivityOverlay, settingsOpen]);
 
-        setActiveTopbarOverlay((previous) => {
-            return previous === "activity" ? null : previous;
+    useEffect(() => {
+        if (activityOpen || !restoreActivityFocusRef.current) return;
+        restoreActivityFocusRef.current = false;
+        const frame = window.requestAnimationFrame(() => {
+            activityTriggerRef.current?.focus({ preventScroll: true });
         });
-    }, []);
+        return () => window.cancelAnimationFrame(frame);
+    }, [activityOpen]);
 
-    const handleToggleMoreActions = useCallback(() => {
-        setActiveTopbarOverlay(null);
-        setTagManagerOpen(false);
-        setSourceDrawerOpen(false);
-        setMoreActionsOpen((open) => !open);
-    }, []);
+    useEffect(() => {
+        if (!drawerOpen && !searchOpen && !activityOpen) return;
 
-    const handleToggleTagManager = useCallback(() => {
-        setActiveTopbarOverlay(null);
-        setMoreActionsOpen(false);
-        setSourceDrawerOpen(false);
-        setTagManagerOpen((open) => !open);
-    }, []);
-
-    const handleOpenSettings = useCallback(() => {
-        setActiveTopbarOverlay(null);
-        setMoreActionsOpen(false);
-        setTagManagerOpen(false);
-        setSourceDrawerOpen(false);
-        setSettingsOpen(true);
-    }, []);
-
-    const handleSettingsTriggerClick = useCallback(
-        (event: ReactMouseEvent<HTMLButtonElement>) => {
-            event.preventDefault();
-            event.currentTarget.focus({ preventScroll: true });
-            handleOpenSettings();
-        },
-        [handleOpenSettings],
-    );
-
-    const handleOpenDataSourcesSettings = useCallback(
-        (provider?: SourceProvider) => {
-            if (provider) {
-                writeBrowserStorage(
-                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
-                    provider,
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (drawerOpen && event.key === "Tab") {
+                const drawer = sourceDrawerRef.current;
+                const focusable = Array.from(
+                    drawer?.querySelectorAll<HTMLElement>(
+                        SOURCE_DRAWER_FOCUSABLE_SELECTOR,
+                    ) ?? [],
+                ).filter(
+                    (element) =>
+                        !element.hasAttribute("disabled") &&
+                        element.offsetParent !== null,
                 );
+                const first = focusable[0] ?? drawer;
+                const last = focusable.at(-1) ?? drawer;
+                const active = document.activeElement;
+
+                if (!drawer || !first || !last) return;
+                if (!drawer.contains(active)) {
+                    event.preventDefault();
+                    first.focus({ preventScroll: true });
+                    return;
+                }
+                if (event.shiftKey && active === first) {
+                    event.preventDefault();
+                    last.focus({ preventScroll: true });
+                    return;
+                }
+                if (!event.shiftKey && active === last) {
+                    event.preventDefault();
+                    first.focus({ preventScroll: true });
+                    return;
+                }
             }
-            writeBrowserHash("data-sources");
-            handleOpenSettings();
-        },
-        [handleOpenSettings],
-    );
 
-    const handleOpenTitleGenerationSettings = useCallback(() => {
-        writeBrowserHash("title-generation");
-        handleOpenSettings();
-    }, [handleOpenSettings]);
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            if (activityOpen) {
+                closeActivityOverlay({ restoreFocus: true });
+            }
+            if (searchOpen) {
+                setSearchOpen(false);
+                window.setTimeout(() => {
+                    searchTriggerRef.current?.focus({ preventScroll: true });
+                }, 0);
+            }
+            if (drawerOpen) {
+                setDrawerOpen(false);
+                window.setTimeout(() => {
+                    drawerTriggerRef.current?.focus({ preventScroll: true });
+                }, 180);
+            }
+        };
 
-    const handleClearDashboardFilters = useCallback(() => {
-        setActiveFavorite("all");
-        setActiveSourceProvider(null);
-        setLibrarySearchFilter(null);
-        setRecordingListMode("timeline");
-        setSourceDrawerOpen(false);
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (
+                searchOpen &&
+                searchOverlayRef.current &&
+                !searchOverlayRef.current.contains(target)
+            ) {
+                setSearchOpen(false);
+            }
+            if (
+                activityOpen &&
+                activityOverlayRef.current &&
+                !activityOverlayRef.current.contains(target)
+            ) {
+                closeActivityOverlay();
+            }
+            if (
+                drawerOpen &&
+                sourceDrawerRef.current &&
+                !sourceDrawerRef.current.contains(target) &&
+                !drawerTriggerRef.current?.contains(target)
+            ) {
+                setDrawerOpen(false);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("pointerdown", handlePointerDown);
+        };
+    }, [activityOpen, closeActivityOverlay, drawerOpen, searchOpen]);
+
+    useEffect(() => {
+        if (!drawerOpen) return;
+        window.setTimeout(() => {
+            const drawer = sourceDrawerRef.current;
+            const firstFocusable = drawer?.querySelector<HTMLElement>(
+                SOURCE_DRAWER_FOCUSABLE_SELECTOR,
+            );
+            (firstFocusable ?? drawer)?.focus({ preventScroll: true });
+        }, 0);
+    }, [drawerOpen]);
+
+    useEffect(() => {
+        if (!tagFilterOpen) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            setTagFilterOpen(false);
+        };
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+            if (!tagFilterRef.current?.contains(target)) {
+                setTagFilterOpen(false);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("pointerdown", handlePointerDown);
+        };
+    }, [tagFilterOpen]);
+
+    useEffect(() => {
+        let active = true;
+        fetch("/api/settings/title-generation")
+            .then((response) => (response.ok ? response.json() : null))
+            .then(
+                (
+                    data: {
+                        titleGenerationBaseUrl?: string | null;
+                        titleGenerationModel?: string | null;
+                        titleGenerationApiKeySet?: boolean;
+                    } | null,
+                ) => {
+                    if (!active) return;
+                    setTitleGenerationConfigured(
+                        Boolean(
+                            data?.titleGenerationBaseUrl &&
+                                data?.titleGenerationModel &&
+                                data?.titleGenerationApiKeySet,
+                        ),
+                    );
+                },
+            )
+            .catch(() => {
+                if (active) setTitleGenerationConfigured(false);
+            });
+        return () => {
+            active = false;
+        };
     }, []);
 
-    const handleWidenSourceFilters = useCallback(() => {
-        setActiveFavorite("all");
-        setRecordingListMode("timeline");
-        setSourceDrawerOpen(false);
-    }, []);
-
-    const handleOpenSearchResult = useCallback(
-        (recordingId: string) => {
-            const recording = liveRecordings.find(
-                (item) => item.id === recordingId,
-            );
-            if (!recording) {
-                return;
+    useEffect(() => {
+        if (!selectedRecordingId || titleGenerationConfigured === null) return;
+        if (aiUnavailableReason) {
+            if (aiOpen) {
+                setAiState("unavailable");
+                setAiError(aiUnavailableReason);
             }
-
-            setTagManagerOpen(false);
-            setCurrentRecording(recording);
-        },
-        [liveRecordings],
-    );
-
-    const handleApplyLibrarySearchFilter = useCallback(
-        (filter: LibrarySearchFilter) => {
-            setLibrarySearchFilter(filter);
-            if (filter.kind === "tag") {
-                setRecordingListMode("tags");
-                setActiveFavorite("tags");
-            }
-        },
-        [],
-    );
-
-    const handleTranscribe = useCallback(async () => {
-        if (!currentRecording) return;
-        if (!currentCanPrivateTranscribe) {
-            toast.error(
-                currentTranscribeUnavailableReason ??
-                    t("dashboard.transcribeFailed"),
-            );
             return;
         }
-
-        setIsTranscribing(true);
-        try {
-            const response = await fetch(
-                `/api/recordings/${currentRecording.id}/transcribe`,
-                { method: "POST" },
-            );
-
-            const data = await response.json();
-            if (!response.ok) {
-                toast.error(data.error || t("dashboard.transcribeFailed"));
-                return;
-            }
-
-            if (data.queued) {
-                toast.success(t("dashboard.transcribeQueued"));
-            } else {
-                toast.success(t("dashboard.transcriptionAvailable"));
-            }
-            if (data.job) {
-                setLiveTranscriptionJobs((previous) => {
-                    const next = new Map(previous);
-                    next.set(currentRecording.id, {
-                        status: data.job.status ?? "pending",
-                        remoteStatus: data.job.remoteStatus ?? null,
-                        lastError: data.job.lastError ?? null,
-                    });
-                    return next;
-                });
-            }
-            if (data.transcript) {
-                setLiveTranscriptions((previous) => {
-                    const next = new Map(previous);
-                    next.set(currentRecording.id, {
-                        text: data.transcript.text,
-                        language: data.transcript.detectedLanguage ?? undefined,
-                        speakerMap: data.transcript.speakerMap ?? undefined,
-                        segments: data.transcript.segments ?? null,
-                    });
-                    return next;
-                });
-            }
-        } catch {
-            toast.error(t("transcription.failedToLoad"));
-        } finally {
-            setIsTranscribing(false);
+        if (aiState === "unavailable") {
+            setAiOpen(false);
+            setAiState("loading");
+            setAiError("");
         }
     }, [
-        currentCanPrivateTranscribe,
-        currentRecording,
-        currentTranscribeUnavailableReason,
-        t,
+        aiOpen,
+        aiState,
+        aiUnavailableReason,
+        selectedRecordingId,
+        titleGenerationConfigured,
     ]);
 
-    const handleRetranscribe = useCallback(async () => {
-        if (!currentRecording) return;
-        if (!currentCanPrivateTranscribe) {
-            toast.error(
-                currentTranscribeUnavailableReason ??
-                    t("dashboard.retranscribeFailed"),
-            );
+    useEffect(() => {
+        if (!tagOpen) return;
+        let active = true;
+        fetch("/api/recording-tags")
+            .then((response) => (response.ok ? response.json() : null))
+            .then((data: { tags?: RecordingTag[] } | null) => {
+                if (!active) return;
+                setAvailableTags(data?.tags ?? []);
+                setTagLoadError("");
+            })
+            .catch(() => {
+                if (active) setTagLoadError("标签加载失败");
+            });
+        return () => {
+            active = false;
+        };
+    }, [tagOpen]);
+
+    useEffect(() => {
+        if (!searchOpen || query.trim().length === 0) {
+            setSearchResults([]);
+            setSearchError("");
+            setSearchIndexing(null);
             return;
         }
+        const timer = window.setTimeout(() => {
+            setSearchLoading(true);
+            setSearchError("");
+            setSearchIndexing(null);
+            const params = new URLSearchParams({
+                q: query,
+                limit: "8",
+            });
+            if (searchRetry > 0) {
+                params.set("_retry", String(searchRetry));
+            }
+            if (searchScope !== "all") {
+                params.set("type", searchScope);
+            }
+            fetch(`/api/search?${params.toString()}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error("Search failed");
+                    return response.json();
+                })
+                .then(
+                    (data: {
+                        results?: SearchResult[];
+                        indexing?: SearchIndexingProgress;
+                    }) => {
+                        if (data.indexing?.active) {
+                            setSearchIndexing(data.indexing);
+                            setSearchResults([]);
+                            return;
+                        }
+                        setSearchIndexing(null);
+                        setSearchResults(data.results ?? []);
+                    },
+                )
+                .catch(() => {
+                    setSearchResults([]);
+                    setSearchIndexing(null);
+                    setSearchError("搜索暂时不可用");
+                })
+                .finally(() => setSearchLoading(false));
+        }, 180);
+        return () => window.clearTimeout(timer);
+    }, [query, searchOpen, searchRetry, searchScope]);
 
-        setIsTranscribing(true);
-        try {
-            const response = await fetch(
-                `/api/recordings/${currentRecording.id}/transcribe`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ force: true }),
-                },
-            );
+    useEffect(() => {
+        if (!searchOpen) return;
+        window.setTimeout(() => {
+            searchInputRef.current?.focus({ preventScroll: true });
+        }, 0);
+    }, [searchOpen]);
 
-            const data = await response.json();
-            if (!response.ok) {
-                toast.error(data.error || t("dashboard.retranscribeFailed"));
-                return;
-            }
+    useEffect(() => {
+        if (!searchOpen || flatSearchResults.length === 0) return;
+        window.setTimeout(() => {
+            document
+                .querySelector<HTMLElement>(
+                    `[data-sot-control="library-search-result"][data-sot-result-index="${activeSearchIndex}"]`,
+                )
+                ?.scrollIntoView({ block: "nearest" });
+        }, 0);
+    }, [activeSearchIndex, flatSearchResults.length, searchOpen]);
 
-            if (data.queued) {
-                toast.success(t("dashboard.retranscribeQueued"));
-            } else {
-                toast.success(t("dashboard.transcriptionAvailable"));
-            }
-            if (data.job) {
-                setLiveTranscriptionJobs((previous) => {
-                    const next = new Map(previous);
-                    next.set(currentRecording.id, {
-                        status: data.job.status ?? "pending",
-                        remoteStatus: data.job.remoteStatus ?? null,
-                        lastError: data.job.lastError ?? null,
-                    });
-                    return next;
-                });
-            }
-            if (data.transcript) {
-                setLiveTranscriptions((previous) => {
-                    const next = new Map(previous);
-                    next.set(currentRecording.id, {
-                        text: data.transcript.text,
-                        language: data.transcript.detectedLanguage ?? undefined,
-                        speakerMap: data.transcript.speakerMap ?? undefined,
-                        segments: data.transcript.segments ?? null,
-                    });
-                    return next;
-                });
-            }
-        } catch {
-            toast.error(t("dashboard.retranscribeFailed"));
-        } finally {
-            setIsTranscribing(false);
+    useEffect(() => {
+        document.body.dataset.drawer = drawerOpen ? "open" : "closed";
+        document.body.dataset.sourceFilter = source === "all" ? "" : source;
+        document.body.dataset.sourceStatus =
+            source === "all"
+                ? ""
+                : (sourceRows.find((row) => row.key === source)?.status ?? "");
+        document.body.dataset.timeStyle = "rel";
+        return () => {
+            delete document.body.dataset.drawer;
+            delete document.body.dataset.sourceFilter;
+            delete document.body.dataset.sourceStatus;
+            delete document.body.dataset.timeStyle;
+        };
+    }, [drawerOpen, source, sourceRows]);
+
+    function openSettings(section: CanonicalSettingsSection) {
+        setSearchOpen(false);
+        setActivityOpen(false);
+        setDrawerOpen(false);
+        setMoreOpen(false);
+        setTagOpen(false);
+        setTagFilterOpen(false);
+        setAiOpen(false);
+        setAiApplying(false);
+        window.history.replaceState(null, "", `/dashboard#${section}`);
+        setSettingsOpen(true);
+    }
+
+    function applyListMode(
+        mode: ListMode,
+        options: { fromFavorite?: boolean } = {},
+    ) {
+        if (listMode !== mode) {
+            setListMode(mode);
+            setTimelineFilter("all");
+            setSelectedTagFilter("all");
         }
-    }, [
-        currentCanPrivateTranscribe,
-        currentRecording,
-        currentTranscribeUnavailableReason,
-        t,
-    ]);
+        setTagFilterOpen(false);
+        if (!options.fromFavorite) {
+            setFavorite(mode === "tags" ? "tags" : "all");
+        }
+    }
 
-    const handleRenameStart = useCallback(() => {
-        if (!currentRecording) return;
-        if (!canRenameCurrentRecording) return;
-        setTagManagerOpen(false);
-        setRenameValue(currentRecording.filename);
-        setIsRenaming(true);
-    }, [canRenameCurrentRecording, currentRecording]);
-
-    const handleRenameCancel = useCallback(() => {
-        setIsRenaming(false);
-        setRenameValue("");
-    }, []);
-
-    const handleRenameSave = useCallback(async () => {
-        if (!currentRecording) return;
-
-        const newName = renameValue.trim();
-        if (!newName || newName === currentRecording.filename) {
-            handleRenameCancel();
+    function selectRecording(recordingId: string) {
+        if (recordingId === selectedRecordingId) {
+            setSelectedId(recordingId);
             return;
         }
+        setSelectedId(recordingId);
+        setEditingTitle(false);
+        setMoreOpen(false);
+        setTagOpen(false);
+        setTagFilterOpen(false);
+        setAiOpen(false);
+        setRetxState("idle");
+        setAiState("loading");
+        setAiPreviewTitle("");
+        setAiError("");
+        setAiApplying(false);
+        setSourceRepullState("idle");
+    }
 
-        setIsSavingRename(true);
-        try {
-            const response = await fetch(
-                `/api/recordings/${currentRecording.id}/rename`,
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ filename: newName }),
-                },
-            );
+    async function runManualSync() {
+        if (syncButtonBusy) return;
+        setActivitySyncActionState("busy");
+        const syncSucceeded = await manualSync();
 
-            const data = await response.json();
-            if (!response.ok) {
-                toast.error(data.error || t("dashboard.renameFailed"));
-                return;
-            }
-
-            setCurrentRecording((previous) =>
-                previous ? { ...previous, filename: newName } : previous,
-            );
-            setLiveRecordings((previous) =>
-                previous.map((recording) =>
-                    recording.id === currentRecording.id
-                        ? { ...recording, filename: newName }
-                        : recording,
-                ),
-            );
-            setIsRenaming(false);
-            toast.success(t("dashboard.renameSuccess"));
+        if (syncSucceeded) {
+            await Promise.all([refreshStatus(), loadDataSources()]);
             refreshBrowserRoute(router);
-        } catch {
-            toast.error(t("dashboard.renameFailed"));
-        } finally {
-            setIsSavingRename(false);
-        }
-    }, [currentRecording, handleRenameCancel, renameValue, router, t]);
-
-    const handleAutoRename = useCallback(async () => {
-        if (!currentRecording) return;
-        if (!canAutoRenameCurrentRecording) {
-            if (autoRenameDisabledReason) {
-                toast.error(autoRenameDisabledReason);
-            }
+            setActivitySyncActionState("done");
             return;
         }
 
-        setAutoRenameError(null);
-        setAutoRenameAcceptedTitle(null);
-        setIsAutoRenaming(true);
-        try {
-            const response = await fetch(
-                `/api/recordings/${currentRecording.id}/rename/auto`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ mode: "preview" }),
-                },
-            );
+        setActivitySyncActionState("error");
+    }
 
-            const data = await response.json();
-            if (!response.ok) {
-                const message =
-                    data.error || t("transcription.autoRenameFailed");
-                setAutoRenameError(message);
-                toast.error(message);
-                return;
-            }
-
-            if (typeof data.filename === "string" && data.filename.trim()) {
-                setAutoRenamePreview(data.filename);
-                setAutoRenameError(null);
-                toast.success(t("transcription.aiRenamePreviewReady"));
-            }
-        } catch {
-            const message = t("transcription.autoRenameFailed");
-            setAutoRenameError(message);
-            toast.error(message);
-        } finally {
-            setIsAutoRenaming(false);
+    function applyLibrarySearchResult(result: SearchResult) {
+        const action = searchResultAction(result);
+        if (action === "filter") {
+            const label = searchResultFilterLabel(result);
+            setLibrarySearchFilter({
+                label,
+                type: result.entityType === "speaker" ? "speaker" : "tag",
+            });
+            setFavorite("all");
+            applyListMode("timeline", { fromFavorite: true });
+            setQuery("");
+            setSearchResults([]);
+            setSearchOpen(false);
+            return;
         }
-    }, [
-        autoRenameDisabledReason,
-        canAutoRenameCurrentRecording,
-        currentRecording,
-        t,
-    ]);
+        if (result.recordingId) {
+            selectRecording(result.recordingId);
+            setQuery("");
+            setSearchResults([]);
+            setSearchOpen(false);
+        }
+    }
 
-    const handleAutoRenamePreviewCancel = useCallback(() => {
-        setAutoRenamePreview(null);
-        setAutoRenameError(null);
-        setAutoRenameAcceptedTitle(null);
-    }, []);
+    function handleLibrarySearchKeyDown(event: ReactKeyboardEvent) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            setSearchOpen(false);
+            window.setTimeout(() => {
+                searchTriggerRef.current?.focus({ preventScroll: true });
+            }, 0);
+            return;
+        }
+        if (flatSearchResults.length === 0) return;
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActiveSearchIndex((value) =>
+                Math.min(value + 1, flatSearchResults.length - 1),
+            );
+            return;
+        }
+        if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActiveSearchIndex((value) => Math.max(value - 1, 0));
+            return;
+        }
+        if (event.key === "Enter") {
+            event.preventDefault();
+            const activeResult = flatSearchResults[activeSearchIndex]?.result;
+            if (activeResult) applyLibrarySearchResult(activeResult);
+        }
+    }
 
-    const handleAutoRenamePreviewApply = useCallback(async () => {
-        if (!currentRecording) return;
+    async function runActivityAction(item: ActivityItem) {
+        if (item.action === "sync") {
+            await runManualSync();
+            return;
+        }
+        if (item.action === "settings") {
+            openSettings("data-sources");
+            return;
+        }
+        if (item.recordingId) {
+            selectRecording(item.recordingId);
+            setActivityOpen(false);
+        }
+    }
 
-        const filename = autoRenamePreview?.trim();
-        if (!filename) return;
+    function handleActivityItemKeyDown(
+        event: ReactKeyboardEvent,
+        item: ActivityItem,
+    ) {
+        if (!item.recordingId) return;
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        void runActivityAction(item);
+    }
 
-        setIsApplyingAutoRename(true);
+    async function renameRecording() {
+        if (!selectedRecording) return;
+        const filename = draftTitle.trim();
+        if (!filename || filename === selectedRecording.filename) {
+            setEditingTitle(false);
+            setDraftTitle(selectedRecording.filename);
+            return;
+        }
+        setRenaming(true);
+        const response = await fetch(
+            `/api/recordings/${selectedRecording.id}/rename`,
+            {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename }),
+            },
+        );
+        setRenaming(false);
+        if (!response.ok) {
+            toast.error(await readResponseError(response, "重命名失败"));
+            return;
+        }
+        setLiveRecordings((items) =>
+            items.map((item) =>
+                item.id === selectedRecording.id ? { ...item, filename } : item,
+            ),
+        );
+        setDraftTitle(filename);
+        setEditingTitle(false);
+        toast.success("已重命名");
+    }
+
+    async function previewAutoRename() {
+        if (!selectedRecording) return;
+        if (aiUnavailableReason) {
+            setAiOpen(true);
+            setAiState("unavailable");
+            setAiError(aiUnavailableReason);
+            setAiApplying(false);
+            return;
+        }
+        setAiOpen(true);
+        setAiState("loading");
+        setAiPreviewTitle("");
+        setAiError("");
+        setAiApplying(false);
+        const response = await fetch(
+            `/api/recordings/${selectedRecording.id}/rename/auto`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mode: "preview" }),
+            },
+        );
+        if (!response.ok) {
+            const error = await readResponseError(
+                response,
+                "这次没拿到结果，可能是转写太短或模型暂时不可用。",
+            );
+            toast.error(error);
+            if (response.status === 400) {
+                setAiError("AI 重命名服务尚未配置或暂时不可用。");
+                setAiState("unavailable");
+            } else {
+                setAiError("这次没拿到结果，可能是转写太短或模型暂时不可用。");
+                setAiState("error");
+            }
+            return;
+        }
+        const data = (await response.json()) as { filename?: string };
+        setAiPreviewTitle(data.filename ?? "");
+        setAiState("review");
+    }
+
+    async function applyAiRename() {
+        if (!selectedRecording || !aiPreviewTitle.trim()) return;
+        const filename = aiPreviewTitle.trim();
+        setAiApplying(true);
         try {
             const response = await fetch(
-                `/api/recordings/${currentRecording.id}/rename`,
+                `/api/recordings/${selectedRecording.id}/rename`,
                 {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ filename }),
                 },
             );
-
-            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                toast.error(data.error || t("transcription.autoRenameFailed"));
+                const error = await readResponseError(
+                    response,
+                    "AI 标题写回失败",
+                );
+                setAiError(error);
+                toast.error(error);
+                setAiState("review");
                 return;
             }
-
-            setCurrentRecording((previous) =>
-                previous ? { ...previous, filename } : previous,
-            );
-            setLiveRecordings((previous) =>
-                previous.map((recording) =>
-                    recording.id === currentRecording.id
-                        ? { ...recording, filename }
-                        : recording,
+            setLiveRecordings((items) =>
+                items.map((item) =>
+                    item.id === selectedRecording.id
+                        ? { ...item, filename }
+                        : item,
                 ),
             );
-            setRenameValue(filename);
-            setAutoRenamePreview(null);
-            setAutoRenameError(null);
-            setAutoRenameAcceptedTitle(filename);
-            toast.success(
-                t("transcription.autoRenameSuccess", {
-                    filename,
-                }),
-            );
-            startTransition(() => {
-                refreshBrowserRoute(router);
-            });
-        } catch {
-            toast.error(t("transcription.autoRenameFailed"));
+            setDraftTitle(filename);
+            setAiOpen(false);
+            setAiState("loading");
+            setAiPreviewTitle("");
+            setAiError("");
+            toast.success("AI 重命名已应用");
         } finally {
-            setIsApplyingAutoRename(false);
+            setAiApplying(false);
         }
-    }, [autoRenamePreview, currentRecording, router, t]);
+    }
 
-    const handleDelete = useCallback(async () => {
-        if (!currentRecording) return;
-        if (!currentRecording.upstreamDeleted) return;
-
-        const confirmed = await confirm({
-            title: t("common.confirmAction"),
-            description: t("dashboard.deleteConfirm", {
-                filename: currentRecording.filename,
-            }),
-            confirmLabel: t("common.confirm"),
-            cancelLabel: t("common.cancel"),
-            variant: "destructive",
+    async function deleteRecording() {
+        if (!selectedRecording || !localDeleteAvailable) return;
+        moreTriggerRef.current?.focus({ preventScroll: true });
+        setMoreOpen(false);
+        setTagOpen(false);
+        setAiOpen(false);
+        const ok = await confirm({
+            title: "删除本地副本？",
+            description: "这条录音在来源系统中已被删除，本地仅留存缓存副本。",
+            warning: "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
+            confirmLabel: "永久删除",
+            cancelLabel: "取消",
         });
-        if (!confirmed) {
+        if (!ok) return;
+        const response = await fetch(
+            `/api/recordings/${selectedRecording.id}`,
+            {
+                method: "DELETE",
+            },
+        );
+        if (!response.ok) {
+            toast.error(await readResponseError(response, "删除失败"));
+            return;
+        }
+        const deletedId = selectedRecording.id;
+        setLiveRecordings((items) =>
+            items.filter((item) => item.id !== deletedId),
+        );
+        setLiveTranscriptions((items) => {
+            const next = new Map(items);
+            next.delete(deletedId);
+            return next;
+        });
+        setLiveJobs((items) => {
+            const next = new Map(items);
+            next.delete(deletedId);
+            return next;
+        });
+        setSelectedId("");
+        setMoreOpen(false);
+        toast.success("录音已删除");
+    }
+
+    async function retranscribe() {
+        if (!selectedRecording) return;
+        if (!selectedRecording.audioUrl) {
+            setRetxState("unavailable");
+            toast.error("当前录音没有可用的本地音频，无法重新转写。");
+            return;
+        }
+        const ok = await confirm({
+            title: "重新转写这条录音？",
+            description: "当前的逐字稿、说话人标记与 AI 标题会被新结果覆盖。",
+            details: [
+                "逐字稿将重新生成 · 估计 1 ~ 3 分钟",
+                "说话人映射会保留，但本次结果可能合并不同的片段",
+                "本次操作不会影响来源系统中的正本",
+            ],
+            confirmLabel: "确认重新转写",
+            cancelLabel: "取消",
+        });
+        if (!ok) return;
+        setDismissedCompletedRetxIds((items) => {
+            if (!items.has(selectedRecording.id)) return items;
+            const next = new Set(items);
+            next.delete(selectedRecording.id);
+            return next;
+        });
+        setRetxState("queued");
+        const response = await fetch(
+            `/api/recordings/${selectedRecording.id}/transcribe`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ force: true }),
+            },
+        );
+        if (!response.ok) {
+            setRetxState("failed");
+            toast.error(await readResponseError(response, "转写任务提交失败"));
+            return;
+        }
+        const data = (await response.json().catch(() => ({}))) as {
+            job?: TranscriptionJobData;
+        };
+        if (data.job) {
+            setLiveJobs((jobs) => {
+                const next = new Map(jobs);
+                next.set(
+                    selectedRecording.id,
+                    data.job as TranscriptionJobData,
+                );
+                return next;
+            });
+        }
+        setRetxState(getRetxStateFromActiveJob(data.job) ?? "running");
+        toast.info("转写任务已加入队列");
+    }
+
+    function handleAudioEnded() {
+        if (!playbackSettings.autoPlayNext || !selectedRecording) return;
+        const currentIndex = filteredRecordings.findIndex(
+            (recording) => recording.id === selectedRecording.id,
+        );
+        const nextRecording =
+            currentIndex >= 0
+                ? filteredRecordings[currentIndex + 1]
+                : undefined;
+        if (!nextRecording) return;
+        selectRecording(nextRecording.id);
+    }
+
+    const seekDashboardPlayerBySeconds = (seconds: number) => {
+        const audio = audioRef.current;
+        if (
+            !audio ||
+            playbackDisabled ||
+            !playbackDuration ||
+            Number.isNaN(playbackDuration)
+        ) {
             return;
         }
 
-        try {
-            const response = await fetch(
-                `/api/recordings/${currentRecording.id}`,
-                { method: "DELETE" },
-            );
+        const nextTime = Math.min(
+            playbackDuration,
+            Math.max(0, audio.currentTime + seconds),
+        );
+        audio.currentTime = nextTime;
+        seekToSliderValue([(nextTime / playbackDuration) * 100]);
+    };
 
-            const data = await response.json();
-            if (!response.ok) {
-                toast.error(data.error || t("dashboard.deleteFailed"));
-                return;
-            }
-
-            const deletedRecordingId = currentRecording.id;
-            toast.success(t("dashboard.deleteSuccess"));
-            setTagManagerOpen(false);
-            setIsRenaming(false);
-            setAutoRenamePreview(null);
-            setAutoRenameError(null);
-            setCurrentRecording((previous) =>
-                previous?.id === deletedRecordingId ? null : previous,
-            );
-            setLiveRecordings((previous) =>
-                previous.filter(
-                    (recording) => recording.id !== deletedRecordingId,
-                ),
-            );
-            setLiveTranscriptions((previous) => {
-                const next = new Map(previous);
-                next.delete(deletedRecordingId);
-                return next;
-            });
-            setLiveTranscriptionJobs((previous) => {
-                const next = new Map(previous);
-                next.delete(deletedRecordingId);
-                return next;
-            });
-            refreshBrowserRoute(router);
-        } catch {
-            toast.error(t("dashboard.deleteFailed"));
+    const seekDashboardPlayerToPercent = (percent: number) => {
+        if (
+            playbackDisabled ||
+            !playbackDuration ||
+            Number.isNaN(playbackDuration)
+        ) {
+            return;
         }
-    }, [confirm, currentRecording, router, t]);
+        seekToSliderValue([Math.min(100, Math.max(0, percent))]);
+    };
 
     return (
-        <>
-            <div
-                className="dashboard-workstation min-h-screen px-3 py-3 sm:px-4 lg:px-5"
-                data-sidebar-collapsed={isSidebarCollapsed ? "true" : "false"}
-                data-source-drawer={isSourceDrawerOpen ? "open" : "closed"}
-                data-testid="dashboard-workstation"
-            >
-                <button
-                    type="button"
-                    aria-label={t("dashboardChrome.closeFilters")}
-                    data-testid="dashboard-source-drawer-scrim"
-                    className={cn(
-                        "fixed inset-0 z-[300] bg-black/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 lg:hidden",
-                        isSourceDrawerOpen
-                            ? "pointer-events-auto opacity-100"
-                            : "pointer-events-none",
-                    )}
-                    onClick={() => closeSourceDrawer()}
-                />
-                <div
-                    className="dashboard-workstation-grid mx-auto grid max-w-[1280px] gap-3 lg:h-[calc(100svh-2rem)] lg:min-h-[680px] lg:grid-cols-[16.5rem_minmax(22rem,24rem)_minmax(0,1fr)] lg:grid-rows-[3.5rem_minmax(0,1fr)] lg:overflow-hidden"
-                    data-sidebar-collapsed={
-                        isSidebarCollapsed ? "true" : "false"
-                    }
-                >
-                    <aside
-                        ref={sourceDrawerRef}
-                        className={cn(
-                            "dashboard-source-sidebar glass-surface fixed top-3 bottom-3 left-3 z-[310] flex w-[min(18rem,calc(100vw-2rem))] min-h-0 flex-col rounded-2xl p-3 transition-transform duration-300 ease-[var(--ease-sine)] lg:static lg:row-span-2 lg:w-auto lg:min-h-0 lg:translate-x-0",
-                            isSourceDrawerOpen
-                                ? "translate-x-0"
-                                : "-translate-x-[calc(100%+1rem)]",
-                            isSidebarCollapsed && "lg:p-2",
-                        )}
-                        data-collapsed={isSidebarCollapsed ? "true" : "false"}
-                        data-drawer-open={isSourceDrawerOpen ? "true" : "false"}
-                        data-testid="dashboard-source-rail"
-                    >
-                        <div className="mb-4 flex items-center gap-3 px-1 pt-1">
-                            <Logo className="size-9 shrink-0 text-primary" />
-                            <div
-                                className={cn(
-                                    "dashboard-sidebar-brand min-w-0",
-                                    isSidebarCollapsed && "lg:sr-only",
-                                )}
-                            >
-                                <h1 className="truncate text-base font-semibold tracking-tight">
-                                    BetterAINote
-                                </h1>
-                                <p className="text-xs text-muted-foreground">
-                                    {t("dashboardChrome.privateWorkspace")}
-                                </p>
-                            </div>
-                        </div>
+        <div
+            className={collapsed ? "app sidebar-collapsed" : "app"}
+            data-hydrated={hydrated ? "true" : "false"}
+            data-playback-auto-next={
+                playbackSettings.autoPlayNext ? "true" : "false"
+            }
+            data-playback-settings-loaded={
+                playbackSettingsLoaded ? "true" : "false"
+            }
+            data-sidebar-collapsed={collapsed ? "true" : "false"}
+            data-sot-surface="dashboard-workstation"
+            data-sot-state={hydrated ? "ready" : "loading"}
+        >
+            <aside className="sidebar glass glass-strong" ref={sourceDrawerRef}>
+                <div className="brand">
+                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <div className="brand-text">
+                        <div className="brand-name">BetterAINote</div>
+                        <div className="brand-sub">私人工作空间</div>
+                    </div>
+                </div>
 
-                        <div className="mb-4 flex flex-col gap-1">
-                            <Button
+                <nav className="nav" aria-label="录音筛选">
+                    <div className="nav-section-label">收藏</div>
+                    {FAVORITES.map((item) => {
+                        const Icon = item.icon;
+                        const count =
+                            item.value === "all"
+                                ? liveRecordings.length
+                                : item.value === "transcribed"
+                                  ? liveRecordings.filter((recording) =>
+                                        hasTranscript(
+                                            recording,
+                                            liveTranscriptions,
+                                        ),
+                                    ).length
+                                  : new Set(
+                                        liveRecordings.flatMap((recording) =>
+                                            recording.tags.map((tag) => tag.id),
+                                        ),
+                                    ).size;
+                        return (
+                            <button
+                                className={
+                                    favorite === item.value
+                                        ? "nav-item is-selected"
+                                        : "nav-item"
+                                }
                                 type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleFavoriteSelect("all")}
-                                aria-pressed={activeFavorite === "all"}
+                                aria-pressed={favorite === item.value}
                                 data-active={
-                                    activeFavorite === "all" ? "true" : "false"
+                                    favorite === item.value ? "true" : "false"
                                 }
-                                data-testid="dashboard-favorite-all"
-                                className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
-                                    isSidebarCollapsed &&
-                                        "lg:justify-center lg:px-2",
-                                )}
-                            >
-                                <Mic className="size-4 shrink-0" />
-                                <span
-                                    className={cn(
-                                        "min-w-0 flex-1 truncate",
-                                        isSidebarCollapsed && "lg:sr-only",
-                                    )}
-                                >
-                                    {t("dashboardFavorites.allRecordings")}
-                                </span>
-                                <span
-                                    data-testid="dashboard-favorite-all-count"
-                                    className={cn(
-                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
-                                        isSidebarCollapsed && "lg:hidden",
-                                    )}
-                                >
-                                    {liveRecordings.length}
-                                </span>
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                    handleFavoriteSelect("transcribed")
+                                data-favorite={item.value}
+                                data-sot-control="dashboard-favorite"
+                                data-sot-filter={item.value}
+                                data-sot-state={
+                                    favorite === item.value
+                                        ? "selected"
+                                        : "idle"
                                 }
-                                aria-pressed={activeFavorite === "transcribed"}
-                                data-active={
-                                    activeFavorite === "transcribed"
-                                        ? "true"
-                                        : "false"
-                                }
-                                data-testid="dashboard-favorite-transcribed"
-                                className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
-                                    isSidebarCollapsed &&
-                                        "lg:justify-center lg:px-2",
-                                )}
-                            >
-                                <FileText className="size-4 shrink-0" />
-                                <span
-                                    className={cn(
-                                        "min-w-0 flex-1 truncate",
-                                        isSidebarCollapsed && "lg:sr-only",
-                                    )}
-                                >
-                                    {t("dashboardFavorites.transcribed")}
-                                </span>
-                                <span
-                                    data-testid="dashboard-favorite-transcribed-count"
-                                    className={cn(
-                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
-                                        isSidebarCollapsed && "lg:hidden",
-                                    )}
-                                >
-                                    {
-                                        liveRecordings.filter((recording) =>
-                                            recordingHasTranscript(
-                                                liveTranscriptions.get(
-                                                    recording.id,
-                                                ),
-                                            ),
-                                        ).length
-                                    }
-                                </span>
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleFavoriteSelect("tags")}
-                                aria-pressed={activeFavorite === "tags"}
-                                data-active={
-                                    activeFavorite === "tags" ? "true" : "false"
-                                }
-                                data-testid="dashboard-favorite-tags"
-                                className={cn(
-                                    "group h-auto w-full justify-start rounded-[0.8rem] px-2.5 py-2 text-left text-sm text-muted-foreground hover:bg-accent/45 hover:text-foreground data-[active=true]:bg-muted/35 data-[active=true]:text-foreground data-[active=true]:shadow-xs",
-                                    isSidebarCollapsed &&
-                                        "lg:justify-center lg:px-2",
-                                )}
-                            >
-                                <Tags className="size-4 shrink-0" />
-                                <span
-                                    className={cn(
-                                        "min-w-0 flex-1 truncate",
-                                        isSidebarCollapsed && "lg:sr-only",
-                                    )}
-                                >
-                                    {t("dashboardFavorites.tags")}
-                                </span>
-                                <span
-                                    data-testid="dashboard-favorite-tags-count"
-                                    className={cn(
-                                        "rounded-md border border-border/70 bg-muted/35 px-1.5 text-[0.68rem]",
-                                        isSidebarCollapsed && "lg:hidden",
-                                    )}
-                                >
-                                    {tagCatalog.length}
-                                </span>
-                            </Button>
-                        </div>
-
-                        <SourceProviderRows
-                            compact={isSidebarCollapsed && !isSourceDrawerOpen}
-                            rows={sourceRows}
-                            activeProvider={activeSourceProvider}
-                            language={language}
-                            onSelectProvider={(provider) => {
-                                setActiveSourceProvider((previous) =>
-                                    previous === provider ? null : provider,
-                                );
-                                setSourceDrawerOpen(false);
-                            }}
-                            onConnectProvider={(provider) => {
-                                handleOpenDataSourcesSettings(provider);
-                                setSourceDrawerOpen(false);
-                            }}
-                            onClearProvider={() => {
-                                setActiveSourceProvider(null);
-                                setSourceDrawerOpen(false);
-                            }}
-                        />
-
-                        <div className="mt-auto flex flex-col gap-3 pt-4">
-                            {!isSidebarCollapsed ? (
-                                <SyncStatus
-                                    autoSyncEnabled={autoSyncEnabled}
-                                    lastSyncTime={lastSyncTime}
-                                    nextSyncTime={nextSyncTime}
-                                    isAutoSyncing={isAutoSyncing}
-                                    lastSyncResult={lastSyncResult}
-                                    workerStatus={workerStatus}
-                                />
-                            ) : null}
-                            <Button
-                                onClick={handleSync}
-                                disabled={isAutoSyncing}
-                                variant="outline"
-                                size="sm"
-                                className="h-9 justify-center rounded-xl"
-                            >
-                                {isAutoSyncing ? (
-                                    <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                        <span
-                                            className={cn(
-                                                isSidebarCollapsed &&
-                                                    "lg:sr-only",
-                                            )}
-                                        >
-                                            {t("dashboard.syncing")}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <RefreshCw className="mr-2 h-4 w-4" />
-                                        <span
-                                            className={cn(
-                                                isSidebarCollapsed &&
-                                                    "lg:sr-only",
-                                            )}
-                                        >
-                                            {t("dashboard.syncDevice")}
-                                        </span>
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </aside>
-
-                    <header className="glass-surface relative z-[200] flex min-h-14 items-center justify-between gap-3 overflow-visible rounded-2xl px-3 py-2 lg:col-span-2">
-                        <div className="flex min-w-0 items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                aria-label={t("dashboardChrome.openFilters")}
-                                aria-expanded={isSourceDrawerOpen}
-                                data-testid="dashboard-source-drawer-trigger"
-                                ref={sourceDrawerTriggerRef}
-                                className="relative h-9 w-9 shrink-0 rounded-xl lg:hidden"
+                                data-count-badge={String(count)}
+                                key={item.value}
                                 onClick={() => {
-                                    setActiveTopbarOverlay(null);
-                                    setMoreActionsOpen(false);
-                                    setTagManagerOpen(false);
-                                    setSourceDrawerOpen(true);
+                                    setFavorite(item.value);
+                                    applyListMode(
+                                        item.value === "tags"
+                                            ? "tags"
+                                            : "timeline",
+                                        { fromFavorite: true },
+                                    );
                                 }}
                             >
-                                <Menu className="h-4 w-4" />
-                                {activeSourceProvider ? (
-                                    <span
-                                        className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-primary"
-                                        aria-hidden="true"
-                                    />
-                                ) : null}
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                aria-label={t("dashboardChrome.toggleSidebar")}
-                                aria-pressed={isSidebarCollapsed}
-                                data-testid="dashboard-sidebar-collapse-trigger"
-                                className="hidden h-9 w-9 shrink-0 rounded-xl lg:inline-flex"
-                                onClick={() =>
-                                    setSidebarCollapsed((previous) => !previous)
-                                }
-                            >
-                                {isSidebarCollapsed ? (
-                                    <PanelLeftOpen className="h-4 w-4" />
-                                ) : (
-                                    <PanelLeftClose className="h-4 w-4" />
-                                )}
-                            </Button>
-                            <div className="min-w-0">
-                                <p className="truncate text-xs font-medium text-muted-foreground">
-                                    {listContextLabel}
-                                </p>
-                                <p className="truncate text-sm font-semibold">
-                                    {currentRecording
-                                        ? currentRecording.filename
-                                        : t("dashboard.noRecordings")}
-                                </p>
-                            </div>
-                        </div>
-                        <SystemBanner className="hidden min-w-[15rem] flex-1 lg:flex" />
-                        <div className="flex shrink-0 items-center gap-2">
-                            <Button
-                                onClick={handleSync}
-                                disabled={isAutoSyncing}
-                                variant="outline"
-                                size="sm"
-                                className="hidden h-9 rounded-xl sm:inline-flex"
-                            >
-                                {isAutoSyncing ? (
-                                    <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                        {t("dashboard.syncing")}
-                                    </>
-                                ) : (
-                                    <>
-                                        <RefreshCw className="mr-2 h-4 w-4" />
-                                        {t("dashboard.syncDevice")}
-                                    </>
-                                )}
-                            </Button>
-                            <LibrarySearch
-                                open={activeTopbarOverlay === "search"}
-                                onApplyLibraryFilter={
-                                    handleApplyLibrarySearchFilter
-                                }
-                                onOpenChange={setSearchOverlayOpen}
-                                onOpenRecording={handleOpenSearchResult}
-                            />
-                            <ActivityOverlay
-                                open={activeTopbarOverlay === "activity"}
-                                onOpenChange={setActivityOverlayOpen}
-                                autoSyncEnabled={autoSyncEnabled}
-                                isAutoSyncing={isAutoSyncing}
-                                lastSyncTime={lastSyncTime}
-                                nextSyncTime={nextSyncTime}
-                                lastSyncResult={lastSyncResult}
-                                workerStatus={workerStatus}
-                                recordings={liveRecordings}
-                                transcriptionJobs={liveTranscriptionJobs}
-                                onSyncNow={handleSync}
-                                onOpenRecording={handleOpenSearchResult}
-                                onOpenDataSourcesSettings={() =>
-                                    handleOpenDataSourcesSettings()
-                                }
-                            />
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                aria-label={`${t("settingsDialog.title")} · ${dashboardUserName}`}
-                                data-testid="dashboard-settings-trigger"
-                                className="glass-control h-9 w-9 overflow-hidden rounded-full p-0 text-sm font-semibold"
-                                title={dashboardUserName}
-                                type="button"
-                                ref={settingsTriggerRef}
-                                onClick={handleSettingsTriggerClick}
-                            >
+                                <Icon />
+                                <span>{getFavoriteLabel(item.value, t)}</span>
                                 <span
-                                    className="flex size-full items-center justify-center"
-                                    data-testid="dashboard-settings-avatar"
-                                    aria-hidden="true"
+                                    className="count"
+                                    data-sot-part="dashboard-favorite-count"
                                 >
-                                    {dashboardUserInitial}
+                                    {count}
                                 </span>
-                            </Button>
-                        </div>
-                    </header>
+                            </button>
+                        );
+                    })}
 
-                    <section className="min-h-0 lg:col-start-2 lg:row-start-2">
-                        <RecordingList
-                            recordings={filteredRecordings}
-                            totalCount={filteredRecordings.length}
-                            libraryTotalCount={liveRecordings.length}
-                            currentRecording={currentRecording}
-                            contextLabel={expandedListContextLabel}
-                            filterStack={
-                                <>
-                                    <SourceFilterStackStrip
-                                        activeFavoriteLabel={
-                                            activeFavoriteLabel
+                    <div className="nav-section-label">
+                        {t("sourceProviderRows.heading")}
+                    </div>
+                    <div
+                        data-compact={collapsed ? "true" : "false"}
+                        data-sot-list="dashboard-sources"
+                        data-sot-state={
+                            dataSourcesError
+                                ? "error"
+                                : dataSourcesLoading
+                                  ? "loading"
+                                  : "ready"
+                        }
+                    >
+                        {source !== "all" ? (
+                            <button
+                                className="btn ghost btn-sm"
+                                type="button"
+                                onClick={() => setSource("all")}
+                            >
+                                {t("sourceProviderRows.clear")}
+                            </button>
+                        ) : null}
+                        {dataSourcesError ? (
+                            <div className="src-status err">
+                                {dataSourcesError}
+                            </div>
+                        ) : null}
+                        {sourceRows.map((item) => {
+                            const settingsTarget = sourceNeedsSettings(
+                                item.status,
+                            );
+                            const disabledSourceRow = sourceRowDisabled(
+                                item.status,
+                            );
+                            const actionKind = sourceActionKind(item.status);
+                            const sourceRowState = getSourceRowState(
+                                item.status,
+                                item.active,
+                            );
+                            const actionLabel =
+                                actionKind === "retry"
+                                    ? t("activityOverlay.actions.retry")
+                                    : actionKind === "reauth"
+                                      ? t("sourceProviderRows.badge.expired")
+                                      : actionKind === "connect"
+                                        ? t("sourceProviderRows.badge.connect")
+                                        : "";
+                            const actionAriaLabel =
+                                actionKind === "retry"
+                                    ? t("sourceFilterStack.retrySync")
+                                    : actionKind === "reauth"
+                                      ? t("sourceProviderRows.badge.expired")
+                                      : actionKind === "connect"
+                                        ? t("sourceProviderRows.badge.connect")
+                                        : undefined;
+                            const visibleCount =
+                                item.status === "no-results" ||
+                                disabledSourceRow
+                                    ? 0
+                                    : item.count;
+                            return (
+                                <button
+                                    className={getSourceStatusClass(
+                                        item.status,
+                                        item.active,
+                                    )}
+                                    type="button"
+                                    aria-disabled={
+                                        disabledSourceRow ? "true" : undefined
+                                    }
+                                    aria-pressed={item.active}
+                                    aria-label={`${item.label} · ${item.statusLabel}`}
+                                    disabled={disabledSourceRow}
+                                    data-active={item.active ? "true" : "false"}
+                                    data-connected={
+                                        item.connected ? "true" : "false"
+                                    }
+                                    data-count-badge={String(visibleCount)}
+                                    data-provider={item.key}
+                                    data-sot-action-state={
+                                        disabledSourceRow
+                                            ? "disabled"
+                                            : (actionKind ?? "count")
+                                    }
+                                    data-sot-control="dashboard-source-provider"
+                                    data-sot-provider={item.key}
+                                    data-sot-state={sourceRowState}
+                                    data-sot-status={item.status}
+                                    data-state={sourceRowState}
+                                    data-source={item.key}
+                                    data-source-status={item.status}
+                                    data-source-action-state={
+                                        disabledSourceRow
+                                            ? "disabled"
+                                            : (actionKind ?? "count")
+                                    }
+                                    key={item.key}
+                                    onClick={() => {
+                                        if (disabledSourceRow) return;
+                                        if (settingsTarget) {
+                                            window.localStorage.setItem(
+                                                SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                item.key,
+                                            );
+                                            openSettings("data-sources");
+                                            return;
                                         }
-                                        filteredCount={
-                                            filteredRecordings.length
-                                        }
-                                        language={language}
-                                        onClearAll={handleClearDashboardFilters}
-                                        onClearSource={() =>
-                                            setActiveSourceProvider(null)
-                                        }
-                                        onOpenDataSourcesSettings={
-                                            handleOpenDataSourcesSettings
-                                        }
-                                        onRetrySync={handleSync}
-                                        onWidenFilters={
-                                            handleWidenSourceFilters
-                                        }
-                                        sourceRow={activeSourceRow}
-                                        sourceTotalCount={
-                                            activeSourceTotalCount
-                                        }
-                                        totalCount={liveRecordings.length}
-                                    />
-                                    {librarySearchFilter ? (
-                                        <div
-                                            className="flex flex-wrap items-center gap-2 border-border/70 border-b bg-muted/20 px-3 py-2 text-[0.72rem] text-muted-foreground"
-                                            data-library-search-filter={
-                                                librarySearchFilter.kind
+                                        setSource(
+                                            item.active ? "all" : item.key,
+                                        );
+                                        setDrawerOpen(false);
+                                    }}
+                                >
+                                    {item.icon ? (
+                                        <span
+                                            className={
+                                                item.cover
+                                                    ? "src-ico cover"
+                                                    : "src-ico"
                                             }
-                                            data-testid="dashboard-library-search-filter"
+                                            data-sot-part="source-provider-mark"
                                         >
-                                            <Search className="size-3.5 shrink-0" />
-                                            <span>
-                                                {t(
-                                                    "dashboardChrome.searchFilter",
-                                                )}
-                                            </span>
-                                            <span
-                                                className="rounded-full border border-border/70 bg-muted/35 px-2 py-1 font-medium text-foreground shadow-xs"
-                                                data-testid="dashboard-library-search-filter-chip"
-                                            >
-                                                {librarySearchFilterLabel}
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                    setLibrarySearchFilter(null)
+                                            <img src={item.icon} alt="" />
+                                        </span>
+                                    ) : (
+                                        <span
+                                            className="src-ico src-ico-letter"
+                                            data-sot-part="source-provider-mark"
+                                        >
+                                            讯
+                                        </span>
+                                    )}
+                                    <span>{item.label}</span>
+                                    <span
+                                        className={
+                                            item.status === "sync-error"
+                                                ? "src-status err"
+                                                : "src-status"
+                                        }
+                                        aria-hidden="true"
+                                        data-sot-part="source-provider-status"
+                                    />
+                                    {actionKind ? (
+                                        // biome-ignore lint/a11y/useSemanticElements: SOT defines source row action as span[role=button] inside nav-source.
+                                        <span
+                                            className={
+                                                actionKind === "retry"
+                                                    ? "src-action is-retry"
+                                                    : actionKind === "reauth"
+                                                      ? "src-action is-reauth"
+                                                      : "src-action is-connect"
+                                            }
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={actionAriaLabel}
+                                            data-action={
+                                                actionKind === "retry"
+                                                    ? "retry-sync"
+                                                    : actionKind
+                                            }
+                                            data-sot-part="source-provider-action"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                if (actionKind === "retry") {
+                                                    void runManualSync();
+                                                    return;
                                                 }
-                                                className="ml-auto h-7 rounded-lg px-2 text-[0.72rem]"
-                                            >
-                                                {t("dashboardChrome.clear")}
-                                            </Button>
-                                        </div>
-                                    ) : null}
-                                </>
-                            }
-                            mode={recordingListMode}
-                            isLoading={
-                                areDataSourcesLoading &&
-                                liveRecordings.length === 0
-                            }
-                            onModeChange={handleRecordingListModeChange}
-                            onClearFilters={handleClearDashboardFilters}
-                            onOpenDataSourcesSettings={
-                                handleOpenDataSourcesSettings
-                            }
-                            transcriptionJobs={liveTranscriptionJobs}
-                            onSelect={(recording) => {
-                                setTagManagerOpen(false);
-                                setCurrentRecording(recording);
-                            }}
-                        />
-                    </section>
+                                                window.localStorage.setItem(
+                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                    item.key,
+                                                );
+                                                openSettings("data-sources");
+                                            }}
+                                            onKeyDown={(event) => {
+                                                if (
+                                                    event.key !== "Enter" &&
+                                                    event.key !== " "
+                                                ) {
+                                                    return;
+                                                }
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                if (actionKind === "retry") {
+                                                    void runManualSync();
+                                                    return;
+                                                }
+                                                window.localStorage.setItem(
+                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                    item.key,
+                                                );
+                                                openSettings("data-sources");
+                                            }}
+                                        >
+                                            {actionKind === "retry" ||
+                                            actionKind === "reauth" ? (
+                                                <RefreshCw />
+                                            ) : (
+                                                <Plus />
+                                            )}
+                                            {actionLabel}
+                                        </span>
+                                    ) : (
+                                        <span
+                                            className="count"
+                                            data-count={`src:${item.key}`}
+                                            data-sot-part="source-provider-count"
+                                        >
+                                            {visibleCount}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </nav>
 
-                    <section className="flex min-h-0 flex-col gap-4 overflow-hidden lg:col-start-3 lg:row-start-2">
-                        {currentRecording ? (
-                            <>
-                                <div className="shrink-0 flex flex-col gap-3">
-                                    <div className="flex items-center gap-3">
-                                        {isRenaming ? (
-                                            <div className="flex flex-1 items-center gap-2">
-                                                <Input
-                                                    value={renameValue}
-                                                    data-testid="dashboard-rename-input"
-                                                    onChange={(event) =>
-                                                        setRenameValue(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    onKeyDown={(event) => {
-                                                        if (
-                                                            event.key ===
-                                                            "Enter"
-                                                        ) {
-                                                            handleRenameSave();
-                                                        }
-                                                        if (
-                                                            event.key ===
-                                                            "Escape"
-                                                        ) {
-                                                            handleRenameCancel();
-                                                        }
-                                                    }}
-                                                    className="h-auto py-1 text-lg font-semibold"
-                                                    autoFocus
-                                                    disabled={isSavingRename}
-                                                />
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={handleAutoRename}
-                                                    disabled={
-                                                        !canAutoRenameCurrentRecording
-                                                    }
-                                                    data-testid="dashboard-ai-rename"
-                                                    title={
-                                                        autoRenameDisabledReason ??
-                                                        t(
-                                                            "transcription.aiRename",
-                                                        )
-                                                    }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                                >
-                                                    <Sparkles
-                                                        className={
-                                                            isAutoRenaming
-                                                                ? "h-4 w-4 animate-pulse"
-                                                                : "h-4 w-4"
-                                                        }
-                                                    />
-                                                    <span className="hidden sm:inline">
-                                                        {t(
-                                                            "transcription.aiRename",
-                                                        )}
+                <div className="sidebar-footer">
+                    <div
+                        className={`sync-pill ${
+                            syncButtonState === "queued" ||
+                            syncButtonState === "running"
+                                ? "is-syncing"
+                                : syncButtonState === "error"
+                                  ? "is-error"
+                                  : syncButtonState === "success"
+                                    ? "is-done"
+                                    : ""
+                        }`}
+                        data-sot-panel="dashboard-sync"
+                        data-sot-state={syncButtonState}
+                        data-sync-state={syncButtonState}
+                    >
+                        <span className="sync-dot" />
+                        <div className="sync-text">
+                            <div className="sync-title">
+                                {syncStateLabel(syncButtonState, t)} ·
+                                BetterAINote
+                            </div>
+                            <div className="sync-sub">{syncSummary}</div>
+                        </div>
+                        <button
+                            className="icon-btn"
+                            type="button"
+                            aria-label="同步"
+                            aria-busy={syncButtonBusy}
+                            disabled={syncButtonBusy}
+                            data-sot-control="dashboard-sync"
+                            data-sot-state={syncButtonState}
+                            onClick={() => void runManualSync()}
+                        >
+                            <RefreshCw />
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <div
+                className="drawer-scrim"
+                id="drawer-scrim"
+                aria-hidden="true"
+            />
+
+            <main className="main">
+                <header className="topbar">
+                    <button
+                        className="mobile-drawer-trigger"
+                        id="drawer-trigger"
+                        type="button"
+                        aria-label="打开筛选抽屉"
+                        ref={drawerTriggerRef}
+                        onClick={() => {
+                            setSearchOpen(false);
+                            setActivityOpen(false);
+                            setDrawerOpen(true);
+                        }}
+                    >
+                        {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT drawer trigger SVG is decorative inside the labelled button. */}
+                        <svg viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="12" x2="15" y2="12" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>{" "}
+                        <span className="dot-active" aria-hidden="true" />
+                    </button>
+                    <button
+                        className="icon-btn sidebar-toggle"
+                        type="button"
+                        aria-label="折叠 / 展开侧边栏"
+                        data-sot-control="sidebar-collapse"
+                        data-sot-state={collapsed ? "collapsed" : "expanded"}
+                        onClick={() => setCollapsed((value) => !value)}
+                    >
+                        <PanelLeft />
+                    </button>
+                    <div className="crumbs">
+                        <span className="crumb">
+                            {favorite === "all"
+                                ? "全部录音"
+                                : favorite === "transcribed"
+                                  ? "转写记录"
+                                  : "标签"}
+                        </span>
+                        <span className="crumb-sep">/</span>
+                        <span className="crumb-current">
+                            {selectedRecording?.filename ?? "未选择录音"}
+                        </span>
+                    </div>
+                    <div className="topbar-actions">
+                        <div className="ls-anchor" ref={searchOverlayRef}>
+                            <button
+                                ref={searchTriggerRef}
+                                className="icon-btn ls-trigger"
+                                type="button"
+                                aria-label={t("librarySearch.openSearch")}
+                                aria-expanded={searchOpen}
+                                data-sot-control="dashboard-search"
+                                data-sot-state={searchOpen ? "open" : "idle"}
+                                onClick={() => {
+                                    setActivityOpen(false);
+                                    setMoreOpen(false);
+                                    setTagOpen(false);
+                                    setAiOpen(false);
+                                    setSearchOpen((open) => !open);
+                                }}
+                            >
+                                <Search />
+                            </button>
+                            {searchOpen ? (
+                                <div
+                                    className="ls-panel"
+                                    data-open="true"
+                                    data-state={searchPanelState}
+                                    data-sot-panel="library-search"
+                                    data-sot-state={searchPanelState}
+                                    data-sot-result-count={String(
+                                        flatSearchResults.length,
+                                    )}
+                                    role="dialog"
+                                    aria-label={t("librarySearch.dialogLabel")}
+                                    onKeyDown={handleLibrarySearchKeyDown}
+                                >
+                                    <div className="ls-input-row">
+                                        <SotSearchInputIcon />
+                                        <input
+                                            ref={searchInputRef}
+                                            value={query}
+                                            aria-disabled={
+                                                searchPanelState === "indexing"
+                                            }
+                                            aria-label={t(
+                                                "librarySearch.placeholder",
+                                            )}
+                                            autoComplete="off"
+                                            onChange={(event) => {
+                                                setQuery(event.target.value);
+                                                setActiveSearchIndex(0);
+                                            }}
+                                            placeholder={t(
+                                                searchPanelState === "no-query"
+                                                    ? "librarySearch.placeholder"
+                                                    : "librarySearch.shortPlaceholder",
+                                            )}
+                                            readOnly={
+                                                searchPanelState === "indexing"
+                                            }
+                                            data-sot-control="library-search-input"
+                                            data-sot-state={searchPanelState}
+                                        />
+                                        {query.trim() &&
+                                        searchPanelState !== "indexing" &&
+                                        searchPanelState !== "error" ? (
+                                            <button
+                                                className="ls-clear"
+                                                type="button"
+                                                aria-label={t(
+                                                    "librarySearch.clearSearch",
+                                                )}
+                                                data-sot-control="library-search-clear"
+                                                data-sot-state="clear"
+                                                onClick={() => {
+                                                    setQuery("");
+                                                    setSearchResults([]);
+                                                    setSearchError("");
+                                                    setSearchIndexing(null);
+                                                    window.setTimeout(() => {
+                                                        searchInputRef.current?.focus(
+                                                            {
+                                                                preventScroll: true,
+                                                            },
+                                                        );
+                                                    }, 0);
+                                                }}
+                                            >
+                                                <X />
+                                            </button>
+                                        ) : null}
+                                    </div>
+                                    <div
+                                        className="ls-scope"
+                                        role="tablist"
+                                        aria-label={t(
+                                            "librarySearch.scopeLegend",
+                                        )}
+                                        data-sot-canonical="web-index-runtime"
+                                        data-sot-scope-count={String(
+                                            SEARCH_SCOPES.length,
+                                        )}
+                                    >
+                                        {SEARCH_SCOPES.map((item) => (
+                                            <button
+                                                className={
+                                                    item.value === searchScope
+                                                        ? "ls-chip active"
+                                                        : "ls-chip"
+                                                }
+                                                type="button"
+                                                key={item.value}
+                                                aria-pressed={
+                                                    item.value === searchScope
+                                                }
+                                                data-sot-control="library-search-scope"
+                                                data-sot-scope={item.value}
+                                                data-sot-state={
+                                                    item.value === searchScope
+                                                        ? "selected"
+                                                        : "idle"
+                                                }
+                                                data-sot-result-mode={
+                                                    item.value
+                                                }
+                                                data-search-scope={item.value}
+                                                disabled={
+                                                    searchPanelState ===
+                                                    "indexing"
+                                                }
+                                                onClick={() => {
+                                                    setSearchScope(item.value);
+                                                    setActiveSearchIndex(0);
+                                                    window.setTimeout(() => {
+                                                        searchInputRef.current?.focus(
+                                                            {
+                                                                preventScroll: true,
+                                                            },
+                                                        );
+                                                    }, 0);
+                                                }}
+                                            >
+                                                {item.value === "all"
+                                                    ? t(
+                                                          "librarySearch.scopes.all",
+                                                      )
+                                                    : t(
+                                                          `librarySearch.types.${item.value}`,
+                                                      )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div
+                                        className="ls-body"
+                                        data-sot-region="library-search-scroll"
+                                    >
+                                        {searchPanelState === "indexing" ? (
+                                            <div
+                                                className="ls-state ls-state-indexing"
+                                                data-sot-part="library-search-indexing"
+                                            >
+                                                <span className="inline-progress indeterminate">
+                                                    <span className="inp-track">
+                                                        <span className="inp-bar" />
                                                     </span>
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="outline"
-                                                    onClick={handleRenameSave}
-                                                    disabled={isSavingRename}
-                                                    data-testid="dashboard-rename-save"
-                                                    title={t(
-                                                        "recording.saveRename",
+                                                </span>
+                                                <div className="ls-empty">
+                                                    {t(
+                                                        "librarySearch.indexing",
+                                                        {
+                                                            completed:
+                                                                searchIndexing?.completedJobs ??
+                                                                0,
+                                                            total:
+                                                                searchIndexing?.totalJobs ??
+                                                                0,
+                                                        },
                                                     )}
-                                                    className="h-10 w-10 shrink-0 rounded-full border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-none hover:bg-emerald-500/15 dark:text-emerald-200"
+                                                </div>
+                                            </div>
+                                        ) : searchLoading ? (
+                                            <div
+                                                className="ls-state ls-state-loading"
+                                                data-sot-part="library-search-loading"
+                                            >
+                                                <div className="ls-loading">
+                                                    {t("librarySearch.loading")}
+                                                </div>
+                                            </div>
+                                        ) : searchError ? (
+                                            <div
+                                                className="ls-state ls-state-error"
+                                                data-sot-part="library-search-error"
+                                            >
+                                                <div className="ls-empty">
+                                                    {t("librarySearch.error")}
+                                                </div>
+                                                <button
+                                                    className="btn ghost btn-sm"
+                                                    type="button"
+                                                    data-sot-control="library-search-retry"
+                                                    data-ls-retry=""
+                                                    onClick={() => {
+                                                        setSearchRetry(
+                                                            (value) =>
+                                                                value + 1,
+                                                        );
+                                                        window.setTimeout(
+                                                            () => {
+                                                                searchInputRef.current?.focus(
+                                                                    {
+                                                                        preventScroll: true,
+                                                                    },
+                                                                );
+                                                            },
+                                                            0,
+                                                        );
+                                                    }}
                                                 >
-                                                    <CheckCircle className="h-5 w-5" />
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="outline"
-                                                    onClick={handleRenameCancel}
-                                                    disabled={isSavingRename}
-                                                    data-testid="dashboard-rename-cancel"
-                                                    title={t(
-                                                        "recording.cancelRename",
-                                                    )}
-                                                    className="h-10 w-10 shrink-0 rounded-full border-border/60 bg-muted/20 shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                                >
-                                                    <X className="h-5 w-5" />
-                                                </Button>
+                                                    {t("librarySearch.retry")}
+                                                </button>
+                                            </div>
+                                        ) : flatSearchResults.length > 0 ? (
+                                            <div
+                                                className="ls-state ls-state-results"
+                                                data-sot-list="library-search-results"
+                                            >
+                                                {groupedSearchResults.map(
+                                                    (group) => (
+                                                        <div
+                                                            className="ls-group"
+                                                            key={group.type}
+                                                            data-sot-group="library-search-results"
+                                                            data-sot-result-type={
+                                                                group.type
+                                                            }
+                                                        >
+                                                            <div className="ls-group-label">
+                                                                {t(
+                                                                    `librarySearch.types.${group.type}`,
+                                                                )}
+                                                            </div>
+                                                            {group.results.map(
+                                                                ({
+                                                                    index,
+                                                                    result,
+                                                                }) => {
+                                                                    const title =
+                                                                        searchResultTitle(
+                                                                            result,
+                                                                            t,
+                                                                        );
+                                                                    const meta =
+                                                                        searchResultMeta(
+                                                                            result,
+                                                                            t,
+                                                                        );
+                                                                    const action =
+                                                                        searchResultAction(
+                                                                            result,
+                                                                        );
+                                                                    return (
+                                                                        <button
+                                                                            className="ls-item"
+                                                                            type="button"
+                                                                            key={`${result.entityType}:${result.entityId}`}
+                                                                            data-active={
+                                                                                index ===
+                                                                                activeSearchIndex
+                                                                                    ? "true"
+                                                                                    : "false"
+                                                                            }
+                                                                            data-sot-result-mode={
+                                                                                action
+                                                                            }
+                                                                            data-result-type={
+                                                                                result.entityType
+                                                                            }
+                                                                            data-sot-control="library-search-result"
+                                                                            data-sot-result-index={String(
+                                                                                index,
+                                                                            )}
+                                                                            data-sot-result-type={
+                                                                                result.entityType
+                                                                            }
+                                                                            data-sot-state={
+                                                                                index ===
+                                                                                activeSearchIndex
+                                                                                    ? "active"
+                                                                                    : "idle"
+                                                                            }
+                                                                            onClick={() =>
+                                                                                applyLibrarySearchResult(
+                                                                                    result,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            {result.entityType ===
+                                                                            "tag" ? (
+                                                                                <span className="utag c-violet">
+                                                                                    <SotSearchTagIcon />
+                                                                                    {highlightSearchText(
+                                                                                        title,
+                                                                                        query,
+                                                                                    )}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="ls-item-title">
+                                                                                    {highlightSearchText(
+                                                                                        title,
+                                                                                        query,
+                                                                                    )}
+                                                                                </span>
+                                                                            )}
+                                                                            <span className="ls-item-meta">
+                                                                                {
+                                                                                    meta
+                                                                                }
+                                                                            </span>
+                                                                        </button>
+                                                                    );
+                                                                },
+                                                            )}
+                                                        </div>
+                                                    ),
+                                                )}
                                             </div>
                                         ) : (
-                                            <>
-                                                <h2
-                                                    className="flex-1 truncate text-lg font-semibold"
-                                                    data-testid="dashboard-recording-title"
-                                                >
-                                                    {currentRecording.filename}
-                                                </h2>
-                                                {currentRecording.upstreamDeleted && (
-                                                    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-400">
-                                                        <CloudOff className="h-3 w-3" />
-                                                        {t(
-                                                            "dashboard.localOnly",
+                                            <div
+                                                className={
+                                                    query.trim()
+                                                        ? "ls-state ls-state-no-results"
+                                                        : "ls-state ls-state-no-query"
+                                                }
+                                                data-sot-part="library-search-empty"
+                                            >
+                                                {query.trim() ? (
+                                                    <div className="ls-empty">
+                                                        {language === "en" ? (
+                                                            <>
+                                                                {
+                                                                    'No content found for "'
+                                                                }
+                                                                <span>
+                                                                    {query.trim()}
+                                                                </span>
+                                                                {'"'}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                {"没有找到与「"}
+                                                                <span>
+                                                                    {query.trim()}
+                                                                </span>
+                                                                {"」相关的内容"}
+                                                            </>
                                                         )}
-                                                    </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="ls-hint">
+                                                        {t(
+                                                            "librarySearch.noQuery",
+                                                        )}
+                                                    </div>
                                                 )}
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={handleAutoRename}
-                                                    disabled={
-                                                        !canAutoRenameCurrentRecording
-                                                    }
-                                                    aria-busy={isAutoRenaming}
-                                                    data-testid="dashboard-ai-rename"
-                                                    title={
-                                                        autoRenameDisabledReason ??
-                                                        t(
-                                                            "transcription.aiRename",
-                                                        )
-                                                    }
-                                                    className="h-10 shrink-0 rounded-full border-border/60 bg-muted/20 px-3 text-xs shadow-none backdrop-blur-xl hover:bg-accent/45"
-                                                >
-                                                    <Sparkles
-                                                        className={
-                                                            isAutoRenaming
-                                                                ? "h-4 w-4 animate-pulse"
-                                                                : "h-4 w-4"
-                                                        }
-                                                    />
-                                                    <span className="hidden sm:inline">
-                                                        {t(
-                                                            "transcription.aiRename",
-                                                        )}
-                                                    </span>
-                                                </Button>
-                                                {canRenameCurrentRecording ? (
-                                                    <Button
-                                                        size="icon"
-                                                        variant="outline"
-                                                        onClick={
-                                                            handleRenameStart
-                                                        }
-                                                        data-testid="dashboard-rename-recording"
-                                                        title={
-                                                            currentRenameActionLabel
-                                                        }
-                                                        className="shrink-0"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                ) : null}
-                                                <div
-                                                    ref={moreActionsRef}
-                                                    className="relative shrink-0"
-                                                    data-testid="dashboard-detail-more-actions"
-                                                >
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="outline"
-                                                        aria-haspopup="menu"
-                                                        aria-expanded={
-                                                            isMoreActionsOpen
-                                                        }
-                                                        aria-label={t(
-                                                            "dashboardChrome.moreActions",
-                                                        )}
-                                                        className="shrink-0"
-                                                        onClick={
-                                                            handleToggleMoreActions
-                                                        }
-                                                    >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                    {isMoreActionsOpen ? (
-                                                        <div
-                                                            role="menu"
-                                                            aria-label={t(
-                                                                "dashboardChrome.moreActions",
-                                                            )}
-                                                            data-testid="dashboard-detail-more-menu"
-                                                            data-local-delete-available={
-                                                                currentRecording.upstreamDeleted
-                                                                    ? "true"
-                                                                    : "false"
-                                                            }
-                                                            className="absolute top-11 right-0 z-[240] w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border/80 bg-popover text-popover-foreground shadow-2xl"
-                                                        >
-                                                            <header className="border-border/70 border-b px-3.5 py-2.5">
-                                                                <p className="font-semibold text-sm">
-                                                                    {t(
-                                                                        "dashboardChrome.moreActions",
-                                                                    )}
-                                                                </p>
-                                                            </header>
-                                                            {!currentRecording.upstreamDeleted ? (
-                                                                <p className="px-3.5 py-2.5 text-muted-foreground text-xs leading-5">
-                                                                    {t(
-                                                                        "dashboardChrome.noAdditionalLocalActions",
-                                                                    )}
-                                                                </p>
-                                                            ) : null}
-                                                            <div className="p-1.5">
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    role="menuitem"
-                                                                    disabled={
-                                                                        !currentRecording.upstreamDeleted
-                                                                    }
-                                                                    aria-disabled={
-                                                                        !currentRecording.upstreamDeleted
-                                                                    }
-                                                                    data-testid="dashboard-delete-local-recording"
-                                                                    className="h-auto w-full justify-start rounded-lg px-2.5 py-2 text-left text-sm hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
-                                                                    onClick={() => {
-                                                                        setMoreActionsOpen(
-                                                                            false,
-                                                                        );
-                                                                        void handleDelete();
-                                                                    }}
-                                                                >
-                                                                    <Trash2 className="mt-0.5 h-4 w-4 shrink-0" />
-                                                                    <span className="min-w-0">
-                                                                        <span className="block font-medium">
-                                                                            {t(
-                                                                                "dashboard.deleteLocalRecording",
-                                                                            )}
-                                                                        </span>
-                                                                        <span className="mt-0.5 block text-muted-foreground text-xs leading-5">
-                                                                            {currentRecording.upstreamDeleted
-                                                                                ? t(
-                                                                                      "dashboardChrome.deleteLocalOnly",
-                                                                                  )
-                                                                                : t(
-                                                                                      "dashboardChrome.deleteLocalUnavailable",
-                                                                                  )}
-                                                                        </span>
-                                                                    </span>
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    ) : null}
-                                                </div>
-                                            </>
+                                            </div>
                                         )}
                                     </div>
-                                    {isAutoRenaming && !autoRenamePreview ? (
-                                        <AiRenamePreviewCard
-                                            isApplying={false}
-                                            isRegenerating={isAutoRenaming}
-                                            message={t(
-                                                "dashboardChrome.aiRenamePreviewLoading",
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="notif-anchor" ref={activityOverlayRef}>
+                            <button
+                                ref={activityTriggerRef}
+                                className="icon-btn notif-trigger"
+                                type="button"
+                                aria-label={t("activityOverlay.open")}
+                                aria-expanded={activityOpen}
+                                data-unread={String(activityBadgeCount)}
+                                data-sot-control="dashboard-activity"
+                                data-sot-state={activityOpen ? "open" : "idle"}
+                                data-sot-pending-count={String(
+                                    activityBadgeCount,
+                                )}
+                                onClick={() => {
+                                    setSearchOpen(false);
+                                    setMoreOpen(false);
+                                    setTagOpen(false);
+                                    setAiOpen(false);
+                                    setActivityOpen((open) => !open);
+                                }}
+                            >
+                                <Bell />
+                                <span
+                                    className="notif-badge"
+                                    data-sot-part="dashboard-activity-badge"
+                                >
+                                    {activityBadgeCount > 99
+                                        ? "99+"
+                                        : activityBadgeCount}
+                                </span>
+                            </button>
+                            {activityOpen ? (
+                                <div
+                                    className="notif-panel"
+                                    data-open="true"
+                                    data-state={activityPanelState}
+                                    data-sot-panel="dashboard-activity"
+                                    data-sot-state={activityPanelState}
+                                    data-sot-item-count={String(
+                                        visibleActivityItems.length,
+                                    )}
+                                    role="dialog"
+                                    aria-label={t("activityOverlay.title")}
+                                >
+                                    <header className="notif-head">
+                                        <div className="notif-head-l">
+                                            <span className="notif-title">
+                                                {t("activityOverlay.title")}
+                                            </span>
+                                            <span className="notif-count">
+                                                {t(
+                                                    "activityOverlay.pendingCount",
+                                                    {
+                                                        count: activityBadgeCount,
+                                                    },
+                                                )}
+                                            </span>
+                                        </div>
+                                        <button
+                                            className="notif-close icon-btn"
+                                            type="button"
+                                            aria-label={t(
+                                                "activityOverlay.close",
                                             )}
-                                            state="loading"
-                                            title={t("transcription.aiRename")}
-                                        />
-                                    ) : autoRenameError ? (
-                                        <AiRenamePreviewCard
-                                            isApplying={false}
-                                            isRegenerating={isAutoRenaming}
-                                            message={autoRenameError}
-                                            onRegenerate={handleAutoRename}
-                                            regenerateLabel={t(
-                                                "transcription.aiRenameRegenerate",
-                                            )}
-                                            state="error"
-                                            title={t(
-                                                "transcription.autoRenameFailed",
-                                            )}
-                                        />
-                                    ) : autoRenamePreview ? (
-                                        <AiRenamePreviewCard
-                                            applyLabel={t(
-                                                "transcription.aiRenameApply",
-                                            )}
-                                            cancelLabel={t(
-                                                "transcription.aiRenameCancelPreview",
-                                            )}
-                                            filename={autoRenamePreview}
-                                            isApplying={isApplyingAutoRename}
-                                            isRegenerating={isAutoRenaming}
-                                            message={autoRenamePreviewMessage}
-                                            onApply={
-                                                handleAutoRenamePreviewApply
+                                            data-sot-control="dashboard-activity-close"
+                                            onClick={() =>
+                                                closeActivityOverlay({
+                                                    restoreFocus: true,
+                                                })
                                             }
-                                            onCancel={
-                                                handleAutoRenamePreviewCancel
-                                            }
-                                            onRegenerate={handleAutoRename}
-                                            regenerateLabel={t(
-                                                "transcription.aiRenameRegenerate",
-                                            )}
-                                            state="review"
-                                            title={t(
-                                                "transcription.aiRenamePreview",
-                                            )}
+                                        >
+                                            <X />
+                                        </button>
+                                    </header>
+                                    <div
+                                        className="notif-status"
+                                        data-state={syncButtonState}
+                                        data-sot-part="dashboard-activity-status"
+                                        data-sot-state={syncButtonState}
+                                    >
+                                        <span
+                                            className="notif-status-ico"
+                                            aria-hidden="true"
                                         />
-                                    ) : autoRenameAcceptedTitle ? (
-                                        <AiRenamePreviewCard
-                                            filename={autoRenameAcceptedTitle}
-                                            isApplying={false}
-                                            isRegenerating={false}
-                                            message={t(
-                                                "transcription.aiRenameAcceptedHint",
-                                            )}
-                                            state="accepted"
-                                            title={t(
-                                                "transcription.aiRenameAccepted",
-                                            )}
-                                        />
-                                    ) : autoRenameDisabledReason ? (
-                                        <AiRenamePreviewCard
-                                            actionLabel={
-                                                !titleGenerationProviderConfigured
-                                                    ? t(
-                                                          "transcription.aiRenameOpenSettings",
-                                                      )
-                                                    : undefined
+                                        <div className="notif-status-text">
+                                            <div className="notif-status-line">
+                                                {syncStatusLabel}
+                                            </div>
+                                            <div className="notif-status-sub mono">
+                                                {syncSummary}
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            aria-busy={syncButtonBusy}
+                                            disabled={syncButtonBusy}
+                                            data-action-state={
+                                                activitySyncActionState
                                             }
-                                            actionTestId="ai-rename-open-settings"
-                                            isApplying={false}
-                                            isRegenerating={false}
-                                            message={autoRenameDisabledReason}
-                                            onAction={
-                                                !titleGenerationProviderConfigured
-                                                    ? handleOpenTitleGenerationSettings
-                                                    : undefined
+                                            data-sot-control="dashboard-activity-sync"
+                                            data-sot-state={
+                                                activitySyncActionState
                                             }
-                                            state="unavailable"
-                                            title={t("transcription.aiRename")}
-                                        />
+                                            onClick={() => void runManualSync()}
+                                        >
+                                            {activitySyncActionState === "busy"
+                                                ? t(
+                                                      "activityOverlay.actions.updatingShort",
+                                                  )
+                                                : activitySyncActionState ===
+                                                    "done"
+                                                  ? t(
+                                                        "activityOverlay.actions.queued",
+                                                    )
+                                                  : t(
+                                                        "activityOverlay.actions.update",
+                                                    )}
+                                        </button>
+                                    </div>
+                                    {visibleActivityItems.length > 0 ? (
+                                        <ul
+                                            className="notif-list"
+                                            data-sot-list="dashboard-activity-items"
+                                        >
+                                            {visibleActivityItems.map(
+                                                (item) => (
+                                                    <li
+                                                        className="notif-item"
+                                                        data-kind={activityItemKind(
+                                                            item,
+                                                        )}
+                                                        role={
+                                                            item.recordingId
+                                                                ? "button"
+                                                                : undefined
+                                                        }
+                                                        tabIndex={
+                                                            item.recordingId
+                                                                ? 0
+                                                                : undefined
+                                                        }
+                                                        aria-label={t(
+                                                            "activityOverlay.itemAria",
+                                                            {
+                                                                action: item.action
+                                                                    ? item.action ===
+                                                                      "settings"
+                                                                        ? t(
+                                                                              "activityOverlay.actions.openDataSources",
+                                                                          )
+                                                                        : item.action ===
+                                                                            "recording"
+                                                                          ? t(
+                                                                                "activityOverlay.actions.view",
+                                                                            )
+                                                                          : t(
+                                                                                "activityOverlay.actions.retry",
+                                                                            )
+                                                                    : t(
+                                                                          "activityOverlay.allHandled",
+                                                                      ),
+                                                                title: item.title,
+                                                            },
+                                                        )}
+                                                        data-action-state={
+                                                            item.action ===
+                                                            "sync"
+                                                                ? activitySyncActionState
+                                                                : "idle"
+                                                        }
+                                                        data-activity-action={
+                                                            item.action ??
+                                                            "none"
+                                                        }
+                                                        data-activity-id={
+                                                            item.id
+                                                        }
+                                                        data-clickable={
+                                                            item.recordingId
+                                                                ? "true"
+                                                                : "false"
+                                                        }
+                                                        data-sot-action={
+                                                            item.action ??
+                                                            "none"
+                                                        }
+                                                        data-sot-activity-id={
+                                                            item.id
+                                                        }
+                                                        data-sot-item="dashboard-activity-item"
+                                                        data-sot-state={
+                                                            item.tone
+                                                        }
+                                                        data-tone={item.tone}
+                                                        key={item.id}
+                                                        onClick={(event) => {
+                                                            if (
+                                                                !item.recordingId ||
+                                                                (event.target instanceof
+                                                                    HTMLElement &&
+                                                                    event.target.closest(
+                                                                        "button",
+                                                                    ))
+                                                            ) {
+                                                                return;
+                                                            }
+                                                            void runActivityAction(
+                                                                item,
+                                                            );
+                                                        }}
+                                                        onKeyDown={(event) =>
+                                                            handleActivityItemKeyDown(
+                                                                event,
+                                                                item,
+                                                            )
+                                                        }
+                                                    >
+                                                        <span className="notif-ico">
+                                                            {item.tone ===
+                                                            "success" ? (
+                                                                <CheckCircle />
+                                                            ) : item.tone ===
+                                                              "info" ? (
+                                                                <Bell />
+                                                            ) : (
+                                                                <AlertCircle />
+                                                            )}
+                                                        </span>
+                                                        <div className="notif-body">
+                                                            <div className="notif-item-title">
+                                                                {item.title}
+                                                            </div>
+                                                            <div className="notif-item-body">
+                                                                {item.body}
+                                                            </div>
+                                                            <div className="notif-item-meta">
+                                                                {t(
+                                                                    "activityOverlay.justNow",
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="notif-actions">
+                                                            {item.action ? (
+                                                                <button
+                                                                    className="btn ghost btn-sm"
+                                                                    type="button"
+                                                                    data-action-state={
+                                                                        item.action ===
+                                                                        "sync"
+                                                                            ? activitySyncActionState
+                                                                            : "idle"
+                                                                    }
+                                                                    data-sot-control="dashboard-activity-action"
+                                                                    data-sot-state={
+                                                                        item.action ===
+                                                                        "sync"
+                                                                            ? activitySyncActionState
+                                                                            : "idle"
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void runActivityAction(
+                                                                            item,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {item.action ===
+                                                                    "settings"
+                                                                        ? t(
+                                                                              "activityOverlay.actions.openDataSources",
+                                                                          )
+                                                                        : item.action ===
+                                                                            "recording"
+                                                                          ? t(
+                                                                                "activityOverlay.actions.view",
+                                                                            )
+                                                                          : t(
+                                                                                "activityOverlay.actions.retry",
+                                                                            )}
+                                                                </button>
+                                                            ) : null}
+                                                            <button
+                                                                className="notif-dismiss"
+                                                                type="button"
+                                                                aria-label={t(
+                                                                    "activityOverlay.dismissItem",
+                                                                    {
+                                                                        title: item.title,
+                                                                    },
+                                                                )}
+                                                                data-sot-control="dashboard-activity-dismiss"
+                                                                onClick={() =>
+                                                                    setDismissedActivityIds(
+                                                                        (
+                                                                            current,
+                                                                        ) => {
+                                                                            const next =
+                                                                                new Set(
+                                                                                    current,
+                                                                                );
+                                                                            next.add(
+                                                                                item.id,
+                                                                            );
+                                                                            return next;
+                                                                        },
+                                                                    )
+                                                                }
+                                                            >
+                                                                <X />
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                ),
+                                            )}
+                                        </ul>
+                                    ) : (
+                                        <div
+                                            className="notif-empty"
+                                            data-sot-part="dashboard-activity-empty"
+                                        >
+                                            <div
+                                                className="notif-empty-ico"
+                                                aria-hidden="true"
+                                            >
+                                                <CheckCircle />
+                                            </div>
+                                            <p className="notif-empty-msg">
+                                                {t(
+                                                    "activityOverlay.emptyTitle",
+                                                )}
+                                            </p>
+                                            <p className="notif-empty-sub">
+                                                {t("activityOverlay.emptyBody")}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : null}
+                        </div>
+                        <button
+                            ref={settingsTriggerRef}
+                            className="avatar"
+                            type="button"
+                            aria-label="打开设置"
+                            aria-expanded={settingsOpen}
+                            aria-haspopup="dialog"
+                            data-sot-control="dashboard-settings"
+                            data-sot-part="dashboard-user-avatar"
+                            data-sot-state={settingsOpen ? "open" : "idle"}
+                            onClick={() => openSettings("data-sources")}
+                        >
+                            {Array.from(getUserDisplayName(user))[0]}
+                        </button>
+                    </div>
+                </header>
+
+                <SystemBanner />
+
+                <div className="workspace">
+                    <section
+                        className="panel list-panel"
+                        data-current-page={String(currentListPage)}
+                        data-list-state={listState}
+                        data-sot-list-mode={listMode}
+                        data-sot-state={listState}
+                        data-sot-surface="dashboard-recording-list"
+                        data-total-pages={String(listTotalPages)}
+                        data-visible-count={String(pagedListEntries.length)}
+                    >
+                        <div className="list-header">
+                            <div className="lh-titlebar">
+                                <h2 className="lh-title">
+                                    {getFavoriteLabel(favorite, t)}
+                                </h2>
+                                <span className="lh-count">
+                                    {t("recordingList.totalCount", {
+                                        count: listEntries.length,
+                                    })}
+                                    {source !== "all"
+                                        ? ` · ${providerLabel(source, language)}`
+                                        : ""}
+                                </span>
+                            </div>
+                            {source !== "all" ? (
+                                <output
+                                    className="stack-strip"
+                                    aria-live="polite"
+                                    data-sot-panel="dashboard-source-filter-stack"
+                                    data-sot-provider={source}
+                                    data-sot-state={sourceFilterStackState}
+                                    data-sot-status={
+                                        selectedSourceRow?.status ?? ""
+                                    }
+                                    data-state={sourceFilterStackState}
+                                    data-source-status={
+                                        selectedSourceRow?.status ?? ""
+                                    }
+                                >
+                                    <span className="stack-from">
+                                        {t("sourceFilterStack.filter")} ·{" "}
+                                        <b>
+                                            {t(
+                                                "dashboardFavorites.allRecordings",
+                                            )}
+                                        </b>
+                                    </span>
+                                    <span className="stack-sep">›</span>
+                                    <span
+                                        className="stack-chip"
+                                        data-sot-part="source-filter-chip"
+                                    >
+                                        <span data-stack-label>
+                                            {providerLabel(source, language)}
+                                        </span>
+                                        <button
+                                            className="x"
+                                            type="button"
+                                            aria-label={t(
+                                                "sourceFilterStack.clearSourceFilter",
+                                            )}
+                                            data-sot-control="source-filter-clear"
+                                            onClick={() => setSource("all")}
+                                        >
+                                            <X />
+                                        </button>
+                                    </span>
+                                    <span className="stack-info">
+                                        {sourceFilterStackMessage ||
+                                            `${t("sourceFilterStack.showing")} `}
+                                        {sourceFilterStackMessage ? null : (
+                                            <>
+                                                <b>
+                                                    {filteredRecordings.length}
+                                                </b>{" "}
+                                                / {liveRecordings.length}
+                                            </>
+                                        )}
+                                    </span>
+                                    {sourceFilterStackState === "sync-error" ? (
+                                        <button
+                                            className="src-action is-retry"
+                                            type="button"
+                                            data-sot-control="source-filter-retry-sync"
+                                            onClick={() => void runManualSync()}
+                                        >
+                                            <RefreshCw />
+                                            {t("sourceFilterStack.retrySync")}
+                                        </button>
                                     ) : null}
-                                    <RecordingPlayer
-                                        recording={currentRecording}
-                                        tags={currentRecording.tags}
-                                        isTagManagerOpen={tagManagerOpen}
-                                        onToggleTagManager={
-                                            handleToggleTagManager
-                                        }
-                                        tagManagerPanel={
-                                            <RecordingTagManager
-                                                variant="popover"
-                                                recording={currentRecording}
-                                                availableTags={tagCatalog}
-                                                onAvailableTagsChange={
-                                                    setTagCatalog
-                                                }
-                                                onRecordingTagsChange={
-                                                    applyRecordingTags
-                                                }
-                                            />
-                                        }
-                                        onEnded={() => {
-                                            const index =
-                                                filteredRecordings.findIndex(
-                                                    (recording) =>
-                                                        recording.id ===
-                                                        currentRecording.id,
+                                    {sourceFilterStackState === "no-results" ? (
+                                        <button
+                                            className="src-action is-connect"
+                                            type="button"
+                                            data-sot-control="source-filter-widen"
+                                            onClick={() => {
+                                                setFavorite("all");
+                                                applyListMode("timeline", {
+                                                    fromFavorite: true,
+                                                });
+                                                setQuery("");
+                                            }}
+                                        >
+                                            {t("sourceFilterStack.widenFilter")}
+                                        </button>
+                                    ) : null}
+                                    {selectedSourceRow &&
+                                    sourceNeedsSettings(
+                                        selectedSourceRow.status,
+                                    ) ? (
+                                        <button
+                                            className="src-action is-connect"
+                                            type="button"
+                                            data-sot-control="source-filter-open-settings"
+                                            onClick={() => {
+                                                window.localStorage.setItem(
+                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                    selectedSourceRow.key,
                                                 );
-                                            const nextRecording =
-                                                index >= 0
-                                                    ? filteredRecordings[
-                                                          index + 1
-                                                      ]
-                                                    : undefined;
-                                            if (nextRecording) {
-                                                setTagManagerOpen(false);
-                                                setCurrentRecording(
-                                                    nextRecording,
+                                                openSettings("data-sources");
+                                            }}
+                                        >
+                                            {t(
+                                                "sourceFilterStack.openSettings",
+                                            )}
+                                        </button>
+                                    ) : null}
+                                    <button
+                                        className="stack-clear"
+                                        type="button"
+                                        data-sot-control="source-filter-clear-all"
+                                        onClick={() => setSource("all")}
+                                    >
+                                        {t("sourceFilterStack.clearAll")}
+                                    </button>
+                                </output>
+                            ) : null}
+                            {librarySearchFilter ? (
+                                <output
+                                    className="xref-strip"
+                                    aria-live="polite"
+                                    data-sot-panel="dashboard-library-search-filter"
+                                    data-sot-filter={librarySearchFilter.type}
+                                    data-sot-state="active"
+                                >
+                                    <span className="xref-text">
+                                        {librarySearchFilter.type === "tag"
+                                            ? t("dashboardFavorites.tagFilter")
+                                            : t(
+                                                  "dashboardFavorites.speakerFilter",
+                                              )}
+                                    </span>
+                                    <span
+                                        className="stack-chip"
+                                        data-sot-part="library-search-filter-chip"
+                                    >
+                                        {librarySearchFilter.label}
+                                        <button
+                                            className="x"
+                                            type="button"
+                                            aria-label={t(
+                                                "dashboardChrome.clear",
+                                            )}
+                                            data-sot-control="library-search-filter-clear"
+                                            onClick={() =>
+                                                setLibrarySearchFilter(null)
+                                            }
+                                        >
+                                            <X />
+                                        </button>
+                                    </span>
+                                </output>
+                            ) : null}
+                            <div className="list-mode-bar">
+                                <div className="list-mode-label">
+                                    <span className="list-mode-label-text">
+                                        {listMode === "timeline"
+                                            ? t("recordingList.timelineTitle")
+                                            : t("recordingList.tagsTitle")}
+                                    </span>
+                                    <span className="list-mode-count">
+                                        {t("recordingList.visibleCount", {
+                                            count: listEntries.length,
+                                        })}
+                                    </span>
+                                </div>
+                                <SegmentedTabs
+                                    className="list-mode-seg"
+                                    aria-label="列表模式"
+                                    items={[
+                                        {
+                                            value: "timeline",
+                                            label: t("recordingList.timeTab"),
+                                        },
+                                        {
+                                            value: "tags",
+                                            label: t("recordingList.tagsTab"),
+                                        },
+                                    ]}
+                                    value={listMode}
+                                    onValueChange={applyListMode}
+                                />
+                            </div>
+                            <div
+                                className="filter-row"
+                                data-list-filter-row="timeline"
+                                data-sot-panel="recording-list-timeline-filter"
+                                hidden={listMode !== "timeline"}
+                                inert={
+                                    listMode !== "timeline" ? true : undefined
+                                }
+                            >
+                                {TIMELINE_FILTERS.map((item) => {
+                                    const active =
+                                        timelineFilter === item.value;
+                                    return (
+                                        <button
+                                            className={
+                                                active
+                                                    ? "chip-f active"
+                                                    : "chip-f"
+                                            }
+                                            type="button"
+                                            aria-pressed={active}
+                                            data-tf={item.value}
+                                            data-sot-control="recording-list-timeline-filter"
+                                            data-sot-filter={item.value}
+                                            data-sot-state={
+                                                active ? "selected" : "idle"
+                                            }
+                                            key={item.value}
+                                            onClick={() =>
+                                                setTimelineFilter(item.value)
+                                            }
+                                        >
+                                            {t(item.labelKey)}
+                                            <span className="chip-c">
+                                                {timelineCounts[item.value]}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div
+                                className="tag-filter"
+                                data-list-filter-row="tags"
+                                data-sot-panel="recording-list-tag-filter"
+                                hidden={listMode !== "tags"}
+                                inert={listMode !== "tags" ? true : undefined}
+                                ref={tagFilterRef}
+                            >
+                                <button
+                                    className="tag-filter-trigger"
+                                    type="button"
+                                    aria-haspopup="listbox"
+                                    aria-expanded={tagFilterOpen}
+                                    data-tag-filter-trigger=""
+                                    data-sot-control="recording-list-tag-filter-trigger"
+                                    onClick={() =>
+                                        setTagFilterOpen((open) => !open)
+                                    }
+                                >
+                                    <span
+                                        className="tag-filter-label"
+                                        data-tag-filter-label=""
+                                    >
+                                        {selectedTagOption.label}
+                                    </span>
+                                    <span
+                                        className="tag-filter-count"
+                                        data-tag-filter-count=""
+                                    >
+                                        {selectedTagOption.count}
+                                    </span>
+                                    <svg
+                                        className="tag-filter-caret"
+                                        viewBox="0 0 24 24"
+                                        aria-hidden="true"
+                                        focusable="false"
+                                    >
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div
+                                    className="tag-filter-list"
+                                    role="listbox"
+                                    data-tag-filter-list=""
+                                    hidden={!tagFilterOpen}
+                                >
+                                    {tagFilterOptions.map((option) => (
+                                        <button
+                                            className="tag-filter-option"
+                                            type="button"
+                                            role="option"
+                                            data-tag-value={option.value}
+                                            aria-selected={
+                                                option.value ===
+                                                selectedTagFilter
+                                            }
+                                            data-sot-control="recording-list-tag-filter"
+                                            data-sot-filter={option.value}
+                                            data-sot-state={
+                                                option.value ===
+                                                selectedTagFilter
+                                                    ? "selected"
+                                                    : "idle"
+                                            }
+                                            key={option.value}
+                                            onClick={() => {
+                                                setSelectedTagFilter(
+                                                    option.value,
+                                                );
+                                                setTagFilterOpen(false);
+                                            }}
+                                        >
+                                            <span className="tag-filter-option-label">
+                                                {option.label}
+                                            </span>
+                                            <span className="tag-filter-option-count">
+                                                {option.count}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="list-scroll">
+                            {listState === "loading" ? (
+                                <SotRecordingListSkeleton />
+                            ) : listState === "ready" ? (
+                                <div className="real-list">
+                                    {groupedListEntries.map((group) => (
+                                        <div
+                                            className="ls-group"
+                                            data-sot-group-id={group.id}
+                                            data-sot-group="recording-list"
+                                            data-sot-mode={listMode}
+                                            key={group.id}
+                                        >
+                                            <div className="day">
+                                                <span className="d">
+                                                    {group.label}
+                                                </span>
+                                                <span className="c">
+                                                    {group.entries.length}
+                                                </span>
+                                                <span className="line" />
+                                            </div>
+                                            {group.entries.map((entry) => {
+                                                const { recording } = entry;
+                                                const active =
+                                                    recording.id ===
+                                                    selectedRecording?.id;
+                                                const sourceMeta =
+                                                    SOURCE_ORDER.find(
+                                                        (item) =>
+                                                            item.key ===
+                                                            recording.sourceProvider,
+                                                    );
+                                                const job = liveJobs.get(
+                                                    recording.id,
+                                                );
+                                                const transcription =
+                                                    liveTranscriptions.get(
+                                                        recording.id,
+                                                    );
+                                                const rowStatus =
+                                                    getRecordingListStatus(
+                                                        recording,
+                                                        transcription,
+                                                        job,
+                                                        t,
+                                                    );
+                                                const primaryTag =
+                                                    entry.displayTag ??
+                                                    recording.tags[0];
+                                                return (
+                                                    <button
+                                                        className={
+                                                            active
+                                                                ? "row active"
+                                                                : "row"
+                                                        }
+                                                        key={recording.id}
+                                                        type="button"
+                                                        data-recording-id={
+                                                            recording.id
+                                                        }
+                                                        data-rec={recording.id}
+                                                        data-sot-control="dashboard-recording-row"
+                                                        data-sot-recording-id={
+                                                            recording.id
+                                                        }
+                                                        data-sot-state={
+                                                            active
+                                                                ? "selected"
+                                                                : "idle"
+                                                        }
+                                                        data-selected={
+                                                            active
+                                                                ? "true"
+                                                                : "false"
+                                                        }
+                                                        onClick={() =>
+                                                            selectRecording(
+                                                                recording.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <div className="body">
+                                                            <div className="title">
+                                                                {
+                                                                    recording.filename
+                                                                }
+                                                            </div>
+                                                            <div className="meta">
+                                                                {sourceMeta?.icon ? (
+                                                                    <span
+                                                                        className={
+                                                                            sourceMeta.cover
+                                                                                ? "src-mini cover"
+                                                                                : "src-mini"
+                                                                        }
+                                                                        title={
+                                                                            sourceMeta.label
+                                                                        }
+                                                                    >
+                                                                        <img
+                                                                            src={
+                                                                                sourceMeta.icon
+                                                                            }
+                                                                            alt=""
+                                                                        />
+                                                                    </span>
+                                                                ) : (
+                                                                    <span
+                                                                        className="src-mini src-mini-letter"
+                                                                        title={providerLabel(
+                                                                            recording.sourceProvider,
+                                                                            language,
+                                                                        )}
+                                                                    >
+                                                                        讯
+                                                                    </span>
+                                                                )}
+                                                                <span className="dur">
+                                                                    {formatDuration(
+                                                                        recording.duration,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <div className="meta2">
+                                                                <span className="ts">
+                                                                    <span className="ts-abs">
+                                                                        {formatAbsoluteDate(
+                                                                            recording.startTime,
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="ts-rel">
+                                                                        {formatRelativeDate(
+                                                                            recording.startTime,
+                                                                        )}
+                                                                    </span>
+                                                                </span>
+                                                                <span
+                                                                    className={
+                                                                        rowStatus.className
+                                                                    }
+                                                                >
+                                                                    <span
+                                                                        className={
+                                                                            rowStatus.dotClassName
+                                                                        }
+                                                                    />
+                                                                    {
+                                                                        rowStatus.label
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {primaryTag ? (
+                                                            <div className="right">
+                                                                <span
+                                                                    className={
+                                                                        recordingTagColorClassName[
+                                                                            primaryTag
+                                                                                .color
+                                                                        ]
+                                                                    }
+                                                                    data-recording-tag-chip=""
+                                                                    data-sot-tag-color={
+                                                                        primaryTag.color
+                                                                    }
+                                                                    data-sot-tag-icon={
+                                                                        primaryTag.icon
+                                                                    }
+                                                                >
+                                                                    <RecordingTagIconGlyph
+                                                                        icon={
+                                                                            primaryTag.icon
+                                                                        }
+                                                                    />
+                                                                    {
+                                                                        primaryTag.name
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        ) : null}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div
+                                    className="list-state-block"
+                                    data-sot-part="recording-list-state"
+                                    data-sot-state={listState}
+                                >
+                                    <span className="lsb-ico">
+                                        <FileText />
+                                    </span>
+                                    <div className="lsb-t">
+                                        {listState === "empty"
+                                            ? t("recordingList.emptyTitle")
+                                            : listState === "timeline-empty"
+                                              ? t(
+                                                    "recordingList.timelineEmptyTitle",
+                                                )
+                                              : listState === "tag-empty"
+                                                ? t(
+                                                      "recordingList.tagEmptyTitle",
+                                                  )
+                                                : t(
+                                                      "recordingList.noMatchTitle",
+                                                  )}
+                                    </div>
+                                    <div className="lsb-h">
+                                        {listState === "empty"
+                                            ? t(
+                                                  "recordingList.emptyDescription",
+                                              )
+                                            : listState === "timeline-empty"
+                                              ? t(
+                                                    "recordingList.timelineEmptyDescription",
+                                                )
+                                              : listState === "tag-empty"
+                                                ? t(
+                                                      "recordingList.tagEmptyDescription",
+                                                  )
+                                                : t(
+                                                      "recordingList.noMatchDescription",
+                                                  )}
+                                    </div>
+                                    {listState === "empty" ? (
+                                        <button
+                                            className="btn primary btn-sm"
+                                            type="button"
+                                            data-sot-control="recording-list-open-data-sources"
+                                            onClick={() =>
+                                                openSettings("data-sources")
+                                            }
+                                        >
+                                            {t("recordingList.openDataSources")}
+                                        </button>
+                                    ) : null}
+                                    {listState === "no-match" ? (
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-sot-control="recording-list-clear-filters"
+                                            onClick={() => {
+                                                setFavorite("all");
+                                                setSource("all");
+                                                setQuery("");
+                                                setLibrarySearchFilter(null);
+                                                setTimelineFilter("all");
+                                                setSelectedTagFilter("all");
+                                            }}
+                                        >
+                                            {t("recordingList.clearFilters")}
+                                        </button>
+                                    ) : null}
+                                    {listState === "timeline-empty" ? (
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-sot-control="recording-list-clear-timeline"
+                                            onClick={() =>
+                                                setTimelineFilter("all")
+                                            }
+                                        >
+                                            {t("recordingList.clearTimeline")}
+                                        </button>
+                                    ) : null}
+                                    {listState === "tag-empty" ? (
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-sot-control="recording-list-clear-tag"
+                                            onClick={() =>
+                                                setSelectedTagFilter("all")
+                                            }
+                                        >
+                                            {t("recordingList.clearTag")}
+                                        </button>
+                                    ) : null}
+                                </div>
+                            )}
+                            {listState === "ready" && listTotalPages > 1 ? (
+                                <div
+                                    className="list-state-block list-state-pagination"
+                                    data-list-state-block={listPaginationState}
+                                    data-sot-panel="recording-list-pagination"
+                                    data-sot-state={listPaginationState}
+                                >
+                                    <div className="lsb-page-divider">
+                                        <span data-sot-part="recording-list-page-status">
+                                            {t(listPageStatusKey, {
+                                                current: currentListPage,
+                                                loaded: listLoadedCount,
+                                                total: listEntries.length,
+                                            })}
+                                        </span>
+                                    </div>
+                                    <div className="lsb-page-nav">
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-page-prev=""
+                                            disabled={currentListPage <= 1}
+                                            aria-disabled={
+                                                currentListPage <= 1
+                                                    ? "true"
+                                                    : undefined
+                                            }
+                                            data-sot-control="recording-list-prev-page"
+                                            onClick={() =>
+                                                setListPage((page) =>
+                                                    Math.max(1, page - 1),
+                                                )
+                                            }
+                                        >
+                                            {t("recordingList.previous")}
+                                        </button>
+                                        <span className="lsb-page-num mono">
+                                            {currentListPage} / {listTotalPages}
+                                        </span>
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-page-next=""
+                                            disabled={
+                                                currentListPage >=
+                                                listTotalPages
+                                            }
+                                            aria-disabled={
+                                                currentListPage >=
+                                                listTotalPages
+                                                    ? "true"
+                                                    : undefined
+                                            }
+                                            data-sot-control="recording-list-next-page"
+                                            onClick={() =>
+                                                setListPage((page) =>
+                                                    Math.min(
+                                                        listTotalPages,
+                                                        page + 1,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            {t("recordingList.next")}
+                                        </button>
+                                    </div>
+                                    {listPaginationState === "paginated" ? (
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-sot-control="recording-list-load-more"
+                                            onClick={() =>
+                                                setListPage((page) =>
+                                                    Math.min(
+                                                        listTotalPages,
+                                                        page + 1,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            {t("recordingList.loadMore")}
+                                        </button>
+                                    ) : null}
+                                </div>
+                            ) : null}
+                        </div>
+                    </section>
+
+                    <section
+                        className="detail"
+                        data-empty={selectedRecording ? "false" : "true"}
+                    >
+                        <div
+                            className="rec-head"
+                            data-rename-mode={
+                                editingTitle ? "editing" : "normal"
+                            }
+                            data-local-only={
+                                localDeleteAvailable ? "true" : "false"
+                            }
+                        >
+                            <h2 className="rec-h2" data-rh-title>
+                                {selectedRecording?.filename ?? "未选择录音"}
+                            </h2>
+                            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: SOT rec-head local badge keeps aria-label on this span. */}
+                            <span
+                                className="rec-h2-local"
+                                data-rh-local
+                                aria-label="仅存在本地副本"
+                            >
+                                本地副本
+                            </span>
+                            {editingTitle ? (
+                                <>
+                                    <input
+                                        className="rec-h2-input"
+                                        data-rh-input
+                                        value={draftTitle}
+                                        aria-label="录音标题"
+                                        maxLength={120}
+                                        onChange={(event) =>
+                                            setDraftTitle(event.target.value)
+                                        }
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter") {
+                                                void renameRecording();
+                                            }
+                                            if (event.key === "Escape") {
+                                                setEditingTitle(false);
+                                                setDraftTitle(
+                                                    selectedRecording?.filename ??
+                                                        "",
                                                 );
                                             }
                                         }}
                                     />
-                                </div>
+                                    <span
+                                        className="rec-h2-status"
+                                        data-rh-status
+                                    >
+                                        {renaming ? "正在保存…" : "编辑中"}
+                                    </span>
+                                </>
+                            ) : null}
+                            <button
+                                className="icon-btn rh-norm"
+                                type="button"
+                                aria-label="重命名"
+                                title="重命名"
+                                disabled={!selectedRecording}
+                                onClick={() => setEditingTitle(true)}
+                            >
+                                <SotHeaderRenameIcon />
+                            </button>
+                            <div className="ai-rename-anchor rh-norm">
+                                <button
+                                    className="btn glass"
+                                    type="button"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={aiOpen}
+                                    data-sot-control="ai-rename"
+                                    data-sot-state={
+                                        aiUnavailableReason
+                                            ? "unavailable"
+                                            : aiOpen
+                                              ? aiState
+                                              : "idle"
+                                    }
+                                    title={aiUnavailableReason || undefined}
+                                    onClick={() => void previewAutoRename()}
+                                >
+                                    <SotHeaderAiIcon />
+                                    AI 重命名
+                                </button>
+                                {aiOpen && selectedRecording ? (
+                                    <AiRenamePreview
+                                        applyLabel="应用"
+                                        bodyLabel="建议标题"
+                                        cancelLabel="取消"
+                                        closeLabel="关闭预览"
+                                        filename={aiPreviewTitle}
+                                        hint={
+                                            aiState === "unavailable"
+                                                ? aiUnavailableHint
+                                                : null
+                                        }
+                                        isApplying={aiApplying}
+                                        isRegenerating={aiState === "loading"}
+                                        message={
+                                            aiState === "loading"
+                                                ? "正在根据转写生成标题…"
+                                                : aiState === "review"
+                                                  ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                                                  : aiError
+                                        }
+                                        onApply={applyAiRename}
+                                        onCancel={() => {
+                                            setAiOpen(false);
+                                            setAiApplying(false);
+                                        }}
+                                        onRegenerate={previewAutoRename}
+                                        originalFilename={
+                                            selectedRecording.filename
+                                        }
+                                        regenerateLabel={
+                                            aiState === "error"
+                                                ? "重试"
+                                                : aiState === "loading"
+                                                  ? "生成中…"
+                                                  : "重新生成"
+                                        }
+                                        state={aiState}
+                                        subtitle="仅本次预览，不会写回来源"
+                                        title="AI 标题预览"
+                                    />
+                                ) : null}
+                            </div>
+                            {editingTitle ? (
+                                <>
+                                    <button
+                                        className="icon-btn rh-edit rh-edit-save"
+                                        type="button"
+                                        aria-label="保存新标题"
+                                        title="保存"
+                                        disabled={renaming}
+                                        onClick={() => void renameRecording()}
+                                    >
+                                        <SotHeaderApplyIcon />
+                                    </button>
+                                    <button
+                                        className="icon-btn rh-edit"
+                                        type="button"
+                                        aria-label="取消重命名"
+                                        title="取消"
+                                        onClick={() => {
+                                            setEditingTitle(false);
+                                            setDraftTitle(
+                                                selectedRecording?.filename ??
+                                                    "",
+                                            );
+                                        }}
+                                    >
+                                        <SotHeaderCloseIcon />
+                                    </button>
+                                </>
+                            ) : null}
+                            <div className="more-anchor rh-norm">
+                                <button
+                                    className="icon-btn"
+                                    type="button"
+                                    aria-label="更多操作"
+                                    aria-haspopup="menu"
+                                    aria-expanded={moreOpen}
+                                    ref={moreTriggerRef}
+                                    onClick={() => {
+                                        setSearchOpen(false);
+                                        setActivityOpen(false);
+                                        setMoreOpen((open) => !open);
+                                        setTagOpen(false);
+                                        setAiOpen(false);
+                                    }}
+                                >
+                                    <SotHeaderMoreIcon />
+                                </button>
+                                {moreOpen ? (
+                                    <div
+                                        className="more-menu"
+                                        data-open="true"
+                                        data-sot-local-delete-available={
+                                            localDeleteAvailable
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        data-sot-state={moreActionsState}
+                                        role="menu"
+                                        aria-label="更多操作"
+                                    >
+                                        <button
+                                            className="more-menu-item"
+                                            type="button"
+                                            role="menuitem"
+                                            disabled={!selectedRecording}
+                                            aria-disabled={!selectedRecording}
+                                            onClick={() => {
+                                                setMoreOpen(false);
+                                                setAiOpen(false);
+                                                setTagOpen(false);
+                                                setEditingTitle(true);
+                                                setDraftTitle(
+                                                    selectedRecording?.filename ??
+                                                        "",
+                                                );
+                                            }}
+                                        >
+                                            {moreActionsShowPrimaryIcons ? (
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                    focusable="false"
+                                                >
+                                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                                </svg>
+                                            ) : null}
+                                            重命名
+                                        </button>
+                                        <button
+                                            className="more-menu-item"
+                                            type="button"
+                                            role="menuitem"
+                                            disabled={!selectedRecording}
+                                            aria-disabled={!selectedRecording}
+                                            onClick={() => {
+                                                setMoreOpen(false);
+                                                void previewAutoRename();
+                                            }}
+                                        >
+                                            {moreActionsShowPrimaryIcons ? (
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                    focusable="false"
+                                                >
+                                                    <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+                                                </svg>
+                                            ) : null}
+                                            AI 重命名
+                                        </button>
+                                        {moreActionsShowRetranscribe ? (
+                                            <button
+                                                className="more-menu-item"
+                                                type="button"
+                                                role="menuitem"
+                                                disabled={!selectedRecording}
+                                                aria-disabled={
+                                                    !selectedRecording
+                                                }
+                                                onClick={() => {
+                                                    setMoreOpen(false);
+                                                    void retranscribe();
+                                                }}
+                                            >
+                                                {moreActionsShowPrimaryIcons ? (
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                                        <path d="M3 3v5h5" />
+                                                    </svg>
+                                                ) : null}
+                                                重新转写
+                                            </button>
+                                        ) : null}
+                                        {moreActionsShowSeparator ? (
+                                            <div className="more-menu-sep" />
+                                        ) : null}
+                                        <button
+                                            className="more-menu-item is-danger"
+                                            type="button"
+                                            role="menuitem"
+                                            disabled={!localDeleteAvailable}
+                                            aria-disabled={
+                                                !localDeleteAvailable
+                                            }
+                                            onClick={() =>
+                                                void deleteRecording()
+                                            }
+                                        >
+                                            {moreActionsShowDeleteIcon ? (
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                    focusable="false"
+                                                >
+                                                    {moreActionsState ===
+                                                    "upstream-deleted" ? (
+                                                        <path d="M3 6h18" />
+                                                    ) : (
+                                                        <>
+                                                            <path d="M3 6h18" />
+                                                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                            <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                        </>
+                                                    )}
+                                                </svg>
+                                            ) : null}
+                                            删除本地副本
+                                            {selectedRecording?.sourceProvider ? (
+                                                <span className="more-menu-hint">
+                                                    {selectedRecording.upstreamDeleted
+                                                        ? "上游已删除"
+                                                        : "来源持有正本"}
+                                                </span>
+                                            ) : null}
+                                        </button>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
 
-                                <div className="flex min-h-0 flex-1 flex-col">
-                                    <TranscriptionPanel
-                                        recording={currentRecording}
-                                        transcription={currentTranscription}
-                                        transcriptionJob={
-                                            currentTranscriptionJob
+                        <div
+                            className="player"
+                            data-no-audio={
+                                playbackDisabled ? "true" : undefined
+                            }
+                            data-playing={isPlaying ? "true" : undefined}
+                            data-sot-state={
+                                playbackDisabled ? "disabled" : "ready"
+                            }
+                            data-sot-surface="dashboard-recording-player"
+                        >
+                            <div className="player-meta">
+                                <span className="ts" suppressHydrationWarning>
+                                    {selectedRecording
+                                        ? formatSotPlayerDate(
+                                              selectedRecording.startTime,
+                                          )
+                                        : "未选择录音"}
+                                </span>
+                                {selectedRecording ? (
+                                    <SotPlayerSourceTag
+                                        label={providerLabel(
+                                            selectedRecording.sourceProvider,
+                                            language,
+                                        )}
+                                        provider={
+                                            selectedRecording.sourceProvider
                                         }
-                                        isTranscriptLoading={
-                                            isCurrentTranscriptLoading
+                                    />
+                                ) : null}
+                                {selectedRecording ? (
+                                    <SotPlayerTagChip
+                                        count={selectedRecording.tags.length}
+                                        onClick={() => {
+                                            setSearchOpen(false);
+                                            setActivityOpen(false);
+                                            setMoreOpen(false);
+                                            setAiOpen(false);
+                                            setTagOpen((open) => !open);
+                                        }}
+                                        state={tagOpen ? "open" : "idle"}
+                                        tag={selectedPlayerTag}
+                                        trigger
+                                    />
+                                ) : null}
+                                {tagOpen && selectedRecording ? (
+                                    <RecordingTagManager
+                                        variant="popover"
+                                        recording={selectedRecording}
+                                        availableTags={availableTags}
+                                        loadError={tagLoadError || null}
+                                        onAvailableTagsChange={setAvailableTags}
+                                        onRecordingTagsChange={
+                                            applyDashboardRecordingTags
                                         }
-                                        onTranscribe={handleTranscribe}
-                                        onRetranscribe={handleRetranscribe}
-                                        className="min-h-0 flex-1"
+                                        onClose={() => setTagOpen(false)}
+                                    />
+                                ) : null}
+                                {selectedPlayerStatus ? (
+                                    <SotPlayerStatusBadge
+                                        className={`${selectedPlayerStatus.className} _is-3`}
+                                        dotClassName={
+                                            selectedPlayerStatus.dotClassName
+                                        }
+                                        label={selectedPlayerStatus.label}
+                                    />
+                                ) : null}
+                            </div>
+                            {/* biome-ignore lint/a11y/useSemanticElements: SOT no-audio banner is a div with role=status. */}
+                            <div
+                                className="no-audio-banner"
+                                data-no-audio-banner=""
+                                role="status"
+                            >
+                                <span
+                                    className="no-audio-ico"
+                                    aria-hidden="true"
+                                >
+                                    <SotPlayerNoAudioIcon />
+                                </span>
+                                <div className="no-audio-text">
+                                    <div className="no-audio-title">
+                                        来源仅同步转写与报告
+                                    </div>
+                                    <div className="no-audio-sub">
+                                        这条录音没有本地音频，无法播放或运行私有重转写。
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                className={
+                                    playbackDisabled
+                                        ? "player-controls is-disabled"
+                                        : "player-controls"
+                                }
+                                data-sot-panel="dashboard-recording-player-controls"
+                                data-sot-state={playerControlsState}
+                            >
+                                <button
+                                    className="round-btn"
+                                    type="button"
+                                    aria-label="后退 5 秒"
+                                    data-sot-control="dashboard-player-back"
+                                    data-sot-state={playerControlState}
+                                    disabled={playbackDisabled}
+                                    onClick={() =>
+                                        seekDashboardPlayerBySeconds(-5)
+                                    }
+                                >
+                                    <SotPlayerBackIcon />
+                                </button>
+                                <button
+                                    className="round-btn play"
+                                    type="button"
+                                    aria-label={isPlaying ? "暂停" : "播放"}
+                                    data-playing={isPlaying ? "true" : "false"}
+                                    data-sot-control="dashboard-player-play"
+                                    data-sot-state={
+                                        playbackDisabled
+                                            ? "disabled"
+                                            : isPlaying
+                                              ? "playing"
+                                              : "paused"
+                                    }
+                                    disabled={playbackDisabled}
+                                    onClick={togglePlayPause}
+                                >
+                                    {isPlaying ? (
+                                        <SotPlayerPauseIcon />
+                                    ) : (
+                                        <SotPlayerPlayIcon />
+                                    )}
+                                </button>
+                                <button
+                                    className="round-btn"
+                                    type="button"
+                                    aria-label="前进 5 秒"
+                                    data-sot-control="dashboard-player-forward"
+                                    data-sot-state={playerControlState}
+                                    disabled={playbackDisabled}
+                                    onClick={() =>
+                                        seekDashboardPlayerBySeconds(5)
+                                    }
+                                >
+                                    <SotPlayerForwardIcon />
+                                </button>
+                                <span
+                                    className="time mono"
+                                    data-sot-part="dashboard-player-current-time"
+                                >
+                                    {formatSotPlayerTime(currentTime)}
+                                </span>
+                                <div
+                                    className={
+                                        playbackDisabled
+                                            ? "track is-disabled"
+                                            : "track"
+                                    }
+                                    aria-disabled={
+                                        playbackDisabled ? "true" : undefined
+                                    }
+                                    aria-label="播放进度"
+                                    aria-valuemax={100}
+                                    aria-valuemin={0}
+                                    aria-valuenow={Math.round(progress)}
+                                    data-sot-control="dashboard-player-seek"
+                                    data-sot-state={playerControlState}
+                                    data-pct={playerProgressPct}
+                                    onClick={(event) => {
+                                        const rect =
+                                            event.currentTarget.getBoundingClientRect();
+                                        if (rect.width <= 0) {
+                                            return;
+                                        }
+                                        seekDashboardPlayerToPercent(
+                                            ((event.clientX - rect.left) /
+                                                rect.width) *
+                                                100,
+                                        );
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "ArrowLeft") {
+                                            seekDashboardPlayerToPercent(
+                                                progress - 5,
+                                            );
+                                        }
+                                        if (event.key === "ArrowRight") {
+                                            seekDashboardPlayerToPercent(
+                                                progress + 5,
+                                            );
+                                        }
+                                        if (event.key === "Home") {
+                                            seekDashboardPlayerToPercent(0);
+                                        }
+                                        if (event.key === "End") {
+                                            seekDashboardPlayerToPercent(100);
+                                        }
+                                    }}
+                                    role="slider"
+                                    tabIndex={playbackDisabled ? -1 : 0}
+                                >
+                                    <div
+                                        className="track-fill"
+                                        data-pct={playerProgressPct}
+                                    />
+                                    <div
+                                        className="track-thumb"
+                                        data-pct={playerProgressPct}
                                     />
                                 </div>
-                            </>
-                        ) : (
-                            <Card
-                                hasNoPadding
-                                className="glass-surface flex min-h-[26rem] flex-1 items-center justify-center rounded-2xl"
-                            >
-                                <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
-                                    <Mic className="mb-4 h-12 w-12 text-muted-foreground" />
-                                    <h3 className="mb-2 text-base font-semibold">
-                                        {liveRecordings.length === 0
-                                            ? t("dashboard.noRecordings")
-                                            : t("dashboard.selectRecording")}
-                                    </h3>
-                                    <p className="max-w-md text-sm text-muted-foreground">
-                                        {liveRecordings.length === 0
-                                            ? t(
-                                                  "dashboard.noRecordingsDescription",
-                                              )
-                                            : listContextLabel}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
+                                <span
+                                    className="time mono"
+                                    data-sot-part="dashboard-player-duration"
+                                >
+                                    {formatSotPlayerTime(playerDurationValue)}
+                                </span>
+                                <button
+                                    type="button"
+                                    className="btn ghost speed"
+                                    disabled={playbackDisabled}
+                                    aria-label="切换播放倍速"
+                                    data-sot-control="dashboard-player-speed"
+                                    data-sot-state={playerControlState}
+                                    onClick={cyclePlaybackSpeed}
+                                >
+                                    {playbackSpeedLabel}
+                                </button>
+                                <div className="vol-anchor">
+                                    <button
+                                        className="round-btn small"
+                                        type="button"
+                                        aria-label={`音量 ${volume}`}
+                                        aria-expanded={volumePopoverOpen}
+                                        title={`音量 ${volume}`}
+                                        data-level={sotPlayerVolumeLevel(
+                                            volume,
+                                        )}
+                                        data-sot-control="dashboard-player-volume"
+                                        data-sot-state={
+                                            playbackDisabled
+                                                ? "disabled"
+                                                : volumePopoverOpen
+                                                  ? "open"
+                                                  : "closed"
+                                        }
+                                        data-sot-volume-state={
+                                            volumeMuted ? "muted" : "audible"
+                                        }
+                                        disabled={playbackDisabled}
+                                        onClick={() =>
+                                            setVolumeOpen((open) => !open)
+                                        }
+                                    >
+                                        <SotPlayerVolumeIcon volume={volume} />
+                                    </button>
+                                    <div
+                                        className="vol-pop"
+                                        data-open={
+                                            volumePopoverOpen ? "true" : "false"
+                                        }
+                                        hidden={!volumePopoverOpen}
+                                        aria-hidden={
+                                            volumePopoverOpen
+                                                ? undefined
+                                                : "true"
+                                        }
+                                        role="dialog"
+                                        aria-label="音量"
+                                    >
+                                        <div className="vol-row">
+                                            <button
+                                                className="vol-mute"
+                                                type="button"
+                                                aria-label="静音切换"
+                                                disabled={playbackDisabled}
+                                                onClick={() =>
+                                                    setVolume(
+                                                        volumeMuted ? 70 : 0,
+                                                    )
+                                                }
+                                            >
+                                                <SotPlayerVolumeIcon
+                                                    className="vol-ico"
+                                                    volume={volume}
+                                                />
+                                            </button>
+                                            <input
+                                                className="vol-range"
+                                                type="range"
+                                                min={0}
+                                                max={100}
+                                                step={1}
+                                                value={volume}
+                                                disabled={playbackDisabled}
+                                                aria-label="音量"
+                                                suppressHydrationWarning
+                                                onChange={(event) =>
+                                                    setVolume(
+                                                        Number(
+                                                            event.target.value,
+                                                        ),
+                                                    )
+                                                }
+                                            />
+                                            <span className="vol-num mono">
+                                                {volume}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {audioSrc ? (
+                                <audio ref={audioRef} src={audioSrc}>
+                                    <track kind="captions" />
+                                </audio>
+                            ) : null}
+                        </div>
+
+                        <div className="transcript">
+                            <div className="transcript-head">
+                                <SegmentedTabs
+                                    aria-label="详情标签"
+                                    items={[
+                                        { value: "transcript", label: "转写" },
+                                        { value: "speakers", label: "说话人" },
+                                        {
+                                            value: "source",
+                                            label: "来源详情",
+                                            tabKey: "source-report",
+                                        },
+                                    ]}
+                                    value={detailTab}
+                                    onValueChange={(value) => {
+                                        setDetailTab(value);
+                                        setAiOpen(false);
+                                        setTagOpen(false);
+                                        setMoreOpen(false);
+                                        setSearchOpen(false);
+                                        setActivityOpen(false);
+                                    }}
+                                />
+                                <div className="t-actions">
+                                    <button
+                                        className="btn ghost btn-sm copy-btn"
+                                        type="button"
+                                        data-copy="transcript"
+                                        data-copy-state={
+                                            copyFeedback?.action ===
+                                            "local-transcript"
+                                                ? copyFeedback.state
+                                                : undefined
+                                        }
+                                        data-sot-control="copy-local-transcript"
+                                        data-sot-state={
+                                            localTranscriptCopyState
+                                        }
+                                        data-tab-scope="transcript"
+                                        aria-busy={
+                                            copyingAction === "local-transcript"
+                                        }
+                                        aria-disabled={
+                                            localTranscriptCopyDisabled
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        aria-label={t(
+                                            "transcription.copyTranscript",
+                                        )}
+                                        aria-live={
+                                            copyFeedback?.action ===
+                                            "local-transcript"
+                                                ? "polite"
+                                                : undefined
+                                        }
+                                        disabled={localTranscriptCopyDisabled}
+                                        hidden={detailTab !== "transcript"}
+                                        onClick={() =>
+                                            void handleCopyLocalTranscript()
+                                        }
+                                    >
+                                        <SotCopyIcon />
+                                        <span className="copy-label">
+                                            {copyFeedback?.action ===
+                                            "local-transcript"
+                                                ? copyFeedback.state === "ok"
+                                                    ? t("common.copied")
+                                                    : t(
+                                                          "common.copyFailedShort",
+                                                      )
+                                                : t(
+                                                      "transcription.copyTranscript",
+                                                  )}
+                                        </span>
+                                    </button>
+                                    <button
+                                        className="btn ghost btn-sm copy-btn"
+                                        type="button"
+                                        data-copy="source-transcript"
+                                        data-copy-state={
+                                            copyFeedback?.action ===
+                                            "source-transcript"
+                                                ? copyFeedback.state
+                                                : undefined
+                                        }
+                                        data-sot-control="copy-source-transcript"
+                                        data-sot-state={
+                                            sourceTranscriptCopyState
+                                        }
+                                        data-tab-scope="source-report"
+                                        aria-busy={
+                                            copyingAction ===
+                                            "source-transcript"
+                                        }
+                                        aria-disabled={
+                                            sourceTranscriptCopyDisabled
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        aria-label={t(
+                                            "sourceReport.copySourceTranscript",
+                                        )}
+                                        aria-live={
+                                            copyFeedback?.action ===
+                                            "source-transcript"
+                                                ? "polite"
+                                                : undefined
+                                        }
+                                        disabled={sourceTranscriptCopyDisabled}
+                                        hidden={detailTab !== "source"}
+                                        onClick={() =>
+                                            void handleCopySourceMaterial(
+                                                "source-transcript",
+                                            )
+                                        }
+                                    >
+                                        <SotCopyIcon />
+                                        <span className="copy-label">
+                                            {copyFeedback?.action ===
+                                            "source-transcript"
+                                                ? copyFeedback.state === "ok"
+                                                    ? t("common.copied")
+                                                    : t(
+                                                          "common.copyFailedShort",
+                                                      )
+                                                : t(
+                                                      "sourceReport.copySourceTranscript",
+                                                  )}
+                                        </span>
+                                    </button>
+                                    <button
+                                        className="btn ghost btn-sm copy-btn"
+                                        type="button"
+                                        data-copy="source-report"
+                                        data-copy-state={
+                                            copyFeedback?.action ===
+                                            "source-report"
+                                                ? copyFeedback.state
+                                                : undefined
+                                        }
+                                        data-sot-control="copy-source-report"
+                                        data-sot-state={sourceReportCopyState}
+                                        data-tab-scope="source-report"
+                                        aria-busy={
+                                            copyingAction === "source-report"
+                                        }
+                                        aria-disabled={
+                                            sourceReportCopyDisabled
+                                                ? "true"
+                                                : "false"
+                                        }
+                                        aria-label={t(
+                                            "sourceReport.copySourceReport",
+                                        )}
+                                        aria-live={
+                                            copyFeedback?.action ===
+                                            "source-report"
+                                                ? "polite"
+                                                : undefined
+                                        }
+                                        disabled={sourceReportCopyDisabled}
+                                        hidden={detailTab !== "source"}
+                                        onClick={() =>
+                                            void handleCopySourceMaterial(
+                                                "source-report",
+                                            )
+                                        }
+                                    >
+                                        <SotCopyIcon />
+                                        <span className="copy-label">
+                                            {copyFeedback?.action ===
+                                            "source-report"
+                                                ? copyFeedback.state === "ok"
+                                                    ? t("common.copied")
+                                                    : t(
+                                                          "common.copyFailedShort",
+                                                      )
+                                                : t(
+                                                      "sourceReport.copySourceReport",
+                                                  )}
+                                        </span>
+                                    </button>
+                                    {detailTab === "source" ? (
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                            data-sot-control="refresh-source-report"
+                                            data-sot-state={sourceReportState}
+                                            disabled={
+                                                sourceReportState === "loading"
+                                            }
+                                            onClick={() =>
+                                                void loadSourceReport()
+                                            }
+                                        >
+                                            <CloudDownload />
+                                            {sourceReportState === "loading"
+                                                ? t(
+                                                      "sourceReport.loadingDetail",
+                                                  )
+                                                : t("sourceReport.refresh")}
+                                        </button>
+                                    ) : null}
+                                    <span
+                                        className="retx-disabled-hint"
+                                        hidden={
+                                            detailTab !== "transcript" ||
+                                            dashboardRetxState !== "unavailable"
+                                        }
+                                    >
+                                        当前来源不支持私有重转写
+                                    </span>
+                                    <button
+                                        id="retx-btn"
+                                        className="btn ghost btn-sm"
+                                        type="button"
+                                        data-sot-control="retranscribe-recording"
+                                        data-sot-state={dashboardRetxState}
+                                        data-retx-state={dashboardRetxState}
+                                        aria-disabled={
+                                            !selectedRecording ||
+                                            !selectedRecording.audioUrl
+                                        }
+                                        disabled={
+                                            !selectedRecording ||
+                                            !selectedRecording.audioUrl
+                                        }
+                                        hidden={detailTab !== "transcript"}
+                                        title={
+                                            dashboardRetxState === "unavailable"
+                                                ? "当前来源不支持私有重转写"
+                                                : undefined
+                                        }
+                                        onClick={() => void retranscribe()}
+                                    >
+                                        重新转写
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="transcript-body">
+                                <div
+                                    className="retx-banner"
+                                    data-sot-panel="dashboard-retranscription"
+                                    data-sot-state={dashboardRetxState}
+                                    data-retx-state={dashboardRetxState}
+                                    hidden={
+                                        dashboardRetxState === "idle" ||
+                                        dashboardRetxState === "unavailable"
+                                    }
+                                >
+                                    <span
+                                        className="retx-banner-ico"
+                                        aria-hidden="true"
+                                    >
+                                        {dashboardRetxState === "queued" ||
+                                        dashboardRetxState === "running" ? (
+                                            <span className="retx-spinner" />
+                                        ) : dashboardRetxState === "failed" ? (
+                                            <RetxWarnIcon />
+                                        ) : dashboardRetxState ===
+                                          "completed" ? (
+                                            <RetxOkIcon />
+                                        ) : dashboardRetxState ===
+                                          "unavailable" ? (
+                                            <RetxWarnIcon />
+                                        ) : (
+                                            <RefreshCw />
+                                        )}
+                                    </span>
+                                    <div className="retx-banner-body">
+                                        <div className="retx-banner-title">
+                                            {dashboardRetxTitle}
+                                        </div>
+                                        <div className="retx-banner-sub">
+                                            {dashboardRetxSub}
+                                        </div>
+                                    </div>
+                                    {dashboardRetxState === "failed" ? (
+                                        <div className="retx-banner-actions">
+                                            <button
+                                                className="btn ghost btn-sm"
+                                                type="button"
+                                                data-retx-retry=""
+                                                data-sot-control="retry-retranscription"
+                                                onClick={() =>
+                                                    void retranscribe()
+                                                }
+                                            >
+                                                重试转写
+                                            </button>
+                                            <button
+                                                className="btn ghost btn-sm"
+                                                type="button"
+                                                aria-label="收起"
+                                                data-retx-dismiss=""
+                                                data-sot-control="dismiss-retranscription-failed"
+                                                onClick={() =>
+                                                    setRetxState("idle")
+                                                }
+                                            >
+                                                <RetxCloseIcon />
+                                            </button>
+                                        </div>
+                                    ) : dashboardRetxState === "completed" &&
+                                      selectedRecording ? (
+                                        <div className="retx-banner-actions">
+                                            <button
+                                                className="btn ghost btn-sm"
+                                                type="button"
+                                                aria-label="收起"
+                                                data-retx-dismiss=""
+                                                data-sot-control="dismiss-retranscription-complete"
+                                                onClick={() => {
+                                                    const recordingId =
+                                                        selectedRecording.id;
+                                                    setDismissedCompletedRetxIds(
+                                                        (items) =>
+                                                            new Set(items).add(
+                                                                recordingId,
+                                                            ),
+                                                    );
+                                                }}
+                                            >
+                                                <RetxCloseIcon />
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <p
+                                    className="retx-refresh-marker"
+                                    hidden={dashboardRetxState !== "completed"}
+                                >
+                                    刚刷新 · 1 秒前
+                                </p>
+                                <div
+                                    className="t-pane"
+                                    data-tab-pane="transcript"
+                                    hidden={detailTab !== "transcript"}
+                                >
+                                    {isTranscriptLoading ? (
+                                        [0, 1, 2].map((item) => (
+                                            <div
+                                                className="turn skel-turn"
+                                                key={`transcript-skeleton:${item}`}
+                                            >
+                                                <div className="speaker">
+                                                    <span className="sk _is-29" />
+                                                    <span
+                                                        className={
+                                                            item === 0
+                                                                ? "sk _is-30"
+                                                                : item === 1
+                                                                  ? "sk _is-35"
+                                                                  : "sk _is-38"
+                                                        }
+                                                    />
+                                                    <span className="sk _is-31" />
+                                                </div>
+                                                <div
+                                                    className={
+                                                        item === 0
+                                                            ? "sk _is-32"
+                                                            : item === 1
+                                                              ? "sk _is-36"
+                                                              : "sk _is-39"
+                                                    }
+                                                />
+                                                <div
+                                                    className={
+                                                        item === 0
+                                                            ? "sk _is-33"
+                                                            : item === 1
+                                                              ? "sk _is-37"
+                                                              : "sk _is-40"
+                                                    }
+                                                />
+                                                {item === 1 ? null : (
+                                                    <div
+                                                        className={
+                                                            item === 0
+                                                                ? "sk _is-34"
+                                                                : "sk _is-41"
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : turns.length ? (
+                                        turns.map((turn, index) => {
+                                            const speakerName =
+                                                turn.speakerName ||
+                                                `说话人 ${index + 1}`;
+                                            const timeLabel =
+                                                formatTranscriptTurnTimestamp(
+                                                    turn.startMs,
+                                                    turn.endMs,
+                                                );
+                                            const avatarLabel =
+                                                formatTranscriptAvatarLabel(
+                                                    speakerName,
+                                                    index,
+                                                );
+
+                                            return (
+                                                <div
+                                                    className="turn"
+                                                    key={`${selectedRecording?.id}:${index}`}
+                                                >
+                                                    <div className="speaker">
+                                                        <span
+                                                            className={`avatar-sm _is-${4 + (index % 3)}`}
+                                                        >
+                                                            {avatarLabel}
+                                                        </span>
+                                                        <span className="speaker-name">
+                                                            {speakerName}
+                                                        </span>
+                                                        <span className="ts mono">
+                                                            {timeLabel ?? "--"}
+                                                        </span>
+                                                    </div>
+                                                    <p>{turn.text}</p>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="empty-state">
+                                            <div
+                                                className="empty-ico"
+                                                aria-hidden="true"
+                                            >
+                                                <SotTranscriptEmptyIcon />
+                                            </div>
+                                            <p className="empty-msg">
+                                                还没有逐字稿
+                                            </p>
+                                            <p className="empty-sub">
+                                                来源已就绪，转写任务还在排队中。
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div
+                                    className="t-pane sr-pane"
+                                    data-tab-pane="source-report"
+                                    hidden={detailTab !== "source"}
+                                    data-sot-panel="dashboard-source-report"
+                                    data-sot-state={sourceReportVisualState}
+                                >
+                                    {sourceReportState === "loading" ? (
+                                        <div
+                                            className="sr-state"
+                                            data-state="loading"
+                                        >
+                                            <div className="sr-cards">
+                                                <div className="sr-card">
+                                                    <div className="sr-card-label">
+                                                        来源
+                                                    </div>
+                                                    <div className="sk _is-10" />
+                                                </div>
+                                                <div className="sr-card">
+                                                    <div className="sr-card-label">
+                                                        转写状态
+                                                    </div>
+                                                    <div className="sk _is-11" />
+                                                </div>
+                                                <div className="sr-card">
+                                                    <div className="sr-card-label">
+                                                        摘要状态
+                                                    </div>
+                                                    <div className="sk _is-11" />
+                                                </div>
+                                                <div className="sr-card">
+                                                    <div className="sr-card-label">
+                                                        分段数
+                                                    </div>
+                                                    <div className="sk _is-12" />
+                                                </div>
+                                            </div>
+                                            <section className="sr-section">
+                                                <header className="sr-section-head">
+                                                    <h4>来源转写</h4>
+                                                    <span className="sr-section-sub">
+                                                        正在从
+                                                        {
+                                                            sourceReportProviderSentenceName
+                                                        }
+                                                        读取…
+                                                    </span>
+                                                </header>
+                                                <div className="sr-seg skel">
+                                                    <span className="sk _is-13" />{" "}
+                                                    <span className="sk _is-14" />
+                                                    <div className="sk _is-15" />
+                                                    <div className="sk _is-16" />
+                                                </div>
+                                                <div className="sr-seg skel">
+                                                    <span className="sk _is-13" />{" "}
+                                                    <span className="sk _is-14" />
+                                                    <div className="sk _is-17" />
+                                                    <div className="sk _is-18" />
+                                                </div>
+                                            </section>
+                                        </div>
+                                    ) : sourceReportState === "error" ? (
+                                        <div
+                                            className="sr-state"
+                                            data-state="error"
+                                            data-sot-error={
+                                                sourceReportError || undefined
+                                            }
+                                        >
+                                            <div className="sr-empty err">
+                                                <div
+                                                    className="sr-empty-ico"
+                                                    aria-hidden="true"
+                                                >
+                                                    <SotSourceReportErrorIcon />
+                                                </div>
+                                                <div className="sr-empty-title">
+                                                    无法读取来源详情
+                                                </div>
+                                                <div className="sr-empty-sub">
+                                                    {
+                                                        sourceReportProviderSentenceName
+                                                    }
+                                                    返回了一个错误，可能是网络抖动或来源临时不可用。
+                                                </div>
+                                                <div className="sr-empty-actions">
+                                                    <button
+                                                        className="btn primary btn-sm"
+                                                        type="button"
+                                                        onClick={() =>
+                                                            void loadSourceReport()
+                                                        }
+                                                    >
+                                                        重试
+                                                    </button>
+                                                    <button
+                                                        className="btn ghost btn-sm"
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearchOpen(
+                                                                false,
+                                                            );
+                                                            setMoreOpen(false);
+                                                            setTagOpen(false);
+                                                            setAiOpen(false);
+                                                            setActivityOpen(
+                                                                true,
+                                                            );
+                                                        }}
+                                                    >
+                                                        查看同步日志
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : sourceReportData ? (
+                                        <div
+                                            className="sr-state"
+                                            data-state="loaded"
+                                            data-sub-state={
+                                                sourceReportSubState
+                                            }
+                                        >
+                                            {!selectedRecording?.hasAudio ? (
+                                                <div className="sr-pill warn">
+                                                    <span className="dot" />
+                                                    {t(
+                                                        "sourceReport.sourceOnlyNoAudio",
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                            <div className="sr-cards">
+                                                <div className="sr-card">
+                                                    <span className="sr-card-label">
+                                                        {t("recording.source")}
+                                                    </span>
+                                                    <div className="sr-card-value sr-card-source">
+                                                        {sourceReportProviderDefinition?.icon ? (
+                                                            <img
+                                                                src={
+                                                                    sourceReportProviderDefinition.icon
+                                                                }
+                                                                alt=""
+                                                            />
+                                                        ) : (
+                                                            <span className="_is-47">
+                                                                {sourceReportProviderName.charAt(
+                                                                    0,
+                                                                )}
+                                                            </span>
+                                                        )}
+                                                        <span>
+                                                            {
+                                                                sourceReportProviderName
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="sr-card">
+                                                    <span className="sr-card-label">
+                                                        转写状态
+                                                    </span>
+                                                    <div className="sr-card-value">
+                                                        <span
+                                                            className={sourceReportReadinessPillClass(
+                                                                sourceTranscriptStatusLabel,
+                                                            )}
+                                                        >
+                                                            <span className="dot" />
+                                                            {
+                                                                sourceTranscriptStatusLabel
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="sr-card">
+                                                    <span className="sr-card-label">
+                                                        摘要状态
+                                                    </span>
+                                                    <div className="sr-card-value">
+                                                        <span
+                                                            className={sourceReportReadinessPillClass(
+                                                                sourceSummaryStatusLabel,
+                                                            )}
+                                                        >
+                                                            <span className="dot" />
+                                                            {
+                                                                sourceSummaryStatusLabel
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="sr-card">
+                                                    <span className="sr-card-label">
+                                                        分段数
+                                                    </span>
+                                                    <div className="sr-card-value sr-card-num mono">
+                                                        {
+                                                            sourceReportSegmentCount
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <section className="sr-section">
+                                                <header className="sr-section-head">
+                                                    <h4>来源转写</h4>
+                                                    <span className="sr-section-sub">
+                                                        来自
+                                                        {
+                                                            sourceReportProviderSentenceName
+                                                        }
+                                                        {" · "}
+                                                        {
+                                                            sourceReportSegmentCount
+                                                        }
+                                                        {" 段 · "}
+                                                        {selectedRecording
+                                                            ? formatDuration(
+                                                                  selectedRecording.duration,
+                                                              )
+                                                            : "--"}
+                                                        {" 总时长"}
+                                                    </span>
+                                                </header>
+                                                <ol className="sr-segments">
+                                                    {sourceReportDisplaySegments.map(
+                                                        (segment, index) => (
+                                                            <li
+                                                                className="sr-seg"
+                                                                key={[
+                                                                    selectedRecordingId,
+                                                                    "source",
+                                                                    segment.startMs,
+                                                                    segment.endMs,
+                                                                    segment.speaker,
+                                                                    segment.text,
+                                                                    index,
+                                                                ].join(":")}
+                                                            >
+                                                                <span className="sr-seg-ts mono">
+                                                                    {[
+                                                                        formatSourceReportTimestamp(
+                                                                            segment.startMs,
+                                                                        ),
+                                                                        formatSourceReportTimestamp(
+                                                                            segment.endMs,
+                                                                        ),
+                                                                    ]
+                                                                        .filter(
+                                                                            Boolean,
+                                                                        )
+                                                                        .join(
+                                                                            " – ",
+                                                                        ) ||
+                                                                        "--"}
+                                                                </span>
+                                                                <span className="sr-seg-speaker">
+                                                                    {segment.speaker ||
+                                                                        `说话人 ${index + 1}`}
+                                                                </span>
+                                                                <p className="sr-seg-text">
+                                                                    {
+                                                                        segment.text
+                                                                    }
+                                                                </p>
+                                                            </li>
+                                                        ),
+                                                    )}
+                                                </ol>
+                                            </section>
+
+                                            {sourceSummaryVisible ? (
+                                                <section className="sr-section sr-summary-section">
+                                                    <header className="sr-section-head">
+                                                        <h4>来源原始报告</h4>
+                                                        <span className="sr-section-sub">
+                                                            由
+                                                            {
+                                                                sourceReportProviderName
+                                                            }
+                                                            返回的只读摘要
+                                                        </span>
+                                                    </header>
+                                                    <div className="sr-summary-body">
+                                                        {sourceSummaryRenderedText
+                                                            .split("\n")
+                                                            .map(
+                                                                (
+                                                                    line,
+                                                                    index,
+                                                                ) => (
+                                                                    <p
+                                                                        className="sr-seg-text"
+                                                                        key={`${index}:${line}`}
+                                                                    >
+                                                                        {line}
+                                                                    </p>
+                                                                ),
+                                                            )}
+                                                    </div>
+                                                </section>
+                                            ) : null}
+
+                                            <section className="sr-section">
+                                                <header className="sr-section-head">
+                                                    <h4>来源信息</h4>
+                                                    <span className="sr-section-sub">
+                                                        由
+                                                        {
+                                                            sourceReportProviderName
+                                                        }
+                                                        返回的公开元数据
+                                                    </span>
+                                                </header>
+                                                <dl className="sr-meta">
+                                                    <div className="sr-meta-row">
+                                                        <dt>来源</dt>
+                                                        <dd>
+                                                            {
+                                                                sourceReportProviderName
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>状态</dt>
+                                                        <dd>
+                                                            <span
+                                                                className={sourceReportSyncPillClass(
+                                                                    sourceReportSyncStatusLabel,
+                                                                )}
+                                                            >
+                                                                <span className="dot" />
+                                                                {
+                                                                    sourceReportSyncStatusLabel
+                                                                }
+                                                            </span>
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>录制于</dt>
+                                                        <dd>
+                                                            <span className="mono">
+                                                                {formatSourceReportDate(
+                                                                    sourceReportRecordedAt,
+                                                                )}
+                                                            </span>
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>最近更新</dt>
+                                                        <dd>
+                                                            <span className="mono">
+                                                                {formatSourceReportDate(
+                                                                    sourceReportUpdatedAt,
+                                                                )}
+                                                            </span>
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>可读内容</dt>
+                                                        <dd>
+                                                            {
+                                                                sourceReportReadable
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>来源标题</dt>
+                                                        <dd>
+                                                            {sourceReportTitle}
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>语种</dt>
+                                                        <dd>
+                                                            {
+                                                                sourceReportLanguage
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                    <div className="sr-meta-row">
+                                                        <dt>时长</dt>
+                                                        <dd>
+                                                            <span className="mono">
+                                                                {selectedRecording
+                                                                    ? formatDuration(
+                                                                          selectedRecording.duration,
+                                                                      )
+                                                                    : "--"}
+                                                            </span>
+                                                        </dd>
+                                                    </div>
+                                                </dl>
+                                                <div
+                                                    className="sr-actions"
+                                                    data-sot-panel="source-actions"
+                                                >
+                                                    <button
+                                                        className="btn ghost btn-sm"
+                                                        type="button"
+                                                        disabled={
+                                                            !sourceOpenUrl
+                                                        }
+                                                        title={
+                                                            sourceOpenUrl
+                                                                ? undefined
+                                                                : t(
+                                                                      "sourceReport.openSourceUnavailable",
+                                                                  )
+                                                        }
+                                                        data-sot-control="open-source-record"
+                                                        data-sot-state={
+                                                            sourceOpenControlState
+                                                        }
+                                                        onClick={
+                                                            handleOpenSourceRecord
+                                                        }
+                                                    >
+                                                        {sourceOpenLabel(
+                                                            sourceReportData.sourceProvider ??
+                                                                selectedRecording?.sourceProvider,
+                                                            language,
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        className="btn ghost btn-sm"
+                                                        type="button"
+                                                        disabled={
+                                                            sourceRepullDisabled
+                                                        }
+                                                        aria-busy={
+                                                            sourceRepullState ===
+                                                            "loading"
+                                                        }
+                                                        title={
+                                                            sourceRepullAvailable
+                                                                ? undefined
+                                                                : t(
+                                                                      "sourceReport.repullUnavailable",
+                                                                  )
+                                                        }
+                                                        data-sot-control="repull-source"
+                                                        data-sot-state={
+                                                            sourceRepullControlState
+                                                        }
+                                                        onClick={() =>
+                                                            void handleRepullSource()
+                                                        }
+                                                    >
+                                                        {sourceRepullState ===
+                                                        "loading"
+                                                            ? t(
+                                                                  "sourceReport.repullingSource",
+                                                              )
+                                                            : t(
+                                                                  "sourceReport.repullSource",
+                                                              )}
+                                                    </button>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="sr-state"
+                                            data-state="empty"
+                                        >
+                                            <div className="sr-empty">
+                                                <div
+                                                    className="sr-empty-ico"
+                                                    aria-hidden="true"
+                                                >
+                                                    <SotSourceReportEmptyIcon />
+                                                </div>
+                                                <div className="sr-empty-title">
+                                                    这条录音没有关联来源
+                                                </div>
+                                                <div className="sr-empty-sub">
+                                                    本地导入或离线录制的录音不会有来源详情。
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div
+                                    className="t-pane"
+                                    data-tab-pane="speakers"
+                                    hidden={detailTab !== "speakers"}
+                                >
+                                    <div className="sp-head">
+                                        <div className="sp-head-title">
+                                            {turns.length || 0} 段说话人
+                                        </div>
+                                        <button
+                                            className="btn ghost btn-sm"
+                                            type="button"
+                                        >
+                                            合并相似…
+                                        </button>
+                                    </div>
+                                    <ul className="sp-rows">
+                                        {(turns.length
+                                            ? turns
+                                            : [
+                                                  {
+                                                      text: "转写完成后可查看说话人信息",
+                                                      speakerName: null,
+                                                  },
+                                              ]
+                                        ).map((turn, index) => (
+                                            <li
+                                                className="sp-row"
+                                                key={`${selectedRecording?.id}:speaker:${index}`}
+                                            >
+                                                <span className="avatar-sm">
+                                                    {index + 1}
+                                                </span>
+                                                <div className="sp-row-meta">
+                                                    <div className="sp-row-name">
+                                                        {turn.speakerName ||
+                                                            `说话人 ${index + 1}`}
+                                                    </div>
+                                                    <div className="sp-row-sub mono">
+                                                        {turn.text.length} 字
+                                                    </div>
+                                                </div>
+                                                <span className="sp-bar">
+                                                    <span
+                                                        data-pct={Math.min(
+                                                            100,
+                                                            24 + index * 12,
+                                                        )}
+                                                    />
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                            {!selectedRecording ? (
+                                <DashboardDetailEmptyState />
+                            ) : null}
+                        </div>
                     </section>
                 </div>
-            </div>
+            </main>
 
             <SettingsDialog
                 open={settingsOpen}
-                onOpenChange={setSettingsOpen}
                 returnFocusRef={settingsTriggerRef}
                 user={user}
+                onOpenChange={setSettingsOpen}
             />
-        </>
+        </div>
     );
 }

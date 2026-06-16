@@ -1,21 +1,64 @@
 "use client";
 
-import { CloudDownload, Copy, FileText, LoaderCircle } from "lucide-react";
-import type { ReactElement } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { CloudDownload } from "lucide-react";
+import {
+    type ReactNode,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     getSourceProviderLabel,
     getSourceRecordDescription,
-    getSourceRecordEmptyHint,
     getSourceTabLabel,
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
-import { cn } from "@/lib/utils";
+import { runDataSourcesSync } from "@/services/data-sources";
+
+type SourceActionAvailability = {
+    available?: boolean;
+    reason?: string | null;
+};
+
+type SourceOpenAction = SourceActionAvailability & {
+    url?: string | null;
+};
+
+const SOURCE_REPORT_PROVIDER_VISUALS: Record<
+    string,
+    { cover: boolean; icon: string | null; letter: string }
+> = {
+    "dingtalk-a1": {
+        cover: false,
+        icon: "/assets/sources/dingtalk.svg",
+        letter: "钉",
+    },
+    "feishu-minutes": {
+        cover: true,
+        icon: "/assets/sources/feishu.jpeg",
+        letter: "飞",
+    },
+    iflyrec: {
+        cover: false,
+        icon: null,
+        letter: "讯",
+    },
+    plaud: {
+        cover: true,
+        icon: "/assets/sources/plaud.png",
+        letter: "P",
+    },
+    ticnote: {
+        cover: false,
+        icon: "/assets/sources/ticnote.png",
+        letter: "T",
+    },
+};
 
 interface SourceReportData {
     sourceProvider: string;
@@ -29,6 +72,10 @@ interface SourceReportData {
     } | null;
     summaryMarkdown: string | null;
     detail: Record<string, unknown> | null;
+    sourceActions?: {
+        openSource?: SourceOpenAction | null;
+        repullSource?: SourceActionAvailability | null;
+    } | null;
 }
 
 interface SourceTranscriptSegment {
@@ -51,7 +98,7 @@ interface SourceReportPanelProps {
 }
 
 export interface SourceReportAvailabilitySnapshot {
-    state: "idle" | "loading" | "loaded" | "missing" | "error";
+    state: "idle" | "loading" | "loaded" | "missing" | "error" | "empty";
     transcriptAvailable: boolean;
     reportAvailable: boolean;
 }
@@ -60,10 +107,18 @@ const SENSITIVE_SOURCE_DETAIL_FIELD_PATTERN =
     /auth|bearer|cookie|credential|header|key|password|payload|raw|request|response|secret|session|token/i;
 const SAFE_SOURCE_DETAIL_KEYS = new Set([
     "provider",
+    "providerName",
+    "providerSentenceName",
     "status",
+    "statusLabel",
+    "syncStatusLabel",
+    "sourceStatusLabel",
     "sections",
     "createdAt",
+    "recordedAt",
     "updatedAt",
+    "syncedAt",
+    "modifiedAt",
     "startedAt",
     "endedAt",
     "durationMs",
@@ -74,7 +129,14 @@ const SAFE_SOURCE_DETAIL_KEYS = new Set([
     "source",
     "sourceTitle",
     "sourceName",
+    "sourceSentenceName",
+    "sourceProviderName",
     "sourceType",
+    "readableContent",
+    "assets",
+    "availableContent",
+    "locale",
+    "lang",
     "speakerCount",
     "wordCount",
     "segmentCount",
@@ -86,16 +148,36 @@ function isZh(language: UiLanguage) {
     return language === "zh-CN";
 }
 
-function formatPublicDate(value: string, language: UiLanguage) {
+function sourceFallbackLetter(provider: string, label: string) {
+    const candidate = Array.from(label.trim())[0] ?? Array.from(provider)[0];
+    return candidate?.toUpperCase() ?? "S";
+}
+
+function getOpenSourceLabel(provider: string, language: UiLanguage) {
+    const label = getSourceProviderLabel(provider, language) ?? provider;
+    return isZh(language) ? `在${label}中打开` : `Open in ${label}`;
+}
+
+function formatSotSourceReportDate(value: string | null | undefined) {
+    if (!value) return "--";
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
+    if (Number.isNaN(date.getTime())) return value;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatSotSourceReportDuration(valueMs: number | null | undefined) {
+    if (valueMs == null || !Number.isFinite(valueMs) || valueMs <= 0) {
+        return "--";
     }
 
-    return new Intl.DateTimeFormat(language, {
-        dateStyle: "medium",
-        timeStyle: "short",
-    }).format(date);
+    const totalSeconds = Math.floor(valueMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) {
+        return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 function formatTranscriptText(text: string, language: UiLanguage) {
@@ -130,7 +212,7 @@ function formatTranscriptTimestamp(valueMs: number | null) {
             .padStart(2, "0")}`;
     }
 
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function formatTranscriptTimeRange(
@@ -141,7 +223,7 @@ function formatTranscriptTimeRange(
     const endLabel = formatTranscriptTimestamp(endMs);
 
     if (startLabel && endLabel) {
-        return `${startLabel} - ${endLabel}`;
+        return `${startLabel} – ${endLabel}`;
     }
 
     return startLabel ?? endLabel;
@@ -177,41 +259,6 @@ function buildSourceTranscriptCopyText(
     return formatTranscriptText(transcript.text, language);
 }
 
-function formatDetailLabel(key: string, language: UiLanguage) {
-    const zhLabels: Record<string, string> = {
-        provider: "来源",
-        status: "状态",
-        sections: "可用内容",
-        language: "语言",
-        createdAt: "创建时间",
-        updatedAt: "更新时间",
-        startedAt: "开始时间",
-        endedAt: "结束时间",
-    };
-    const enLabels: Record<string, string> = {
-        provider: "Source",
-        status: "Status",
-        sections: "Available content",
-        language: "Language",
-        createdAt: "Created",
-        updatedAt: "Updated",
-        startedAt: "Started",
-        endedAt: "Ended",
-    };
-    const labels = isZh(language) ? zhLabels : enLabels;
-    const knownLabel = labels[key];
-    if (knownLabel) {
-        return knownLabel;
-    }
-
-    return key
-        .replace(/[_-]+/g, " ")
-        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-        .replace(/\s+/g, " ")
-        .trim()
-        .replace(/^./, (first) => first.toUpperCase());
-}
-
 function isSafeSourceDetailField(key: string) {
     return (
         SAFE_SOURCE_DETAIL_KEYS.has(key) &&
@@ -219,189 +266,225 @@ function isSafeSourceDetailField(key: string) {
     );
 }
 
-function formatDetailValue(
-    key: string,
-    value: unknown,
-    language: UiLanguage,
-    sourceProvider: string,
-    t: (key: string) => string,
-): string | null {
-    if (value === null || value === undefined) {
-        return null;
-    }
-
-    if (typeof value === "string") {
-        if (key === "provider") {
-            return getSourceProviderLabel(value || sourceProvider, language);
+function sourceReportDetailText(
+    detail: Record<string, unknown> | null | undefined,
+    keys: string[],
+) {
+    for (const key of keys) {
+        if (!isSafeSourceDetailField(key)) continue;
+        const value = detail?.[key];
+        if (typeof value === "string" && value.trim()) {
+            return value.trim();
         }
-
-        if (key === "status") {
-            return value === "available" ? t("sourceReport.ready") : value;
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return String(value);
         }
-
-        if (
-            key === "createdAt" ||
-            key === "updatedAt" ||
-            key === "startedAt" ||
-            key === "endedAt"
-        ) {
-            return formatPublicDate(value, language);
+        if (typeof value === "boolean") {
+            return value ? "true" : "false";
         }
-
-        return value;
-    }
-
-    if (typeof value === "number" || typeof value === "boolean") {
-        return String(value);
-    }
-
-    if (Array.isArray(value)) {
-        if (key === "sections") {
-            const sectionLabels: Record<string, string> = {
-                transcript: t("sourceReport.officialTranscript"),
-                summary: t("sourceReport.officialReport"),
-                detail: t("sourceReport.sourceDetails"),
-            };
-            return value
+        if (Array.isArray(value)) {
+            const parts = value
                 .map((item) =>
-                    typeof item === "string"
-                        ? (sectionLabels[item] ?? item)
+                    typeof item === "string" || typeof item === "number"
+                        ? String(item)
                         : null,
                 )
-                .filter((item): item is string => Boolean(item))
-                .join("、");
+                .filter((item): item is string => Boolean(item?.trim()));
+            if (parts.length > 0) return parts.join(" · ");
         }
-
-        const primitiveValues = value
-            .map((item) =>
-                formatDetailValue(key, item, language, sourceProvider, t),
-            )
-            .filter((item): item is string => Boolean(item));
-
-        return primitiveValues.length === value.length
-            ? primitiveValues.join(", ")
-            : null;
     }
-
     return null;
 }
 
-function renderDetailEntries(
-    detail: Record<string, unknown>,
-    language: UiLanguage,
-    sourceProvider: string,
-    t: (key: string) => string,
+function sourceReportDetailNumber(
+    detail: Record<string, unknown> | null | undefined,
+    keys: string[],
 ) {
-    return Object.entries(detail)
-        .filter(([key]) => isSafeSourceDetailField(key))
-        .map(([key, value]) => {
-            const displayValue = formatDetailValue(
-                key,
-                value,
-                language,
-                sourceProvider,
-                t,
-            );
+    for (const key of keys) {
+        if (!isSafeSourceDetailField(key)) continue;
+        const value = detail?.[key];
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return value;
+        }
+        if (typeof value === "string") {
+            const parsed = Number(value);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+    }
+    return null;
+}
 
-            if (displayValue !== null) {
-                return (
-                    <div
-                        key={key}
-                        className="grid gap-1 sm:grid-cols-3 sm:gap-3"
-                    >
-                        <dt className="text-muted-foreground">
-                            {formatDetailLabel(key, language)}
-                        </dt>
-                        <dd className="sm:col-span-2">{displayValue}</dd>
-                    </div>
-                );
-            }
+function getSourceReportSubState(
+    transcriptAvailable: boolean,
+    reportAvailable: boolean,
+) {
+    if (transcriptAvailable && reportAvailable) return "complete";
+    if (!transcriptAvailable && !reportAvailable) return "both-missing";
+    if (!transcriptAvailable) return "transcript-missing";
+    return "summary-missing";
+}
 
-            if (value && typeof value === "object") {
-                const nestedEntries: Array<[string, string, unknown]> =
-                    Array.isArray(value)
-                        ? value.flatMap((item, index) =>
-                              item && typeof item === "object"
-                                  ? Object.entries(
-                                        item as Record<string, unknown>,
-                                    )
-                                        .filter(([nestedKey]) =>
-                                            isSafeSourceDetailField(nestedKey),
-                                        )
-                                        .map(
-                                            ([nestedKey, nestedValue]): [
-                                                string,
-                                                string,
-                                                unknown,
-                                            ] => [
-                                                nestedKey,
-                                                `${index + 1}. ${formatDetailLabel(
-                                                    nestedKey,
-                                                    language,
-                                                )}`,
-                                                nestedValue,
-                                            ],
-                                        )
-                                  : [],
-                          )
-                        : Object.entries(value as Record<string, unknown>)
-                              .filter(([nestedKey]) =>
-                                  isSafeSourceDetailField(nestedKey),
-                              )
-                              .map(([nestedKey, nestedValue]) => [
-                                  nestedKey,
-                                  formatDetailLabel(nestedKey, language),
-                                  nestedValue,
-                              ]);
-                const renderedNestedEntries = nestedEntries
-                    .map(([nestedKey, nestedLabel, nestedValue]) => {
-                        const nestedDisplayValue = formatDetailValue(
-                            nestedKey,
-                            nestedValue,
-                            language,
-                            sourceProvider,
-                            t,
-                        );
+function sourceSummaryDisplayText(markdown: string) {
+    return markdown
+        .split(/\r?\n/)
+        .map((line) =>
+            line
+                .trim()
+                .replace(/^#{1,6}\s+/, "")
+                .replace(/^[-*]\s+/, ""),
+        )
+        .filter(Boolean)
+        .join("\n");
+}
 
-                        if (nestedDisplayValue === null) {
-                            return null;
-                        }
+function sourceSummaryHasDisplayHeading(markdown: string) {
+    return /^#{1,6}\s+\S/m.test(markdown);
+}
 
-                        return (
-                            <div
-                                key={`${key}-${nestedLabel}`}
-                                className="grid gap-1 sm:grid-cols-3 sm:gap-3"
-                            >
-                                <dt className="text-muted-foreground">
-                                    {nestedLabel}
-                                </dt>
-                                <dd className="sm:col-span-2">
-                                    {nestedDisplayValue}
-                                </dd>
-                            </div>
-                        );
-                    })
-                    .filter((entry): entry is ReactElement => entry !== null);
+function sourceReportReadinessLabel(
+    readiness: boolean | string | null | undefined,
+    hasReadableContent: boolean,
+    language: UiLanguage,
+) {
+    if (typeof readiness === "string" && readiness.trim()) {
+        return readiness.trim();
+    }
+    if (readiness === true || hasReadableContent) {
+        return isZh(language) ? "已就绪" : "ready";
+    }
+    return isZh(language) ? "未生成" : "missing";
+}
 
-                if (renderedNestedEntries.length === 0) {
-                    return null;
-                }
+function sourceReportReadinessPillClass(label: string) {
+    const normalized = label.toLowerCase();
+    if (label === "已就绪" || normalized === "ready") return "sr-pill ok";
+    if (label === "失败" || normalized.includes("failed")) {
+        return "sr-pill err";
+    }
+    if (
+        label === "生成中" ||
+        label === "未生成" ||
+        normalized.includes("loading") ||
+        normalized.includes("missing")
+    ) {
+        return "sr-pill warn";
+    }
+    return "sr-pill";
+}
 
-                return (
-                    <section key={key} className="space-y-2">
-                        <h4 className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                            {formatDetailLabel(key, language)}
-                        </h4>
-                        <dl className="space-y-2 rounded-lg bg-muted/70 p-3">
-                            {renderedNestedEntries}
-                        </dl>
-                    </section>
-                );
-            }
+function sourceReportSyncPillClass(label: string) {
+    const normalized = label.toLowerCase();
+    if (label.includes("失败") || normalized.includes("fail")) {
+        return "sr-pill err";
+    }
+    if (
+        label.includes("待") ||
+        label.includes("仅") ||
+        label.includes("生成中") ||
+        normalized.includes("pending")
+    ) {
+        return "sr-pill warn";
+    }
+    if (
+        label.includes("已") ||
+        label.includes("同步") ||
+        normalized.includes("available") ||
+        normalized.includes("synced")
+    ) {
+        return "sr-pill ok";
+    }
+    return "sr-pill";
+}
 
-            return null;
-        })
-        .filter((entry): entry is ReactElement => entry !== null);
+function formatSourceReportStatusLabel(
+    value: string | null,
+    language: UiLanguage,
+) {
+    if (!value) return isZh(language) ? "已同步" : "synced";
+    if (value === "available") return isZh(language) ? "已同步" : "synced";
+    return value;
+}
+
+function SotCopyIcon() {
+    return (
+        <span className="copy-ico" aria-hidden="true">
+            <svg
+                className="copy-ico-default"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <svg
+                className="copy-ico-ok"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <path d="M20 6 9 17l-5-5" />
+            </svg>
+        </span>
+    );
+}
+
+function SotSourceReportErrorIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5" />
+            <circle cx="12" cy="16" r=".8" fill="currentColor" />
+        </svg>
+    );
+}
+
+function SotSourceReportEmptyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="6" width="18" height="14" rx="2" />
+            <path d="M8 6V4h8v2" />
+        </svg>
+    );
+}
+
+function SourceReportStatusBadge({
+    children,
+    className,
+}: {
+    children: ReactNode;
+    className: string;
+}) {
+    return (
+        <span className={className}>
+            {children}
+        </span>
+    );
+}
+
+function SourceReportMetaRow({
+    children,
+    label,
+}: {
+    children: ReactNode;
+    label: string;
+}) {
+    return (
+        <div className="sr-meta-row">
+            <dt>{label}</dt>
+            <dd>{children}</dd>
+        </div>
+    );
 }
 
 export function SourceReportPanel({
@@ -420,13 +503,27 @@ export function SourceReportPanel({
     const [copyingKey, setCopyingKey] = useState<
         "source-transcript" | "source-report" | null
     >(null);
+    const [copyFeedback, setCopyFeedback] = useState<{
+        action: "source-transcript" | "source-report";
+        state: "ok" | "err";
+    } | null>(null);
+    const [repullState, setRepullState] = useState<
+        "idle" | "loading" | "success" | "error"
+    >("idle");
     const activeReportRequestRef = useRef<{
         controller: AbortController;
         id: number;
     } | null>(null);
     const reportRequestIdRef = useRef(0);
+    const copyFeedbackTimerRef = useRef<number | null>(null);
 
     const loadReport = useCallback(async () => {
+        if (!recordingId || !sourceProvider) {
+            setIsLoading(false);
+            setError(null);
+            return;
+        }
+
         activeReportRequestRef.current?.controller.abort();
         const requestId = reportRequestIdRef.current + 1;
         reportRequestIdRef.current = requestId;
@@ -478,7 +575,7 @@ export function SourceReportPanel({
                 setIsLoading(false);
             }
         }
-    }, [recordingId, t]);
+    }, [recordingId, sourceProvider, t]);
 
     useEffect(() => {
         activeReportRequestRef.current?.controller.abort();
@@ -492,12 +589,17 @@ export function SourceReportPanel({
         setData(null);
         setError(null);
         setIsLoading(false);
+        setRepullState("idle");
     }, [recordingId, sourceProvider]);
 
     useEffect(() => {
         return () => {
             activeReportRequestRef.current?.controller.abort();
             activeReportRequestRef.current = null;
+            if (copyFeedbackTimerRef.current) {
+                window.clearTimeout(copyFeedbackTimerRef.current);
+                copyFeedbackTimerRef.current = null;
+            }
         };
     }, []);
 
@@ -514,17 +616,173 @@ export function SourceReportPanel({
         language,
     );
     const sourceReportCopyText = data?.summaryMarkdown ?? "";
+    const sourceSummaryText = sourceSummaryDisplayText(sourceReportCopyText);
+    const sourceSummaryVisible =
+        sourceSummaryText && sourceSummaryHasDisplayHeading(sourceReportCopyText);
     const transcriptAvailable = Boolean(sourceTranscriptCopyText.trim());
     const reportAvailable = Boolean(sourceReportCopyText.trim());
     const sourceReportState: SourceReportAvailabilitySnapshot["state"] = data
-        ? transcriptAvailable || reportAvailable
-            ? "loaded"
-            : "missing"
+        ? "loaded"
         : isLoading
           ? "loading"
           : error
             ? "error"
-            : "idle";
+            : "empty";
+    const sourceReportSubState = getSourceReportSubState(
+        transcriptAvailable,
+        reportAvailable,
+    );
+    const sourceTranscriptCopyState =
+        copyingKey === "source-transcript"
+            ? "copying"
+            : transcriptAvailable
+              ? "ready"
+              : "missing";
+    const sourceReportCopyState =
+        copyingKey === "source-report"
+            ? "copying"
+            : reportAvailable
+              ? "ready"
+              : "missing";
+    const sourceTranscriptCopyDisabled =
+        copyingKey === "source-transcript" || !transcriptAvailable;
+    const sourceReportCopyDisabled =
+        copyingKey === "source-report" || !reportAvailable;
+    const openSourceAction = data?.sourceActions?.openSource;
+    const openSourceUrl =
+        openSourceAction?.available && openSourceAction.url
+            ? openSourceAction.url
+            : null;
+    const openSourceControlState = data
+        ? openSourceUrl
+            ? "ready"
+            : "unavailable"
+        : sourceReportState === "loading"
+          ? "loading"
+          : "unavailable";
+    const repullSourceAction = data?.sourceActions?.repullSource;
+    const repullAvailable = Boolean(repullSourceAction?.available);
+    const repullControlState =
+        repullState === "loading"
+            ? "loading"
+            : repullState === "error"
+              ? "error"
+              : repullAvailable
+                ? "ready"
+                : data
+                  ? "unavailable"
+                  : sourceReportState === "loading"
+                    ? "loading"
+                    : "unavailable";
+    const repullDisabled = repullState === "loading" || !repullAvailable;
+    const sourceProviderForReport = data?.sourceProvider ?? sourceProvider;
+    const sourceReportDetail = data?.detail ?? null;
+    const sourceProviderLabel =
+        sourceReportDetailText(sourceReportDetail, [
+            "providerName",
+            "sourceName",
+            "sourceProviderName",
+        ]) ??
+        getSourceProviderLabel(sourceProviderForReport, language) ??
+        sourceProviderForReport;
+    const sourceProviderSentenceName =
+        sourceReportDetailText(sourceReportDetail, [
+            "providerSentenceName",
+            "sourceSentenceName",
+        ]) ?? sourceProviderLabel.replace(/\s+/g, "");
+    const sourceProviderVisual =
+        SOURCE_REPORT_PROVIDER_VISUALS[sourceProviderForReport];
+    const sourceProviderIcon = sourceProviderVisual?.icon ?? null;
+    const sourceProviderLetter =
+        sourceProviderVisual?.letter ??
+        sourceFallbackLetter(sourceProviderForReport, sourceProviderLabel);
+    const sourceTranscriptStatusLabel = sourceReportReadinessLabel(
+        data?.transcriptReady,
+        transcriptAvailable,
+        language,
+    );
+    const sourceSummaryStatusLabel = sourceReportReadinessLabel(
+        data?.summaryReady,
+        reportAvailable,
+        language,
+    );
+    const sourceReportStatusLabel = formatSourceReportStatusLabel(
+        sourceReportDetailText(sourceReportDetail, [
+            "statusLabel",
+            "syncStatusLabel",
+            "sourceStatusLabel",
+            "status",
+        ]),
+        language,
+    );
+    const sourceReportTitle =
+        sourceReportDetailText(sourceReportDetail, ["sourceTitle", "title"]) ??
+        data?.filename ??
+        "--";
+    const sourceReportRecordedAt =
+        sourceReportDetailText(sourceReportDetail, [
+            "recordedAt",
+            "startTime",
+            "createdAt",
+        ]) ?? null;
+    const sourceReportUpdatedAt =
+        sourceReportDetailText(sourceReportDetail, [
+            "updatedAt",
+            "syncedAt",
+            "modifiedAt",
+        ]) ?? sourceReportRecordedAt;
+    const sourceReportLanguage =
+        sourceReportDetailText(sourceReportDetail, [
+            "language",
+            "locale",
+            "lang",
+        ]) ?? (isZh(language) ? "简体中文 (zh-CN)" : "zh-CN");
+    const sourceReportReadable =
+        sourceReportDetailText(sourceReportDetail, [
+            "readableContent",
+            "assets",
+            "availableContent",
+            "sections",
+        ]) ??
+        (isZh(language)
+            ? "音频 · 转写 · 摘要 · 说话人"
+            : "audio · transcript · summary · speakers");
+    const sourceReportRawSegments = data?.transcript?.segments ?? [];
+    const sourceReportTranscriptText = data?.transcript?.text?.trim() ?? "";
+    const sourceReportDisplaySegments: SourceTranscriptSegment[] =
+        sourceReportRawSegments.length > 0
+            ? sourceReportRawSegments
+            : sourceReportTranscriptText
+              ? [
+                    {
+                        speaker: sourceProviderLabel,
+                        startMs: null,
+                        endMs: null,
+                        text: formatTranscriptText(
+                            sourceReportTranscriptText,
+                            language,
+                        ),
+                    },
+                ]
+              : [];
+    const sourceReportSegmentCount =
+        data?.transcript?.segmentCount ?? sourceReportDisplaySegments.length;
+    const sourceReportDurationMs =
+        sourceReportDetailNumber(sourceReportDetail, ["durationMs"]) ??
+        (() => {
+            const duration = sourceReportDetailNumber(sourceReportDetail, [
+                "duration",
+            ]);
+            if (duration == null) return null;
+            return duration > 10_000 ? duration : duration * 1000;
+        })() ??
+        Math.max(
+            0,
+            ...sourceReportDisplaySegments.map((segment) => segment.endMs ?? 0),
+        );
+    const sourceReportDurationLabel = formatSotSourceReportDuration(
+        sourceReportDurationMs,
+    );
 
     useEffect(() => {
         onAvailabilityChange?.({
@@ -539,6 +797,25 @@ export function SourceReportPanel({
         transcriptAvailable,
     ]);
 
+    const showCopyFeedback = useCallback(
+        (
+            action: "source-transcript" | "source-report",
+            state: "ok" | "err",
+        ) => {
+            if (copyFeedbackTimerRef.current) {
+                window.clearTimeout(copyFeedbackTimerRef.current);
+            }
+            setCopyFeedback({ action, state });
+            copyFeedbackTimerRef.current = window.setTimeout(() => {
+                setCopyFeedback((current) =>
+                    current?.action === action ? null : current,
+                );
+                copyFeedbackTimerRef.current = null;
+            }, 1500);
+        },
+        [],
+    );
+
     const handleCopySourceTranscript = useCallback(async () => {
         if (!sourceTranscriptCopyText.trim()) {
             toast.error(t("sourceReport.missingSourceTranscript"));
@@ -548,13 +825,15 @@ export function SourceReportPanel({
         setCopyingKey("source-transcript");
         try {
             await writeBrowserClipboardText(sourceTranscriptCopyText);
+            showCopyFeedback("source-transcript", "ok");
             toast.success(t("sourceReport.sourceTranscriptCopied"));
         } catch {
+            showCopyFeedback("source-transcript", "err");
             toast.error(t("sourceReport.copyFailed"));
         } finally {
             setCopyingKey(null);
         }
-    }, [sourceTranscriptCopyText, t]);
+    }, [showCopyFeedback, sourceTranscriptCopyText, t]);
 
     const handleCopySourceReport = useCallback(async () => {
         if (!sourceReportCopyText.trim()) {
@@ -565,324 +844,490 @@ export function SourceReportPanel({
         setCopyingKey("source-report");
         try {
             await writeBrowserClipboardText(sourceReportCopyText);
+            showCopyFeedback("source-report", "ok");
             toast.success(t("sourceReport.sourceReportCopied"));
         } catch {
+            showCopyFeedback("source-report", "err");
             toast.error(t("sourceReport.copyFailed"));
         } finally {
             setCopyingKey(null);
         }
-    }, [sourceReportCopyText, t]);
+    }, [showCopyFeedback, sourceReportCopyText, t]);
 
-    const detailEntries = data?.detail
-        ? renderDetailEntries(data.detail, language, sourceProvider, t)
-        : [];
+    const handleOpenSourceRecord = useCallback(() => {
+        if (!openSourceUrl) {
+            toast.error(t("sourceReport.openSourceUnavailable"));
+            return;
+        }
+
+        window.open(openSourceUrl, "_blank", "noopener,noreferrer");
+    }, [openSourceUrl, t]);
+
+    const handleRepullSource = useCallback(async () => {
+        if (repullDisabled) {
+            if (!repullAvailable) {
+                toast.error(t("sourceReport.repullUnavailable"));
+            }
+            return;
+        }
+
+        setRepullState("loading");
+        try {
+            await runDataSourcesSync();
+            await loadReport();
+            setRepullState("success");
+            toast.success(t("sourceReport.repullComplete"));
+        } catch {
+            setRepullState("error");
+            toast.error(t("sourceReport.repullFailed"));
+        }
+    }, [loadReport, repullAvailable, repullDisabled, t]);
+
+    const sourceActionControls = data ? (
+        <div className="sr-actions" data-sot-panel="source-actions">
+            <button
+                className="btn ghost btn-sm"
+                type="button"
+                disabled={!openSourceUrl}
+                title={
+                    openSourceUrl
+                        ? undefined
+                        : t("sourceReport.openSourceUnavailable")
+                }
+                data-sot-control="open-source-record"
+                data-sot-state={openSourceControlState}
+                onClick={handleOpenSourceRecord}
+            >
+                {getOpenSourceLabel(sourceProviderForReport, language)}
+            </button>
+            <button
+                className="btn ghost btn-sm"
+                type="button"
+                disabled={repullDisabled}
+                aria-busy={repullState === "loading"}
+                title={
+                    repullAvailable
+                        ? undefined
+                        : t("sourceReport.repullUnavailable")
+                }
+                data-sot-control="repull-source"
+                data-sot-state={repullControlState}
+                onClick={() => void handleRepullSource()}
+            >
+                {repullState === "loading"
+                    ? t("sourceReport.repullingSource")
+                    : t("sourceReport.repullSource")}
+            </button>
+        </div>
+    ) : null;
 
     const header = (
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="sr-section-head">
             <div>
-                <CardTitle className="flex items-center gap-2">
-                    <CloudDownload className="h-5 w-5" />
+                <h3 className="rec-h2">
+                    <CloudDownload />
                     {getSourceTabLabel(sourceProvider, language)}
-                </CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
+                </h3>
+                <p className="sr-section-sub">
                     {getSourceRecordDescription(sourceProvider, language)}
                 </p>
             </div>
-            <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={loadReport}
-                disabled={isLoading}
-                data-testid="source-report-header-load"
-            >
-                {isLoading ? (
+            <div className="t-actions">
+                {data ? (
                     <>
-                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                        {t("sourceReport.loadingDetail")}
+                        <button
+                            className="btn ghost btn-sm copy-btn"
+                            type="button"
+                            data-copy="source-transcript"
+                            data-copy-state={
+                                copyFeedback?.action === "source-transcript"
+                                    ? copyFeedback.state
+                                    : undefined
+                            }
+                            data-sot-control="copy-source-transcript"
+                            data-sot-state={sourceTranscriptCopyState}
+                            data-tab-scope="source-report"
+                            aria-busy={copyingKey === "source-transcript"}
+                            aria-disabled={
+                                sourceTranscriptCopyDisabled ? "true" : "false"
+                            }
+                            aria-label={t("sourceReport.copySourceTranscript")}
+                            aria-live={
+                                copyFeedback?.action === "source-transcript"
+                                    ? "polite"
+                                    : undefined
+                            }
+                            disabled={sourceTranscriptCopyDisabled}
+                            onClick={() => void handleCopySourceTranscript()}
+                        >
+                            <SotCopyIcon />
+                            <span className="copy-label">
+                                {copyFeedback?.action === "source-transcript"
+                                    ? copyFeedback.state === "ok"
+                                        ? t("common.copied")
+                                        : t("common.copyFailedShort")
+                                    : t("sourceReport.copySourceTranscript")}
+                            </span>
+                        </button>
+                        <button
+                            className="btn ghost btn-sm copy-btn"
+                            type="button"
+                            data-copy="source-report"
+                            data-copy-state={
+                                copyFeedback?.action === "source-report"
+                                    ? copyFeedback.state
+                                    : undefined
+                            }
+                            data-sot-control="copy-source-report"
+                            data-sot-state={sourceReportCopyState}
+                            data-tab-scope="source-report"
+                            aria-busy={copyingKey === "source-report"}
+                            aria-disabled={
+                                sourceReportCopyDisabled ? "true" : "false"
+                            }
+                            aria-label={t("sourceReport.copySourceReport")}
+                            aria-live={
+                                copyFeedback?.action === "source-report"
+                                    ? "polite"
+                                    : undefined
+                            }
+                            disabled={sourceReportCopyDisabled}
+                            onClick={() => void handleCopySourceReport()}
+                        >
+                            <SotCopyIcon />
+                            <span className="copy-label">
+                                {copyFeedback?.action === "source-report"
+                                    ? copyFeedback.state === "ok"
+                                        ? t("common.copied")
+                                        : t("common.copyFailedShort")
+                                    : t("sourceReport.copySourceReport")}
+                            </span>
+                        </button>
                     </>
-                ) : (
-                    <>
-                        <CloudDownload className="mr-2 h-4 w-4" />
-                        {data
-                            ? t("sourceReport.refresh")
-                            : t("sourceReport.loadDetail")}
-                    </>
-                )}
-            </Button>
+                ) : null}
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={loadReport}
+                    disabled={isLoading}
+                    data-sot-control="refresh-source-report"
+                    data-sot-state={sourceReportState}
+                >
+                    {isLoading ? (
+                        <>
+                            <span className="btn-spinner" aria-hidden="true" />
+                            {t("sourceReport.loadingDetail")}
+                        </>
+                    ) : (
+                        <>
+                            <CloudDownload />
+                            {data
+                                ? t("sourceReport.refresh")
+                                : t("sourceReport.loadDetail")}
+                        </>
+                    )}
+                </Button>
+            </div>
         </div>
     );
 
     const content = (
-        <div className="space-y-4">
+        <div className="sr-state">
             {error && (
                 <div
-                    className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
-                    data-source-report-state="error"
-                    data-testid="source-report-error"
+                    className="sr-state"
+                    data-sot-panel="recording-source-report-state"
+                    data-sot-state="error"
+                    data-state="error"
+                    data-sot-error={error}
                 >
-                    <span>{error}</span>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={loadReport}
-                        disabled={isLoading}
-                        className="shrink-0"
-                        data-testid="source-report-retry"
-                    >
-                        {t("sourceReport.refresh")}
-                    </Button>
+                    <div className="sr-empty err">
+                        <div className="sr-empty-ico" aria-hidden="true">
+                            <SotSourceReportErrorIcon />
+                        </div>
+                        <div className="sr-empty-title">无法读取来源详情</div>
+                        <div className="sr-empty-sub">
+                            {sourceProviderSentenceName}
+                            返回了一个错误，可能是网络抖动或来源临时不可用。
+                        </div>
+                        <div className="sr-empty-actions">
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="primary"
+                                onClick={loadReport}
+                                disabled={isLoading}
+                                data-sot-control="refresh-source-report"
+                                data-sot-state="error"
+                            >
+                                重试
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                    window.location.assign(
+                                        "/dashboard#activity",
+                                    );
+                                }}
+                            >
+                                查看同步日志
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
 
             {isLoading && !data && !error ? (
-                <div className="space-y-4" data-source-report-state="loading">
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        {[0, 1, 2, 3].map((item) => (
-                            <div
-                                key={item}
-                                className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3"
-                            >
-                                <div className="skeleton-shimmer h-3 w-20 rounded" />
-                                <div className="skeleton-shimmer mt-3 h-5 w-28 rounded-md" />
-                            </div>
-                        ))}
-                    </div>
-                    <div className="glass-surface-subtle rounded-xl p-4">
-                        <div className="skeleton-shimmer h-4 w-32 rounded" />
-                        <div className="mt-4 space-y-3 rounded-lg bg-muted p-4">
-                            <div className="skeleton-shimmer h-3 w-11/12 rounded" />
-                            <div className="skeleton-shimmer h-3 w-4/5 rounded" />
-                            <div className="skeleton-shimmer h-3 w-2/3 rounded" />
+                <div
+                    className="sr-state"
+                    data-sot-panel="recording-source-report-state"
+                    data-sot-state="loading"
+                    data-state="loading"
+                >
+                    <div className="sr-cards">
+                        <div className="sr-card">
+                            <div className="sr-card-label">来源</div>
+                            <div className="sk _is-10" />
+                        </div>
+                        <div className="sr-card">
+                            <div className="sr-card-label">转写状态</div>
+                            <div className="sk _is-11" />
+                        </div>
+                        <div className="sr-card">
+                            <div className="sr-card-label">摘要状态</div>
+                            <div className="sk _is-11" />
+                        </div>
+                        <div className="sr-card">
+                            <div className="sr-card-label">分段数</div>
+                            <div className="sk _is-12" />
                         </div>
                     </div>
+                    <section className="sr-section">
+                        <header className="sr-section-head">
+                            <h4>来源转写</h4>
+                            <span className="sr-section-sub">
+                                正在从{sourceProviderSentenceName}读取…
+                            </span>
+                        </header>
+                        <div className="sr-seg skel">
+                            <span className="sk _is-13" />{" "}
+                            <span className="sk _is-14" />
+                            <div className="sk _is-15" />
+                            <div className="sk _is-16" />
+                        </div>
+                        <div className="sr-seg skel">
+                            <span className="sk _is-13" />{" "}
+                            <span className="sk _is-14" />
+                            <div className="sk _is-17" />
+                            <div className="sk _is-18" />
+                        </div>
+                    </section>
                 </div>
             ) : null}
 
             {data && (
                 <div
-                    className="space-y-4"
-                    data-source-report-state={sourceReportState}
-                    data-testid="source-report-loaded"
+                    className="sr-state"
+                    data-sot-panel="recording-source-report-state"
+                    data-sot-state={sourceReportState}
+                    data-state="loaded"
+                    data-sub-state={sourceReportSubState}
                 >
                     {!hasAudio ? (
-                        <div
-                            className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-100"
-                            data-testid="source-report-no-audio-warning"
-                        >
-                            {t("sourceReport.sourceOnlyNoAudio")}
-                        </div>
+                        <span className="sr-pill warn">
+                            <span className="dot" />
+                            <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
+                        </span>
                     ) : null}
 
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
-                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                {t("recording.source")}
-                            </p>
-                            <p className="mt-2 text-sm font-medium">
-                                {getSourceProviderLabel(
-                                    sourceProvider,
-                                    language,
+                    <div className="sr-cards">
+                        <div className="sr-card">
+                            <div className="sr-card-label">来源</div>
+                            <div className="sr-card-value sr-card-source">
+                                {sourceProviderIcon ? (
+                                    // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
+                                    <img src={sourceProviderIcon} alt="" />
+                                ) : (
+                                    <span className="_is-47">
+                                        {sourceProviderLetter}
+                                    </span>
                                 )}
-                            </p>
+                                <span>{sourceProviderLabel}</span>
+                            </div>
                         </div>
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
-                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                {t("sourceReport.transcriptReady")}
-                            </p>
-                            <p
-                                className={cn(
-                                    "mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-xs font-semibold",
-                                    data.transcriptReady
-                                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
-                                        : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
-                                )}
-                                data-testid="source-report-transcript-status"
-                            >
-                                {data.transcriptReady
-                                    ? t("sourceReport.ready")
-                                    : t("sourceReport.missing")}
-                            </p>
+                        <div className="sr-card">
+                            <div className="sr-card-label">转写状态</div>
+                            <div className="sr-card-value">
+                                <SourceReportStatusBadge
+                                    className={sourceReportReadinessPillClass(
+                                        sourceTranscriptStatusLabel,
+                                    )}
+                                >
+                                    <span className="dot" />
+                                    {sourceTranscriptStatusLabel}
+                                </SourceReportStatusBadge>
+                            </div>
                         </div>
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
-                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                {t("sourceReport.summaryReady")}
-                            </p>
-                            <p
-                                className={cn(
-                                    "mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-xs font-semibold",
-                                    data.summaryReady
-                                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
-                                        : "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-200",
-                                )}
-                                data-testid="source-report-summary-status"
-                            >
-                                {data.summaryReady
-                                    ? t("sourceReport.ready")
-                                    : t("sourceReport.missing")}
-                            </p>
+                        <div className="sr-card">
+                            <div className="sr-card-label">摘要状态</div>
+                            <div className="sr-card-value">
+                                <SourceReportStatusBadge
+                                    className={sourceReportReadinessPillClass(
+                                        sourceSummaryStatusLabel,
+                                    )}
+                                >
+                                    <span className="dot" />
+                                    {sourceSummaryStatusLabel}
+                                </SourceReportStatusBadge>
+                            </div>
                         </div>
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
-                            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                {t("sourceReport.segments")}
-                            </p>
-                            <p className="mt-2 text-sm font-medium">
-                                {data.transcript?.segmentCount ?? 0}
-                            </p>
+                        <div className="sr-card">
+                            <div className="sr-card-label">分段数</div>
+                            <div className="sr-card-value sr-card-num mono">
+                                {sourceReportSegmentCount}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="glass-surface-subtle rounded-xl p-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <p className="text-sm font-medium">
-                                {t("sourceReport.officialReport")}
-                            </p>
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCopySourceReport}
-                                disabled={
-                                    copyingKey === "source-report" ||
-                                    !reportAvailable
-                                }
-                                data-testid="source-report-copy-report"
-                                aria-busy={copyingKey === "source-report"}
-                                className="shrink-0"
-                            >
-                                <Copy className="h-4 w-4" />
-                                {copyingKey === "source-report"
-                                    ? t("common.copying")
-                                    : t("sourceReport.copySourceReport")}
-                            </Button>
-                        </div>
-                        {data.summaryMarkdown ? (
-                            <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
-                                {data.summaryMarkdown}
-                            </div>
-                        ) : (
-                            <div
-                                className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground"
-                                data-testid="source-report-missing-report"
-                            >
-                                {t("sourceReport.missingSourceReport")}
-                            </div>
-                        )}
-                    </div>
+                    <section className="sr-section">
+                        <header className="sr-section-head">
+                            <h4>来源转写</h4>
+                            <span className="sr-section-sub">
+                                来自{sourceProviderSentenceName} ·{" "}
+                                {sourceReportSegmentCount} 段 ·{" "}
+                                {sourceReportDurationLabel} 总时长
+                            </span>
+                        </header>
+                        <ol className="sr-segments">
+                            {sourceReportDisplaySegments.map(
+                                (segment, index) => {
+                                    const timeRange = formatTranscriptTimeRange(
+                                        segment.startMs,
+                                        segment.endMs,
+                                    );
 
-                    <div className="glass-surface-subtle rounded-xl p-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <p className="flex items-center gap-2 text-sm font-medium">
-                                <FileText className="h-4 w-4" />
-                                {t("sourceReport.officialTranscript")}
-                            </p>
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCopySourceTranscript}
-                                disabled={
-                                    copyingKey === "source-transcript" ||
-                                    !transcriptAvailable
-                                }
-                                data-testid="source-report-copy-transcript"
-                                aria-busy={copyingKey === "source-transcript"}
-                                className="shrink-0"
-                            >
-                                <Copy className="h-4 w-4" />
-                                {copyingKey === "source-transcript"
-                                    ? t("common.copying")
-                                    : t("sourceReport.copySourceTranscript")}
-                            </Button>
-                        </div>
-                        {data.transcript?.text &&
-                        data.transcript.segments.length > 0 ? (
-                            <div className="mt-3 max-h-80 space-y-3 overflow-auto rounded-lg bg-muted p-3 text-sm">
-                                {data.transcript.segments.map(
-                                    (segment, index) => {
-                                        const timeRange =
-                                            formatTranscriptTimeRange(
-                                                segment.startMs,
-                                                segment.endMs,
-                                            );
+                                    return (
+                                        <li
+                                            key={`${segment.startMs ?? "na"}-${segment.endMs ?? "na"}-${index}`}
+                                            className="sr-seg"
+                                        >
+                                            <span className="sr-seg-ts mono">
+                                                {timeRange || "--"}
+                                            </span>
+                                            <span className="sr-seg-speaker">
+                                                {formatTranscriptSpeaker(
+                                                    segment.speaker,
+                                                    language,
+                                                ) || `说话人 ${index + 1}`}
+                                            </span>
+                                            <p className="sr-seg-text">
+                                                {segment.text}
+                                            </p>
+                                        </li>
+                                    );
+                                },
+                            )}
+                        </ol>
+                    </section>
 
-                                        return (
-                                            <article
-                                                key={`${segment.startMs ?? "na"}-${index}`}
-                                                className="rounded-lg bg-muted/20 px-3 py-2"
-                                            >
-                                                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                                                    {timeRange ? (
-                                                        <span
-                                                            className="rounded-md border border-border/70 bg-popover/60 px-2 py-1 font-mono text-muted-foreground"
-                                                            data-testid="source-report-segment-timestamp"
-                                                        >
-                                                            {timeRange}
-                                                        </span>
-                                                    ) : null}
-                                                    <span className="font-medium text-muted-foreground">
-                                                        {formatTranscriptSpeaker(
-                                                            segment.speaker,
-                                                            language,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <p className="whitespace-pre-wrap leading-relaxed">
-                                                    {segment.text}
-                                                </p>
-                                            </article>
-                                        );
-                                    },
-                                )}
+                    {sourceSummaryVisible ? (
+                        <section className="sr-section sr-summary-section">
+                            <header className="sr-section-head">
+                                <h4>来源原始报告</h4>
+                                <span className="sr-section-sub">
+                                    由{sourceProviderLabel}返回的只读摘要
+                                </span>
+                            </header>
+                            <div className="sr-summary-body">
+                                {sourceSummaryText
+                                    .split("\n")
+                                    .map((line, index) => (
+                                        <p
+                                            className="sr-seg-text"
+                                            key={`${index}:${line}`}
+                                        >
+                                            {line}
+                                        </p>
+                                    ))}
                             </div>
-                        ) : data.transcript?.text ? (
-                            <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap leading-relaxed">
-                                {formatTranscriptText(
-                                    data.transcript.text,
-                                    language,
-                                )}
-                            </div>
-                        ) : (
-                            <div
-                                className="mt-3 rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground"
-                                data-testid="source-report-missing-transcript"
-                            >
-                                {t("sourceReport.missingSourceTranscript")}
-                            </div>
-                        )}
-                    </div>
-
-                    {data.detail && detailEntries.length > 0 ? (
-                        <div className="glass-surface-subtle rounded-xl p-4">
-                            <p className="text-sm font-medium">
-                                {t("sourceReport.sourceDetails")}
-                            </p>
-                            <dl className="mt-3 max-h-80 space-y-3 overflow-auto rounded-lg bg-muted p-4 text-xs leading-relaxed">
-                                {detailEntries}
-                            </dl>
-                        </div>
+                        </section>
                     ) : null}
+
+                    <section className="sr-section">
+                        <header className="sr-section-head">
+                            <h4>来源信息</h4>
+                            <span className="sr-section-sub">
+                                由{sourceProviderLabel}返回的公开元数据
+                            </span>
+                        </header>
+                        <dl className="sr-meta">
+                            <SourceReportMetaRow label="来源">
+                                {sourceProviderLabel}
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="状态">
+                                <SourceReportStatusBadge
+                                    className={sourceReportSyncPillClass(
+                                        sourceReportStatusLabel,
+                                    )}
+                                >
+                                    <span className="dot" />
+                                    {sourceReportStatusLabel}
+                                </SourceReportStatusBadge>
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="录制于">
+                                <span className="mono">
+                                    {formatSotSourceReportDate(
+                                        sourceReportRecordedAt,
+                                    )}
+                                </span>
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="最近更新">
+                                <span className="mono">
+                                    {formatSotSourceReportDate(
+                                        sourceReportUpdatedAt,
+                                    )}
+                                </span>
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="可读内容">
+                                {sourceReportReadable}
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="来源标题">
+                                {sourceReportTitle}
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="语种">
+                                {sourceReportLanguage}
+                            </SourceReportMetaRow>
+                            <SourceReportMetaRow label="时长">
+                                <span className="mono">
+                                    {sourceReportDurationLabel}
+                                </span>
+                            </SourceReportMetaRow>
+                        </dl>
+                        {sourceActionControls}
+                    </section>
                 </div>
             )}
 
             {!data && !error && !isLoading && (
                 <div
-                    className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground"
-                    data-source-report-state="empty"
+                    className="sr-state"
+                    data-sot-panel="recording-source-report-state"
+                    data-sot-state="empty"
+                    data-state="empty"
                 >
-                    <CloudDownload className="mx-auto mb-3 h-9 w-9 text-muted-foreground/70" />
-                    <p>{getSourceRecordEmptyHint(sourceProvider, language)}</p>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={loadReport}
-                        className="mt-4"
-                        data-testid="source-report-empty-load"
-                    >
-                        {t("sourceReport.loadDetail")}
-                    </Button>
+                    <div className="sr-empty">
+                        <div className="sr-empty-ico" aria-hidden="true">
+                            <SotSourceReportEmptyIcon />
+                        </div>
+                        <div className="sr-empty-title">
+                            这条录音没有关联来源
+                        </div>
+                        <div className="sr-empty-sub">
+                            本地导入或离线录制的录音不会有来源详情。
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
@@ -891,18 +1336,26 @@ export function SourceReportPanel({
     if (variant === "embedded") {
         return (
             <div
-                className={cn("glass-surface-subtle rounded-xl p-4", className)}
+                className={className ? `sr-pane ${className}` : "sr-pane"}
+                data-sot-panel="recording-source-report"
+                data-sot-state={sourceReportState}
             >
                 {header}
-                <div className="mt-4">{content}</div>
+                {content}
             </div>
         );
     }
 
     return (
-        <Card className={className}>
-            <CardHeader>{header}</CardHeader>
-            <CardContent>{content}</CardContent>
-        </Card>
+        <div
+            className={
+                className ? `panel sr-pane ${className}` : "panel sr-pane"
+            }
+            data-sot-panel="recording-source-report"
+            data-sot-state={sourceReportState}
+        >
+            {header}
+            {content}
+        </div>
     );
 }

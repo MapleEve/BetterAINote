@@ -12,10 +12,20 @@ import {
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
 import {
+    disconnectDataSource,
     getDataSources,
+    reconnectDataSource,
     saveDataSource,
     testDataSource,
 } from "@/services/data-sources";
+
+const SETTINGS_PROVIDER_ORDER: SourceProvider[] = [
+    "dingtalk-a1",
+    "ticnote",
+    "plaud",
+    "feishu-minutes",
+    "iflyrec",
+];
 
 function updateFormFieldValue(
     source: DataSourceDisplayState,
@@ -68,6 +78,32 @@ function getSettingsLoadErrorMessage(error: unknown, language: UiLanguage) {
         : "Failed to load data sources";
 }
 
+function getSettingsReconnectErrorMessage(
+    error: unknown,
+    language: UiLanguage,
+) {
+    if (error instanceof Error && error.message.trim()) {
+        return error.message;
+    }
+
+    return language === "zh-CN"
+        ? "重新连接失败，请检查登录信息后重试"
+        : "Reconnect failed. Check the sign-in details and try again.";
+}
+
+function getSettingsDisconnectErrorMessage(
+    error: unknown,
+    language: UiLanguage,
+) {
+    if (error instanceof Error && error.message.trim()) {
+        return error.message;
+    }
+
+    return language === "zh-CN"
+        ? "断开连接失败，请稍后重试"
+        : "Disconnect failed. Try again later.";
+}
+
 export function useDataSourcesSettings(language: UiLanguage) {
     const isZh = language === "zh-CN";
     const [sources, setSources] = useState<DataSourceDisplayState[]>([]);
@@ -77,10 +113,34 @@ export function useDataSourcesSettings(language: UiLanguage) {
     const [savingProvider, setSavingProvider] = useState<SourceProvider | null>(
         null,
     );
+    const [sourceActionProviders, setSourceActionProviders] = useState<
+        Partial<Record<SourceProvider, "disconnecting" | "reconnecting">>
+    >({});
+
+    const setSourceActionProvider = useCallback(
+        (
+            provider: SourceProvider,
+            action: "disconnecting" | "reconnecting" | null,
+        ) => {
+            setSourceActionProviders((current) => {
+                if (!action) {
+                    const { [provider]: _removed, ...rest } = current;
+                    return rest;
+                }
+
+                return { ...current, [provider]: action };
+            });
+        },
+        [],
+    );
 
     const orderedSources = useMemo(() => {
         const displaySection = buildDataSourceDisplaySection(sources);
-        return [...displaySection.connected, ...displaySection.available];
+        return [...displaySection.connected, ...displaySection.available].sort(
+            (left, right) =>
+                SETTINGS_PROVIDER_ORDER.indexOf(left.provider) -
+                SETTINGS_PROVIDER_ORDER.indexOf(right.provider),
+        );
     }, [sources]);
 
     const refreshSources = useCallback(async () => {
@@ -212,14 +272,92 @@ export function useDataSourcesSettings(language: UiLanguage) {
         [isZh, language, secretDrafts],
     );
 
+    const disconnectSourceSettings = useCallback(
+        async (source: DataSourceDisplayState) => {
+            setSourceActionProvider(source.provider, "disconnecting");
+            try {
+                await disconnectDataSource(
+                    { provider: source.provider },
+                    {
+                        fallbackMessage: isZh
+                            ? "断开连接失败，请稍后重试"
+                            : "Disconnect failed. Try again later.",
+                    },
+                );
+                setSecretDrafts((current) => ({
+                    ...current,
+                    [source.provider]: {},
+                }));
+                await refreshSources();
+                toast.success(
+                    isZh
+                        ? `${source.displayName} 已断开连接`
+                        : `${source.displayName} disconnected`,
+                );
+                return true;
+            } catch (error) {
+                console.error("Failed to disconnect data source:", error);
+                toast.error(getSettingsDisconnectErrorMessage(error, language));
+                return false;
+            } finally {
+                setSourceActionProvider(source.provider, null);
+            }
+        },
+        [isZh, language, refreshSources, setSourceActionProvider],
+    );
+
+    const reconnectSourceSettings = useCallback(
+        async (source: DataSourceDisplayState) => {
+            setSourceActionProvider(source.provider, "reconnecting");
+            try {
+                await reconnectDataSource(
+                    buildDataSourceSavePayload(
+                        {
+                            ...source,
+                            enabled: true,
+                        },
+                        secretDrafts,
+                        language,
+                    ),
+                    {
+                        fallbackMessage: isZh
+                            ? "重新连接失败，请检查登录信息后重试"
+                            : "Reconnect failed. Check the sign-in details and try again.",
+                    },
+                );
+                setSecretDrafts((current) => ({
+                    ...current,
+                    [source.provider]: {},
+                }));
+                await refreshSources();
+                toast.success(
+                    isZh
+                        ? `${source.displayName} 已重新连接`
+                        : `${source.displayName} reconnected`,
+                );
+                return true;
+            } catch (error) {
+                console.error("Failed to reconnect data source:", error);
+                toast.error(getSettingsReconnectErrorMessage(error, language));
+                return false;
+            } finally {
+                setSourceActionProvider(source.provider, null);
+            }
+        },
+        [isZh, language, refreshSources, secretDrafts, setSourceActionProvider],
+    );
+
     return {
+        disconnectSourceSettings,
         isLoading,
         loadError,
         orderedSources,
         refreshSources,
+        reconnectSourceSettings,
         savingProvider,
         secretDrafts,
         saveSourceSettings,
+        sourceActionProviders,
         sources,
         testSourceSettings,
         updateField,

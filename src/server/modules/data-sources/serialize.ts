@@ -19,6 +19,7 @@ import {
 import type {
     GenericSourceConfig,
     GenericSourceSecrets,
+    SourceSyncStatus,
 } from "@/lib/data-sources/types";
 import {
     parseSourceSecretConfig,
@@ -45,6 +46,10 @@ export type SerializedSourceState = {
     config: GenericSourceConfig;
     secretsConfigured: Record<string, boolean>;
     lastSync: string | null;
+    syncStatus: SourceSyncStatus;
+    lastSyncError: string | null;
+    lastSyncStartedAt: string | null;
+    lastSyncFinishedAt: string | null;
 };
 
 type SourceConnectionRow = typeof sourceConnections.$inferSelect;
@@ -93,6 +98,20 @@ function resolveConnectionStatus(config: Record<string, unknown>) {
     return "ready" as const;
 }
 
+function resolveSourceSyncStatus(
+    status: string | null | undefined,
+): SourceSyncStatus {
+    if (status === "syncing" || status === "error") {
+        return status;
+    }
+
+    return "idle";
+}
+
+function toISOStringOrNull(value: Date | null | undefined) {
+    return value?.toISOString() ?? null;
+}
+
 function serializeSourceState(
     provider: SourceProvider,
     row: SourceConnectionRow | null,
@@ -136,7 +155,11 @@ function serializeSourceState(
             ),
         },
         secretsConfigured: buildSecretPresence(provider, secrets),
-        lastSync: row?.lastSync?.toISOString() ?? null,
+        lastSync: toISOStringOrNull(row?.lastSync),
+        syncStatus: resolveSourceSyncStatus(row?.syncStatus),
+        lastSyncError: row?.lastSyncError ?? null,
+        lastSyncStartedAt: toISOStringOrNull(row?.lastSyncStartedAt),
+        lastSyncFinishedAt: toISOStringOrNull(row?.lastSyncFinishedAt),
     };
 }
 

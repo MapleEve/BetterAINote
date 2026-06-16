@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { sourceConnections } from "@/db/schema/core";
 import { recordings } from "@/db/schema/library";
 import { sourceArtifacts } from "@/db/schema/transcripts";
+import { PUBLIC_DATA_SOURCE_IMPORT_ERROR } from "@/lib/data-sources/public-errors";
 
 const { uploadFileMock, downloadSourceAudioBufferMock } = vi.hoisted(() => ({
     uploadFileMock: vi.fn().mockResolvedValue(undefined),
@@ -331,6 +333,86 @@ describe("Sync", () => {
         );
     });
 
+    it("treats whitespace-only storage paths as missing audio during same-version backfill", async () => {
+        const updateSet = vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+                returning: vi.fn().mockResolvedValue([]),
+            }),
+        });
+        (db.update as Mock).mockReturnValue({ set: updateSet });
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "   \n  ",
+                                downloadedAt: null,
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Whitespace Missing Audio.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:00Z"),
+                    version: "1000",
+                    filesize: 4096,
+                    audioDownload: {
+                        url: "https://example.test/whitespace-audio.mp3",
+                        fileExtension: "mp3",
+                    },
+                    artifacts: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.errors).toEqual([]);
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(1);
+        expect(downloadSourceAudioBufferMock).toHaveBeenCalledWith(
+            "plaud",
+            expect.objectContaining({
+                url: "https://example.test/whitespace-audio.mp3",
+            }),
+        );
+        expect(updateSet).toHaveBeenCalledWith(
+            expect.objectContaining({
+                storagePath: expect.stringContaining(
+                    "/plaud/Whitespace Missing Audio.mp3",
+                ),
+                downloadedAt: expect.any(Date),
+                filesize: 4096,
+            }),
+        );
+    });
+
     it("keeps same-version recordings skipped when local audio already exists", async () => {
         (db.select as Mock)
             .mockReturnValueOnce({
@@ -433,6 +515,65 @@ describe("Sync", () => {
                     endTime: new Date("2024-01-01T10:01:00Z"),
                     version: "1000",
                     audioDownload: null,
+                    artifacts: null,
+                },
+            ]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.newRecordings).toBe(0);
+        expect(result.updatedRecordings).toBe(0);
+        expect(downloadSourceAudioBufferMock).not.toHaveBeenCalled();
+        expect(uploadFileMock).not.toHaveBeenCalled();
+    });
+
+    it("does not force-download same-version recordings when the source audio URL is empty", async () => {
+        (db.select as Mock)
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi
+                            .fn()
+                            .mockResolvedValue([{ autoTranscribe: false }]),
+                    }),
+                }),
+            })
+            .mockReturnValueOnce({
+                from: vi.fn().mockReturnValue({
+                    where: vi.fn().mockReturnValue({
+                        limit: vi.fn().mockResolvedValue([
+                            {
+                                id: "rec-1",
+                                sourceVersion: "1000",
+                                storagePath: "",
+                                downloadedAt: null,
+                                duration: 60000,
+                                startTime: new Date("2024-01-01T10:00:00Z"),
+                                endTime: new Date("2024-01-01T10:01:00Z"),
+                            },
+                        ]),
+                    }),
+                }),
+            });
+
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            { provider: "plaud", userId: mockUserId },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([
+                {
+                    sourceProvider: "plaud",
+                    sourceRecordingId: "source-rec-1",
+                    filename: "Empty Audio URL.mp3",
+                    durationMs: 60000,
+                    startTime: new Date("2024-01-01T10:00:00Z"),
+                    endTime: new Date("2024-01-01T10:01:00Z"),
+                    version: "1000",
+                    audioDownload: {
+                        url: "",
+                        fileExtension: "mp3",
+                    },
                     artifacts: null,
                 },
             ]),
@@ -559,7 +700,67 @@ describe("Sync", () => {
         expect(result.updatedRecordings).toBe(1);
     });
 
-    it("returns an error when provider sync fails", async () => {
+    it("marks provider sync status syncing before success and idle after success", async () => {
+        const updateSet = vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(undefined),
+        });
+        (db.update as Mock).mockImplementation((table) => {
+            expect(table).toBe(sourceConnections);
+            return { set: updateSet };
+        });
+        (db.select as Mock).mockReturnValue({
+            from: vi.fn().mockReturnValue({
+                where: vi.fn().mockReturnValue({
+                    limit: vi
+                        .fn()
+                        .mockResolvedValue([{ autoTranscribe: false }]),
+                }),
+            }),
+        });
+        (getEnabledSourceConnectionsForUser as Mock).mockResolvedValue([
+            {
+                provider: "ticnote",
+                userId: mockUserId,
+                enabled: true,
+                authMode: "bearer",
+            },
+        ]);
+        (createSourceProviderClient as Mock).mockReturnValue({
+            listRecordings: vi.fn().mockResolvedValue([]),
+        });
+
+        const result = await syncRecordingsForUser(mockUserId);
+
+        expect(result.errors).toEqual([]);
+        expect(updateSet).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                syncStatus: "syncing",
+                lastSyncStartedAt: expect.any(Date),
+                lastSyncError: null,
+                updatedAt: expect.any(Date),
+            }),
+        );
+        expect(updateSet).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                syncStatus: "idle",
+                lastSync: expect.any(Date),
+                lastSyncFinishedAt: expect.any(Date),
+                lastSyncError: null,
+                updatedAt: expect.any(Date),
+            }),
+        );
+    });
+
+    it("returns an error and marks provider sync status error when provider sync fails", async () => {
+        const updateSet = vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(undefined),
+        });
+        (db.update as Mock).mockImplementation((table) => {
+            expect(table).toBe(sourceConnections);
+            return { set: updateSet };
+        });
         (db.select as Mock).mockReturnValue({
             from: vi.fn().mockReturnValue({
                 where: vi.fn().mockReturnValue({
@@ -580,7 +781,24 @@ describe("Sync", () => {
 
         const result = await syncRecordingsForUser(mockUserId);
 
-        expect(result.errors).toEqual(["导入失败，请稍后重试"]);
+        expect(result.errors).toEqual([PUBLIC_DATA_SOURCE_IMPORT_ERROR]);
+        expect(updateSet).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                syncStatus: "syncing",
+                lastSyncStartedAt: expect.any(Date),
+                lastSyncError: null,
+            }),
+        );
+        expect(updateSet).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                syncStatus: "error",
+                lastSyncFinishedAt: expect.any(Date),
+                lastSyncError: PUBLIC_DATA_SOURCE_IMPORT_ERROR,
+                updatedAt: expect.any(Date),
+            }),
+        );
     });
 
     it("persists TicNote recordings, source artifacts, and downloaded audio", async () => {

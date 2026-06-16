@@ -1,15 +1,14 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldGroup,
+    FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -31,6 +30,7 @@ export interface SettingFieldDefinition {
     options?: SettingFieldOption[];
     inputType?: "text" | "password" | "number";
     sensitive?: boolean;
+    readOnly?: boolean;
 }
 
 interface SettingFieldControlProps {
@@ -41,7 +41,6 @@ interface SettingFieldControlProps {
         field: SettingFieldDefinition,
         value: string | boolean,
     ) => void;
-    selectContentClassName?: string;
     variant?: "default" | "settings";
 }
 
@@ -50,114 +49,115 @@ export function SettingFieldControl({
     field,
     fieldId,
     onValueChange,
-    selectContentClassName,
     variant = "default",
 }: SettingFieldControlProps) {
-    if (field.kind === "switch") {
-        return (
-            <div
-                className={
-                    variant === "settings"
-                        ? "flex items-center justify-between rounded-2xl border bg-muted/35 px-4 py-3"
-                        : "flex items-center justify-between gap-4 rounded-xl border bg-muted/20 px-4 py-3"
-                }
-            >
-                <div className="flex flex-col gap-1">
-                    <Label htmlFor={fieldId} className="text-base">
-                        {field.label}
-                    </Label>
-                    {field.description ? (
-                        <p className="text-sm text-muted-foreground">
-                            {field.description}
-                        </p>
-                    ) : null}
-                </div>
-                <Switch
-                    id={fieldId}
-                    checked={Boolean(field.value)}
-                    onCheckedChange={(checked) => onValueChange(field, checked)}
-                    disabled={disabled}
-                />
-            </div>
-        );
-    }
+    const handleTextValueChange = (
+        event:
+            | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+            | React.FormEvent<HTMLInputElement>,
+    ) => {
+        onValueChange(field, event.currentTarget.value);
+    };
+
+    const isSettingsVariant = variant === "settings";
+    const rowClassName = isSettingsVariant ? "sm-row" : "field-row";
+    const labelWrapClassName = isSettingsVariant ? "sm-row-label" : undefined;
+    const labelClassName = isSettingsVariant ? "sm-l-t" : "field-name";
+    const descriptionClassName = isSettingsVariant ? "sm-l-h" : "field-desc";
+    const controlWrapClassName = "sm-row-ctrl";
+    const inputClassName = [
+        isSettingsVariant ? "sm-input" : undefined,
+        field.className,
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     return (
-        <div className="flex flex-col gap-2">
-            <Label htmlFor={fieldId}>{field.label}</Label>
-            {field.description ? (
-                <p className="text-xs text-muted-foreground">
-                    {field.description}
-                </p>
-            ) : null}
-            {field.kind === "select" ? (
-                <Select
-                    value={String(field.value)}
-                    onValueChange={(value) => onValueChange(field, value)}
-                    disabled={disabled}
-                >
-                    <SelectTrigger id={fieldId}>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className={selectContentClassName}>
-                        <SelectGroup>
-                            {(field.options ?? []).map((option) => (
-                                <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                >
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            ) : field.kind === "textarea" && !field.sensitive ? (
-                <Textarea
-                    id={fieldId}
-                    rows={field.rows ?? 3}
-                    spellCheck={field.spellCheck}
-                    className={field.className}
-                    value={String(field.value)}
-                    onChange={(event) =>
-                        onValueChange(field, event.target.value)
-                    }
-                    placeholder={field.placeholder}
-                    disabled={disabled}
-                />
-            ) : (
-                <Input
-                    id={fieldId}
-                    type={
-                        field.sensitive
-                            ? "password"
-                            : (field.inputType ?? "text")
-                    }
-                    value={String(field.value)}
-                    onChange={(event) =>
-                        onValueChange(field, event.target.value)
-                    }
-                    onPaste={
-                        field.sensitive
-                            ? (event) => {
-                                  const rawText =
-                                      event.clipboardData.getData("text");
+        <FieldGroup className={rowClassName} data-field-id={field.id}>
+            <Field
+                data-disabled={disabled ? "true" : undefined}
+                style={{ display: "contents" }}
+            >
+                <FieldContent className={labelWrapClassName} style={{ gap: 0 }}>
+                    <FieldLabel className={labelClassName} htmlFor={fieldId}>
+                        {field.label}
+                    </FieldLabel>
+                    {field.description ? (
+                        <FieldDescription className={descriptionClassName}>
+                            {field.description}
+                        </FieldDescription>
+                    ) : null}
+                </FieldContent>
+                <div className={controlWrapClassName}>
+                    {field.kind === "switch" ? (
+                        <Switch
+                            id={fieldId}
+                            checked={Boolean(field.value)}
+                            onCheckedChange={(checked) =>
+                                onValueChange(field, checked)
+                            }
+                            disabled={disabled}
+                        />
+                    ) : field.kind === "select" ? (
+                        <Select
+                            id={fieldId}
+                            aria-label={field.label}
+                            value={String(field.value)}
+                            onValueChange={(value) =>
+                                onValueChange(field, value)
+                            }
+                            disabled={disabled}
+                            options={field.options ?? []}
+                        />
+                    ) : field.kind === "textarea" && !field.sensitive ? (
+                        <Textarea
+                            id={fieldId}
+                            rows={field.rows ?? 3}
+                            spellCheck={field.spellCheck}
+                            className={inputClassName}
+                            value={String(field.value)}
+                            onChange={handleTextValueChange}
+                            placeholder={field.placeholder}
+                            disabled={disabled}
+                            readOnly={field.readOnly}
+                        />
+                    ) : (
+                        <Input
+                            id={fieldId}
+                            type={
+                                field.sensitive
+                                    ? "password"
+                                    : (field.inputType ?? "text")
+                            }
+                            value={String(field.value)}
+                            onChange={handleTextValueChange}
+                            onInput={handleTextValueChange}
+                            onPaste={
+                                field.sensitive
+                                    ? (event) => {
+                                          const rawText =
+                                              event.clipboardData.getData(
+                                                  "text",
+                                              );
 
-                                  if (!rawText) {
-                                      return;
-                                  }
+                                          if (!rawText) {
+                                              return;
+                                          }
 
-                                  event.preventDefault();
-                                  onValueChange(field, rawText);
-                              }
-                            : undefined
-                    }
-                    placeholder={field.placeholder}
-                    disabled={disabled}
-                    spellCheck={field.spellCheck}
-                    className={field.className}
-                />
-            )}
-        </div>
+                                          event.preventDefault();
+                                          onValueChange(field, rawText);
+                                      }
+                                    : undefined
+                            }
+                            placeholder={field.placeholder}
+                            disabled={disabled}
+                            readOnly={field.readOnly}
+                            spellCheck={field.spellCheck}
+                            className={inputClassName}
+                        />
+                    )}
+                </div>
+            </Field>
+        </FieldGroup>
     );
 }

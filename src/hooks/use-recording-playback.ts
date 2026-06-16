@@ -160,7 +160,10 @@ export function useRecordingPlayback({
                     }
                     setIsPlaying(false);
                     console.error("Error playing audio:", error);
-                    toast.error("Failed to play audio");
+                    toast.error("Failed to play audio", {
+                        duration: 10_000,
+                        id: "recording-player-playback-error",
+                    });
                 });
         }
     }, [audioSrc, isPlaying, playbackSpeed]);
@@ -255,7 +258,11 @@ export function useRecordingPlayback({
     }, [currentTime, duration, togglePlayPause]);
 
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-    const playbackSpeedLabel = `${playbackSpeed}x`.replace(".0x", "x");
+    const playbackSpeedLabel = `${
+        Number.isInteger(playbackSpeed)
+            ? playbackSpeed.toFixed(1)
+            : playbackSpeed
+    }×`;
 
     return {
         audioRef,

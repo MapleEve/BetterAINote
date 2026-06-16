@@ -1,198 +1,259 @@
 "use client";
 
-import {
-    AlertCircle,
-    Check,
-    Loader2,
-    RefreshCw,
-    Sparkles,
-    X,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface AiRenamePreviewCardProps {
     title: string;
+    bodyLabel?: string;
+    closeLabel?: string;
     filename?: string | null;
-    actionLabel?: string;
-    actionHref?: string;
-    actionTestId?: string;
+    hint?: string | null;
+    originalFilename?: string | null;
     applyLabel?: string;
     cancelLabel?: string;
     isApplying: boolean;
     isRegenerating: boolean;
     message?: string | null;
-    onAction?: () => void;
     onApply?: () => void;
     onCancel?: () => void;
     onRegenerate?: () => void;
     regenerateLabel?: string;
-    state?:
-        | "accepted"
-        | "loading"
-        | "preview"
-        | "review"
-        | "error"
-        | "unavailable";
+    subtitle?: string;
+    state?: "loading" | "preview" | "review" | "error" | "unavailable";
     className?: string;
 }
 
+function mergeAiRenameClassName(className?: string) {
+    const extraClassName = className
+        ?.split(/\s+/)
+        .filter(
+            (item) => item === "ai-rename-panel" || item.startsWith("airp-"),
+        )
+        .join(" ");
+
+    return ["ai-rename-panel", extraClassName].filter(Boolean).join(" ");
+}
+
+function SotCloseIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+    );
+}
+
+function SotRefreshIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            <path d="M3 21v-5h5" />
+        </svg>
+    );
+}
+
+function SotApplyIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+    );
+}
+
+function SotErrorIcon({ state }: { state: "error" | "unavailable" }) {
+    if (state === "unavailable") {
+        return (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M4.93 4.93l14.14 14.14" />
+            </svg>
+        );
+    }
+
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        </svg>
+    );
+}
+
 export function AiRenamePreviewCard({
-    actionLabel,
-    actionHref,
-    actionTestId,
     applyLabel,
+    bodyLabel,
     cancelLabel,
     className,
+    closeLabel,
     filename,
+    hint,
     isApplying,
     isRegenerating,
     message,
-    onAction,
     onApply,
     onCancel,
     onRegenerate,
+    originalFilename,
     regenerateLabel,
     state = "preview",
+    subtitle,
     title,
 }: AiRenamePreviewCardProps) {
     const isBusy = isApplying || isRegenerating;
     const canAct = state === "preview" || state === "review";
-    const showRetry =
-        (state === "error" || canAct) &&
-        Boolean(onRegenerate && regenerateLabel);
-    const StatusIcon =
-        state === "loading"
-            ? Loader2
-            : state === "error" || state === "unavailable"
-              ? AlertCircle
-              : state === "accepted"
-                ? Check
-                : Sparkles;
+    const showRegenerate = Boolean(onRegenerate && regenerateLabel);
+    const showCancel = Boolean(onCancel && cancelLabel);
+    const showApply = Boolean(onApply && applyLabel);
+    const isErrorState = state === "error" || state === "unavailable";
+    const stateLabel = state === "review" ? "复核确认" : (bodyLabel ?? title);
+    const reviewOldTitle = originalFilename?.trim() || "—";
+    const reviewNewTitle = filename?.trim() || "—";
 
     return (
         <div
-            className={cn(
-                "rounded-2xl border p-3 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-xl",
-                state === "error"
-                    ? "border-destructive/30 bg-destructive/10"
-                    : state === "unavailable"
-                      ? "border-amber-500/25 bg-amber-500/10"
-                      : state === "accepted"
-                        ? "border-emerald-500/30 bg-emerald-500/10"
-                        : "border-primary/22 bg-primary/8",
-                className,
-            )}
-            data-ai-rename-preview=""
-            data-ai-rename-state={state}
-            data-testid="ai-rename-preview-card"
+            className={mergeAiRenameClassName(className)}
+            data-open="true"
+            data-sot-panel="ai-rename-preview"
+            data-sot-state={state}
+            role="dialog"
+            aria-label={title}
         >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                    <p
-                        className={cn(
-                            "flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase",
-                            state === "error"
-                                ? "text-destructive"
-                                : state === "unavailable"
-                                  ? "text-amber-700 dark:text-amber-200"
-                                  : state === "accepted"
-                                    ? "text-emerald-700 dark:text-emerald-200"
-                                    : "text-primary",
-                        )}
-                    >
-                        <StatusIcon
-                            className={cn(
-                                "size-3.5",
-                                state === "loading" && "animate-spin",
-                            )}
-                        />
-                        <span>{title}</span>
-                    </p>
-                    {filename ? (
-                        <p className="mt-1 truncate text-sm font-medium">
-                            {filename}
-                        </p>
-                    ) : null}
-                    {message ? (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            {message}
-                        </p>
-                    ) : null}
+            <header className="airp-head">
+                <div className="airp-head-l">
+                    <span className="airp-eyebrow">{title}</span>
+                    <span className="airp-sub">{subtitle ?? ""}</span>
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                    {showRetry ? (
+                {onCancel ? (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="airp-close"
+                        onClick={onCancel}
+                        disabled={isApplying}
+                        aria-label={closeLabel ?? cancelLabel}
+                        title={closeLabel ?? cancelLabel}
+                        data-sot-control="ai-rename-close"
+                        data-sot-state={isApplying ? "busy" : state}
+                    >
+                        <SotCloseIcon />
+                    </Button>
+                ) : null}
+            </header>
+
+            <div className="airp-body">
+                {state === "loading" ? (
+                    <div className="airp-state" data-airp-state="loading">
+                        <span className="airp-spinner" aria-hidden="true" />
+                        <p className="airp-msg">{message ?? title}</p>
+                    </div>
+                ) : isErrorState ? (
+                    <div className="airp-state" data-airp-state={state}>
+                        <div className="airp-error-icon" aria-hidden="true">
+                            <SotErrorIcon state={state} />
+                        </div>
+                        <p className="airp-msg">{message ?? title}</p>
+                        {hint ? <p className="airp-hint">{hint}</p> : null}
+                    </div>
+                ) : (
+                    <div className="airp-state" data-airp-state={state}>
+                        <div className="airp-label">{stateLabel}</div>
+                        {state === "review" ? (
+                            <div className="airp-review-row">
+                                <div className="airp-review-line">
+                                    <span className="airp-review-tag">
+                                        原标题
+                                    </span>
+                                    <span
+                                        className="airp-review-old"
+                                        data-airp-old
+                                    >
+                                        {reviewOldTitle}
+                                    </span>
+                                </div>
+                                <div className="airp-review-line">
+                                    <span className="airp-review-tag is-new">
+                                        新标题
+                                    </span>
+                                    <span
+                                        className="airp-review-new"
+                                        data-airp-title
+                                    >
+                                        {reviewNewTitle}
+                                    </span>
+                                </div>
+                            </div>
+                        ) : filename ? (
+                            <div className="airp-title">{filename}</div>
+                        ) : null}
+                        {message ? (
+                            <p className="airp-hint">{message}</p>
+                        ) : null}
+                    </div>
+                )}
+            </div>
+
+            {showRegenerate || showCancel || showApply ? (
+                <footer className="airp-actions">
+                    {showRegenerate ? (
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={onRegenerate}
-                            disabled={isBusy}
+                            disabled={isBusy || state === "unavailable"}
                             aria-busy={isRegenerating}
+                            aria-disabled={
+                                isBusy || state === "unavailable"
+                                    ? "true"
+                                    : "false"
+                            }
                             aria-label={regenerateLabel}
                             title={regenerateLabel}
-                            data-testid="ai-rename-regenerate"
+                            data-sot-control="ai-rename-regenerate"
+                            data-sot-state={isRegenerating ? "loading" : state}
                         >
-                            {isRegenerating ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                                <RefreshCw className="size-3.5" />
-                            )}
+                            <SotRefreshIcon />
+                            {regenerateLabel}
                         </Button>
                     ) : null}
-                    {canAct && onCancel ? (
+                    <span className="airp-spacer" />
+                    {showCancel ? (
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={onCancel}
-                            disabled={isBusy}
+                            disabled={isApplying}
                             aria-label={cancelLabel}
                             title={cancelLabel}
-                            data-testid="ai-rename-cancel"
+                            data-sot-control="ai-rename-cancel"
+                            data-sot-state={isApplying ? "busy" : state}
                         >
-                            <X className="size-3.5" />
+                            {cancelLabel}
                         </Button>
                     ) : null}
-                    {canAct && onApply ? (
+                    {showApply ? (
                         <Button
                             type="button"
+                            variant="glass"
                             size="sm"
                             onClick={onApply}
-                            disabled={isBusy}
+                            disabled={isBusy || !canAct}
+                            aria-disabled={isBusy || !canAct ? "true" : "false"}
                             aria-busy={isApplying}
                             aria-label={applyLabel}
                             title={applyLabel}
-                            data-testid="ai-rename-apply"
+                            data-sot-control="ai-rename-apply"
+                            data-sot-state={isApplying ? "loading" : state}
                         >
-                            {isApplying ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                                <Check className="size-3.5" />
-                            )}
+                            <SotApplyIcon />
+                            {applyLabel}
                         </Button>
                     ) : null}
-                    {(onAction || actionHref) && actionLabel ? (
-                        <Button
-                            asChild={Boolean(actionHref)}
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={actionHref ? undefined : onAction}
-                            disabled={isBusy}
-                            data-testid={
-                                actionTestId ?? "ai-rename-card-action"
-                            }
-                        >
-                            {actionHref ? (
-                                <a href={actionHref}>{actionLabel}</a>
-                            ) : (
-                                actionLabel
-                            )}
-                        </Button>
-                    ) : null}
-                </div>
-            </div>
+                </footer>
+            ) : null}
         </div>
     );
 }

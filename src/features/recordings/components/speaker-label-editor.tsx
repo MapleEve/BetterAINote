@@ -14,7 +14,6 @@ import {
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
-import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -52,6 +51,12 @@ interface TranscriptReview {
 }
 
 type TranscriptReviewMode = "speaker" | "raw";
+
+interface SpeakerSaveError {
+    rawLabel: string;
+    profileId: string | null;
+    profileName: string | undefined;
+}
 
 function formatSegmentWindow(startMs: number | null, endMs: number | null) {
     if (startMs == null || endMs == null) {
@@ -145,9 +150,22 @@ export function SpeakerLabelEditor({
         {},
     );
     const [openPickerFor, setOpenPickerFor] = useState<string | null>(null);
+    const [confirmUnlinkFor, setConfirmUnlinkFor] = useState<string | null>(
+        null,
+    );
+    const [speakerSaveErrors, setSpeakerSaveErrors] = useState<
+        Record<string, SpeakerSaveError>
+    >({});
+    const [editingSpeakerFor, setEditingSpeakerFor] = useState<string | null>(
+        null,
+    );
+    const [speakerNameDrafts, setSpeakerNameDrafts] = useState<
+        Record<string, string>
+    >({});
     const [playingKey, setPlayingKey] = useState<string | null>(null);
     const [reviewMode, setReviewMode] =
         useState<TranscriptReviewMode>("speaker");
+    const [isMergePopoverOpen, setIsMergePopoverOpen] = useState(false);
     const [isReviewLoading, setIsReviewLoading] = useState(true);
     const [reviewError, setReviewError] = useState<string | null>(null);
     const [rawTranscript, setRawTranscript] = useState<TranscriptReview | null>(
@@ -157,6 +175,8 @@ export function SpeakerLabelEditor({
         useState<TranscriptReview | null>(null);
     const [isCopyingRawTranscript, setIsCopyingRawTranscript] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const mergeAnchorRef = useRef<HTMLDivElement | null>(null);
+    const mergeButtonRef = useRef<HTMLButtonElement | null>(null);
     const speakerMapRef = useRef<Record<string, string>>(speakerMap ?? {});
 
     const profileNameById = useMemo(
@@ -170,10 +190,53 @@ export function SpeakerLabelEditor({
         reviewMode === "speaker" ? speakerTranscript : rawTranscript;
 
     const canCopyRawTranscript = Boolean(rawTranscript?.text.trim());
+    const mergePopoverId = `speaker-review-merge-popover-${recordingId}`;
 
     useEffect(() => {
         speakerMapRef.current = speakerMap ?? {};
     }, [speakerMap]);
+
+    const clearSpeakerSaveError = useCallback((rawLabel: string) => {
+        setSpeakerSaveErrors((prev) => {
+            if (!prev[rawLabel]) {
+                return prev;
+            }
+
+            const next = { ...prev };
+            delete next[rawLabel];
+            return next;
+        });
+    }, []);
+
+    const closeInlineRename = useCallback((rawLabel: string) => {
+        setEditingSpeakerFor((current) =>
+            current === rawLabel ? null : current,
+        );
+        setSpeakerNameDrafts((prev) => {
+            if (!(rawLabel in prev)) {
+                return prev;
+            }
+
+            const next = { ...prev };
+            delete next[rawLabel];
+            return next;
+        });
+    }, []);
+
+    const openInlineRename = useCallback(
+        (speaker: RecordingSpeaker) => {
+            const initialName = speaker.matchedProfileName ?? speaker.rawLabel;
+            setOpenPickerFor(null);
+            setConfirmUnlinkFor(null);
+            clearSpeakerSaveError(speaker.rawLabel);
+            setSpeakerNameDrafts((prev) => ({
+                ...prev,
+                [speaker.rawLabel]: initialName,
+            }));
+            setEditingSpeakerFor(speaker.rawLabel);
+        },
+        [clearSpeakerSaveError],
+    );
 
     const stopPlayback = useCallback(() => {
         const audio = audioRef.current;
@@ -189,6 +252,7 @@ export function SpeakerLabelEditor({
     const refreshSpeakers = useCallback(async () => {
         setIsLoading(true);
         setSpeakerLoadError(null);
+        setSpeakerSaveErrors({});
         try {
             const response = await fetch(
                 `/api/recordings/${recordingId}/speakers`,
@@ -211,6 +275,7 @@ export function SpeakerLabelEditor({
             setSpeakerLoadError(null);
             setSpeakers(data.speakers ?? []);
             setProfiles(data.profiles ?? []);
+            setConfirmUnlinkFor(null);
             const nextSpeakers = data.speakers ?? [];
             setSearchQueries(
                 Object.fromEntries(
@@ -235,6 +300,8 @@ export function SpeakerLabelEditor({
     const refreshTranscriptReview = useCallback(async () => {
         setIsReviewLoading(true);
         setReviewError(null);
+        setSpeakerSaveErrors({});
+        setConfirmUnlinkFor(null);
         setRawTranscript(null);
         setSpeakerTranscript(null);
 
@@ -298,6 +365,38 @@ export function SpeakerLabelEditor({
         void Promise.all([refreshSpeakers(), refreshTranscriptReview()]);
         return () => stopPlayback();
     }, [refreshSpeakers, refreshTranscriptReview, stopPlayback]);
+
+    useEffect(() => {
+        if (!isMergePopoverOpen) {
+            return;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (
+                target instanceof Node &&
+                mergeAnchorRef.current?.contains(target)
+            ) {
+                return;
+            }
+            setIsMergePopoverOpen(false);
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsMergePopoverOpen(false);
+                mergeButtonRef.current?.focus();
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isMergePopoverOpen]);
 
     const handlePlaySample = useCallback(
         (rawLabel: string, index: number) => {
@@ -365,7 +464,26 @@ export function SpeakerLabelEditor({
             profileId: string | null,
             profileName?: string,
         ) => {
+            const failedPayload: SpeakerSaveError = {
+                rawLabel,
+                profileId,
+                profileName,
+            };
+            const markSaveError = () => {
+                setSpeakerSaveErrors((prev) => ({
+                    ...prev,
+                    [rawLabel]: failedPayload,
+                }));
+                setOpenPickerFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+                setConfirmUnlinkFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+            };
+
             setIsSaving(rawLabel);
+            clearSpeakerSaveError(rawLabel);
             try {
                 const response = await fetch(
                     `/api/recordings/${recordingId}/speakers`,
@@ -379,14 +497,22 @@ export function SpeakerLabelEditor({
                         }),
                     },
                 );
-                const data = await response.json();
+                let data: { error?: string; profileId?: string | null } = {};
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
+
                 if (!response.ok) {
+                    markSaveError();
                     toast.error(
                         data.error || t("speakerReview.failedToUpdateSpeaker"),
                     );
                     return;
                 }
 
+                clearSpeakerSaveError(rawLabel);
                 const resolvedName =
                     profileName ||
                     (data.profileId ? profileNameById[data.profileId] : null) ||
@@ -396,11 +522,18 @@ export function SpeakerLabelEditor({
                     refreshSpeakers(),
                     refreshTranscriptReview(),
                 ]);
+                setConfirmUnlinkFor((current) =>
+                    current === rawLabel ? null : current,
+                );
                 setOpenPickerFor((current) =>
+                    current === rawLabel ? null : current,
+                );
+                setEditingSpeakerFor((current) =>
                     current === rawLabel ? null : current,
                 );
                 toast.success(t("speakerReview.speakerUpdated"));
             } catch {
+                markSaveError();
                 toast.error(t("speakerReview.failedToUpdateSpeaker"));
             } finally {
                 setIsSaving(null);
@@ -408,11 +541,46 @@ export function SpeakerLabelEditor({
         },
         [
             applyLocalMap,
+            clearSpeakerSaveError,
             profileNameById,
             recordingId,
             refreshSpeakers,
             refreshTranscriptReview,
             t,
+        ],
+    );
+
+    const handleSaveInlineRename = useCallback(
+        async (speaker: RecordingSpeaker) => {
+            const draft =
+                speakerNameDrafts[speaker.rawLabel]?.trim() ??
+                speaker.matchedProfileName ??
+                speaker.rawLabel;
+            const nextName = draft || speaker.rawLabel;
+            const exactProfile = profiles.find(
+                (profile) =>
+                    profile.displayName.toLocaleLowerCase(language) ===
+                    nextName.toLocaleLowerCase(language),
+            );
+            const nextProfileId =
+                exactProfile?.id ??
+                (nextName === speaker.matchedProfileName
+                    ? speaker.matchedProfileId
+                    : null);
+
+            await handleAssignProfile(
+                speaker.rawLabel,
+                nextProfileId,
+                nextName,
+            );
+            closeInlineRename(speaker.rawLabel);
+        },
+        [
+            closeInlineRename,
+            handleAssignProfile,
+            language,
+            profiles,
+            speakerNameDrafts,
         ],
     );
 
@@ -434,55 +602,120 @@ export function SpeakerLabelEditor({
         }
     }, [rawTranscript?.text, t]);
 
+    const panelLabel = t("speakerReview.title");
+    const getSpeakerRowState = useCallback(
+        (speaker: RecordingSpeaker) => {
+            if (speakerSaveErrors[speaker.rawLabel]) {
+                return "error";
+            }
+
+            if (isSaving === speaker.rawLabel) {
+                return "saving";
+            }
+
+            if (editingSpeakerFor === speaker.rawLabel) {
+                return "editing";
+            }
+
+            if (confirmUnlinkFor === speaker.rawLabel) {
+                return "confirm-unlink";
+            }
+
+            const normalizedQuery = (
+                searchQueries[speaker.rawLabel] ?? ""
+            ).trim();
+            const normalizedQueryForMatch =
+                normalizedQuery.toLocaleLowerCase(language);
+            const hasLiveNoMatch =
+                openPickerFor === speaker.rawLabel &&
+                !speaker.matchedProfileId &&
+                normalizedQuery.length > 0 &&
+                profiles.length > 0 &&
+                !profiles.some((profile) =>
+                    profile.displayName
+                        .toLocaleLowerCase(language)
+                        .includes(normalizedQueryForMatch),
+                );
+
+            return hasLiveNoMatch ? "no-match" : undefined;
+        },
+        [
+            confirmUnlinkFor,
+            editingSpeakerFor,
+            isSaving,
+            language,
+            openPickerFor,
+            profiles,
+            searchQueries,
+            speakerSaveErrors,
+        ],
+    );
+
     if (isLoading) {
-        return <SpeakerReviewSkeleton />;
+        return (
+            <section
+                aria-label={panelLabel}
+                data-sot-panel="speaker-review"
+                data-sot-state="loading"
+            >
+                <SpeakerReviewSkeleton />
+            </section>
+        );
     }
 
     return (
-        <div
-            className="space-y-4 border-t pt-4"
-            data-testid="speaker-review-panel"
+        <section
+            className="t-pane"
+            aria-label={panelLabel}
+            data-tab-pane="speakers"
+            data-sot-panel="speaker-review"
+            data-sot-state={
+                isReviewLoading
+                    ? "refreshing"
+                    : reviewError
+                      ? "error"
+                      : activeReview
+                        ? speakers.length === 0
+                            ? "empty"
+                            : "ready"
+                        : "empty"
+            }
         >
-            <div className="space-y-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
+            <div>
+                <div className="sp-head">
+                    <div className="sp-row-meta">
+                        <FileText />
                         <div>
-                            <p className="text-sm font-medium">
+                            <p className="sp-head-title">
                                 {t("speakerReview.transcriptReviewTitle")}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="sp-head-sub">
                                 {t("speakerReview.transcriptReviewDescription")}
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="sp-edit-actions">
                         <Button
                             type="button"
                             size="sm"
                             variant={
-                                reviewMode === "speaker" ? "default" : "outline"
+                                reviewMode === "speaker" ? "default" : "ghost"
                             }
                             onClick={() => setReviewMode("speaker")}
-                            data-testid="speaker-review-mode-speaker"
                         >
                             {t("speakerReview.speakerNamesMode")}
                         </Button>
                         <Button
                             type="button"
                             size="sm"
-                            variant={
-                                reviewMode === "raw" ? "default" : "outline"
-                            }
+                            variant={reviewMode === "raw" ? "default" : "ghost"}
                             onClick={() => setReviewMode("raw")}
-                            data-testid="speaker-review-mode-raw"
                         >
                             {t("speakerReview.rawLabelsMode")}
                         </Button>
                         <Button
                             type="button"
                             size="sm"
-                            variant="outline"
                             onClick={handleCopyRawTranscript}
                             disabled={
                                 isCopyingRawTranscript ||
@@ -490,9 +723,8 @@ export function SpeakerLabelEditor({
                                 !canCopyRawTranscript
                             }
                             aria-busy={isCopyingRawTranscript}
-                            data-testid="speaker-review-copy-raw"
                         >
-                            <Copy className="mr-2 h-3.5 w-3.5" />
+                            <Copy />
                             {isCopyingRawTranscript
                                 ? t("common.copying")
                                 : t("speakerReview.copyRawTranscript")}
@@ -503,31 +735,78 @@ export function SpeakerLabelEditor({
                             variant="ghost"
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
-                            data-testid="speaker-review-refresh"
                         >
-                            <RefreshCw
-                                className={`mr-2 h-3.5 w-3.5 ${isReviewLoading ? "animate-spin" : ""}`}
-                            />
+                            <RefreshCw />
                             {t("speakerReview.refresh")}
                         </Button>
+                        <div className="sp-merge-anchor" ref={mergeAnchorRef}>
+                            <Button
+                                ref={mergeButtonRef}
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                data-spk-merge
+                                aria-controls={mergePopoverId}
+                                aria-expanded={isMergePopoverOpen}
+                                onClick={() =>
+                                    setIsMergePopoverOpen((current) => !current)
+                                }
+                            >
+                                合并相似…
+                            </Button>
+                            <div
+                                id={mergePopoverId}
+                                className="sp-merge-pop"
+                                data-spk-merge-pop
+                                data-open={String(isMergePopoverOpen)}
+                                hidden={!isMergePopoverOpen}
+                                role="dialog"
+                                aria-label="合并相似说话人"
+                            >
+                                <header className="sp-merge-head">
+                                    <span>合并相似说话人</span>
+                                    <button
+                                        className="icon-btn"
+                                        data-spk-merge-close
+                                        type="button"
+                                        aria-label="关闭"
+                                        onClick={() =>
+                                            setIsMergePopoverOpen(false)
+                                        }
+                                    >
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M18 6 6 18M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </header>
+                                <div className="sp-merge-empty">
+                                    <div
+                                        className="sp-merge-empty-ico"
+                                        aria-hidden="true"
+                                    >
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M20 6 9 17l-5-5" />
+                                        </svg>
+                                    </div>
+                                    <p className="sp-merge-empty-msg">
+                                        当前没有可合并的相似说话人
+                                    </p>
+                                    <p className="sp-merge-empty-sub">
+                                        如果两位说话人声纹接近，会出现在这里供你确认。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {isReviewLoading ? (
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
-                    <div
-                        className="rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground"
-                        data-testid="speaker-review-error"
-                    >
-                        {reviewError}
-                    </div>
+                    <div className="sp-state-block err">{reviewError}</div>
                 ) : activeReview ? (
                     <>
-                        <div
-                            className="flex flex-wrap gap-3 text-xs text-muted-foreground"
-                            data-testid="speaker-review-metadata"
-                        >
+                        <div className="sr-meta">
                             {activeReview.detectedLanguage ? (
                                 <span>
                                     {t("speakerReview.languageLabel")}:{" "}
@@ -585,66 +864,47 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div
-                            className="max-h-72 overflow-y-auto rounded-xl bg-muted/20 p-3"
-                            data-testid="speaker-review-transcript-preview"
-                        >
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                                {activeReview.text}
-                            </p>
+                        <div className="sr-section">
+                            <p className="sr-seg-text">{activeReview.text}</p>
                         </div>
                     </>
                 ) : null}
             </div>
 
             {speakerLoadError ? (
-                <div
-                    className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
-                    data-testid="speaker-review-speakers-error"
-                    role="alert"
-                >
+                <div className="sp-state-block err" role="alert">
                     <span>{speakerLoadError}</span>
                     <Button
                         type="button"
                         size="sm"
-                        variant="outline"
                         onClick={() => void refreshSpeakers()}
                         disabled={isLoading}
-                        data-testid="speaker-review-speakers-retry"
                     >
-                        <RefreshCw
-                            className={cn(
-                                "mr-2 h-3.5 w-3.5",
-                                isLoading && "animate-spin",
-                            )}
-                        />
+                        <RefreshCw />
                         {t("speakerReview.refresh")}
                     </Button>
                 </div>
             ) : speakers.length === 0 ? (
-                <div
-                    className="rounded-xl border border-dashed px-4 py-3 text-sm text-muted-foreground"
-                    data-testid="speaker-review-empty"
-                >
+                <div className="sp-empty">
                     {t("speakerReview.noDetectedSpeakers")}
                 </div>
             ) : (
-                <div className="space-y-4">
+                <ul className="sp-rows sp-rows-review">
                     {speakers.map((speaker) => (
-                        <div
+                        <li
                             key={speaker.rawLabel}
-                            className="glass-surface-subtle space-y-4 rounded-2xl p-4"
-                            data-speaker-has-playable-sample={String(
+                            className="sp-row"
+                            data-sot-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
                             )}
-                            data-speaker-has-voiceprint={String(
+                            data-sot-speaker-has-voiceprint={String(
                                 speaker.hasVoiceprint,
                             )}
-                            data-speaker-label={speaker.rawLabel}
-                            data-speaker-mapped={String(
+                            data-sot-speaker-label={speaker.rawLabel}
+                            data-sot-speaker-mapped={String(
                                 Boolean(speaker.matchedProfileId),
                             )}
-                            data-testid="speaker-review-card"
+                            data-state={getSpeakerRowState(speaker)}
                         >
                             {(() => {
                                 const searchQuery =
@@ -664,6 +924,13 @@ export function SpeakerLabelEditor({
                                             ),
                                 );
                                 const normalizedQuery = searchQuery.trim();
+                                const matchedName =
+                                    speaker.matchedProfileName ??
+                                    t("speakerReview.savedSpeaker");
+                                const inlineRenameDraft =
+                                    speakerNameDrafts[speaker.rawLabel] ??
+                                    speaker.matchedProfileName ??
+                                    speaker.rawLabel;
                                 const hasExactMatch = profiles.some(
                                     (profile) =>
                                         profile.displayName.toLocaleLowerCase(
@@ -675,98 +942,242 @@ export function SpeakerLabelEditor({
                                 );
                                 const isSpeakerSaving =
                                     isSaving === speaker.rawLabel;
+                                const isInlineEditing =
+                                    editingSpeakerFor === speaker.rawLabel;
+                                const saveError =
+                                    speakerSaveErrors[speaker.rawLabel];
+                                const isConfirmingUnlink =
+                                    confirmUnlinkFor === speaker.rawLabel;
+                                const hasLiveNoMatch =
+                                    isPickerOpen &&
+                                    !speaker.matchedProfileId &&
+                                    normalizedQuery.length > 0 &&
+                                    profiles.length > 0 &&
+                                    filteredProfiles.length === 0;
+
+                                if (isInlineEditing) {
+                                    return (
+                                        <>
+                                            <div className="sp-row-meta">
+                                                <Input
+                                                    value={inlineRenameDraft}
+                                                    data-spk-input
+                                                    autoComplete="off"
+                                                    autoFocus
+                                                    aria-label={`${speaker.rawLabel} 重命名`}
+                                                    disabled={isSpeakerSaving}
+                                                    onChange={(event) => {
+                                                        const value =
+                                                            event.target.value;
+                                                        setSpeakerNameDrafts(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [speaker.rawLabel]:
+                                                                    value,
+                                                            }),
+                                                        );
+                                                    }}
+                                                    onKeyDown={(event) => {
+                                                        if (
+                                                            event.key ===
+                                                            "Escape"
+                                                        ) {
+                                                            event.preventDefault();
+                                                            closeInlineRename(
+                                                                speaker.rawLabel,
+                                                            );
+                                                            return;
+                                                        }
+
+                                                        if (
+                                                            event.key ===
+                                                            "Enter"
+                                                        ) {
+                                                            event.preventDefault();
+                                                            if (
+                                                                !inlineRenameDraft.trim() ||
+                                                                isSpeakerSaving
+                                                            ) {
+                                                                return;
+                                                            }
+
+                                                            void handleSaveInlineRename(
+                                                                speaker,
+                                                            );
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="sp-edit-actions">
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    data-spk-cancel
+                                                    disabled={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        closeInlineRename(
+                                                            speaker.rawLabel,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("common.cancel")}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="primary"
+                                                    data-spk-save
+                                                    disabled={
+                                                        isSpeakerSaving ||
+                                                        !inlineRenameDraft.trim()
+                                                    }
+                                                    aria-busy={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        void handleSaveInlineRename(
+                                                            speaker,
+                                                        )
+                                                    }
+                                                >
+                                                    {isSpeakerSaving
+                                                        ? t("common.saving")
+                                                        : t("common.save")}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    );
+                                }
 
                                 return (
                                     <>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="space-y-1">
-                                                <p
-                                                    className="text-sm font-medium"
-                                                    data-testid="speaker-review-raw-label"
-                                                >
+                                        <div className="sp-row-meta">
+                                            <div>
+                                                <p className="sp-row-name">
                                                     {speaker.rawLabel}
                                                 </p>
-                                                <div
-                                                    className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
-                                                    data-testid="speaker-review-card-status"
-                                                >
-                                                    <span>
-                                                        {speaker.matchedProfileId
-                                                            ? t(
-                                                                  "speakerReview.mappedTo",
-                                                                  {
-                                                                      name:
-                                                                          speaker.matchedProfileName ??
-                                                                          t(
-                                                                              "speakerReview.savedSpeaker",
-                                                                          ),
-                                                                  },
-                                                              )
-                                                            : t(
-                                                                  "speakerReview.notMappedYet",
-                                                              )}
-                                                    </span>
-                                                    {speaker.segmentCount >
-                                                    0 ? (
+                                                {saveError ? (
+                                                    <div className="sp-row-sub is-danger">
+                                                        {t(
+                                                            "speakerReview.saveFailedRetry",
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="sp-row-sub mono">
                                                         <span>
+                                                            {hasLiveNoMatch
+                                                                ? t(
+                                                                      "speakerReview.noMatchingSpeakers",
+                                                                  )
+                                                                : speaker.matchedProfileId
+                                                                  ? t(
+                                                                        "speakerReview.mappedTo",
+                                                                        {
+                                                                            name:
+                                                                              speaker.matchedProfileName ??
+                                                                              t(
+                                                                                  "speakerReview.savedSpeaker",
+                                                                              ),
+                                                                        },
+                                                                    )
+                                                                  : t(
+                                                                        "speakerReview.notMappedYet",
+                                                                    )}
+                                                        </span>
+                                                        {speaker.segmentCount >
+                                                        0 ? (
+                                                            <span>
+                                                                {t(
+                                                                    "speakerReview.detectedTurns",
+                                                                    {
+                                                                        count: speaker.segmentCount,
+                                                                    },
+                                                                )}
+                                                            </span>
+                                                        ) : null}
+                                                        {speaker.matchedProfileId ? (
+                                                            <span>
+                                                                {speaker.hasVoiceprint
+                                                                    ? t(
+                                                                          "speakerReview.voiceprintReady",
+                                                                      )
+                                                                    : t(
+                                                                          "speakerReview.voiceprintMissing",
+                                                                      )}
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {saveError ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    disabled={isSpeakerSaving}
+                                                    onClick={() =>
+                                                        void handleAssignProfile(
+                                                            saveError.rawLabel,
+                                                            saveError.profileId,
+                                                            saveError.profileName,
+                                                        )
+                                                    }
+                                                >
+                                                    {t("common.retry")}
+                                                </Button>
+                                            ) : (
+                                                <div className="sp-edit-actions">
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        data-spk-rename
+                                                        disabled={
+                                                            isSpeakerSaving ||
+                                                            isConfirmingUnlink
+                                                        }
+                                                        onClick={() =>
+                                                            openInlineRename(
+                                                                speaker,
+                                                            )
+                                                        }
+                                                    >
+                                                        重命名
+                                                    </Button>
+                                                    {speaker.hasPlayableSample ? null : (
+                                                        <span className="sp-vp-pill warn">
+                                                            <Volume2 />
                                                             {t(
-                                                                "speakerReview.detectedTurns",
-                                                                {
-                                                                    count: speaker.segmentCount,
-                                                                },
+                                                                "speakerReview.noTimedSamples",
                                                             )}
                                                         </span>
-                                                    ) : null}
-                                                    {speaker.matchedProfileId ? (
-                                                        <span>
-                                                            {speaker.hasVoiceprint
-                                                                ? t(
-                                                                      "speakerReview.voiceprintReady",
-                                                                  )
-                                                                : t(
-                                                                      "speakerReview.voiceprintMissing",
-                                                                  )}
-                                                        </span>
-                                                    ) : null}
-                                                </div>
-                                            </div>
-                                            {speaker.hasPlayableSample ? null : (
-                                                <span
-                                                    className="inline-flex items-center gap-1 text-xs text-muted-foreground"
-                                                    data-testid="speaker-review-no-playable-sample"
-                                                >
-                                                    <Volume2 className="h-3.5 w-3.5" />
-                                                    {t(
-                                                        "speakerReview.noTimedSamples",
                                                     )}
-                                                </span>
+                                                </div>
                                             )}
                                         </div>
 
-                                        <div className="space-y-3 rounded-xl bg-muted/20 p-3">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <p className="text-xs font-medium text-muted-foreground">
+                                        <div className="sr-section">
+                                            <div className="sr-section-head">
+                                                <p className="sp-row-name">
                                                     {t(
                                                         "speakerReview.samplesTitle",
                                                     )}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="sr-section-sub">
                                                     {t(
                                                         "speakerReview.samplesDescription",
                                                     )}
                                                 </p>
                                             </div>
                                             {speaker.sampleCount > 0 ? (
-                                                <div className="grid gap-2 md:grid-cols-3">
+                                                <div className="sr-segments">
                                                     {speaker.sampleSegments.map(
                                                         (segment, index) => (
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
-                                                                className="glass-surface-subtle space-y-3 rounded-xl p-3"
-                                                                data-testid="speaker-review-sample"
+                                                                className="sr-seg"
                                                             >
-                                                                <div className="flex items-start justify-between gap-3">
-                                                                    <p className="text-xs font-medium text-muted-foreground">
+                                                                <div className="sp-row-meta">
+                                                                    <p className="sr-seg-speaker">
                                                                         {t(
                                                                             "speakerReview.sample",
                                                                             {
@@ -788,17 +1199,14 @@ export function SpeakerLabelEditor({
                                                                     <Button
                                                                         type="button"
                                                                         size="sm"
-                                                                        variant="outline"
-                                                                        className="shrink-0"
                                                                         onClick={() =>
                                                                             handlePlaySample(
                                                                                 speaker.rawLabel,
                                                                                 index,
                                                                             )
                                                                         }
-                                                                        data-testid="speaker-review-play-sample"
                                                                     >
-                                                                        <Play className="h-3.5 w-3.5" />
+                                                                        <Play />
                                                                         {playingKey ===
                                                                         `${speaker.rawLabel}:${index}`
                                                                             ? t(
@@ -809,7 +1217,7 @@ export function SpeakerLabelEditor({
                                                                               )}
                                                                     </Button>
                                                                 </div>
-                                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                                <p className="sr-seg-text">
                                                                     {segment.text?.trim() ||
                                                                         t(
                                                                             "speakerReview.noSampleSnippet",
@@ -820,7 +1228,7 @@ export function SpeakerLabelEditor({
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="sp-empty">
                                                     {t(
                                                         "speakerReview.noTimedSamples",
                                                     )}
@@ -828,21 +1236,33 @@ export function SpeakerLabelEditor({
                                             )}
                                         </div>
 
-                                        <div className="grid gap-3 border-t pt-4 md:grid-cols-[180px_1fr] md:items-center">
-                                            <Label className="text-sm font-medium">
+                                        <div className="field-row">
+                                            <Label>
                                                 {t(
                                                     "speakerReview.mappingTitle",
                                                 )}
                                             </Label>
-                                            <div className="relative">
+                                            <div>
                                                 <Input
                                                     value={searchQuery}
-                                                    onFocus={() =>
-                                                        !isSpeakerSaving &&
+                                                    onFocus={() => {
+                                                        if (
+                                                            isSpeakerSaving ||
+                                                            isConfirmingUnlink
+                                                        ) {
+                                                            return;
+                                                        }
+
+                                                        setConfirmUnlinkFor(
+                                                            null,
+                                                        );
+                                                        clearSpeakerSaveError(
+                                                            speaker.rawLabel,
+                                                        );
                                                         setOpenPickerFor(
                                                             speaker.rawLabel,
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                     onBlur={() => {
                                                         startBrowserTimeout(
                                                             () => {
@@ -873,6 +1293,12 @@ export function SpeakerLabelEditor({
                                                                     value,
                                                             }),
                                                         );
+                                                        setConfirmUnlinkFor(
+                                                            null,
+                                                        );
+                                                        clearSpeakerSaveError(
+                                                            speaker.rawLabel,
+                                                        );
                                                         setOpenPickerFor(
                                                             speaker.rawLabel,
                                                         );
@@ -880,12 +1306,6 @@ export function SpeakerLabelEditor({
                                                     placeholder={t(
                                                         "speakerReview.searchOrCreateSpeakerPlaceholder",
                                                     )}
-                                                    className={
-                                                        searchQuery.trim()
-                                                            ? "pr-10"
-                                                            : undefined
-                                                    }
-                                                    data-testid="speaker-review-mapping-input"
                                                     disabled={isSpeakerSaving}
                                                 />
                                                 {searchQuery.trim() ? (
@@ -893,7 +1313,6 @@ export function SpeakerLabelEditor({
                                                         type="button"
                                                         size="icon"
                                                         variant="ghost"
-                                                        className="absolute right-1 top-1 size-8"
                                                         aria-label={t(
                                                             "speakerReview.clearSelectedSpeaker",
                                                         )}
@@ -917,65 +1336,118 @@ export function SpeakerLabelEditor({
                                                                         "",
                                                                 }),
                                                             );
+                                                            setConfirmUnlinkFor(
+                                                                null,
+                                                            );
+                                                            clearSpeakerSaveError(
+                                                                speaker.rawLabel,
+                                                            );
                                                             setOpenPickerFor(
                                                                 speaker.rawLabel,
                                                             );
                                                         }}
-                                                        data-testid="speaker-review-clear-mapping"
                                                     >
-                                                        <X className="h-3.5 w-3.5" />
+                                                        <X />
                                                     </Button>
                                                 ) : null}
                                             </div>
                                             {speaker.matchedProfileId ? (
-                                                <div className="flex flex-wrap items-center gap-2 md:col-start-2">
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        disabled={
-                                                            isSpeakerSaving
-                                                        }
-                                                        onClick={() =>
-                                                            void handleAssignProfile(
-                                                                speaker.rawLabel,
-                                                                null,
-                                                            )
-                                                        }
-                                                        data-testid="speaker-review-unlink"
-                                                    >
-                                                        {t(
-                                                            "speakerReview.unlink",
-                                                        )}
-                                                    </Button>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {t(
-                                                            "speakerReview.currentAssignment",
-                                                            {
-                                                                name:
-                                                                    speaker.matchedProfileName ??
-                                                                    t(
-                                                                        "speakerReview.savedSpeaker",
-                                                                    ),
-                                                            },
-                                                        )}
-                                                    </p>
-                                                </div>
+                                                isConfirmingUnlink ? (
+                                                    <div className="sp-confirm">
+                                                        <p className="sp-confirm-msg">
+                                                            {t(
+                                                                "speakerReview.confirmUnlinkMessagePrefix",
+                                                            )}
+                                                            <em>{matchedName}</em>
+                                                            {t(
+                                                                "speakerReview.confirmUnlinkMessageSuffix",
+                                                            )}
+                                                        </p>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() =>
+                                                                setConfirmUnlinkFor(
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            {t("common.cancel")}
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="danger"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() =>
+                                                                void handleAssignProfile(
+                                                                    speaker.rawLabel,
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            {t(
+                                                                "speakerReview.unlink",
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="sp-edit-actions">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    isSpeakerSaving
+                                                                ) {
+                                                                    return;
+                                                                }
+                                                                setOpenPickerFor(
+                                                                    null,
+                                                                );
+                                                                clearSpeakerSaveError(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                                setConfirmUnlinkFor(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {t(
+                                                                "speakerReview.unlink",
+                                                            )}
+                                                        </Button>
+                                                        <p className="sp-row-sub">
+                                                            {t(
+                                                                "speakerReview.currentAssignment",
+                                                                {
+                                                                    name: matchedName,
+                                                                },
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                )
                                             ) : null}
 
                                             {isPickerOpen ? (
                                                 profiles.length === 0 &&
                                                 !normalizedQuery ? (
-                                                    <div className="rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground md:col-start-2">
+                                                    <div className="sp-empty">
                                                         {t(
                                                             "speakerReview.noSavedSpeakers",
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div
-                                                        className="max-h-52 overflow-y-auto rounded-lg border bg-background md:col-start-2"
-                                                        data-testid="speaker-review-picker"
-                                                    >
+                                                    <div className="sp-rows sp-rows-suggest">
                                                         {filteredProfiles.map(
                                                             (profile) => (
                                                                 <button
@@ -983,12 +1455,7 @@ export function SpeakerLabelEditor({
                                                                         profile.id
                                                                     }
                                                                     type="button"
-                                                                    className={cn(
-                                                                        "flex w-full items-center justify-between border-b px-3 py-2 text-left text-sm last:border-b-0 hover:bg-muted/60",
-                                                                        speaker.matchedProfileId ===
-                                                                            profile.id &&
-                                                                            "bg-muted",
-                                                                    )}
+                                                                    className="sp-suggest-row"
                                                                     disabled={
                                                                         isSpeakerSaving ||
                                                                         speaker.matchedProfileId ===
@@ -1022,14 +1489,13 @@ export function SpeakerLabelEditor({
                                                                             profile.id,
                                                                         );
                                                                     }}
-                                                                    data-testid="speaker-review-profile-option"
                                                                 >
                                                                     <span>
                                                                         {
                                                                             profile.displayName
                                                                         }
                                                                     </span>
-                                                                    <span className="text-xs text-muted-foreground">
+                                                                    <span className="sp-vp-pill">
                                                                         {speaker.matchedProfileId ===
                                                                         profile.id
                                                                             ? t(
@@ -1053,7 +1519,7 @@ export function SpeakerLabelEditor({
                                                                 disabled={
                                                                     isSpeakerSaving
                                                                 }
-                                                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-55"
+                                                                className="sp-suggest-row"
                                                                 onMouseDown={(
                                                                     event,
                                                                 ) =>
@@ -1081,7 +1547,6 @@ export function SpeakerLabelEditor({
                                                                         normalizedQuery,
                                                                     );
                                                                 }}
-                                                                data-testid="speaker-review-create-option"
                                                             >
                                                                 <span>
                                                                     {t(
@@ -1096,7 +1561,7 @@ export function SpeakerLabelEditor({
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         !normalizedQuery ? (
-                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                                                            <div className="sp-empty">
                                                                 {t(
                                                                     "speakerReview.noSavedSpeakers",
                                                                 )}
@@ -1105,8 +1570,8 @@ export function SpeakerLabelEditor({
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         normalizedQuery &&
-                                                        hasExactMatch ? (
-                                                            <div className="px-3 py-2 text-sm text-muted-foreground">
+                                                        hasLiveNoMatch ? (
+                                                            <div className="sp-empty">
                                                                 {t(
                                                                     "speakerReview.noMatchingSpeakers",
                                                                 )}
@@ -1119,10 +1584,10 @@ export function SpeakerLabelEditor({
                                     </>
                                 );
                             })()}
-                        </div>
+                        </li>
                     ))}
-                </div>
+                </ul>
             )}
-        </div>
+        </section>
     );
 }

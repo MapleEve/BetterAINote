@@ -1,39 +1,29 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
-interface SegmentedTabItem<T extends string> {
+export type SegmentedTabItem<T extends string = string> = {
     value: T;
     label: string;
     disabled?: boolean;
-}
+    tabKey?: string;
+};
 
-interface SegmentedTabsProps<T extends string> {
+export function SegmentedTabs<T extends string>({
+    items,
+    value,
+    onValueChange,
+    className,
+    size = "sm",
+    "aria-label": ariaLabel,
+}: {
     items: SegmentedTabItem<T>[];
     value: T;
     onValueChange: (value: T) => void;
     className?: string;
-}
-
-function omitShapeOverrides(className?: string) {
-    return className
-        ?.split(/\s+/)
-        .filter((classToken) => {
-            if (!classToken) return false;
-
-            const utilityName = classToken.split(":").at(-1);
-            return utilityName ? !utilityName.startsWith("rounded") : true;
-        })
-        .join(" ");
-}
-
-export function SegmentedTabs<T extends string>({
-    className,
-    items,
-    onValueChange,
-    value,
-}: SegmentedTabsProps<T>) {
+    size?: "default" | "sm";
+    "aria-label"?: string;
+}) {
     const activeIndex = Math.max(
         0,
         items.findIndex((item) => item.value === value),
@@ -41,25 +31,29 @@ export function SegmentedTabs<T extends string>({
 
     return (
         <div
-            className={cn("liquid-tabs", omitShapeOverrides(className))}
-            style={
-                {
-                    "--active-index": activeIndex,
-                    "--tab-count": Math.max(1, items.length),
-                } as CSSProperties
-            }
+            className={cn("liquid-tabs", size === "sm" && "sm", className)}
+            role="tablist"
+            aria-label={ariaLabel}
+            data-idx={activeIndex}
+            data-tabs={items.length}
+            data-active={activeIndex}
         >
-            <span className="liquid-tabs__indicator" aria-hidden="true" />
+            <span className="lt-ind" aria-hidden="true" />
             {items.map((item) => (
                 <button
-                    key={item.value}
+                    className={cn("lt-tab", item.value === value && "active")}
                     type="button"
+                    data-tab-key={item.tabKey ?? item.value}
+                    role="tab"
                     disabled={item.disabled}
-                    onClick={() => onValueChange(item.value)}
-                    className={cn(
-                        "liquid-tabs__item",
-                        value === item.value && "liquid-tabs__item--active",
-                    )}
+                    aria-disabled={item.disabled || undefined}
+                    aria-selected={item.value === value}
+                    key={item.value}
+                    onClick={() => {
+                        if (!item.disabled) {
+                            onValueChange(item.value);
+                        }
+                    }}
                 >
                     {item.label}
                 </button>

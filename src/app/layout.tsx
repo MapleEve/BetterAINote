@@ -5,14 +5,9 @@ import { DisplayPreferencesProvider } from "@/features/settings/components/displ
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: "BetterAINote - Private Audio Workspace",
+    title: "BetterAINote",
     description:
-        "Single-user private audio workspace with source sync, transcription, speaker review, and AI rename",
-    icons: {
-        icon: "/icon.svg",
-        shortcut: "/icon.svg",
-        apple: "/icon.svg",
-    },
+        "Private self-hosted workspace for multi-platform voice record aggregation and unified management",
 };
 
 export default function RootLayout({
@@ -22,15 +17,18 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="zh-CN" suppressHydrationWarning>
-            <body className="antialiased">
+            <body suppressHydrationWarning>
                 <DisplayPreferencesProvider
-                    attribute="class"
-                    defaultTheme="system"
+                    attribute="data-theme"
+                    defaultTheme="dark"
+                    enableColorScheme={false}
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
-                    <Toaster />
+                    <ConfirmDialogProvider>
+                        {children}
+                        <Toaster />
+                    </ConfirmDialogProvider>
                 </DisplayPreferencesProvider>
             </body>
         </html>

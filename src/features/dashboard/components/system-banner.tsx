@@ -1,9 +1,7 @@
 "use client";
 
-import { BellOff, Database, Download, RefreshCw, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { Button } from "@/components/ui/button";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
 import { cn } from "@/lib/utils";
 
@@ -17,70 +15,88 @@ type SystemBannerState =
 
 interface SystemBannerEventDetail {
     actionLabel?: string;
+    dismissLabel?: string;
+    id?: string;
+    indeterminate?: boolean;
     message?: string;
+    progress?: number;
+    secondaryActionLabel?: string;
     state: SystemBannerState | null;
     title?: string;
 }
+
+type VisibleSystemBanner = SystemBannerEventDetail & {
+    state: SystemBannerState;
+};
 
 interface SystemBannerProps {
     className?: string;
 }
 
-const STATE_TONE: Record<SystemBannerState, string> = {
-    offline:
-        "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-100",
-    "permission-denied":
-        "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-100",
-    "db-locked":
-        "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-100",
-    "update-available":
-        "border-sky-500/30 bg-sky-500/10 text-sky-800 dark:text-sky-100",
-    "import-progress":
-        "border-primary/30 bg-primary/10 text-primary dark:text-sky-100",
-    "export-progress":
-        "border-primary/30 bg-primary/10 text-primary dark:text-sky-100",
-};
+interface SystemBannerDefaultActions {
+    actionLabel?: string;
+    dismissLabel?: string;
+    secondaryActionLabel?: string;
+}
+
+type SystemBannerActionRole = "primary" | "secondary";
+
+interface SystemBannerItemProps {
+    banner: VisibleSystemBanner;
+    className?: string;
+    isStacked: boolean;
+    isZh: boolean;
+    onDismiss: (banner: VisibleSystemBanner) => void;
+}
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
     switch (state) {
         case "offline":
             return {
-                title: isZh ? "当前离线" : "Offline",
+                title: isZh ? "当前无网络连接" : "Offline",
                 message: isZh
-                    ? "本地内容仍可查看，联网后会继续同步。"
-                    : "Local content remains available. Sync resumes when the network returns.",
+                    ? "所有已下载的录音与逐字稿可继续阅览 · 来源同步与新转写已暂停。"
+                    : "Downloaded recordings and transcripts remain readable. Source sync and new transcription are paused.",
             };
         case "permission-denied":
             return {
-                title: isZh ? "系统通知已关闭" : "Notifications blocked",
+                title: isZh
+                    ? "未授权访问录音文件夹"
+                    : "Recording folder permission denied",
                 message: isZh
-                    ? "需要系统通知时，请在浏览器权限中重新开启。"
-                    : "Enable browser permission again when system notifications are needed.",
+                    ? "无法读取来源缓存目录 · 前往「系统设置 · 隐私与安全性 · 完全磁盘访问」打开开关。"
+                    : "The source cache folder cannot be read. Open System Settings > Privacy & Security > Full Disk Access.",
             };
         case "db-locked":
             return {
-                title: isZh ? "本地数据库被占用" : "Local database locked",
+                title: isZh
+                    ? "本地数据库被另一个 BetterAINote 实例占用"
+                    : "Local database is locked by another BetterAINote instance",
                 message: isZh
-                    ? "当前写入暂不可用，请稍后重试或关闭其他本地任务。"
-                    : "Writes are temporarily unavailable. Try again after local tasks finish.",
+                    ? "同时只允许一个实例写入 · 当前实例已切到只读模式 · 关闭其它窗口后点「重新连接」。"
+                    : "Only one instance can write at a time. This instance is read-only until other windows close.",
             };
         case "update-available":
             return {
-                title: isZh ? "有可用更新" : "Update available",
+                title: isZh
+                    ? "BetterAINote 有可用更新"
+                    : "BetterAINote update available",
                 message: isZh
-                    ? "刷新后可使用最新界面与功能。"
-                    : "Refresh to use the latest interface and features.",
+                    ? "重启后将应用最新版本。"
+                    : "Restart to apply the latest version.",
             };
         case "import-progress":
             return {
-                title: isZh ? "正在导入" : "Import in progress",
+                title: isZh
+                    ? "正在导入 BetterAINote 备份包"
+                    : "Importing BetterAINote backup",
                 message: isZh
                     ? "录音和来源内容正在写入本地。"
                     : "Recordings and source content are being saved locally.",
             };
         case "export-progress":
             return {
-                title: isZh ? "正在导出" : "Export in progress",
+                title: isZh ? "正在导出录音" : "Exporting recordings",
                 message: isZh
                     ? "导出文件准备中，请保持当前页面打开。"
                     : "Export files are being prepared. Keep this page open.",
@@ -88,42 +104,488 @@ function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
     }
 }
 
-function getIcon(state: SystemBannerState) {
+function getStackedCopy(state: SystemBannerState, isZh: boolean) {
     switch (state) {
         case "offline":
-            return WifiOff;
-        case "permission-denied":
-            return BellOff;
-        case "db-locked":
-            return Database;
+            return {
+                title: isZh ? "当前无网络连接" : "Offline",
+                message: isZh
+                    ? "来源同步已暂停 · 已下载的录音仍可阅览。"
+                    : "Source sync is paused. Downloaded recordings remain readable.",
+            };
         case "update-available":
-            return RefreshCw;
+            return {
+                title: isZh ? "有可用更新" : "Update available",
+                message: isZh
+                    ? "重启后将应用。"
+                    : "It will be applied after restart.",
+            };
+        default:
+            return getDefaultCopy(state, isZh);
+    }
+}
+
+function getPriority(state: SystemBannerState) {
+    switch (state) {
+        case "permission-denied":
+        case "db-locked":
+            return 0;
+        case "offline":
+            return 1;
         case "import-progress":
         case "export-progress":
-            return Download;
+            return 2;
+        case "update-available":
+            return 3;
     }
+}
+
+function getBannerA11y(state: SystemBannerState) {
+    if (state === "offline") {
+        return { "aria-live": "polite" as const, role: "status" as const };
+    }
+    if (state === "permission-denied" || state === "db-locked") {
+        return { role: "alert" as const };
+    }
+    return {};
+}
+
+function normalizeProgress(progress: number | undefined) {
+    if (typeof progress !== "number" || Number.isNaN(progress)) return null;
+    const clamped = Math.min(100, Math.max(0, progress));
+    return Math.round(clamped / 10) * 10;
+}
+
+function getDefaultActions(
+    state: SystemBannerState,
+    isZh: boolean,
+): SystemBannerDefaultActions {
+    switch (state) {
+        case "offline":
+            return {
+                actionLabel: isZh ? "重试" : "Retry",
+                dismissLabel: isZh ? "收起" : "Dismiss",
+            };
+        case "permission-denied":
+            return {
+                actionLabel: isZh ? "打开系统设置" : "Open System Settings",
+                secondaryActionLabel: isZh ? "稍后" : "Later",
+            };
+        case "db-locked":
+            return {
+                actionLabel: isZh ? "重新连接" : "Reconnect",
+                secondaryActionLabel: isZh ? "只读继续" : "Continue read-only",
+            };
+        case "update-available":
+            return {
+                actionLabel: isZh ? "重启并更新" : "Restart and update",
+                secondaryActionLabel: isZh ? "查看更新内容" : "View changes",
+                dismissLabel: isZh ? "稍后再说" : "Later",
+            };
+        case "import-progress":
+            return {
+                actionLabel: isZh ? "暂停" : "Pause",
+                secondaryActionLabel: isZh ? "取消" : "Cancel",
+            };
+        case "export-progress":
+            return {
+                actionLabel: isZh ? "在 Finder 中显示" : "Show in Finder",
+                secondaryActionLabel: isZh ? "取消" : "Cancel",
+            };
+    }
+}
+
+function SystemBannerIcon({
+    isStacked,
+    indeterminate,
+    state,
+}: {
+    isStacked: boolean;
+    indeterminate: boolean | undefined;
+    state: SystemBannerState;
+}) {
+    if (state === "import-progress" && indeterminate) {
+        return (
+            // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+            <svg viewBox="0 0 24 24">
+                <circle key="lens" cx="11" cy="11" r="8" />
+                <path key="handle" d="m21 21-4.35-4.35" />
+            </svg>
+        );
+    }
+
+    switch (state) {
+        case "offline":
+            if (isStacked) {
+                return (
+                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                    <svg viewBox="0 0 24 24">
+                        <path key="top-wave" d="M2 12s4-7 10-7" />
+                        <path key="bottom-wave" d="M22 12s-4 7-10 7" />
+                        <path key="slash" d="M2 2l20 20" />
+                    </svg>
+                );
+            }
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <path key="top-wave" d="M2 12s4-7 10-7c2.3 0 4.4.9 6 2.2" />
+                    <path
+                        key="bottom-wave"
+                        d="M22 12s-4 7-10 7c-2.3 0-4.4-.9-6-2.2"
+                    />
+                    <path key="slash" d="M2 2l20 20" />
+                </svg>
+            );
+        case "permission-denied":
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <rect
+                        key="body"
+                        x="3"
+                        y="11"
+                        width="18"
+                        height="11"
+                        rx="2"
+                    />
+                    <path key="shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    <path key="slash" d="M2 2l20 20" />
+                </svg>
+            );
+        case "db-locked":
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <rect
+                        key="body"
+                        x="3"
+                        y="11"
+                        width="18"
+                        height="11"
+                        rx="2"
+                    />
+                    <path key="shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+            );
+        case "update-available":
+            if (isStacked) {
+                return (
+                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                    <svg viewBox="0 0 24 24">
+                        <polyline key="tray" points="21 8 21 21 3 21 3 8" />
+                        <rect key="box" x="1" y="3" width="22" height="5" />
+                    </svg>
+                );
+            }
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <polyline key="tray" points="21 8 21 21 3 21 3 8" />
+                    <rect key="box" x="1" y="3" width="22" height="5" />
+                    <line key="mark" x1="10" y1="12" x2="14" y2="12" />
+                </svg>
+            );
+        case "import-progress":
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <path
+                        key="tray"
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                    />
+                    <polyline key="arrow-head" points="17 8 12 3 7 8" />
+                    <line key="arrow-stem" x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+            );
+        case "export-progress":
+            return (
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                <svg viewBox="0 0 24 24">
+                    <path
+                        key="tray"
+                        d="M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"
+                    />
+                    <polyline key="arrow-head" points="7 16 12 21 17 16" />
+                    <line key="arrow-stem" x1="12" y1="3" x2="12" y2="21" />
+                </svg>
+            );
+    }
+}
+
+function CloseIcon() {
+    return (
+        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT close icon is inside a button with aria-label.
+        <svg viewBox="0 0 24 24">
+            <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+    );
+}
+
+function getRenderedActions(
+    banner: VisibleSystemBanner,
+    defaultActions: SystemBannerDefaultActions,
+    isStacked: boolean,
+    isZh: boolean,
+) {
+    if (banner.indeterminate && banner.state === "import-progress") {
+        return {
+            primaryLabel:
+                banner.actionLabel ??
+                banner.secondaryActionLabel ??
+                defaultActions.secondaryActionLabel,
+            primaryRole: "primary" as const,
+            secondaryLabel: undefined,
+            dismissLabel: undefined,
+        };
+    }
+
+    if (isStacked) {
+        return {
+            primaryLabel:
+                banner.state === "update-available"
+                    ? (banner.secondaryActionLabel ??
+                      banner.actionLabel ??
+                      (isZh ? "查看" : "View"))
+                    : (banner.actionLabel ?? defaultActions.actionLabel),
+            primaryRole:
+                banner.state === "update-available" && !banner.actionLabel
+                    ? ("secondary" as const)
+                    : ("primary" as const),
+            secondaryLabel: undefined,
+            dismissLabel: undefined,
+        };
+    }
+
+    return {
+        primaryLabel: banner.actionLabel ?? defaultActions.actionLabel,
+        primaryRole: "primary" as const,
+        secondaryLabel:
+            banner.secondaryActionLabel ?? defaultActions.secondaryActionLabel,
+        dismissLabel: banner.dismissLabel ?? defaultActions.dismissLabel,
+    };
+}
+
+function getSystemBannerActionName(
+    state: SystemBannerState,
+    role: SystemBannerActionRole,
+) {
+    if (role === "secondary") {
+        switch (state) {
+            case "permission-denied":
+                return "later";
+            case "db-locked":
+                return "continue-read-only";
+            case "update-available":
+                return "view-update-changes";
+            case "import-progress":
+                return "cancel-import";
+            case "export-progress":
+                return "cancel-export";
+            case "offline":
+                return "dismiss";
+        }
+    }
+
+    switch (state) {
+        case "offline":
+            return "retry";
+        case "permission-denied":
+            return "open-system-settings";
+        case "db-locked":
+            return "reconnect";
+        case "update-available":
+            return "restart-and-update";
+        case "import-progress":
+            return "pause-import";
+        case "export-progress":
+            return "show-export";
+    }
+}
+
+function dispatchSystemBannerAction(
+    banner: VisibleSystemBanner,
+    role: SystemBannerActionRole,
+) {
+    if (!hasBrowserWindow()) {
+        return;
+    }
+
+    window.dispatchEvent(
+        new CustomEvent("betterainote:system-banner-action", {
+            detail: {
+                action: getSystemBannerActionName(banner.state, role),
+                id: banner.id ?? banner.state,
+                role,
+                state: banner.state,
+            },
+        }),
+    );
+}
+
+function SystemBannerItem({
+    banner,
+    className,
+    isStacked,
+    isZh,
+    onDismiss,
+}: SystemBannerItemProps) {
+    const defaultCopy = isStacked
+        ? getStackedCopy(banner.state, isZh)
+        : getDefaultCopy(banner.state, isZh);
+    const defaultActions = getDefaultActions(banner.state, isZh);
+    const progress = normalizeProgress(banner.progress);
+    const hasProgress =
+        banner.state === "import-progress" ||
+        banner.state === "export-progress";
+    const { dismissLabel, primaryLabel, primaryRole, secondaryLabel } =
+        getRenderedActions(
+            banner,
+            defaultActions,
+            isStacked,
+            isZh,
+        );
+    const bannerA11y = getBannerA11y(banner.state);
+    const handleAction = (role: SystemBannerActionRole) => {
+        dispatchSystemBannerAction(banner, role);
+
+        if (role === "primary" && banner.state === "update-available") {
+            if (hasBrowserWindow()) {
+                window.location.reload();
+            }
+            return;
+        }
+
+        if (role === "secondary") {
+            onDismiss(banner);
+        }
+    };
+
+    return (
+        <section
+            {...bannerA11y}
+            className={cn("sys-banner", className)}
+            data-kind={banner.state}
+            data-pct={progress ?? undefined}
+        >
+            <span className="sbn-ico" aria-hidden="true">
+                <SystemBannerIcon
+                    isStacked={isStacked}
+                    indeterminate={banner.indeterminate}
+                    state={banner.state}
+                />
+            </span>
+            <div className="sbn-body">
+                <div className="sbn-title">
+                    {banner.title ?? defaultCopy.title}
+                </div>
+                <div className={cn("sbn-sub", hasProgress && "mono")}>
+                    {banner.message ?? defaultCopy.message}
+                </div>
+                {hasProgress ? (
+                    <div
+                        aria-hidden="true"
+                        className={cn(
+                            "sbn-progress",
+                            banner.indeterminate && "indeterminate",
+                        )}
+                    >
+                        <span className="sbn-bar" />
+                    </div>
+                ) : null}
+            </div>
+            <div className="sbn-actions">
+                {primaryLabel ? (
+                    <button
+                        aria-busy={
+                            banner.indeterminate &&
+                            banner.state === "import-progress"
+                                ? true
+                                : undefined
+                        }
+                        disabled={
+                            banner.indeterminate &&
+                            banner.state === "import-progress"
+                        }
+                        onClick={() => handleAction(primaryRole)}
+                        className={cn(
+                            "btn",
+                            banner.state === "update-available" && !isStacked
+                                ? "glass"
+                                : "ghost",
+                            "btn-sm",
+                        )}
+                        type="button"
+                    >
+                        {primaryLabel}
+                    </button>
+                ) : null}
+                {secondaryLabel ? (
+                    <button
+                        onClick={() => handleAction("secondary")}
+                        className="btn ghost btn-sm"
+                        type="button"
+                    >
+                        {secondaryLabel}
+                    </button>
+                ) : null}
+                {dismissLabel ? (
+                    <button
+                        aria-label={dismissLabel}
+                        onClick={() => onDismiss(banner)}
+                        className="btn ghost btn-sm"
+                        type="button"
+                    >
+                        <CloseIcon />
+                    </button>
+                ) : null}
+            </div>
+        </section>
+    );
 }
 
 export function SystemBanner({ className }: SystemBannerProps) {
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
-    const [eventDetail, setEventDetail] =
-        useState<SystemBannerEventDetail | null>(null);
+    const [eventDetails, setEventDetails] = useState<SystemBannerEventDetail[]>(
+        [],
+    );
     const [online, setOnline] = useState(() =>
         hasBrowserWindow() ? navigator.onLine : true,
     );
+    const [offlineDismissed, setOfflineDismissed] = useState(false);
 
     useEffect(() => {
         if (!hasBrowserWindow()) {
             return;
         }
 
-        const handleOnline = () => setOnline(true);
-        const handleOffline = () => setOnline(false);
+        const handleOnline = () => {
+            setOnline(true);
+            setOfflineDismissed(false);
+        };
+        const handleOffline = () => {
+            setOnline(false);
+            setOfflineDismissed(false);
+        };
         const handleSystemBanner = (event: Event) => {
             const detail = (event as CustomEvent<SystemBannerEventDetail>)
                 .detail;
-            setEventDetail(detail?.state ? detail : null);
+            setEventDetails((current) => {
+                if (!detail?.state) {
+                    if (detail?.id) {
+                        return current.filter((item) => item.id !== detail.id);
+                    }
+                    return [];
+                }
+
+                const key = detail.id ?? detail.state;
+                const next = current.filter(
+                    (item) => (item.id ?? item.state) !== key,
+                );
+                next.push({ ...detail, id: key });
+                return next;
+            });
         };
 
         window.addEventListener("online", handleOnline);
@@ -143,47 +605,61 @@ export function SystemBanner({ className }: SystemBannerProps) {
         };
     }, []);
 
-    const state = online ? eventDetail?.state : "offline";
-    if (!state) {
+    const visibleBanners = [
+        ...(online
+            ? []
+            : [
+                  ...(offlineDismissed
+                      ? []
+                      : [
+                            {
+                                id: "offline",
+                                state: "offline" as const,
+                            },
+                        ]),
+              ]),
+        ...eventDetails.filter((detail): detail is VisibleSystemBanner =>
+            Boolean(detail.state),
+        ),
+    ]
+        .filter(
+            (banner, index, banners) =>
+                banners.findIndex(
+                    (item) => (item.id ?? item.state) === banner.id,
+                ) === index,
+        )
+        .sort((a, b) => getPriority(a.state) - getPriority(b.state))
+        .slice(0, 2);
+
+    if (visibleBanners.length === 0) {
         return null;
     }
 
-    const defaultCopy = getDefaultCopy(state, isZh);
-    const Icon = getIcon(state);
+    const dismissBanner = (banner: VisibleSystemBanner) => {
+        if (banner.state === "offline") {
+            setOfflineDismissed(true);
+            return;
+        }
+        setEventDetails((current) =>
+            current.filter(
+                (item) =>
+                    (item.id ?? item.state) !== (banner.id ?? banner.state),
+            ),
+        );
+    };
 
     return (
-        <section
-            aria-live="polite"
-            className={cn(
-                "flex flex-wrap items-center gap-3 rounded-2xl border px-3 py-2 text-sm shadow-xs",
-                STATE_TONE[state],
-                className,
-            )}
-            data-system-banner=""
-            data-system-banner-state={state}
-        >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-current/20 bg-muted/35 shadow-xs">
-                <Icon className="size-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-foreground">
-                    {eventDetail?.title ?? defaultCopy.title}
-                </span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                    {eventDetail?.message ?? defaultCopy.message}
-                </span>
-            </span>
-            {state === "update-available" ? (
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 shrink-0 rounded-xl"
-                    onClick={() => window.location.reload()}
-                >
-                    {eventDetail?.actionLabel ?? (isZh ? "刷新" : "Refresh")}
-                </Button>
-            ) : null}
-        </section>
+        <>
+            {visibleBanners.map((banner) => (
+                <SystemBannerItem
+                    banner={banner}
+                    className={className}
+                    isStacked={visibleBanners.length > 1}
+                    isZh={isZh}
+                    key={banner.id ?? banner.state}
+                    onDismiss={dismissBanner}
+                />
+            ))}
+        </>
     );
 }

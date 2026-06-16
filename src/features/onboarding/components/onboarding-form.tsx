@@ -1,34 +1,23 @@
 "use client";
 
 import {
-    ArrowLeft,
-    ArrowRight,
     CheckCircle2,
     Cloud,
     Database,
-    KeyRound,
     Loader2,
-    LockKeyhole,
     type LucideIcon,
     MessageSquare,
     Mic2,
     Radio,
-    ServerCog,
-    ShieldCheck,
+    UserRound,
 } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useOnboardingDataSource } from "@/features/data-sources/use-onboarding-data-source";
 import type { SourceProvider } from "@/lib/data-sources/catalog";
@@ -48,31 +37,23 @@ const ONBOARDING_DATA_SOURCES_ENDPOINT = "/api/data-sources";
 const ONBOARDING_STEPS = [
     {
         id: "source",
-        titleZh: "数据源选择",
-        titleEn: "Choose source",
-        subtitleZh: "选择第一个录音来源",
-        subtitleEn: "Pick the first recording source",
+        title: "连接来源",
+        hint: "选择第一个录音来源并填写授权",
     },
     {
-        id: "auth",
-        titleZh: "认证与服务地址",
-        titleEn: "Auth and service",
-        subtitleZh: "填写登录方式与地址",
-        subtitleEn: "Set auth mode and endpoint",
+        id: "transcription",
+        title: "选一个默认转写来源",
+        hint: "未指定来源时，新录音从这里读取",
     },
     {
-        id: "privacy",
-        titleZh: "权限与私有化",
-        titleEn: "Permissions and privacy",
-        subtitleZh: "确认本地优先边界",
-        subtitleEn: "Review local-first boundaries",
+        id: "speakers",
+        title: "说话人档案",
+        hint: "先建一个常用说话人，之后可继续补充",
     },
     {
         id: "finish",
-        titleZh: "保存进入工作台",
-        titleEn: "Save and open",
-        subtitleZh: "保存连接后进入工作台",
-        subtitleEn: "Save connection and open workspace",
+        title: "完成",
+        hint: "保存配置并进入工作台",
     },
 ] as const;
 
@@ -86,19 +67,63 @@ const PROVIDER_ICONS: Record<SourceProvider, LucideIcon> = {
     iflyrec: Database,
 };
 
+const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
+    "dingtalk-a1": "/assets/sources/dingtalk.svg",
+    ticnote: "/assets/sources/ticnote.png",
+    plaud: "/assets/sources/plaud.png",
+    "feishu-minutes": "/assets/sources/feishu.jpeg",
+};
+
 function getStepIndex(step: OnboardingStepId) {
     return ONBOARDING_STEPS.findIndex((item) => item.id === step);
+}
+
+function OnboardingFieldRow({
+    children,
+    description,
+    disabled = false,
+    id,
+    label,
+}: {
+    children: ReactNode;
+    description: string;
+    disabled?: boolean;
+    id: string;
+    label: string;
+}) {
+    return (
+        <Field
+            className="field-row"
+            data-disabled={disabled ? "true" : undefined}
+            orientation="horizontal"
+        >
+            <span>
+                <Label className="field-name" htmlFor={id}>
+                    {label}
+                </Label>
+                <span className="field-desc">{description}</span>
+            </span>
+            {children}
+        </Field>
+    );
 }
 
 export function OnboardingForm({ onConnected }: OnboardingFormProps) {
     const router = useBrowserRouteController();
     const { language } = useLanguage();
     const isZh = language === "zh-CN";
+    const [isMounted, setIsMounted] = useState(false);
     const [activeStep, setActiveStep] = useState<OnboardingStepId>("source");
-    const dataSourceController = useOnboardingDataSource({
-        endpoint: ONBOARDING_DATA_SOURCES_ENDPOINT,
-        language,
-    });
+    const [defaultTranscriptionSource, setDefaultTranscriptionSource] =
+        useState<"dingtalk-a1" | "ticnote" | "feishu-minutes">("dingtalk-a1");
+    const [speakerName, setSpeakerName] = useState("");
+    const [speakerVoiceprint, setSpeakerVoiceprint] = useState("");
+    const [speakerState, setSpeakerState] = useState<
+        "idle" | "saving" | "saved" | "error"
+    >("idle");
+    const [finishError, setFinishError] = useState<string | null>(null);
+    const [isFinishing, setIsFinishing] = useState(false);
+    const [transcriptionSaved, setTranscriptionSaved] = useState(false);
     const {
         connectedProvider,
         connectedSourceLabel,
@@ -109,40 +134,46 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         provider,
         providerFields,
         providerOptions,
-        setAuthMode,
         selectProvider,
+        setAuthMode,
+        setBaseUrl,
         sourceLabel,
         updateField,
         usesCustomServerSelector,
-    } = dataSourceController;
-    const setServiceAddress = dataSourceController[
-        ["set", "Base", "Url"].join("") as keyof typeof dataSourceController
-    ] as (value: string) => void;
-
-    const visibleStep: OnboardingStepId = connectedProvider
-        ? "finish"
-        : activeStep;
-    const visibleStepIndex = getStepIndex(visibleStep);
-    const selectedAuthModeLabel = getSourceAuthModeDisplayLabel(
-        currentDraft.authMode,
+    } = useOnboardingDataSource({
+        endpoint: ONBOARDING_DATA_SOURCES_ENDPOINT,
         language,
-    );
-    const serviceAddressLabel = usesCustomServerSelector
-        ? isZh
-            ? "由该来源的登录方式决定"
-            : "Handled by this source's sign-in flow"
-        : currentDraft.baseUrl;
+    });
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const visibleStep = connectedProvider ? "finish" : activeStep;
+    const visibleStepIndex = getStepIndex(visibleStep);
     const onboardingState = connectedProvider
         ? "connected"
         : isSaving
           ? "saving"
           : visibleStep;
+    const progressPct = ["25", "40", "75", "100"][visibleStepIndex] ?? "25";
+    const selectedAuthModeLabel = getSourceAuthModeDisplayLabel(
+        currentDraft.authMode,
+        language,
+    );
+    const sourceServiceLabel = usesCustomServerSelector
+        ? isZh
+            ? "由来源登录方式决定"
+            : "Handled by the source sign-in method"
+        : currentDraft.baseUrl;
+    const controlsLocked = !isMounted || isSaving || isFinishing;
+    const visibleStepTitle = `第 ${visibleStepIndex + 1} 步 · ${
+        ONBOARDING_STEPS[visibleStepIndex].title
+    }`;
 
     const goToStep = (step: OnboardingStepId) => {
-        if (isSaving || connectedProvider) {
-            return;
-        }
-
+        if (controlsLocked) return;
+        setFinishError(null);
         setActiveStep(step);
     };
 
@@ -160,61 +191,110 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
         goToStep(previousStep);
     };
 
-    const handleSaveAndEnter = async () => {
-        const didConnect = await connectSource();
+    const saveTranscriptionDefaults = async () => {
+        const response = await fetch("/api/settings/transcription", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                autoTranscribe: defaultTranscriptionSource !== "feishu-minutes",
+                defaultTranscriptionLanguage:
+                    defaultTranscriptionSource === "feishu-minutes"
+                        ? null
+                        : language === "zh-CN"
+                          ? "zh"
+                          : "en",
+            }),
+        });
 
-        if (didConnect) {
-            setActiveStep("finish");
-            return;
+        if (!response.ok) {
+            throw new Error("默认转写保存失败");
         }
 
-        setActiveStep("auth");
+        setTranscriptionSaved(true);
     };
 
-    const handleContinue = () => {
-        if (onConnected) {
-            onConnected();
+    const saveSpeakerProfile = async () => {
+        const trimmedName = speakerName.trim();
+        if (!trimmedName || speakerState === "saved") {
             return;
         }
 
-        navigateAndRefreshBrowserRoute(router, "/dashboard");
+        setSpeakerState("saving");
+        const response = await fetch("/api/speakers/profiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                displayName: trimmedName,
+                voiceprintRef: speakerVoiceprint.trim() || null,
+            }),
+        });
+
+        if (!response.ok) {
+            setSpeakerState("error");
+            throw new Error("说话人档案保存失败");
+        }
+
+        setSpeakerState("saved");
+    };
+
+    const handleFinish = async () => {
+        if (!isMounted) return;
+
+        setFinishError(null);
+        setIsFinishing(true);
+
+        try {
+            const didConnect = connectedProvider ? true : await connectSource();
+            if (!didConnect) {
+                setActiveStep("source");
+                setFinishError("请先补全来源授权");
+                return;
+            }
+
+            await saveTranscriptionDefaults();
+            await saveSpeakerProfile();
+
+            if (onConnected) {
+                onConnected();
+                return;
+            }
+
+            navigateAndRefreshBrowserRoute(router, "/dashboard");
+        } catch (error) {
+            setFinishError(error instanceof Error ? error.message : "保存失败");
+        } finally {
+            setIsFinishing(false);
+        }
     };
 
     return (
-        <Card
-            className="glass-surface w-full max-w-6xl overflow-hidden rounded-[1.5rem]"
-            data-testid="onboarding-wizard"
-            data-onboarding-provider={provider}
-            data-onboarding-state={onboardingState}
-            data-onboarding-surface=""
+        <main
+            className="onboarding-sot-canvas"
+            data-sot-layout="onboarding-workstation"
+            data-sot-ready={isMounted ? "true" : "false"}
+            data-sot-surface="onboarding"
         >
-            <CardContent className="grid gap-0 p-0 lg:grid-cols-[18rem_minmax(0,1fr)]">
-                <aside
-                    className="glass-surface-subtle border-border/60 border-b p-4 lg:border-r lg:border-b-0 lg:p-6"
-                    data-testid="onboarding-stepper"
+            <section className="card">
+                <div className="card-h">上手 / Onboarding · 4 步</div>
+                <div className="card-sub">
+                    连接来源 → 选默认转写 → 设置说话人档案 → 完成
+                </div>
+                <div
+                    className="frame"
+                    data-pct={progressPct}
+                    data-sot-panel="onboarding-current"
+                    data-sot-provider={provider}
+                    data-sot-state={isFinishing ? "saving" : onboardingState}
                 >
-                    <div className="mb-5 flex items-center gap-3">
-                        <div className="glass-control flex size-10 items-center justify-center rounded-2xl text-primary">
-                            <Database className="size-5" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                                BetterAINote
-                            </p>
-                            <p className="truncate text-sm font-semibold">
-                                {isZh ? "首次配置" : "First-run setup"}
-                            </p>
-                        </div>
-                    </div>
-
-                    <nav
-                        aria-label={isZh ? "首次配置步骤" : "Onboarding steps"}
-                        className="grid gap-2 sm:grid-cols-4 lg:flex lg:flex-col"
+                    <div
+                        className="onboarding-progress"
+                        data-sot-panel="onboarding-steps"
+                        data-sot-progress={visibleStep}
                     >
                         {ONBOARDING_STEPS.map((step, index) => {
                             const isActive = step.id === visibleStep;
                             const isDone =
-                                Boolean(connectedProvider) ||
+                                connectedProvider !== null ||
                                 index < visibleStepIndex;
                             const status = isDone
                                 ? "complete"
@@ -224,629 +304,580 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
                             return (
                                 <button
+                                    aria-label={`第 ${index + 1} 步 · ${step.title}`}
+                                    className="onboarding-progress-segment"
+                                    data-sot-control="onboarding-step"
+                                    data-sot-step={step.id}
+                                    data-sot-state={status}
+                                    disabled={controlsLocked}
                                     key={step.id}
-                                    type="button"
-                                    disabled={
-                                        isSaving || Boolean(connectedProvider)
-                                    }
                                     onClick={() => goToStep(step.id)}
-                                    className={cn(
-                                        "glass-nav-item flex min-h-20 items-start gap-3 rounded-2xl px-3 py-3 text-left transition-colors disabled:pointer-events-none disabled:opacity-60 lg:min-h-0",
-                                        isActive &&
-                                            "border-primary/35 bg-primary/10 text-foreground",
-                                    )}
-                                    data-active={isActive}
-                                    data-onboarding-step={step.id}
-                                    data-state={status}
-                                    data-testid={`onboarding-step-${step.id}`}
-                                >
-                                    <span
-                                        className={cn(
-                                            "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border font-mono text-xs font-semibold",
-                                            isDone
-                                                ? "border-primary bg-primary text-primary-foreground"
-                                                : isActive
-                                                  ? "border-primary text-primary"
-                                                  : "border-border/75 text-muted-foreground",
-                                        )}
-                                    >
-                                        {isDone ? (
-                                            <CheckCircle2 className="size-4" />
-                                        ) : (
-                                            index + 1
-                                        )}
-                                    </span>
-                                    <span className="min-w-0">
-                                        <span className="block text-sm font-semibold">
-                                            {isZh ? step.titleZh : step.titleEn}
-                                        </span>
-                                        <span className="mt-1 block text-xs text-muted-foreground">
-                                            {isZh
-                                                ? step.subtitleZh
-                                                : step.subtitleEn}
-                                        </span>
-                                    </span>
-                                </button>
+                                    type="button"
+                                />
                             );
                         })}
-                    </nav>
-                </aside>
-
-                <div className="flex min-w-0 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-                    <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                            <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                                {isZh
-                                    ? `第 ${visibleStepIndex + 1} 步 / 4`
-                                    : `Step ${visibleStepIndex + 1} / 4`}
-                            </p>
-                            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                                {isZh
-                                    ? ONBOARDING_STEPS[visibleStepIndex].titleZh
-                                    : ONBOARDING_STEPS[visibleStepIndex]
-                                          .titleEn}
-                            </h2>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                {isZh
-                                    ? "把第一个来源接入私有工作台。录音、转写和后续 AI 标题优先留在你自己的部署里。"
-                                    : "Connect the first source to your private workspace. Recordings, transcripts, and later AI titles stay in your own deployment first."}
-                            </p>
-                        </div>
-                        <span className="inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                            self-hosting first
-                        </span>
-                    </header>
-
-                    <div className="grid grid-cols-4 gap-2" aria-hidden="true">
-                        {ONBOARDING_STEPS.map((step, index) => (
-                            <div
-                                key={step.id}
-                                className={cn(
-                                    "h-1.5 rounded-full bg-muted",
-                                    (connectedProvider ||
-                                        index <= visibleStepIndex) &&
-                                        "bg-primary",
-                                )}
-                            />
-                        ))}
                     </div>
+                    <div className="onboarding-step-head">
+                        <div className="onboarding-step-title">
+                            {visibleStepTitle}
+                        </div>
+                        <div className="onboarding-step-sub">
+                            {ONBOARDING_STEPS[visibleStepIndex].hint}
+                        </div>
+                    </div>
+                    <div className="onboarding-step-body">
+                        {finishError ? (
+                            <div
+                                className="field-help err"
+                                role="alert"
+                                data-sot-state="error"
+                            >
+                                {finishError}
+                            </div>
+                        ) : null}
 
-                    <div className="glass-surface-subtle min-h-[30rem] rounded-3xl p-4 sm:p-6">
                         {visibleStep === "source" ? (
-                            <section
-                                className="flex h-full flex-col gap-5"
-                                data-onboarding-step="source"
-                                data-testid="onboarding-source-step"
-                            >
-                                <StepHeading
-                                    icon={<ServerCog className="size-5" />}
-                                    title={
-                                        isZh
-                                            ? "选择第一个录音来源"
-                                            : "Choose the first recording source"
-                                    }
-                                    description={
-                                        isZh
-                                            ? "先选择要接入的来源。保存后同一套连接也会出现在设置的数据源管理里。"
-                                            : "Pick the source to connect first. After saving, the same connection appears in Data Sources settings."
-                                    }
-                                />
-
-                                <div className="space-y-2 lg:hidden">
-                                    <Label htmlFor="source-provider">
-                                        {isZh ? "数据源" : "Data source"}
-                                    </Label>
-                                    <Select
-                                        value={provider}
-                                        onValueChange={selectProvider}
-                                        disabled={isSaving}
-                                    >
-                                        <SelectTrigger
-                                            id="source-provider"
-                                            className="w-full"
-                                            data-testid="onboarding-provider-select"
-                                        >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="z-[650]">
-                                            {providerOptions.map((item) => (
-                                                <SelectItem
-                                                    key={item.provider}
-                                                    value={item.provider}
-                                                >
-                                                    {item.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div
-                                    className="hidden gap-3 lg:grid lg:grid-cols-2"
-                                    data-testid="onboarding-provider-grid"
-                                >
-                                    {providerOptions.map((item) => {
-                                        const isActive =
-                                            item.provider === provider;
-                                        const ProviderIcon =
-                                            PROVIDER_ICONS[item.provider];
-
-                                        return (
-                                            <button
-                                                key={item.provider}
-                                                type="button"
-                                                onClick={() =>
-                                                    selectProvider(
-                                                        item.provider,
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                                className={cn(
-                                                    "glass-control flex min-h-24 items-center gap-4 rounded-2xl px-4 py-3 text-left transition-colors disabled:pointer-events-none disabled:opacity-60",
-                                                    isActive &&
-                                                        "border-primary/45 bg-primary/10",
-                                                )}
-                                                data-active={isActive}
-                                                data-onboarding-provider-card={
-                                                    item.provider
-                                                }
-                                            >
-                                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background text-sm font-semibold">
-                                                    <ProviderIcon className="size-5" />
-                                                </span>
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block truncate font-semibold">
-                                                        {item.label}
-                                                    </span>
-                                                    <span className="mt-1 block text-xs text-muted-foreground">
-                                                        {isActive
-                                                            ? isZh
-                                                                ? "将作为首次连接来源"
-                                                                : "Selected for first connection"
-                                                            : isZh
-                                                              ? "可在后续设置里继续补充"
-                                                              : "Can be added later in settings"}
-                                                    </span>
-                                                </span>
-                                                {isActive ? (
-                                                    <CheckCircle2 className="size-5 text-primary" />
-                                                ) : null}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <WizardActions
-                                    isZh={isZh}
-                                    isSaving={isSaving}
-                                    onNext={goNext}
-                                />
-                            </section>
+                            <SourceStep
+                                currentDraft={currentDraft}
+                                currentProviderCatalog={currentProviderCatalog}
+                                isSaving={controlsLocked}
+                                language={language}
+                                onNext={goNext}
+                                provider={provider}
+                                providerFields={providerFields}
+                                providerOptions={providerOptions}
+                                selectedAuthModeLabel={selectedAuthModeLabel}
+                                selectProvider={selectProvider}
+                                setAuthMode={setAuthMode}
+                                setBaseUrl={setBaseUrl}
+                                sourceLabel={sourceLabel}
+                                sourceServiceLabel={sourceServiceLabel}
+                                updateField={updateField}
+                                usesCustomServerSelector={
+                                    usesCustomServerSelector
+                                }
+                            />
                         ) : null}
 
-                        {visibleStep === "auth" ? (
-                            <section
-                                className="flex h-full flex-col gap-5"
-                                data-onboarding-step="auth"
-                                data-testid="onboarding-auth-step"
-                            >
-                                <StepHeading
-                                    icon={<KeyRound className="size-5" />}
-                                    title={
-                                        isZh
-                                            ? `${sourceLabel} 的认证方式`
-                                            : `${sourceLabel} authentication`
-                                    }
-                                    description={
-                                        isZh
-                                            ? "填写服务地址和必要登录信息。敏感字段会以密码控件输入，不在界面明文展示。"
-                                            : "Fill in the service address and required sign-in fields. Sensitive fields use password controls and are not displayed in clear text."
-                                    }
-                                />
-
-                                <div
-                                    className="grid gap-4"
-                                    data-testid="onboarding-auth-fields"
-                                >
-                                    {currentProviderCatalog.authModes.length >
-                                    1 ? (
-                                        <div className="space-y-2">
-                                            <Label htmlFor="source-auth-mode">
-                                                {isZh
-                                                    ? "登录方式"
-                                                    : "Sign-in method"}
-                                            </Label>
-                                            <Select
-                                                value={currentDraft.authMode}
-                                                onValueChange={setAuthMode}
-                                                disabled={isSaving}
-                                            >
-                                                <SelectTrigger
-                                                    id="source-auth-mode"
-                                                    className="w-full"
-                                                >
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="z-[650]">
-                                                    {currentProviderCatalog.authModes.map(
-                                                        (mode) => (
-                                                            <SelectItem
-                                                                key={mode}
-                                                                value={mode}
-                                                            >
-                                                                {getSourceAuthModeDisplayLabel(
-                                                                    mode,
-                                                                    language,
-                                                                )}
-                                                            </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    ) : (
-                                        <ReadOnlyMatrixRow
-                                            label={
-                                                isZh
-                                                    ? "登录方式"
-                                                    : "Sign-in method"
-                                            }
-                                            value={selectedAuthModeLabel}
-                                            state="ready"
-                                        />
-                                    )}
-
-                                    {!usesCustomServerSelector ? (
-                                        <div className="space-y-2">
-                                            <Label htmlFor="source-base-url">
-                                                {isZh
-                                                    ? "服务地址"
-                                                    : "Service address"}
-                                            </Label>
-                                            <Input
-                                                id="source-base-url"
-                                                value={currentDraft.baseUrl}
-                                                onChange={(event) =>
-                                                    setServiceAddress(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={isSaving}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <ReadOnlyMatrixRow
-                                            label={
-                                                isZh
-                                                    ? "服务地址"
-                                                    : "Service address"
-                                            }
-                                            value={serviceAddressLabel}
-                                            state="ready"
-                                        />
-                                    )}
-
-                                    {providerFields.map((field) => (
-                                        <DataSourceFieldControl
-                                            key={field.id}
-                                            disabled={isSaving}
-                                            field={field}
-                                            fieldId={field.id}
-                                            onValueChange={updateField}
-                                            selectContentClassName="z-[650]"
-                                            variant="settings"
-                                        />
-                                    ))}
-                                </div>
-
-                                <WizardActions
-                                    isZh={isZh}
-                                    isSaving={isSaving}
-                                    onBack={goBack}
-                                    onNext={goNext}
-                                />
-                            </section>
+                        {visibleStep === "transcription" ? (
+                            <TranscriptionStep
+                                defaultTranscriptionSource={
+                                    defaultTranscriptionSource
+                                }
+                                isSaving={controlsLocked}
+                                onNext={goNext}
+                                setDefaultTranscriptionSource={
+                                    setDefaultTranscriptionSource
+                                }
+                            />
                         ) : null}
 
-                        {visibleStep === "privacy" ? (
-                            <section
-                                className="flex h-full flex-col gap-5"
-                                data-onboarding-step="privacy"
-                                data-testid="onboarding-privacy-step"
-                            >
-                                <StepHeading
-                                    icon={<ShieldCheck className="size-5" />}
-                                    title={
-                                        isZh
-                                            ? "确认权限和私有化边界"
-                                            : "Review permissions and privacy"
-                                    }
-                                    description={
-                                        isZh
-                                            ? "BetterAINote 只会按你保存的来源配置读取录音列表、音频和转写。后续可在设置中暂停或断开。"
-                                            : "BetterAINote reads recording lists, audio, and transcripts only through the source settings you save. You can pause or disconnect later in settings."
-                                    }
-                                />
-
-                                <div className="grid gap-3 md:grid-cols-3">
-                                    <PrivacyCard
-                                        icon={
-                                            <LockKeyhole className="size-5" />
-                                        }
-                                        title={
-                                            isZh ? "本地优先" : "Local first"
-                                        }
-                                        description={
-                                            isZh
-                                                ? "录音、原始转写和报告优先保留在你的部署里，工作台围绕本地数据组织。"
-                                                : "Recordings, raw transcripts, and reports stay in your deployment first, with the workspace organized around local data."
-                                        }
-                                    />
-                                    <PrivacyCard
-                                        icon={<ServerCog className="size-5" />}
-                                        title={
-                                            isZh
-                                                ? "来源授权"
-                                                : "Source authorization"
-                                        }
-                                        description={
-                                            isZh
-                                                ? "凭据只用于当前选择的数据源；其他来源不会被自动读取。"
-                                                : "Credentials are used only for the selected source. Other sources are not read automatically."
-                                        }
-                                    />
-                                    <PrivacyCard
-                                        icon={<Database className="size-5" />}
-                                        title={isZh ? "可回退" : "Reversible"}
-                                        description={
-                                            isZh
-                                                ? "进入工作台后，你仍可在设置里暂停同步、更新凭据或断开连接。"
-                                                : "After opening the workspace, you can pause sync, update credentials, or disconnect in settings."
-                                        }
-                                    />
-                                </div>
-
-                                <div
-                                    className="grid gap-3 rounded-2xl border border-border/60 bg-muted/20 p-4"
-                                    data-testid="onboarding-permission-matrix"
-                                >
-                                    <ReadOnlyMatrixRow
-                                        label={isZh ? "当前来源" : "Source"}
-                                        value={sourceLabel}
-                                        state="selected"
-                                    />
-                                    <ReadOnlyMatrixRow
-                                        label={
-                                            isZh ? "认证方式" : "Authentication"
-                                        }
-                                        value={selectedAuthModeLabel}
-                                        state="ready"
-                                    />
-                                    <ReadOnlyMatrixRow
-                                        label={
-                                            isZh
-                                                ? "保存后可修改"
-                                                : "Editable after saving"
-                                        }
-                                        value={
-                                            isZh
-                                                ? "设置 > 数据源"
-                                                : "Settings > Data sources"
-                                        }
-                                        state="reversible"
-                                    />
-                                </div>
-
-                                <WizardActions
-                                    isZh={isZh}
-                                    isSaving={isSaving}
-                                    onBack={goBack}
-                                    onNext={goNext}
-                                />
-                            </section>
+                        {visibleStep === "speakers" ? (
+                            <SpeakersStep
+                                isSaving={controlsLocked}
+                                onBack={goBack}
+                                onNext={goNext}
+                                setSpeakerName={setSpeakerName}
+                                setSpeakerVoiceprint={setSpeakerVoiceprint}
+                                speakerName={speakerName}
+                                speakerState={speakerState}
+                                speakerVoiceprint={speakerVoiceprint}
+                            />
                         ) : null}
 
                         {visibleStep === "finish" ? (
-                            <section
-                                className="flex h-full flex-col gap-5"
-                                data-onboarding-step="finish"
-                                data-testid="onboarding-finish-step"
-                            >
-                                <StepHeading
-                                    icon={<CheckCircle2 className="size-5" />}
-                                    title={
-                                        connectedProvider
-                                            ? isZh
-                                                ? `${connectedSourceLabel} 已连接`
-                                                : `${connectedSourceLabel} connected`
-                                            : isZh
-                                              ? "保存连接并进入工作台"
-                                              : "Save connection and open workspace"
-                                    }
-                                    description={
-                                        connectedProvider
-                                            ? isZh
-                                                ? "连接已保存。现在可以进入工作台导入录音、同步来源内容并开始私有转写。"
-                                                : "The connection is saved. You can now open the workspace, import recordings, sync source content, and start private transcription."
-                                            : isZh
-                                              ? "最后确认下面的状态。保存成功后，工作台会沿用这套数据源配置。"
-                                              : "Confirm the state below. After saving, the workspace uses this data-source configuration."
-                                    }
-                                />
-
-                                <div
-                                    className={cn(
-                                        "grid gap-3 rounded-2xl border p-4",
-                                        connectedProvider
-                                            ? "border-primary/25 bg-primary/10"
-                                            : "border-border/60 bg-muted/20",
-                                    )}
-                                    data-testid="onboarding-state-matrix"
-                                >
-                                    <ReadOnlyMatrixRow
-                                        label={isZh ? "数据源" : "Data source"}
-                                        value={
-                                            connectedSourceLabel ?? sourceLabel
-                                        }
-                                        state={
-                                            connectedProvider
-                                                ? "connected"
-                                                : "selected"
-                                        }
-                                    />
-                                    <ReadOnlyMatrixRow
-                                        label={
-                                            isZh ? "认证方式" : "Authentication"
-                                        }
-                                        value={selectedAuthModeLabel}
-                                        state="ready"
-                                    />
-                                    <ReadOnlyMatrixRow
-                                        label={
-                                            isZh
-                                                ? "服务地址"
-                                                : "Service address"
-                                        }
-                                        value={serviceAddressLabel}
-                                        state="ready"
-                                    />
-                                    <ReadOnlyMatrixRow
-                                        label={
-                                            isZh
-                                                ? "进入工作台"
-                                                : "Open workspace"
-                                        }
-                                        value={
-                                            connectedProvider
-                                                ? isZh
-                                                    ? "已就绪"
-                                                    : "Ready"
-                                                : isSaving
-                                                  ? isZh
-                                                      ? "保存中"
-                                                      : "Saving"
-                                                  : isZh
-                                                    ? "等待保存"
-                                                    : "Waiting to save"
-                                        }
-                                        state={
-                                            connectedProvider
-                                                ? "connected"
-                                                : isSaving
-                                                  ? "saving"
-                                                  : "pending"
-                                        }
-                                    />
-                                </div>
-
-                                <div className="mt-auto flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                                    {!connectedProvider ? (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={goBack}
-                                            disabled={isSaving}
-                                        >
-                                            <ArrowLeft className="size-4" />
-                                            {isZh ? "返回" : "Back"}
-                                        </Button>
-                                    ) : (
-                                        <span />
-                                    )}
-                                    {connectedProvider ? (
-                                        <Button
-                                            type="button"
-                                            onClick={handleContinue}
-                                            className="w-full sm:w-auto"
-                                            data-testid="onboarding-enter-workspace"
-                                        >
-                                            {isZh
-                                                ? "进入工作台"
-                                                : "Open workspace"}
-                                            <ArrowRight className="size-4" />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            onClick={handleSaveAndEnter}
-                                            disabled={isSaving}
-                                            aria-busy={isSaving}
-                                            className="w-full sm:w-auto"
-                                            data-testid="onboarding-save-enter"
-                                        >
-                                            {isSaving ? (
-                                                <Loader2 className="size-4 animate-spin" />
-                                            ) : (
-                                                <CheckCircle2 className="size-4" />
-                                            )}
-                                            {isSaving
-                                                ? isZh
-                                                    ? "保存中..."
-                                                    : "Saving..."
-                                                : isZh
-                                                  ? "保存进入工作台"
-                                                  : "Save and open workspace"}
-                                        </Button>
-                                    )}
-                                </div>
-                            </section>
+                            <FinishStep
+                                connectedSourceLabel={connectedSourceLabel}
+                                defaultTranscriptionSource={
+                                    defaultTranscriptionSource
+                                }
+                                isFinishing={isFinishing}
+                                isSaving={controlsLocked}
+                                onBack={goBack}
+                                onFinish={() => void handleFinish()}
+                                selectedAuthModeLabel={selectedAuthModeLabel}
+                                sourceLabel={sourceLabel}
+                                speakerName={speakerName}
+                                speakerState={speakerState}
+                                transcriptionSaved={transcriptionSaved}
+                            />
                         ) : null}
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </section>
+        </main>
     );
 }
 
-function StepHeading({
-    description,
-    icon,
-    title,
+function SourceStep({
+    currentDraft,
+    currentProviderCatalog,
+    isSaving,
+    language,
+    onBack,
+    onNext,
+    provider,
+    providerFields,
+    providerOptions,
+    selectedAuthModeLabel,
+    selectProvider,
+    setAuthMode,
+    setBaseUrl,
+    sourceLabel,
+    sourceServiceLabel,
+    updateField,
+    usesCustomServerSelector,
 }: {
-    description: string;
-    icon: React.ReactNode;
-    title: string;
+    currentDraft: { authMode: string; baseUrl: string };
+    currentProviderCatalog: { authModes: string[] };
+    isSaving: boolean;
+    language: "zh-CN" | "en";
+    onBack?: () => void;
+    onNext: () => void;
+    provider: SourceProvider;
+    providerFields: Parameters<typeof DataSourceFieldControl>[0]["field"][];
+    providerOptions: Array<{ label: string; provider: SourceProvider }>;
+    selectedAuthModeLabel: string;
+    selectProvider: (provider: string) => void;
+    setAuthMode: (authMode: string) => void;
+    setBaseUrl: (baseUrl: string) => void;
+    sourceLabel: string;
+    sourceServiceLabel: string;
+    updateField: (
+        field: Parameters<typeof DataSourceFieldControl>[0]["field"],
+        value: string | boolean,
+    ) => void;
+    usesCustomServerSelector: boolean;
 }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="glass-control flex size-11 shrink-0 items-center justify-center rounded-2xl text-primary">
-                {icon}
+        <>
+            <OnboardingFieldRow
+                description="未指定来源时，新录音从这里读取"
+                disabled={isSaving}
+                id="source-provider"
+                label="来源"
+            >
+                <Select
+                    aria-label="来源"
+                    data-sot-control="source-provider"
+                    disabled={isSaving}
+                    id="source-provider"
+                    onValueChange={selectProvider}
+                    options={providerOptions.map((item) => ({
+                        label: item.label,
+                        value: item.provider,
+                    }))}
+                    value={provider}
+                />
+            </OnboardingFieldRow>
+
+            <div className="src-list" data-sot-list="provider-cards">
+                {providerOptions.map((item) => {
+                    const isActive = item.provider === provider;
+                    const ProviderIcon = PROVIDER_ICONS[item.provider];
+                    const asset = PROVIDER_ASSETS[item.provider];
+
+                    return (
+                        <button
+                            className={cn("src-item", isActive && "active")}
+                            data-sot-control="provider-card"
+                            data-sot-provider={item.provider}
+                            data-sot-state={isActive ? "selected" : "idle"}
+                            disabled={isSaving}
+                            key={item.provider}
+                            onClick={() => selectProvider(item.provider)}
+                            type="button"
+                        >
+                            <span
+                                className={cn(
+                                    "sp-ico",
+                                    item.provider === "feishu-minutes" &&
+                                        "cover",
+                                )}
+                            >
+                                {asset ? (
+                                    <img src={asset} alt="" />
+                                ) : (
+                                    <ProviderIcon />
+                                )}
+                            </span>
+                            <span className="src-meta">
+                                <span className="src-name">{item.label}</span>
+                                <span className="src-hint">
+                                    {isActive
+                                        ? "将作为首次连接来源"
+                                        : "可在后续设置里继续补充"}
+                                </span>
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
-            <div className="min-w-0">
-                <h3 className="text-xl font-semibold tracking-tight">
-                    {title}
-                </h3>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    {description}
-                </p>
+
+            {currentProviderCatalog.authModes.length > 1 ? (
+                <OnboardingFieldRow
+                    description="按来源支持的方式填写授权"
+                    disabled={isSaving}
+                    id="source-auth-mode"
+                    label="登录方式"
+                >
+                    <Select
+                        aria-label="登录方式"
+                        data-sot-control="source-auth-mode"
+                        disabled={isSaving}
+                        id="source-auth-mode"
+                        onValueChange={setAuthMode}
+                        options={currentProviderCatalog.authModes.map(
+                            (mode) => ({
+                                label: getSourceAuthModeDisplayLabel(
+                                    mode,
+                                    language,
+                                ),
+                                value: mode,
+                            }),
+                        )}
+                        value={currentDraft.authMode}
+                    />
+                </OnboardingFieldRow>
+            ) : (
+                <MatrixRow
+                    label="登录方式"
+                    state="ready"
+                    value={selectedAuthModeLabel}
+                />
+            )}
+
+            {!usesCustomServerSelector ? (
+                <OnboardingFieldRow
+                    description="来源 API 或网页登录入口"
+                    disabled={isSaving}
+                    id="source-base-url"
+                    label="服务地址"
+                >
+                    <Input
+                        disabled={isSaving}
+                        id="source-base-url"
+                        onChange={(event) => setBaseUrl(event.target.value)}
+                        value={currentDraft.baseUrl}
+                    />
+                </OnboardingFieldRow>
+            ) : (
+                <MatrixRow
+                    label="服务地址"
+                    state="ready"
+                    value={sourceServiceLabel}
+                />
+            )}
+
+            {providerFields.map((field) => (
+                <DataSourceFieldControl
+                    disabled={isSaving}
+                    field={field}
+                    fieldId={field.id}
+                    key={field.id}
+                    onValueChange={updateField}
+                    variant="settings"
+                />
+            ))}
+
+            <WizardActions
+                isSaving={isSaving}
+                onBack={onBack}
+                onNext={onNext}
+            />
+            <MatrixRow label="当前来源" state="selected" value={sourceLabel} />
+        </>
+    );
+}
+
+function TranscriptionStep({
+    defaultTranscriptionSource,
+    isSaving,
+    onNext,
+    setDefaultTranscriptionSource,
+}: {
+    defaultTranscriptionSource: "dingtalk-a1" | "ticnote" | "feishu-minutes";
+    isSaving: boolean;
+    onNext: () => void;
+    setDefaultTranscriptionSource: (
+        value: "dingtalk-a1" | "ticnote" | "feishu-minutes",
+    ) => void;
+}) {
+    const options = [
+        {
+            id: "dingtalk-a1",
+            label: "钉钉 闪记 · 已连接",
+            connected: true,
+            swatch: "accent",
+        },
+        {
+            id: "ticnote",
+            label: "TicNote · 已连接",
+            connected: true,
+            swatch: "empty",
+        },
+        {
+            id: "feishu-minutes",
+            label: "飞书妙记 · 未连接",
+            connected: false,
+            swatch: "empty",
+        },
+    ] as const;
+
+    return (
+        <div className="onboarding-default-source-step">
+            <div
+                className="onboarding-default-source-list"
+                data-sot-list="transcription-defaults"
+            >
+                {options.map((option) => {
+                    const isActive = option.id === defaultTranscriptionSource;
+
+                    return (
+                        // biome-ignore lint/a11y/useSemanticElements: SOT §09 rows are divs; click and keyboard handlers keep the restored row interactive.
+                        <div
+                            className="onboarding-default-source-row"
+                            data-sot-control="transcription-default"
+                            data-sot-provider={option.id}
+                            data-sot-state={
+                                isActive
+                                    ? "selected"
+                                    : option.connected
+                                      ? "idle"
+                                      : "disabled"
+                            }
+                            key={option.id}
+                            onClick={() => {
+                                if (!isSaving && option.connected) {
+                                    setDefaultTranscriptionSource(option.id);
+                                }
+                            }}
+                            onKeyDown={(event) => {
+                                if (
+                                    isSaving ||
+                                    !option.connected ||
+                                    (event.key !== "Enter" && event.key !== " ")
+                                ) {
+                                    return;
+                                }
+
+                                event.preventDefault();
+                                setDefaultTranscriptionSource(option.id);
+                            }}
+                            role="button"
+                            tabIndex={isSaving || !option.connected ? -1 : 0}
+                        >
+                            <span
+                                className="onboarding-default-source-swatch"
+                                data-sot-swatch={option.swatch}
+                            />
+                            {option.label}
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="onboarding-actions">
+                <Button
+                    className="sm"
+                    disabled={isSaving}
+                    onClick={onNext}
+                    type="button"
+                    variant="ghost"
+                >
+                    跳过
+                </Button>
+                <Button
+                    className="sm"
+                    data-sot-control="onboarding-next"
+                    disabled={isSaving}
+                    onClick={onNext}
+                    type="button"
+                    variant="primary"
+                >
+                    下一步
+                </Button>
             </div>
         </div>
     );
 }
 
-function PrivacyCard({
-    description,
-    icon,
-    title,
+function SpeakersStep({
+    isSaving,
+    onBack,
+    onNext,
+    setSpeakerName,
+    setSpeakerVoiceprint,
+    speakerName,
+    speakerState,
+    speakerVoiceprint,
 }: {
-    description: string;
-    icon: React.ReactNode;
-    title: string;
+    isSaving: boolean;
+    onBack: () => void;
+    onNext: () => void;
+    setSpeakerName: (value: string) => void;
+    setSpeakerVoiceprint: (value: string) => void;
+    speakerName: string;
+    speakerState: "idle" | "saving" | "saved" | "error";
+    speakerVoiceprint: string;
 }) {
     return (
-        <div className="glass-surface-subtle rounded-2xl p-4">
-            <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border/60 bg-background text-primary">
-                {icon}
+        <>
+            <div className="src-list" data-sot-list="speaker-profiles">
+                <div
+                    className="src-item active"
+                    data-sot-control="speaker-profile-draft"
+                    data-sot-state={speakerState}
+                >
+                    <span className="sp-ico">
+                        <UserRound />
+                    </span>
+                    <span className="src-meta">
+                        <span className="src-name">第一个说话人</span>
+                        <span className="src-hint">
+                            可先留空，工作台内继续校对
+                        </span>
+                    </span>
+                </div>
             </div>
-            <h4 className="font-semibold">{title}</h4>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {description}
-            </p>
-        </div>
+            <OnboardingFieldRow
+                description="例如主持人、自己或常见会议成员"
+                disabled={isSaving || speakerState === "saving"}
+                id="speaker-name"
+                label="显示名称"
+            >
+                <Input
+                    disabled={isSaving || speakerState === "saving"}
+                    id="speaker-name"
+                    onChange={(event) => setSpeakerName(event.target.value)}
+                    value={speakerName}
+                    data-sot-control="speaker-name"
+                    placeholder="林梅"
+                />
+            </OnboardingFieldRow>
+            <OnboardingFieldRow
+                description="可选；后续也可在说话人校对里补"
+                disabled={isSaving || speakerState === "saving"}
+                id="speaker-voiceprint"
+                label="语音档案引用"
+            >
+                <Input
+                    disabled={isSaving || speakerState === "saving"}
+                    id="speaker-voiceprint"
+                    onChange={(event) =>
+                        setSpeakerVoiceprint(event.target.value)
+                    }
+                    value={speakerVoiceprint}
+                    data-sot-control="speaker-voiceprint"
+                    placeholder="voiceprint-local-1"
+                />
+            </OnboardingFieldRow>
+            <MatrixRow
+                label="档案状态"
+                state={speakerState}
+                value={
+                    speakerName.trim()
+                        ? `${speakerName.trim()} · 保存时创建`
+                        : "未填写，跳过创建"
+                }
+            />
+            <WizardActions
+                isSaving={isSaving || speakerState === "saving"}
+                onBack={onBack}
+                onNext={onNext}
+            />
+        </>
     );
 }
 
-function ReadOnlyMatrixRow({
+function FinishStep({
+    connectedSourceLabel,
+    defaultTranscriptionSource,
+    isFinishing,
+    isSaving,
+    onBack,
+    onFinish,
+    selectedAuthModeLabel,
+    sourceLabel,
+    speakerName,
+    speakerState,
+    transcriptionSaved,
+}: {
+    connectedSourceLabel: string | null;
+    defaultTranscriptionSource: "dingtalk-a1" | "ticnote" | "feishu-minutes";
+    isFinishing: boolean;
+    isSaving: boolean;
+    onBack: () => void;
+    onFinish: () => void;
+    selectedAuthModeLabel: string;
+    sourceLabel: string;
+    speakerName: string;
+    speakerState: "idle" | "saving" | "saved" | "error";
+    transcriptionSaved: boolean;
+}) {
+    return (
+        <>
+            <div className="src-list" data-sot-list="finish-summary">
+                <MatrixRow
+                    label="来源"
+                    state={connectedSourceLabel ? "connected" : "ready"}
+                    value={connectedSourceLabel ?? sourceLabel}
+                />
+                <MatrixRow
+                    label="授权"
+                    state="ready"
+                    value={selectedAuthModeLabel}
+                />
+                <MatrixRow
+                    label="默认转写"
+                    state={transcriptionSaved ? "saved" : "ready"}
+                    value={
+                        defaultTranscriptionSource === "ticnote"
+                            ? "TicNote"
+                            : defaultTranscriptionSource === "feishu-minutes"
+                              ? "飞书妙记"
+                              : "钉钉 闪记"
+                    }
+                />
+                <MatrixRow
+                    label="说话人"
+                    state={speakerState}
+                    value={
+                        speakerName.trim() ? speakerName.trim() : "暂不创建档案"
+                    }
+                />
+            </div>
+            <div className="onboarding-actions">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isSaving}
+                    onClick={onBack}
+                >
+                    返回
+                </Button>
+                <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    disabled={isSaving || isFinishing}
+                    aria-busy={isSaving || isFinishing}
+                    data-sot-control="save-enter"
+                    onClick={onFinish}
+                >
+                    {isSaving || isFinishing ? (
+                        <Loader2 data-icon="inline-start" />
+                    ) : (
+                        <CheckCircle2 data-icon="inline-start" />
+                    )}
+                    {isSaving || isFinishing ? "保存中..." : "保存并进入工作台"}
+                </Button>
+            </div>
+        </>
+    );
+}
+
+function MatrixRow({
     label,
     state,
     value,
@@ -857,53 +888,47 @@ function ReadOnlyMatrixRow({
 }) {
     return (
         <div
-            className="glass-surface-subtle flex flex-col gap-1 rounded-xl px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-            data-state={state}
+            className="sr-meta-row"
+            data-sot-control="matrix-row"
+            data-sot-state={state}
         >
-            <span className="text-xs font-medium text-muted-foreground">
-                {label}
-            </span>
-            <span className="text-sm font-semibold text-foreground">
-                {value}
-            </span>
+            <span>{label}</span>
+            <strong>{value}</strong>
         </div>
     );
 }
 
 function WizardActions({
     isSaving,
-    isZh,
     onBack,
     onNext,
 }: {
     isSaving: boolean;
-    isZh: boolean;
     onBack?: () => void;
     onNext: () => void;
 }) {
     return (
-        <div className="mt-auto flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+        <div className="onboarding-actions">
             {onBack ? (
                 <Button
                     type="button"
                     variant="ghost"
-                    onClick={onBack}
+                    size="sm"
                     disabled={isSaving}
+                    onClick={onBack}
                 >
-                    <ArrowLeft className="size-4" />
-                    {isZh ? "返回" : "Back"}
+                    返回
                 </Button>
-            ) : (
-                <span />
-            )}
+            ) : null}
             <Button
                 type="button"
-                onClick={onNext}
+                variant="primary"
+                size="sm"
                 disabled={isSaving}
-                className="w-full sm:w-auto"
+                data-sot-control="onboarding-next"
+                onClick={onNext}
             >
-                {isZh ? "下一步" : "Next"}
-                <ArrowRight className="size-4" />
+                下一步
             </Button>
         </div>
     );

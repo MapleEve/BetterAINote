@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>System Reference · 系统参考</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; background: var(--bg-canvas); color: var(--fg-primary); font-family: var(--font-sans); padding: 28px 32px 80px; }
+  h1 { font: 700 28px var(--font-display); letter-spacing: -.02em; margin: 0 0 4px; }
+  h1 + p { font: 14px/1.6 var(--font-sans); color: var(--fg-tertiary); margin: 0 0 32px; max-width: 720px; }
+
+  /* Section */
+  .sec { margin: 48px 0 28px; }
+  .sec-h { display: flex; align-items: baseline; gap: 12px; margin: 0 0 4px; }
+  .sec-h .num { font: 700 12px var(--font-mono); color: var(--fg-disabled); letter-spacing: .04em; }
+  .sec-h h2 { font: 600 20px var(--font-display); letter-spacing: -.01em; margin: 0; }
+  .sec-sub { font: 13px/1.55 var(--font-sans); color: var(--fg-tertiary); margin: 0 0 18px; max-width: 760px; }
+
+  /* Card */
+  .card {
+    background: var(--bg-elevated); border: 1px solid var(--line-hairline);
+    border-radius: 14px; padding: 18px; box-shadow: var(--shadow-xs);
+  }
+  .card + .card { margin-top: 14px; }
+  .card-h { font: 600 13px var(--font-sans); color: var(--fg-primary); margin: 0 0 4px; }
+  .card-h + .card-sub { font: 12px/1.5 var(--font-sans); color: var(--fg-tertiary); margin: 0 0 14px; }
+
+  /* Matrix */
+  .mat {
+    display: grid; gap: 1px; background: var(--line-hairline);
+    border: 1px solid var(--line-hairline); border-radius: 12px; overflow: hidden;
+    font: 500 12px var(--font-sans);
+  }
+  .mat > * { background: var(--bg-elevated); padding: 12px 14px; }
+  .mat .h { font: 600 11px var(--font-mono); color: var(--fg-disabled); letter-spacing: .04em; text-transform: uppercase; background: var(--bg-recessed); }
+  .mat .lbl { color: var(--fg-tertiary); font-weight: 600; background: var(--bg-recessed); }
+
+  /* Buttons / pills used inline */
+  .btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 8px; font: 600 12px var(--font-sans); border: 1px solid transparent; cursor: pointer; }
+  .btn.primary { background: var(--accent); color: white; }
+  .btn.ghost { background: transparent; color: var(--fg-secondary); border-color: var(--line-hairline); }
+  .btn.ghost:hover { background: var(--bg-recessed); color: var(--fg-primary); }
+  .btn.danger { background: var(--signal-danger); color: white; }
+  .btn[disabled] { opacity: .4; cursor: not-allowed; }
+  .btn.sm { height: 26px; padding: 0 10px; font-size: 11px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; font: 600 11px var(--font-sans); }
+  .pill.ok { background: color-mix(in oklab, var(--signal-success) 12%, transparent); color: var(--signal-success); }
+  .pill.warn { background: color-mix(in oklab, var(--signal-warning) 14%, transparent); color: var(--signal-warning); }
+  .pill.err { background: color-mix(in oklab, var(--signal-danger) 12%, transparent); color: var(--signal-danger); }
+  .pill.muted { background: var(--bg-recessed); color: var(--fg-tertiary); }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Inputs */
+  .inp { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border-radius: 9px; background: var(--bg-elevated); border: 1px solid var(--line-hairline); font: 500 13px var(--font-sans); color: var(--fg-primary); }
+  .inp.focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); }
+  .inp.error { border-color: var(--signal-danger); box-shadow: 0 0 0 3px color-mix(in oklab, var(--signal-danger) 16%, transparent); }
+  .inp.disabled { color: var(--fg-disabled); background: var(--bg-recessed); }
+  .inp.saving { color: var(--fg-secondary); }
+  .inp svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .field { display: flex; flex-direction: column; gap: 6px; max-width: 360px; }
+  .field-label { font: 600 12px var(--font-sans); color: var(--fg-secondary); }
+  .field-help { font: 12px var(--font-sans); color: var(--fg-tertiary); }
+  .field-help.err { color: var(--signal-danger); }
+  .field-help.ok { color: var(--signal-success); }
+
+  /* Frame mock — used for breakpoint, sidebar, dashboard */
+  .frame { background: var(--bg-canvas); border: 1px solid var(--line-hairline); border-radius: 12px; overflow: hidden; }
+  .frame-h { font: 600 11px var(--font-mono); color: var(--fg-disabled); letter-spacing: .06em; padding: 8px 12px; border-bottom: 1px solid var(--line-hairline); background: var(--bg-elevated); display: flex; justify-content: space-between; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Schematic blocks */
+  .sch { display: grid; gap: 4px; padding: 10px; background: var(--bg-canvas); }
+  .sch .row { display: flex; gap: 4px; }
+  .sch .blk { background: var(--bg-recessed); border-radius: 6px; }
+  .sch .blk.fill { background: var(--accent); opacity: .12; border: 1px dashed color-mix(in oklab, var(--accent) 50%, transparent); }
+  .sch .blk.outl { background: transparent; border: 1px dashed var(--line-hairline); }
+  .sch .lbl-t { font: 500 10px var(--font-mono); color: var(--fg-disabled); padding: 2px 6px; }
+
+  /* Annotation arrow */
+  .anno { position: relative; padding-left: 18px; font: 12px/1.5 var(--font-sans); color: var(--fg-secondary); margin: 6px 0; }
+  .anno::before { content: ""; position: absolute; left: 0; top: 7px; width: 10px; height: 1px; background: var(--accent); }
+  .anno strong { color: var(--fg-primary); }
+
+  /* Code */
+  code { font: 12px var(--font-mono); padding: 1px 6px; border-radius: 4px; background: var(--bg-recessed); color: var(--fg-secondary); }
+
+  /* Schematic shell of the app */
+  .app-mini { display: grid; gap: 4px; padding: 4px; background: var(--bg-canvas); }
+  .app-mini .topbar { height: 28px; background: var(--bg-recessed); border-radius: 6px; }
+  .app-mini .body { display: grid; gap: 4px; }
+  .app-mini .body.x375 { grid-template-rows: auto auto; }
+  .app-mini .body.x768 { grid-template-columns: 64px 1fr; }
+  .app-mini .body.x1024 { grid-template-columns: 220px 1fr; }
+  .app-mini .body.x1440 { grid-template-columns: 240px 1fr 360px; }
+  .app-mini .pane { background: var(--bg-recessed); border-radius: 6px; min-height: 180px; }
+  .app-mini .pane.muted { background: color-mix(in oklab, var(--bg-recessed) 50%, transparent); }
+  .app-mini .pane.fill { background: color-mix(in oklab, var(--accent) 12%, var(--bg-recessed)); }
+  .app-mini .label { font: 500 10px var(--font-mono); color: var(--fg-disabled); padding: 6px 4px 0; }
+
+  table.tbl { width: 100%; border-collapse: collapse; font: 12px var(--font-sans); }
+  table.tbl th, table.tbl td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-hairline); }
+  table.tbl th { font: 600 11px var(--font-mono); color: var(--fg-disabled); letter-spacing: .04em; text-transform: uppercase; background: var(--bg-recessed); }
+  table.tbl td code { font-size: 11px; }
+  table.tbl tr:last-child td { border-bottom: 0; }
+  .keep { color: var(--signal-success); }
+  .migrate { color: var(--signal-warning); }
+  .deprecate { color: var(--signal-danger); }
+
+  /* Breakpoint chips */
+  .bp-chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .bp-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--bg-recessed); border: 1px solid var(--line-hairline); font: 500 12px var(--font-sans); color: var(--fg-secondary); }
+  .bp-chip code { font-size: 11px; background: transparent; padding: 0; color: var(--fg-disabled); }
+</style>
+</head>
+<body>
+
+<h1>系统参考 · System Reference</h1>
+<p>这是一张长画布，把 BetterAINote Web kit 缺少的 13 项工作铺到一处：状态矩阵、表单系统、断点骨架、弹层目录、源报告 / 说话人校对的状态、登录与上手、token → Tailwind 映射、旧视觉清理审计、双语用词指南。每条都引用 <code>colors_and_type.css</code> 已有的 token，方便直接拷到代码里。</p>
+
+<!-- ============ 26 Gap doc & decisions ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 01</span><h2>系统差距摘要 / Gap & decisions</h2></div>
+  <p class="sec-sub">在已有的 <code>preview/01–18</code> 原子卡之外，本设计系统还缺 5 类工作：状态矩阵、表单态机、弹层目录、域报告与上手流、断点策略。下面给出每一项的判定结论。</p>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>领域</th><th>当前状态</th><th>结论</th><th>下游影响</th></tr></thead>
+      <tbody>
+        <tr><td>颜色 / 字体 / 阴影 / 圆角</td><td>已有 token 与卡片</td><td class="keep">保留</td><td>所有页面继续引用 <code>colors_and_type.css</code></td></tr>
+        <tr><td>暗色模式</td><td>已通过 <code>data-theme</code> 切换</td><td class="keep">保留</td><td>所有 surface 已对偶定义</td></tr>
+        <tr><td>列表 / 按钮 / 输入 / 徽章原子</td><td>有静态版本</td><td class="migrate">补全状态</td><td>本文件 §02–§04</td></tr>
+        <tr><td>设置弹窗 / 来源弹窗</td><td>web kit 已有 single + three-pane</td><td class="keep">保留</td><td>tweaks 切换</td></tr>
+        <tr><td>源报告 / 说话人校对</td><td>未画</td><td class="migrate">本文件草拟，后续补真页</td><td>§07</td></tr>
+        <tr><td>登录 / 上手</td><td>未画</td><td class="migrate">本文件草拟</td><td>§08</td></tr>
+        <tr><td>Rack / knob / record-button / settings-panel（globals.css 旧定义）</td><td>未审计</td><td class="deprecate">逐项标记</td><td>§10</td></tr>
+        <tr><td>Tailwind / shadcn 映射</td><td>未文档化</td><td class="migrate">本文件 §09</td><td>开发时直接抄</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 27 Breakpoints ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 02</span><h2>断点 / Breakpoints</h2></div>
+  <p class="sec-sub">四个断点足够覆盖目前的桌面、平板与手机形态。每个断点对应一组堆叠规则。</p>
+
+  <div class="bp-chips">
+    <span class="bp-chip"><code>≥ 1440</code>三栏 · 详情驻留</span>
+    <span class="bp-chip"><code>1024–1439</code>两栏 · 详情滑出</span>
+    <span class="bp-chip"><code>768–1023</code>侧栏图标 · 详情覆盖</span>
+    <span class="bp-chip"><code>≤ 767</code>抽屉式侧栏 · 单栏</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="frame">
+      <div class="frame-h"><span>≥ 1440 · 三栏</span><span>desktop-wide</span></div>
+      <div class="app-mini">
+        <div class="topbar"></div>
+        <div class="body x1440">
+          <div class="pane"><div class="label">SIDEBAR 240</div></div>
+          <div class="pane"><div class="label">LIST</div></div>
+          <div class="pane fill"><div class="label">DETAIL 360</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-h"><span>1024–1439 · 两栏</span><span>desktop</span></div>
+      <div class="app-mini">
+        <div class="topbar"></div>
+        <div class="body x1024">
+          <div class="pane"><div class="label">SIDEBAR 220</div></div>
+          <div class="pane"><div class="label">LIST → 选中后切详情</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-h"><span>768–1023 · 图标侧栏</span><span>tablet</span></div>
+      <div class="app-mini">
+        <div class="topbar"></div>
+        <div class="body x768">
+          <div class="pane"><div class="label">ICONS 64</div></div>
+          <div class="pane"><div class="label">CONTENT</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-h"><span>≤ 767 · 单栏 + 抽屉</span><span>mobile</span></div>
+      <div class="app-mini">
+        <div class="topbar"></div>
+        <div class="body x375">
+          <div class="pane"><div class="label">CONTENT (drawer 关闭时全宽)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno"><strong>规则：</strong>详情面板从 1440 起常驻；1024–1439 由列表点选切换；≤1023 详情走全屏覆盖。</div>
+  <div class="anno"><strong>侧栏：</strong>≥1024 展开（可手动收成图标），768–1023 默认图标 + tooltip，&lt;768 折叠为抽屉，由顶栏汉堡按钮唤起。</div>
+</section>
+
+<!-- ============ 28 Sidebar states ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 03</span><h2>第一侧边栏 / Sidebar states</h2></div>
+  <p class="sec-sub">三种形态：展开、收缩成图标、移动端抽屉。收缩态必须给每个图标加 tooltip，否则用户记不住。</p>
+
+  <div class="grid-3">
+    <div class="frame">
+      <div class="frame-h"><span>展开 240px</span><span>expanded</span></div>
+      <div class="sch" style="grid-template-columns: 1fr">
+        <div class="blk fill" style="height: 26px"></div>
+        <div class="blk" style="height: 14px; width: 70%"></div>
+        <div class="blk" style="height: 14px; width: 60%"></div>
+        <div class="blk" style="height: 14px; width: 80%"></div>
+        <div class="lbl-t">来源</div>
+        <div class="blk" style="height: 14px; width: 75%"></div>
+        <div class="blk" style="height: 14px; width: 65%"></div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-h"><span>收缩 64px · 仅图标</span><span>collapsed</span></div>
+      <div class="sch" style="grid-template-columns: 1fr; align-items: center">
+        <div class="row" style="justify-content: center"><div class="blk fill" style="width: 26px; height: 26px; border-radius: 8px"></div></div>
+        <div class="row" style="justify-content: center"><div class="blk" style="width: 22px; height: 22px; border-radius: 6px"></div></div>
+        <div class="row" style="justify-content: center"><div class="blk" style="width: 22px; height: 22px; border-radius: 6px"></div></div>
+        <div class="row" style="justify-content: center; gap: 6px">
+          <div class="blk" style="width: 22px; height: 22px; border-radius: 6px"></div>
+          <div class="pill muted">钉钉<span class="dot"></span></div>
+        </div>
+        <div class="lbl-t" style="text-align: center">悬停 → tooltip 出现 ↑</div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-h"><span>移动抽屉</span><span>drawer</span></div>
+      <div class="sch" style="grid-template-columns: 1fr; position: relative; min-height: 180px">
+        <div class="blk outl" style="position:absolute; inset: 6px; border-radius: 10px; opacity: .4"></div>
+        <div class="blk fill" style="position: absolute; left: 6px; top: 6px; bottom: 6px; width: 60%; border-radius: 10px"></div>
+        <div class="lbl-t" style="position: absolute; left: 14px; top: 14px;">从左滑出 · 全部录音 / 来源 / 设置</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno"><strong>tooltip：</strong>收缩态下 hover 600ms 后出现，使用 <code>--bg-elevated</code> token，箭头朝左，含中文标签。</div>
+  <div class="anno"><strong>切换：</strong>底部 sync 区按钮可手动收/展；1023→1024 自动展开，1023→767 自动收为抽屉。</div>
+</section>
+
+<!-- ============ 29 Dashboard 2 vs 3 col ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 04</span><h2>Dashboard · 两栏与三栏 / 2-col vs 3-col</h2></div>
+  <p class="sec-sub">Dashboard 默认走两栏（侧栏 + 列表），打开任一录音才出第三栏（详情）。≥1440 第三栏常驻。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-h">两栏默认 / 1024–1439</div>
+      <div class="card-sub">侧栏 + 列表，点击列表项把列表压缩为缩略列，详情滑入</div>
+      <div class="frame">
+        <div class="app-mini">
+          <div class="topbar"></div>
+          <div class="body x1024">
+            <div class="pane"><div class="label">SIDEBAR</div></div>
+            <div class="pane"><div class="label">LIST · 选中后右半成详情</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">三栏详情 / ≥ 1440</div>
+      <div class="card-sub">详情常驻；列表保持全列；适合多人对照看会议或访谈记录</div>
+      <div class="frame">
+        <div class="app-mini">
+          <div class="topbar"></div>
+          <div class="body x1440">
+            <div class="pane"><div class="label">SIDEBAR</div></div>
+            <div class="pane"><div class="label">LIST</div></div>
+            <div class="pane fill"><div class="label">DETAIL · 转写 / 摘要 / 说话人</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno"><strong>切换动画：</strong>从两栏到三栏使用 <code>--ease-out</code> · 220ms 弹入，列表的 cell 同时收窄。</div>
+  <div class="anno"><strong>列表项视觉：</strong>列表态宽，cell 显示标题 + 来源 + 时长；详情态窄，仅显示标题 + 来源 ico。</div>
+</section>
+
+<!-- ============ 31 Status matrix ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 05</span><h2>状态矩阵 / Status matrix</h2></div>
+  <p class="sec-sub">把每个组件的所有交互态铺在一张表上，避免开发时漏掉 hover / focus / disabled。</p>
+
+  <div class="card">
+    <div class="card-h">按钮 Button</div>
+    <div class="mat" style="grid-template-columns: 100px repeat(5, 1fr)">
+      <div class="lbl">primary</div>
+      <div><button class="btn primary sm">连接</button></div>
+      <div><button class="btn primary sm" style="filter: brightness(.92)">连接</button></div>
+      <div><button class="btn primary sm" style="box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent)">连接</button></div>
+      <div><button class="btn primary sm" disabled>连接</button></div>
+      <div><button class="btn primary sm"><span class="dot" style="background: white"></span>连接中</button></div>
+      <div class="lbl">ghost</div>
+      <div><button class="btn ghost sm">取消</button></div>
+      <div><button class="btn ghost sm" style="background: var(--bg-recessed)">取消</button></div>
+      <div><button class="btn ghost sm" style="border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent)">取消</button></div>
+      <div><button class="btn ghost sm" disabled>取消</button></div>
+      <div><button class="btn ghost sm">取消</button></div>
+      <div class="lbl">danger</div>
+      <div><button class="btn danger sm">删除</button></div>
+      <div><button class="btn danger sm" style="filter: brightness(.92)">删除</button></div>
+      <div><button class="btn danger sm" style="box-shadow: 0 0 0 3px color-mix(in oklab, var(--signal-danger) 28%, transparent)">删除</button></div>
+      <div><button class="btn danger sm" disabled>删除</button></div>
+      <div><button class="btn danger sm">删除中</button></div>
+      <div class="h"></div>
+      <div class="h">默认</div>
+      <div class="h">悬停</div>
+      <div class="h">聚焦</div>
+      <div class="h">禁用</div>
+      <div class="h">加载</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">列表行 List row · 来源卡 Provider · 设置项 Setting</div>
+    <div class="mat" style="grid-template-columns: 110px repeat(4, 1fr)">
+      <div class="lbl">列表行</div>
+      <div style="padding: 10px 12px">
+        <div style="font: 600 12px var(--font-sans)">2026-04-22 产品周会</div>
+        <div style="font: 500 11px var(--font-sans); color: var(--fg-tertiary)">钉钉 · 32:14</div>
+      </div>
+      <div style="padding: 10px 12px; background: var(--bg-recessed)">
+        <div style="font: 600 12px var(--font-sans)">2026-04-22 产品周会</div>
+        <div style="font: 500 11px var(--font-sans); color: var(--fg-tertiary)">钉钉 · 32:14</div>
+      </div>
+      <div style="padding: 10px 12px; background: color-mix(in oklab, var(--accent) 8%, transparent); border-left: 2px solid var(--accent)">
+        <div style="font: 600 12px var(--font-sans)">2026-04-22 产品周会</div>
+        <div style="font: 500 11px var(--font-sans); color: var(--fg-tertiary)">钉钉 · 32:14</div>
+      </div>
+      <div style="padding: 10px 12px; opacity: .5">
+        <div style="font: 600 12px var(--font-sans)">已删除录音</div>
+        <div style="font: 500 11px var(--font-sans); color: var(--fg-tertiary)">7 天后清空</div>
+      </div>
+
+      <div class="lbl">来源卡</div>
+      <div style="display: flex; gap: 8px; align-items: center"><span class="pill ok"><span class="dot"></span>已连接</span></div>
+      <div style="display: flex; gap: 8px; align-items: center"><span class="pill warn"><span class="dot"></span>同步中</span></div>
+      <div style="display: flex; gap: 8px; align-items: center"><span class="pill err"><span class="dot"></span>失败</span></div>
+      <div style="display: flex; gap: 8px; align-items: center"><span class="pill muted"><span class="dot"></span>未连接</span></div>
+
+      <div class="lbl">设置项</div>
+      <div style="font: 12px var(--font-sans); color: var(--fg-secondary)">开关 关</div>
+      <div style="font: 12px var(--font-sans); color: var(--fg-secondary)">开关 开</div>
+      <div style="font: 12px var(--font-sans); color: var(--fg-secondary)">分段控件</div>
+      <div style="font: 12px var(--font-sans); color: var(--fg-secondary)">下拉菜单</div>
+
+      <div class="h"></div>
+      <div class="h">默认 / 关</div>
+      <div class="h">悬停 / 进行</div>
+      <div class="h">选中 / 完成</div>
+      <div class="h">失效 / 失败</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 32 Form system ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 06</span><h2>表单系统 / Form states</h2></div>
+  <p class="sec-sub">输入框九态：normal / sensitive / reveal / help / error / saving / dirty / saved / fail。所有 token 已在主表中。</p>
+  <div class="card">
+    <div class="grid-3">
+      <div class="field"><div class="field-label">姓名 · normal</div><div class="inp">林梅</div><div class="field-help">显示在录音列表里</div></div>
+      <div class="field"><div class="field-label">API Key · sensitive</div><div class="inp">••••••••••••</div><div class="field-help">已加密存储，仅本机可读</div></div>
+      <div class="field"><div class="field-label">API Key · reveal</div><div class="inp">sk-9f3a-2c1e-7b4d-9012<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="field-help">点击眼睛切换显示</div></div>
+
+      <div class="field"><div class="field-label">邮箱 · focus + help</div><div class="inp focus">mei@</div><div class="field-help">用于多端同步与登录</div></div>
+      <div class="field"><div class="field-label">邮箱 · error</div><div class="inp error">mei@@</div><div class="field-help err">邮箱格式不对，至少有一个 @</div></div>
+      <div class="field"><div class="field-label">姓名 · saving</div><div class="inp saving">林梅<span class="pill muted" style="margin-left:auto"><span class="dot"></span>保存中</span></div><div class="field-help">输入后 800ms 自动保存</div></div>
+
+      <div class="field"><div class="field-label">姓名 · dirty</div><div class="inp" style="border-color: var(--signal-warning)">林梅 Mei</div><div class="field-help">未保存的改动</div></div>
+      <div class="field"><div class="field-label">姓名 · saved</div><div class="inp">林梅 Mei<span class="pill ok" style="margin-left:auto"><span class="dot"></span>已保存</span></div><div class="field-help ok">2 秒前保存</div></div>
+      <div class="field"><div class="field-label">姓名 · fail</div><div class="inp error">林梅 Mei<span class="pill err" style="margin-left:auto"><span class="dot"></span>失败</span></div><div class="field-help err">保存失败 · <a href="#" style="color: var(--signal-danger)">重试</a></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 33 Overlays ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 07</span><h2>弹层目录 / Overlays</h2></div>
+  <p class="sec-sub">7 类弹层。每类只画外观草图与触发器，详细布局在 web kit 里实现。</p>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-h">设置弹窗 Settings dialog</div>
+      <div class="card-sub">三段式或双段式（见 web kit Tweaks）</div>
+      <div class="frame"><div class="sch">
+        <div class="blk" style="height: 20px"></div>
+        <div class="row"><div class="blk" style="width: 30%; height: 80px"></div><div class="blk fill" style="width: 70%; height: 80px"></div></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">破坏性确认 Destructive confirm</div>
+      <div class="card-sub">二次确认 · 红色行动 · 默认聚焦取消</div>
+      <div class="frame"><div class="sch">
+        <div class="blk" style="height: 14px; width: 60%"></div>
+        <div class="blk" style="height: 8px; width: 90%"></div>
+        <div class="row" style="justify-content: flex-end"><button class="btn ghost sm">取消</button><button class="btn danger sm">删除</button></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">标签 popover</div>
+      <div class="card-sub">输入即搜索 · 回车新建</div>
+      <div class="frame"><div class="sch">
+        <div class="blk" style="height: 26px"></div>
+        <div class="row" style="flex-wrap: wrap"><span class="pill muted">市场</span><span class="pill muted">访谈</span><span class="pill ok">+ 新建</span></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">下拉 Dropdown</div>
+      <div class="card-sub">右对齐触发器 · 阴影同 popover</div>
+      <div class="frame"><div class="sch">
+        <div class="row" style="justify-content: flex-end"><button class="btn ghost sm">操作 ▾</button></div>
+        <div class="blk" style="height: 8px; width: 80%; margin-left: auto"></div>
+        <div class="blk" style="height: 8px; width: 80%; margin-left: auto"></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">命令面板 Command palette</div>
+      <div class="card-sub">⌘K 唤起 · 中央居中 · 模糊背景</div>
+      <div class="frame"><div class="sch">
+        <div class="blk" style="height: 28px"></div>
+        <div class="lbl-t">建议</div>
+        <div class="blk" style="height: 12px; width: 80%"></div>
+        <div class="blk" style="height: 12px; width: 70%"></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">Toast</div>
+      <div class="card-sub">右下角 · 自动消失 4s · 可堆叠</div>
+      <div class="frame"><div class="sch">
+        <div class="row" style="justify-content: flex-end"><div class="blk fill" style="width: 70%; height: 22px"></div></div>
+        <div class="row" style="justify-content: flex-end"><div class="blk" style="width: 50%; height: 18px"></div></div>
+      </div></div>
+    </div>
+    <div class="card">
+      <div class="card-h">移动 Sheet</div>
+      <div class="card-sub">从底部弹出 · 含拖动条</div>
+      <div class="frame" style="height: 140px; position: relative">
+        <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 70%; background: var(--bg-elevated); border-top-left-radius: 16px; border-top-right-radius: 16px; border: 1px solid var(--line-hairline); border-bottom: 0;">
+          <div style="width: 36px; height: 4px; border-radius: 2px; background: var(--fg-disabled); margin: 8px auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 34 Source report + speaker review ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 08</span><h2>源报告 & 说话人校对 / Source report · Speaker review</h2></div>
+  <p class="sec-sub">两个真实页面草拟。源报告是「这次同步发生了什么」的长 markdown；说话人校对是把模型猜的说话人 ID 映射到真实人。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-h">源报告 Source report</div>
+      <div class="card-sub">每次自动同步后弹一次；可关掉自动弹</div>
+      <div class="frame" style="padding: 14px">
+        <div style="font: 600 14px var(--font-display); margin-bottom: 6px">钉钉 · 同步报告</div>
+        <div style="font: 12px var(--font-sans); color: var(--fg-tertiary); margin-bottom: 10px">12 分钟前 · 拉取 8 条 · 跳过 2 条</div>
+        <div style="font: 12px/1.6 var(--font-sans); color: var(--fg-secondary)">
+          · 新增 <strong style="color: var(--fg-primary)">2026-04-22 产品周会</strong> · 32 分 14 秒<br>
+          · 新增 <strong style="color: var(--fg-primary)">客户 Demo · 张</strong> · 18 分 02 秒<br>
+          · 跳过 <strong style="color: var(--fg-primary)">2026-04-22 闲聊</strong> · 时长不足 60 秒<br>
+          · 跳过 <strong style="color: var(--fg-primary)">未授权会议</strong> · 来源拒绝
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px"><button class="btn ghost sm">不再自动弹</button><button class="btn primary sm">查看新增</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">说话人校对 Speaker review</div>
+      <div class="card-sub">长录音里把「说话人 1」映射成真实人 · 试听样本 · 多份档案</div>
+      <div class="frame" style="padding: 14px">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: var(--bg-recessed); margin-bottom: 6px">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; display: grid; place-items: center; font: 600 11px var(--font-sans)">1</div>
+          <div style="flex: 1; font: 12px var(--font-sans)"><div style="font-weight: 600">说话人 1</div><div style="color: var(--fg-tertiary)">42 段 · 共 12 分 03 秒</div></div>
+          <button class="btn ghost sm">试听</button>
+          <select class="inp" style="width: 110px; height: 28px; font-size: 12px"><option>未指定</option><option>林梅</option><option>张伟</option><option>+ 新建</option></select>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: var(--bg-recessed); margin-bottom: 6px">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--signal-warning); color: white; display: grid; place-items: center; font: 600 11px var(--font-sans)">2</div>
+          <div style="flex: 1; font: 12px var(--font-sans)"><div style="font-weight: 600">说话人 2 <span class="pill warn"><span class="dot"></span>低置信度</span></div><div style="color: var(--fg-tertiary)">14 段 · 共 3 分 48 秒</div></div>
+          <button class="btn ghost sm">试听</button>
+          <select class="inp" style="width: 110px; height: 28px; font-size: 12px"><option>未指定</option><option>林梅</option><option>张伟</option></select>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end"><button class="btn ghost sm">稍后再说</button><button class="btn primary sm">应用映射</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 35 Auth + Onboarding ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 09</span><h2>登录 & 上手 / Auth · Onboarding</h2></div>
+  <p class="sec-sub">登录与首次设置。BetterAINote 默认本地工作空间，登录是可选的多端同步。</p>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-h">登录 / Sign in</div>
+      <div class="card-sub">邮箱 + 链接 · 不要密码</div>
+      <div class="frame" style="padding: 28px; text-align: center">
+        <img src="../assets/logo-mark-steel.svg" alt="" style="width: 36px; margin-bottom: 14px">
+        <div style="font: 600 18px var(--font-display); margin-bottom: 4px">登录 BetterAINote</div>
+        <div style="font: 12px var(--font-sans); color: var(--fg-tertiary); margin-bottom: 18px">登录是可选的，仅用于多端同步</div>
+        <div class="inp focus" style="margin: 0 auto 10px; max-width: 280px">mei@example.com</div>
+        <button class="btn primary" style="width: 100%; max-width: 280px; height: 38px; justify-content: center">发送登录链接</button>
+        <div style="font: 12px var(--font-sans); color: var(--fg-disabled); margin-top: 14px">或 <a href="#" style="color: var(--accent)">仅本地使用</a></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">上手 / Onboarding · 4 步</div>
+      <div class="card-sub">连接来源 → 选默认转写 → 设置说话人档案 → 完成</div>
+      <div class="frame" style="padding: 18px">
+        <div style="display: flex; gap: 6px; margin-bottom: 14px">
+          <div style="flex:1; height: 4px; border-radius: 2px; background: var(--accent)"></div>
+          <div style="flex:1; height: 4px; border-radius: 2px; background: var(--accent)"></div>
+          <div style="flex:1; height: 4px; border-radius: 2px; background: var(--bg-recessed)"></div>
+          <div style="flex:1; height: 4px; border-radius: 2px; background: var(--bg-recessed)"></div>
+        </div>
+        <div style="font: 600 14px var(--font-display)">第 2 步 · 选一个默认转写来源</div>
+        <div style="font: 12px var(--font-sans); color: var(--fg-tertiary); margin-bottom: 14px">未指定来源时，新录音从这里读取</div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; border: 1px solid var(--accent); background: color-mix(in oklab, var(--accent) 6%, transparent)"><div class="blk" style="width:20px;height:20px;border-radius:4px;background:#1296db"></div>钉钉 闪记 · 已连接</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; border: 1px solid var(--line-hairline)"><div class="blk" style="width:20px;height:20px;border-radius:4px"></div>TicNote · 已连接</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; border: 1px solid var(--line-hairline); opacity: .55"><div class="blk" style="width:20px;height:20px;border-radius:4px"></div>飞书妙记 · 未连接</div>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px"><button class="btn ghost sm">跳过</button><button class="btn primary sm">下一步</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 36 Token mapping ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 10</span><h2>Token → Tailwind / shadcn 映射</h2></div>
+  <p class="sec-sub">开发时直接抄。所有 token 来自根目录 <code>colors_and_type.css</code>。</p>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>语义</th><th>本系统 token</th><th>Tailwind</th><th>shadcn / radix</th></tr></thead>
+      <tbody>
+        <tr><td>主背景</td><td><code>--bg-canvas</code></td><td><code>bg-background</code></td><td><code>--background</code></td></tr>
+        <tr><td>卡片 / 浮起</td><td><code>--bg-elevated</code></td><td><code>bg-card</code></td><td><code>--card</code></td></tr>
+        <tr><td>凹陷</td><td><code>--bg-recessed</code></td><td><code>bg-muted</code></td><td><code>--muted</code></td></tr>
+        <tr><td>主文字</td><td><code>--fg-primary</code></td><td><code>text-foreground</code></td><td><code>--foreground</code></td></tr>
+        <tr><td>次要文字</td><td><code>--fg-secondary</code></td><td><code>text-muted-foreground</code></td><td><code>--muted-foreground</code></td></tr>
+        <tr><td>边框</td><td><code>--line-hairline</code></td><td><code>border-border</code></td><td><code>--border</code></td></tr>
+        <tr><td>主行动</td><td><code>--accent</code></td><td><code>bg-primary</code></td><td><code>--primary</code></td></tr>
+        <tr><td>破坏</td><td><code>--signal-danger</code></td><td><code>bg-destructive</code></td><td><code>--destructive</code></td></tr>
+        <tr><td>成功</td><td><code>--signal-success</code></td><td><code>(自定义)</code></td><td><code>(自定义)</code></td></tr>
+        <tr><td>圆角默认</td><td><code>--radius-md</code> (10px)</td><td><code>rounded-md</code></td><td><code>--radius</code></td></tr>
+        <tr><td>阴影常用</td><td><code>--shadow-sm</code></td><td><code>shadow-sm</code></td><td>—</td></tr>
+        <tr><td>显示字体</td><td><code>--font-display</code></td><td><code>font-display</code> (config)</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 37 globals.css audit ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 11</span><h2>globals.css 审计 / Legacy class audit</h2></div>
+  <p class="sec-sub">老定义的 <code>.rack</code>、<code>.knob</code>、<code>.record-button</code>、<code>.settings-panel</code> 来自早期录音机视觉。这次方向是「冷静的笔记本」，不是录音机硬件，所以多数应迁移或弃用。</p>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>类名</th><th>原用途</th><th>结论</th><th>迁移到</th></tr></thead>
+      <tbody>
+        <tr><td><code>.rack</code></td><td>录音机机身金属面板</td><td class="deprecate">弃用</td><td>—（视觉不再用机身金属隐喻）</td></tr>
+        <tr><td><code>.knob</code></td><td>音量旋钮</td><td class="deprecate">弃用</td><td>用 <code>--accent</code> 的 slider</td></tr>
+        <tr><td><code>.record-button</code></td><td>红色实体录制键</td><td class="migrate">迁移</td><td><code>.btn.danger</code> + 圆点；动画改用 <code>--ease-out</code></td></tr>
+        <tr><td><code>.settings-panel</code></td><td>录音机后盖滑入式设置</td><td class="migrate">迁移</td><td><code>.settings-scrim + .settings-shell</code>（见 web kit）</td></tr>
+        <tr><td><code>.led</code> / <code>.vu</code></td><td>状态灯 / 音量表</td><td class="keep">保留</td><td>语义改名 <code>.sync-dot</code> / <code>.level-meter</code>，颜色用语义 token</td></tr>
+        <tr><td><code>.tape-strip</code></td><td>磁带卷轴装饰</td><td class="deprecate">弃用</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 38 Bilingual copy ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 12</span><h2>双语用词 / Bilingual copy</h2></div>
+  <p class="sec-sub">用户界面用工程化术语会让人冷漠。下表是工程词 → 用户词的对照，写文案时直接抄。</p>
+  <div class="card">
+    <table class="tbl">
+      <thead><tr><th>不要这样写</th><th>这样写</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Sync · 同步</td><td>更新 · 收新录音</td><td>同步是工程师视角；用户只关心有没有新东西</td></tr>
+        <tr><td>Source · 来源</td><td>来源（保留）</td><td>用户能理解</td></tr>
+        <tr><td>Provider · 提供商</td><td>来源 / 应用名</td><td>「钉钉」「TicNote」，不要叫 provider</td></tr>
+        <tr><td>Transcript · 转写文本</td><td>转写记录 / 文字稿</td><td>「记录」更亲切</td></tr>
+        <tr><td>Speaker · 说话人</td><td>说话人（保留）</td><td>对的</td></tr>
+        <tr><td>Auth · 鉴权</td><td>登录 / 授权</td><td>不出现「鉴权」</td></tr>
+        <tr><td>Tenant / Workspace</td><td>工作空间 / 个人空间</td><td>不出现「租户」</td></tr>
+        <tr><td>Index · 索引</td><td>整理中 / 准备搜索</td><td>不出现「索引」</td></tr>
+        <tr><td>Embedding</td><td>语义记号</td><td>用户文档里也别出现</td></tr>
+        <tr><td>Latency · 延迟</td><td>响应慢 / 几秒</td><td>给数字</td></tr>
+        <tr><td>Notifications</td><td>通知（保留）</td><td>—</td></tr>
+        <tr><td>Settings dialog</td><td>设置</td><td>「弹窗」是 UI 工程概念</td></tr>
+        <tr><td>Skeleton state</td><td>加载占位 / 加载中</td><td>开发文档里可以叫 skeleton</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 39 Canvas annotations ============ -->
+<section class="sec">
+  <div class="sec-h"><span class="num">§ 13</span><h2>画布标注汇总 / Canvas annotations</h2></div>
+  <p class="sec-sub">这一节把前面 §03 / §04 / Data Sources 的对比 + 移动端弹层 + 旧视觉清理，串成一份「为什么这样画」的注释清单。给开发与新设计对齐用。</p>
+  <div class="card">
+    <div class="card-h">侧栏收缩</div>
+    <div class="anno"><strong>触发：</strong>用户点击底部 sync 区按钮 / 视口 ≤ 1023。</div>
+    <div class="anno"><strong>过渡：</strong>240px → 64px，<code>--ease-out</code> 220ms；导航标签淡出在前 100ms 完成；图标位置不动。</div>
+    <div class="anno"><strong>tooltip：</strong>仅在收缩态出现，hover 600ms；tooltip 用 <code>--bg-elevated</code> + <code>--shadow-md</code>；箭头朝左。</div>
+  </div>
+  <div class="card">
+    <div class="card-h">Dashboard 两栏 vs 三栏</div>
+    <div class="anno"><strong>≥ 1440：</strong>第三栏（详情）常驻 360px。列表 cell 紧凑。</div>
+    <div class="anno"><strong>1024–1439：</strong>默认两栏。点列表项后，列表压缩到 320px、详情滑入；再次点关闭按钮恢复两栏。</div>
+    <div class="anno"><strong>≤ 1023：</strong>详情走全屏覆盖，顶部留返回按钮。</div>
+  </div>
+  <div class="card">
+    <div class="card-h">Data Sources 双段 vs 三段</div>
+    <div class="anno"><strong>双段（默认）：</strong>设置 › 来源 直接给一份 5 个来源的列表 + 通用配置。适合已经稳定的用户。</div>
+    <div class="anno"><strong>三段（高级）：</strong>左列表 + 中间来源导航 + 右详情，支持单源精调。从 Tweaks 切到。</div>
+    <div class="anno"><strong>切换协议：</strong>变体由 Tweaks 写到 EDITMODE 块；下次刷新仍生效。</div>
+  </div>
+  <div class="card">
+    <div class="card-h">移动端弹层</div>
+    <div class="anno"><strong>设置：</strong>≤ 767 改为全屏页面，不是弹窗。</div>
+    <div class="anno"><strong>命令面板：</strong>≤ 767 走 sheet（底部弹），不走中央居中。</div>
+    <div class="anno"><strong>下拉：</strong>≤ 767 自动改为 action sheet，避免被键盘遮住。</div>
+  </div>
+  <div class="card">
+    <div class="card-h">旧视觉清理</div>
+    <div class="anno"><strong>录音机金属面板（rack）已弃用：</strong>新方向是冷静的笔记本，不要再用磁带 / 旋钮 / 机身高光。</div>
+    <div class="anno"><strong>红色录制圆按钮：</strong>仅在「快速记一下」窗口里出现，主界面没有。</div>
+    <div class="anno"><strong>VU 表 → level meter：</strong>简化成两条横线，颜色用 <code>--signal-success</code>，不再有金属细节。</div>
+  </div>
+</section>
+
+</body>
+</html>

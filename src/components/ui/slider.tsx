@@ -1,22 +1,39 @@
 "use client";
 
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
+
+type SliderSpanProps = React.HTMLAttributes<HTMLSpanElement> & {
+    [key: `data-${string}`]: string | number | boolean | undefined;
+};
 
 type SliderProps = Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
     "defaultValue" | "max" | "min" | "onChange" | "step" | "type" | "value"
 > & {
     defaultValue?: number[];
+    inputClassName?: string;
     max?: number;
     min?: number;
     onValueChange?: (value: number[]) => void;
     onValueCommit?: (value: number[]) => void;
     orientation?: "horizontal" | "vertical";
+    rangeProps?: SliderSpanProps;
+    renderTrack?: boolean;
+    rootProps?: SliderSpanProps;
     step?: number;
+    thumbProps?: SliderSpanProps;
     value?: number[];
 };
+
+const DEFAULT_SLIDER_ROOT_CLASS =
+    "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col";
+const DEFAULT_SLIDER_RANGE_CLASS =
+    "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
+const DEFAULT_SLIDER_THUMB_CLASS =
+    "pointer-events-none absolute block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm transition-[color,box-shadow]";
+const SOT_SLIDER_RANGE_CLASS = "track-fill";
+const SOT_SLIDER_THUMB_CLASS = "track-thumb";
 
 function normalizeSliderValue(
     value: number | null | undefined,
@@ -34,15 +51,21 @@ function Slider({
     className,
     defaultValue,
     disabled,
+    inputClassName,
     max = 100,
     min = 0,
     onValueChange,
     onValueCommit,
     orientation = "horizontal",
+    rangeProps,
+    renderTrack = true,
+    rootProps,
     step = 1,
+    thumbProps,
     value,
     ...props
 }: SliderProps) {
+    const { onBlur, onKeyUp, onPointerUp, ...inputProps } = props;
     const defaultScalar = normalizeSliderValue(defaultValue?.[0], min, max);
     const [uncontrolledValue, setUncontrolledValue] =
         React.useState(defaultScalar);
@@ -67,6 +90,13 @@ function Slider({
         [max, min, onValueCommit],
     );
 
+    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        onBlur?.(event);
+        if (!event.defaultPrevented) {
+            commitValue(Number(event.currentTarget.value));
+        }
+    };
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const nextValue = normalizeSliderValue(
             Number(event.currentTarget.value),
@@ -81,6 +111,10 @@ function Slider({
     };
 
     const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        onKeyUp?.(event);
+        if (event.defaultPrevented) {
+            return;
+        }
         if (
             event.key === "ArrowLeft" ||
             event.key === "ArrowRight" ||
@@ -93,65 +127,87 @@ function Slider({
         }
     };
 
+    const handlePointerUp = (event: React.PointerEvent<HTMLInputElement>) => {
+        onPointerUp?.(event);
+        if (!event.defaultPrevented) {
+            commitValue(Number(event.currentTarget.value));
+        }
+    };
+    const usesSotPlayerTrack = className?.split(/\s+/).includes("track");
+
     return (
         <span
             aria-disabled={disabled ? "true" : undefined}
             data-disabled={disabled ? "" : undefined}
             data-orientation={orientation}
-            data-slot="slider"
+            {...rootProps}
             className={cn(
-                "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
-                className,
+                className ?? DEFAULT_SLIDER_ROOT_CLASS,
+                rootProps?.className,
             )}
         >
-            <span
-                data-orientation={orientation}
-                data-slot="slider-track"
-                className="bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
-            >
+            {renderTrack ? (
                 <span
+                    {...rangeProps}
                     data-orientation={orientation}
-                    data-slot="slider-range"
-                    className="bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
+                    className={cn(
+                        rangeProps?.className ??
+                            (usesSotPlayerTrack
+                                ? SOT_SLIDER_RANGE_CLASS
+                                : DEFAULT_SLIDER_RANGE_CLASS),
+                    )}
                     style={
                         orientation === "vertical"
-                            ? { height: `${rangePercent}%` }
-                            : { width: `${rangePercent}%` }
+                            ? {
+                                  height: `${rangePercent}%`,
+                                  ...rangeProps?.style,
+                              }
+                            : {
+                                  width: `${rangePercent}%`,
+                                  ...rangeProps?.style,
+                              }
                     }
                 />
-            </span>
-            <span
-                aria-hidden="true"
-                data-orientation={orientation}
-                data-slot="slider-thumb"
-                className="pointer-events-none absolute block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm transition-[color,box-shadow]"
-                style={
-                    orientation === "vertical"
-                        ? {
-                              bottom: `${rangePercent}%`,
-                              transform: "translateY(50%)",
-                          }
-                        : {
-                              left: `${rangePercent}%`,
-                              transform: "translateX(-50%)",
-                          }
-                }
-            />
+            ) : null}
+            {renderTrack ? (
+                <span
+                    {...thumbProps}
+                    aria-hidden="true"
+                    data-orientation={orientation}
+                    className={cn(
+                        thumbProps?.className ??
+                            (usesSotPlayerTrack
+                                ? SOT_SLIDER_THUMB_CLASS
+                                : DEFAULT_SLIDER_THUMB_CLASS),
+                    )}
+                    style={
+                        orientation === "vertical"
+                            ? {
+                                  bottom: `${rangePercent}%`,
+                                  transform: "translateY(50%)",
+                                  ...thumbProps?.style,
+                              }
+                            : {
+                                  left: `${rangePercent}%`,
+                                  transform: usesSotPlayerTrack
+                                      ? "translate(-50%, -50%)"
+                                      : "translateX(-50%)",
+                                  ...thumbProps?.style,
+                              }
+                    }
+                />
+            ) : null}
             <input
-                {...props}
+                {...inputProps}
                 aria-orientation={orientation}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                className={inputClassName}
                 disabled={disabled}
                 max={max}
                 min={min}
-                onBlur={(event) =>
-                    commitValue(Number(event.currentTarget.value))
-                }
+                onBlur={handleBlur}
                 onChange={handleChange}
                 onKeyUp={handleKeyUp}
-                onPointerUp={(event) =>
-                    commitValue(Number(event.currentTarget.value))
-                }
+                onPointerUp={handlePointerUp}
                 step={step}
                 suppressHydrationWarning
                 type="range"

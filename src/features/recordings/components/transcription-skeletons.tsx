@@ -1,7 +1,25 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+
+function mergeSkeletonClassName(baseClassName: string, className?: string) {
+    const extraClassName = className
+        ?.split(/\s+/)
+        .filter(
+            (item) =>
+                item === "transcript" ||
+                item === "t-pane" ||
+                item === "turn" ||
+                item === "speaker" ||
+                item === "sr-section" ||
+                item === "sr-segments" ||
+                item === "sp-row" ||
+                item === "sp-rows",
+        )
+        .join(" ");
+
+    return [baseClassName, extraClassName].filter(Boolean).join(" ");
+}
 
 function SkeletonLineGroup({
     className,
@@ -11,17 +29,10 @@ function SkeletonLineGroup({
     lines?: number;
 }) {
     return (
-        <div className={cn("space-y-2", className)}>
+        <div className={mergeSkeletonClassName("sr-segments", className)}>
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
-                (lineId, index) => (
-                    <Skeleton
-                        key={lineId}
-                        className={cn(
-                            "h-3",
-                            index === 0 && "w-2/3",
-                            index === lines - 1 && "w-4/5",
-                        )}
-                    />
+                (lineId) => (
+                    <Skeleton key={lineId} />
                 ),
             )}
         </div>
@@ -30,10 +41,10 @@ function SkeletonLineGroup({
 
 function TranscriptTurnSkeleton({ className }: { className?: string }) {
     return (
-        <div className={cn("rounded-2xl bg-muted/35 p-4", className)}>
-            <div className="mb-3 flex items-center gap-2">
-                <Skeleton className="h-3 w-20 rounded-full" />
-                <Skeleton className="h-3 w-24 rounded-full" />
+        <div className={mergeSkeletonClassName("turn", className)}>
+            <div className="speaker">
+                <Skeleton />
+                <Skeleton />
             </div>
             <SkeletonLineGroup lines={2} />
         </div>
@@ -46,24 +57,18 @@ export function TranscriptOutputSkeleton({
     className?: string;
 }) {
     return (
-        <div className={cn("glass-surface-subtle rounded-2xl p-4", className)}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-52 max-w-full" />
+        <div className={mergeSkeletonClassName("transcript t-pane", className)}>
+            <div className="transcript-head">
+                <div>
+                    <Skeleton />
+                    <Skeleton />
                 </div>
-                <Skeleton className="h-9 w-24 rounded-full" />
+                <Skeleton />
             </div>
-            <Skeleton className="mt-4 h-12 rounded-xl" />
-            <div className="mt-4 space-y-3">
+            <div className="transcript-body">
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
-                <TranscriptTurnSkeleton className="hidden sm:block" />
-            </div>
-            <div className="mt-4 flex gap-3 border-t pt-3">
-                <Skeleton className="h-3 w-16 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
+                <TranscriptTurnSkeleton />
             </div>
         </div>
     );
@@ -75,14 +80,13 @@ export function TranscriptReviewSkeleton({
     className?: string;
 }) {
     return (
-        <div className={cn("space-y-3", className)}>
-            <div className="flex flex-wrap gap-3">
-                <Skeleton className="h-3 w-24 rounded-full" />
-                <Skeleton className="h-3 w-20 rounded-full" />
-                <Skeleton className="h-3 w-32 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
+        <div className={mergeSkeletonClassName("sr-section", className)}>
+            <div className="speaker">
+                <Skeleton />
+                <Skeleton />
+                <Skeleton />
             </div>
-            <div className="max-h-72 rounded-2xl bg-muted/20 p-4">
+            <div className="transcript-body">
                 <SkeletonLineGroup lines={6} />
             </div>
         </div>
@@ -91,22 +95,23 @@ export function TranscriptReviewSkeleton({
 
 function SpeakerCardSkeleton() {
     return (
-        <div className="glass-surface-subtle space-y-4 rounded-2xl p-4">
-            <div className="flex items-start justify-between gap-3">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-36" />
+        <div className="sp-row">
+            <div className="sp-row-meta">
+                <Skeleton />
+            </div>
+            <div className="sp-row-meta">
+                <Skeleton />
+                <Skeleton />
+            </div>
+            <div className="sr-segments">
+                <TranscriptTurnSkeleton />
+                <TranscriptTurnSkeleton />
+            </div>
+            <div className="field-row">
+                <div>
+                    <Skeleton />
                 </div>
-                <Skeleton className="h-6 w-20 rounded-full" />
-            </div>
-            <div className="grid gap-2 md:grid-cols-3">
-                <TranscriptTurnSkeleton />
-                <TranscriptTurnSkeleton />
-                <TranscriptTurnSkeleton className="hidden md:block" />
-            </div>
-            <div className="grid gap-3 border-t pt-4 md:grid-cols-[180px_1fr] md:items-center">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 rounded-xl" />
+                <Skeleton />
             </div>
         </div>
     );
@@ -114,25 +119,19 @@ function SpeakerCardSkeleton() {
 
 export function SpeakerReviewSkeleton({ className }: { className?: string }) {
     return (
-        <div className={cn("space-y-4 border-t pt-4", className)}>
-            <div className="space-y-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-center gap-3">
-                        <Skeleton className="h-9 w-9 rounded-2xl" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="h-3 w-56 max-w-full" />
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Skeleton className="h-9 w-24 rounded-full" />
-                        <Skeleton className="h-9 w-20 rounded-full" />
-                        <Skeleton className="h-9 w-16 rounded-full" />
-                    </div>
+        <div className={mergeSkeletonClassName("sr-section", className)}>
+            <div className="speaker">
+                <Skeleton />
+                <div>
+                    <Skeleton />
+                    <Skeleton />
                 </div>
+                <Skeleton />
+            </div>
+            <div className="sr-segments">
                 <TranscriptReviewSkeleton />
             </div>
-            <div className="space-y-4">
+            <div className="sp-rows">
                 <SpeakerCardSkeleton />
                 <SpeakerCardSkeleton />
             </div>

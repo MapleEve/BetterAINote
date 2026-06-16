@@ -4,21 +4,27 @@
 基础 UI 原语，服务所有页面，必须保持无业务语义。
 
 ## 真实文件
+- `alert.tsx`
+- `badge.tsx`
 - `breadcrumb.tsx`
 - `button.tsx`
 - `card.tsx`
 - `confirm-dialog.tsx`
 - `dialog.tsx`
+- `field.tsx`
+- `input-group.tsx`
 - `input.tsx`
 - `label.tsx`
 - `segmented-tabs.tsx`
 - `select.tsx`
+- `separator.tsx`
 - `sidebar.tsx`
 - `skeleton.tsx`
 - `slider.tsx`
 - `sonner.tsx`
 - `switch.tsx`
 - `textarea.tsx`
+- `toggle-group.tsx`
 
 ## 下级入口
 - 本层没有更深的已跟踪源码目录。

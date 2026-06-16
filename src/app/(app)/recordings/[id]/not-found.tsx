@@ -1,26 +1,50 @@
-import { FileQuestion } from "lucide-react";
 import Link from "next/link";
 
-export default function RecordingDetailNotFound() {
+export default function RecordingNotFound() {
     return (
-        <div className="dashboard-workstation flex min-h-svh items-center justify-center px-4 py-8">
-            <section className="glass-surface flex w-full max-w-md flex-col items-center rounded-2xl p-8 text-center">
-                <span className="glass-control flex size-12 items-center justify-center rounded-2xl text-primary">
-                    <FileQuestion className="size-6" />
-                </span>
-                <h1 className="mt-5 text-xl font-semibold tracking-tight">
-                    找不到这条录音
-                </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
-                    这条录音可能已经被删除，或当前账号没有访问权限。
-                </p>
-                <Link
-                    href="/dashboard"
-                    className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/92 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
-                >
-                    返回录音列表
-                </Link>
+        <main className="app">
+            <aside className="sidebar glass glass-strong">
+                <div className="brand">
+                    <img src="/assets/logo-mark-steel.svg" alt="" />
+                    <div>
+                        <div className="brand-name">BetterAINote</div>
+                        <div className="brand-sub">私人工作空间</div>
+                    </div>
+                </div>
+            </aside>
+            <section className="main">
+                <header className="topbar">
+                    <div className="crumbs">
+                        <span className="crumb-current">
+                            录音不存在或已删除
+                        </span>
+                    </div>
+                </header>
+                <div className="workspace">
+                    <section className="detail" data-empty="true">
+                        <div className="detail-empty">
+                            <div
+                                className="detail-empty-ico"
+                                aria-hidden="true"
+                            >
+                                {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT decorative empty-state icon is hidden from assistive tech. */}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M9 18V5l12-2v13" />
+                                    <circle cx="6" cy="18" r="3" />
+                                    <circle cx="18" cy="16" r="3" />
+                                </svg>
+                            </div>
+                            <div className="detail-empty-title">录音不存在</div>
+                            <div className="detail-empty-sub">
+                                这条录音不存在或已经被删除，返回工作台后可以继续查看其他录音。
+                            </div>
+                            <Link className="btn primary" href="/dashboard">
+                                返回工作台
+                            </Link>
+                        </div>
+                    </section>
+                </div>
             </section>
-        </div>
+        </main>
     );
 }

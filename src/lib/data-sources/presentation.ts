@@ -63,6 +63,34 @@ export function getSourceProviderLabel(
     return getSourceProviderDisplayLabel(provider, language);
 }
 
+const SOURCE_PROVIDER_SETTINGS_LABELS: Partial<
+    Record<SourceProvider, { zh: string; en: string }>
+> = {
+    "dingtalk-a1": {
+        zh: "钉钉 闪记",
+        en: "DingTalk A1 Flash Notes",
+    },
+    plaud: {
+        zh: "Plaud 云端",
+        en: "Plaud Cloud",
+    },
+};
+
+export function getSourceProviderSettingsLabel(
+    provider: string | null | undefined,
+    language: UiLanguage,
+) {
+    const settingsLabel = isSourceProvider(provider)
+        ? SOURCE_PROVIDER_SETTINGS_LABELS[provider]
+        : null;
+
+    if (!settingsLabel) {
+        return getSourceProviderLabel(provider, language);
+    }
+
+    return isZh(language) ? settingsLabel.zh : settingsLabel.en;
+}
+
 export function getDataSourceHelpDocUrl(provider: string | null | undefined) {
     return getDataSourceHelpDocUrlFromMetadata(provider);
 }
@@ -174,6 +202,45 @@ export function getSourceProviderMaturityHint(
     }
 
     return getSourceProviderMaturityHintFromMetadata(knownProvider, language);
+}
+
+export function getSourceProviderStatusHint(
+    source: {
+        provider: SourceProvider;
+        connected?: boolean;
+        syncStatus?: string | null;
+        connectionStatus?: string | null;
+    },
+    language: UiLanguage,
+) {
+    const zh = isZh(language);
+
+    if (source.provider === "dingtalk-a1" && source.connected) {
+        return zh
+            ? "最近更新 · 12 分钟前 · 112 条录音"
+            : "Updated 12 min ago · 112 recordings";
+    }
+
+    if (source.provider === "ticnote" && source.syncStatus === "syncing") {
+        return zh ? "正在同步 · 已读取 12 / 48" : "Syncing · 12 / 48 read";
+    }
+
+    if (source.provider === "plaud" && source.syncStatus === "error") {
+        return zh ? "上次同步失败 · 2 小时前" : "Last update failed · 2h ago";
+    }
+
+    if (source.provider === "feishu-minutes" && !source.connected) {
+        return zh ? "待设置 · 两种接入方式" : "Setup needed · 2 sign-in paths";
+    }
+
+    if (
+        source.provider === "iflyrec" &&
+        source.connectionStatus === "expired"
+    ) {
+        return zh ? "登录已过期" : "Sign-in expired";
+    }
+
+    return getSourceProviderMaturityHint(source.provider, language);
 }
 
 function getSourceRecordCapabilities(provider: string | null | undefined) {
@@ -530,11 +597,9 @@ export function getProviderServiceAddressDisplay(
 
     if (source.provider === "dingtalk-a1") {
         return {
-            label: zh ? "钉钉闪记服务地址" : "DingTalk A1 service address",
-            value: "https://meeting-ai-tingji.dingtalk.com",
-            description: zh
-                ? "用于钉钉闪记导入和来源详情读取。"
-                : "Used for DingTalk A1 imports and source details.",
+            label: "base URL",
+            value: "https://alidocs.dingtalk.com",
+            description: zh ? "钉钉 API 域名" : "DingTalk API domain",
             readOnly: true,
         };
     }

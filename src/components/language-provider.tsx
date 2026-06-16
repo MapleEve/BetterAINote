@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo } from "react";
-import { translate, type UiLanguage } from "@/lib/i18n";
+import { DEFAULT_UI_LANGUAGE, translate, type UiLanguage } from "@/lib/i18n";
 
 interface LanguageContextValue {
     language: UiLanguage;
@@ -9,17 +9,17 @@ interface LanguageContextValue {
     t: (key: string, replacements?: Record<string, string | number>) => string;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
-
 const fallbackLanguageValue: LanguageContextValue = {
-    language: "zh-CN",
+    language: DEFAULT_UI_LANGUAGE,
     setLanguage: () => {},
-    t: (key, replacements) => translate("zh-CN", key, replacements),
+    t: (key, replacements) => translate(DEFAULT_UI_LANGUAGE, key, replacements),
 };
+
+const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({
     children,
-    language = "zh-CN",
+    language = DEFAULT_UI_LANGUAGE,
     onLanguageChange,
 }: {
     children: React.ReactNode;
@@ -27,12 +27,9 @@ export function LanguageProvider({
     onLanguageChange?: (language: UiLanguage) => void;
 }) {
     const setLanguage = useCallback(
-        (nextLanguage: UiLanguage) => {
-            onLanguageChange?.(nextLanguage);
-        },
+        (nextLanguage: UiLanguage) => onLanguageChange?.(nextLanguage),
         [onLanguageChange],
     );
-
     const value = useMemo<LanguageContextValue>(
         () => ({
             language,
@@ -50,6 +47,5 @@ export function LanguageProvider({
 }
 
 export function useLanguage() {
-    const context = useContext(LanguageContext);
-    return context ?? fallbackLanguageValue;
+    return useContext(LanguageContext) ?? fallbackLanguageValue;
 }

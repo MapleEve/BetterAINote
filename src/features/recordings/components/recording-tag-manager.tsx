@@ -1,11 +1,8 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     MAX_RECORDING_TAG_NAME_LENGTH,
     RECORDING_TAG_COLORS,
@@ -14,13 +11,11 @@ import {
     type RecordingTagColor,
     type RecordingTagIcon,
 } from "@/lib/recording-tags";
-import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import {
-    RecordingTagChip,
     RecordingTagIconGlyph,
-    recordingTagColorClassName,
-    recordingTagDotClassName,
+    recordingTagSotColorClassName,
+    recordingTagSotColorLabel,
 } from "./recording-tag-visuals";
 
 interface RecordingTagManagerProps {
@@ -28,8 +23,9 @@ interface RecordingTagManagerProps {
     availableTags: RecordingTag[];
     onAvailableTagsChange: (tags: RecordingTag[]) => void;
     onRecordingTagsChange: (recordingId: string, tags: RecordingTag[]) => void;
-    variant?: "inline" | "popover";
-    className?: string;
+    loadError?: string | null;
+    onClose?: () => void;
+    variant?: "popover";
 }
 
 async function readJsonResponse(response: Response) {
@@ -42,39 +38,198 @@ async function readJsonResponse(response: Response) {
     return data;
 }
 
+const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
+    (item) => item !== "slate",
+);
+
+function TagManagerXIcon() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+    );
+}
+
+function TagManagerAlertIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <circle cx="12" cy="12" r="10" />
+        </svg>
+    );
+}
+
+function TagManagerCheckIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            width="12"
+            height="12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+    );
+}
+
+function TagManagerToggleIcon({ icon }: { icon: RecordingTagIcon }) {
+    switch (icon) {
+        case "grid":
+            return (
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 3h7v7H3z" />
+                </svg>
+            );
+        case "user":
+            return (
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="9" cy="7" r="4" />
+                </svg>
+            );
+        case "heart":
+            return (
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5" />
+                </svg>
+            );
+        case "clock":
+            return (
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="12" r="10" />
+                </svg>
+            );
+        default:
+            return (
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 3h7v7H3z" />
+                </svg>
+            );
+    }
+}
+
+const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
+
 export function RecordingTagManager({
     recording,
     availableTags,
+    loadError,
     onAvailableTagsChange,
     onRecordingTagsChange,
-    variant = "inline",
-    className,
+    onClose,
+    variant = "popover",
 }: RecordingTagManagerProps) {
     const { language } = useLanguage();
     const [name, setName] = useState("");
-    const [color, setColor] = useState<RecordingTagColor>("orange");
-    const [icon, setIcon] = useState<RecordingTagIcon>("tag");
+    const [color, setColor] = useState<RecordingTagColor>("purple");
+    const [icon, setIcon] = useState<RecordingTagIcon>("grid");
     const [savingTagId, setSavingTagId] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [deletingTagId, setDeletingTagId] = useState<string | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<RecordingTag | null>(null);
     const [operationError, setOperationError] = useState<string | null>(null);
+    const [showToggleState, setShowToggleState] = useState(false);
+    const [retryAction, setRetryAction] = useState<
+        { tag: RecordingTag; type: "toggle" } | { type: "create" } | null
+    >(null);
 
     const selectedTagIds = useMemo(
         () => new Set(recording.tags.map((tag) => tag.id)),
         [recording.tags],
     );
 
-    const sortedTags = useMemo(
-        () => [...availableTags].sort((a, b) => a.name.localeCompare(b.name)),
+    const sortedTags = availableTags;
+    const tagDetailsById = useMemo(
+        () => new Map(availableTags.map((tag) => [tag.id, tag])),
         [availableTags],
     );
-    const isPopover = variant === "popover";
+    const selectedTags = useMemo(() => {
+        const fromCatalog = availableTags.filter((tag) =>
+            selectedTagIds.has(tag.id),
+        );
+        const seenTagIds = new Set(fromCatalog.map((tag) => tag.id));
+        return [
+            ...fromCatalog,
+            ...recording.tags.filter((tag) => !seenTagIds.has(tag.id)),
+        ];
+    }, [availableTags, recording.tags, selectedTagIds]);
+    const visibleError = operationError ?? loadError ?? null;
+    const busy = Boolean(savingTagId) || isCreating || Boolean(deletingTagId);
+    const canCreate = Boolean(name.trim()) && !isCreating;
+    const isCreateMode = Boolean(name.trim()) || isCreating;
+    const hasNoTags = sortedTags.length === 0 && recording.tags.length === 0;
+    const savingPanelTags = savingTagId
+        ? [
+              sortedTags.find((tag) => tag.id === savingTagId) ??
+                  recording.tags.find((tag) => tag.id === savingTagId),
+              ...selectedTags.filter((tag) => tag.id !== savingTagId),
+          ].filter((tag): tag is RecordingTag => Boolean(tag))
+        : [];
+    const errorPanelTags = sortedTags.slice(0, 1);
+    const firstSelectedToggleTagId =
+        sortedTags.find((tag) => selectedTagIds.has(tag.id))?.id ?? null;
+    const shouldShowSavingState =
+        Boolean(savingTagId) && !deleteTarget && !isCreateMode;
+    const shouldShowErrorState =
+        Boolean(visibleError) && !deleteTarget && !shouldShowSavingState;
+    const shouldShowToggleState =
+        showToggleState &&
+        !deleteTarget &&
+        !isCreateMode &&
+        !visibleError &&
+        !shouldShowSavingState &&
+        sortedTags.length > 0;
+    const title = shouldShowToggleState
+        ? "为这条录音切换标签"
+        : shouldShowErrorState
+          ? "管理标签"
+          : deleteTarget
+            ? `删除标签 · ${deleteTarget.name}`
+            : isCreateMode
+              ? "新建标签"
+              : "管理标签";
+    const showCloseButton =
+        Boolean(onClose) &&
+        !deleteTarget &&
+        !visibleError &&
+        !isCreating &&
+        !savingTagId &&
+        !deletingTagId &&
+        !shouldShowToggleState;
+    const panelState = shouldShowSavingState
+        ? "saving"
+        : shouldShowErrorState
+          ? "error"
+          : deletingTagId
+            ? "deleting"
+            : deleteTarget
+              ? "delete-confirm"
+              : isCreating
+                ? "creating"
+                : isCreateMode
+                  ? "create"
+                  : shouldShowToggleState
+                    ? "toggle"
+                    : "ready";
 
     const upsertAvailableTag = (tag: RecordingTag) => {
-        onAvailableTagsChange(
-            [tag, ...availableTags.filter((item) => item.id !== tag.id)].sort(
-                (a, b) => a.name.localeCompare(b.name),
-            ),
-        );
+        onAvailableTagsChange([
+            tag,
+            ...availableTags.filter((item) => item.id !== tag.id),
+        ]);
     };
 
     const updateRecordingTags = async (nextTags: RecordingTag[]) => {
@@ -90,13 +245,20 @@ export function RecordingTagManager({
     };
 
     const handleToggleTag = async (tag: RecordingTag) => {
+        if (busy) {
+            return;
+        }
+
         setSavingTagId(tag.id);
         setOperationError(null);
+        setRetryAction(null);
+        setShowToggleState(false);
         try {
             const nextTags = selectedTagIds.has(tag.id)
                 ? recording.tags.filter((item) => item.id !== tag.id)
                 : [...recording.tags, tag];
             await updateRecordingTags(nextTags);
+            setShowToggleState(true);
         } catch (error) {
             const message =
                 error instanceof Error
@@ -105,6 +267,8 @@ export function RecordingTagManager({
                       ? "标签保存失败"
                       : "Failed to save tag";
             setOperationError(message);
+            setRetryAction({ tag, type: "toggle" });
+            setShowToggleState(false);
             toast.error(message);
         } finally {
             setSavingTagId(null);
@@ -113,12 +277,14 @@ export function RecordingTagManager({
 
     const handleCreateTag = async () => {
         const nextName = name.trim();
-        if (!nextName) {
+        if (!nextName || isCreating) {
             return;
         }
 
         setIsCreating(true);
         setOperationError(null);
+        setRetryAction(null);
+        setShowToggleState(false);
         try {
             const response = await fetch("/api/recording-tags", {
                 method: "POST",
@@ -138,215 +304,712 @@ export function RecordingTagManager({
                       ? "标签创建失败"
                       : "Failed to create tag";
             setOperationError(message);
+            setRetryAction({ type: "create" });
             toast.error(message);
         } finally {
             setIsCreating(false);
         }
     };
 
+    const handleDeleteTag = async () => {
+        if (!deleteTarget || deletingTagId) {
+            return;
+        }
+
+        setDeletingTagId(deleteTarget.id);
+        setOperationError(null);
+        setRetryAction(null);
+        setShowToggleState(false);
+        try {
+            const response = await fetch(
+                `/api/recording-tags/${deleteTarget.id}`,
+                {
+                    method: "DELETE",
+                },
+            );
+            await readJsonResponse(response);
+            onAvailableTagsChange(
+                availableTags.filter((tag) => tag.id !== deleteTarget.id),
+            );
+            if (selectedTagIds.has(deleteTarget.id)) {
+                onRecordingTagsChange(
+                    recording.id,
+                    recording.tags.filter((tag) => tag.id !== deleteTarget.id),
+                );
+            }
+            setDeleteTarget(null);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : language === "zh-CN"
+                      ? "标签删除失败"
+                      : "Failed to delete tag";
+            setOperationError(message);
+            toast.error(message);
+        } finally {
+            setDeletingTagId(null);
+        }
+    };
+
+    const handleRetry = () => {
+        const action = retryAction;
+        setOperationError(null);
+
+        if (!action) {
+            return;
+        }
+
+        if (action.type === "toggle") {
+            void handleToggleTag(action.tag);
+            return;
+        }
+
+        void handleCreateTag();
+    };
+
     return (
         <div
-            className={cn(
-                "rounded-2xl border border-border/55 bg-card/35 p-3 backdrop-blur-xl",
-                isPopover && "border-0 bg-transparent p-0 backdrop-blur-0",
-                className,
-            )}
-            data-testid="recording-tag-manager"
-            data-tag-create-state={isCreating ? "saving" : "idle"}
-            data-tag-error={operationError ? "true" : "false"}
-            data-tag-toggle-state={savingTagId ? "saving" : "idle"}
+            className="tagm-panel"
+            role="dialog"
+            aria-label="管理标签"
+            aria-busy={busy ? "true" : undefined}
+            data-open="true"
+            data-state={visibleError ? "error" : undefined}
+            data-sot-panel="recording-tag-manager"
+            data-sot-create-state={isCreating ? "saving" : "idle"}
+            data-sot-error={visibleError ? "true" : "false"}
+            data-sot-error-message={visibleError ?? undefined}
+            data-sot-state={panelState}
+            data-sot-toggle-state={
+                savingTagId
+                    ? "saving"
+                    : shouldShowToggleState
+                      ? "toggle"
+                      : "idle"
+            }
+            data-sot-variant={variant}
         >
-            <div
-                className={cn(
-                    "mb-3 flex items-start justify-between gap-3",
-                    isPopover && "mb-2",
-                )}
-            >
-                <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground">
-                        {language === "zh-CN" ? "录音标签" : "Recording tags"}
-                    </p>
-                    {!isPopover ? (
-                        <p className="text-[11px] text-muted-foreground">
-                            {language === "zh-CN"
-                                ? "图标、颜色和名称一起组成分类标签。"
-                                : "Each tag combines icon, color, and name."}
-                        </p>
-                    ) : null}
-                </div>
-                <div
-                    className={cn(
-                        "flex max-w-[55%] flex-wrap justify-end gap-1.5",
-                        isPopover &&
-                            "max-w-[58%] flex-nowrap overflow-x-auto pb-1",
-                    )}
-                >
-                    {recording.tags.length > 0 ? (
-                        recording.tags.map((tag) => (
-                            <RecordingTagChip key={tag.id} tag={tag} />
-                        ))
-                    ) : (
-                        <span className="text-xs text-muted-foreground">
-                            {language === "zh-CN" ? "未标记" : "Untagged"}
-                        </span>
-                    )}
-                </div>
-            </div>
+            <header className="tagm-head">
+                <span className="tagm-title">{title}</span>
+                {showCloseButton ? (
+                    <button
+                        className="icon-btn tagm-close"
+                        type="button"
+                        aria-label="关闭"
+                        data-sot-control="recording-tag-manager-close"
+                        data-sot-state="idle"
+                        onClick={() => onClose?.()}
+                    >
+                        <TagManagerXIcon />
+                    </button>
+                ) : null}
+            </header>
 
-            {sortedTags.length > 0 ? (
-                <div
-                    className={cn(
-                        "mb-3 flex flex-wrap gap-2",
-                        isPopover && "max-h-24 overflow-y-auto pr-1",
-                    )}
-                >
-                    {sortedTags.map((tag) => {
-                        const selected = selectedTagIds.has(tag.id);
-                        const saving = savingTagId === tag.id;
-                        const toggleLabel =
-                            language === "zh-CN"
-                                ? `${selected ? "取消" : "选择"}标签 ${tag.name}`
-                                : `${selected ? "Remove" : "Select"} tag ${tag.name}`;
+            {shouldShowSavingState ? (
+                <div className="tagm-body">
+                    <div
+                        className="tagm-opts"
+                        data-sot-list="recording-tag-saving-options"
+                    >
+                        {savingPanelTags.slice(0, 2).map((tag, index) => {
+                            const saving = tag.id === savingTagId;
+                            const renderedSavingCount = Math.min(
+                                savingPanelTags.length,
+                                2,
+                            );
 
-                        return (
+                            return (
+                                <Fragment key={tag.id}>
+                                    <button
+                                        type="button"
+                                        aria-pressed={selectedTagIds.has(
+                                            tag.id,
+                                        )}
+                                        aria-busy={saving ? "true" : undefined}
+                                        data-sot-control="recording-tag-toggle"
+                                        data-sot-state={
+                                            saving ? "saving" : "selected"
+                                        }
+                                        data-sot-tag-color={tag.color}
+                                        data-sot-tag-icon={tag.icon}
+                                        data-sot-tag-id={tag.id}
+                                        data-sot-tag-name={tag.name}
+                                        className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
+                                    >
+                                        {saving ? (
+                                            <span
+                                                className="btn-spinner"
+                                                aria-hidden="true"
+                                            />
+                                        ) : null}
+                                        {tag.name}
+                                    </button>
+                                    {index < renderedSavingCount - 1
+                                        ? " "
+                                        : null}
+                                </Fragment>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : shouldShowErrorState ? (
+                <div className="tagm-body">
+                    <div
+                        className="tagm-error"
+                        data-sot-panel="recording-tag-error"
+                        data-sot-state="error"
+                        data-sot-source-error={visibleError ?? undefined}
+                        role="alert"
+                    >
+                        <TagManagerAlertIcon />
+                        <span>{SOT_TAG_MANAGER_ERROR_TEXT}</span>
+                        <button
+                            type="button"
+                            className="btn ghost btn-sm"
+                            data-sot-control="recording-tag-error-retry"
+                            onClick={handleRetry}
+                        >
+                            重试
+                        </button>
+                    </div>
+                    <div
+                        className="tagm-opts"
+                        data-sot-list="recording-tag-error-options"
+                    >
+                        {errorPanelTags.map((tag) => (
                             <button
                                 key={tag.id}
                                 type="button"
-                                onClick={() => handleToggleTag(tag)}
-                                disabled={Boolean(savingTagId) || isCreating}
-                                aria-label={toggleLabel}
-                                aria-pressed={selected}
-                                data-testid="recording-tag-toggle"
-                                data-tag-color={tag.color}
-                                data-tag-icon={tag.icon}
-                                data-tag-name={tag.name}
-                                className={cn(
-                                    "inline-flex max-w-full items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-[background-color,border-color,opacity] duration-300 ease-[var(--ease-sine)] disabled:opacity-60",
-                                    isPopover && "max-w-[8.5rem]",
-                                    selected
-                                        ? recordingTagColorClassName[tag.color]
-                                        : "border-border/65 bg-muted/20 text-muted-foreground hover:bg-muted/35",
-                                )}
+                                aria-pressed={false}
+                                data-sot-control="recording-tag-toggle"
+                                data-sot-state="idle"
+                                data-sot-tag-color={tag.color}
+                                data-sot-tag-icon={tag.icon}
+                                data-sot-tag-id={tag.id}
+                                data-sot-tag-name={tag.name}
+                                className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
                             >
-                                {saving ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                    <RecordingTagIconGlyph
-                                        icon={tag.icon}
-                                        className="h-3 w-3"
-                                    />
-                                )}
-                                <span className="min-w-0 truncate">
-                                    {tag.name}
-                                </span>
+                                {tag.name}
                             </button>
-                        );
-                    })}
+                        ))}
+                    </div>
                 </div>
-            ) : null}
+            ) : shouldShowToggleState ? (
+                <>
+                    <div className="tagm-body">
+                        <div
+                            className="tagm-opts"
+                            data-sot-list="recording-tag-toggle-options"
+                        >
+                            {sortedTags.map((tag, index) => {
+                                const selected = selectedTagIds.has(tag.id);
 
-            {operationError ? (
-                <output
-                    aria-live="polite"
-                    className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-xs"
-                    data-testid="recording-tag-error"
-                >
-                    {operationError}
-                </output>
-            ) : null}
+                                return (
+                                    <Fragment key={tag.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                void handleToggleTag(tag)
+                                            }
+                                            disabled={busy}
+                                            aria-pressed={selected}
+                                            data-sot-control="recording-tag-toggle"
+                                            data-sot-state={
+                                                selected ? "selected" : "idle"
+                                            }
+                                            data-sot-tag-color={tag.color}
+                                            data-sot-tag-icon={tag.icon}
+                                            data-sot-tag-id={tag.id}
+                                            data-sot-tag-name={tag.name}
+                                            className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
+                                        >
+                                            <TagManagerToggleIcon
+                                                icon={tag.icon}
+                                            />
+                                            {tag.name}
+                                            {"\n                    "}
+                                            {tag.id ===
+                                            firstSelectedToggleTagId ? (
+                                                <span
+                                                    className="tagm-opt-check"
+                                                    aria-hidden="true"
+                                                >
+                                                    <TagManagerCheckIcon />
+                                                </span>
+                                            ) : null}
+                                        </button>
+                                        {index < sortedTags.length - 1
+                                            ? " "
+                                            : null}
+                                    </Fragment>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="cl-note">
+                        aria-pressed=&quot;true&quot; → 标签已应用 ·
+                        点击再次切换为「未应用」。
+                    </div>
+                </>
+            ) : deleteTarget ? (
+                <>
+                    <div className="tagm-body">
+                        <div
+                            className="tagm-delete-confirm"
+                            data-sot-panel="recording-tag-delete-confirm"
+                            data-sot-state={
+                                deletingTagId === deleteTarget.id
+                                    ? "saving"
+                                    : "ready"
+                            }
+                        >
+                            <TagManagerAlertIcon />
+                            <div className="tagm-delete-msg">
+                                <strong>{deleteTarget.name}</strong> 将从{" "}
+                                {tagDetailsById.get(deleteTarget.id)
+                                    ?.recordingCount ??
+                                    deleteTarget.recordingCount ??
+                                    (selectedTagIds.has(deleteTarget.id)
+                                        ? 1
+                                        : 0)}{" "}
+                                条录音上移除。标签本身会从所有人的录音侧栏消失，无法撤销。
+                            </div>
+                        </div>
+                        {visibleError ? (
+                            <div
+                                className="tagm-error"
+                                data-sot-panel="recording-tag-error"
+                                data-sot-state="error"
+                                role="alert"
+                            >
+                                <TagManagerAlertIcon />
+                                <span>{visibleError}</span>
+                                <button
+                                    type="button"
+                                    className="btn ghost btn-sm"
+                                    data-sot-control="recording-tag-error-retry"
+                                    onClick={() => setOperationError(null)}
+                                >
+                                    重试
+                                </button>
+                            </div>
+                        ) : null}
+                    </div>
+                    <footer className="airp-actions">
+                        <span className="airp-spacer" />
+                        <button
+                            type="button"
+                            className="btn ghost btn-sm"
+                            data-sot-control="recording-tag-delete-cancel"
+                            disabled={Boolean(deletingTagId)}
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setOperationError(null);
+                            }}
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="button"
+                            className="btn danger btn-sm"
+                            data-sot-control="recording-tag-delete-confirm"
+                            data-sot-state={
+                                deletingTagId === deleteTarget.id
+                                    ? "saving"
+                                    : "idle"
+                            }
+                            aria-busy={
+                                deletingTagId === deleteTarget.id
+                                    ? "true"
+                                    : undefined
+                            }
+                            disabled={Boolean(deletingTagId)}
+                            onClick={() => void handleDeleteTag()}
+                        >
+                            {deletingTagId === deleteTarget.id ? (
+                                <span
+                                    className="btn-spinner"
+                                    aria-hidden="true"
+                                />
+                            ) : null}
+                            删除标签
+                        </button>
+                    </footer>
+                </>
+            ) : isCreateMode ? (
+                <>
+                    <div className="tagm-body">
+                        <div className="tagm-create">
+                            <div className="tagm-create-row">
+                                <input
+                                    type="text"
+                                    value={name}
+                                    maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
+                                    className="field-input"
+                                    data-sot-control="recording-tag-name"
+                                    onChange={(event) => {
+                                        setShowToggleState(false);
+                                        setName(
+                                            Array.from(event.target.value)
+                                                .slice(
+                                                    0,
+                                                    MAX_RECORDING_TAG_NAME_LENGTH,
+                                                )
+                                                .join(""),
+                                        );
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === "Enter" &&
+                                            canCreate
+                                        ) {
+                                            void handleCreateTag();
+                                        }
+                                    }}
+                                    placeholder="标签名"
+                                    disabled={isCreating}
+                                />
+                            </div>
+                        </div>
 
-            <div className="grid gap-2 lg:grid-cols-[1fr_auto]">
-                <Input
-                    value={name}
-                    maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
-                    data-testid="recording-tag-create-input"
-                    onChange={(event) =>
-                        setName(
-                            Array.from(event.target.value)
-                                .slice(0, MAX_RECORDING_TAG_NAME_LENGTH)
-                                .join(""),
-                        )
-                    }
-                    onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                            void handleCreateTag();
-                        }
-                    }}
-                    placeholder={
-                        language === "zh-CN"
-                            ? "新标签，最多 12 字"
-                            : "New tag, max 12 chars"
-                    }
-                    disabled={isCreating}
-                />
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCreateTag}
-                    disabled={!name.trim() || isCreating}
-                    data-testid="recording-tag-create-submit"
-                >
-                    {isCreating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {visibleError ? (
+                            <div
+                                className="tagm-error"
+                                data-sot-panel="recording-tag-error"
+                                data-sot-state="error"
+                                role="alert"
+                            >
+                                <TagManagerAlertIcon />
+                                <span>{visibleError}</span>
+                                <button
+                                    type="button"
+                                    className="btn ghost btn-sm"
+                                    data-sot-control="recording-tag-error-retry"
+                                    onClick={() => setOperationError(null)}
+                                >
+                                    重试
+                                </button>
+                            </div>
+                        ) : null}
+
+                        <div className="tagm-picker">
+                            <div className="tagm-picker-label">颜色</div>
+                            <div className="tagm-swatches">
+                                {RECORDING_TAG_COLORS.map((item) => (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setColor(item)}
+                                        aria-label={
+                                            recordingTagSotColorLabel[item]
+                                        }
+                                        aria-pressed={color === item}
+                                        data-sot-control="recording-tag-color"
+                                        data-sot-state={
+                                            color === item ? "selected" : "idle"
+                                        }
+                                        data-sot-tag-color={item}
+                                        className={`tagm-swatch ${recordingTagSotColorClassName[item]}${
+                                            color === item ? " is-selected" : ""
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="tagm-picker">
+                            <div className="tagm-picker-label">图标</div>
+                            <div className="tagm-icon-grid">
+                                {RECORDING_TAG_ICONS.map((item) => (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setIcon(item)}
+                                        aria-label={`选择图标 ${item}`}
+                                        aria-pressed={icon === item}
+                                        data-sot-control="recording-tag-icon"
+                                        data-sot-state={
+                                            icon === item ? "selected" : "idle"
+                                        }
+                                        data-sot-tag-icon={item}
+                                        className={`tg-pick${
+                                            icon === item ? " is-selected" : ""
+                                        }`}
+                                    >
+                                        <RecordingTagIconGlyph icon={item} />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <footer className="airp-actions">
+                        <span className="airp-spacer" />
+                        <button
+                            type="button"
+                            className="btn ghost btn-sm"
+                            data-sot-control="recording-tag-create-cancel"
+                            disabled={isCreating}
+                            onClick={() => {
+                                setName("");
+                                setOperationError(null);
+                            }}
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="button"
+                            className="btn primary btn-sm"
+                            data-sot-control="recording-tag-create"
+                            data-sot-state={isCreating ? "saving" : "idle"}
+                            aria-busy={isCreating ? "true" : undefined}
+                            disabled={!canCreate}
+                            onClick={() => void handleCreateTag()}
+                        >
+                            {isCreating ? (
+                                <span
+                                    className="btn-spinner"
+                                    aria-hidden="true"
+                                />
+                            ) : null}
+                            创建
+                        </button>
+                    </footer>
+                </>
+            ) : (
+                <div className="tagm-body">
+                    {hasNoTags ? (
+                        <div
+                            className="tagm-empty"
+                            data-sot-panel="recording-tag-empty"
+                            data-sot-state="empty"
+                        >
+                            <div className="tagm-empty-msg">还没有任何标签</div>
+                            <div className="tagm-empty-sub">
+                                在下方为这条录音创建第一个标签。
+                            </div>
+                        </div>
                     ) : (
-                        <Plus className="h-4 w-4" />
+                        <>
+                            <section className="tagm-sec">
+                                <div className="tagm-sec-label">
+                                    已选 · {selectedTags.length}
+                                </div>
+                                <div
+                                    className="tagm-chips"
+                                    data-sot-list="recording-selected-tags"
+                                    data-sot-state={
+                                        selectedTags.length > 0
+                                            ? "ready"
+                                            : "empty"
+                                    }
+                                >
+                                    {selectedTags.map((tag) => {
+                                        const catalogTag =
+                                            tagDetailsById.get(tag.id) ?? tag;
+
+                                        return (
+                                            <span
+                                                key={tag.id}
+                                                className={`tagm-sel-chip ${recordingTagSotColorClassName[tag.color]}`}
+                                                data-sot-tag-color={tag.color}
+                                                data-sot-tag-icon={tag.icon}
+                                                data-sot-tag-id={tag.id}
+                                                data-sot-tag-name={tag.name}
+                                            >
+                                                <RecordingTagIconGlyph
+                                                    icon={tag.icon}
+                                                    variant="manager"
+                                                />
+                                                {tag.name}
+                                                <button
+                                                    type="button"
+                                                    className="x"
+                                                    aria-label="移除"
+                                                    data-sot-control="recording-tag-delete-open"
+                                                    data-sot-state={
+                                                        savingTagId === tag.id
+                                                            ? "saving"
+                                                            : "idle"
+                                                    }
+                                                    disabled={Boolean(
+                                                        deletingTagId,
+                                                    )}
+                                                    onClick={() => {
+                                                        setOperationError(null);
+                                                        setShowToggleState(
+                                                            false,
+                                                        );
+                                                        setDeleteTarget(
+                                                            catalogTag,
+                                                        );
+                                                    }}
+                                                >
+                                                    <TagManagerXIcon />
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+
+                            <section className="tagm-sec">
+                                <div className="tagm-sec-label">全部标签</div>
+                                <div
+                                    className="tagm-opts"
+                                    data-sot-list="recording-available-tags"
+                                    data-sot-state="ready"
+                                >
+                                    {sortedTags.map((tag, index) => {
+                                        const selected = selectedTagIds.has(
+                                            tag.id,
+                                        );
+                                        const saving = savingTagId === tag.id;
+
+                                        return (
+                                            <Fragment key={tag.id}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        void handleToggleTag(
+                                                            tag,
+                                                        )
+                                                    }
+                                                    disabled={busy}
+                                                    aria-pressed={selected}
+                                                    aria-busy={
+                                                        saving
+                                                            ? "true"
+                                                            : undefined
+                                                    }
+                                                    data-busy={
+                                                        saving
+                                                            ? "true"
+                                                            : "false"
+                                                    }
+                                                    data-sot-control="recording-tag-toggle"
+                                                    data-sot-state={
+                                                        saving
+                                                            ? "saving"
+                                                            : selected
+                                                              ? "selected"
+                                                              : "idle"
+                                                    }
+                                                    data-sot-tag-color={
+                                                        tag.color
+                                                    }
+                                                    data-sot-tag-icon={tag.icon}
+                                                    data-sot-tag-id={tag.id}
+                                                    data-sot-tag-name={tag.name}
+                                                    className={`tagm-opt ${recordingTagSotColorClassName[tag.color]}`}
+                                                >
+                                                    {saving ? (
+                                                        <span
+                                                            className="btn-spinner"
+                                                            aria-hidden="true"
+                                                        />
+                                                    ) : (
+                                                        <RecordingTagIconGlyph
+                                                            icon={tag.icon}
+                                                            variant="manager"
+                                                        />
+                                                    )}
+                                                    {tag.name}
+                                                </button>
+                                                {index < sortedTags.length - 1
+                                                    ? " "
+                                                    : null}
+                                            </Fragment>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        </>
                     )}
-                    {language === "zh-CN" ? "添加" : "Add"}
-                </Button>
-            </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-                {RECORDING_TAG_COLORS.map((item) => (
-                    <button
-                        key={item}
-                        type="button"
-                        onClick={() => setColor(item)}
-                        aria-label={
-                            language === "zh-CN"
-                                ? `选择标签颜色 ${item}`
-                                : `Select tag color ${item}`
-                        }
-                        aria-pressed={color === item}
-                        data-tag-color={item}
-                        data-testid="recording-tag-color"
-                        className={cn(
-                            "h-6 w-6 rounded-full border border-white/30 transition-[border-color,box-shadow,opacity] duration-300 ease-[var(--ease-sine)]",
-                            recordingTagDotClassName[item],
-                            color === item &&
-                                "ring-2 ring-ring/50 ring-offset-1 ring-offset-background",
-                        )}
-                    />
-                ))}
-            </div>
+                    {visibleError ? (
+                        <div
+                            className="tagm-error"
+                            data-sot-panel="recording-tag-error"
+                            data-sot-state="error"
+                            role="alert"
+                        >
+                            <TagManagerAlertIcon />
+                            <span>{visibleError}</span>
+                            <button
+                                type="button"
+                                className="btn ghost btn-sm"
+                                data-sot-control="recording-tag-error-retry"
+                                onClick={() => setOperationError(null)}
+                            >
+                                重试
+                            </button>
+                        </div>
+                    ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2">
-                {RECORDING_TAG_ICONS.map((item) => (
-                    <button
-                        key={item}
-                        type="button"
-                        onClick={() => setIcon(item)}
-                        aria-label={
-                            language === "zh-CN"
-                                ? `选择标签图标 ${item}`
-                                : `Select tag icon ${item}`
-                        }
-                        aria-pressed={icon === item}
-                        data-tag-icon={item}
-                        data-testid="recording-tag-icon"
-                        className={cn(
-                            "inline-flex h-8 w-8 items-center justify-center rounded-xl border text-muted-foreground transition-[background-color,border-color,color] duration-300 ease-[var(--ease-sine)]",
-                            icon === item
-                                ? "border-primary/55 bg-primary/18 text-foreground"
-                                : "border-border/65 bg-muted/15 hover:bg-muted/35",
+                    <div className="tagm-create">
+                        <div className="tagm-create-row">
+                            <input
+                                type="text"
+                                value={name}
+                                maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
+                                className="field-input"
+                                data-sot-control="recording-tag-name"
+                                onChange={(event) => {
+                                    setShowToggleState(false);
+                                    setName(
+                                        Array.from(event.target.value)
+                                            .slice(
+                                                0,
+                                                MAX_RECORDING_TAG_NAME_LENGTH,
+                                            )
+                                            .join(""),
+                                    );
+                                }}
+                                placeholder="新建标签…"
+                            />
+                            <button
+                                type="button"
+                                aria-label="添加"
+                                className="tagm-add-btn"
+                                data-sot-control="recording-tag-create"
+                                data-sot-state="idle"
+                            >
+                                +
+                            </button>
+                        </div>
+                        {hasNoTags ? null : (
+                            <div className="tagm-meta-row">
+                                <div className="tagm-swatches">
+                                    {QUICK_RECORDING_TAG_COLORS.map((item) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            onClick={() => setColor(item)}
+                                            aria-label={
+                                                recordingTagSotColorLabel[item]
+                                            }
+                                            aria-pressed={color === item}
+                                            data-sot-control="recording-tag-color"
+                                            data-sot-state={
+                                                color === item
+                                                    ? "selected"
+                                                    : "idle"
+                                            }
+                                            data-sot-tag-color={item}
+                                            className={`tagm-swatch ${recordingTagSotColorClassName[item]}${
+                                                color === item
+                                                    ? " is-selected"
+                                                    : ""
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         )}
-                    >
-                        <RecordingTagIconGlyph
-                            icon={item}
-                            className="h-4 w-4"
-                        />
-                    </button>
-                ))}
-            </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -135,7 +135,7 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
 
     const performSync = useCallback(async () => {
         if (isSyncingRef.current) {
-            return;
+            return false;
         }
 
         isSyncingRef.current = true;
@@ -162,9 +162,8 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                         },
                     }));
 
-                    await refreshStatus();
                     onErrorRef.current?.(errorMessage);
-                    return;
+                    return false;
                 }
 
                 setStatus((prev) => ({
@@ -181,6 +180,7 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                     queued: !!result.queued,
                     newRecordings: result.newRecordings || 0,
                 });
+                return true;
             } else {
                 const error = await response.json();
                 const errorMessage = error.error || "Sync failed";
@@ -194,6 +194,7 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                 }));
 
                 onErrorRef.current?.(errorMessage);
+                return false;
             }
         } catch {
             const errorMessage =
@@ -207,6 +208,7 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
             }));
 
             onErrorRef.current?.(errorMessage);
+            return false;
         } finally {
             isSyncingRef.current = false;
             setStatus((prev) => ({
@@ -248,5 +250,6 @@ export function useAutoSync(options: UseAutoSyncOptions = {}) {
                     status.workerStatus.manualTriggerRequestedAt != null)),
         manualSync,
         refreshStatus,
+        triggerSync: manualSync,
     };
 }

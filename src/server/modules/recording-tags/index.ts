@@ -11,7 +11,10 @@ import {
     isValidRecordingTagName,
     normalizeRecordingTagName,
 } from "@/lib/recording-tags";
-import { enqueueSearchIndexJob } from "@/server/modules/search/indexer";
+import {
+    enqueueSearchDeleteJob,
+    enqueueSearchIndexJob,
+} from "@/server/modules/search/indexer";
 
 export class RecordingTagError extends Error {
     constructor(
@@ -23,23 +26,43 @@ export class RecordingTagError extends Error {
     }
 }
 
-function serializeTag(tag: typeof recordingTags.$inferSelect) {
+function serializeTag(
+    tag: typeof recordingTags.$inferSelect,
+    recordingCount?: number,
+) {
     return {
         id: tag.id,
         name: tag.name,
-        color: isRecordingTagColor(tag.color) ? tag.color : "gray",
-        icon: isRecordingTagIcon(tag.icon) ? tag.icon : "tag",
+        color: isRecordingTagColor(tag.color) ? tag.color : "purple",
+        icon: isRecordingTagIcon(tag.icon) ? tag.icon : "grid",
+        ...(typeof recordingCount === "number" ? { recordingCount } : {}),
     };
 }
 
 export async function listRecordingTags(userId: string) {
-    const tags = await db
-        .select()
-        .from(recordingTags)
-        .where(eq(recordingTags.userId, userId))
-        .orderBy(desc(recordingTags.createdAt));
+    const [tags, assignments] = await Promise.all([
+        db
+            .select()
+            .from(recordingTags)
+            .where(eq(recordingTags.userId, userId))
+            .orderBy(desc(recordingTags.createdAt)),
+        db
+            .select({ tagId: recordingTagAssignments.tagId })
+            .from(recordingTagAssignments)
+            .where(eq(recordingTagAssignments.userId, userId)),
+    ]);
 
-    return tags.map(serializeTag);
+    const recordingCountByTagId = new Map<string, number>();
+    for (const assignment of assignments) {
+        recordingCountByTagId.set(
+            assignment.tagId,
+            (recordingCountByTagId.get(assignment.tagId) ?? 0) + 1,
+        );
+    }
+
+    return tags.map((tag) =>
+        serializeTag(tag, recordingCountByTagId.get(tag.id) ?? 0),
+    );
 }
 
 export async function createRecordingTag(
@@ -51,8 +74,8 @@ export async function createRecordingTag(
     },
 ) {
     const name = normalizeRecordingTagName(input.name);
-    const color = isRecordingTagColor(input.color) ? input.color : "gray";
-    const icon = isRecordingTagIcon(input.icon) ? input.icon : "tag";
+    const color = isRecordingTagColor(input.color) ? input.color : "purple";
+    const icon = isRecordingTagIcon(input.icon) ? input.icon : "grid";
 
     if (!isValidRecordingTagName(name)) {
         throw new RecordingTagError("Tag name must be 1-12 characters", 400);
@@ -86,6 +109,54 @@ export async function createRecordingTag(
 
         throw error;
     }
+}
+
+export async function deleteRecordingTag(userId: string, tagId: string) {
+    const [tag] = await db
+        .select({ id: recordingTags.id })
+        .from(recordingTags)
+        .where(
+            and(eq(recordingTags.id, tagId), eq(recordingTags.userId, userId)),
+        )
+        .limit(1);
+
+    if (!tag) {
+        throw new RecordingTagError("Tag not found", 404);
+    }
+
+    const assignments = await db
+        .select({ recordingId: recordingTagAssignments.recordingId })
+        .from(recordingTagAssignments)
+        .where(
+            and(
+                eq(recordingTagAssignments.userId, userId),
+                eq(recordingTagAssignments.tagId, tagId),
+            ),
+        );
+
+    await db
+        .delete(recordingTags)
+        .where(
+            and(eq(recordingTags.id, tagId), eq(recordingTags.userId, userId)),
+        );
+
+    await enqueueSearchDeleteJob({
+        userId,
+        entityType: "tag",
+        entityId: tagId,
+    });
+
+    for (const recordingId of new Set(
+        assignments.map((assignment) => assignment.recordingId),
+    )) {
+        await enqueueSearchIndexJob({
+            userId,
+            entityType: "recording",
+            entityId: recordingId,
+        });
+    }
+
+    return { deleted: true, id: tagId };
 }
 
 export async function updateRecordingTagAssignments(

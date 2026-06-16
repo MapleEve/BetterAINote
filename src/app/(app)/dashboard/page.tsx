@@ -13,8 +13,8 @@ export default async function DashboardPage() {
             transcriptions={transcriptions}
             transcriptionJobs={transcriptionJobs}
             user={{
-                email: session.user.email ?? null,
-                name: session.user.name ?? null,
+                email: session.user.email,
+                name: session.user.name,
             }}
         />
     );

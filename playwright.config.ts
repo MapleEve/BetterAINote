@@ -86,7 +86,7 @@ export default defineConfig({
     },
     webServer: shouldManageWebServer
         ? {
-              command: `node scripts/e2e-setup.mjs && bunx next dev --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
+              command: `node scripts/e2e-setup.mjs && cd ${e2eAppDir} && bunx next dev --webpack --hostname ${appUrl.hostname} --port ${appUrl.port || "3101"}`,
               cwd: __dirname,
               env: e2eEnv,
               reuseExistingServer: true,

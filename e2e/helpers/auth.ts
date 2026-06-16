@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type APIResponse, type Page } from "@playwright/test";
 
 const PLAYWRIGHT_ACCOUNT = {
     email: "playwright-admin@example.com",
@@ -6,76 +6,82 @@ const PLAYWRIGHT_ACCOUNT = {
     password: "PlaywrightPassword123!",
 };
 
-async function login(page: Page) {
-    const emailInput = page.locator("#email");
-    const passwordInput = page.locator("#password");
+const AUTH_REQUEST_RETRY_DELAYS_MS = [250, 500, 1_000, 1_500];
+const E2E_REQUEST_RETRY_DELAYS_MS = [250, 500, 1_000];
 
-    await fillControlledInput(emailInput, PLAYWRIGHT_ACCOUNT.email);
-    await fillControlledInput(
-        passwordInput,
-        PLAYWRIGHT_ACCOUNT.password,
+function isRetryableRequestError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /ECONNRESET|ECONNREFUSED|EPIPE|socket hang up|fetch failed/i.test(
+        message,
     );
-    await ensureControlledInputValue(emailInput, PLAYWRIGHT_ACCOUNT.email);
-    await ensureControlledInputValue(passwordInput, PLAYWRIGHT_ACCOUNT.password);
-    await Promise.all([
-        page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        page.getByRole("button", { name: "登录" }).click(),
-    ]);
+}
+
+async function postAuthSetupRequest(
+    page: Page,
+    path: string,
+    data: Record<string, string>,
+): Promise<APIResponse> {
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            return await page.request.post(path, { data });
+        } catch (error) {
+            const delayMs = AUTH_REQUEST_RETRY_DELAYS_MS[attempt];
+            if (delayMs == null || !isRetryableRequestError(error)) {
+                throw error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+}
+
+export async function putJsonWithRetry(
+    page: Page,
+    path: string,
+    data: Record<string, unknown>,
+): Promise<APIResponse> {
+    for (let attempt = 0; ; attempt += 1) {
+        try {
+            return await page.request.put(path, { data });
+        } catch (error) {
+            const delayMs = E2E_REQUEST_RETRY_DELAYS_MS[attempt];
+            if (delayMs == null || !isRetryableRequestError(error)) {
+                throw error;
+            }
+            await page.waitForTimeout(delayMs);
+        }
+    }
 }
 
 export async function ensureSignedIn(page: Page) {
-    const authPageHydration = waitForAuthPageHydration(page);
-    await page.goto("/register", { waitUntil: "domcontentloaded" });
-    await authPageHydration;
-
-    if (page.url().includes("/login")) {
-        await login(page);
-        return;
-    }
-
-    const nameInput = page.locator("#name");
-    const emailInput = page.locator("#email");
-    const passwordInput = page.locator("#password");
-
-    await fillControlledInput(nameInput, PLAYWRIGHT_ACCOUNT.name);
-    await fillControlledInput(emailInput, PLAYWRIGHT_ACCOUNT.email);
-    await fillControlledInput(
-        passwordInput,
-        PLAYWRIGHT_ACCOUNT.password,
+    const signUpResponse = await postAuthSetupRequest(
+        page,
+        "/api/auth/sign-up/email",
+        PLAYWRIGHT_ACCOUNT,
     );
-    await ensureControlledInputValue(nameInput, PLAYWRIGHT_ACCOUNT.name);
-    await ensureControlledInputValue(emailInput, PLAYWRIGHT_ACCOUNT.email);
-    await ensureControlledInputValue(passwordInput, PLAYWRIGHT_ACCOUNT.password);
-    await Promise.all([
-        page.waitForURL("**/dashboard", { waitUntil: "commit" }),
-        page.getByRole("button", { name: "创建账号" }).click(),
-    ]);
-}
 
-async function fillControlledInput(
-    locator: Locator,
-    value: string,
-) {
-    await expect(locator).toBeEditable();
-    await locator.fill(value);
-    await expect(locator).toHaveValue(value);
-}
-
-async function ensureControlledInputValue(locator: Locator, value: string) {
-    await expect(locator).toBeEditable();
-    if ((await locator.inputValue()) !== value) {
-        await locator.fill(value);
+    if (!signUpResponse.ok() && signUpResponse.status() !== 403) {
+        throw new Error(
+            `Failed to create E2E session: ${signUpResponse.status()}`,
+        );
     }
-    await expect(locator).toHaveValue(value);
-}
 
-async function waitForAuthPageHydration(page: Page) {
-    await page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/display") &&
-                response.request().method() === "GET",
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
+    if (signUpResponse.status() === 403) {
+        const signInResponse = await postAuthSetupRequest(
+            page,
+            "/api/auth/sign-in/email",
+            {
+                email: PLAYWRIGHT_ACCOUNT.email,
+                password: PLAYWRIGHT_ACCOUNT.password,
+            },
+        );
+
+        if (!signInResponse.ok()) {
+            throw new Error(
+                `Failed to sign in E2E session: ${signInResponse.status()}`,
+            );
+        }
+    }
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/dashboard/);
 }

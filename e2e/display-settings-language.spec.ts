@@ -8,9 +8,10 @@ async function resetDisplaySettings(
     const resetResponse = await page.request.put("/api/settings/display", {
         data: {
             dateTimeFormat: "relative",
+            displayDensity: "comfy",
             itemsPerPage: 50,
             recordingListSortOrder: "newest",
-            theme: "system",
+            theme: "dark",
             uiLanguage: "zh-CN",
             ...overrides,
         },
@@ -18,15 +19,86 @@ async function resetDisplaySettings(
     expect(resetResponse.ok()).toBe(true);
 }
 
-test("display settings language switches copy immediately via the shared store", async ({
+function displaySection(page: Page) {
+    return page.locator(
+        '[data-sot-surface="settings-section"][data-sot-section="appearance"]',
+    );
+}
+
+function displayFooter(page: Page) {
+    return displaySection(page).locator(".sm-actions");
+}
+
+function displaySaveActions(page: Page) {
+    return page.locator(
+        '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-control="settings-save"], [data-sot-surface="settings-section"][data-sot-section="appearance"] [data-save-action]',
+    );
+}
+
+async function expectNoDisplaySaveFooter(page: Page) {
+    await expect(displayFooter(page)).toHaveCount(0);
+    await expect(displaySaveActions(page)).toHaveCount(0);
+}
+
+function settingsShell(page: Page) {
+    return page.locator('[data-sot-surface="settings-shell"]');
+}
+
+function displayCombobox(page: Page, label: string) {
+    return displaySection(page).getByRole("combobox", { name: label });
+}
+
+function displaySegment(page: Page, control: string, value: string) {
+    return displaySection(page).locator(
+        `[data-sot-control="${control}"][data-sot-value="${value}"]`,
+    );
+}
+
+function displaySpinbutton(page: Page, label: string) {
+    if (
+        label === "每页录音数" ||
+        label === "每页条数" ||
+        label === "Recordings per page" ||
+        label === "Items per page"
+    ) {
+        return displaySection(page).locator("#display-items-per-page");
+    }
+
+    return displaySection(page).getByRole("spinbutton", { name: label });
+}
+
+async function selectSettingsSection(page: Page, section: string) {
+    const shell = settingsShell(page);
+    const nav = page.locator(
+        `[data-sot-control="settings-nav"][data-sot-section="${section}"]`,
+    );
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        await expect(shell).toHaveAttribute("data-sot-state", "idle");
+        await expect(nav).toBeEnabled();
+        await nav.click();
+
+        if ((await shell.getAttribute("data-sot-section")) === section) {
+            return;
+        }
+
+        await page.waitForTimeout(250);
+    }
+
+    await expect(shell).toHaveAttribute("data-sot-section", section);
+}
+
+test("display settings language changes persist immediately through the shared store", async ({
     page,
 }) => {
     await ensureSignedIn(page);
 
     await resetDisplaySettings(page);
 
+    const updatePayloads: Record<string, unknown>[] = [];
     let resolvePendingUpdate = () => {};
     let notifyUpdateStarted = () => {};
+    let delayedFirstLanguageUpdate = false;
     const updateStarted = new Promise<void>((resolve) => {
         notifyUpdateStarted = resolve;
     });
@@ -40,55 +112,69 @@ test("display settings language switches copy immediately via the shared store",
             return;
         }
 
-        notifyUpdateStarted();
-        await pendingUpdate;
+        const payload = route.request().postDataJSON();
+        updatePayloads.push(payload);
+        if (payload?.uiLanguage === "en" && !delayedFirstLanguageUpdate) {
+            delayedFirstLanguageUpdate = true;
+            notifyUpdateStarted();
+            await pendingUpdate;
+        }
         await route.continue();
     });
 
-    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
 
+    const section = displaySection(page);
+    const languageSelect = displayCombobox(page, "界面语言");
     await expect(
-        page.getByRole("heading", { name: "外观", exact: true }),
+        page.getByRole("heading", { name: "显示设置", exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("显示设置", { exact: true })).toBeVisible();
-    await expect(page.locator("#ui-language")).toContainText("中文");
+    await expect(
+        page.getByRole("heading", { name: "主题与外观", exact: true }),
+    ).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(languageSelect).toHaveValue("zh-CN");
+    await expectNoDisplaySaveFooter(page);
     await expect(page).toHaveURL(/\/settings#appearance$/);
 
-    await page.locator("#ui-language").click();
-    await page.getByRole("option", { name: "英文", exact: true }).click();
-
+    await languageSelect.selectOption("en");
     await updateStarted;
+    expect(updatePayloads[0]).toMatchObject({ uiLanguage: "en" });
+    expect(Object.keys(updatePayloads[0])).toEqual(["uiLanguage"]);
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expectNoDisplaySaveFooter(page);
 
+    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
     await expect(
-        page.getByRole("heading", { name: "Appearance", exact: true }),
+        page.getByRole("heading", { name: "Display Settings", exact: true }),
     ).toBeVisible();
     await expect(
-        page.getByText("Display Settings", { exact: true }),
-    ).toBeVisible();
-    await expect(
-        page.getByText("UI language", { exact: true }).first(),
-    ).toBeVisible();
-    await expect(
-        page.getByText(
-            "Switch the interface between Chinese and English. Default is Chinese.",
-            {
-                exact: true,
-            },
-        ),
+        page.getByText("Interface language", { exact: true }).first(),
     ).toBeVisible();
 
-    resolvePendingUpdate();
-
-    await page.waitForResponse(
+    const savedResponse = page.waitForResponse(
         (response) =>
             response.url().includes("/api/settings/display") &&
             response.request().method() === "PUT" &&
+            response.request().postDataJSON()?.uiLanguage === "en" &&
             response.ok(),
     );
-    await expect(page.locator("#ui-language")).toContainText("English");
+    resolvePendingUpdate();
+    await savedResponse;
+    await expect(
+        page.getByRole("heading", { name: "Display Settings", exact: true }),
+    ).toBeVisible();
+    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expectNoDisplaySaveFooter(page);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await selectSettingsSection(page, "appearance");
+    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expectNoDisplaySaveFooter(page);
 });
 
-test("display settings language auto-save failure rolls back visible copy", async ({
+test("display settings language immediate failure rolls back visible copy", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -124,36 +210,29 @@ test("display settings language auto-save failure rolls back visible copy", asyn
         });
     });
 
-    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
 
-    const displaySection = page.locator('[data-settings-section="display"]');
-    await expect(displaySection).toBeVisible();
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "ready",
-    );
-    await expect(page.locator("#ui-language")).toContainText("中文");
+    const section = displaySection(page);
+    const languageSelect = displayCombobox(page, "界面语言");
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(languageSelect).toHaveValue("zh-CN");
+    await expectNoDisplaySaveFooter(page);
     await expect(
-        page.getByRole("heading", { name: "外观", exact: true }),
+        page.getByRole("heading", { name: "显示设置", exact: true }),
     ).toBeVisible();
 
-    await page.locator("#ui-language").click();
-    await page.getByRole("option", { name: "英文", exact: true }).click();
-
+    await languageSelect.selectOption("en");
     await failedUpdateStarted;
-    expect(failedPayload).toEqual({ uiLanguage: "en" });
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "saving",
-    );
-    await expect(page.getByTestId("display-save-state")).toContainText(
-        "Saving",
-    );
-    await expect(page.locator("#ui-language")).toContainText("English");
+    expect(failedPayload).toMatchObject({ uiLanguage: "en" });
+    expect(Object.keys(failedPayload ?? {})).toEqual(["uiLanguage"]);
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expectNoDisplaySaveFooter(page);
+    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
     await expect(
-        page.getByRole("heading", { name: "Appearance", exact: true }),
+        page.getByRole("heading", { name: "Display Settings", exact: true }),
     ).toBeVisible();
-    await expect(page.locator("#theme")).toBeDisabled();
+    await expect(displaySegment(page, "theme", "dark")).toBeDisabled();
 
     const failedResponse = page.waitForResponse(
         (response) =>
@@ -165,24 +244,19 @@ test("display settings language auto-save failure rolls back visible copy", asyn
     releaseFailedUpdate();
     await failedResponse;
 
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "ready",
-    );
-    await expect(page.locator("#theme")).toBeEnabled();
-    await expect(page.locator("#ui-language")).toContainText("中文");
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expectNoDisplaySaveFooter(page);
+    await expect(displaySegment(page, "theme", "dark")).toBeEnabled();
+    await expect(displayCombobox(page, "界面语言")).toHaveValue("zh-CN");
     await expect(
-        page.getByRole("heading", { name: "外观", exact: true }),
+        page.getByRole("heading", { name: "显示设置", exact: true }),
     ).toBeVisible();
     await expect(
-        page.getByText(/保存设置失败，已回滚。|Failed to save settings. Changes reverted./),
-    ).toBeVisible();
-    await expect(
-        page.locator('[data-sonner-toast][data-type="success"]'),
+        page.locator('.toast.toast-ok'),
     ).toHaveCount(0);
 });
 
-test("display settings theme switches light and dark without waiting for persistence", async ({
+test("display settings theme switches light and dark with immediate persistence", async ({
     page,
 }) => {
     await ensureSignedIn(page);
@@ -216,46 +290,55 @@ test("display settings theme switches light and dark without waiting for persist
         });
     });
 
-    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
 
     const html = page.locator("html");
-    await expect(page.locator("#theme")).toContainText("浅色");
-    await expect(html).not.toHaveClass(/dark/);
+    const section = displaySection(page);
+    const lightThemeButton = displaySegment(page, "theme", "light");
+    const darkThemeButton = displaySegment(page, "theme", "dark");
+    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expect(html).toHaveAttribute("data-theme", "light");
+    await expectNoDisplaySaveFooter(page);
 
-    await page.locator("#theme").click();
-    const themeLayer = page.locator('[data-slot="select-content"]');
-    await expect(themeLayer).toHaveCSS("z-index", "650");
-    await page.getByRole("option", { name: /深色/ }).click();
-
+    await darkThemeButton.click();
     await firstUpdateStarted;
-    await expect(html).toHaveClass(/dark/);
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expectNoDisplaySaveFooter(page);
+    await expect(darkThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expect(html).toHaveAttribute("data-theme", "dark");
     expect(updatePayloads[0]).toMatchObject({ theme: "dark" });
+    expect(Object.keys(updatePayloads[0])).toEqual(["theme"]);
 
-    resolveFirstUpdate();
-    await page.waitForResponse(
+    const firstSavedResponse = page.waitForResponse(
         (response) =>
             response.url().includes("/api/settings/display") &&
             response.request().method() === "PUT" &&
+            response.request().postDataJSON()?.theme === "dark" &&
             response.ok(),
     );
-    await expect(page.locator("#theme")).toContainText("深色");
+    resolveFirstUpdate();
+    await firstSavedResponse;
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expect(darkThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectNoDisplaySaveFooter(page);
 
-    await page.locator("#theme").click();
-    await page.getByRole("option", { name: /浅色/ }).click();
+    await lightThemeButton.click();
+    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
 
-    await expect(html).not.toHaveClass(/dark/);
+    await expect(html).toHaveAttribute("data-theme", "light");
     await expect
-        .poll(() => updatePayloads.at(-1))
+        .poll(() => updatePayloads.find((payload) => payload.theme === "light"))
         .toMatchObject({ theme: "light" });
-    await expect(page.locator("#theme")).toContainText("浅色");
+    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
 });
 
-test("display settings secondary controls show pending state and normalize page size", async ({
+test("display settings secondary controls persist immediately and normalize page size", async ({
     page,
 }) => {
     await ensureSignedIn(page);
     await resetDisplaySettings(page, {
         dateTimeFormat: "relative",
+        displayDensity: "comfy",
         itemsPerPage: 50,
         recordingListSortOrder: "newest",
     });
@@ -286,56 +369,73 @@ test("display settings secondary controls show pending state and normalize page 
         await route.continue();
     });
 
-    await page.goto("/settings#display", { waitUntil: "domcontentloaded" });
+    await page.goto("/settings#appearance", { waitUntil: "domcontentloaded" });
 
-    const displaySection = page.locator('[data-settings-section="display"]');
-    await expect(displaySection).toBeVisible();
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "ready",
+    const section = displaySection(page);
+    const compactDensityButton = displaySegment(page, "density", "compact");
+    const absoluteTimeButton = displaySegment(page, "time-style", "absolute");
+    const sortSelect = displayCombobox(page, "列表排序");
+    const pageSizeInput = displaySpinbutton(page, "每页录音数");
+    await expect(section).toBeVisible();
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expectNoDisplaySaveFooter(page);
+
+    const densityResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.displayDensity === "compact",
     );
+    await compactDensityButton.click();
+    await expect(compactDensityButton).toHaveAttribute(
+        "aria-pressed",
+        "true",
+    );
+    const densityPut = await densityResponse;
+    expect(densityPut.request().postDataJSON()).toEqual({
+        displayDensity: "compact",
+    });
 
-    await page.locator("#date-time-format").click();
-    await page.getByRole("option", { name: /绝对时间/ }).click();
-
+    await absoluteTimeButton.click();
     await updateStarted;
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "saving",
-    );
-    await expect(page.getByTestId("display-save-state")).toContainText(
-        "保存中",
-    );
-    await expect(page.locator("#sort-order")).toBeDisabled();
-    await expect(page.locator("#items-per-page")).toBeDisabled();
+    await expect(section).toHaveAttribute("data-sot-state", "busy");
+    await expectNoDisplaySaveFooter(page);
+    await expect(absoluteTimeButton).toHaveAttribute("aria-pressed", "true");
+    await expect(compactDensityButton).toBeDisabled();
+    await expect(absoluteTimeButton).toBeDisabled();
+    await expect(sortSelect).toBeDisabled();
+    await expect(pageSizeInput).toBeDisabled();
 
-    releasePendingUpdate();
-
-    await page.waitForResponse(
+    const dateTimeResponse = page.waitForResponse(
         (response) =>
             response.url().includes("/api/settings/display") &&
             response.request().method() === "PUT" &&
             response.ok() &&
             response.request().postDataJSON()?.dateTimeFormat === "absolute",
     );
-    await expect(displaySection).toHaveAttribute(
-        "data-display-save-state",
-        "ready",
-    );
+    releasePendingUpdate();
+    const dateTimePut = await dateTimeResponse;
+    expect(dateTimePut.request().postDataJSON()).toEqual({
+        dateTimeFormat: "absolute",
+    });
+    await expect(section).toHaveAttribute("data-sot-state", "ready");
+    await expectNoDisplaySaveFooter(page);
 
-    await page.locator("#sort-order").click();
-    await Promise.all([
-        page.waitForResponse(
-            (response) =>
-                response.url().includes("/api/settings/display") &&
-                response.request().method() === "PUT" &&
-                response.ok() &&
-                response.request().postDataJSON()?.recordingListSortOrder ===
-                    "oldest",
-        ),
-        page.getByRole("option", { name: "最早优先", exact: true }).click(),
-    ]);
-    await expect(page.locator("#sort-order")).toContainText("最早优先");
+    const sortResponse = page.waitForResponse(
+        (response) =>
+            response.url().includes("/api/settings/display") &&
+            response.request().method() === "PUT" &&
+            response.ok() &&
+            response.request().postDataJSON()?.recordingListSortOrder ===
+                "oldest",
+    );
+    await sortSelect.selectOption("oldest");
+    const sortPut = await sortResponse;
+    expect(sortPut.request().postDataJSON()).toEqual({
+        recordingListSortOrder: "oldest",
+    });
+    await expect(sortSelect).toHaveValue("oldest");
 
     const pageSizeResponse = page.waitForResponse(
         (response) =>
@@ -344,10 +444,12 @@ test("display settings secondary controls show pending state and normalize page 
             response.ok() &&
             response.request().postDataJSON()?.itemsPerPage === 10,
     );
-    await page.locator("#items-per-page").fill("3");
-    await page.getByText("显示设置", { exact: true }).click();
-    await pageSizeResponse;
-    await expect(page.locator("#items-per-page")).toHaveValue("10");
+    await pageSizeInput.fill("3");
+    const pageSizePut = await pageSizeResponse;
+    expect(pageSizePut.request().postDataJSON()).toEqual({
+        itemsPerPage: 10,
+    });
+    await expect(pageSizeInput).toHaveValue("10");
 
     const flushedPageSizeResponse = page.waitForResponse(
         (response) =>
@@ -356,15 +458,25 @@ test("display settings secondary controls show pending state and normalize page 
             response.ok() &&
             response.request().postDataJSON()?.itemsPerPage === 42,
     );
-    await page.locator("#items-per-page").fill("42");
-    await page.locator('[data-settings-nav-item="misc"]').click();
-    await flushedPageSizeResponse;
-    await expect(page.locator("[data-settings-shell]")).toHaveAttribute(
-        "data-settings-active-section",
+    await pageSizeInput.fill("42");
+    const flushedPageSizePut = await flushedPageSizeResponse;
+    expect(flushedPageSizePut.request().postDataJSON()).toEqual({
+        itemsPerPage: 42,
+    });
+    await page
+        .locator('[data-sot-control="settings-nav"][data-sot-section="misc"]')
+        .click();
+    await expect(page.locator('[data-sot-surface="settings-shell"]')).toHaveAttribute(
+        "data-sot-section",
         "misc",
     );
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.locator('[data-settings-nav-item="appearance"]').click();
-    await expect(page.locator("#items-per-page")).toHaveValue("42");
+    await selectSettingsSection(page, "appearance");
+    await expect(displaySection(page)).toHaveAttribute("data-sot-state", "ready");
+    await expect(displaySegment(page, "density", "compact")).toHaveAttribute(
+        "aria-pressed",
+        "true",
+    );
+    await expect(displaySpinbutton(page, "每页录音数")).toHaveValue("42");
 });

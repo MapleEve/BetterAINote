@@ -1,11 +1,19 @@
-"use client";
-
-import { absoluteUrl, isDev } from "@/lib/utils";
-
 interface ImageLoaderProps {
     src: string;
     width?: number;
     quality?: number;
+}
+
+function isDevelopmentRuntime() {
+    return process.env.NODE_ENV === "development";
+}
+
+function absoluteImageUrl(src: string) {
+    const appUrl = process.env.APP_URL ?? "http://localhost:3001";
+    const normalizedOrigin = appUrl.replace(/\/$/, "");
+    const normalizedSrc = src.startsWith("/") ? src : `/${src}`;
+
+    return `${normalizedOrigin}${normalizedSrc}`;
 }
 
 export default function imageLoader({
@@ -16,13 +24,13 @@ export default function imageLoader({
     const isLocal = !src.startsWith("http");
 
     // In development, return local images directly
-    if (isLocal && isDev) {
+    if (isLocal && isDevelopmentRuntime()) {
         return src;
     }
 
     const query = new URLSearchParams();
     const imageOptimizationApi = "https://wsrv.nl";
-    const fullSrc = isLocal ? absoluteUrl(src) : src;
+    const fullSrc = isLocal ? absoluteImageUrl(src) : src;
 
     query.set("url", fullSrc);
     query.set("w", width.toString());

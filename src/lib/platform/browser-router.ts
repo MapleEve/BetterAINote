@@ -31,7 +31,6 @@ export function navigateAndRefreshBrowserRoute(
     href: string,
 ) {
     navigateBrowserRoute(controller, href);
-    refreshBrowserRoute(controller);
 }
 
 export function goBackBrowserRoute(

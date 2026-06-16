@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
 import { formatDateTime } from "@/lib/format-date";
-import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -53,50 +52,37 @@ function StatePill({
     children: ReactNode;
     tone?: "success" | "neutral" | "warning";
 }) {
-    return (
-        <span
-            className={cn(
-                "inline-flex h-6 max-w-full shrink-0 items-center gap-1 rounded-full border px-2 text-[0.68rem] font-semibold whitespace-nowrap",
-                tone === "success" &&
-                    "border-emerald-400/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200",
-                tone === "warning" &&
-                    "border-amber-400/35 bg-amber-500/15 text-amber-700 dark:text-amber-200",
-                tone === "neutral" &&
-                    "border-border/70 glass-control text-muted-foreground",
-            )}
-        >
-            <span className="size-1.5 rounded-full bg-current" />
-            {children}
-        </span>
-    );
+    return <span className={`sot-speaker-pill ${tone}`}>{children}</span>;
 }
 
 function PanelNotice({
     action,
     children,
+    panel,
+    state,
     tone = "neutral",
 }: {
     action?: ReactNode;
     children: ReactNode;
+    panel?: string;
+    state?: string;
     tone?: "danger" | "neutral";
 }) {
     const Icon = tone === "danger" ? AlertCircle : CheckCircle2;
 
     return (
         <div
-            className={cn(
-                "grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-dashed px-4 py-3 text-sm",
-                tone === "danger"
-                    ? "border-destructive/35 bg-destructive/10 text-destructive dark:text-red-200"
-                    : "border-border/75 bg-muted/20 text-muted-foreground",
-            )}
+            className={tone === "danger" ? "sd-banner err" : "sd-banner"}
+            data-sot-panel={panel}
+            data-sot-state={state}
+            data-sot-tone={tone}
         >
-            <span className="flex size-7 items-center justify-center rounded-lg border border-current/20 glass-control">
-                <Icon className="size-4" aria-hidden="true" />
+            <span className="b-ic">
+                <Icon aria-hidden="true" />
             </span>
-            <div className="min-w-0 space-y-3">
-                <p className="text-sm text-muted-foreground">{children}</p>
-                {action ? <div>{action}</div> : null}
+            <div>
+                <p className="b-h">{children}</p>
+                {action ? <div className="sm-row-ctrl">{action}</div> : null}
             </div>
         </div>
     );
@@ -311,7 +297,6 @@ export function SpeakerProfilesPanel() {
                     : `Delete speaker "${profile.displayName}"? Existing recording speaker labels will not be rewritten automatically.`,
                 confirmLabel: isZh ? "确认" : "Confirm",
                 cancelLabel: isZh ? "取消" : "Cancel",
-                variant: "destructive",
             });
             if (!confirmed) {
                 return;
@@ -409,7 +394,6 @@ export function SpeakerProfilesPanel() {
                     : `Delete remote voiceprint "${voiceprint.displayName}"? Local speaker profiles will not be changed automatically.`,
                 confirmLabel: isZh ? "确认" : "Confirm",
                 cancelLabel: isZh ? "取消" : "Cancel",
-                variant: "destructive",
             });
             if (!confirmed) {
                 return;
@@ -470,61 +454,76 @@ export function SpeakerProfilesPanel() {
 
     return (
         <div
-            className="glass-surface flex min-h-0 flex-col gap-5 rounded-[1.1rem] p-5"
-            data-speaker-profiles-panel=""
+            className="sot-speaker-profiles sm-section"
+            data-sot-panel="speaker-profiles"
+            data-sot-speaker-profiles-panel=""
+            data-sot-state={profilesState}
+            data-sot-voiceprints-state={voiceprintsState}
         >
             <div
-                className="flex min-h-0 flex-col gap-4"
-                data-profiles-state={profilesState}
+                className="sm-section"
+                data-sot-panel="speaker-profiles-local"
+                data-sot-state={profilesState}
             >
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div>
-                        <p className="text-sm font-medium">
+                <div className="sm-row">
+                    <div className="sm-row-label">
+                        <div className="sm-l-t">
                             {isZh ? "已保存的说话人" : "Saved Speakers"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                        </div>
+                        <div className="sm-l-h">
                             {isZh
                                 ? "维护可复用的说话人名称；远端声纹会在实际转录绑定时自动处理。"
                                 : "Maintain reusable speaker names. Remote voiceprints are handled automatically during transcript binding."}
-                        </p>
+                        </div>
                     </div>
                     <Button
                         type="button"
                         size="sm"
-                        variant="outline"
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
-                        data-testid="speaker-profiles-refresh"
+                        aria-busy={isProfilesLoading}
+                        className="btn"
+                        data-sot-control="speaker-profiles-refresh"
+                        data-sot-state={isProfilesLoading ? "loading" : "idle"}
                     >
                         <RefreshCw
-                            className={`mr-2 h-3.5 w-3.5 ${isProfilesLoading ? "animate-spin" : ""}`}
+                            data-icon-state={
+                                isProfilesLoading ? "loading" : undefined
+                            }
                         />
                         {isZh ? "刷新" : "Refresh"}
                     </Button>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                    <div className="space-y-2">
+                <div className="sm-row">
+                    <div className="sm-row-label">
                         <Label htmlFor="new-speaker-name">
                             {isZh ? "说话人名称" : "Speaker name"}
                         </Label>
                         <Input
+                            data-sot-control="speaker-profile-new-name"
                             id="new-speaker-name"
                             value={newName}
                             onChange={(event) => setNewName(event.target.value)}
                             placeholder={isZh ? "例如：Alex" : "e.g. Alex"}
                             disabled={localSavingId === "new"}
-                            data-testid="speaker-profile-new-name"
                         />
                     </div>
                     <Button
                         type="button"
                         size="sm"
-                        className="self-end"
+                        className="btn"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
                         aria-busy={localSavingId === "new"}
-                        data-testid="speaker-profile-create"
+                        data-sot-control="speaker-profile-create"
+                        data-sot-state={
+                            localSavingId === "new"
+                                ? "saving"
+                                : newName.trim()
+                                  ? "idle"
+                                  : "disabled"
+                        }
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
                     </Button>
@@ -534,13 +533,16 @@ export function SpeakerProfilesPanel() {
                     <SettingsListSkeleton rows={2} />
                 ) : profilesError ? (
                     <PanelNotice
+                        panel="speaker-profiles-notice"
+                        state="error"
                         tone="danger"
                         action={
                             <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
                                 onClick={() => void refreshProfiles()}
+                                data-sot-control="speaker-profiles-retry"
+                                data-sot-state="idle"
                             >
                                 {isZh ? "重试" : "Retry"}
                             </Button>
@@ -549,13 +551,13 @@ export function SpeakerProfilesPanel() {
                         {profilesError}
                     </PanelNotice>
                 ) : profiles.length === 0 ? (
-                    <PanelNotice>
+                    <PanelNotice panel="speaker-profiles-notice" state="empty">
                         {isZh
                             ? "还没有已保存的说话人。"
                             : "No saved speakers yet."}
                     </PanelNotice>
                 ) : (
-                    <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
+                    <div className="sp-rows">
                         {profiles.map((profile) => {
                             const isProfileSaving =
                                 localSavingId === profile.id;
@@ -563,24 +565,28 @@ export function SpeakerProfilesPanel() {
                             return (
                                 <div
                                     key={profile.id}
-                                    className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
-                                    data-speaker-profile-row=""
-                                    data-speaker-profile-busy={
+                                    className="sp-row"
+                                    data-sot-speaker-profile-row=""
+                                    data-sot-speaker-profile-busy={
                                         isProfileSaving ? "true" : "false"
                                     }
-                                    data-speaker-profile-id={profile.id}
+                                    data-sot-speaker-profile-id={profile.id}
+                                    data-sot-state={
+                                        isProfileSaving ? "saving" : "ready"
+                                    }
                                 >
-                                    <span
-                                        className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/35 text-xs font-semibold text-foreground"
-                                        data-testid="speaker-profile-initial"
-                                    >
+                                    <span className="sot-speaker-avatar">
                                         {profile.displayName
                                             .trim()
                                             .slice(0, 1)
                                             .toUpperCase() || "#"}
                                     </span>
-                                    <div className="min-w-0 space-y-2">
+                                    <div className="sp-row-meta">
                                         <Input
+                                            data-sot-control="speaker-profile-name"
+                                            data-sot-speaker-profile-id={
+                                                profile.id
+                                            }
                                             value={profile.displayName}
                                             onChange={(event) =>
                                                 setProfiles((prev) =>
@@ -597,12 +603,10 @@ export function SpeakerProfilesPanel() {
                                                     ),
                                                 )
                                             }
-                                            className="min-w-0 truncate [word-break:keep-all]"
                                             disabled={isProfileSaving}
-                                            data-testid="speaker-profile-name"
                                         />
-                                        <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
-                                            <span className="min-w-0 truncate">
+                                        <div className="sp-row-sub">
+                                            <span>
                                                 {isZh
                                                     ? `已用于 ${profile.assignmentCount} 条录音`
                                                     : `Used in ${profile.assignmentCount} recording${profile.assignmentCount === 1 ? "" : "s"}`}
@@ -626,7 +630,7 @@ export function SpeakerProfilesPanel() {
                                                 profile.updatedAt,
                                                 locale,
                                             ) ? (
-                                                <span className="min-w-0 truncate">
+                                                <span>
                                                     {isZh
                                                         ? "更新于 "
                                                         : "Updated "}
@@ -641,23 +645,31 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="outline"
-                                        className="shrink-0 whitespace-nowrap max-sm:col-start-2"
+                                        className="btn"
                                         onClick={() => handleUpdate(profile)}
                                         disabled={isProfileSaving}
                                         aria-busy={isProfileSaving}
-                                        data-testid="speaker-profile-save"
+                                        data-sot-control="speaker-profile-save"
+                                        data-sot-speaker-profile-id={profile.id}
+                                        data-sot-state={
+                                            isProfileSaving ? "saving" : "idle"
+                                        }
                                     >
                                         {isZh ? "保存" : "Save"}
                                     </Button>
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="outline"
-                                        className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
+                                        className="btn danger"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
-                                        data-testid="speaker-profile-delete"
+                                        data-sot-control="speaker-profile-delete"
+                                        data-sot-speaker-profile-id={profile.id}
+                                        data-sot-state={
+                                            isProfileSaving
+                                                ? "disabled"
+                                                : "idle"
+                                        }
                                     >
                                         {isZh ? "删除" : "Delete"}
                                     </Button>
@@ -669,30 +681,37 @@ export function SpeakerProfilesPanel() {
             </div>
 
             <div
-                className="flex min-h-0 flex-col gap-4 border-t border-border/70 pt-4"
-                data-vs-state={voiceprintsState}
+                className="sm-section"
+                data-sot-panel="speaker-voiceprints"
+                data-sot-state={voiceprintsState}
             >
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div>
-                        <p className="text-sm font-medium">
+                <div className="sm-row">
+                    <div className="sm-row-label">
+                        <div className="sm-l-t">
                             {isZh ? "声纹库" : "Voiceprints"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                        </div>
+                        <div className="sm-l-h">
                             {isZh
                                 ? "查看已连接服务中的声纹。重命名和删除只影响声纹库，不会修改本地录音。"
                                 : "View voiceprints from the connected service. Rename and delete actions affect the voiceprint library only and do not change local recordings."}
-                        </p>
+                        </div>
                     </div>
                     <Button
                         type="button"
                         size="sm"
-                        variant="outline"
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
-                        data-testid="voiceprints-refresh"
+                        aria-busy={isVoiceprintsLoading}
+                        className="btn"
+                        data-sot-control="speaker-voiceprints-refresh"
+                        data-sot-state={
+                            isVoiceprintsLoading ? "loading" : "idle"
+                        }
                     >
                         <RefreshCw
-                            className={`mr-2 h-3.5 w-3.5 ${isVoiceprintsLoading ? "animate-spin" : ""}`}
+                            data-icon-state={
+                                isVoiceprintsLoading ? "loading" : undefined
+                            }
                         />
                         {isZh ? "刷新" : "Refresh"}
                     </Button>
@@ -702,13 +721,16 @@ export function SpeakerProfilesPanel() {
                     <SettingsListSkeleton rows={2} />
                 ) : voiceprintsError ? (
                     <PanelNotice
+                        panel="speaker-voiceprints-notice"
+                        state="error"
                         tone="danger"
                         action={
                             <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
                                 onClick={() => void refreshVoiceprints()}
+                                data-sot-control="speaker-voiceprints-retry"
+                                data-sot-state="idle"
                             >
                                 {isZh ? "重试" : "Retry"}
                             </Button>
@@ -717,20 +739,26 @@ export function SpeakerProfilesPanel() {
                         {voiceprintsError}
                     </PanelNotice>
                 ) : !voiceprintsAvailable ? (
-                    <PanelNotice>
+                    <PanelNotice
+                        panel="speaker-voiceprints-notice"
+                        state="disabled"
+                    >
                         {voiceprintsReason ||
                             (isZh
                                 ? "请先在 VoScript 保存可用的服务连接。"
                                 : "Save a working VoScript connection first.")}
                     </PanelNotice>
                 ) : voiceprints.length === 0 ? (
-                    <PanelNotice>
+                    <PanelNotice
+                        panel="speaker-voiceprints-notice"
+                        state="empty"
+                    >
                         {isZh
                             ? "没有找到远端声纹。"
                             : "No remote voiceprints found."}
                     </PanelNotice>
                 ) : (
-                    <div className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-1">
+                    <div className="sp-rows">
                         {voiceprints.map((voiceprint) => {
                             const isVoiceprintSaving =
                                 voiceprintSavingId === voiceprint.id;
@@ -738,26 +766,26 @@ export function SpeakerProfilesPanel() {
                             return (
                                 <div
                                     key={voiceprint.id}
-                                    className="grid gap-3 rounded-xl border border-border/75 bg-muted/20 p-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto_auto]"
-                                    data-vs-profile-row=""
-                                    data-vs-profile-busy={
+                                    className="sp-row"
+                                    data-sot-state={
+                                        isVoiceprintSaving ? "saving" : "ready"
+                                    }
+                                    data-sot-voiceprint-busy={
                                         isVoiceprintSaving ? "true" : "false"
                                     }
-                                    data-vs-profile-id={voiceprint.id}
+                                    data-sot-voiceprint-id={voiceprint.id}
+                                    data-sot-voiceprint-row=""
                                 >
-                                    <span
-                                        className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/35 text-xs font-semibold text-foreground"
-                                        data-testid="voiceprint-initial"
-                                    >
+                                    <span className="sot-speaker-avatar">
                                         {voiceprint.displayName
                                             .trim()
                                             .slice(0, 1)
                                             .toUpperCase() || "V"}
                                     </span>
 
-                                    <div className="min-w-0 space-y-2">
+                                    <div className="sp-row-meta">
                                         <Label
-                                            className="sr-only"
+                                            hidden
                                             htmlFor={`voiceprint-${voiceprint.id}`}
                                         >
                                             {isZh
@@ -765,6 +793,10 @@ export function SpeakerProfilesPanel() {
                                                 : "Voiceprint name"}
                                         </Label>
                                         <Input
+                                            data-sot-control="speaker-voiceprint-name"
+                                            data-sot-voiceprint-id={
+                                                voiceprint.id
+                                            }
                                             id={`voiceprint-${voiceprint.id}`}
                                             value={voiceprint.displayName}
                                             onChange={(event) =>
@@ -783,22 +815,18 @@ export function SpeakerProfilesPanel() {
                                                     ),
                                                 )
                                             }
-                                            className="min-w-0 truncate [word-break:keep-all]"
                                             disabled={isVoiceprintSaving}
-                                            data-testid="voiceprint-name"
                                         />
-                                        <div className="flex min-w-0 flex-wrap gap-2 text-xs text-muted-foreground">
+                                        <div className="sp-row-sub">
                                             <StatePill tone="success">
                                                 {isZh ? "远端声纹" : "Remote"}
                                             </StatePill>
-                                            <span className="min-w-0 truncate font-mono">
-                                                {voiceprint.id}
-                                            </span>
+                                            <span>{voiceprint.id}</span>
                                             {formatTimestamp(
                                                 voiceprint.updatedAt,
                                                 locale,
                                             ) ? (
-                                                <span className="min-w-0 truncate">
+                                                <span>
                                                     {isZh
                                                         ? "更新于 "
                                                         : "Updated "}
@@ -811,7 +839,7 @@ export function SpeakerProfilesPanel() {
                                                   voiceprint.createdAt,
                                                   locale,
                                               ) ? (
-                                                <span className="min-w-0 truncate">
+                                                <span>
                                                     {isZh
                                                         ? "创建于 "
                                                         : "Created "}
@@ -827,27 +855,37 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="outline"
-                                        className="shrink-0 whitespace-nowrap max-sm:col-start-2"
+                                        className="btn"
                                         onClick={() =>
                                             handleRenameVoiceprint(voiceprint)
                                         }
                                         disabled={isVoiceprintSaving}
                                         aria-busy={isVoiceprintSaving}
-                                        data-testid="voiceprint-rename"
+                                        data-sot-control="speaker-voiceprint-rename"
+                                        data-sot-state={
+                                            isVoiceprintSaving
+                                                ? "saving"
+                                                : "idle"
+                                        }
+                                        data-sot-voiceprint-id={voiceprint.id}
                                     >
                                         {isZh ? "重命名" : "Rename"}
                                     </Button>
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="outline"
-                                        className="shrink-0 whitespace-nowrap text-destructive hover:text-destructive max-sm:col-start-2"
+                                        className="btn danger"
                                         onClick={() =>
                                             handleDeleteVoiceprint(voiceprint)
                                         }
                                         disabled={isVoiceprintSaving}
-                                        data-testid="voiceprint-delete"
+                                        data-sot-control="speaker-voiceprint-delete"
+                                        data-sot-state={
+                                            isVoiceprintSaving
+                                                ? "disabled"
+                                                : "idle"
+                                        }
+                                        data-sot-voiceprint-id={voiceprint.id}
                                     >
                                         {isZh ? "删除" : "Delete"}
                                     </Button>

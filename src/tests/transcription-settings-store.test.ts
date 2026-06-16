@@ -17,6 +17,37 @@ describe("transcription settings store", () => {
         __resetTranscriptionSettingsStoreForTests();
     });
 
+    it("starts from the SOT transcription defaults before backend settings load", () => {
+        expect(getTranscriptionSettingsStoreSnapshot()).toMatchObject({
+            hasLoaded: false,
+            isLoading: true,
+            settings: {
+                autoTranscribe: true,
+                defaultTranscriptionLanguage: null,
+            },
+        });
+    });
+
+    it("falls back to the SOT auto-transcribe default when the backend omits it", async () => {
+        const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+            new Response(
+                JSON.stringify({
+                    defaultTranscriptionLanguage: null,
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(ensureTranscriptionSettingsLoaded()).resolves.toEqual({
+            autoTranscribe: true,
+            defaultTranscriptionLanguage: null,
+        });
+    });
+
     it("loads transcription settings once and shares the loaded snapshot", async () => {
         const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
             new Response(
@@ -138,7 +169,7 @@ describe("transcription settings store", () => {
             isSaving: false,
             loadError: "Failed to fetch transcription settings",
             settings: {
-                autoTranscribe: false,
+                autoTranscribe: true,
                 defaultTranscriptionLanguage: null,
             },
         });
