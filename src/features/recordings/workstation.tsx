@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldTitle,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
@@ -1136,56 +1142,56 @@ export function RecordingWorkstation({
                                         </h2>
                                     </div>
                                     <div className="transcript-body">
-                                        <div className="field-row">
-                                            <div>
-                                                <div className="field-name">
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
                                                     {t("recording.duration")}
-                                                </div>
-                                                <div className="field-desc">
+                                                </FieldTitle>
+                                                <FieldDescription>
                                                     {durationLabel}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="field-row">
-                                            <div>
-                                                <div className="field-name">
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
                                                     {t("recording.fileSize")}
-                                                </div>
-                                                <div className="field-desc">
+                                                </FieldTitle>
+                                                <FieldDescription>
                                                     {fileSizeLabel}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="field-row">
-                                            <div>
-                                                <div className="field-name">
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
                                                     {t("recording.date")}
-                                                </div>
-                                                <div className="field-desc">
+                                                </FieldTitle>
+                                                <FieldDescription>
                                                     {startTimeLabel}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="field-row">
-                                            <div>
-                                                <div className="field-name">
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
                                                     {t("recording.source")}
-                                                </div>
-                                                <div className="field-desc">
+                                                </FieldTitle>
+                                                <FieldDescription>
                                                     {sourceLabel}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="field-row">
-                                            <div>
-                                                <div className="field-name">
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
                                                     {t("recording.device")}
-                                                </div>
-                                                <div className="field-desc">
+                                                </FieldTitle>
+                                                <FieldDescription>
                                                     {recording.providerDeviceId}
-                                                </div>
-                                            </div>
-                                        </div>
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
                                     </div>
                                 </div>
                             </section>
@@ -1248,34 +1254,34 @@ export function RecordingWorkstation({
                                             </div>
                                         </div>
                                         <div className="transcript-body">
-                                            <div className="field-row">
-                                                <div>
-                                                    <p className="field-name">
+                                            <Field>
+                                                <FieldContent>
+                                                    <FieldTitle>
                                                         {t(
                                                             "recording.sourceRecord",
                                                         )}
-                                                    </p>
-                                                    <p className="field-desc">
+                                                    </FieldTitle>
+                                                    <FieldDescription>
                                                         {t(
                                                             "recording.sourceRecordDescription",
                                                         )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="field-row">
-                                                <div>
-                                                    <p className="field-name">
+                                                    </FieldDescription>
+                                                </FieldContent>
+                                            </Field>
+                                            <Field>
+                                                <FieldContent>
+                                                    <FieldTitle>
                                                         {t(
                                                             "recording.localTranscript",
                                                         )}
-                                                    </p>
-                                                    <p className="field-desc">
+                                                    </FieldTitle>
+                                                    <FieldDescription>
                                                         {t(
                                                             "recording.localWorkflowDescription",
                                                         )}
-                                                    </p>
-                                                </div>
-                                            </div>
+                                                    </FieldDescription>
+                                                </FieldContent>
+                                            </Field>
                                             <SegmentedTabs
                                                 items={[
                                                     {
@@ -1307,7 +1313,7 @@ export function RecordingWorkstation({
                                                     setActiveTranscriptTab
                                                 }
                                             />
-                                            <p className="field-desc">
+                                            <FieldDescription>
                                                 {showLocalTranscriptTab
                                                     ? t(
                                                           "recording.transcriptTabsHint",
@@ -1316,7 +1322,7 @@ export function RecordingWorkstation({
                                                       t(
                                                           "recording.transcriptTabsHint",
                                                       ))}
-                                            </p>
+                                            </FieldDescription>
                                         </div>
                                     </div>
                                     {activeTranscriptTab === "source" ? (

@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     SpeakerReviewSkeleton,
     TranscriptReviewSkeleton,
@@ -125,6 +125,10 @@ function formatProviderName(value: string | null | undefined) {
     }
 
     return value;
+}
+
+function getSpeakerMappingInputId(recordingId: string, rawLabel: string) {
+    return `speaker-mapping-${encodeURIComponent(recordingId)}-${encodeURIComponent(rawLabel)}`;
 }
 
 interface SpeakerLabelEditorProps {
@@ -774,7 +778,11 @@ export function SpeakerLabelEditor({
                                             setIsMergePopoverOpen(false)
                                         }
                                     >
-                                        <svg viewBox="0 0 24 24">
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                        >
                                             <path d="M18 6 6 18M6 6l12 12" />
                                         </svg>
                                     </button>
@@ -784,7 +792,11 @@ export function SpeakerLabelEditor({
                                         className="sp-merge-empty-ico"
                                         aria-hidden="true"
                                     >
-                                        <svg viewBox="0 0 24 24">
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                        >
                                             <path d="M20 6 9 17l-5-5" />
                                         </svg>
                                     </div>
@@ -954,6 +966,10 @@ export function SpeakerLabelEditor({
                                     normalizedQuery.length > 0 &&
                                     profiles.length > 0 &&
                                     filteredProfiles.length === 0;
+                                const mappingInputId = getSpeakerMappingInputId(
+                                    recordingId,
+                                    speaker.rawLabel,
+                                );
 
                                 if (isInlineEditing) {
                                     return (
@@ -1073,10 +1089,10 @@ export function SpeakerLabelEditor({
                                                                         "speakerReview.mappedTo",
                                                                         {
                                                                             name:
-                                                                              speaker.matchedProfileName ??
-                                                                              t(
-                                                                                  "speakerReview.savedSpeaker",
-                                                                              ),
+                                                                                speaker.matchedProfileName ??
+                                                                                t(
+                                                                                    "speakerReview.savedSpeaker",
+                                                                                ),
                                                                         },
                                                                     )
                                                                   : t(
@@ -1236,104 +1252,74 @@ export function SpeakerLabelEditor({
                                             )}
                                         </div>
 
-                                        <div className="field-row">
-                                            <Label>
+                                        <Field
+                                            data-disabled={
+                                                isSpeakerSaving
+                                                    ? true
+                                                    : undefined
+                                            }
+                                        >
+                                            <FieldLabel
+                                                htmlFor={mappingInputId}
+                                            >
                                                 {t(
                                                     "speakerReview.mappingTitle",
                                                 )}
-                                            </Label>
-                                            <div>
-                                                <Input
-                                                    value={searchQuery}
-                                                    onFocus={() => {
-                                                        if (
-                                                            isSpeakerSaving ||
-                                                            isConfirmingUnlink
-                                                        ) {
-                                                            return;
-                                                        }
+                                            </FieldLabel>
+                                            <FieldContent>
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        id={mappingInputId}
+                                                        value={searchQuery}
+                                                        onFocus={() => {
+                                                            if (
+                                                                isSpeakerSaving ||
+                                                                isConfirmingUnlink
+                                                            ) {
+                                                                return;
+                                                            }
 
-                                                        setConfirmUnlinkFor(
-                                                            null,
-                                                        );
-                                                        clearSpeakerSaveError(
-                                                            speaker.rawLabel,
-                                                        );
-                                                        setOpenPickerFor(
-                                                            speaker.rawLabel,
-                                                        );
-                                                    }}
-                                                    onBlur={() => {
-                                                        startBrowserTimeout(
-                                                            () => {
-                                                                setOpenPickerFor(
-                                                                    (
-                                                                        current,
-                                                                    ) =>
-                                                                        current ===
-                                                                        speaker.rawLabel
-                                                                            ? null
-                                                                            : current,
-                                                                );
-                                                            },
-                                                            120,
-                                                        );
-                                                    }}
-                                                    onChange={(event) => {
-                                                        if (isSpeakerSaving) {
-                                                            return;
-                                                        }
-
-                                                        const value =
-                                                            event.target.value;
-                                                        setSearchQueries(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                [speaker.rawLabel]:
-                                                                    value,
-                                                            }),
-                                                        );
-                                                        setConfirmUnlinkFor(
-                                                            null,
-                                                        );
-                                                        clearSpeakerSaveError(
-                                                            speaker.rawLabel,
-                                                        );
-                                                        setOpenPickerFor(
-                                                            speaker.rawLabel,
-                                                        );
-                                                    }}
-                                                    placeholder={t(
-                                                        "speakerReview.searchOrCreateSpeakerPlaceholder",
-                                                    )}
-                                                    disabled={isSpeakerSaving}
-                                                />
-                                                {searchQuery.trim() ? (
-                                                    <Button
-                                                        type="button"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        aria-label={t(
-                                                            "speakerReview.clearSelectedSpeaker",
-                                                        )}
-                                                        disabled={
-                                                            isSpeakerSaving
-                                                        }
-                                                        onMouseDown={(event) =>
-                                                            event.preventDefault()
-                                                        }
-                                                        onClick={() => {
+                                                            setConfirmUnlinkFor(
+                                                                null,
+                                                            );
+                                                            clearSpeakerSaveError(
+                                                                speaker.rawLabel,
+                                                            );
+                                                            setOpenPickerFor(
+                                                                speaker.rawLabel,
+                                                            );
+                                                        }}
+                                                        onBlur={() => {
+                                                            startBrowserTimeout(
+                                                                () => {
+                                                                    setOpenPickerFor(
+                                                                        (
+                                                                            current,
+                                                                        ) =>
+                                                                            current ===
+                                                                            speaker.rawLabel
+                                                                                ? null
+                                                                                : current,
+                                                                    );
+                                                                },
+                                                                120,
+                                                            );
+                                                        }}
+                                                        onChange={(event) => {
                                                             if (
                                                                 isSpeakerSaving
                                                             ) {
                                                                 return;
                                                             }
 
+                                                            const value =
+                                                                event.target
+                                                                    .value;
                                                             setSearchQueries(
                                                                 (prev) => ({
                                                                     ...prev,
                                                                     [speaker.rawLabel]:
-                                                                        "",
+                                                                        value,
                                                                 }),
                                                             );
                                                             setConfirmUnlinkFor(
@@ -1346,11 +1332,59 @@ export function SpeakerLabelEditor({
                                                                 speaker.rawLabel,
                                                             );
                                                         }}
-                                                    >
-                                                        <X />
-                                                    </Button>
-                                                ) : null}
-                                            </div>
+                                                        placeholder={t(
+                                                            "speakerReview.searchOrCreateSpeakerPlaceholder",
+                                                        )}
+                                                        disabled={
+                                                            isSpeakerSaving
+                                                        }
+                                                    />
+                                                    {searchQuery.trim() ? (
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            aria-label={t(
+                                                                "speakerReview.clearSelectedSpeaker",
+                                                            )}
+                                                            disabled={
+                                                                isSpeakerSaving
+                                                            }
+                                                            onMouseDown={(
+                                                                event,
+                                                            ) =>
+                                                                event.preventDefault()
+                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    isSpeakerSaving
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                setSearchQueries(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [speaker.rawLabel]:
+                                                                            "",
+                                                                    }),
+                                                                );
+                                                                setConfirmUnlinkFor(
+                                                                    null,
+                                                                );
+                                                                clearSpeakerSaveError(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                                setOpenPickerFor(
+                                                                    speaker.rawLabel,
+                                                                );
+                                                            }}
+                                                        >
+                                                            <X />
+                                                        </Button>
+                                                    ) : null}
+                                                </div>
+                                            </FieldContent>
                                             {speaker.matchedProfileId ? (
                                                 isConfirmingUnlink ? (
                                                     <div className="sp-confirm">
@@ -1358,7 +1392,9 @@ export function SpeakerLabelEditor({
                                                             {t(
                                                                 "speakerReview.confirmUnlinkMessagePrefix",
                                                             )}
-                                                            <em>{matchedName}</em>
+                                                            <em>
+                                                                {matchedName}
+                                                            </em>
                                                             {t(
                                                                 "speakerReview.confirmUnlinkMessageSuffix",
                                                             )}
@@ -1580,7 +1616,7 @@ export function SpeakerLabelEditor({
                                                     </div>
                                                 )
                                             ) : null}
-                                        </div>
+                                        </Field>
                                     </>
                                 );
                             })()}

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FieldDescription } from "@/components/ui/field";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
     startBrowserInterval,
@@ -273,16 +274,16 @@ export function TranscriptionSection({
                 <FileText aria-hidden="true" />
                 <div>
                     <h2 className="rec-h2">{t("transcription.localTitle")}</h2>
-                    <p className="field-desc">
+                    <FieldDescription>
                         {t("transcription.localDescription")}
-                    </p>
+                    </FieldDescription>
                     {!canTranscribe && (
-                        <p className="field-desc">
+                        <FieldDescription>
                             {transcribeUnavailableReason ??
                                 (uiLanguage === "zh-CN"
                                     ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
                                     : "This source does not provide downloadable local audio. You can only review the source transcript or report for now.")}
-                        </p>
+                        </FieldDescription>
                     )}
                 </div>
             </header>

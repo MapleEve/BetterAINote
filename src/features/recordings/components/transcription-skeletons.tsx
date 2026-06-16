@@ -1,5 +1,6 @@
 "use client";
 
+import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function mergeSkeletonClassName(baseClassName: string, className?: string) {
@@ -107,12 +108,14 @@ function SpeakerCardSkeleton() {
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
             </div>
-            <div className="field-row">
-                <div>
-                    <Skeleton />
-                </div>
-                <Skeleton />
-            </div>
+            <Field>
+                <FieldContent>
+                    <FieldTitle>
+                        <Skeleton className="w-24" />
+                    </FieldTitle>
+                    <Skeleton className="w-32" />
+                </FieldContent>
+            </Field>
         </div>
     );
 }
