@@ -130,7 +130,7 @@ export function SotPlayerTagChip({
 
         return (
             <button
-                className="utag-add _is-h24"
+                className="utag-add tag-chip-action"
                 aria-expanded={trigger ? state === "open" : undefined}
                 data-tagm-trigger="1"
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
@@ -148,7 +148,7 @@ export function SotPlayerTagChip({
     }
 
     const className = `${recordingTagColorClassName[tag.color]} ${
-        trigger ? "is-trigger _is-h24" : "_is-2"
+        trigger ? "is-trigger tag-chip-trigger" : "tag-chip-inline"
     }`;
 
     if (!onClick) {
@@ -221,7 +221,7 @@ export function SotPlayerTagChip({
 }
 
 export function SotPlayerStatusBadge({
-    className = "b ok _is-3",
+    className = "b ok status-badge-ready",
     dotClassName = "dot",
     label = "已更新",
 }: {

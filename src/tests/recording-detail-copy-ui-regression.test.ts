@@ -124,6 +124,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(sourceReport).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_LOADING_SKELETON_CLASSES",
+        );
         for (const control of sourceReportButtonControls) {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);
@@ -138,6 +144,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain('className="btn ghost btn-sm"');
         expect(sourceReport).not.toContain(
             'className="btn ghost btn-sm copy-btn"',
+        );
+        expect(sourceReport).not.toMatch(
+            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });

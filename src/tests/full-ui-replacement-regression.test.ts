@@ -313,6 +313,9 @@ function collectInlineModernColorFindings() {
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
+const SOURCE_REPORT_LEGACY_SURFACE_RE =
+    /uikit-|glass-surface|glass-control|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -842,6 +845,9 @@ describe("full UI replacement regression coverage", () => {
         const player = readSource(
             "features/recordings/components/recording-player.tsx",
         );
+        const sotPlayerPrimitives = readSource(
+            "features/recordings/components/sot-player-primitives.tsx",
+        );
         const tagManager = readSource(
             "features/recordings/components/recording-tag-manager.tsx",
         );
@@ -900,7 +906,22 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(sourceReport).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(sourceReport).toContain(
+            "SOURCE_REPORT_LOADING_SKELETON_CLASSES",
+        );
         expect(sourceReport).toContain("<Button");
+        expect(sourceReport).not.toMatch(
+            /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
+        );
+        expect(sourceReport).not.toMatch(SOURCE_REPORT_LEGACY_SURFACE_RE);
+        expect(sotPlayerPrimitives).toContain("tag-chip-action");
+        expect(sotPlayerPrimitives).toContain("tag-chip-trigger");
+        expect(sotPlayerPrimitives).toContain("tag-chip-inline");
+        expect(sotPlayerPrimitives).toContain("status-badge-ready");
+        expect(sotPlayerPrimitives).not.toContain("_is-");
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');
         expect(speakerReview).toContain("data-sot-state=");
         expect(speakerReview).toContain("<section");
@@ -918,7 +939,6 @@ describe("full UI replacement regression coverage", () => {
             detail,
             player,
             tagManager,
-            sourceReport,
             speakerReview,
         ]) {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);

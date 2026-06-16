@@ -2211,6 +2211,9 @@ body[data-time-style="abs"] .real-list .ts-rel {
     color: var(--fg-secondary);
     border-color: var(--line-hairline);
 }
+.status-badge-ready {
+    margin-left: auto;
+}
 .b.warn .dot {
     animation: bpulse 1.4s ease-in-out infinite;
 }
@@ -2472,6 +2475,49 @@ body[data-time-style="abs"] .real-list .ts-rel {
 }
 .sk-w-40 {
     width: 40%;
+}
+
+.sr-card-source-skeleton,
+.sr-card-status-skeleton,
+.sr-card-count-skeleton {
+    height: 18px;
+    border-radius: 6px;
+}
+.sr-card-source-skeleton {
+    width: 120px;
+}
+.sr-card-status-skeleton {
+    width: 80px;
+}
+.sr-card-count-skeleton {
+    width: 48px;
+}
+.sr-seg-time-skeleton,
+.sr-seg-speaker-skeleton {
+    height: 12px;
+    border-radius: 4px;
+}
+.sr-seg-time-skeleton {
+    width: 96px;
+}
+.sr-seg-speaker-skeleton {
+    width: 54px;
+}
+.sr-seg-line-skeleton {
+    height: 13px;
+    border-radius: 4px;
+}
+.sr-seg-line-skeleton-long {
+    width: 92%;
+}
+.sr-seg-line-skeleton-medium {
+    width: 76%;
+}
+.sr-seg-line-skeleton-wide {
+    width: 88%;
+}
+.sr-seg-line-skeleton-short {
+    width: 60%;
 }
 
 .skel-list {
@@ -6725,6 +6771,11 @@ body[data-ds-todo="show"] .design-todo {
 .utag-add:hover {
     color: var(--fg-primary);
     border-color: var(--line-strong);
+}
+.tag-chip-action,
+.tag-chip-trigger,
+.tag-chip-inline {
+    height: 24px;
 }
 
 .tagm-panel {

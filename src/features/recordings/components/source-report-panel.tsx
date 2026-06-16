@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     getSourceProviderLabel,
     getSourceRecordDescription,
@@ -143,6 +144,18 @@ const SAFE_SOURCE_DETAIL_KEYS = new Set([
     "summaryReady",
     "transcriptReady",
 ]);
+
+const SOURCE_REPORT_LOADING_SKELETON_CLASSES = {
+    cardCount: "sr-card-count-skeleton",
+    cardSource: "sr-card-source-skeleton",
+    cardStatus: "sr-card-status-skeleton",
+    segmentLineLong: "sr-seg-line-skeleton sr-seg-line-skeleton-long",
+    segmentLineMedium: "sr-seg-line-skeleton sr-seg-line-skeleton-medium",
+    segmentLineShort: "sr-seg-line-skeleton sr-seg-line-skeleton-short",
+    segmentLineWide: "sr-seg-line-skeleton sr-seg-line-skeleton-wide",
+    segmentSpeaker: "sr-seg-speaker-skeleton",
+    segmentTime: "sr-seg-time-skeleton",
+} as const;
 
 function isZh(language: UiLanguage) {
     return language === "zh-CN";
@@ -1092,19 +1105,39 @@ export function SourceReportPanel({
                     <div className="sr-cards">
                         <div className="sr-card">
                             <div className="sr-card-label">来源</div>
-                            <div className="sk _is-10" />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardSource
+                                }
+                            />
                         </div>
                         <div className="sr-card">
                             <div className="sr-card-label">转写状态</div>
-                            <div className="sk _is-11" />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardStatus
+                                }
+                            />
                         </div>
                         <div className="sr-card">
                             <div className="sr-card-label">摘要状态</div>
-                            <div className="sk _is-11" />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardStatus
+                                }
+                            />
                         </div>
                         <div className="sr-card">
                             <div className="sr-card-label">分段数</div>
-                            <div className="sk _is-12" />
+                            <Skeleton
+                                aria-hidden="true"
+                                className={
+                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.cardCount
+                                }
+                            />
                         </div>
                     </div>
                     <section className="sr-section">
@@ -1115,16 +1148,64 @@ export function SourceReportPanel({
                             </span>
                         </header>
                         <div className="sr-seg skel">
-                            <span className="sk _is-13" />{" "}
-                            <span className="sk _is-14" />
-                            <div className="sk _is-15" />
-                            <div className="sk _is-16" />
+                            <div className="sr-seg-skeleton-meta flex items-center gap-2">
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
+                                    }
+                                />
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
+                                    }
+                                />
+                            </div>
+                            <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineLong
+                                    }
+                                />
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineMedium
+                                    }
+                                />
+                            </div>
                         </div>
                         <div className="sr-seg skel">
-                            <span className="sk _is-13" />{" "}
-                            <span className="sk _is-14" />
-                            <div className="sk _is-17" />
-                            <div className="sk _is-18" />
+                            <div className="sr-seg-skeleton-meta flex items-center gap-2">
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
+                                    }
+                                />
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
+                                    }
+                                />
+                            </div>
+                            <div className="sr-seg-skeleton-lines mt-1.5 flex flex-col gap-1.5">
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineWide
+                                    }
+                                />
+                                <Skeleton
+                                    aria-hidden="true"
+                                    className={
+                                        SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineShort
+                                    }
+                                />
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -1153,7 +1234,7 @@ export function SourceReportPanel({
                                     // biome-ignore lint/performance/noImgElement: SOT source cards render provider asset nodes directly.
                                     <img src={sourceProviderIcon} alt="" />
                                 ) : (
-                                    <span className="_is-47">
+                                    <span className="sr-card-source-fallback font-bold text-[11px] text-muted-foreground">
                                         {sourceProviderLetter}
                                     </span>
                                 )}
