@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export interface SettingFieldOption {
     value: string;
@@ -60,32 +61,31 @@ export function SettingFieldControl({
     };
 
     const isSettingsVariant = variant === "settings";
-    const rowClassName = isSettingsVariant ? "sm-row" : "field-row";
-    const labelWrapClassName = isSettingsVariant ? "sm-row-label" : undefined;
-    const labelClassName = isSettingsVariant ? "sm-l-t" : "field-name";
-    const descriptionClassName = isSettingsVariant ? "sm-l-h" : "field-desc";
-    const controlWrapClassName = "sm-row-ctrl";
-    const inputClassName = [
-        isSettingsVariant ? "sm-input" : undefined,
+    const fieldOrientation = isSettingsVariant ? "responsive" : "horizontal";
+    const fieldClassName = cn(
+        "border-b border-border py-3 last:border-b-0",
+        isSettingsVariant ? "gap-3 @md/field-group:gap-4" : "gap-[18px] py-2",
+    );
+    const controlWrapClassName = cn(
+        "flex flex-none items-center gap-2",
+        isSettingsVariant && "min-w-0 @md/field-group:justify-end",
+    );
+    const inputClassName = cn(
+        isSettingsVariant && "min-w-60 max-w-full",
         field.className,
-    ]
-        .filter(Boolean)
-        .join(" ");
+    );
 
     return (
-        <FieldGroup className={rowClassName} data-field-id={field.id}>
+        <FieldGroup className="gap-0" data-field-id={field.id}>
             <Field
                 data-disabled={disabled ? "true" : undefined}
-                style={{ display: "contents" }}
+                orientation={fieldOrientation}
+                className={fieldClassName}
             >
-                <FieldContent className={labelWrapClassName} style={{ gap: 0 }}>
-                    <FieldLabel className={labelClassName} htmlFor={fieldId}>
-                        {field.label}
-                    </FieldLabel>
+                <FieldContent className="min-w-0 gap-1">
+                    <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                     {field.description ? (
-                        <FieldDescription className={descriptionClassName}>
-                            {field.description}
-                        </FieldDescription>
+                        <FieldDescription>{field.description}</FieldDescription>
                     ) : null}
                 </FieldContent>
                 <div className={controlWrapClassName}>

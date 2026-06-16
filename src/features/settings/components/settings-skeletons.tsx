@@ -1,11 +1,15 @@
 "use client";
 
 import type { Ref } from "react";
+import { Field, FieldContent } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 const makeSkeletonKeys = (prefix: string, count: number) =>
     Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`);
+
+const SKELETON_ROW_CONTROL_CLASS =
+    "flex min-w-0 flex-wrap items-center justify-end gap-2";
 
 interface SettingsCardSkeletonProps {
     className?: string;
@@ -29,22 +33,22 @@ export function SettingsCardSkeleton({
 
             <div>
                 {makeSkeletonKeys("field", fields).map((fieldKey, index) => (
-                    <div
+                    <Field
                         key={fieldKey}
-                        className="sm-row"
                         data-sot-part="settings-skeleton-row"
+                        orientation="horizontal"
                     >
-                        <span className="sm-row-label">
-                            <Skeleton className="sm-l-t" />
-                            <Skeleton className="sm-l-h" />
-                        </span>
-                        <span className="sm-row-ctrl">
+                        <FieldContent>
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-48 max-w-full" />
+                        </FieldContent>
+                        <div className={SKELETON_ROW_CONTROL_CLASS}>
                             {index === 0 ? (
                                 <Skeleton className="sync-dot" />
                             ) : null}
-                            <Skeleton className="sm-input" />
-                        </span>
-                    </div>
+                            <Skeleton className="h-9 w-60 max-w-full rounded-md" />
+                        </div>
+                    </Field>
                 ))}
             </div>
         </div>
@@ -107,17 +111,17 @@ export function SettingsListSkeleton({ rows = 3 }: SettingsListSkeletonProps) {
             data-sot-state="loading"
         >
             {makeSkeletonKeys("settings-row", rows).map((rowKey) => (
-                <div key={rowKey} className="sm-row">
-                    <span className="sm-row-label">
-                        <Skeleton className="sm-l-t" />
-                        <Skeleton className="sm-l-h" />
-                    </span>
-                    <span className="sm-row-ctrl">
-                        <Skeleton className="sm-input" />
-                        <Skeleton className="btn" />
-                        <Skeleton className="btn" />
-                    </span>
-                </div>
+                <Field key={rowKey} orientation="horizontal">
+                    <FieldContent>
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48 max-w-full" />
+                    </FieldContent>
+                    <div className={SKELETON_ROW_CONTROL_CLASS}>
+                        <Skeleton className="h-9 w-60 max-w-full rounded-md" />
+                        <Skeleton className="h-8 w-16 rounded-md" />
+                        <Skeleton className="h-8 w-16 rounded-md" />
+                    </div>
+                </Field>
             ))}
         </div>
     );

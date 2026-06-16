@@ -77,6 +77,48 @@ function readCssBlocks(source: string, marker: string) {
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|CardContent|from "@\/components\/ui\/card"|bg-muted/;
 
+const TARGET_SETTINGS_MIGRATION_PATHS = [
+    "features/settings/components/settings-content.tsx",
+    "features/settings/components/setting-field-control.tsx",
+    "features/settings/components/settings-skeletons.tsx",
+    "features/data-sources/data-source-field-control.tsx",
+] as const;
+
+const LEGACY_SETTINGS_FIELD_PATTERNS: Array<[RegExp, string]> = [
+    [/\bfield-row\b/, "field-row"],
+    [/\bfield-name\b/, "field-name"],
+    [/\bfield-desc\b/, "field-desc"],
+    [/\bsm-row-label\b/, "sm-row-label"],
+    [/\bsm-row-ctrl\b/, "sm-row-ctrl"],
+    [/\bsm-l-t\b/, "sm-l-t"],
+    [/\bsm-l-h\b/, "sm-l-h"],
+    [/\bsm-input\b/, "sm-input"],
+    [/\bsm-field-msg\b/, "sm-field-msg"],
+    [/className=["']seg["']/, 'className="seg"'],
+    [/\b_is-[\w-]+/, "_is-*"],
+];
+
+function expectNoLegacySettingsFieldPatterns(
+    sources: Partial<
+        Record<(typeof TARGET_SETTINGS_MIGRATION_PATHS)[number], string>
+    >,
+) {
+    for (const filePath of TARGET_SETTINGS_MIGRATION_PATHS) {
+        const source = sources[filePath];
+
+        if (!source) {
+            continue;
+        }
+
+        for (const [pattern, label] of LEGACY_SETTINGS_FIELD_PATTERNS) {
+            expect(
+                source,
+                `${filePath} should not use legacy ${label}`,
+            ).not.toMatch(pattern);
+        }
+    }
+}
+
 describe("settings SOT interaction regressions", () => {
     it("keeps the settings dialog as a fixed SOT shell with local scrolling and busy guards", () => {
         const dialog = readSource(
@@ -211,6 +253,80 @@ describe("settings SOT interaction regressions", () => {
         expect(sharedSelect).not.toContain("<option");
     });
 
+    it("keeps migrated settings fields on shadcn Field, Slider, and Skeleton primitives", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const settingFieldControl = readSource(
+            "features/settings/components/setting-field-control.tsx",
+        );
+        const settingsSkeletons = readSource(
+            "features/settings/components/settings-skeletons.tsx",
+        );
+        const dataSourceFieldControl = readSource(
+            "features/data-sources/data-source-field-control.tsx",
+        );
+        const fieldPrimitive = readSource("components/ui/field.tsx");
+        const sliderPrimitive = readSource("components/ui/slider.tsx");
+        const playbackSettingsRows =
+            content.match(
+                /function PlaybackSettingsRows[\s\S]*?function MiscSettingsPanel/,
+            )?.[0] ?? "";
+
+        expectNoLegacySettingsFieldPatterns({
+            "features/settings/components/settings-content.tsx": content,
+            "features/settings/components/setting-field-control.tsx":
+                settingFieldControl,
+            "features/settings/components/settings-skeletons.tsx":
+                settingsSkeletons,
+            "features/data-sources/data-source-field-control.tsx":
+                dataSourceFieldControl,
+        });
+
+        expect(content).toMatch(
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldError,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+        );
+        expect(settingFieldControl).toContain('from "@/components/ui/field";');
+        expect(dataSourceFieldControl).toContain(
+            'from "@/components/ui/field";',
+        );
+        expect(settingsSkeletons).toContain(
+            'import { Field, FieldContent } from "@/components/ui/field";',
+        );
+        expect(settingsSkeletons).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+
+        for (const slot of [
+            "field",
+            "field-group",
+            "field-content",
+            "field-label",
+            "field-description",
+            "field-error",
+        ]) {
+            expect(fieldPrimitive).toContain(`data-slot="${slot}"`);
+        }
+
+        expect(content).toContain(
+            'import { Slider } from "@/components/ui/slider";',
+        );
+        expect(playbackSettingsRows).toContain("<Slider");
+        expect(playbackSettingsRows).toContain(
+            'data-sot-control="playback-volume"',
+        );
+        expect(playbackSettingsRows).toContain("value={[draft.defaultVolume]}");
+        expect(playbackSettingsRows).toContain("onValueChange={(values) =>");
+        for (const slot of [
+            "slider",
+            "slider-track",
+            "slider-range",
+            "slider-thumb",
+        ]) {
+            expect(sliderPrimitive).toContain(`data-slot="${slot}"`);
+        }
+    });
+
     it("uses the SOT monitor glyph for the local deployment header badge", () => {
         const dialog = readSource(
             "features/settings/components/settings-dialog.tsx",
@@ -313,6 +429,9 @@ describe("settings SOT interaction regressions", () => {
         const settingFieldControl = readSource(
             "features/settings/components/setting-field-control.tsx",
         );
+        const dataSourceFieldControl = readSource(
+            "features/data-sources/data-source-field-control.tsx",
+        );
         const inputPrimitive = readSource("components/ui/input.tsx");
         const hook = readSource(
             "features/data-sources/use-data-sources-settings.ts",
@@ -386,11 +505,26 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("sd-pill");
         expect(content).toContain("DataSourceFieldControl");
         expect(content).toContain('className="sm-section"');
-        expect(content).toContain('className="sm-row"');
-        expect(content).toContain('className="sm-row-ctrl"');
+        expect(content).toContain('from "@/components/ui/field";');
+        expect(content).toContain("<Field");
+        expect(content).toContain("<FieldContent>");
+        expect(content).toContain("<FieldLabel");
+        expect(content).toContain("<FieldTitle>");
+        expect(content).toContain("<FieldDescription>");
         expect(settingFieldControl).toContain("readOnly?: boolean");
         expect(settingFieldControl).toContain("readOnly={field.readOnly}");
-        expect(settingFieldControl).toContain("field-row");
+        expect(settingFieldControl).toContain("<FieldGroup");
+        expect(settingFieldControl).toContain("<Field");
+        expect(settingFieldControl).toContain("<FieldContent");
+        expect(settingFieldControl).toContain("<FieldLabel");
+        expect(settingFieldControl).toContain("<FieldDescription>");
+        expect(dataSourceFieldControl).toContain(
+            'from "@/components/ui/field";',
+        );
+        expect(dataSourceFieldControl).toContain("<Field");
+        expect(dataSourceFieldControl).toContain("<FieldContent>");
+        expect(dataSourceFieldControl).toContain("<FieldLabel");
+        expect(dataSourceFieldControl).toContain("<FieldDescription>");
         expect(inputPrimitive).toContain('data-slot="input"');
         for (const className of [
             "border-input",
@@ -596,15 +730,17 @@ describe("settings SOT interaction regressions", () => {
 
         const reconnectRow =
             dataSourcesPanel.match(
-                /<div\s+className="sm-row"\s+data-sot-part="source-reconnect-row"[\s\S]*?<\/Button>\s*<\/div>\s*<\/div>/,
+                /<Field\s+data-sot-part="source-reconnect-row"[\s\S]*?<\/Field>/,
             )?.[0] ?? "";
         const disconnectRow =
             dataSourcesPanel.match(
-                /<div\s+className="sm-row"\s+data-sot-part="source-disconnect-row"[\s\S]*?<\/Button>\s*<\/div>\s*<\/div>/,
+                /<Field\s+data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
             )?.[0] ?? "";
 
-        expect(reconnectRow).toContain('className="sm-row"');
-        expect(reconnectRow).toContain('className="sm-l-t"');
+        expect(reconnectRow).toContain('orientation="horizontal"');
+        expect(reconnectRow).toContain("<FieldContent>");
+        expect(reconnectRow).toContain("<FieldTitle>");
+        expect(reconnectRow).toContain("<FieldDescription>");
         expect(reconnectRow).toContain('"重新连接"');
         expect(reconnectRow).toContain('data-sot-control="source-reconnect"');
         expect(reconnectRow).toMatch(
@@ -613,8 +749,10 @@ describe("settings SOT interaction regressions", () => {
         expect(reconnectRow).toContain(
             'aria-busy={actionState === "reconnecting"}',
         );
-        expect(disconnectRow).toContain('className="sm-row"');
-        expect(disconnectRow).toContain('className="sm-l-t"');
+        expect(disconnectRow).toContain('orientation="horizontal"');
+        expect(disconnectRow).toContain("<FieldContent>");
+        expect(disconnectRow).toContain("<FieldTitle>");
+        expect(disconnectRow).toContain("<FieldDescription>");
         expect(disconnectRow).toContain('"断开连接"');
         expect(disconnectRow).toContain('data-sot-control="source-disconnect"');
         expect(disconnectRow).toMatch(
@@ -718,8 +856,17 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("data-sot-state=");
         expect(content).toContain('className="sm-title"');
         expect(content).toContain('className="sm-section-head"');
-        expect(content).toContain('className="sm-l-t"');
-        expect(content).toContain('className="sm-l-h"');
+        expect(content).toContain('from "@/components/ui/field";');
+        expect(content).toContain("function SettingsRow");
+        expect(content).toContain("<Field");
+        expect(content).toContain("<FieldContent>");
+        expect(content).toContain("<FieldTitle>{label}</FieldTitle>");
+        expect(content).toContain(
+            "<FieldDescription>{description}</FieldDescription>",
+        );
+        expect(content).toContain(
+            '<FieldError data-field-msg="">{fieldMessage}</FieldError>',
+        );
         expect(content).not.toContain("sm-section-title");
         expect(content).not.toContain("sm-row-name");
         expect(content).toContain("function SaveActions");
@@ -847,7 +994,9 @@ describe("settings SOT interaction regressions", () => {
         expect(noRepeatRow).toContain("fieldMessage={");
         expect(noRepeatRow).toContain("noRepeatNgramMessage");
         expect(settingsRow).toContain("data-field-msg");
-        expect(settingsRow).toContain("sm-field-msg");
+        expect(settingsRow).toContain(
+            '<FieldError data-field-msg="">{fieldMessage}</FieldError>',
+        );
         expect(settingsRow).toContain("{fieldMessage}");
         expect(noRepeatRow).toContain('placeholder={isZh ? "0 或 ≥ 3"');
         expect(saveFunction).toContain("if (noRepeatNgramInvalid)");
@@ -1116,9 +1265,15 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(skeletons).toContain('data-sot-panel="settings-list-skeleton"');
         expect(skeletons).toContain('data-sot-part="settings-skeleton-row"');
-        expect(skeletons).toContain('className="sm-row"');
-        expect(skeletons).toContain('className="sm-row-label"');
-        expect(skeletons).toContain('className="sm-row-ctrl"');
+        expect(skeletons).toContain(
+            'import { Field, FieldContent } from "@/components/ui/field";',
+        );
+        expect(skeletons).toContain(
+            'import { Skeleton } from "@/components/ui/skeleton";',
+        );
+        expect(skeletons).toContain("<Field");
+        expect(skeletons).toContain('orientation="horizontal"');
+        expect(skeletons).toContain("<FieldContent>");
         expect(skeletons).toContain("makeSkeletonKeys(");
         expect(skeletons).toContain("<Skeleton");
         expect(skeletonPrimitive).toContain('React.ComponentProps<"div">');
@@ -1126,7 +1281,7 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).not.toContain('className="field-name"');
         expect(skeletons).not.toContain('className="field-desc"');
         expect(skeletons).not.toMatch(OLD_UI_RE);
-        expect(skeletons).not.toMatch(/\brounded-/);
+        expect(skeletons).not.toContain("animate-pulse");
         expect(skeletons).not.toMatch(/\bspace-y-/);
     });
 });

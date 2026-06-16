@@ -17,9 +17,17 @@ import { useLanguage } from "@/components/language-provider";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldError,
+    FieldLabel,
+    FieldTitle,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
@@ -493,9 +501,7 @@ function DataSourceProviderTile({
                 data-sot-part="source-provider-mark"
             >
                 {source.provider === "iflyrec" ? (
-                    <span className="_is-47" aria-hidden="true">
-                        讯
-                    </span>
+                    <span aria-hidden="true">讯</span>
                 ) : assetPath ? (
                     // biome-ignore lint/performance/noImgElement: SOT source cards render fixed local provider marks directly.
                     <img src={assetPath} alt="" aria-hidden="true" />
@@ -1169,21 +1175,21 @@ function DataSourcesSettingsPanel({
                             </div>
                         ) : selectedSource.provider !== "dingtalk-a1" ? (
                             <div className="sm-section">
-                                <div className="sm-row">
-                                    <div className="sm-row-label">
-                                        <div className="sm-l-t">
+                                <Field orientation="horizontal">
+                                    <FieldContent>
+                                        <FieldTitle>
                                             {isZh
                                                 ? "登录方式"
                                                 : "Sign-in method"}
-                                        </div>
-                                        <div className="sm-l-h">
+                                        </FieldTitle>
+                                        <FieldDescription>
                                             {getSourceAuthModeDisplayLabel(
                                                 selectedSource.authMode,
                                                 language,
                                             )}
-                                        </div>
-                                    </div>
-                                </div>
+                                        </FieldDescription>
+                                    </FieldContent>
+                                </Field>
                             </div>
                         ) : null}
 
@@ -1192,27 +1198,30 @@ function DataSourcesSettingsPanel({
                             !providerUsesCustomServerSelector(
                                 selectedSource.provider,
                             ) ? (
-                                <div
-                                    className="field-row ds-field-row"
+                                <Field
                                     data-field-id="source-service-address"
+                                    data-disabled={
+                                        interactionDisabled ? "true" : undefined
+                                    }
+                                    orientation="horizontal"
                                 >
-                                    <div>
-                                        <Label
-                                            className="field-name"
+                                    <FieldContent>
+                                        <FieldLabel
                                             htmlFor={`${selectedSource.provider}-base-url`}
                                         >
                                             {displayedServiceAddress.label}
-                                        </Label>
+                                        </FieldLabel>
                                         {displayedServiceAddress.description ? (
-                                            <div className="field-desc">
+                                            <FieldDescription>
                                                 {
                                                     displayedServiceAddress.description
                                                 }
-                                            </div>
+                                            </FieldDescription>
                                         ) : null}
-                                    </div>
-                                    <div className="sm-row-ctrl">
+                                    </FieldContent>
+                                    <div className={SETTINGS_CONTROL_CLASS}>
                                         <Input
+                                            className={SETTINGS_INPUT_CLASS}
                                             id={`${selectedSource.provider}-base-url`}
                                             value={
                                                 displayedServiceAddress.value
@@ -1236,7 +1245,7 @@ function DataSourcesSettingsPanel({
                                             }
                                         />
                                     </div>
-                                </div>
+                                </Field>
                             ) : null}
 
                             {primaryFields.map((field) => (
@@ -1291,23 +1300,26 @@ function DataSourcesSettingsPanel({
                         <div className="sm-divider" />
 
                         <div className="sm-section">
-                            <div
-                                className="sm-row"
+                            <Field
                                 data-sot-part="source-auto-update-row"
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
+                                orientation="horizontal"
                             >
-                                <div className="sm-row-label">
-                                    <div className="sm-l-t">
+                                <FieldContent>
+                                    <FieldTitle>
                                         {isZh
                                             ? "自动更新"
                                             : "Automatic updates"}
-                                    </div>
-                                    <div className="sm-l-h">
+                                    </FieldTitle>
+                                    <FieldDescription>
                                         {isZh
                                             ? "每 15 分钟读取一次新录音"
                                             : "Read new recordings every 15 minutes"}
-                                    </div>
-                                </div>
-                                <div className="sm-row-ctrl">
+                                    </FieldDescription>
+                                </FieldContent>
+                                <div className={SETTINGS_CONTROL_CLASS}>
                                     <Switch
                                         data-sot-control="source-auto-update"
                                         data-sot-provider={
@@ -1331,7 +1343,7 @@ function DataSourcesSettingsPanel({
                                         }
                                     />
                                 </div>
-                            </div>
+                            </Field>
 
                             {titleWritebackFields.map((field) => (
                                 <DataSourceFieldControl
@@ -1358,21 +1370,25 @@ function DataSourcesSettingsPanel({
                                 />
                             ))}
 
-                            <div className="sm-row">
-                                <div className="sm-row-label">
-                                    <Label
-                                        className="sm-l-t"
+                            <Field
+                                data-disabled={
+                                    interactionDisabled ? "true" : undefined
+                                }
+                                orientation="horizontal"
+                            >
+                                <FieldContent>
+                                    <FieldLabel
                                         htmlFor={`${selectedSource.provider}-enabled`}
                                     >
                                         {isZh ? "启用同步" : "Enable sync"}
-                                    </Label>
-                                    <div className="sm-l-h">
+                                    </FieldLabel>
+                                    <FieldDescription>
                                         {isZh
                                             ? "关闭后不再从此来源读取任何新录音"
                                             : "Turn off to stop reading new recordings from this source."}
-                                    </div>
-                                </div>
-                                <div className="sm-row-ctrl">
+                                    </FieldDescription>
+                                </FieldContent>
+                                <div className={SETTINGS_CONTROL_CLASS}>
                                     <Switch
                                         id={`${selectedSource.provider}-enabled`}
                                         data-ds-enable=""
@@ -1408,7 +1424,7 @@ function DataSourcesSettingsPanel({
                                         }
                                     />
                                 </div>
-                            </div>
+                            </Field>
                         </div>
 
                         <footer
@@ -1475,21 +1491,24 @@ function DataSourcesSettingsPanel({
                             </Button>
                         </footer>
 
-                        <div
-                            className="sm-row"
+                        <Field
                             data-sot-part="source-reconnect-row"
+                            data-disabled={
+                                interactionDisabled ? "true" : undefined
+                            }
+                            orientation="horizontal"
                         >
-                            <div className="sm-row-label">
-                                <div className="sm-l-t">
+                            <FieldContent>
+                                <FieldTitle>
                                     {isZh ? "重新连接" : "Reconnect"}
-                                </div>
-                                <div className="sm-l-h">
+                                </FieldTitle>
+                                <FieldDescription>
                                     {isZh
                                         ? "重新启用并检查当前来源连接。"
                                         : "Re-enable and check this source connection."}
-                                </div>
-                            </div>
-                            <div className="sm-row-ctrl">
+                                </FieldDescription>
+                            </FieldContent>
+                            <div className={SETTINGS_CONTROL_CLASS}>
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -1521,23 +1540,26 @@ function DataSourcesSettingsPanel({
                                             : "Reconnect"}
                                 </Button>
                             </div>
-                        </div>
+                        </Field>
 
-                        <div
-                            className="sm-row"
+                        <Field
                             data-sot-part="source-disconnect-row"
+                            data-disabled={
+                                interactionDisabled ? "true" : undefined
+                            }
+                            orientation="horizontal"
                         >
-                            <div className="sm-row-label">
-                                <div className="sm-l-t">
+                            <FieldContent>
+                                <FieldTitle>
                                     {isZh ? "断开连接" : "Disconnect"}
-                                </div>
-                                <div className="sm-l-h">
+                                </FieldTitle>
+                                <FieldDescription>
                                     {isZh
                                         ? "保留配置，但暂停读取该来源。"
                                         : "Keep settings, but pause imports from this source."}
-                                </div>
-                            </div>
-                            <div className="sm-row-ctrl">
+                                </FieldDescription>
+                            </FieldContent>
+                            <div className={SETTINGS_CONTROL_CLASS}>
                                 <Button
                                     type="button"
                                     variant="danger"
@@ -1569,7 +1591,7 @@ function DataSourcesSettingsPanel({
                                             : "Disconnect"}
                                 </Button>
                             </div>
-                        </div>
+                        </Field>
                     </>
                 ) : (
                     <div className="empty-hint">
@@ -1602,6 +1624,10 @@ const TITLE_API_KEY_KEEP = "__keep_title_generation_key__";
 const TITLE_API_KEY_CLEAR = "__clear_title_generation_key__";
 const VOSCRIPT_API_KEY_KEEP = "__keep_voscript_key__";
 const VOSCRIPT_API_KEY_CLEAR = "__clear_voscript_key__";
+const SETTINGS_CONTROL_CLASS =
+    "flex min-w-0 flex-wrap items-center justify-end gap-2";
+const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
+const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim()
@@ -1743,7 +1769,11 @@ function SectionShell({
             data-voscript-availability={voscriptAvailability}
         >
             <h3 className="sm-title">{title}</h3>
-            {subtitle ? <p className="sm-l-h _is-45">{subtitle}</p> : null}
+            {subtitle ? (
+                <FieldDescription className="max-w-2xl">
+                    {subtitle}
+                </FieldDescription>
+            ) : null}
             {children}
         </div>
     );
@@ -1785,24 +1815,25 @@ function SettingsRow({
     "data-field"?: string;
 }) {
     return (
-        <div
-            className="sm-row"
+        <Field
             data-field={dataField}
             data-field-state={fieldState ?? "ready"}
+            data-invalid={fieldState === "invalid" ? "true" : undefined}
+            orientation="horizontal"
         >
-            <div className="sm-row-label">
-                <div className="sm-l-t">{label}</div>
+            <FieldContent>
+                <FieldTitle>{label}</FieldTitle>
                 {description ? (
-                    <div className="sm-l-h">{description}</div>
+                    <FieldDescription>{description}</FieldDescription>
                 ) : null}
                 {fieldMessage ? (
-                    <div className="sm-field-msg" data-field-msg="">
-                        {fieldMessage}
-                    </div>
+                    <FieldError data-field-msg="">{fieldMessage}</FieldError>
                 ) : null}
-            </div>
-            {children ? <div className="sm-row-ctrl">{children}</div> : null}
-        </div>
+            </FieldContent>
+            {children ? (
+                <div className={SETTINGS_CONTROL_CLASS}>{children}</div>
+            ) : null}
+        </Field>
     );
 }
 
@@ -1859,11 +1890,13 @@ function SegmentControl<Value extends string>({
         <ToggleGroup
             aria-disabled={disabled ? "true" : "false"}
             aria-label={label}
-            className="seg"
             data-seg={control}
             disabled={disabled}
+            size="sm"
+            spacing={1}
             type="single"
             value={value}
+            variant="outline"
             onValueChange={(nextValue) => {
                 if (typeof nextValue === "string" && nextValue) {
                     onChange(nextValue as Value);
@@ -1876,7 +1909,6 @@ function SegmentControl<Value extends string>({
                 return (
                     <ToggleGroupItem
                         key={option.value}
-                        className={active ? "active" : undefined}
                         data-sot-control={control}
                         data-sot-state={active ? "selected" : "idle"}
                         data-sot-value={option.value}
@@ -2178,7 +2210,7 @@ function DisplaySettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input _is-42"
+                        className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="display-items-per-page"
                         type="number"
                         min={ITEMS_PER_PAGE_MIN}
@@ -2326,7 +2358,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input"
+                        className={SETTINGS_INPUT_CLASS}
                         id="title-generation-base-url"
                         value={draft.titleGenerationBaseUrl ?? ""}
                         disabled={busy}
@@ -2348,7 +2380,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input"
+                        className={SETTINGS_INPUT_CLASS}
                         id="title-generation-model"
                         value={draft.titleGenerationModel ?? ""}
                         disabled={busy}
@@ -2381,7 +2413,7 @@ function TitleGenerationSettingsPanel({
                         </span>
                     ) : null}
                     <Input
-                        className="sm-input"
+                        className={SETTINGS_INPUT_CLASS}
                         id="title-generation-api-key"
                         type="password"
                         value={apiKeyDraft}
@@ -2446,7 +2478,7 @@ function VoScriptSpeakerRows({
                 description={isZh ? "0 为自动" : "0 means automatic"}
             >
                 <Input
-                    className="sm-input _is-42"
+                    className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-min-speakers"
                     type="number"
                     min={0}
@@ -2476,7 +2508,7 @@ function VoScriptSpeakerRows({
                 }
             >
                 <Input
-                    className="sm-input _is-42"
+                    className={SETTINGS_NUMBER_INPUT_CLASS}
                     id="voscript-max-speakers"
                     type="number"
                     min={0}
@@ -2769,7 +2801,7 @@ function VoScriptSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input"
+                        className={SETTINGS_INPUT_CLASS}
                         id="voscript-base-url"
                         value={draft.privateTranscriptionBaseUrl ?? ""}
                         disabled={busy}
@@ -2800,7 +2832,7 @@ function VoScriptSettingsPanel({
                         </span>
                     ) : null}
                     <Input
-                        className="sm-input"
+                        className={SETTINGS_INPUT_CLASS}
                         id="voscript-api-key"
                         type="password"
                         value={apiKeyDraft}
@@ -2937,7 +2969,7 @@ function VoScriptSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input _is-42"
+                        className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-snr-threshold"
                         type="number"
                         value={draft.privateTranscriptionSnrThreshold ?? ""}
@@ -2968,7 +3000,7 @@ function VoScriptSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input _is-42"
+                        className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-no-repeat-ngram"
                         type="number"
                         min={0}
@@ -2997,7 +3029,7 @@ function VoScriptSettingsPanel({
                     }
                 >
                     <Input
-                        className="sm-input _is-42"
+                        className={SETTINGS_NUMBER_INPUT_CLASS}
                         id="voscript-max-inflight-jobs"
                         type="number"
                         min={0}
@@ -3217,7 +3249,7 @@ function SyncSettingsRows({
                 }
             >
                 <Input
-                    className="sm-input _is-42"
+                    className={SETTINGS_NUMBER_INPUT_CLASS}
                     data-sot-control="sync-interval-seconds"
                     data-sot-state={busy ? "disabled" : "ready"}
                     id="sync-interval-seconds"
@@ -3232,7 +3264,7 @@ function SyncSettingsRows({
                         onSyncIntervalChange(Number(event.target.value))
                     }
                 />
-                <span className="sm-l-h">{isZh ? "秒" : "sec"}</span>
+                <span>{isZh ? "秒" : "sec"}</span>
             </SettingsRow>
         </>
     );
@@ -3286,21 +3318,20 @@ function PlaybackSettingsRows({
                     isZh ? "音频播放默认音量" : "Default audio playback volume"
                 }
             >
-                <input
-                    className="sm-input _is-46"
+                <Slider
+                    className={SETTINGS_INPUT_CLASS}
                     data-sot-control="playback-volume"
                     data-sot-state={busy ? "disabled" : "ready"}
                     id="playback-volume"
-                    type="range"
                     min={0}
                     max={100}
-                    value={draft.defaultVolume}
+                    value={[draft.defaultVolume]}
                     disabled={busy}
-                    onChange={(event) =>
-                        onDefaultVolumeChange(Number(event.target.value))
+                    onValueChange={(values) =>
+                        onDefaultVolumeChange(values[0] ?? 0)
                     }
                 />
-                <span className="sm-l-h">{draft.defaultVolume}%</span>
+                <span>{draft.defaultVolume}%</span>
             </SettingsRow>
             <SettingsRow
                 label={isZh ? "自动播放下一条录音" : "Auto-play next recording"}
