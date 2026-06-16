@@ -163,6 +163,11 @@ const MORE_MENU_HINT_STYLE_PROPS = [
     "color",
     "letter-spacing",
 ] as const;
+const PRODUCT_MORE_MENU_ITEM_SELECTOR = "[data-sot-menu-item]";
+const PRODUCT_MORE_MENU_SEPARATOR_SELECTOR = "[data-sot-menu-separator]";
+const PRODUCT_MORE_MENU_HINT_SELECTOR = "[data-sot-menu-hint]";
+const PRODUCT_MORE_MENU_DISABLED_ITEM_SELECTOR =
+    "[data-sot-menu-item][disabled], [data-sot-menu-item][aria-disabled='true'], [data-sot-menu-item][data-disabled]";
 const CONFIRM_SCRIM_STYLE_PROPS = [
     "position",
     "top",
@@ -2131,14 +2136,16 @@ test("dashboard deletes a source-less local recording through the SOT confirmati
         await expect(
             localOnlyMenu.getByRole("menuitem", { name: "重新转写" }),
         ).toBeVisible();
-        await expect(localOnlyMenu.locator(".more-menu-item svg")).toHaveCount(
-            4,
-        );
+        await expect(
+            localOnlyMenu.locator(`${PRODUCT_MORE_MENU_ITEM_SELECTOR} svg`),
+        ).toHaveCount(4);
         const deleteButton = localOnlyMenu.getByRole("menuitem", {
             name: /删除本地副本/,
         });
         await expect(deleteButton).toBeEnabled();
-        await expect(deleteButton.locator(".more-menu-hint")).toHaveCount(0);
+        await expect(
+            deleteButton.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
+        ).toHaveCount(0);
         await deleteButton.click();
 
         const dialog = page.getByRole("dialog", { name: /删除本地副本/ });
@@ -2261,22 +2268,24 @@ test("dashboard more actions primitives match SOT component library styles", asy
         ).toHaveCount(0);
         await expect(
             upstreamDeletedMenu
-                .locator(".more-menu-item")
+                .locator(PRODUCT_MORE_MENU_ITEM_SELECTOR)
                 .nth(0)
                 .locator("svg"),
         ).toHaveCount(0);
         await expect(
             upstreamDeletedMenu
-                .locator(".more-menu-item")
+                .locator(PRODUCT_MORE_MENU_ITEM_SELECTOR)
                 .nth(1)
                 .locator("svg"),
         ).toHaveCount(0);
         await expect(
-            upstreamDeletedMenu.locator(".more-menu-item.is-danger svg path"),
+            upstreamDeletedMenu.locator(
+                `${PRODUCT_MORE_MENU_ITEM_SELECTOR}[data-sot-tone="danger"] svg path`,
+            ),
         ).toHaveAttribute("d", "M3 6h18");
-        await expect(upstreamDeletedMenu.locator(".more-menu-sep")).toHaveCount(
-            1,
-        );
+        await expect(
+            upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_SEPARATOR_SELECTOR),
+        ).toHaveCount(1);
         await expectComputedStyleMatch(
             sotUpstreamDeleted.locator(".more-menu"),
             upstreamDeletedMenu,
@@ -2284,29 +2293,31 @@ test("dashboard more actions primitives match SOT component library styles", asy
         );
         await expectComputedStyleMatch(
             sotUpstreamDeleted.locator(".more-menu-item").first(),
-            upstreamDeletedMenu.locator(".more-menu-item").first(),
+            upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_ITEM_SELECTOR).first(),
             MORE_MENU_ITEM_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotUpstreamDeleted.locator(".more-menu-item.is-danger"),
-            upstreamDeletedMenu.locator(".more-menu-item.is-danger"),
+            upstreamDeletedMenu.locator(
+                `${PRODUCT_MORE_MENU_ITEM_SELECTOR}[data-sot-tone="danger"]`,
+            ),
             MORE_MENU_ITEM_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotUpstreamDeleted.locator(".more-menu-sep"),
-            upstreamDeletedMenu.locator(".more-menu-sep"),
+            upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_SEPARATOR_SELECTOR),
             MORE_MENU_SEP_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotUpstreamDeleted.locator(".more-menu-hint"),
-            upstreamDeletedMenu.locator(".more-menu-hint"),
+            upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
             MORE_MENU_HINT_STYLE_PROPS,
         );
         await expectRightInsetMatch(
             sotUpstreamDeleted.locator(".more-menu"),
             sotUpstreamDeleted.locator(".more-menu-hint"),
             upstreamDeletedMenu,
-            upstreamDeletedMenu.locator(".more-menu-hint"),
+            upstreamDeletedMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
         );
 
         await seedDashboardActionRecording(userId, {
@@ -2322,7 +2333,9 @@ test("dashboard more actions primitives match SOT component library styles", asy
         const sotUpstream = sotPage.locator("#more .cl-card").nth(1);
         await expect(upstreamMenu).toHaveAttribute("data-sot-state", "upstream");
         await expect(upstreamMenu.getByRole("menuitem")).toHaveCount(4);
-        await expect(upstreamMenu.locator(".more-menu-sep")).toHaveCount(0);
+        await expect(
+            upstreamMenu.locator(PRODUCT_MORE_MENU_SEPARATOR_SELECTOR),
+        ).toHaveCount(0);
         const disabledDelete = upstreamMenu.getByRole("menuitem", {
             name: /删除本地副本/,
         });
@@ -2336,24 +2349,24 @@ test("dashboard more actions primitives match SOT component library styles", asy
         );
         await expectComputedStyleMatch(
             sotUpstream.locator(".more-menu-item").first(),
-            upstreamMenu.locator(".more-menu-item").first(),
+            upstreamMenu.locator(PRODUCT_MORE_MENU_ITEM_SELECTOR).first(),
             MORE_MENU_ITEM_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotUpstream.locator(".more-menu-item[disabled]"),
-            upstreamMenu.locator(".more-menu-item[disabled]"),
+            upstreamMenu.locator(PRODUCT_MORE_MENU_DISABLED_ITEM_SELECTOR),
             MORE_MENU_ITEM_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotUpstream.locator(".more-menu-hint"),
-            upstreamMenu.locator(".more-menu-hint"),
+            upstreamMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
             MORE_MENU_HINT_STYLE_PROPS,
         );
         await expectRightInsetMatch(
             sotUpstream.locator(".more-menu"),
             sotUpstream.locator(".more-menu-hint"),
             upstreamMenu,
-            upstreamMenu.locator(".more-menu-hint"),
+            upstreamMenu.locator(PRODUCT_MORE_MENU_HINT_SELECTOR),
         );
     } finally {
         await sotPage.close();

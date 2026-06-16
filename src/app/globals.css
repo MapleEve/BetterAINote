@@ -4267,6 +4267,7 @@ body[data-drawer="open"] .drawer-scrim {
 .ai-rename-panel,
 .tagm-panel,
 .more-menu,
+[data-sot-menu="recording-more-actions"],
 .sp-merge-pop,
 .vol-pop {
     /* SOLID surface — no transparency, no color-mix alpha, no backdrop-filter
@@ -4290,6 +4291,7 @@ body[data-drawer="open"] .drawer-scrim {
 [data-theme="dark"] .ai-rename-panel,
 [data-theme="dark"] .tagm-panel,
 [data-theme="dark"] .more-menu,
+[data-theme="dark"] [data-sot-menu="recording-more-actions"],
 [data-theme="dark"] .sp-merge-pop,
 [data-theme="dark"] .vol-pop {
     /* Dark theme: fully opaque graphite. Previous 92% color-mix produced
@@ -4307,6 +4309,8 @@ body[data-drawer="open"] .drawer-scrim {
 .ai-rename-panel[data-open="true"],
 .tagm-panel[data-open="true"],
 .more-menu[data-open="true"],
+[data-sot-menu="recording-more-actions"][data-open="true"],
+[data-sot-menu="recording-more-actions"][data-state="open"],
 .sp-merge-pop[data-open="true"],
 .vol-pop[data-open="true"] {
     opacity: 1;
@@ -6616,7 +6620,8 @@ body[data-ds-todo="show"] .design-todo {
 }
 
 /* ---------- More-actions menu ---------- */
-.more-menu {
+.more-menu,
+[data-sot-menu="recording-more-actions"] {
     width: 220px;
     padding: 4px;
 }
@@ -8242,6 +8247,11 @@ body[data-ds-todo="show"] .design-todo {
     max-width: calc(100vw - 24px);
     z-index: var(--z-context-menu);
 }
+[data-sot-menu="recording-more-actions"] {
+    width: 296px;
+    max-width: calc(100vw - 24px);
+    z-index: var(--z-context-menu);
+}
 
 /* Tag-manager panel — body-mounted, fixed preset (top-right
    of the workspace, just below the topbar). */
@@ -8957,7 +8967,8 @@ select::-ms-expand {
    ============================================================ */
 
 /* ---- MoreActionsMenu (BetterAINote compact glass) ---- */
-.more-menu {
+.more-menu,
+[data-sot-menu="recording-more-actions"] {
     font-family: var(--font-sans);
     padding: 6px;
     border-radius: var(--radius-md);
@@ -8965,12 +8976,14 @@ select::-ms-expand {
     border: 1px solid var(--line-hairline);
     box-shadow: var(--shadow-md);
 }
-[data-theme="dark"] .more-menu {
+[data-theme="dark"] .more-menu,
+[data-theme="dark"] [data-sot-menu="recording-more-actions"] {
     background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
     border-color: var(--glass-border);
     box-shadow: 0 12px 32px rgb(0 0 0 / 0.42);
 }
-.more-menu-item {
+.more-menu-item,
+[data-sot-menu-item] {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -8989,19 +9002,25 @@ select::-ms-expand {
         color var(--duration-fast) var(--ease-out);
 }
 .more-menu-item:hover,
-.more-menu-item:focus-visible {
+.more-menu-item:focus-visible,
+[data-sot-menu-item]:hover,
+[data-sot-menu-item]:focus-visible,
+[data-sot-menu-item][data-highlighted] {
     background: var(--bg-recessed);
     color: var(--fg-primary);
     outline: none;
 }
-.more-menu-item:focus-visible {
+.more-menu-item:focus-visible,
+[data-sot-menu-item]:focus-visible {
     box-shadow: inset 0 0 0 2px
         color-mix(in srgb, var(--accent) 50%, transparent);
 }
-.more-menu-item:active {
+.more-menu-item:active,
+[data-sot-menu-item]:active {
     background: color-mix(in srgb, var(--fg-tertiary) 14%, transparent);
 }
-.more-menu-item svg {
+.more-menu-item svg,
+[data-sot-menu-item] svg {
     width: 16px;
     height: 16px;
     flex: none;
@@ -9012,7 +9031,9 @@ select::-ms-expand {
     stroke-linejoin: round;
     color: var(--fg-tertiary);
 }
-.more-menu-item:hover svg {
+.more-menu-item:hover svg,
+[data-sot-menu-item]:hover svg,
+[data-sot-menu-item][data-highlighted] svg {
     color: var(--fg-secondary);
 }
 
@@ -9020,7 +9041,8 @@ select::-ms-expand {
    whose host class rules didn't load (cache or specificity quirk).
    Prevents the "giant black glyph" failure mode where an unsized
    inline SVG defaults to 300x150 with native black fill. */
-.more-menu svg {
+.more-menu svg,
+[data-sot-menu="recording-more-actions"] svg {
     width: 16px;
     height: 16px;
     flex: none;
@@ -9032,52 +9054,83 @@ select::-ms-expand {
 }
 
 .more-menu-item[disabled],
-.more-menu-item[aria-disabled="true"] {
+.more-menu-item[aria-disabled="true"],
+.more-menu-item[data-disabled],
+[data-sot-menu-item][disabled],
+[data-sot-menu-item][aria-disabled="true"],
+[data-sot-menu-item][data-disabled] {
     color: var(--fg-disabled);
     cursor: not-allowed;
     pointer-events: none;
     background: transparent;
 }
-.more-menu-item[disabled] svg {
+.more-menu-item[disabled] svg,
+.more-menu-item[aria-disabled="true"] svg,
+.more-menu-item[data-disabled] svg,
+[data-sot-menu-item][disabled] svg,
+[data-sot-menu-item][aria-disabled="true"] svg,
+[data-sot-menu-item][data-disabled] svg {
     color: var(--fg-disabled);
 }
-.more-menu-item.is-danger {
+.more-menu-item.is-danger,
+[data-sot-menu-item][data-sot-tone="danger"] {
     color: var(--signal-danger);
 }
-.more-menu-item.is-danger svg {
+.more-menu-item.is-danger svg,
+[data-sot-menu-item][data-sot-tone="danger"] svg {
     color: var(--signal-danger);
 }
 .more-menu-item[disabled],
+.more-menu-item[data-disabled],
 .more-menu-item.is-danger:hover,
-.more-menu-item.is-danger:focus-visible {
+.more-menu-item.is-danger:focus-visible,
+[data-sot-menu-item][disabled],
+[data-sot-menu-item][data-disabled],
+[data-sot-menu-item][data-sot-tone="danger"]:hover,
+[data-sot-menu-item][data-sot-tone="danger"]:focus-visible,
+[data-sot-menu-item][data-sot-tone="danger"][data-highlighted] {
     background: color-mix(in srgb, var(--signal-danger) 12%, transparent);
     color: var(--signal-danger);
 }
-.more-menu-item.is-success {
+.more-menu-item.is-success,
+[data-sot-menu-item][data-sot-tone="success"] {
     color: var(--signal-success);
 }
-.more-menu-item.is-success svg {
+.more-menu-item.is-success svg,
+[data-sot-menu-item][data-sot-tone="success"] svg {
     color: var(--signal-success);
 }
 .more-menu-item-shortcut,
-.more-menu-item .more-menu-hint {
+.more-menu-item .more-menu-hint,
+[data-sot-menu-item] [data-sot-menu-hint] {
     margin-left: auto;
     font: 500 11px / 1 var(--font-mono);
     color: var(--fg-tertiary);
     letter-spacing: 0.02em;
 }
-.more-menu-item[disabled] .more-menu-hint {
+.more-menu-item[disabled] .more-menu-hint,
+.more-menu-item[aria-disabled="true"] .more-menu-hint,
+.more-menu-item[data-disabled] .more-menu-hint,
+[data-sot-menu-item][disabled] [data-sot-menu-hint],
+[data-sot-menu-item][aria-disabled="true"] [data-sot-menu-hint],
+[data-sot-menu-item][data-disabled] [data-sot-menu-hint] {
     color: var(--fg-disabled);
 }
-.more-menu-sep {
+[data-sot-menu-item][data-sot-tone="danger"][data-disabled] [data-sot-menu-hint] {
+    margin-right: 0.25px;
+}
+.more-menu-sep,
+[data-sot-menu-separator] {
     height: 1px;
     background: var(--line-hairline);
     margin: 4px 2px;
 }
-[data-theme="dark"] .more-menu-sep {
+[data-theme="dark"] .more-menu-sep,
+[data-theme="dark"] [data-sot-menu-separator] {
     background: var(--glass-border-soft);
 }
-.more-menu-label {
+.more-menu-label,
+[data-sot-menu-label] {
     font: 600 10.5px / 1 var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
