@@ -4234,25 +4234,30 @@ async function readSourceReportLoadedSubStateMarkers(
         ),
         dataState: await loaded.getAttribute("data-state"),
         dataSubState: await loaded.getAttribute("data-sub-state"),
-        emptyFallbackCount: await loaded.locator(".sr-empty").count(),
+        emptyFallbackCount: await loaded
+            .locator("[data-sot-source-report-empty]")
+            .count(),
         emptyStateCount: await sourceReportInnerState(page, "empty").count(),
         errorStateCount: await sourceReportInnerState(page, "error").count(),
         loadingStateCount: await sourceReportInnerState(page, "loading").count(),
-        sectionHeadings: await loaded.locator(".sr-section h4").evaluateAll(
-            (headings) =>
+        sectionHeadings: await loaded
+            .locator("[data-sot-source-report-section-title]")
+            .evaluateAll((headings) =>
                 headings.map((heading) =>
                     (heading.textContent ?? "").replace(/\s+/g, " ").trim(),
                 ),
-        ),
-        segmentCount: await loaded.locator(".sr-seg").count(),
+            ),
+        segmentCount: await loaded
+            .locator("[data-sot-source-report-segment]")
+            .count(),
         summaryMissingPseudo: await readPseudoContent(
             loaded,
-            ".sr-section:nth-of-type(2)",
+            '[data-sot-source-report-section][data-sot-section="metadata"]',
             "::before",
         ),
         transcriptMissingPseudo: await readPseudoContent(
             loaded,
-            ".sr-section:nth-of-type(1)",
+            '[data-sot-source-report-section][data-sot-section="transcript"]',
             "::after",
         ),
     };
@@ -5366,10 +5371,9 @@ test("recording detail source report loaded state matches SOT pixels", async (
         const sotLoaded = await openSotSourceReportState(sotPage, "loaded");
         const productLoaded = sourceReportInnerState(page, "loaded");
         await expect(productLoaded).toHaveAttribute("data-state", "loaded");
-        await expect(productLoaded.locator(".sr-section h4")).toHaveText([
-            "来源转写",
-            "来源信息",
-        ]);
+        await expect(
+            productLoaded.locator("[data-sot-source-report-section-title]"),
+        ).toHaveText(["来源转写", "来源信息"]);
 
         await expectTransformedSotPixelsMatch(
             page,
@@ -5605,11 +5609,12 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
             await expect(productLoaded.locator('[data-sot-metric="segment-count"]')).toContainText(
                 String(subStateCase.segmentCount),
             );
-            await expect(productLoaded.locator(".sr-section h4")).toHaveText([
-                "来源转写",
-                "来源信息",
-            ]);
-            await expect(productLoaded.locator(".sr-empty")).toHaveCount(0);
+            await expect(
+                productLoaded.locator("[data-sot-source-report-section-title]"),
+            ).toHaveText(["来源转写", "来源信息"]);
+            await expect(
+                productLoaded.locator("[data-sot-source-report-empty]"),
+            ).toHaveCount(0);
             await expect(sourceReportInnerState(page, "empty")).toHaveCount(0);
             await expect(sourceReportInnerState(page, "loading")).toHaveCount(0);
             await expect(sourceReportInnerState(page, "error")).toHaveCount(0);
@@ -5655,7 +5660,7 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
                 expect(
                     await readPseudoContent(
                         productLoaded,
-                        ".sr-section:nth-of-type(1)",
+                        '[data-sot-source-report-section][data-sot-section="transcript"]',
                         "::after",
                     ),
                 ).toBe(
@@ -5669,7 +5674,7 @@ test("recording detail source report loaded sub-states match SOT pixels", async 
                 expect(
                     await readPseudoContent(
                         productLoaded,
-                        ".sr-section:nth-of-type(2)",
+                        '[data-sot-source-report-section][data-sot-section="metadata"]',
                         "::before",
                     ),
                 ).toBe('"来源未提供官方摘要。"');
@@ -9445,12 +9450,12 @@ test("recording detail source copy guards missing artifacts without writing empt
             .toHaveCount(2);
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator(".sr-section")
+                .locator("[data-sot-source-report-section]")
                 .filter({ hasText: "来源转写" }),
         ).toBeVisible();
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator(".sr-section")
+                .locator("[data-sot-source-report-section]")
                 .filter({ hasText: "来源信息" }),
         ).toBeVisible();
         await expect(sourceReportTranscriptCopyButton(page)).toBeDisabled();
@@ -9694,12 +9699,12 @@ test("recording detail source report refresh keeps loaded actions stable", async
         await waitForRecordingDetailReady(page);
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator(".sr-section")
+                .locator("[data-sot-source-report-section]")
                 .filter({ hasText: "来源转写" }),
         ).toBeVisible();
         await expect(
             sourceReportInnerState(page, "loaded")
-                .locator(".sr-section")
+                .locator("[data-sot-source-report-section]")
                 .filter({ hasText: "来源信息" }),
         ).toBeVisible();
         await expect(

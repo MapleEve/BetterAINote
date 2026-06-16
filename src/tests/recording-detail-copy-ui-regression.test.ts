@@ -108,11 +108,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report-state"',
         );
-        expect(sourceReport).toContain('data-sot-state="loading"');
-        expect(sourceReport).toContain('data-state="loaded"');
-        expect(sourceReport).toContain("data-sub-state={sourceReportSubState}");
-        expect(sourceReport).toContain("<h4>来源转写</h4>");
-        expect(sourceReport).toContain("<h4>来源信息</h4>");
+        expect(sourceReport).toContain('sotState="loading"');
+        expect(sourceReport).toContain('state="loaded"');
+        expect(sourceReport).toContain("subState={sourceReportSubState}");
+        expect(sourceReport).toContain("data-sot-source-report-section-title");
+        expect(sourceReport).toContain('title="来源转写"');
+        expect(sourceReport).toContain('title="来源信息"');
         expect(sourceReport).toContain(
             'data-sot-control="copy-source-transcript"',
         );
@@ -132,11 +133,24 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(sourceReport).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(sourceReport).toContain(
-            "SOURCE_REPORT_LOADING_SKELETON_CLASSES",
+            'data-sot-part="source-report-segment-skeleton"',
         );
+        expect(sourceReport).toContain("data-sot-source-report-state");
+        expect(sourceReport).toContain("data-sot-source-report-empty");
+        expect(sourceReport).toContain("data-sot-source-report-section");
+        expect(sourceReport).toContain("data-sot-source-report-segment");
+        expect(sourceReport).toContain("data-sot-source-report-meta");
+        expect(sourceReport).not.toContain('className="sr-state"');
+        expect(sourceReport).not.toContain('className="sr-empty"');
+        expect(sourceReport).not.toContain('className="sr-section"');
+        expect(sourceReport).not.toContain('className="sr-seg"');
+        expect(sourceReport).not.toContain('className="sr-meta"');
         for (const control of sourceReportButtonControls) {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);

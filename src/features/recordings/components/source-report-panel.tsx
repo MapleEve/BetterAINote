@@ -1,6 +1,6 @@
 "use client";
 
-import { CloudDownload, LoaderCircle } from "lucide-react";
+import { AlertCircle, CloudDownload, FileX2, LoaderCircle } from "lucide-react";
 import {
     type ReactNode,
     useCallback,
@@ -10,9 +10,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     getSourceProviderLabel,
@@ -146,15 +148,6 @@ const SAFE_SOURCE_DETAIL_KEYS = new Set([
     "summaryReady",
     "transcriptReady",
 ]);
-
-const SOURCE_REPORT_LOADING_SKELETON_CLASSES = {
-    segmentLineLong: "sr-seg-line-skeleton sr-seg-line-skeleton-long",
-    segmentLineMedium: "sr-seg-line-skeleton sr-seg-line-skeleton-medium",
-    segmentLineShort: "sr-seg-line-skeleton sr-seg-line-skeleton-short",
-    segmentLineWide: "sr-seg-line-skeleton sr-seg-line-skeleton-wide",
-    segmentSpeaker: "sr-seg-speaker-skeleton",
-    segmentTime: "sr-seg-time-skeleton",
-} as const;
 
 function isZh(language: UiLanguage) {
     return language === "zh-CN";
@@ -453,25 +446,6 @@ function SotCopyIcon() {
     );
 }
 
-function SotSourceReportErrorIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v5" />
-            <circle cx="12" cy="16" r=".8" fill="currentColor" />
-        </svg>
-    );
-}
-
-function SotSourceReportEmptyIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <rect x="3" y="6" width="18" height="14" rx="2" />
-            <path d="M8 6V4h8v2" />
-        </svg>
-    );
-}
-
 function SourceReportStatusBadge({
     children,
     tone,
@@ -487,6 +461,78 @@ function SourceReportStatusBadge({
         >
             {children}
         </Badge>
+    );
+}
+
+function SourceReportSegmentSkeleton({
+    size,
+}: {
+    size:
+        | "line-long"
+        | "line-medium"
+        | "line-short"
+        | "line-wide"
+        | "speaker"
+        | "time";
+}) {
+    return (
+        <Skeleton
+            aria-hidden="true"
+            data-sot-part="source-report-segment-skeleton"
+            data-sot-size={size}
+        />
+    );
+}
+
+function SourceReportState({
+    children,
+    error,
+    sotState,
+    state,
+    subState,
+}: {
+    children: ReactNode;
+    error?: string;
+    sotState: SourceReportAvailabilitySnapshot["state"];
+    state: "empty" | "error" | "loaded" | "loading";
+    subState?: string;
+}) {
+    return (
+        <div
+            data-sot-source-report-state
+            data-sot-panel="recording-source-report-state"
+            data-sot-state={sotState}
+            data-state={state}
+            data-sub-state={subState}
+            data-sot-error={error}
+        >
+            {children}
+        </div>
+    );
+}
+
+function SourceReportSection({
+    children,
+    description,
+    section,
+    title,
+}: {
+    children: ReactNode;
+    description: ReactNode;
+    section: "metadata" | "summary" | "transcript";
+    title: string;
+}) {
+    return (
+        <section data-sot-source-report-section data-sot-section={section}>
+            <Separator data-sot-source-report-section-separator />
+            <header data-sot-source-report-section-header>
+                <h4 data-sot-source-report-section-title>{title}</h4>
+                <span data-sot-source-report-section-description>
+                    {description}
+                </span>
+            </header>
+            {children}
+        </section>
     );
 }
 
@@ -548,7 +594,7 @@ function SourceReportMetaRow({
     label: string;
 }) {
     return (
-        <div className="sr-meta-row">
+        <div data-sot-source-report-meta-row>
             <dt>{label}</dt>
             <dd>{children}</dd>
         </div>
@@ -953,7 +999,7 @@ export function SourceReportPanel({
     }, [loadReport, repullAvailable, repullDisabled, t]);
 
     const sourceActionControls = data ? (
-        <div className="sr-actions" data-sot-panel="source-actions">
+        <div data-sot-source-report-actions data-sot-panel="source-actions">
             <Button
                 variant="ghost"
                 size="sm"
@@ -993,13 +1039,13 @@ export function SourceReportPanel({
     ) : null;
 
     const header = (
-        <div className="sr-section-head">
+        <div data-sot-source-report-header>
             <div>
-                <h3 className="rec-h2">
-                    <CloudDownload />
+                <h3 className="rec-h2" data-sot-source-report-title>
+                    <CloudDownload aria-hidden="true" />
                     {getSourceTabLabel(sourceProvider, language)}
                 </h3>
-                <p className="sr-section-sub">
+                <p data-sot-source-report-description>
                     {getSourceRecordDescription(sourceProvider, language)}
                 </p>
             </div>
@@ -1096,7 +1142,10 @@ export function SourceReportPanel({
                         </>
                     ) : (
                         <>
-                            <CloudDownload />
+                            <CloudDownload
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
                             {data
                                 ? t("sourceReport.refresh")
                                 : t("sourceReport.loadDetail")}
@@ -1108,25 +1157,30 @@ export function SourceReportPanel({
     );
 
     const content = (
-        <div className="sr-state">
+        <div data-sot-source-report-state-stack>
             {error && (
-                <div
-                    className="sr-state"
-                    data-sot-panel="recording-source-report-state"
-                    data-sot-state="error"
-                    data-state="error"
-                    data-sot-error={error}
-                >
-                    <div className="sr-empty err">
-                        <div className="sr-empty-ico" aria-hidden="true">
-                            <SotSourceReportErrorIcon />
+                <SourceReportState sotState="error" state="error" error={error}>
+                    <Alert
+                        variant="destructive"
+                        data-sot-source-report-empty
+                        data-sot-tone="err"
+                    >
+                        <div
+                            data-sot-source-report-empty-icon
+                            aria-hidden="true"
+                        >
+                            <AlertCircle />
                         </div>
-                        <div className="sr-empty-title">无法读取来源详情</div>
-                        <div className="sr-empty-sub">
+                        <AlertTitle data-sot-source-report-empty-title>
+                            无法读取来源详情
+                        </AlertTitle>
+                        <AlertDescription
+                            data-sot-source-report-empty-description
+                        >
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
-                        </div>
-                        <div className="sr-empty-actions">
+                        </AlertDescription>
+                        <div data-sot-source-report-empty-actions>
                             <Button
                                 type="button"
                                 size="sm"
@@ -1151,17 +1205,12 @@ export function SourceReportPanel({
                                 查看同步日志
                             </Button>
                         </div>
-                    </div>
-                </div>
+                    </Alert>
+                </SourceReportState>
             )}
 
             {isLoading && !data && !error ? (
-                <div
-                    className="sr-state"
-                    data-sot-panel="recording-source-report-state"
-                    data-sot-state="loading"
-                    data-state="loading"
-                >
+                <SourceReportState sotState="loading" state="loading">
                     <SourceReportMetricCards>
                         <SourceReportMetricCard
                             label="来源"
@@ -1192,76 +1241,40 @@ export function SourceReportPanel({
                             <SourceReportCardSkeleton size="count" />
                         </SourceReportMetricCard>
                     </SourceReportMetricCards>
-                    <section className="sr-section">
-                        <header className="sr-section-head">
-                            <h4>来源转写</h4>
-                            <span className="sr-section-sub">
-                                正在从{sourceProviderSentenceName}读取…
-                            </span>
-                        </header>
-                        <div className="sr-seg skel">
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineLong
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineMedium
-                                }
-                            />
+                    <SourceReportSection
+                        section="transcript"
+                        title="来源转写"
+                        description={
+                            <>正在从{sourceProviderSentenceName}读取…</>
+                        }
+                    >
+                        <div
+                            data-sot-source-report-segment
+                            data-sot-state="skeleton"
+                        >
+                            <SourceReportSegmentSkeleton size="time" />
+                            <SourceReportSegmentSkeleton size="speaker" />
+                            <SourceReportSegmentSkeleton size="line-long" />
+                            <SourceReportSegmentSkeleton size="line-medium" />
                         </div>
-                        <div className="sr-seg skel">
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentTime
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentSpeaker
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineWide
-                                }
-                            />
-                            <Skeleton
-                                aria-hidden="true"
-                                className={
-                                    SOURCE_REPORT_LOADING_SKELETON_CLASSES.segmentLineShort
-                                }
-                            />
+                        <div
+                            data-sot-source-report-segment
+                            data-sot-state="skeleton"
+                        >
+                            <SourceReportSegmentSkeleton size="time" />
+                            <SourceReportSegmentSkeleton size="speaker" />
+                            <SourceReportSegmentSkeleton size="line-wide" />
+                            <SourceReportSegmentSkeleton size="line-short" />
                         </div>
-                    </section>
-                </div>
+                    </SourceReportSection>
+                </SourceReportState>
             ) : null}
 
             {data && (
-                <div
-                    className="sr-state"
-                    data-sot-panel="recording-source-report-state"
-                    data-sot-state={sourceReportState}
-                    data-state="loaded"
-                    data-sub-state={sourceReportSubState}
+                <SourceReportState
+                    sotState={sourceReportState}
+                    state="loaded"
+                    subState={sourceReportSubState}
                 >
                     {!hasAudio ? (
                         <Badge
@@ -1325,16 +1338,18 @@ export function SourceReportPanel({
                         </SourceReportMetricCard>
                     </SourceReportMetricCards>
 
-                    <section className="sr-section">
-                        <header className="sr-section-head">
-                            <h4>来源转写</h4>
-                            <span className="sr-section-sub">
+                    <SourceReportSection
+                        section="transcript"
+                        title="来源转写"
+                        description={
+                            <>
                                 来自{sourceProviderSentenceName} ·{" "}
                                 {sourceReportSegmentCount} 段 ·{" "}
                                 {sourceReportDurationLabel} 总时长
-                            </span>
-                        </header>
-                        <ol className="sr-segments">
+                            </>
+                        }
+                    >
+                        <ol data-sot-source-report-segments>
                             {sourceReportDisplaySegments.map(
                                 (segment, index) => {
                                     const timeRange = formatTranscriptTimeRange(
@@ -1345,18 +1360,25 @@ export function SourceReportPanel({
                                     return (
                                         <li
                                             key={`${segment.startMs ?? "na"}-${segment.endMs ?? "na"}-${index}`}
-                                            className="sr-seg"
+                                            data-sot-source-report-segment
                                         >
-                                            <span className="sr-seg-ts mono">
+                                            <span
+                                                className="mono"
+                                                data-sot-source-report-segment-time
+                                            >
                                                 {timeRange || "--"}
                                             </span>
-                                            <span className="sr-seg-speaker">
+                                            <span
+                                                data-sot-source-report-segment-speaker
+                                            >
                                                 {formatTranscriptSpeaker(
                                                     segment.speaker,
                                                     language,
                                                 ) || `说话人 ${index + 1}`}
                                             </span>
-                                            <p className="sr-seg-text">
+                                            <p
+                                                data-sot-source-report-segment-text
+                                            >
                                                 {segment.text}
                                             </p>
                                         </li>
@@ -1364,39 +1386,39 @@ export function SourceReportPanel({
                                 },
                             )}
                         </ol>
-                    </section>
+                    </SourceReportSection>
 
                     {sourceSummaryVisible ? (
-                        <section className="sr-section sr-summary-section">
-                            <header className="sr-section-head">
-                                <h4>来源原始报告</h4>
-                                <span className="sr-section-sub">
-                                    由{sourceProviderLabel}返回的只读摘要
-                                </span>
-                            </header>
-                            <div className="sr-summary-body">
+                        <SourceReportSection
+                            section="summary"
+                            title="来源原始报告"
+                            description={
+                                <>由{sourceProviderLabel}返回的只读摘要</>
+                            }
+                        >
+                            <div data-sot-source-report-summary-body>
                                 {sourceSummaryText
                                     .split("\n")
                                     .map((line, index) => (
                                         <p
-                                            className="sr-seg-text"
                                             key={`${index}:${line}`}
+                                            data-sot-source-report-segment-text
                                         >
                                             {line}
                                         </p>
                                     ))}
                             </div>
-                        </section>
+                        </SourceReportSection>
                     ) : null}
 
-                    <section className="sr-section">
-                        <header className="sr-section-head">
-                            <h4>来源信息</h4>
-                            <span className="sr-section-sub">
-                                由{sourceProviderLabel}返回的公开元数据
-                            </span>
-                        </header>
-                        <dl className="sr-meta">
+                    <SourceReportSection
+                        section="metadata"
+                        title="来源信息"
+                        description={
+                            <>由{sourceProviderLabel}返回的公开元数据</>
+                        }
+                    >
+                        <dl data-sot-source-report-meta>
                             <SourceReportMetaRow label="来源">
                                 {sourceProviderLabel}
                             </SourceReportMetaRow>
@@ -1440,29 +1462,31 @@ export function SourceReportPanel({
                             </SourceReportMetaRow>
                         </dl>
                         {sourceActionControls}
-                    </section>
-                </div>
+                    </SourceReportSection>
+                </SourceReportState>
             )}
 
             {!data && !error && !isLoading && (
-                <div
-                    className="sr-state"
-                    data-sot-panel="recording-source-report-state"
-                    data-sot-state="empty"
-                    data-state="empty"
-                >
-                    <div className="sr-empty">
-                        <div className="sr-empty-ico" aria-hidden="true">
-                            <SotSourceReportEmptyIcon />
+                <SourceReportState sotState="empty" state="empty">
+                    <Card
+                        hasNoPadding
+                        data-sot-source-report-empty
+                        data-sot-tone="neutral"
+                    >
+                        <div
+                            data-sot-source-report-empty-icon
+                            aria-hidden="true"
+                        >
+                            <FileX2 />
                         </div>
-                        <div className="sr-empty-title">
+                        <div data-sot-source-report-empty-title>
                             这条录音没有关联来源
                         </div>
-                        <div className="sr-empty-sub">
+                        <div data-sot-source-report-empty-description>
                             本地导入或离线录制的录音不会有来源详情。
                         </div>
-                    </div>
-                </div>
+                    </Card>
+                </SourceReportState>
             )}
         </div>
     );
@@ -1470,7 +1494,8 @@ export function SourceReportPanel({
     if (variant === "embedded") {
         return (
             <div
-                className={className ? `sr-pane ${className}` : "sr-pane"}
+                className={className}
+                data-sot-source-report-pane
                 data-sot-panel="recording-source-report"
                 data-sot-state={sourceReportState}
             >
@@ -1482,9 +1507,8 @@ export function SourceReportPanel({
 
     return (
         <div
-            className={
-                className ? `panel sr-pane ${className}` : "panel sr-pane"
-            }
+            className={className ? `panel ${className}` : "panel"}
+            data-sot-source-report-pane
             data-sot-panel="recording-source-report"
             data-sot-state={sourceReportState}
         >
