@@ -239,6 +239,12 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain('className="more-menu"');
         expect(detailWorkstation).toContain("handleMoreRetranscribe");
         expect(detailWorkstation).toContain("handleDeleteLocalRecording");
+        expect(detailWorkstation).toContain("SotPlayerSourceTag");
+        expect(detailWorkstation).toContain("SotPlayerStatusBadge");
+        expect(detailWorkstation).toContain("<SotPlayerSourceTag");
+        expect(detailWorkstation).toContain("<SotPlayerStatusBadge");
+        expect(detailWorkstation).not.toContain('className="src-tag"');
+        expect(detailWorkstation).not.toContain('className="b ok"');
         expect(detailWorkstation).not.toMatch(OLD_UI_CONTRACT_RE);
 
         const sourceLabelMarker = "{sourceLabel}";

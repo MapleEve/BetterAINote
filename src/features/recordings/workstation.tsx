@@ -19,6 +19,10 @@ import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/co
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
 import {
+    SotPlayerSourceTag,
+    SotPlayerStatusBadge,
+} from "@/features/recordings/components/sot-player-primitives";
+import {
     type SourceReportAvailabilitySnapshot,
     SourceReportPanel,
 } from "@/features/recordings/components/source-report-panel";
@@ -825,13 +829,11 @@ export function RecordingWorkstation({
                                         <span className="dur mono">
                                             {durationLabel}
                                         </span>
-                                        <span className="src-tag">
-                                            {sourceLabel}
-                                        </span>
-                                        <span className="b ok">
-                                            <span className="dot" />
-                                            已打开
-                                        </span>
+                                        <SotPlayerSourceTag
+                                            label={sourceLabel}
+                                            provider={recording.sourceProvider}
+                                        />
+                                        <SotPlayerStatusBadge label="已打开" />
                                     </div>
                                 </div>
                             </div>

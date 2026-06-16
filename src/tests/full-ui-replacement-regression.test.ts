@@ -893,6 +893,12 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).toContain("data-more-trigger");
         expect(detail).toContain('className="more-menu"');
         expect(detail).toContain("handleMoreRetranscribe");
+        expect(detail).toContain("SotPlayerSourceTag");
+        expect(detail).toContain("SotPlayerStatusBadge");
+        expect(detail).toContain("<SotPlayerSourceTag");
+        expect(detail).toContain("<SotPlayerStatusBadge");
+        expect(detail).not.toContain('className="src-tag"');
+        expect(detail).not.toContain('className="b ok"');
         expect(player).toContain('data-sot-surface="recording-player"');
         expect(player).toContain("data-sot-state=");
         expect(player).toContain("aria-label={");
