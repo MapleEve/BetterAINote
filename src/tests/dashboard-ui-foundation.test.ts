@@ -114,9 +114,9 @@ describe("dashboard SOT foundation", () => {
         expect(sidebar).toContain("--sidebar-width");
 
         for (const dashboardImport of [
-            '@/components/ui/card',
-            '@/components/ui/breadcrumb',
-            '@/components/ui/sidebar',
+            "@/components/ui/card",
+            "@/components/ui/breadcrumb",
+            "@/components/ui/sidebar",
         ]) {
             expect(workstation).not.toContain(dashboardImport);
         }
@@ -308,13 +308,20 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("data-kind={banner.state}");
         expect(banner).toContain("data-pct={progress ?? undefined}");
         expect(banner).toContain('"sbn-progress"');
-        expect(banner).toContain('"btn ghost btn-sm"');
+        expect(banner).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(banner).toContain("<Button");
+        expect(banner).toContain('size="sm"');
+        expect(banner).toContain('size="icon-sm"');
+        expect(banner).toContain('variant="ghost"');
+        expect(banner).toContain("variant={");
+        expect(banner).not.toContain("btn ghost btn-sm");
         expect(banner).toContain("<SystemBannerIcon");
         expect(banner).toContain("visibleBanners.length === 0");
         expect(banner).toContain('banner.state === "update-available"');
         expect(banner).toContain("window.location.reload()");
         expect(banner).not.toContain("lucide-react");
-        expect(banner).not.toContain("@/components/ui/button");
         expect(banner).not.toContain("data-system-banner");
         expect(banner).not.toContain("data-sot-panel");
         expect(banner).not.toContain("data-sot-state");

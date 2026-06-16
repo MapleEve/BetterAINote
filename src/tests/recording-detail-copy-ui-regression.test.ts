@@ -270,9 +270,18 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain("BetterAINote");
             expect(source).toContain('href="/dashboard"');
             expect(source).toContain("返回工作台");
+            expect(source).toContain(
+                'import { Button } from "@/components/ui/button";',
+            );
+            expect(source).not.toContain('className="btn primary"');
+            expect(source).not.toContain('className="btn ghost"');
         }
 
+        expect(notFound).toContain('<Button asChild variant="primary">');
         expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
+        expect(error).toContain("<Button");
+        expect(error).toContain('variant="primary"');
+        expect(error).toContain('<Button asChild variant="ghost">');
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
         expect(loading).toContain('aria-busy="true"');

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
 import { cn } from "@/lib/utils";
 
@@ -439,12 +440,7 @@ function SystemBannerItem({
         banner.state === "import-progress" ||
         banner.state === "export-progress";
     const { dismissLabel, primaryLabel, primaryRole, secondaryLabel } =
-        getRenderedActions(
-            banner,
-            defaultActions,
-            isStacked,
-            isZh,
-        );
+        getRenderedActions(banner, defaultActions, isStacked, isZh);
     const bannerA11y = getBannerA11y(banner.state);
     const handleAction = (role: SystemBannerActionRole) => {
         dispatchSystemBannerAction(banner, role);
@@ -496,7 +492,7 @@ function SystemBannerItem({
             </div>
             <div className="sbn-actions">
                 {primaryLabel ? (
-                    <button
+                    <Button
                         aria-busy={
                             banner.indeterminate &&
                             banner.state === "import-progress"
@@ -508,36 +504,37 @@ function SystemBannerItem({
                             banner.state === "import-progress"
                         }
                         onClick={() => handleAction(primaryRole)}
-                        className={cn(
-                            "btn",
+                        size="sm"
+                        variant={
                             banner.state === "update-available" && !isStacked
                                 ? "glass"
-                                : "ghost",
-                            "btn-sm",
-                        )}
+                                : "ghost"
+                        }
                         type="button"
                     >
                         {primaryLabel}
-                    </button>
+                    </Button>
                 ) : null}
                 {secondaryLabel ? (
-                    <button
+                    <Button
                         onClick={() => handleAction("secondary")}
-                        className="btn ghost btn-sm"
+                        size="sm"
+                        variant="ghost"
                         type="button"
                     >
                         {secondaryLabel}
-                    </button>
+                    </Button>
                 ) : null}
                 {dismissLabel ? (
-                    <button
+                    <Button
                         aria-label={dismissLabel}
                         onClick={() => onDismiss(banner)}
-                        className="btn ghost btn-sm"
+                        size="icon-sm"
+                        variant="ghost"
                         type="button"
                     >
                         <CloseIcon />
-                    </button>
+                    </Button>
                 ) : null}
             </div>
         </section>

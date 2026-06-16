@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function RecordingNotFound() {
     return (
@@ -38,9 +39,9 @@ export default function RecordingNotFound() {
                             <div className="detail-empty-sub">
                                 这条录音不存在或已经被删除，返回工作台后可以继续查看其他录音。
                             </div>
-                            <Link className="btn primary" href="/dashboard">
-                                返回工作台
-                            </Link>
+                            <Button asChild variant="primary">
+                                <Link href="/dashboard">返回工作台</Link>
+                            </Button>
                         </div>
                     </section>
                 </div>

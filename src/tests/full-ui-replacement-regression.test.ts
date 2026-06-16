@@ -712,9 +712,16 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('className="card"');
         expect(login).toContain('className="frame"');
         expect(login).toContain('"inp"');
-        expect(login).toContain('"btn primary"');
+        expect(login).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(login).toContain("<Button");
+        expect(login).toContain('variant="primary"');
+        expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain("data-auth-form-state");
+        expect(login).not.toContain('className="btn primary"');
+        expect(login).not.toContain('"btn primary"');
         expect(login).not.toContain('className="app"');
         expect(login).not.toContain('className="panel"');
         expect(login).not.toContain('className="modal-foot"');

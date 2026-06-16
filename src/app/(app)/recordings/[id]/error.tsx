@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function RecordingError({ reset }: { reset: () => void }) {
     return (
@@ -39,16 +40,16 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                 录音详情暂时无法加载，可以重试或返回工作台。
                             </div>
                             <div className="sm-actions">
-                                <button
-                                    className="btn primary"
+                                <Button
+                                    variant="primary"
                                     type="button"
                                     onClick={reset}
                                 >
                                     重试
-                                </button>
-                                <Link className="btn ghost" href="/dashboard">
-                                    返回工作台
-                                </Link>
+                                </Button>
+                                <Button asChild variant="ghost">
+                                    <Link href="/dashboard">返回工作台</Link>
+                                </Button>
                             </div>
                         </div>
                     </section>

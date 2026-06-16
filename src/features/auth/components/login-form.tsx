@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { signIn } from "@/lib/auth-client";
 import {
     navigateAndRefreshBrowserRoute,
@@ -155,15 +156,15 @@ export function LoginForm({
                             {formState.message}
                         </div>
                     ) : null}
-                    <button
+                    <Button
                         type="submit"
-                        className="btn primary"
+                        variant="primary"
                         disabled={!isMounted || isLoading}
                         aria-busy={isLoading}
                         data-sot-control="send-login-link"
                     >
                         {isLoading ? "发送中..." : "发送登录链接"}
-                    </button>
+                    </Button>
                     <div className="auth-local-row">
                         或{" "}
                         <button
