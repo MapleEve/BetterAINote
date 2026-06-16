@@ -653,7 +653,15 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(confirmDialog).toContain(`<${primitive}`);
         }
-        expect(confirmDialog).toContain('data-sot-panel="confirm-dialog"');
+        expect(confirmDialog).toContain("portalWrapperProps");
+        expect(confirmDialog).toContain('"data-sot-panel": "confirm-dialog"');
+        expect(confirmDialog).toContain('data-sot-content="confirm-dialog"');
+        expect(confirmDialog).toContain('data-sot-part="confirm-head"');
+        expect(confirmDialog).toContain('data-sot-part="confirm-body"');
+        expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toContain(
+            'data-sot-list="confirm-dialog-details"',
+        );
         expect(confirmDialog).toContain("state.details.map");
         expect(confirmDialog).toContain("state.warning");
         expect(confirmDialog).not.toContain('className="scrim"');
@@ -909,6 +917,12 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
         expect(settings).toContain('data-sot-control="source-test"');
         expect(settings).toContain('data-sot-control="source-save"');
+        expect(speakerReview).toContain('data-sot-panel="speaker-review"');
+        expect(speakerReview).toContain("data-sot-state=");
+        expect(speakerReview).toContain("<section");
+        expect(speakerReview).toContain(
+            "data-sot-speaker-label={speaker.rawLabel}",
+        );
         expect(detail).toContain('data-sot-surface="recording-workstation"');
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain(
@@ -1006,12 +1020,16 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain('variant="outline"');
         expect(sotPlayerPrimitives).not.toContain("status-badge-ready");
         expect(sotPlayerPrimitives).not.toContain("_is-");
-        expect(speakerReview).toContain('data-sot-panel="speaker-review"');
-        expect(speakerReview).toContain("data-sot-state=");
-        expect(speakerReview).toContain("<section");
-        expect(speakerReview).toContain(
-            "data-sot-speaker-label={speaker.rawLabel}",
+        const speakerProfiles = readSource(
+            "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
+        expect(speakerProfiles).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(speakerProfiles).toContain("<Badge");
+        expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
+        expect(speakerProfiles).toContain("data-sot-tone={tone}");
+        expect(speakerProfiles).not.toContain("sot-speaker-pill");
         for (const source of [player, tagManager, sourceReport]) {
             expect(source).not.toContain('className="btn ghost btn-sm"');
             expect(source).not.toContain('className="btn primary btn-sm"');

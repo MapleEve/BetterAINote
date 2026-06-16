@@ -6,6 +6,10 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+type DialogPortalWrapperProps = React.ComponentProps<"div"> & {
+    [key: `data-${string}`]: string | undefined;
+};
+
 function Dialog({
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -50,15 +54,26 @@ function DialogContent({
     className,
     children,
     overlayClassName,
+    overlayProps,
+    portalWrapperProps,
     showCloseButton = true,
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
     overlayClassName?: string;
+    overlayProps?: React.ComponentProps<typeof DialogPrimitive.Overlay>;
+    portalWrapperProps?: DialogPortalWrapperProps;
     showCloseButton?: boolean;
 }) {
-    return (
-        <DialogPortal data-slot="dialog-portal">
-            <DialogOverlay className={overlayClassName} />
+    const { className: overlayPropsClassName, ...restOverlayProps } =
+        overlayProps ?? {};
+    const { className: portalWrapperClassName, ...restPortalWrapperProps } =
+        portalWrapperProps ?? {};
+    const content = (
+        <>
+            <DialogOverlay
+                className={cn(overlayClassName, overlayPropsClassName)}
+                {...restOverlayProps}
+            />
             <DialogPrimitive.Content
                 data-slot="dialog-content"
                 className={cn(
@@ -78,6 +93,21 @@ function DialogContent({
                     </DialogPrimitive.Close>
                 ) : null}
             </DialogPrimitive.Content>
+        </>
+    );
+
+    return (
+        <DialogPortal data-slot="dialog-portal">
+            {portalWrapperProps ? (
+                <div
+                    className={cn("fixed inset-0 z-50", portalWrapperClassName)}
+                    {...restPortalWrapperProps}
+                >
+                    {content}
+                </div>
+            ) : (
+                content
+            )}
         </DialogPortal>
     );
 }

@@ -33,24 +33,49 @@ const ConfirmDialogContext = createContext<{
     confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
 } | null>(null);
 
+const confirmDialogPortalWrapperProps = {
+    "data-sot-panel": "confirm-dialog",
+};
+
 export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<ConfirmDialogOptions | null>(null);
     const pendingResolveRef = useRef<((confirmed: boolean) => void) | null>(
         null,
     );
+    const returnFocusRef = useRef<HTMLElement | null>(null);
 
     const close = useCallback((confirmed: boolean) => {
         const resolve = pendingResolveRef.current;
         if (!resolve) return;
         pendingResolveRef.current = null;
-        resolve(confirmed);
         setState(null);
+        resolve(confirmed);
+        const returnFocusTarget = returnFocusRef.current;
+        returnFocusRef.current = null;
+        if (!returnFocusTarget) return;
+
+        const restoreFocus = () => {
+            if (
+                document.contains(returnFocusTarget) &&
+                !returnFocusTarget.hasAttribute("disabled") &&
+                returnFocusTarget.getAttribute("aria-disabled") !== "true"
+            ) {
+                returnFocusTarget.focus({ preventScroll: true });
+            }
+        };
+        window.requestAnimationFrame(restoreFocus);
+        window.setTimeout(restoreFocus, 50);
+        window.setTimeout(restoreFocus, 250);
     }, []);
 
     const confirm = useCallback((options: ConfirmDialogOptions) => {
         return new Promise<boolean>((resolve) => {
             pendingResolveRef.current?.(false);
             pendingResolveRef.current = resolve;
+            returnFocusRef.current =
+                document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : null;
             setState(options);
         });
     }, []);
@@ -69,33 +94,43 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                 }}
             >
                 <DialogContent
-                    data-sot-panel="confirm-dialog"
+                    data-sot-content="confirm-dialog"
+                    portalWrapperProps={confirmDialogPortalWrapperProps}
                     className="sm:max-w-md"
                     showCloseButton={false}
                 >
-                    <DialogHeader>
-                        <DialogTitle>{state?.title}</DialogTitle>
-                        <DialogDescription>
+                    <DialogHeader data-sot-part="confirm-head">
+                        <DialogTitle data-sot-part="confirm-title">
+                            {state?.title}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div data-sot-part="confirm-body">
+                        <DialogDescription data-sot-part="confirm-description">
                             {state?.description}
                         </DialogDescription>
-                    </DialogHeader>
-                    {state?.details?.length || state?.warning ? (
-                        <div className="flex flex-col gap-3 text-sm">
-                            {state.details?.length ? (
-                                <ul className="flex list-disc flex-col gap-1 pl-5 text-muted-foreground">
-                                    {state.details.map((item) => (
-                                        <li key={item}>{item}</li>
-                                    ))}
-                                </ul>
-                            ) : null}
-                            {state.warning ? (
-                                <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive">
-                                    {state.warning}
-                                </p>
-                            ) : null}
-                        </div>
-                    ) : null}
-                    <DialogFooter>
+                        {state?.details?.length || state?.warning ? (
+                            <div data-sot-part="confirm-extra">
+                                {state.details?.length ? (
+                                    <ul data-sot-list="confirm-dialog-details">
+                                        {state.details.map((item) => (
+                                            <li
+                                                key={item}
+                                                data-sot-item="confirm-dialog-detail"
+                                            >
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : null}
+                                {state.warning ? (
+                                    <p data-sot-part="confirm-warning">
+                                        {state.warning}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : null}
+                    </div>
+                    <DialogFooter data-sot-part="confirm-foot">
                         <Button
                             type="button"
                             variant="outline"

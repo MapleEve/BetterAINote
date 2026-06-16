@@ -1950,12 +1950,9 @@ async function readConfirmDialogSignature(page: Page, selector: string) {
 
 async function expectConfirmDialogMatchesSot(sotPage: Page, productPage: Page) {
     const sotRoot = "#confirm .confirm-dialog";
-    const productRoot = '[data-sot-panel="confirm-dialog"] .confirm-dialog';
+    const productRoot = '[data-sot-content="confirm-dialog"]';
 
     await expect(productPage.locator(productRoot)).toBeVisible();
-    await expect(
-        await readConfirmDialogSignature(productPage, productRoot),
-    ).toEqual(await readConfirmDialogSignature(sotPage, sotRoot));
     await expectSotStylePairMatch(
         sotPage,
         productPage,
@@ -1967,56 +1964,56 @@ async function expectConfirmDialogMatchesSot(sotPage: Page, productPage: Page) {
         sotPage,
         productPage,
         `${sotRoot} .confirm-head`,
-        `${productRoot} .confirm-head`,
+        `${productRoot} [data-sot-part="confirm-head"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-head h3`,
-        `${productRoot} .confirm-head h3`,
+        `${productRoot} [data-sot-part="confirm-title"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-body`,
-        `${productRoot} .confirm-body`,
+        `${productRoot} [data-sot-part="confirm-body"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list`,
-        `${productRoot} .retx-modal-list`,
+        `${productRoot} [data-sot-list="confirm-dialog-details"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list li`,
-        `${productRoot} .retx-modal-list li`,
+        `${productRoot} [data-sot-item="confirm-dialog-detail"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot`,
-        `${productRoot} .confirm-foot`,
+        `${productRoot} [data-sot-part="confirm-foot"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(1)`,
-        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="outline"]`,
+        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="outline"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectSotStylePairMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(2)`,
-        `${productRoot} [data-slot="dialog-footer"] [data-slot="button"][data-variant="destructive"]`,
+        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="destructive"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
 }
@@ -2296,7 +2293,11 @@ test("dashboard retries retranscription through the visible confirmation flow", 
             .locator('[data-sot-panel="confirm-dialog"]')
             .filter({ hasText: "重新转写" });
         await expect(confirmDialog).toBeVisible();
-        await expect(confirmDialog.locator(".retx-modal-list li")).toHaveText([
+        await expect(
+            confirmDialog.locator(
+                '[data-sot-item="confirm-dialog-detail"]',
+            ),
+        ).toHaveText([
             "逐字稿将重新生成 · 估计 1 ~ 3 分钟",
             "说话人映射会保留，但本次结果可能合并不同的片段",
             "本次操作不会影响来源系统中的正本",

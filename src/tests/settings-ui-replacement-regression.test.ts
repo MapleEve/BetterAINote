@@ -1213,10 +1213,16 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(speakers).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
         expect(speakers).toMatch(
             /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
         expect(speakers).toContain("<Button");
+        expect(speakers).toContain("<Badge");
+        expect(speakers).toContain('data-sot-badge="speaker-state"');
+        expect(speakers).toContain("data-sot-tone={tone}");
         expect(speakers).toContain("<Field");
         expect(speakers).toContain("<FieldContent");
         expect(speakers).toContain("<FieldTitle>");
@@ -1239,6 +1245,7 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("data-sot-voiceprint-row");
         expect(speakers).toContain("sot-speaker-profiles");
         expect(speakers).toContain("sot-speaker-avatar");
+        expect(speakers).not.toContain("sot-speaker-pill");
         expect(speakers).not.toContain("data-profiles-state");
         expect(speakers).not.toContain("data-vs-state");
         expect(speakers).not.toMatch(/\bvs-profile/);

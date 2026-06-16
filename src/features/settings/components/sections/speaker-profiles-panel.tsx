@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -60,7 +61,15 @@ function StatePill({
     children: ReactNode;
     tone?: "success" | "neutral" | "warning";
 }) {
-    return <span className={`sot-speaker-pill ${tone}`}>{children}</span>;
+    return (
+        <Badge
+            variant="outline"
+            data-sot-badge="speaker-state"
+            data-sot-tone={tone}
+        >
+            {children}
+        </Badge>
+    );
 }
 
 function PanelNotice({

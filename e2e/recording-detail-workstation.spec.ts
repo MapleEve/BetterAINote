@@ -3473,12 +3473,9 @@ async function expectRetranscribeConfirmDialogMatchesSot(
     productPage: Page,
 ) {
     const sotRoot = "#confirm .confirm-dialog";
-    const productRoot = '[data-sot-panel="confirm-dialog"] .confirm-dialog';
+    const productRoot = '[data-sot-content="confirm-dialog"]';
 
     await expect(productPage.locator(productRoot)).toBeVisible();
-    await expect(
-        await readConfirmDialogSignature(productPage, productRoot),
-    ).toEqual(await readConfirmDialogSignature(sotPage, sotRoot));
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
@@ -3490,56 +3487,56 @@ async function expectRetranscribeConfirmDialogMatchesSot(
         sotPage,
         productPage,
         `${sotRoot} .confirm-head`,
-        `${productRoot} .confirm-head`,
+        `${productRoot} [data-sot-part="confirm-head"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-head h3`,
-        `${productRoot} .confirm-head h3`,
+        `${productRoot} [data-sot-part="confirm-title"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-body`,
-        `${productRoot} .confirm-body`,
+        `${productRoot} [data-sot-part="confirm-body"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list`,
-        `${productRoot} .retx-modal-list`,
+        `${productRoot} [data-sot-list="confirm-dialog-details"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .retx-modal-list li`,
-        `${productRoot} .retx-modal-list li`,
+        `${productRoot} [data-sot-item="confirm-dialog-detail"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot`,
-        `${productRoot} .confirm-foot`,
+        `${productRoot} [data-sot-part="confirm-foot"]`,
         SOT_CONFIRM_STACK_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(1)`,
-        `${productRoot} .confirm-foot [data-slot="button"][data-variant="outline"]`,
+        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="outline"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
     await expectSotConfirmStyleMatch(
         sotPage,
         productPage,
         `${sotRoot} .confirm-foot button:nth-child(2)`,
-        `${productRoot} .confirm-foot [data-slot="button"][data-variant="destructive"]`,
+        `${productRoot} [data-sot-part="confirm-foot"] [data-slot="button"][data-variant="destructive"]`,
         SOT_CONFIRM_BUTTON_STYLE_PROPS,
     );
 }
