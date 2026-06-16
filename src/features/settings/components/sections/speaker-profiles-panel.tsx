@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -76,24 +77,25 @@ function PanelNotice({
     tone?: "danger" | "neutral";
 }) {
     const Icon = tone === "danger" ? AlertCircle : CheckCircle2;
+    const bannerTone = tone === "danger" ? "err" : "info";
 
     return (
-        <div
-            className={tone === "danger" ? "sd-banner err" : "sd-banner"}
+        <Alert
+            data-sot-banner="speaker-profiles-notice"
             data-sot-panel={panel}
             data-sot-state={state}
-            data-sot-tone={tone}
+            data-sot-tone={bannerTone}
         >
-            <span className="b-ic">
+            <span data-sot-banner-icon>
                 <Icon aria-hidden="true" />
             </span>
-            <div>
-                <p className="b-h">{children}</p>
+            <div data-sot-banner-body>
+                <p data-sot-banner-sub>{children}</p>
                 {action ? (
                     <div className="mt-2 flex items-center gap-2">{action}</div>
                 ) : null}
             </div>
-        </div>
+        </Alert>
     );
 }
 
@@ -463,15 +465,16 @@ export function SpeakerProfilesPanel() {
 
     return (
         <div
-            className="sot-speaker-profiles sm-section"
+            className="sot-speaker-profiles"
             data-sot-panel="speaker-profiles"
+            data-sot-section-group
             data-sot-speaker-profiles-panel=""
             data-sot-state={profilesState}
             data-sot-voiceprints-state={voiceprintsState}
         >
             <div
-                className="sm-section"
                 data-sot-panel="speaker-profiles-local"
+                data-sot-section-group
                 data-sot-state={profilesState}
             >
                 <Field
@@ -697,8 +700,8 @@ export function SpeakerProfilesPanel() {
             </div>
 
             <div
-                className="sm-section"
                 data-sot-panel="speaker-voiceprints"
+                data-sot-section-group
                 data-sot-state={voiceprintsState}
             >
                 <Field

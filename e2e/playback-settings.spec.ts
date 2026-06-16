@@ -89,7 +89,7 @@ test("misc settings persist sync and playback controls immediately, then reload"
     await expect(section).toHaveAttribute("aria-busy", "false");
     await expect(miscHeading).toBeVisible();
     await expect(playbackTitle).toBeVisible();
-    await expect(section.locator(".sm-actions")).toHaveCount(0);
+    await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
     await expect(
         section.locator('[data-sot-control="settings-save"]'),
@@ -186,6 +186,6 @@ test("misc settings persist sync and playback controls immediately, then reload"
     await expect(playbackSpeedSelect).toHaveValue("1.5");
     await expect(volumeInput).toHaveValue("42");
     await expect(autoPlaySwitch).toHaveAttribute("data-sot-state", "checked");
-    await expect(section.locator(".sm-actions")).toHaveCount(0);
+    await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
 });

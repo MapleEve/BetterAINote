@@ -39,7 +39,10 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                             <div className="detail-empty-sub">
                                 录音详情暂时无法加载，可以重试或返回工作台。
                             </div>
-                            <div className="sm-actions">
+                            <div
+                                className="flex flex-wrap items-center gap-2"
+                                data-sot-actions="recording-error"
+                            >
                                 <Button
                                     variant="primary"
                                     type="button"

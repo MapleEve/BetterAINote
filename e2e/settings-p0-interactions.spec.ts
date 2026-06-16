@@ -347,7 +347,7 @@ test("transcription settings save auto-transcribe and language changes through S
     const section = settingsSection(page, "transcription");
     await expectSectionReady(page, "transcription");
     await expect(sectionSaveButton(section)).toHaveCount(0);
-    await expect(section.locator(".sm-actions")).toHaveCount(0);
+    await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
     const autoTranscribeSwitch = section.locator(
         "#transcription-auto-transcribe",

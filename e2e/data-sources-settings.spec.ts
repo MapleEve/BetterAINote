@@ -1330,7 +1330,9 @@ test("data sources settings rail and provider primitives match SOT computed styl
             await selectSotDataSourceProvider(sotIndexPage, "dingtalk-a1");
             const sotDetail = sotIndexPage.locator("#ds-detail");
             await expect(sotDetail.locator(".sd-head")).toBeVisible();
-            await expect(detail.locator(".sd-head")).toBeVisible();
+            await expect(
+                detail.locator('[data-sot-part="source-provider-header"]'),
+            ).toBeVisible();
             await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
             await expectComputedStyleMatch(
                 sotDetail,
@@ -1737,17 +1739,21 @@ test("data sources settings tests missing details then saves a provider through 
     const ticnoteEnable = sourceEnableSyncControl(page, "ticnote");
     await expect(detail).toBeVisible();
     await expect(detail).toHaveAttribute("data-sot-status", "needs-setup");
-    await expect(detail.locator(".sd-head")).toBeVisible();
-    await expect(detail.locator(".sd-title")).toContainText("TicNote");
-    await expect(detail.locator(".sd-pill")).toHaveAttribute(
-        "class",
-        /needs-setup|warn|neu/,
+    await expect(
+        detail.locator('[data-sot-part="source-provider-header"]'),
+    ).toBeVisible();
+    await expect(
+        detail.locator('[data-sot-part="source-provider-title"]'),
+    ).toContainText("TicNote");
+    await expect(detail.locator("[data-sot-status]")).toHaveAttribute(
+        "data-sot-tone",
+        /warn|neu/,
     );
-    await expect(detail.locator(".sm-section").first()).toBeVisible();
+    await expect(detail.locator("[data-sot-section-group]").first()).toBeVisible();
     await expect(detail.locator('[data-slot="field"]').first()).toBeVisible();
     await expect(detail.locator('[data-slot="field-content"]').first()).toBeVisible();
     await expect(detail.locator('[data-slot="input"]').first()).toBeVisible();
-    await expect(detail.locator(".sm-actions-state")).toBeVisible();
+    await expect(detail.locator("[data-save-actions]")).toBeVisible();
     await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
     await expect(detail.locator(".modal-foot")).toHaveCount(0);
     await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");

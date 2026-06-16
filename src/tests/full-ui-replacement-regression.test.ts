@@ -717,7 +717,10 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain("data-sot-state={surfaceState}");
         expect(login).toContain('className="card"');
         expect(login).toContain('className="frame"');
-        expect(login).toContain('"inp"');
+        expect(login).toContain(
+            'import { Input } from "@/components/ui/input";',
+        );
+        expect(login).toContain("<Input");
         expect(login).toContain(
             'import { Button } from "@/components/ui/button";',
         );
@@ -726,6 +729,7 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain("data-auth-form-state");
+        expect(login).not.toContain('"inp"');
         expect(login).not.toContain('className="btn primary"');
         expect(login).not.toContain('"btn primary"');
         expect(login).not.toContain('className="app"');

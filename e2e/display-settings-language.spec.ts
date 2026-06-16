@@ -26,7 +26,7 @@ function displaySection(page: Page) {
 }
 
 function displayFooter(page: Page) {
-    return displaySection(page).locator(".sm-actions");
+    return displaySection(page).locator("[data-save-actions]");
 }
 
 function displaySaveActions(page: Page) {

@@ -460,7 +460,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("data-sot-load-state");
         expect(content).toContain('data-sot-surface="settings-data-sources"');
         const providersTitle = content.match(
-            /<div className="sm-providers-title">[\s\S]*?<\/div>/,
+            /<div data-sot-part="source-providers-title">[\s\S]*?<\/div>/,
         )?.[0];
         expect(providersTitle).toContain('{isZh ? "来源" : "Data Sources"}');
         expect(providersTitle).not.toContain('"数据源"');
@@ -505,12 +505,12 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("Switch");
         expect(content).toContain("onCheckedChange");
         expect(content).toContain("enabled: checked");
-        expect(content).toContain('className="sd-head"');
-        expect(content).toContain('className="sd-title"');
-        expect(content).toContain('className="sd-sub"');
-        expect(content).toContain("sd-pill");
+        expect(content).toContain('data-sot-part="source-provider-header"');
+        expect(content).toContain('data-sot-part="source-provider-title"');
+        expect(content).toContain('data-sot-part="source-provider-subtitle"');
+        expect(content).toContain("data-sot-status={status.state}");
         expect(content).toContain("DataSourceFieldControl");
-        expect(content).toContain('className="sm-section"');
+        expect(content).toContain("data-sot-section-group");
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("<Field");
         expect(content).toContain("<FieldContent>");
@@ -540,7 +540,7 @@ describe("settings SOT interaction regressions", () => {
             expect(inputPrimitive).toContain(className);
         }
         expect(inputPrimitive).not.toContain("field-input");
-        expect(content).toContain("sm-actions-state");
+        expect(content).toContain("data-save-actions");
         expect(content).toContain('data-sot-control="source-test"');
         expect(content).toContain('data-sot-control="source-save"');
         expect(content).toContain('data-sot-control="source-reconnect"');
@@ -557,6 +557,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain('className="sm-detail-sub"');
         expect(content).not.toContain('className="modal-foot"');
         expect(content).not.toContain('className="sm-actions-spacer"');
+        expect(content).not.toContain('className="sm-section"');
+        expect(content).not.toContain("sm-actions-state");
+        expect(content).not.toContain("sd-pill");
         expect(content).not.toMatch(OLD_UI_RE);
 
         expect(service).toContain("DATA_SOURCES_TEST_API_PATH");
@@ -770,7 +773,7 @@ describe("settings SOT interaction regressions", () => {
 
         const actionFooter =
             dataSourcesPanel.match(
-                /<footer[\s\S]*?className="sm-actions sm-actions-state"[\s\S]*?<\/footer>/,
+                /<footer[\s\S]*?data-save-actions=""[\s\S]*?<\/footer>/,
             )?.[0] ?? "";
         const actionOrder = [
             ...actionFooter.matchAll(
@@ -799,7 +802,7 @@ describe("settings SOT interaction regressions", () => {
         const globals = readSource("app/globals.css");
         const actionStateBaseCss = readCssBlock(
             globals,
-            ".sm-actions-state {\n    align-items: center;",
+            "[data-save-actions] {\n    align-items: center;",
         );
         expect(actionStateBaseCss).toContain("flex-direction: row-reverse;");
         expect(globals).not.toContain('data-sot-actions="source-actions"');
@@ -860,8 +863,8 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-panel="settings-scroll-body"');
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state=");
-        expect(content).toContain('className="sm-title"');
-        expect(content).toContain('className="sm-section-head"');
+        expect(content).toContain("<h3 data-sot-title>{title}</h3>");
+        expect(content).toContain("data-sot-section-head");
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("function SettingsRow");
         expect(content).toContain("<Field");
@@ -923,9 +926,7 @@ describe("settings SOT interaction regressions", () => {
         expect(denoiseOptions).not.toContain('"关闭"');
         expect(denoiseOptions).not.toContain('"Noisereduce"');
         expect(dataSourcesPanel).toContain('data-sot-control="source-save"');
-        expect(dataSourcesPanel).toContain(
-            'className="sm-actions sm-actions-state"',
-        );
+        expect(dataSourcesPanel).toContain('data-save-actions=""');
         expect(dataSourcesPanel).toMatch(
             /data-save-id=\{`ds-\$\{selectedSource\.provider\}`\}/,
         );
@@ -1165,7 +1166,7 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-content.tsx",
         );
         const sectionLoadErrorBanner = content.match(
-            /<Alert\s+className="sm-banner err"\s+data-sot-panel="settings-section-load-error"\s+data-sot-section=\{section\}[\s\S]*?>/,
+            /<Alert\s+data-sot-banner="settings-section-load-error"\s+data-sot-panel="settings-section-load-error"\s+data-sot-section=\{section\}[\s\S]*?>/,
         )?.[0];
 
         expect(sectionLoadErrorBanner).toBeDefined();

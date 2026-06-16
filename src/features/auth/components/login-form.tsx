@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 import {
     navigateAndRefreshBrowserRoute,
@@ -122,7 +123,7 @@ export function LoginForm({
                     />{" "}
                     <div className="auth-title">{title}</div>
                     <div className="auth-sub">{subtitle}</div>
-                    <input
+                    <Input
                         id="email"
                         name="email"
                         type="email"
@@ -131,15 +132,15 @@ export function LoginForm({
                         disabled={!isMounted || isLoading}
                         autoComplete="email"
                         aria-invalid={invalid}
-                        className={cn(
-                            "inp",
+                        className="mx-auto mb-2 max-w-[280px]"
+                        data-sot-control="auth-email"
+                        data-sot-state={
                             invalid
                                 ? "error"
                                 : isLoading || isLocalLoading
                                   ? "saving"
-                                  : "focus",
-                        )}
-                        data-sot-control="auth-email"
+                                  : "ready"
+                        }
                         placeholder="mei@example.com"
                     />
                     {formState ? (

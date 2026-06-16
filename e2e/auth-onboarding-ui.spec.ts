@@ -1529,7 +1529,7 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await expect(form.locator(".card-h")).toContainText("登录 / Sign in");
     await expect(form.locator('[data-sot-frame="auth"].frame')).toBeVisible();
     await expect(emailInput).toBeEditable();
-    await expect(emailInput).toHaveClass(/inp/);
+    await expect(emailInput).toHaveAttribute("data-slot", "input");
     await expect(emailInput).toHaveAttribute("aria-invalid", "false");
     await expect(page.locator(".sidebar, .panel")).toHaveCount(0);
     await expect(page.locator("#password")).toHaveCount(0);

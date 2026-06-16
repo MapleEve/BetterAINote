@@ -270,7 +270,7 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3.sm-title",
+                selector: "h3[data-sot-title]",
             },
             {
                 name: "auto transcription switch",
@@ -287,7 +287,7 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3.sm-title",
+                selector: "h3[data-sot-title]",
             },
             {
                 name: "auto title switch",
@@ -308,7 +308,7 @@ const sectionAcceptanceTargets: Record<
         representativeTargets: [
             {
                 name: "section title",
-                selector: "h3.sm-title",
+                selector: "h3[data-sot-title]",
             },
             {
                 name: "voscript base url input",
@@ -670,9 +670,10 @@ async function readShellMetrics(locator: Locator) {
         const save =
             element.querySelector(
                 '[data-sot-control="settings-save"][data-sot-state="saving"]',
-            ) ?? element.querySelector('.sm-actions-state[data-save-state="saving"]');
+            ) ??
+            element.querySelector('[data-save-actions][data-save-state="saving"]');
         const error = element.querySelector(
-            '[data-sot-panel="settings-section-load-error"], .sm-banner.err',
+            '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
         );
         const userSummaryText =
             element
@@ -779,12 +780,15 @@ async function readShellMetrics(locator: Locator) {
                           ?.getAttribute("data-provider") ??
                       null;
                   const detail = dataSourcesRoot.querySelector<HTMLElement>(
-                      '[data-sot-panel="source-provider-detail"], #ds-detail, .sm-detail',
+                      '[data-sot-panel="source-provider-detail"], #ds-detail',
                   );
                   const detailStatusElement =
-                      detail?.querySelector<HTMLElement>(".sd-pill") ?? null;
+                      detail?.querySelector<HTMLElement>("[data-sot-status]") ??
+                      null;
                   const detailHead =
-                      detail?.querySelector<HTMLElement>(".sd-head") ?? null;
+                      detail?.querySelector<HTMLElement>(
+                          '[data-sot-part="source-provider-header"]',
+                      ) ?? null;
                   const detailProvider =
                       detail?.getAttribute("data-sot-provider") ??
                       detail?.getAttribute("data-provider-detail") ??
@@ -1065,11 +1069,14 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 ?.getAttribute("data-provider") ??
             null;
         const detail = root.querySelector<HTMLElement>(
-            '[data-sot-panel="source-provider-detail"], #ds-detail, .sm-detail',
+            '[data-sot-panel="source-provider-detail"], #ds-detail',
         );
         const detailStatusElement =
-            detail?.querySelector<HTMLElement>(".sd-pill") ?? null;
-        const detailHead = detail?.querySelector<HTMLElement>(".sd-head") ?? null;
+            detail?.querySelector<HTMLElement>("[data-sot-status]") ?? null;
+        const detailHead =
+            detail?.querySelector<HTMLElement>(
+                '[data-sot-part="source-provider-header"]',
+            ) ?? null;
         const detailProvider =
             detail?.getAttribute("data-sot-provider") ??
             detail?.getAttribute("data-provider-detail") ??
@@ -1435,7 +1442,7 @@ async function expectTitleGenerationReadyStoredKeyEvidence(page: Page) {
         "当前账号已存储一把仅用于 AI 重命名的 key。输入新 key 可替换。",
         { exact: true },
     );
-    const storedStatus = section.locator(".sm-key-status");
+    const storedStatus = section.locator("[data-sot-key-status]");
     const apiKeyInput = section.locator("#title-generation-api-key");
 
     await expect(storedDescription).toBeVisible();
@@ -1634,7 +1641,7 @@ async function expectRow117SotDataSourcesReadyState(page: Page) {
 async function expectRow117VoScriptReadyState(page: Page) {
     const section = settingsSectionSurface(page, "voscript");
     const baseUrl = section.locator("#voscript-base-url");
-    const keyStatus = section.locator(".sm-key-status");
+    const keyStatus = section.locator("[data-sot-key-status]");
     const unavailableBanner = section.locator("[data-voscript-unavail]");
     const keyActionControl = section.locator("#voscript-api-key-mode");
     const keyActionRow = keyActionControl.locator(
@@ -2666,7 +2673,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
         const appearanceSaveControls = appearanceSection.locator(
             '[data-sot-control="settings-save"], [data-save-action]',
         );
-        const appearanceFooter = appearanceSection.locator(".sm-actions");
+    const appearanceFooter = appearanceSection.locator("[data-save-actions]");
         await expect(itemsPerPageInput).toHaveValue("50");
         await itemsPerPageInput.fill("42");
         await saveStarted;

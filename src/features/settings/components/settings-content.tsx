@@ -145,7 +145,7 @@ interface ProviderStatus {
 }
 
 function providerStatusClassName(
-    baseClassName: "sd-pill" | "sp-status",
+    baseClassName: "sp-status",
     status: ProviderStatus,
 ) {
     return `${baseClassName} ${status.tone}${status.state === "syncing" ? " syncing" : ""}`;
@@ -551,16 +551,17 @@ function ProviderStateBanner({
 
     return (
         <Alert
-            className={`sd-banner ${getBannerTone(tone)}`}
+            data-sot-banner="source-state"
             data-sot-panel="source-state-banner"
+            data-sot-state={getBannerTone(tone)}
             data-sot-tone={tone}
         >
-            <span className="b-ic">
+            <span data-sot-banner-icon>
                 <Icon aria-hidden="true" />
             </span>
-            <div>
-                <div className="b-t">{title}</div>
-                <div className="b-h">{description}</div>
+            <div data-sot-banner-body>
+                <div data-sot-banner-title>{title}</div>
+                <div data-sot-banner-sub>{description}</div>
             </div>
         </Alert>
     );
@@ -999,25 +1000,26 @@ function DataSourcesSettingsPanel({
             data-sot-surface="settings-data-sources"
             aria-busy={isLoading}
         >
-            <aside className="sm-providers" data-sot-list="source-providers">
-                <div className="sm-providers-title">
+            <aside data-sot-list="source-providers">
+                <div data-sot-part="source-providers-title">
                     {isZh ? "来源" : "Data Sources"} ·{" "}
                     {isLoading ? "..." : orderedSources.length}
                 </div>
 
                 {loadError ? (
                     <Alert
-                        className="sm-banner err"
+                        data-sot-banner="source-load-error"
                         data-sot-panel="source-load-error"
+                        data-sot-tone="err"
                     >
-                        <span className="sm-banner-ico">
+                        <span data-sot-banner-icon>
                             <AlertCircle aria-hidden="true" />
                         </span>
-                        <span className="sm-banner-body">
-                            <span className="sm-banner-title">
+                        <span data-sot-banner-body>
+                            <span data-sot-banner-title>
                                 {isZh ? "加载失败" : "Load failed"}
                             </span>
-                            <span className="sm-banner-sub">{loadError}</span>
+                            <span data-sot-banner-sub>{loadError}</span>
                         </span>
                         <Button
                             type="button"
@@ -1070,7 +1072,6 @@ function DataSourcesSettingsPanel({
 
             <section
                 ref={providerDetailRef}
-                className="sm-detail"
                 data-sot-action-state={actionState}
                 data-sot-interaction-disabled={
                     interactionDisabled ? "true" : "false"
@@ -1082,15 +1083,18 @@ function DataSourcesSettingsPanel({
             >
                 {selectedSource && status ? (
                     <>
-                        <div className="sd-head" data-ds-state={status.state}>
+                        <div
+                            data-ds-state={status.state}
+                            data-sot-part="source-provider-header"
+                        >
                             <div>
-                                <h3 className="sd-title">
+                                <h3 data-sot-part="source-provider-title">
                                     {getSourceProviderSettingsLabel(
                                         selectedSource.provider,
                                         language,
                                     )}
                                 </h3>
-                                <div className="sd-sub">
+                                <div data-sot-part="source-provider-subtitle">
                                     {getSourceProviderDetailSubtitle(
                                         selectedSource,
                                         isZh,
@@ -1099,12 +1103,11 @@ function DataSourcesSettingsPanel({
                             </div>
                             <Badge
                                 variant="outline"
-                                className={providerStatusClassName(
-                                    "sd-pill",
-                                    status,
-                                )}
+                                className="h-6 gap-1.5 px-2.5 text-[11.5px]"
+                                data-sot-status={status.state}
+                                data-sot-tone={status.tone}
                             >
-                                <span className="dot" />
+                                <span data-sot-status-dot />
                                 {status.label}
                             </Badge>
                         </div>
@@ -1174,7 +1177,7 @@ function DataSourcesSettingsPanel({
                                 })}
                             </div>
                         ) : selectedSource.provider !== "dingtalk-a1" ? (
-                            <div className="sm-section">
+                            <div data-sot-section-group>
                                 <Field orientation="horizontal">
                                     <FieldContent>
                                         <FieldTitle>
@@ -1297,9 +1300,9 @@ function DataSourcesSettingsPanel({
                             ) : null}
                         </div>
 
-                        <div className="sm-divider" />
+                        <div data-sot-section-divider />
 
-                        <div className="sm-section">
+                        <div data-sot-section-group>
                             <Field
                                 data-sot-part="source-auto-update-row"
                                 data-disabled={
@@ -1428,13 +1431,13 @@ function DataSourcesSettingsPanel({
                         </div>
 
                         <footer
-                            className="sm-actions sm-actions-state"
+                            data-save-actions=""
                             data-save-id={`ds-${selectedSource.provider}`}
                             data-save-state={sourceSaveState}
                         >
                             <Badge
                                 variant="ghost"
-                                className="sm-save-status border-0 bg-transparent p-0"
+                                className="border-0 bg-transparent p-0"
                                 data-save-status
                             >
                                 {actionMessage?.title ?? ""}
@@ -1670,7 +1673,7 @@ function SaveStatus({
     return (
         <Badge
             variant="ghost"
-            className="sm-save-status border-0 bg-transparent p-0"
+            className="border-0 bg-transparent p-0"
             data-save-status={saveState}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
@@ -1729,18 +1732,19 @@ function SectionShell({
                 data-sot-surface="settings-section"
             >
                 <Alert
-                    className="sm-banner err"
+                    data-sot-banner="settings-section-load-error"
                     data-sot-panel="settings-section-load-error"
                     data-sot-section={section}
+                    data-sot-tone="err"
                 >
-                    <span className="sm-banner-ico">
+                    <span data-sot-banner-icon>
                         <AlertCircle aria-hidden="true" />
                     </span>
-                    <span className="sm-banner-body">
-                        <span className="sm-banner-title">
+                    <span data-sot-banner-body>
+                        <span data-sot-banner-title>
                             {isZh ? "加载失败" : "Load failed"}
                         </span>
-                        <span className="sm-banner-sub">{loadError}</span>
+                        <span data-sot-banner-sub>{loadError}</span>
                     </span>
                     <Button
                         type="button"
@@ -1768,7 +1772,7 @@ function SectionShell({
             data-sot-surface="settings-section"
             data-voscript-availability={voscriptAvailability}
         >
-            <h3 className="sm-title">{title}</h3>
+            <h3 data-sot-title>{title}</h3>
             {subtitle ? (
                 <FieldDescription className="max-w-2xl">
                     {subtitle}
@@ -1789,8 +1793,8 @@ function SettingsGroup({
     title: string;
 }) {
     return (
-        <section className="sm-section">
-            <header className="sm-section-head">
+        <section data-sot-section-group>
+            <header data-sot-section-head>
                 <h4>{title}</h4>
                 {subtitle ? <p>{subtitle}</p> : null}
             </header>
@@ -1945,7 +1949,7 @@ function SaveActions({
 }) {
     return (
         <div
-            className="sm-actions sm-actions-state"
+            data-save-actions=""
             data-save-id={saveId}
             data-save-state={saveState}
         >
@@ -2408,7 +2412,7 @@ function TitleGenerationSettingsPanel({
                     }
                 >
                     {draft.titleGenerationApiKeySet ? (
-                        <span className="sm-key-status">
+                        <span data-sot-key-status>
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
@@ -2756,24 +2760,25 @@ function VoScriptSettingsPanel({
         >
             {showUnavailableBanner ? (
                 <output
-                    className="sm-banner sm-banner-unavailable"
+                    data-sot-banner="voscript-unavailable"
                     data-sot-state={
                         connectionTestState === "test-error"
                             ? "test-error"
                             : "missing-connection"
                     }
+                    data-sot-tone="warn"
                     data-voscript-unavail=""
                 >
-                    <span className="sm-banner-ico" aria-hidden="true">
+                    <span data-sot-banner-icon aria-hidden="true">
                         <AlertCircle aria-hidden="true" />
                     </span>
-                    <div className="sm-banner-body">
-                        <div className="sm-banner-title">
+                    <div data-sot-banner-body>
+                        <div data-sot-banner-title>
                             {isZh
                                 ? "VoScript 当前不可用"
                                 : "VoScript is unavailable"}
                         </div>
-                        <div className="sm-banner-hint">
+                        <div data-sot-banner-hint>
                             {connectionTestState === "test-error" &&
                             connectionTestMessage
                                 ? connectionTestMessage
@@ -2827,7 +2832,7 @@ function VoScriptSettingsPanel({
                     }
                 >
                     {draft.privateTranscriptionApiKeySet ? (
-                        <span className="sm-key-status">
+                        <span data-sot-key-status>
                             {isZh ? "已存储" : "Stored"}
                         </span>
                     ) : null}
@@ -3360,7 +3365,7 @@ function PlaybackSettingsRows({
                         : "Supported while the player is focused"
                 }
             >
-                <div className="sm-shortcuts">
+                <div data-sot-shortcuts>
                     <div>
                         <kbd>Space</kbd>
                         <span>{isZh ? "播放 / 暂停" : "Play / pause"}</span>
