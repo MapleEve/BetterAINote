@@ -1,5 +1,6 @@
 "use client";
 
+import { Slot } from "@radix-ui/react-slot";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
 
@@ -28,23 +29,6 @@ function useSidebar() {
     }
 
     return context;
-}
-
-function SlotRoot({
-    children,
-    className,
-    ...props
-}: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) {
-    const child = React.Children.only(children);
-
-    if (!React.isValidElement<{ className?: string }>(child)) {
-        return null;
-    }
-
-    return React.cloneElement(child, {
-        ...(props as Partial<typeof child.props>),
-        className: cn(child.props.className, className),
-    });
 }
 
 function SidebarProvider({
@@ -271,7 +255,7 @@ function SidebarGroupLabel({
     asChild = false,
     ...props
 }: React.ComponentProps<"div"> & { asChild?: boolean }) {
-    const Comp = asChild ? SlotRoot : "div";
+    const Comp = asChild ? Slot : "div";
 
     return (
         <Comp
@@ -291,7 +275,7 @@ function SidebarGroupAction({
     asChild = false,
     ...props
 }: React.ComponentProps<"button"> & { asChild?: boolean }) {
-    const Comp = asChild ? SlotRoot : "button";
+    const Comp = asChild ? Slot : "button";
 
     return (
         <Comp
@@ -407,7 +391,7 @@ function SidebarMenuButton({
     variant?: "default" | "outline";
     size?: "default" | "sm" | "lg";
 }) {
-    const Comp = asChild ? SlotRoot : "button";
+    const Comp = asChild ? Slot : "button";
 
     return (
         <Comp
@@ -431,7 +415,7 @@ function SidebarMenuAction({
     asChild?: boolean;
     showOnHover?: boolean;
 }) {
-    const Comp = asChild ? SlotRoot : "button";
+    const Comp = asChild ? Slot : "button";
 
     return (
         <Comp
@@ -534,7 +518,7 @@ function SidebarMenuSubButton({
     size?: "sm" | "md";
     isActive?: boolean;
 }) {
-    const Comp = asChild ? SlotRoot : "a";
+    const Comp = asChild ? Slot : "a";
 
     return (
         <Comp

@@ -119,13 +119,17 @@ describe("React surface SSR coverage", () => {
         );
 
         expect(html).toContain("panel");
-        expect(html).toContain("btn primary");
+        expect(html).toContain('data-slot="button"');
+        expect(html).toContain('data-variant="primary"');
+        expect(html).toContain('data-variant="glass"');
+        expect(html).toContain('data-slot="label"');
+        expect(html).toContain('data-slot="switch"');
         expect(html).toContain("liquid-tabs");
         expect(html).not.toContain("card-content");
         expect(html).not.toContain("uikit-");
     });
 
-    it("renders Button as a real button only", () => {
+    it("renders Button as a default button and an asChild link", () => {
         const buttonHtml = render(
             React.createElement(
                 Button,
@@ -139,8 +143,27 @@ describe("React surface SSR coverage", () => {
         );
 
         expect(buttonHtml.match(/<button/g)).toHaveLength(1);
-        expect(buttonHtml).toContain('class="btn ghost btn-sm"');
+        expect(buttonHtml).toContain('data-slot="button"');
+        expect(buttonHtml).toContain('data-variant="ghost"');
+        expect(buttonHtml).toContain('data-size="sm"');
         expect(buttonHtml).not.toContain("<a");
+
+        const linkHtml = render(
+            React.createElement(
+                Button,
+                {
+                    asChild: true,
+                    variant: "link",
+                },
+                React.createElement("a", { href: "/settings" }, "去设置"),
+            ),
+        );
+
+        expect(linkHtml).toContain("<a ");
+        expect(linkHtml).toContain('href="/settings"');
+        expect(linkHtml).toContain('data-slot="button"');
+        expect(linkHtml).toContain('data-variant="link"');
+        expect(linkHtml).not.toContain("<button");
     });
 
     it("renders settings sections and dialogs on the current fixed shell", () => {

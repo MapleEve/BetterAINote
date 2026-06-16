@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -65,7 +65,10 @@ function cssLineProperty(lines: string[], index: number) {
     return null;
 }
 
-function isLineInside(line: number, range: { startLine: number; endLine: number }) {
+function isLineInside(
+    line: number,
+    range: { startLine: number; endLine: number },
+) {
     return line >= range.startLine && line <= range.endLine;
 }
 
@@ -170,7 +173,10 @@ function isSafeColorFallbackArgument(argument: string) {
 function collectGlobalColorFallbackFindings(source: string) {
     const lines = source.split("\n");
     const rootRange = extractCssBlockRange(source, ":root");
-    const darkRange = extractCssBlockRange(source, '.dark,\n[data-theme="dark"]');
+    const darkRange = extractCssBlockRange(
+        source,
+        '.dark,\n[data-theme="dark"]',
+    );
     const fallbackOnlyRange = extractCssBlockRange(
         source,
         "@supports not (color: oklch(",
@@ -179,8 +185,9 @@ function collectGlobalColorFallbackFindings(source: string) {
     const fallbackOnlyModernColorDeclarations: ColorDeclarationFinding[] = [];
     const nonTokenSupportedPathDeclarations: ColorDeclarationFinding[] = [];
     const unexpectedSupportedPathDeclarations: ColorDeclarationFinding[] = [];
-    const unsafeVarFallbackArguments: Array<ColorDeclarationFinding & { fallback: string }> =
-        [];
+    const unsafeVarFallbackArguments: Array<
+        ColorDeclarationFinding & { fallback: string }
+    > = [];
 
     for (const [index, line] of lines.entries()) {
         if (!MODERN_COLOR_RE.test(line)) continue;
@@ -203,7 +210,10 @@ function collectGlobalColorFallbackFindings(source: string) {
             fallbackOnlyModernColorDeclarations.push(finding);
         } else {
             nonTokenSupportedPathDeclarations.push(finding);
-            if (!property || !CSS_SUPPORTED_PATH_COLOR_PROPERTIES.has(property)) {
+            if (
+                !property ||
+                !CSS_SUPPORTED_PATH_COLOR_PROPERTIES.has(property)
+            ) {
                 unexpectedSupportedPathDeclarations.push(finding);
             }
         }
@@ -241,7 +251,8 @@ function listSourceFiles(directory: string): string[] {
 }
 
 function collectInlineModernColorFindings() {
-    const tagVisualsPath = "features/recordings/components/recording-tag-visuals.tsx";
+    const tagVisualsPath =
+        "features/recordings/components/recording-tag-visuals.tsx";
     const catalogSwatches: string[] = [];
     const unexpectedModernColorLines: Array<{
         file: string;
@@ -251,7 +262,10 @@ function collectInlineModernColorFindings() {
     const unexpectedTagSwatchCalls: Array<{ line: number; text: string }> = [];
 
     for (const filePath of listSourceFiles(ROOT)) {
-        const relativePath = path.relative(ROOT, filePath).split(path.sep).join("/");
+        const relativePath = path
+            .relative(ROOT, filePath)
+            .split(path.sep)
+            .join("/");
         if (relativePath.startsWith("tests/")) continue;
 
         const lines = readFileSync(filePath, "utf8").split("\n");
@@ -311,6 +325,7 @@ describe("full UI replacement regression coverage", () => {
         const select = readSource("components/ui/select.tsx");
         const sidebar = readSource("components/ui/sidebar.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
+        const toggleGroup = readSource("components/ui/toggle-group.tsx");
         const toaster = readSource("components/ui/sonner.tsx");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
 
@@ -433,21 +448,55 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(sidebar).toContain("const SidebarContext = React.createContext");
         expect(sidebar).toContain("--sidebar-width");
-        expect(button).toContain("type ButtonVariant =");
-        expect(button).toContain("type ButtonSize =");
-        expect(button).not.toContain("asChild");
+        expect(button).toContain(
+            'import { Slot } from "@radix-ui/react-slot";',
+        );
+        expect(button).toContain(
+            'import { cva, type VariantProps } from "class-variance-authority";',
+        );
+        expect(button).toContain("const buttonVariants = cva(");
+        expect(button).toContain("VariantProps<typeof buttonVariants>");
+        expect(button).toContain("asChild?: boolean;");
+        expect(button).toContain('const Comp = asChild ? Slot : "button";');
+        expect(button).toContain('data-slot="button"');
+        expect(button).toContain("data-variant={variant}");
+        expect(button).toContain("data-size={size}");
+        for (const variant of [
+            "default",
+            "destructive",
+            "outline",
+            "secondary",
+            "ghost",
+            "link",
+            "primary",
+            "danger",
+            "glass",
+        ]) {
+            expect(button).toContain(`${variant}:`);
+        }
+        expect(button).toContain(
+            "export { Button, IconButton, buttonVariants };",
+        );
+        expect(button).not.toContain("type ButtonVariant =");
+        expect(button).not.toContain("type ButtonSize =");
         expect(button).not.toContain("React.cloneElement");
-        expect(button).not.toContain("@radix-ui/react-slot");
-        expect(button).not.toContain("Slot");
-        expect(dialog).toContain("DialogContext");
-        expect(dialog).toContain("<DialogContext.Provider value={value}>");
-        expect(dialog).toContain('className="scrim"');
-        expect(dialog).toContain('data-open="true"');
-        expect(dialog).toContain('role="dialog"');
-        expect(dialog).not.toContain("DialogPrimitive");
+        expect(dialog).toContain(
+            'import * as DialogPrimitive from "@radix-ui/react-dialog";',
+        );
+        for (const primitive of [
+            "Root",
+            "Trigger",
+            "Portal",
+            "Close",
+            "Overlay",
+            "Content",
+            "Title",
+            "Description",
+        ]) {
+            expect(dialog).toContain(`DialogPrimitive.${primitive}`);
+        }
         expect(dialog).toContain("showCloseButton");
-        expect(dialog).toContain('aria-label="关闭"');
-        expect(dialog).not.toContain('"modal"');
+        expect(dialog).toContain("<XIcon />");
         for (const primitive of [
             "DialogHeader",
             "DialogFooter",
@@ -459,6 +508,8 @@ describe("full UI replacement regression coverage", () => {
         for (const slot of [
             "dialog-trigger",
             "dialog-close",
+            "dialog-portal",
+            "dialog-overlay",
             "dialog-content",
             "dialog-header",
             "dialog-footer",
@@ -467,12 +518,17 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(dialog).toContain(`data-slot="${slot}"`);
         }
-        expect(dialog).not.toContain("DialogPortal");
-        expect(dialog).not.toContain("@radix-ui/react-dialog");
-        expect(label).toContain('React.ComponentProps<"label">');
-        expect(label).toContain("<label");
-        expect(label).toContain('className={cn("field-name"');
-        expect(label).not.toContain("LabelPrimitive");
+        expect(dialog).toContain("function DialogPortal(");
+        expect(dialog).not.toContain("DialogContext");
+        expect(label).toContain(
+            'import * as LabelPrimitive from "@radix-ui/react-label";',
+        );
+        expect(label).toContain(
+            "React.ComponentProps<typeof LabelPrimitive.Root>",
+        );
+        expect(label).toContain("<LabelPrimitive.Root");
+        expect(label).toContain('data-slot="label"');
+        expect(label).not.toContain('className={cn("field-name"');
         expect(input).toContain('React.ComponentProps<"input">');
         expect(select).toContain('className={cn("select"');
         expect(select).toContain("<select");
@@ -484,11 +540,37 @@ describe("full UI replacement regression coverage", () => {
         expect(select).not.toContain("SelectValue");
         expect(select).not.toContain("SelectGroup");
         expect(select).not.toContain("select-panel");
-        expect(switchPrimitive).toContain('className={cn("toggle"');
-        expect(switchPrimitive).toContain('role="switch"');
-        expect(switchPrimitive).toContain("aria-checked={isChecked}");
-        expect(switchPrimitive).toContain('className="t-knob"');
-        expect(switchPrimitive).not.toContain("SwitchPrimitive");
+        expect(switchPrimitive).toContain(
+            'import * as SwitchPrimitive from "@radix-ui/react-switch";',
+        );
+        expect(switchPrimitive).toContain(
+            "React.ComponentProps<typeof SwitchPrimitive.Root>",
+        );
+        expect(switchPrimitive).toContain("<SwitchPrimitive.Root");
+        expect(switchPrimitive).toContain("<SwitchPrimitive.Thumb");
+        expect(switchPrimitive).toContain('data-slot="switch"');
+        expect(switchPrimitive).toContain('data-slot="switch-thumb"');
+        expect(switchPrimitive).toContain("data-[state=checked]:bg-primary");
+        expect(switchPrimitive).toContain("data-[state=unchecked]:bg-input");
+        expect(switchPrimitive).not.toContain('className={cn("toggle"');
+        expect(switchPrimitive).not.toContain('className="t-knob"');
+        expect(toggleGroup).toContain(
+            'import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";',
+        );
+        expect(toggleGroup).toContain(
+            'import { cva, type VariantProps } from "class-variance-authority";',
+        );
+        expect(toggleGroup).toContain("const toggleGroupItemVariants = cva(");
+        expect(toggleGroup).toContain(
+            "React.ComponentProps<typeof ToggleGroupPrimitive.Root>",
+        );
+        expect(toggleGroup).toContain(
+            "React.ComponentProps<\n    typeof ToggleGroupPrimitive.Item\n>",
+        );
+        expect(toggleGroup).toContain('data-slot="toggle-group"');
+        expect(toggleGroup).toContain('data-slot="toggle-group-item"');
+        expect(toggleGroup).toContain("data-variant={variant}");
+        expect(toggleGroup).toContain("data-size={size}");
         expect(toaster).toContain('className="toast-stack"');
         expect(toaster).toContain('id="toast-stack"');
         expect(toaster).toContain('aria-live="polite"');
@@ -528,9 +610,9 @@ describe("full UI replacement regression coverage", () => {
         const findings = collectGlobalColorFallbackFindings(globals);
 
         expect(findings.tokenModernColorDeclarations.length).toBeGreaterThan(0);
-        expect(findings.nonTokenSupportedPathDeclarations.length).toBeGreaterThan(
-            0,
-        );
+        expect(
+            findings.nonTokenSupportedPathDeclarations.length,
+        ).toBeGreaterThan(0);
         expect(findings.fallbackOnlyModernColorDeclarations).toEqual([]);
         expect(findings.unexpectedSupportedPathDeclarations).toEqual([]);
         expect(findings.unsafeVarFallbackArguments).toEqual([]);

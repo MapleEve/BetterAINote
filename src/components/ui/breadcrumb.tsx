@@ -1,24 +1,8 @@
+import { Slot } from "@radix-ui/react-slot";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils";
-
-function SlotRoot({
-    children,
-    className,
-    ...props
-}: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) {
-    const child = React.Children.only(children);
-
-    if (!React.isValidElement<{ className?: string }>(child)) {
-        return null;
-    }
-
-    return React.cloneElement(child, {
-        ...(props as Partial<typeof child.props>),
-        className: cn(child.props.className, className),
-    });
-}
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
     return (
@@ -59,7 +43,7 @@ function BreadcrumbLink({
     className,
     ...props
 }: React.ComponentProps<"a"> & { asChild?: boolean }) {
-    const Comp = asChild ? SlotRoot : "a";
+    const Comp = asChild ? Slot : "a";
 
     return (
         <Comp
