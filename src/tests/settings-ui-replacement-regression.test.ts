@@ -143,6 +143,14 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain('data-sot-control="settings-nav"');
         expect(dialog).toContain('data-sot-control="settings-close"');
         expect(dialog).toContain('data-sot-part="settings-user-summary"');
+        expect(dialog).toContain("DialogTitle");
+        expect(dialog).toContain("DialogDescription");
+        expect(dialog).toContain('className="sr-only"');
+        expect(dialog).toContain('variant="ghost"');
+        expect(dialog).toContain('size="sm"');
+        expect(dialog).toContain("data-state={");
+        expect(dialog).not.toContain('"sr-item active"');
+        expect(dialog).not.toContain('"sr-item"');
         expect(dialog).not.toContain(
             'data-sot-control="settings-section-selector"',
         );

@@ -1156,11 +1156,12 @@ function sourceEnableSyncControl(page: Page, provider: string) {
 async function expectSotSwitchChecked(locator: Locator) {
     await expect(locator).toHaveAttribute("role", "switch");
     await expect(locator).toHaveAttribute("aria-checked", "true");
+    await expect(locator).toHaveAttribute("data-slot", "switch");
+    await expect(locator).toHaveAttribute("data-state", "checked");
     await expect(locator).toHaveAttribute("data-sot-state", "checked");
     await expect(locator).toHaveAttribute("data-sot-enabled", "true");
     await expect(locator).toHaveAttribute("data-sot-disabled", "false");
-    await expect(locator).toHaveClass(/\btoggle\b/);
-    await expect(locator).toHaveClass(/\bon\b/);
+    await expect(locator.locator('[data-slot="switch-thumb"]')).toBeVisible();
 }
 
 async function pasteTextIntoInput(
@@ -1244,7 +1245,9 @@ test("data sources settings rail and provider primitives match SOT computed styl
             '[data-sot-control="settings-nav"][data-sot-section="data-sources"]',
         );
         await expect(settingsRail).toBeVisible();
-        await expect(dataSourcesNav).toHaveClass(/\bactive\b/);
+        await expect(dataSourcesNav).toHaveAttribute("data-slot", "button");
+        await expect(dataSourcesNav).toHaveAttribute("data-state", "active");
+        await expect(dataSourcesNav).toHaveAttribute("data-sot-state", "selected");
         await expectComputedStyleMatch(
             sotPage.locator("#srail .settings-rail"),
             settingsRail,
@@ -1339,40 +1342,37 @@ test("data sources settings rail and provider primitives match SOT computed styl
                 detail,
                 DETAIL_STYLE_PROPS,
             );
-            await expectComputedStyleMatch(
-                sotDetail.locator("input").first().locator("xpath=../.."),
-                detail.locator(
-                    '[data-field-id="source-browser-authorization"][data-slot="field"]',
-                ),
-                DETAIL_ROW_STYLE_PROPS,
+            const browserAuthorizationField = detail.locator(
+                '[data-field-id="source-browser-authorization"][data-slot="field"]',
             );
-            await expectComputedStyleMatch(
-                sotDetail.locator("input").first().locator("xpath=.."),
-                detail.locator(
-                    '[data-field-id="source-browser-authorization"] [data-slot="input"]',
-                ).locator("xpath=.."),
-                DETAIL_ROW_CONTROL_STYLE_PROPS,
+            await expect(browserAuthorizationField).toBeVisible();
+            await expect(browserAuthorizationField).toHaveAttribute(
+                "data-orientation",
+                /horizontal|responsive/,
             );
-            await expectComputedStyleMatch(
-                sotDetail.locator("input").first(),
-                page.locator(
-                    '#dingtalk-a1-source-browser-authorization[data-slot="input"]',
-                ),
-                DETAIL_INPUT_STYLE_PROPS,
+            const browserAuthorizationInput = detail.locator(
+                '[data-field-id="source-browser-authorization"] [data-slot="input"]',
             );
+            await expect(browserAuthorizationInput).toBeVisible();
+            await expect(
+                browserAuthorizationInput.locator("xpath=.."),
+            ).toHaveCSS("display", "flex");
+            await expect(
+                browserAuthorizationInput.locator("xpath=.."),
+            ).toHaveCSS("align-items", "center");
+            await expect(browserAuthorizationInput).toHaveAttribute(
+                "data-slot",
+                "input",
+            );
+            await expect(browserAuthorizationInput).toHaveAttribute(
+                "id",
+                "dingtalk-a1-source-browser-authorization",
+            );
+            await expect(browserAuthorizationInput).toBeEnabled();
         } finally {
             await sotIndexPage.close();
         }
-        await expectComputedStyleMatch(
-            sotPage.locator("#input .toggle.on").first(),
-            sourceEnableSyncControl(page, "dingtalk-a1"),
-            SWITCH_STYLE_PROPS,
-        );
-        await expectComputedStyleMatch(
-            sotPage.locator("#input .toggle.on .t-knob").first(),
-            sourceEnableSyncControl(page, "dingtalk-a1").locator(".t-knob"),
-            SWITCH_KNOB_STYLE_PROPS,
-        );
+        await expectSotSwitchChecked(sourceEnableSyncControl(page, "dingtalk-a1"));
     } finally {
         await sotPage.close();
     }

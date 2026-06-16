@@ -13,7 +13,13 @@ import {
 import * as React from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     addBrowserWindowEventListener,
     readBrowserHash,
@@ -532,6 +538,12 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     } as React.CSSProperties
                 }
             >
+                <DialogTitle className="sr-only">
+                    {t("settingsDialog.title")}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                    {settingsUserSubtitle}
+                </DialogDescription>
                 <SettingsBusyProvider value={busyContextValue}>
                     <header className="settings-head">
                         <div
@@ -593,8 +605,10 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                             );
 
                                         return (
-                                            <button
+                                            <Button
                                                 key={item.id}
+                                                variant="ghost"
+                                                size="sm"
                                                 data-sot-control="settings-nav"
                                                 data-sot-nav={
                                                     itemIndex === 0
@@ -602,6 +616,11 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                         : undefined
                                                 }
                                                 data-sot-section={item.id}
+                                                data-state={
+                                                    activeSection === item.id
+                                                        ? "active"
+                                                        : "inactive"
+                                                }
                                                 data-sot-state={
                                                     activeSection === item.id
                                                         ? "selected"
@@ -622,11 +641,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                         ? "page"
                                                         : undefined
                                                 }
-                                                className={
-                                                    activeSection === item.id
-                                                        ? "sr-item active"
-                                                        : "sr-item"
-                                                }
                                                 type="button"
                                             >
                                                 <item.icon
@@ -634,7 +648,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                                     aria-hidden="true"
                                                 />
                                                 <span>{t(item.labelKey)}</span>
-                                            </button>
+                                            </Button>
                                         );
                                     })}
                                 </div>

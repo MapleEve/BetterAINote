@@ -2373,7 +2373,7 @@ body[data-time-style="abs"] .real-list .ts-rel {
     background: rgb(0 0 0 / 0.15);
     border-right-color: var(--glass-border-soft);
 }
-.sr-item {
+[data-sot-control="settings-nav"] {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -2386,22 +2386,22 @@ body[data-time-style="abs"] .real-list .ts-rel {
     color: var(--fg-secondary);
     text-align: left;
 }
-.sr-item:hover {
+[data-sot-control="settings-nav"]:hover {
     background: color-mix(in srgb, var(--fg-primary) 5%, transparent);
     color: var(--fg-primary);
 }
-.sr-item.active {
+[data-sot-control="settings-nav"][data-state="active"] {
     background: var(--bg-elevated);
     color: var(--fg-primary);
     box-shadow: var(--shadow-xs);
     border: 1px solid var(--line-hairline);
 }
-[data-theme="dark"] .sr-item.active {
+[data-theme="dark"] [data-sot-control="settings-nav"][data-state="active"] {
     background: rgb(255 255 255 / 0.07);
     border-color: var(--glass-border);
     box-shadow: none;
 }
-.sr-item svg {
+[data-sot-control="settings-nav"] svg {
     width: 14px;
     height: 14px;
     stroke: currentColor;
@@ -3413,7 +3413,8 @@ body[data-drawer="open"] .drawer-scrim {
 [data-tenant="single"] [data-tenant-single] {
     display: flex !important;
 }
-[data-tenant="single"] .sr-item[data-section="account"] {
+[data-tenant="single"]
+    [data-sot-control="settings-nav"][data-sot-section="account"] {
     display: none;
 }
 [data-tenant="single"] .src-item .src-hint .src-hint-email {
@@ -7245,7 +7246,7 @@ body[data-ds-todo="show"] .design-todo {
 
 /* ---------- Settings rail group fix ----------
    Functional rule `.sr-group { display: flex }` defaults to row, so the
-   group label and each .sr-item button were laid out side-by-side inside a
+   group label and each settings nav button were laid out side-by-side inside a
    200px rail, leaving ~40px per child and forcing CJK per-character wrap.
    Force column on the group, give the label its own visual treatment, and
    keep item labels on one line. */
@@ -7281,20 +7282,20 @@ body[data-ds-todo="show"] .design-todo {
     text-overflow: ellipsis;
 }
 
-.settings-rail .sr-item {
+.settings-rail [data-sot-control="settings-nav"] {
     width: 100%;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.settings-rail .sr-item svg {
+.settings-rail [data-sot-control="settings-nav"] svg {
     flex: none;
 }
 
 /* ---------- Settings rail group fix ----------
    Functional rule `.sr-group { display: flex }` defaults to row, so the
-   group label and each .sr-item button were laid out side-by-side inside a
+   group label and each settings nav button were laid out side-by-side inside a
    200px rail, leaving ~40px per child and forcing CJK per-character wrap.
    Force column on the group, give the label its own visual treatment, and
    keep item labels on one line. */
@@ -7330,14 +7331,14 @@ body[data-ds-todo="show"] .design-todo {
     text-overflow: ellipsis;
 }
 
-.settings-rail .sr-item {
+.settings-rail [data-sot-control="settings-nav"] {
     width: 100%;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.settings-rail .sr-item svg {
+.settings-rail [data-sot-control="settings-nav"] svg {
     flex: none;
 }
 
@@ -7350,7 +7351,7 @@ body[data-ds-todo="show"] .design-todo {
    ============================================================ */
 .chip-f:focus-visible,
 .lt-tab:focus-visible,
-.sr-item:focus-visible,
+[data-sot-control="settings-nav"]:focus-visible,
 .sp-card:focus-visible,
 .src-action:focus-visible,
 .ls-chip:focus-visible,
