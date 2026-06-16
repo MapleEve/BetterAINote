@@ -869,11 +869,23 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("data-sot-state=");
         expect(player).toContain("aria-label={");
         expect(player).toContain('title="Click to cycle playback speed"');
+        expect(player).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(player).toContain("<Button");
         expect(tagManager).toContain('data-sot-panel="recording-tag-manager"');
         expect(tagManager).toContain('data-sot-control="recording-tag-toggle"');
         expect(tagManager).toContain('className="tagm-panel"');
         expect(tagManager).toContain('className="tagm-body"');
         expect(tagManager).toContain('className="tagm-delete-confirm"');
+        expect(tagManager).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(tagManager).toContain(
+            'import { Input } from "@/components/ui/input";',
+        );
+        expect(tagManager).toContain("<Button");
+        expect(tagManager).toContain("<Input");
         expect(tagManager).not.toContain("mergeTagManagerClassName");
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
@@ -885,12 +897,22 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="recording-source-report-state"',
         );
         expect(sourceReport).toContain("data-sot-state={sourceReportState}");
+        expect(sourceReport).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(sourceReport).toContain("<Button");
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');
         expect(speakerReview).toContain("data-sot-state=");
         expect(speakerReview).toContain("<section");
         expect(speakerReview).toContain(
             "data-sot-speaker-label={speaker.rawLabel}",
         );
+        for (const source of [player, tagManager, sourceReport]) {
+            expect(source).not.toContain('className="btn ghost btn-sm"');
+            expect(source).not.toContain('className="btn primary btn-sm"');
+            expect(source).not.toContain('className="btn danger btn-sm"');
+            expect(source).not.toContain('className="field-input"');
+        }
         for (const source of [
             settings,
             detail,

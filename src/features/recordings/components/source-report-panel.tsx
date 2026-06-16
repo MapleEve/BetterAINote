@@ -465,11 +465,7 @@ function SourceReportStatusBadge({
     children: ReactNode;
     className: string;
 }) {
-    return (
-        <span className={className}>
-            {children}
-        </span>
-    );
+    return <span className={className}>{children}</span>;
 }
 
 function SourceReportMetaRow({
@@ -618,7 +614,8 @@ export function SourceReportPanel({
     const sourceReportCopyText = data?.summaryMarkdown ?? "";
     const sourceSummaryText = sourceSummaryDisplayText(sourceReportCopyText);
     const sourceSummaryVisible =
-        sourceSummaryText && sourceSummaryHasDisplayHeading(sourceReportCopyText);
+        sourceSummaryText &&
+        sourceSummaryHasDisplayHeading(sourceReportCopyText);
     const transcriptAvailable = Boolean(sourceTranscriptCopyText.trim());
     const reportAvailable = Boolean(sourceReportCopyText.trim());
     const sourceReportState: SourceReportAvailabilitySnapshot["state"] = data
@@ -885,8 +882,9 @@ export function SourceReportPanel({
 
     const sourceActionControls = data ? (
         <div className="sr-actions" data-sot-panel="source-actions">
-            <button
-                className="btn ghost btn-sm"
+            <Button
+                variant="ghost"
+                size="sm"
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -899,9 +897,10 @@ export function SourceReportPanel({
                 onClick={handleOpenSourceRecord}
             >
                 {getOpenSourceLabel(sourceProviderForReport, language)}
-            </button>
-            <button
-                className="btn ghost btn-sm"
+            </Button>
+            <Button
+                variant="ghost"
+                size="sm"
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -917,7 +916,7 @@ export function SourceReportPanel({
                 {repullState === "loading"
                     ? t("sourceReport.repullingSource")
                     : t("sourceReport.repullSource")}
-            </button>
+            </Button>
         </div>
     ) : null;
 
@@ -935,8 +934,10 @@ export function SourceReportPanel({
             <div className="t-actions">
                 {data ? (
                     <>
-                        <button
-                            className="btn ghost btn-sm copy-btn"
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="copy-btn"
                             type="button"
                             data-copy="source-transcript"
                             data-copy-state={
@@ -968,9 +969,11 @@ export function SourceReportPanel({
                                         : t("common.copyFailedShort")
                                     : t("sourceReport.copySourceTranscript")}
                             </span>
-                        </button>
-                        <button
-                            className="btn ghost btn-sm copy-btn"
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="copy-btn"
                             type="button"
                             data-copy="source-report"
                             data-copy-state={
@@ -1002,7 +1005,7 @@ export function SourceReportPanel({
                                         : t("common.copyFailedShort")
                                     : t("sourceReport.copySourceReport")}
                             </span>
-                        </button>
+                        </Button>
                     </>
                 ) : null}
                 <Button

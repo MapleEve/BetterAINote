@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
@@ -305,10 +306,12 @@ export function RecordingPlayer({
                     {formatSotPlayerTime(playerDurationValue)}
                 </span>
 
-                <button
+                <Button
                     type="button"
                     onClick={cyclePlaybackSpeed}
-                    className="btn ghost speed"
+                    variant="ghost"
+                    size="sm"
+                    className="speed"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -320,7 +323,7 @@ export function RecordingPlayer({
                     }
                 >
                     {playbackSpeedLabel}
-                </button>
+                </Button>
 
                 <div className="vol-anchor">
                     <button

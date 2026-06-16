@@ -3,6 +3,8 @@
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     MAX_RECORDING_TAG_NAME_LENGTH,
     RECORDING_TAG_COLORS,
@@ -464,14 +466,15 @@ export function RecordingTagManager({
                     >
                         <TagManagerAlertIcon />
                         <span>{SOT_TAG_MANAGER_ERROR_TEXT}</span>
-                        <button
+                        <Button
                             type="button"
-                            className="btn ghost btn-sm"
+                            variant="ghost"
+                            size="sm"
                             data-sot-control="recording-tag-error-retry"
                             onClick={handleRetry}
                         >
                             重试
-                        </button>
+                        </Button>
                     </div>
                     <div
                         className="tagm-opts"
@@ -585,22 +588,24 @@ export function RecordingTagManager({
                             >
                                 <TagManagerAlertIcon />
                                 <span>{visibleError}</span>
-                                <button
+                                <Button
                                     type="button"
-                                    className="btn ghost btn-sm"
+                                    variant="ghost"
+                                    size="sm"
                                     data-sot-control="recording-tag-error-retry"
                                     onClick={() => setOperationError(null)}
                                 >
                                     重试
-                                </button>
+                                </Button>
                             </div>
                         ) : null}
                     </div>
                     <footer className="airp-actions">
                         <span className="airp-spacer" />
-                        <button
+                        <Button
                             type="button"
-                            className="btn ghost btn-sm"
+                            variant="ghost"
+                            size="sm"
                             data-sot-control="recording-tag-delete-cancel"
                             disabled={Boolean(deletingTagId)}
                             onClick={() => {
@@ -609,10 +614,11 @@ export function RecordingTagManager({
                             }}
                         >
                             取消
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
-                            className="btn danger btn-sm"
+                            variant="danger"
+                            size="sm"
                             data-sot-control="recording-tag-delete-confirm"
                             data-sot-state={
                                 deletingTagId === deleteTarget.id
@@ -634,7 +640,7 @@ export function RecordingTagManager({
                                 />
                             ) : null}
                             删除标签
-                        </button>
+                        </Button>
                     </footer>
                 </>
             ) : isCreateMode ? (
@@ -642,11 +648,10 @@ export function RecordingTagManager({
                     <div className="tagm-body">
                         <div className="tagm-create">
                             <div className="tagm-create-row">
-                                <input
+                                <Input
                                     type="text"
                                     value={name}
                                     maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
-                                    className="field-input"
                                     data-sot-control="recording-tag-name"
                                     onChange={(event) => {
                                         setShowToggleState(false);
@@ -682,14 +687,15 @@ export function RecordingTagManager({
                             >
                                 <TagManagerAlertIcon />
                                 <span>{visibleError}</span>
-                                <button
+                                <Button
                                     type="button"
-                                    className="btn ghost btn-sm"
+                                    variant="ghost"
+                                    size="sm"
                                     data-sot-control="recording-tag-error-retry"
                                     onClick={() => setOperationError(null)}
                                 >
                                     重试
-                                </button>
+                                </Button>
                             </div>
                         ) : null}
 
@@ -745,9 +751,10 @@ export function RecordingTagManager({
                     </div>
                     <footer className="airp-actions">
                         <span className="airp-spacer" />
-                        <button
+                        <Button
                             type="button"
-                            className="btn ghost btn-sm"
+                            variant="ghost"
+                            size="sm"
                             data-sot-control="recording-tag-create-cancel"
                             disabled={isCreating}
                             onClick={() => {
@@ -756,10 +763,11 @@ export function RecordingTagManager({
                             }}
                         >
                             取消
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
-                            className="btn primary btn-sm"
+                            variant="primary"
+                            size="sm"
                             data-sot-control="recording-tag-create"
                             data-sot-state={isCreating ? "saving" : "idle"}
                             aria-busy={isCreating ? "true" : undefined}
@@ -773,7 +781,7 @@ export function RecordingTagManager({
                                 />
                             ) : null}
                             创建
-                        </button>
+                        </Button>
                     </footer>
                 </>
             ) : (
@@ -936,24 +944,24 @@ export function RecordingTagManager({
                         >
                             <TagManagerAlertIcon />
                             <span>{visibleError}</span>
-                            <button
+                            <Button
                                 type="button"
-                                className="btn ghost btn-sm"
+                                variant="ghost"
+                                size="sm"
                                 data-sot-control="recording-tag-error-retry"
                                 onClick={() => setOperationError(null)}
                             >
                                 重试
-                            </button>
+                            </Button>
                         </div>
                     ) : null}
 
                     <div className="tagm-create">
                         <div className="tagm-create-row">
-                            <input
+                            <Input
                                 type="text"
                                 value={name}
                                 maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
-                                className="field-input"
                                 data-sot-control="recording-tag-name"
                                 onChange={(event) => {
                                     setShowToggleState(false);

@@ -99,6 +99,25 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"Cycle playback speed"');
         expect(source).toContain("cyclePlaybackSpeed");
         expect(source).toContain("playbackSpeedLabel");
+        expect(source).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        const speedControlIndex = source.indexOf(
+            'data-sot-control="recording-player-speed"',
+        );
+        expect(speedControlIndex).toBeGreaterThanOrEqual(0);
+        const speedControlSource = source.slice(
+            Math.max(0, speedControlIndex - 420),
+            speedControlIndex + 260,
+        );
+        expect(speedControlSource).toContain("<Button");
+        expect(speedControlSource).toContain('variant="ghost"');
+        expect(speedControlSource).toContain('size="sm"');
+        expect(speedControlSource).toContain('className="speed"');
+        expect(speedControlSource).toContain(
+            'data-sot-control="recording-player-speed"',
+        );
+        expect(source).not.toContain('className="btn ghost speed"');
         expect(source).toContain("togglePlayPause");
         expect(source).toContain("seekToSliderValue");
         expect(source).toContain("setVolume");
@@ -106,7 +125,6 @@ describe("dashboard recording player regressions", () => {
         expect(source.match(/<Slider\b/g)?.length ?? 0).toBeGreaterThanOrEqual(
             2,
         );
-        expect(source).not.toContain('from "@/components/ui/button"');
         expect(source).not.toContain(
             '<input\n                                className="vol-range"',
         );

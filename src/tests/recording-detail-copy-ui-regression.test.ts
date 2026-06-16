@@ -77,6 +77,12 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const sourceReportButtonControls = [
+            'data-sot-control="copy-source-transcript"',
+            'data-sot-control="copy-source-report"',
+            'data-sot-control="open-source-record"',
+            'data-sot-control="repull-source"',
+        ];
 
         expect(sourceReport).toContain("handleCopySourceTranscript");
         expect(sourceReport).toContain("handleCopySourceReport");
@@ -115,6 +121,24 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("reportRequestIdRef");
         expect(sourceReport).toContain("sourceReportDetailText");
         expect(sourceReport).toContain("sourceReportDisplaySegments");
+        expect(sourceReport).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        for (const control of sourceReportButtonControls) {
+            const controlIndex = sourceReport.indexOf(control);
+            expect(controlIndex).toBeGreaterThanOrEqual(0);
+            const controlSource = sourceReport.slice(
+                Math.max(0, controlIndex - 700),
+                controlIndex + 320,
+            );
+            expect(controlSource).toContain("<Button");
+            expect(controlSource).toContain('variant="ghost"');
+            expect(controlSource).toContain('size="sm"');
+        }
+        expect(sourceReport).not.toContain('className="btn ghost btn-sm"');
+        expect(sourceReport).not.toContain(
+            'className="btn ghost btn-sm copy-btn"',
+        );
         expect(sourceReport).not.toContain("JSON.stringify(data.detail");
     });
 
