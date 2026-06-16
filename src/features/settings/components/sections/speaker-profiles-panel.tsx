@@ -7,6 +7,13 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    Field,
+    FieldContent,
+    FieldDescription,
+    FieldLabel,
+    FieldTitle,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsListSkeleton } from "@/features/settings/components/settings-skeletons";
@@ -82,7 +89,9 @@ function PanelNotice({
             </span>
             <div>
                 <p className="b-h">{children}</p>
-                {action ? <div className="sm-row-ctrl">{action}</div> : null}
+                {action ? (
+                    <div className="mt-2 flex items-center gap-2">{action}</div>
+                ) : null}
             </div>
         </div>
     );
@@ -465,17 +474,20 @@ export function SpeakerProfilesPanel() {
                 data-sot-panel="speaker-profiles-local"
                 data-sot-state={profilesState}
             >
-                <div className="sm-row">
-                    <div className="sm-row-label">
-                        <div className="sm-l-t">
+                <Field
+                    orientation="horizontal"
+                    className="border-b border-border py-3"
+                >
+                    <FieldContent>
+                        <FieldTitle>
                             {isZh ? "已保存的说话人" : "Saved Speakers"}
-                        </div>
-                        <div className="sm-l-h">
+                        </FieldTitle>
+                        <FieldDescription>
                             {isZh
                                 ? "维护可复用的说话人名称；远端声纹会在实际转录绑定时自动处理。"
                                 : "Maintain reusable speaker names. Remote voiceprints are handled automatically during transcript binding."}
-                        </div>
-                    </div>
+                        </FieldDescription>
+                    </FieldContent>
                     <Button
                         type="button"
                         size="sm"
@@ -493,13 +505,16 @@ export function SpeakerProfilesPanel() {
                         />
                         {isZh ? "刷新" : "Refresh"}
                     </Button>
-                </div>
+                </Field>
 
-                <div className="sm-row">
-                    <div className="sm-row-label">
-                        <Label htmlFor="new-speaker-name">
+                <Field
+                    orientation="horizontal"
+                    className="border-b border-border py-3"
+                >
+                    <FieldContent className="min-w-0">
+                        <FieldLabel htmlFor="new-speaker-name">
                             {isZh ? "说话人名称" : "Speaker name"}
-                        </Label>
+                        </FieldLabel>
                         <Input
                             data-sot-control="speaker-profile-new-name"
                             id="new-speaker-name"
@@ -508,7 +523,7 @@ export function SpeakerProfilesPanel() {
                             placeholder={isZh ? "例如：Alex" : "e.g. Alex"}
                             disabled={localSavingId === "new"}
                         />
-                    </div>
+                    </FieldContent>
                     <Button
                         type="button"
                         size="sm"
@@ -527,7 +542,7 @@ export function SpeakerProfilesPanel() {
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
                     </Button>
-                </div>
+                </Field>
 
                 {isProfilesLoading ? (
                     <SettingsListSkeleton rows={2} />
@@ -686,17 +701,20 @@ export function SpeakerProfilesPanel() {
                 data-sot-panel="speaker-voiceprints"
                 data-sot-state={voiceprintsState}
             >
-                <div className="sm-row">
-                    <div className="sm-row-label">
-                        <div className="sm-l-t">
+                <Field
+                    orientation="horizontal"
+                    className="border-b border-border py-3"
+                >
+                    <FieldContent>
+                        <FieldTitle>
                             {isZh ? "声纹库" : "Voiceprints"}
-                        </div>
-                        <div className="sm-l-h">
+                        </FieldTitle>
+                        <FieldDescription>
                             {isZh
                                 ? "查看已连接服务中的声纹。重命名和删除只影响声纹库，不会修改本地录音。"
                                 : "View voiceprints from the connected service. Rename and delete actions affect the voiceprint library only and do not change local recordings."}
-                        </div>
-                    </div>
+                        </FieldDescription>
+                    </FieldContent>
                     <Button
                         type="button"
                         size="sm"
@@ -716,7 +734,7 @@ export function SpeakerProfilesPanel() {
                         />
                         {isZh ? "刷新" : "Refresh"}
                     </Button>
-                </div>
+                </Field>
 
                 {isVoiceprintsLoading ? (
                     <SettingsListSkeleton rows={2} />

@@ -82,6 +82,7 @@ const TARGET_SETTINGS_MIGRATION_PATHS = [
     "features/settings/components/setting-field-control.tsx",
     "features/settings/components/settings-skeletons.tsx",
     "features/data-sources/data-source-field-control.tsx",
+    "features/settings/components/sections/speaker-profiles-panel.tsx",
 ] as const;
 
 const LEGACY_SETTINGS_FIELD_PATTERNS: Array<[RegExp, string]> = [
@@ -266,6 +267,9 @@ describe("settings SOT interaction regressions", () => {
         const dataSourceFieldControl = readSource(
             "features/data-sources/data-source-field-control.tsx",
         );
+        const speakerProfilesPanel = readSource(
+            "features/settings/components/sections/speaker-profiles-panel.tsx",
+        );
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const sliderPrimitive = readSource("components/ui/slider.tsx");
         const playbackSettingsRows =
@@ -281,6 +285,8 @@ describe("settings SOT interaction regressions", () => {
                 settingsSkeletons,
             "features/data-sources/data-source-field-control.tsx":
                 dataSourceFieldControl,
+            "features/settings/components/sections/speaker-profiles-panel.tsx":
+                speakerProfilesPanel,
         });
 
         expect(content).toMatch(
@@ -1198,8 +1204,20 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(speakers).toMatch(
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+        );
         expect(speakers).toContain("<Button");
+        expect(speakers).toContain("<Field");
+        expect(speakers).toContain("<FieldContent");
+        expect(speakers).toContain("<FieldTitle>");
+        expect(speakers).toContain("<FieldLabel");
+        expect(speakers).toContain("<FieldDescription>");
         expect(speakers).toContain('variant="danger"');
+        expectNoLegacySettingsFieldPatterns({
+            "features/settings/components/sections/speaker-profiles-panel.tsx":
+                speakers,
+        });
         expect(speakers).not.toContain('className="btn"');
         expect(speakers).not.toContain('className="btn danger"');
         expect(speakers).toContain("data-sot-speaker-profiles-panel");
