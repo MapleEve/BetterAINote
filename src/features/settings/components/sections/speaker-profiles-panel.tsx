@@ -479,10 +479,10 @@ export function SpeakerProfilesPanel() {
                     <Button
                         type="button"
                         size="sm"
+                        variant="secondary"
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
                         aria-busy={isProfilesLoading}
-                        className="btn"
                         data-sot-control="speaker-profiles-refresh"
                         data-sot-state={isProfilesLoading ? "loading" : "idle"}
                     >
@@ -512,7 +512,7 @@ export function SpeakerProfilesPanel() {
                     <Button
                         type="button"
                         size="sm"
-                        className="btn"
+                        variant="secondary"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
                         aria-busy={localSavingId === "new"}
@@ -540,6 +540,7 @@ export function SpeakerProfilesPanel() {
                             <Button
                                 type="button"
                                 size="sm"
+                                variant="secondary"
                                 onClick={() => void refreshProfiles()}
                                 data-sot-control="speaker-profiles-retry"
                                 data-sot-state="idle"
@@ -645,7 +646,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        className="btn"
+                                        variant="secondary"
                                         onClick={() => handleUpdate(profile)}
                                         disabled={isProfileSaving}
                                         aria-busy={isProfileSaving}
@@ -660,7 +661,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        className="btn danger"
+                                        variant="danger"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
                                         data-sot-control="speaker-profile-delete"
@@ -699,10 +700,10 @@ export function SpeakerProfilesPanel() {
                     <Button
                         type="button"
                         size="sm"
+                        variant="secondary"
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
                         aria-busy={isVoiceprintsLoading}
-                        className="btn"
                         data-sot-control="speaker-voiceprints-refresh"
                         data-sot-state={
                             isVoiceprintsLoading ? "loading" : "idle"
@@ -728,6 +729,7 @@ export function SpeakerProfilesPanel() {
                             <Button
                                 type="button"
                                 size="sm"
+                                variant="secondary"
                                 onClick={() => void refreshVoiceprints()}
                                 data-sot-control="speaker-voiceprints-retry"
                                 data-sot-state="idle"
@@ -855,7 +857,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        className="btn"
+                                        variant="secondary"
                                         onClick={() =>
                                             handleRenameVoiceprint(voiceprint)
                                         }
@@ -874,7 +876,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        className="btn danger"
+                                        variant="danger"
                                         onClick={() =>
                                             handleDeleteVoiceprint(voiceprint)
                                         }

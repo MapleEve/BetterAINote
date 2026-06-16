@@ -1023,7 +1023,36 @@ describe("settings SOT interaction regressions", () => {
         const speakers = readSource(
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
+        const speakerButtons =
+            speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
+        const findButtonByControl = (control: string) =>
+            speakerButtons.find((button) =>
+                button.includes(`data-sot-control="${control}"`),
+            ) ?? "";
+        const expectNeutralButtonVariant = (control: string) => {
+            const button = findButtonByControl(control);
 
+            expect(button).toContain(`data-sot-control="${control}"`);
+            expect(button).toMatch(/variant="(?:secondary|ghost)"/);
+            expect(button).not.toContain('className="btn"');
+            expect(button).not.toContain('className="btn danger"');
+        };
+        const expectDangerButtonVariant = (control: string) => {
+            const button = findButtonByControl(control);
+
+            expect(button).toContain(`data-sot-control="${control}"`);
+            expect(button).toContain('variant="danger"');
+            expect(button).not.toContain('className="btn"');
+            expect(button).not.toContain('className="btn danger"');
+        };
+
+        expect(speakers).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(speakers).toContain("<Button");
+        expect(speakers).toContain('variant="danger"');
+        expect(speakers).not.toContain('className="btn"');
+        expect(speakers).not.toContain('className="btn danger"');
         expect(speakers).toContain("data-sot-speaker-profiles-panel");
         expect(speakers).toContain("data-sot-state={profilesState}");
         expect(speakers).toContain(
@@ -1055,6 +1084,23 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("useConfirmDialog");
         expect(speakers).toContain("toast.success");
         expect(speakers).toContain("toast.error");
+        for (const control of [
+            "speaker-profiles-refresh",
+            "speaker-profile-create",
+            "speaker-profiles-retry",
+            "speaker-profile-save",
+            "speaker-voiceprints-refresh",
+            "speaker-voiceprints-retry",
+            "speaker-voiceprint-rename",
+        ]) {
+            expectNeutralButtonVariant(control);
+        }
+        for (const control of [
+            "speaker-profile-delete",
+            "speaker-voiceprint-delete",
+        ]) {
+            expectDangerButtonVariant(control);
+        }
         expect(speakers).not.toMatch(OLD_UI_RE);
     });
 
