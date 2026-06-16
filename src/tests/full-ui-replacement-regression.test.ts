@@ -325,6 +325,7 @@ describe("full UI replacement regression coverage", () => {
         const select = readSource("components/ui/select.tsx");
         const sidebar = readSource("components/ui/sidebar.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
+        const textarea = readSource("components/ui/textarea.tsx");
         const toggleGroup = readSource("components/ui/toggle-group.tsx");
         const toaster = readSource("components/ui/sonner.tsx");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
@@ -530,6 +531,25 @@ describe("full UI replacement regression coverage", () => {
         expect(label).toContain('data-slot="label"');
         expect(label).not.toContain('className={cn("field-name"');
         expect(input).toContain('React.ComponentProps<"input">');
+        expect(input).toContain('data-slot="input"');
+        for (const className of [
+            "border-input",
+            "focus-visible:ring-ring/50",
+            "aria-invalid:border-destructive",
+        ]) {
+            expect(input).toContain(className);
+        }
+        expect(input).not.toContain("field-input");
+        expect(textarea).toContain('React.ComponentProps<"textarea">');
+        expect(textarea).toContain('data-slot="textarea"');
+        for (const className of [
+            "border-input",
+            "focus-visible:ring-ring/50",
+            "aria-invalid:border-destructive",
+        ]) {
+            expect(textarea).toContain(className);
+        }
+        expect(textarea).not.toContain("field-input");
         expect(select).toContain(
             'import * as SelectPrimitive from "@radix-ui/react-select";',
         );
@@ -613,20 +633,36 @@ describe("full UI replacement regression coverage", () => {
         expect(toaster).not.toContain("toast toast-err");
         expect(toaster).not.toContain("toast-ico");
         expect(toaster).not.toContain("DEFAULT_TOAST_DURATION_MS");
-        expect(confirmDialog).toContain('className="scrim"');
+        expect(confirmDialog).toContain("ConfirmDialogContext");
+        expect(confirmDialog).toContain("ConfirmDialogProvider");
+        expect(confirmDialog).toContain("useConfirmDialog");
+        expect(confirmDialog).toMatch(/<Dialog(?:\s|>)/);
+        for (const primitive of [
+            "DialogContent",
+            "DialogHeader",
+            "DialogTitle",
+            "DialogDescription",
+            "DialogFooter",
+            "Button",
+        ]) {
+            expect(confirmDialog).toContain(`<${primitive}`);
+        }
         expect(confirmDialog).toContain('data-sot-panel="confirm-dialog"');
-        expect(confirmDialog).toContain('className="confirm-dialog"');
-        expect(confirmDialog).toContain('role="dialog"');
-        expect(confirmDialog).toContain('aria-modal="true"');
-        expect(confirmDialog).toContain('<h3 id="confirm-title">');
-        expect(confirmDialog).toContain('className="retx-modal-list"');
-        expect(confirmDialog).toContain('className="confirm-warn"');
-        expect(confirmDialog).toContain('className="btn danger btn-sm"');
+        expect(confirmDialog).toContain("state.details.map");
+        expect(confirmDialog).toContain("state.warning");
+        expect(confirmDialog).not.toContain('className="scrim"');
+        expect(confirmDialog).not.toContain('className="confirm-dialog"');
+        expect(confirmDialog).not.toContain('role="dialog"');
+        expect(confirmDialog).not.toContain('aria-modal="true"');
+        expect(confirmDialog).not.toContain('<h3 id="confirm-title">');
+        expect(confirmDialog).not.toContain('className="btn danger btn-sm"');
+        expect(confirmDialog).not.toContain('className="btn ghost btn-sm"');
+        expect(confirmDialog).not.toMatch(
+            /document\.(?:add|remove)EventListener\(\s*["']keydown["']/,
+        );
         expect(confirmDialog).not.toContain("ConfirmVariant");
         expect(confirmDialog).not.toContain("btn primary btn-sm");
         expect(confirmDialog).not.toContain("<dialog");
-        expect(globals).toContain("margin: 12px auto;");
-        expect(globals).toContain(".confirm-head h3");
         expect(globals).not.toContain(".confirm-head h2");
         expect(globals).not.toContain("--z-confirm-modal");
         expect(globals).not.toContain("Hardware Design System");

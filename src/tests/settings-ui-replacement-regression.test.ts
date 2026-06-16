@@ -391,7 +391,15 @@ describe("settings SOT interaction regressions", () => {
         expect(settingFieldControl).toContain("readOnly?: boolean");
         expect(settingFieldControl).toContain("readOnly={field.readOnly}");
         expect(settingFieldControl).toContain("field-row");
-        expect(inputPrimitive).toContain("field-input");
+        expect(inputPrimitive).toContain('data-slot="input"');
+        for (const className of [
+            "border-input",
+            "focus-visible:ring-ring/50",
+            "aria-invalid:border-destructive",
+        ]) {
+            expect(inputPrimitive).toContain(className);
+        }
+        expect(inputPrimitive).not.toContain("field-input");
         expect(content).toContain("sm-actions-state");
         expect(content).toContain('data-sot-control="source-test"');
         expect(content).toContain('data-sot-control="source-save"');

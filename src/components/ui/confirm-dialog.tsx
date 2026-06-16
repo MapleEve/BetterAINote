@@ -2,13 +2,23 @@
 
 import {
     createContext,
+    type ReactNode,
     useCallback,
     useContext,
-    useEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ConfirmDialogOptions {
     title: string;
@@ -19,70 +29,29 @@ interface ConfirmDialogOptions {
     warning?: string;
 }
 
-type ConfirmDialogState = ConfirmDialogOptions & {
-    resolve: (confirmed: boolean) => void;
-};
-
 const ConfirmDialogContext = createContext<{
     confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
 } | null>(null);
 
-export function ConfirmDialogProvider({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    const [state, setState] = useState<ConfirmDialogState | null>(null);
-    const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
-    const returnFocusRef = useRef<HTMLElement | null>(null);
-
-    const close = useCallback(
-        (confirmed: boolean) => {
-            if (!state) return;
-            const returnTarget = returnFocusRef.current;
-            returnFocusRef.current = null;
-            state.resolve(confirmed);
-            setState(null);
-            window.setTimeout(() => {
-                if (returnTarget && document.contains(returnTarget)) {
-                    returnTarget.focus({ preventScroll: true });
-                }
-            }, 0);
-        },
-        [state],
+export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
+    const [state, setState] = useState<ConfirmDialogOptions | null>(null);
+    const pendingResolveRef = useRef<((confirmed: boolean) => void) | null>(
+        null,
     );
 
-    useEffect(() => {
-        if (!state) return;
-        const timer = window.setTimeout(() => {
-            cancelButtonRef.current?.focus();
-        }, 30);
-        return () => window.clearTimeout(timer);
-    }, [state]);
-
-    useEffect(() => {
-        if (!state) return;
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                close(false);
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown, { capture: true });
-        return () =>
-            document.removeEventListener("keydown", handleKeyDown, {
-                capture: true,
-            });
-    }, [close, state]);
+    const close = useCallback((confirmed: boolean) => {
+        const resolve = pendingResolveRef.current;
+        if (!resolve) return;
+        pendingResolveRef.current = null;
+        resolve(confirmed);
+        setState(null);
+    }, []);
 
     const confirm = useCallback((options: ConfirmDialogOptions) => {
         return new Promise<boolean>((resolve) => {
-            returnFocusRef.current =
-                document.activeElement instanceof HTMLElement
-                    ? document.activeElement
-                    : null;
-            setState({ ...options, resolve });
+            pendingResolveRef.current?.(false);
+            pendingResolveRef.current = resolve;
+            setState(options);
         });
     }, []);
 
@@ -91,62 +60,61 @@ export function ConfirmDialogProvider({
     return (
         <ConfirmDialogContext.Provider value={value}>
             {children}
-            {state ? (
-                // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: SOT scrim owns backdrop click; document-level Escape owns keyboard dismissal.
-                <div
-                    className="scrim"
-                    data-open="true"
+            <Dialog
+                open={Boolean(state)}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        close(false);
+                    }
+                }}
+            >
+                <DialogContent
                     data-sot-panel="confirm-dialog"
-                    aria-hidden="false"
-                    onClick={(event) => {
-                        if (event.target === event.currentTarget) {
-                            close(false);
-                        }
-                    }}
+                    className="sm:max-w-md"
+                    showCloseButton={false}
                 >
-                    <div
-                        className="confirm-dialog"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="confirm-title"
-                        aria-describedby="confirm-desc"
-                    >
-                        <header className="confirm-head">
-                            <h3 id="confirm-title">{state.title}</h3>
-                        </header>
-                        <div className="confirm-body">
-                            <p id="confirm-desc">{state.description}</p>
+                    <DialogHeader>
+                        <DialogTitle>{state?.title}</DialogTitle>
+                        <DialogDescription>
+                            {state?.description}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {state?.details?.length || state?.warning ? (
+                        <div className="flex flex-col gap-3 text-sm">
                             {state.details?.length ? (
-                                <ul className="retx-modal-list">
+                                <ul className="flex list-disc flex-col gap-1 pl-5 text-muted-foreground">
                                     {state.details.map((item) => (
                                         <li key={item}>{item}</li>
                                     ))}
                                 </ul>
                             ) : null}
                             {state.warning ? (
-                                <p className="confirm-warn">{state.warning}</p>
+                                <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive">
+                                    {state.warning}
+                                </p>
                             ) : null}
                         </div>
-                        <footer className="confirm-foot">
-                            <button
-                                className="btn ghost btn-sm"
-                                type="button"
-                                ref={cancelButtonRef}
-                                onClick={() => close(false)}
-                            >
-                                {state.cancelLabel}
-                            </button>
-                            <button
-                                className="btn danger btn-sm"
-                                type="button"
-                                onClick={() => close(true)}
-                            >
-                                {state.confirmLabel}
-                            </button>
-                        </footer>
-                    </div>
-                </div>
-            ) : null}
+                    ) : null}
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => close(false)}
+                        >
+                            {state?.cancelLabel}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => close(true)}
+                        >
+                            {state?.confirmLabel}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </ConfirmDialogContext.Provider>
     );
 }
