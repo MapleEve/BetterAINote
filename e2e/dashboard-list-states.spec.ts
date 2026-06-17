@@ -57,6 +57,48 @@ const SOT_PIXEL_DEV_OVERLAY_HIDDEN_CSS = `
         pointer-events: none !important;
     }
 `;
+const LIST_ROW_MIGRATION_FIXTURE_CSS = `
+    .b .dot.status-dot-muted {
+        background: var(--fg-tertiary);
+    }
+`;
+const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
+    .list-state-block .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: 9px;
+        font: 600 12.5px var(--font-sans);
+        color: var(--fg-primary);
+        background: var(--bg-elevated);
+        border: 1px solid var(--line-hairline);
+        cursor: pointer;
+        box-shadow: var(--shadow-xs);
+        transition:
+            background var(--duration-fast) var(--ease-out),
+            transform var(--duration-fast) var(--ease-out);
+    }
+    .list-state-block .btn.ghost {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+        color: var(--fg-secondary);
+    }
+    .list-state-block .btn.btn-sm {
+        height: 26px;
+        padding: 0 10px;
+        font-size: 12px;
+        border-radius: 7px;
+    }
+    .list-state-block .btn[disabled],
+    .list-state-block .btn[aria-disabled="true"] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+`;
 const SOT_PIXEL_DEV_OVERLAY_STYLE_ATTR = "data-sot-pixel-dev-overlay-fixture";
 const LIST_ROW_SOT_STATES = [
     "active-updated",
@@ -1264,6 +1306,7 @@ async function captureListRowFixture(
         ({
             devOverlayCss,
             fixtureId: id,
+            migrationFixtureCss,
             rowHtml: html,
             sourceAssetDataUrls: assetDataUrls,
         }) => {
@@ -1272,7 +1315,7 @@ async function captureListRowFixture(
             document.body.removeAttribute("data-time-style");
             const devOverlayStyle = document.createElement("style");
             devOverlayStyle.dataset.listPanelFrameFixture = id;
-            devOverlayStyle.textContent = devOverlayCss;
+            devOverlayStyle.textContent = `${devOverlayCss}\n${migrationFixtureCss}`;
             document.head.appendChild(devOverlayStyle);
 
             const host = document.createElement("div");
@@ -1295,6 +1338,10 @@ async function captureListRowFixture(
             list.className = "real-list";
             list.style.width = "388px";
             list.innerHTML = html;
+            for (const mutedDot of list.querySelectorAll("._is-1")) {
+                mutedDot.classList.remove("_is-1");
+                mutedDot.classList.add("status-dot-muted");
+            }
 
             for (const image of list.querySelectorAll("img")) {
                 const src = image.getAttribute("src");
@@ -1310,6 +1357,7 @@ async function captureListRowFixture(
         {
             devOverlayCss: SOT_PIXEL_DEV_OVERLAY_HIDDEN_CSS,
             fixtureId,
+            migrationFixtureCss: LIST_ROW_MIGRATION_FIXTURE_CSS,
             rowHtml,
             sourceAssetDataUrls,
         },
@@ -1563,7 +1611,7 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
         .slice(2)}`;
 
     await page.evaluate(
-        ({ blockHtml: html, fixtureId: id }) => {
+        ({ blockHtml: html, fixtureCss, fixtureId: id }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
 
@@ -1583,14 +1631,29 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
             stage.style.padding = "16px";
             stage.style.width = "420px";
             stage.innerHTML = html;
+            const style = document.createElement("style");
+            style.textContent = fixtureCss;
             stage
                 .querySelector<HTMLElement>(".list-state-block")
                 ?.removeAttribute("hidden");
+            for (const button of stage.querySelectorAll<HTMLElement>(
+                '[data-slot="button"][data-variant="ghost"][data-size="sm"]',
+            )) {
+                button.className = "btn ghost btn-sm";
+                button.removeAttribute("data-slot");
+                button.removeAttribute("data-variant");
+                button.removeAttribute("data-size");
+            }
 
+            host.appendChild(style);
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { blockHtml, fixtureId },
+        {
+            blockHtml,
+            fixtureCss: LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS,
+            fixtureId,
+        },
     );
 
     const stage = page
@@ -2224,7 +2287,7 @@ async function selectTimelineFilter(
     visibleCount: number,
 ) {
     const trigger = page.locator(
-        `[data-sot-control="recording-list-timeline-filter"][data-sot-filter="${filter}"]`,
+        `[data-sot-control="dashboard-recording-time-filter"][data-sot-filter="${filter}"]`,
     );
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -2471,7 +2534,14 @@ test("recording list item primitives match SOT component library styles", async 
             `${LIST_RECORDING_PREFIX}row-local-only`,
         );
         await expect(productUpdatedRow).toBeVisible();
-        await expect(productUpdatedRow).toHaveClass(/active/);
+        await expect(productUpdatedRow).toHaveAttribute(
+            "data-sot-state",
+            "selected",
+        );
+        await expect(productUpdatedRow).toHaveAttribute(
+            "aria-current",
+            "true",
+        );
         const sotDefaultRow = sotListItem
             .locator(".cl-card")
             .nth(0)
@@ -2524,7 +2594,9 @@ test("recording list item primitives match SOT component library styles", async 
 
         await expectComputedStyleMatch(
             sotBadge.locator(".utag.c-blue"),
-            productUpdatedRow.locator(".utag.c-blue"),
+            productUpdatedRow.locator(
+                '[data-recording-tag-chip][data-sot-tag-color="blue"]',
+            ),
             LIST_TAG_STYLE_PROPS,
         );
     } finally {
@@ -2958,7 +3030,9 @@ test("recording list tags mode keeps multi-tag recordings in every matching grou
 
     const panel = recordingListPanel(page);
     const tagTrigger = panel.locator("[data-tag-filter-trigger]");
-    await expect(panel.locator(".tag-filter .chip-f")).toHaveCount(0);
+    await expect(
+        panel.locator('[data-sot-panel="dashboard-recording-time-filter"]'),
+    ).toBeHidden();
     await expect(tagTrigger.locator("[data-tag-filter-label]")).toHaveText(
         "全部",
     );
@@ -2999,13 +3073,15 @@ test("recording list tags mode keeps multi-tag recordings in every matching grou
     await expect(
         betaRow,
     ).toBeVisible();
-    const alphaTag = alphaRow.locator(".right .utag");
-    const betaTag = betaRow.locator(".right .utag");
-    await expect(alphaTag).toHaveClass("utag c-blue");
+    const alphaTag = alphaRow.locator(
+        '[data-sot-part="dashboard-recording-row-actions"] [data-recording-tag-chip]',
+    );
+    const betaTag = betaRow.locator(
+        '[data-sot-part="dashboard-recording-row-actions"] [data-recording-tag-chip]',
+    );
     await expect(alphaTag).toHaveAttribute("data-sot-tag-color", "blue");
     await expect(alphaTag).toHaveAttribute("data-sot-tag-icon", "tag");
     await expect(alphaTag).toContainText("Alpha");
-    await expect(betaTag).toHaveClass("utag c-violet");
     await expect(betaTag).toHaveAttribute("data-sot-tag-color", "purple");
     await expect(betaTag).toHaveAttribute("data-sot-tag-icon", "star");
     await expect(betaTag).toContainText("Beta");
@@ -3051,9 +3127,10 @@ test("recording list renders the full SOT tag color and icon matrix", async ({
             const recordingId = `${LIST_RECORDING_PREFIX}tag-matrix-${String(index + 1).padStart(2, "0")}`;
             const color =
                 SOT_TAG_COLOR_MATRIX[index % SOT_TAG_COLOR_MATRIX.length];
-            const chip = recordingRow(page, recordingId).locator(".right .utag");
+            const chip = recordingRow(page, recordingId).locator(
+                '[data-sot-part="dashboard-recording-row-actions"] [data-recording-tag-chip]',
+            );
 
-            await expect(chip).toHaveClass(color.className);
             await expect(chip).toHaveAttribute("data-sot-tag-color", color.color);
             await expect(chip).toHaveAttribute("data-sot-tag-icon", icon);
             await expect(chip.locator("svg")).toHaveCount(1);

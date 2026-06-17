@@ -4931,50 +4931,53 @@ export function Workstation({
                                         onValueChange={applyListMode}
                                     />
                                 </div>
-                                <div
-                                    className="filter-row"
+                                <ToggleGroup
+                                    type="single"
+                                    value={timelineFilter}
+                                    spacing={1}
+                                    variant="outline"
+                                    size="sm"
+                                    aria-label={t(
+                                        "recordingList.timelineTitle",
+                                    )}
                                     data-list-filter-row="timeline"
-                                    data-sot-panel="recording-list-timeline-filter"
+                                    data-sot-panel="dashboard-recording-time-filter"
                                     hidden={listMode !== "timeline"}
                                     inert={
                                         listMode !== "timeline"
                                             ? true
                                             : undefined
                                     }
+                                    onValueChange={(value) => {
+                                        if (!value) return;
+                                        setTimelineFilter(
+                                            value as TimelineFilter,
+                                        );
+                                    }}
                                 >
                                     {TIMELINE_FILTERS.map((item) => {
                                         const active =
                                             timelineFilter === item.value;
                                         return (
-                                            <button
-                                                className={
-                                                    active
-                                                        ? "chip-f active"
-                                                        : "chip-f"
-                                                }
-                                                type="button"
+                                            <ToggleGroupItem
                                                 aria-pressed={active}
                                                 data-tf={item.value}
-                                                data-sot-control="recording-list-timeline-filter"
+                                                data-sot-control="dashboard-recording-time-filter"
                                                 data-sot-filter={item.value}
                                                 data-sot-state={
                                                     active ? "selected" : "idle"
                                                 }
                                                 key={item.value}
-                                                onClick={() =>
-                                                    setTimelineFilter(
-                                                        item.value,
-                                                    )
-                                                }
+                                                value={item.value}
                                             >
                                                 {t(item.labelKey)}
-                                                <span className="chip-c">
+                                                <span data-sot-part="dashboard-recording-time-filter-count">
                                                     {timelineCounts[item.value]}
                                                 </span>
-                                            </button>
+                                            </ToggleGroupItem>
                                         );
                                     })}
-                                </div>
+                                </ToggleGroup>
                                 <div
                                     className="tag-filter"
                                     data-list-filter-row="tags"
@@ -5064,7 +5067,10 @@ export function Workstation({
                                 {listState === "loading" ? (
                                     <SotRecordingListSkeleton />
                                 ) : listState === "ready" ? (
-                                    <div className="real-list">
+                                    <div
+                                        className="real-list"
+                                        data-sot-list="dashboard-recording-rows"
+                                    >
                                         {groupedListEntries.map((group) => (
                                             <div
                                                 className="ls-group"
@@ -5112,10 +5118,10 @@ export function Workstation({
                                                         recording.tags[0];
                                                     return (
                                                         <button
-                                                            className={
+                                                            aria-current={
                                                                 active
-                                                                    ? "row active"
-                                                                    : "row"
+                                                                    ? "true"
+                                                                    : undefined
                                                             }
                                                             key={recording.id}
                                                             type="button"
@@ -5145,13 +5151,13 @@ export function Workstation({
                                                                 )
                                                             }
                                                         >
-                                                            <div className="body">
-                                                                <div className="title">
+                                                            <div data-sot-part="dashboard-recording-row-body">
+                                                                <div data-sot-part="dashboard-recording-row-title">
                                                                     {
                                                                         recording.filename
                                                                     }
                                                                 </div>
-                                                                <div className="meta">
+                                                                <div data-sot-part="dashboard-recording-row-meta">
                                                                     {sourceMeta?.icon ? (
                                                                         <span
                                                                             data-sot-part="dashboard-recording-source-mark"
@@ -5185,20 +5191,20 @@ export function Workstation({
                                                                             讯
                                                                         </span>
                                                                     )}
-                                                                    <span className="dur">
+                                                                    <span data-sot-part="dashboard-recording-duration">
                                                                         {formatDuration(
                                                                             recording.duration,
                                                                         )}
                                                                     </span>
                                                                 </div>
-                                                                <div className="meta2">
-                                                                    <span className="ts">
-                                                                        <span className="ts-abs">
+                                                                <div data-sot-part="dashboard-recording-row-secondary">
+                                                                    <span data-sot-part="dashboard-recording-timestamp">
+                                                                        <span data-sot-part="dashboard-recording-timestamp-absolute">
                                                                             {formatAbsoluteDate(
                                                                                 recording.startTime,
                                                                             )}
                                                                         </span>
-                                                                        <span className="ts-rel">
+                                                                        <span data-sot-part="dashboard-recording-timestamp-relative">
                                                                             {formatRelativeDate(
                                                                                 recording.startTime,
                                                                             )}
@@ -5208,11 +5214,16 @@ export function Workstation({
                                                                         className={
                                                                             rowStatus.className
                                                                         }
+                                                                        data-sot-part="dashboard-recording-status"
+                                                                        data-sot-tone={
+                                                                            rowStatus.tone
+                                                                        }
                                                                     >
                                                                         <span
                                                                             className={
                                                                                 rowStatus.dotClassName
                                                                             }
+                                                                            data-sot-part="dashboard-recording-status-dot"
                                                                         />
                                                                         {
                                                                             rowStatus.label
@@ -5221,7 +5232,7 @@ export function Workstation({
                                                                 </div>
                                                             </div>
                                                             {primaryTag ? (
-                                                                <div className="right">
+                                                                <div data-sot-part="dashboard-recording-row-actions">
                                                                     <Badge
                                                                         variant="outline"
                                                                         data-recording-tag-chip=""

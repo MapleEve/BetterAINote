@@ -227,18 +227,24 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("sourceRowDisabled(");
         expect(workstation).toContain("sourceActionKind(");
         expect(workstation).toContain("disabled={disabledSourceRow}");
-        expect(workstation).toContain('"src-action is-reauth"');
+        expect(workstation).toContain('data-sot-part="source-provider-action"');
+        expect(workstation).toContain("data-sot-action={actionKind}");
         expect(workstation).toContain('? "retry-sync"');
         expect(workstation).not.toContain('className="src-action is-busy"');
-        expect(workstation).toContain("data-source-status={item.status}");
+        expect(workstation).toContain("data-sot-status={item.status}");
         expect(workstation).toContain("sourceNeedsSettings(");
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(workstation).toContain("<ToggleGroup");
+        expect(workstation).toContain("<ToggleGroupItem");
         expect(workstation).toContain(
-            'data-sot-control="recording-list-timeline-filter"',
+            'data-sot-panel="dashboard-recording-time-filter"',
+        );
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-recording-time-filter"',
         );
         expect(workstation).toContain('className="tag-filter"');
         expect(workstation).toContain("data-tag-filter-trigger");
@@ -270,6 +276,33 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain('className="day skel-day"');
         expect(workstation).not.toContain('className="row skel-row"');
         expect(workstation).not.toContain('className="sk sk-title"');
+        expect(workstation).not.toContain('className="filter-row"');
+        expect(workstation).not.toContain('"chip-f"');
+        expect(workstation).not.toContain('"chip-f active"');
+        expect(workstation).not.toContain('className="chip-c"');
+        expect(workstation).not.toContain('className="row"');
+        expect(workstation).not.toContain('"row active"');
+        expect(workstation).not.toContain('className="body"');
+        expect(workstation).not.toContain('className="title"');
+        expect(workstation).not.toContain('className="meta"');
+        expect(workstation).not.toContain('className="dur"');
+        expect(workstation).not.toContain('className="right"');
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-body"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-title"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-meta"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-duration"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-actions"',
+        );
+        expect(workstation).toContain("aria-current={");
         expect(workstation).toContain('listState === "loading"');
         expect(workstation).toContain("<SotRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");

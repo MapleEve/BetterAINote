@@ -985,11 +985,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="dashboard-recording-row"',
         );
         const recordingRowMetaIndex = workstation.indexOf(
-            '<div className="meta">',
+            'data-sot-part="dashboard-recording-row-meta"',
             recordingRowIndex,
         );
         const recordingRowDurationIndex = workstation.indexOf(
-            '<span className="dur">',
+            'data-sot-part="dashboard-recording-duration"',
             recordingRowMetaIndex,
         );
         const recordingRowSourceMark = workstation.slice(
@@ -1013,6 +1013,36 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingRowSourceMark).not.toMatch(
             legacySourceMiniClassNamePattern,
         );
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-recording-time-filter"',
+        );
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-recording-time-filter"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-time-filter-count"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-body"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-title"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-row-actions"',
+        );
+        expect(workstation).toContain("aria-current={");
+        expect(workstation).not.toContain('className="filter-row"');
+        expect(workstation).not.toContain('"chip-f"');
+        expect(workstation).not.toContain('"chip-f active"');
+        expect(workstation).not.toContain('className="chip-c"');
+        expect(workstation).not.toContain('className="row"');
+        expect(workstation).not.toContain('"row active"');
+        expect(workstation).not.toContain('className="body"');
+        expect(workstation).not.toContain('className="title"');
+        expect(workstation).not.toContain('className="meta"');
+        expect(workstation).not.toContain('className="dur"');
+        expect(workstation).not.toContain('className="right"');
         expect(globals).toContain(
             '[data-sot-part="dashboard-recording-source-mark"]',
         );

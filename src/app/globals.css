@@ -1140,6 +1140,62 @@ button {
     opacity: 0.7;
 }
 
+[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+}
+[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"] {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    font: 500 11px var(--font-sans);
+    color: var(--fg-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: none;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"] {
+    background: var(--bg-recessed);
+    border-color: var(--line-hairline);
+    color: var(--fg-primary);
+    box-shadow: var(--shadow-xs);
+}
+[data-sot-part="dashboard-recording-time-filter-count"] {
+    font: 500 10px var(--font-mono);
+    color: var(--fg-tertiary);
+    padding: 0 4px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--graphite-300) 35%, transparent);
+}
+[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]
+    [data-sot-part="dashboard-recording-time-filter-count"] {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+}
+[data-theme="dark"] [data-sot-part="dashboard-recording-time-filter-count"] {
+    background: rgb(255 255 255 / 0.06);
+}
+[data-theme="dark"]
+    [data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]
+    [data-sot-part="dashboard-recording-time-filter-count"] {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--accent);
+}
+
 .list-scroll {
     flex: 1;
     overflow-y: auto;
@@ -3261,6 +3317,7 @@ button {
     background: transparent;
     width: 100%;
     text-align: left;
+    font: 13.3333px var(--font-sans);
     transition:
         background var(--duration-fast) var(--ease-out),
         border-color var(--duration-fast) var(--ease-out);
@@ -3326,6 +3383,85 @@ body[data-time-style="abs"] .real-list .ts-rel {
     gap: 8px;
 }
 
+[data-sot-control="dashboard-recording-row"] {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font: 13.3333px var(--font-sans);
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+[data-sot-control="dashboard-recording-row"]:hover {
+    background: var(--bg-recessed);
+}
+[data-sot-control="dashboard-recording-row"][data-sot-state="selected"] {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+[data-sot-part="dashboard-recording-row-body"] {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+[data-sot-part="dashboard-recording-row-title"] {
+    font: 600 13.5px var(--font-sans);
+    color: var(--fg-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.005em;
+}
+[data-sot-part="dashboard-recording-row-meta"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+[data-sot-part="dashboard-recording-duration"] {
+    font: 500 11.5px var(--font-mono);
+    color: var(--fg-secondary);
+    letter-spacing: 0.02em;
+}
+[data-sot-part="dashboard-recording-row-secondary"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 500 11px var(--font-mono);
+    color: var(--fg-tertiary);
+}
+[data-sot-part="dashboard-recording-timestamp"] {
+    letter-spacing: 0.015em;
+}
+[data-sot-part="dashboard-recording-timestamp-absolute"] {
+    display: none;
+}
+[data-sot-part="dashboard-recording-timestamp-relative"] {
+    display: inline;
+}
+body[data-time-style="abs"]
+    [data-sot-part="dashboard-recording-timestamp-absolute"] {
+    display: inline;
+}
+body[data-time-style="abs"]
+    [data-sot-part="dashboard-recording-timestamp-relative"] {
+    display: none;
+}
+[data-sot-part="dashboard-recording-row-actions"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* status pill */
 .b {
     display: inline-flex;
@@ -3343,6 +3479,9 @@ body[data-time-style="abs"] .real-list .ts-rel {
     height: 5px;
     border-radius: 50%;
     background: currentColor;
+}
+.b .dot.status-dot-muted {
+    background: var(--fg-tertiary);
 }
 [data-sot-control="player-status"][data-slot="badge"] {
     display: inline-flex;
@@ -5738,6 +5877,7 @@ body[data-drawer="open"] .drawer-scrim {
 .tag-filter-option-label {
     overflow: hidden;
 }
+[data-sot-panel="dashboard-recording-time-filter"][hidden],
 .filter-row[hidden],
 .tag-filter[hidden] {
     display: none !important;
@@ -9480,6 +9620,29 @@ body[data-ds-todo="show"] .design-todo {
     gap: 10px;
     margin-top: 4px;
 }
+[data-sot-panel="recording-list-pagination"] [data-slot="button"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--fg-secondary);
+    box-shadow: none;
+    font: 600 12px var(--font-sans);
+}
+.list-state-block.list-state-pagination .btn[disabled],
+.list-state-block.list-state-pagination .btn[aria-disabled="true"],
+[data-sot-panel="recording-list-pagination"] [data-slot="button"]:disabled,
+[data-sot-panel="recording-list-pagination"]
+    [data-slot="button"][aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 .list-state-block.list-state-pagination .lsb-page-num {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
@@ -10543,6 +10706,8 @@ body[data-ds-todo="show"] .design-todo {
    define a custom :focus-visible (e.g. avatar, settings rail)
    keep their own.
    ============================================================ */
+[data-sot-control="dashboard-recording-time-filter"]:focus-visible,
+[data-sot-control="dashboard-recording-row"]:focus-visible,
 .chip-f:focus-visible,
 .lt-tab:focus-visible,
 [data-sot-control="settings-nav"]:focus-visible,
@@ -10578,6 +10743,7 @@ body[data-ds-todo="show"] .design-todo {
 /* Consistent disabled state for actionable buttons so every
    surface dims the same way. Existing custom `.is-disabled` and
    `[disabled]` styles take precedence where they exist. */
+[data-sot-control="dashboard-recording-time-filter"][disabled],
 .chip-f[disabled],
 .src-action[disabled],
 [data-sot-part="source-provider-action"][disabled],
