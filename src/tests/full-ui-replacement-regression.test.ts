@@ -1035,7 +1035,105 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'import { Separator } from "@/components/ui/separator";',
         );
-        expect(workstation).toContain('className="player-seek"');
+        const dashboardPlayerSurfaceIndex = workstation.indexOf(
+            'data-sot-surface="dashboard-recording-player"',
+        );
+        const dashboardPlayerStart = workstation.lastIndexOf(
+            "<Card",
+            dashboardPlayerSurfaceIndex,
+        );
+        const dashboardTranscriptShellIndex = workstation.indexOf(
+            'data-sot-panel="dashboard-transcript-shell"',
+            dashboardPlayerSurfaceIndex,
+        );
+        const dashboardPlayerEnd = workstation.lastIndexOf(
+            "<Card",
+            dashboardTranscriptShellIndex,
+        );
+        expect(dashboardPlayerSurfaceIndex).toBeGreaterThanOrEqual(0);
+        expect(dashboardPlayerStart).toBeGreaterThanOrEqual(0);
+        expect(dashboardTranscriptShellIndex).toBeGreaterThan(
+            dashboardPlayerSurfaceIndex,
+        );
+        expect(dashboardPlayerEnd).toBeGreaterThan(dashboardPlayerStart);
+        const dashboardPlayer = workstation.slice(
+            dashboardPlayerStart,
+            dashboardPlayerEnd,
+        );
+        expect(dashboardPlayer).toContain("<Card");
+        expect(dashboardPlayer).toContain("hasNoPadding");
+        expect(dashboardPlayer).toContain(
+            'data-sot-surface="dashboard-recording-player"',
+        );
+        expect(dashboardPlayer).toContain("<Alert");
+        expect(dashboardPlayer).toContain("<AlertTitle");
+        expect(dashboardPlayer).toContain("<AlertDescription");
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-recording-player-no-audio"',
+        );
+        expect(dashboardPlayer).toContain("<CardHeader");
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-recording-player-meta"',
+        );
+        expect(dashboardPlayer).toContain("<CardContent");
+        expect(dashboardPlayer).toContain(
+            'data-sot-panel="dashboard-recording-player-controls"',
+        );
+        expect(dashboardPlayer).toContain("<Button");
+        expect(dashboardPlayer).toContain("<Slider");
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-player-current-time"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-player-duration"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-control="dashboard-player-seek"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-player-volume-anchor"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-panel="dashboard-player-volume-popover"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-control="dashboard-player-volume-mute"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-control="dashboard-player-volume-slider"',
+        );
+        expect(dashboardPlayer).toContain(
+            'data-sot-part="dashboard-player-volume-value"',
+        );
+        expect(globals).toContain(
+            '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+        );
+        for (const legacyPlayerHook of [
+            'className="player"',
+            'className="player-meta"',
+            'className="player-controls"',
+            'className="player-controls is-disabled"',
+            'className="time mono"',
+            'className="player-seek"',
+            'className="no-audio-banner"',
+            'className="no-audio-ico"',
+            'className="no-audio-text"',
+            'className="no-audio-title"',
+            'className="no-audio-sub"',
+            'className="vol-anchor"',
+            'className="vol-pop"',
+            'className="vol-row"',
+            'className="vol-mute"',
+            'className="vol-ico"',
+            'className="vol-range"',
+            'className="vol-num mono"',
+        ]) {
+            expect(dashboardPlayer).not.toContain(legacyPlayerHook);
+        }
+        expect(dashboardPlayer).not.toMatch(/<input[\s\S]*type="range"/);
         expect(workstation).toContain('data-icon="inline-start"');
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("listMode");

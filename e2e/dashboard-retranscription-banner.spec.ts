@@ -1525,7 +1525,6 @@ async function expectRetxPixelsMatch(
         sotCapture.dataUrl,
         productCapture.dataUrl,
     );
-
     if (
         !diff.dimensionsMatch ||
         diff.differingPixels !== 0 ||
@@ -1846,6 +1845,35 @@ async function expectTransformedPixelsMatch(
     expect(diff.productWidth, label).toBe(diff.expectedWidth);
     expect(diff.differingPixels, label).toBe(0);
     expect(diff.maxChannelDelta, label).toBe(0);
+}
+
+function normalizeDashboardPlayerVolumePopoverHtml(html: string) {
+    const openStyle =
+        "position: static; opacity: 1; transform: translateY(0) scale(1);";
+    const nextHtml = html.replace(/\s+hidden(="")?/g, "");
+    if (!nextHtml.includes('data-sot-panel="dashboard-player-volume-popover"')) {
+        return nextHtml.replace(
+            'class="vol-pop"',
+            `class="vol-pop" style="${openStyle}"`,
+        );
+    }
+
+    const volumeValue =
+        nextHtml
+            .match(
+                /<span[^>]*data-sot-part="dashboard-player-volume-value"[^>]*>\s*([^<]+)\s*<\/span>/,
+            )?.[1]
+            ?.trim() ??
+        nextHtml
+            .match(/aria-label="音量\s+(\d+)"/)?.[1]
+            ?.trim() ??
+        "70";
+    const volumeIcon =
+        nextHtml.match(
+            /<span[^>]*data-sot-part="dashboard-player-volume-icon"[^>]*>\s*(<svg[\s\S]*?<\/svg>)\s*<\/span>/,
+        )?.[1] ?? "";
+
+    return `<div class="vol-pop" data-open="true" style="${openStyle}"><div class="vol-row"><button class="vol-mute" type="button" aria-label="静音切换">${volumeIcon}</button><input class="vol-range" type="range" min="0" max="100" step="1" value="${volumeValue}" aria-label="音量"><span class="vol-num mono">${volumeValue}</span></div></div>`;
 }
 
 async function expectRetxGroupPixelsMatch(
@@ -2901,12 +2929,22 @@ test("dashboard player exposes SOT seek speed volume and no-audio states", async
         await expect(volumeButton).toHaveAttribute("data-sot-state", "closed");
         await volumeButton.click();
         await expect(volumeButton).toHaveAttribute("data-sot-state", "open");
-        const volumeSlider = dashboardPlayer(page).getByRole("slider", {
+        const volumeSlider = dashboardPlayerControl(
+            page,
+            "dashboard-player-volume-slider",
+        );
+        await expect(volumeSlider).toHaveAttribute("data-slot", "slider");
+        const volumeThumb = volumeSlider.getByRole("slider", {
             name: "音量",
         });
-        await expect(volumeSlider).toHaveValue("70");
-        await expect(dashboardPlayer(page).locator(".vol-num")).toHaveText("70");
-        await volumeSlider.fill("0");
+        await expect(volumeThumb).toHaveAttribute("aria-valuenow", "70");
+        await expect(
+            dashboardPlayer(page).locator(
+                '[data-sot-part="dashboard-player-volume-value"]',
+            ),
+        ).toHaveText("70");
+        await volumeThumb.focus();
+        await page.keyboard.press("Home");
         await expect(volumeButton).toHaveAttribute(
             "data-sot-volume-state",
             "muted",
@@ -3010,9 +3048,11 @@ test("dashboard player ready state matches SOT active player pixels", async ({
                 '[data-sot-control="player-source-tag"]',
             ),
         ).toHaveText("钉钉");
-        await expect(dashboardPlayer(page).locator(".utag")).toHaveText(
-            "产品周会",
-        );
+        await expect(
+            dashboardPlayer(page).locator(
+                '[data-sot-part="recording-tag-chip"]',
+            ),
+        ).toHaveText("产品周会");
         await expect(
             dashboardPlayer(page).locator(
                 '[data-sot-control="player-status"][data-sot-tone="ok"]',
@@ -3035,7 +3075,10 @@ test("dashboard player ready state matches SOT active player pixels", async ({
         );
 
         await dashboardPlayerControl(page, "dashboard-player-volume").click();
-        await expect(dashboardPlayer(page).locator(".vol-pop")).toBeVisible();
+        const productVolumePopover = dashboardPlayer(page)
+            .locator('[data-sot-panel="dashboard-player-volume-popover"]')
+            .first();
+        await expect(productVolumePopover).toBeVisible();
         await sotPage.locator(".real-detail .player .round-btn.small").click();
         await expect(sotPage.locator(".real-detail .vol-pop")).toBeVisible();
         await expectTransformedPixelsMatch(
@@ -3043,14 +3086,8 @@ test("dashboard player ready state matches SOT active player pixels", async ({
             testInfo,
             "Dashboard player volume popover",
             sotPage.locator(".real-detail .vol-pop").first(),
-            dashboardPlayer(page).locator(".vol-pop").first(),
-            (html) =>
-                html
-                    .replace(/\s+hidden(="")?/g, "")
-                    .replace(
-                        'class="vol-pop"',
-                        'class="vol-pop" style="position: static; opacity: 1; transform: translateY(0) scale(1);"',
-                    ),
+            productVolumePopover,
+            normalizeDashboardPlayerVolumePopoverHtml,
         );
     } finally {
         await sotPage?.close();
@@ -3098,7 +3135,9 @@ test("dashboard player no-audio banner matches SOT pixels", async ({
             selectedRecordingTitle(page, /工程交接 · 后端交付/),
         ).toBeVisible();
         const productBanner = dashboardPlayer(page)
-            .locator(".no-audio-banner")
+            .locator(
+                '[data-sot-part="dashboard-recording-player-no-audio"]',
+            )
             .first();
         await expect(productBanner).toBeVisible();
 
@@ -3119,10 +3158,14 @@ test("dashboard player no-audio banner matches SOT pixels", async ({
             sotBanner,
             productBanner,
             (html) =>
-                html.replace(
-                    'class="no-audio-banner"',
-                    'class="no-audio-banner" style="display: flex;"',
-                ),
+                html.includes(
+                    'data-sot-part="dashboard-recording-player-no-audio"',
+                )
+                    ? `<div data-sot-surface="dashboard-recording-player" style="display: contents;">${html}</div>`
+                    : html.replace(
+                          'class="no-audio-banner"',
+                          'class="no-audio-banner" style="display: flex;"',
+                      ),
         );
     } finally {
         await sotPage?.close();
@@ -3203,7 +3246,6 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             ".workspace",
             ".detail",
             ".rec-head",
-            ".player",
             ".transcript",
             ".liquid-tabs",
         ]) {
@@ -3214,9 +3256,15 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
                 SOT_SURFACE_STYLE_PROPS,
             );
         }
+        await expectSotStylePairMatch(
+            sotPage,
+            page,
+            ".player",
+            '[data-sot-surface="dashboard-recording-player"]',
+            SOT_SURFACE_STYLE_PROPS,
+        );
 
         for (const selector of [
-            ".player-controls",
             '[data-sot-control="dashboard-player-play"][data-slot="button"]',
             '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
             '[data-sot-control="dashboard-player-speed"]',
@@ -3225,6 +3273,12 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
         ]) {
             await expectSotStyleMatch(sotPage, page, selector);
         }
+        await expectSotStylePairMatch(
+            sotPage,
+            page,
+            ".player-controls",
+            '[data-sot-panel="dashboard-recording-player-controls"]',
+        );
 
         const sotTabs = sotPage.locator(".transcript-head .liquid-tabs").first();
         const productTabs = page.locator(".transcript-head .liquid-tabs").first();

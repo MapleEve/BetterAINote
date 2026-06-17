@@ -20,6 +20,7 @@ import {
     X,
 } from "lucide-react";
 import {
+    type CSSProperties,
     type KeyboardEvent as ReactKeyboardEvent,
     type ReactNode,
     useCallback,
@@ -5817,8 +5818,8 @@ export function Workstation({
                             </div>
                         </CardHeader>
 
-                        <div
-                            className="player"
+                        <Card
+                            hasNoPadding
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -5828,8 +5829,32 @@ export function Workstation({
                             }
                             data-sot-surface="dashboard-recording-player"
                         >
-                            <div className="player-meta">
-                                <span className="ts" suppressHydrationWarning>
+                            <Alert
+                                data-sot-part="dashboard-recording-player-no-audio"
+                                data-sot-state={
+                                    playbackDisabled ? "visible" : "hidden"
+                                }
+                                hidden={!playbackDisabled}
+                                role="status"
+                            >
+                                <span
+                                    data-icon="inline-start"
+                                    data-sot-part="dashboard-recording-player-no-audio-icon"
+                                >
+                                    <SotPlayerNoAudioIcon />
+                                </span>
+                                <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
+                                    来源仅同步转写与报告
+                                </AlertTitle>
+                                <AlertDescription data-sot-part="dashboard-recording-player-no-audio-description">
+                                    这条录音没有本地音频，无法播放或运行私有重转写。
+                                </AlertDescription>
+                            </Alert>
+                            <CardHeader data-sot-part="dashboard-recording-player-meta">
+                                <span
+                                    data-sot-part="dashboard-recording-player-date"
+                                    suppressHydrationWarning
+                                >
                                     {selectedRecording
                                         ? formatSotPlayerDate(
                                               selectedRecording.startTime,
@@ -5881,33 +5906,10 @@ export function Workstation({
                                         tone={selectedPlayerStatus.tone}
                                     />
                                 ) : null}
-                            </div>
-                            {/* biome-ignore lint/a11y/useSemanticElements: SOT no-audio banner is a div with role=status. */}
-                            <div
-                                className="no-audio-banner"
-                                data-no-audio-banner=""
-                                role="status"
-                            >
-                                <span
-                                    className="no-audio-ico"
-                                    aria-hidden="true"
-                                >
-                                    <SotPlayerNoAudioIcon />
-                                </span>
-                                <div className="no-audio-text">
-                                    <div className="no-audio-title">
-                                        来源仅同步转写与报告
-                                    </div>
-                                    <div className="no-audio-sub">
-                                        这条录音没有本地音频，无法播放或运行私有重转写。
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                className={
-                                    playbackDisabled
-                                        ? "player-controls is-disabled"
-                                        : "player-controls"
+                            </CardHeader>
+                            <CardContent
+                                aria-disabled={
+                                    playbackDisabled ? "true" : undefined
                                 }
                                 data-sot-panel="dashboard-recording-player-controls"
                                 data-sot-state={playerControlsState}
@@ -5925,7 +5927,12 @@ export function Workstation({
                                         seekDashboardPlayerBySeconds(-5)
                                     }
                                 >
-                                    <SotPlayerBackIcon />
+                                    <span
+                                        data-icon="inline-start"
+                                        data-sot-part="dashboard-player-control-icon"
+                                    >
+                                        <SotPlayerBackIcon />
+                                    </span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -5945,11 +5952,16 @@ export function Workstation({
                                     disabled={playbackDisabled}
                                     onClick={togglePlayPause}
                                 >
-                                    {isPlaying ? (
-                                        <SotPlayerPauseIcon />
-                                    ) : (
-                                        <SotPlayerPlayIcon />
-                                    )}
+                                    <span
+                                        data-icon="inline-start"
+                                        data-sot-part="dashboard-player-control-icon"
+                                    >
+                                        {isPlaying ? (
+                                            <SotPlayerPauseIcon />
+                                        ) : (
+                                            <SotPlayerPlayIcon />
+                                        )}
+                                    </span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -5964,38 +5976,48 @@ export function Workstation({
                                         seekDashboardPlayerBySeconds(5)
                                     }
                                 >
-                                    <SotPlayerForwardIcon />
+                                    <span
+                                        data-icon="inline-start"
+                                        data-sot-part="dashboard-player-control-icon"
+                                    >
+                                        <SotPlayerForwardIcon />
+                                    </span>
                                 </Button>
-                                <span
-                                    className="time mono"
-                                    data-sot-part="dashboard-player-current-time"
-                                >
+                                <span data-sot-part="dashboard-player-current-time">
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
-                                <Slider
-                                    className="player-seek"
-                                    aria-disabled={
-                                        playbackDisabled ? "true" : undefined
-                                    }
-                                    aria-label="播放进度"
-                                    data-sot-control="dashboard-player-seek"
-                                    data-sot-state={playerControlState}
-                                    data-pct={playerProgressPct}
-                                    disabled={playbackDisabled}
-                                    max={100}
-                                    min={0}
-                                    step={1}
-                                    value={[progress]}
-                                    onValueChange={(values) =>
-                                        seekDashboardPlayerToPercent(
-                                            values[0] ?? 0,
-                                        )
-                                    }
-                                />
                                 <span
-                                    className="time mono"
-                                    data-sot-part="dashboard-player-duration"
+                                    data-sot-part="dashboard-player-seek-shell"
+                                    style={
+                                        {
+                                            "--dashboard-player-progress": `${playerProgressPct}%`,
+                                        } as CSSProperties
+                                    }
                                 >
+                                    <Slider
+                                        aria-disabled={
+                                            playbackDisabled
+                                                ? "true"
+                                                : undefined
+                                        }
+                                        aria-label="播放进度"
+                                        data-sot-control="dashboard-player-seek"
+                                        data-sot-state={playerControlState}
+                                        data-pct={playerProgressPct}
+                                        disabled={playbackDisabled}
+                                        max={100}
+                                        min={0}
+                                        step={1}
+                                        value={[progress]}
+                                        onValueChange={(values) =>
+                                            seekDashboardPlayerToPercent(
+                                                values[0] ?? 0,
+                                            )
+                                        }
+                                    />
+                                    <span data-sot-part="dashboard-player-seek-thumb" />
+                                </span>
+                                <span data-sot-part="dashboard-player-duration">
                                     {formatSotPlayerTime(playerDurationValue)}
                                 </span>
                                 <Button
@@ -6011,7 +6033,7 @@ export function Workstation({
                                 >
                                     {playbackSpeedLabel}
                                 </Button>
-                                <div className="vol-anchor">
+                                <div data-sot-part="dashboard-player-volume-anchor">
                                     <Button
                                         variant="ghost"
                                         size="icon-sm"
@@ -6039,12 +6061,25 @@ export function Workstation({
                                             setVolumeOpen((open) => !open)
                                         }
                                     >
-                                        <SotPlayerVolumeIcon volume={volume} />
+                                        <span
+                                            data-icon="inline-start"
+                                            data-sot-part="dashboard-player-control-icon"
+                                        >
+                                            <SotPlayerVolumeIcon
+                                                volume={volume}
+                                            />
+                                        </span>
                                     </Button>
-                                    <div
-                                        className="vol-pop"
+                                    <Card
+                                        hasNoPadding
                                         data-open={
                                             volumePopoverOpen ? "true" : "false"
+                                        }
+                                        data-sot-panel="dashboard-player-volume-popover"
+                                        data-sot-state={
+                                            volumePopoverOpen
+                                                ? "open"
+                                                : "closed"
                                         }
                                         hidden={!volumePopoverOpen}
                                         aria-hidden={
@@ -6055,11 +6090,18 @@ export function Workstation({
                                         role="dialog"
                                         aria-label="音量"
                                     >
-                                        <div className="vol-row">
-                                            <button
-                                                className="vol-mute"
+                                        <div data-sot-part="dashboard-player-volume-row">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label="静音切换"
+                                                data-sot-control="dashboard-player-volume-mute"
+                                                data-sot-state={
+                                                    volumeMuted
+                                                        ? "muted"
+                                                        : "audible"
+                                                }
                                                 disabled={playbackDisabled}
                                                 onClick={() =>
                                                     setVolume(
@@ -6067,42 +6109,45 @@ export function Workstation({
                                                     )
                                                 }
                                             >
-                                                <SotPlayerVolumeIcon
-                                                    className="vol-ico"
-                                                    volume={volume}
-                                                />
-                                            </button>
-                                            <input
-                                                className="vol-range"
-                                                type="range"
+                                                <span
+                                                    data-icon="inline-start"
+                                                    data-sot-part="dashboard-player-volume-icon"
+                                                >
+                                                    <SotPlayerVolumeIcon
+                                                        volume={volume}
+                                                    />
+                                                </span>
+                                            </Button>
+                                            <Slider
                                                 min={0}
                                                 max={100}
                                                 step={1}
-                                                value={volume}
+                                                value={[volume]}
                                                 disabled={playbackDisabled}
+                                                data-sot-control="dashboard-player-volume-slider"
+                                                data-sot-state={
+                                                    playerControlState
+                                                }
                                                 aria-label="音量"
-                                                suppressHydrationWarning
-                                                onChange={(event) =>
+                                                onValueChange={(nextValue) =>
                                                     setVolume(
-                                                        Number(
-                                                            event.target.value,
-                                                        ),
+                                                        nextValue[0] ?? volume,
                                                     )
                                                 }
                                             />
-                                            <span className="vol-num mono">
+                                            <span data-sot-part="dashboard-player-volume-value">
                                                 {volume}
                                             </span>
                                         </div>
-                                    </div>
+                                    </Card>
                                 </div>
-                            </div>
+                            </CardContent>
                             {audioSrc ? (
                                 <audio ref={audioRef} src={audioSrc}>
                                     <track kind="captions" />
                                 </audio>
                             ) : null}
-                        </div>
+                        </Card>
 
                         <Card
                             hasNoPadding

@@ -1606,6 +1606,446 @@ button {
     text-align: center;
 }
 
+/* Dashboard recording player — shadcn Card/Button/Slider surface scoped by data-sot. */
+[data-sot-surface="dashboard-recording-player"][data-slot="card"] {
+    display: block;
+    gap: 0;
+    overflow: visible;
+    border-radius: 16px;
+    padding: 16px 18px;
+    background: var(--bg-elevated);
+    border-color: color-mix(in srgb, var(--graphite-300) 70%, transparent);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+[data-theme="dark"]
+    [data-sot-surface="dashboard-recording-player"][data-slot="card"] {
+    background: rgb(255 255 255 / 0.025);
+    border-color: var(--glass-border-soft);
+    box-shadow: none;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"] {
+    grid-template-columns: 26px minmax(0, 1fr);
+    align-items: center;
+    gap: 1px 10px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: color-mix(
+        in srgb,
+        var(--signal-warning) 8%,
+        var(--bg-elevated)
+    );
+    border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
+    color: var(--fg-primary);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio"][hidden] {
+    display: none;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio-icon"] {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: inline-grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
+    color: var(--signal-warning);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio-icon"]
+    svg {
+    width: 14px;
+    height: 14px;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"] {
+    grid-column: 2;
+    display: block;
+    overflow: visible;
+    min-height: 0;
+    font: 600 12.5px var(--font-sans);
+    color: var(--fg-primary);
+    letter-spacing: 0;
+    -webkit-box-orient: initial;
+    -webkit-line-clamp: initial;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"] {
+    grid-column: 2;
+    display: block;
+    font: 500 11.5px / 1.5 var(--font-sans);
+    color: var(--fg-tertiary);
+    letter-spacing: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-meta"][data-slot="card-header"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-recording-player-date"] {
+    font: 500 11.5px var(--font-mono);
+    color: var(--fg-tertiary);
+    letter-spacing: 0.02em;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="player-status"][data-slot="badge"] {
+    width: auto;
+    padding-right: 8px;
+    padding-left: 12px;
+    justify-content: normal;
+    overflow: visible;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 0.005em;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="player-status"]
+    [data-sot-part="status-dot"] {
+    margin-right: 4px;
+    margin-left: -4px;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-panel="dashboard-recording-player-controls"][data-slot="card-content"] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    overflow: visible;
+    padding: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-back"],
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-forward"] {
+    flex-shrink: 1;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-hairline);
+    box-shadow: var(--shadow-xs);
+    color: var(--fg-secondary);
+    font-size: 13.3333px;
+    line-height: var(--lh-body);
+    gap: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-back"]:hover,
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-forward"]:hover {
+    background: white;
+    color: var(--fg-primary);
+}
+[data-theme="dark"]
+    [data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-back"]:hover,
+[data-theme="dark"]
+    [data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-forward"]:hover {
+    background: rgb(255 255 255 / 0.08);
+    color: var(--fg-primary);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-back"]:active,
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-forward"]:active {
+    transform: scale(0.96);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-play"] {
+    flex-shrink: 1;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 92%, white 18%),
+        var(--accent)
+    );
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
+    box-shadow:
+        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
+        inset 0 1px 0 rgb(255 255 255 / 0.25);
+    color: white;
+    gap: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-speed"] {
+    height: 32px;
+    min-width: 50px;
+    padding: 0 12px;
+    border-radius: 9px;
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+    color: var(--fg-secondary);
+    font: 600 12.5px var(--font-mono);
+    justify-content: center;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-speed"]:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-volume"] {
+    flex-shrink: 1;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-hairline);
+    box-shadow: var(--shadow-xs);
+    color: var(--fg-secondary);
+    gap: 0;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-control-icon"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-control-icon"]
+    svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-play"]
+    [data-sot-part="dashboard-player-control-icon"]
+    svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+    stroke: white;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-current-time"],
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-duration"],
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-volume-value"] {
+    font: 500 12px var(--font-mono);
+    color: var(--fg-tertiary);
+    letter-spacing: 0.03em;
+    min-width: 44px;
+    text-align: center;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-seek-shell"] {
+    position: relative;
+    display: block;
+    flex: 1;
+    min-width: 0;
+    height: 14px;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-seek"][data-slot="slider"] {
+    width: 100%;
+    flex: none;
+    min-width: 0;
+    height: 14px;
+    cursor: pointer;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-seek"][data-sot-state="disabled"] {
+    cursor: default;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-seek"]
+    [data-slot="slider-track"] {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--graphite-200);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.04);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-seek"]
+    [data-slot="slider-range"] {
+    background: linear-gradient(90deg, var(--steel-500), var(--accent));
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-seek"]
+    [data-slot="slider-thumb"] {
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin-left: -4.25px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    appearance: none;
+    opacity: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: none;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-seek-thumb"] {
+    position: absolute;
+    left: var(--dashboard-player-progress);
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    box-shadow:
+        0 1px 4px rgb(0 0 0 / 0.15),
+        0 0 0 1px var(--line-hairline);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-volume-anchor"] {
+    position: relative;
+    display: inline-flex;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-panel="dashboard-player-volume-popover"][data-slot="card"] {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: var(--z-popover-inline);
+    min-width: 200px;
+    gap: 0;
+    overflow: visible;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    border-color: var(--line-hairline);
+    box-shadow:
+        0 1px 2px rgb(15 23 42 / 0.04),
+        0 12px 32px -8px rgb(15 23 42 / 0.18),
+        0 24px 64px -12px rgb(15 23 42 / 0.22);
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+    transition:
+        opacity 180ms var(--ease-out),
+        transform 180ms var(--ease-out);
+    pointer-events: none;
+}
+[data-theme="dark"]
+    [data-sot-surface="dashboard-recording-player"]
+    [data-sot-panel="dashboard-player-volume-popover"][data-slot="card"] {
+    background: var(--graphite-900);
+    border-color: var(--glass-border);
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.5),
+        0 12px 32px -8px rgb(0 0 0 / 0.55),
+        0 24px 64px -12px rgb(0 0 0 / 0.6);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-panel="dashboard-player-volume-popover"][hidden] {
+    display: none;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-panel="dashboard-player-volume-popover"][data-open="true"] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-volume-row"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-volume-mute"] {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 6px;
+    color: var(--fg-secondary);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-volume-mute"]:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-volume-icon"] {
+    display: inline-flex;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-volume-icon"]
+    svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+[data-sot-surface="dashboard-recording-player"]
+    [data-sot-control="dashboard-player-volume-slider"][data-slot="slider"] {
+    flex: 1;
+    min-width: 110px;
+    height: 18px;
+}
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-back"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-play"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-forward"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-seek"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-speed"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-volume"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-part="dashboard-player-current-time"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-part="dashboard-player-duration"] {
+    opacity: 0.42;
+    pointer-events: none;
+}
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-back"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-play"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-forward"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-speed"],
+[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
+    [data-sot-control="dashboard-player-volume"] {
+    cursor: not-allowed;
+}
+@media (max-width: 640px) {
+    [data-sot-surface="dashboard-recording-player"]
+        [data-sot-control="dashboard-player-speed"] {
+        flex: 0 0 50.75px;
+        width: 50.75px;
+        min-width: 50.75px;
+    }
+}
+
 /* Recording detail player — shadcn Card/Button/Slider surface scoped by data-sot. */
 [data-sot-surface="recording-player"][data-slot="card"] {
     display: block;
