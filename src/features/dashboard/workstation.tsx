@@ -44,10 +44,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
@@ -1071,24 +1078,6 @@ function searchResultFilterLabel(result: SearchResult) {
         return result.speaker || result.title || result.body;
     }
     return result.title || result.tags?.[0] || result.body;
-}
-
-function SotSearchInputIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-        </svg>
-    );
-}
-
-function SotSearchTagIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M3 3h7v7H3z" />
-            <path d="M14 3h7v7h-7z" />
-        </svg>
-    );
 }
 
 function SotHeaderRenameIcon() {
@@ -4066,12 +4055,14 @@ export function Workstation({
                         </span>
                     </div>
                     <div className="topbar-actions">
-                        <div className="ls-anchor" ref={searchOverlayRef}>
+                        <div
+                            data-sot-part="library-search-anchor"
+                            ref={searchOverlayRef}
+                        >
                             <Button
                                 ref={searchTriggerRef}
                                 variant="ghost"
                                 size="icon-sm"
-                                className="ls-trigger"
                                 type="button"
                                 aria-label={t("librarySearch.openSearch")}
                                 aria-expanded={searchOpen}
@@ -4088,8 +4079,8 @@ export function Workstation({
                                 <Search data-icon="inline-start" />
                             </Button>
                             {searchOpen ? (
-                                <div
-                                    className="ls-panel"
+                                <Card
+                                    hasNoPadding
                                     data-open="true"
                                     data-state={searchPanelState}
                                     data-sot-panel="library-search"
@@ -4101,9 +4092,17 @@ export function Workstation({
                                     aria-label={t("librarySearch.dialogLabel")}
                                     onKeyDown={handleLibrarySearchKeyDown}
                                 >
-                                    <div className="ls-input-row">
-                                        <SotSearchInputIcon />
-                                        <input
+                                    <InputGroup
+                                        data-sot-part="library-search-input-row"
+                                        data-state={searchPanelState}
+                                        data-disabled={String(
+                                            searchPanelState === "indexing",
+                                        )}
+                                    >
+                                        <InputGroupAddon align="inline-start">
+                                            <Search data-icon="inline-start" />
+                                        </InputGroupAddon>
+                                        <InputGroupInput
                                             ref={searchInputRef}
                                             value={query}
                                             aria-disabled={
@@ -4131,9 +4130,8 @@ export function Workstation({
                                         {query.trim() &&
                                         searchPanelState !== "indexing" &&
                                         searchPanelState !== "error" ? (
-                                            <button
-                                                className="ls-clear"
-                                                type="button"
+                                            <InputGroupButton
+                                                size="icon-xs"
                                                 aria-label={t(
                                                     "librarySearch.clearSearch",
                                                 )}
@@ -4154,29 +4152,38 @@ export function Workstation({
                                                 }}
                                             >
                                                 <X />
-                                            </button>
+                                            </InputGroupButton>
                                         ) : null}
-                                    </div>
-                                    <div
-                                        className="ls-scope"
-                                        role="tablist"
+                                    </InputGroup>
+                                    <ToggleGroup
+                                        type="single"
+                                        value={searchScope}
+                                        spacing={1.5}
                                         aria-label={t(
                                             "librarySearch.scopeLegend",
                                         )}
                                         data-sot-canonical="web-index-runtime"
+                                        data-sot-part="library-search-scope"
                                         data-sot-scope-count={String(
                                             SEARCH_SCOPES.length,
                                         )}
+                                        onValueChange={(value) => {
+                                            if (!value) return;
+                                            setSearchScope(
+                                                value as SearchScope,
+                                            );
+                                            setActiveSearchIndex(0);
+                                            window.setTimeout(() => {
+                                                searchInputRef.current?.focus({
+                                                    preventScroll: true,
+                                                });
+                                            }, 0);
+                                        }}
                                     >
                                         {SEARCH_SCOPES.map((item) => (
-                                            <button
-                                                className={
-                                                    item.value === searchScope
-                                                        ? "ls-chip active"
-                                                        : "ls-chip"
-                                                }
-                                                type="button"
+                                            <ToggleGroupItem
                                                 key={item.value}
+                                                value={item.value}
                                                 aria-pressed={
                                                     item.value === searchScope
                                                 }
@@ -4195,17 +4202,6 @@ export function Workstation({
                                                     searchPanelState ===
                                                     "indexing"
                                                 }
-                                                onClick={() => {
-                                                    setSearchScope(item.value);
-                                                    setActiveSearchIndex(0);
-                                                    window.setTimeout(() => {
-                                                        searchInputRef.current?.focus(
-                                                            {
-                                                                preventScroll: true,
-                                                            },
-                                                        );
-                                                    }, 0);
-                                                }}
                                             >
                                                 {item.value === "all"
                                                     ? t(
@@ -4214,24 +4210,17 @@ export function Workstation({
                                                     : t(
                                                           `librarySearch.types.${item.value}`,
                                                       )}
-                                            </button>
+                                            </ToggleGroupItem>
                                         ))}
-                                    </div>
-                                    <div
-                                        className="ls-body"
-                                        data-sot-region="library-search-scroll"
-                                    >
+                                    </ToggleGroup>
+                                    <CardContent data-sot-region="library-search-scroll">
                                         {searchPanelState === "indexing" ? (
                                             <div
-                                                className="ls-state ls-state-indexing"
                                                 data-sot-part="library-search-indexing"
+                                                data-sot-state="indexing"
                                             >
-                                                <span className="inline-progress indeterminate">
-                                                    <span data-sot-part="inline-progress-track">
-                                                        <span data-sot-part="inline-progress-bar" />
-                                                    </span>
-                                                </span>
-                                                <div className="ls-empty">
+                                                <Skeleton data-sot-part="library-search-state-skeleton" />
+                                                <div data-sot-part="library-search-state-copy">
                                                     {t(
                                                         "librarySearch.indexing",
                                                         {
@@ -4247,27 +4236,26 @@ export function Workstation({
                                             </div>
                                         ) : searchLoading ? (
                                             <div
-                                                className="ls-state ls-state-loading"
                                                 data-sot-part="library-search-loading"
+                                                data-sot-state="loading"
                                             >
-                                                <div className="ls-loading">
+                                                <div data-sot-part="library-search-state-copy">
                                                     {t("librarySearch.loading")}
                                                 </div>
                                             </div>
                                         ) : searchError ? (
-                                            <div
-                                                className="ls-state ls-state-error"
+                                            <Alert
                                                 data-sot-part="library-search-error"
+                                                data-sot-state="error"
                                             >
-                                                <div className="ls-empty">
+                                                <AlertTitle data-sot-part="library-search-state-title">
                                                     {t("librarySearch.error")}
-                                                </div>
+                                                </AlertTitle>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     type="button"
                                                     data-sot-control="library-search-retry"
-                                                    data-ls-retry=""
                                                     onClick={() => {
                                                         setSearchRetry(
                                                             (value) =>
@@ -4287,23 +4275,22 @@ export function Workstation({
                                                 >
                                                     {t("librarySearch.retry")}
                                                 </Button>
-                                            </div>
+                                            </Alert>
                                         ) : flatSearchResults.length > 0 ? (
                                             <div
-                                                className="ls-state ls-state-results"
                                                 data-sot-list="library-search-results"
+                                                data-sot-state="results"
                                             >
                                                 {groupedSearchResults.map(
                                                     (group) => (
                                                         <div
-                                                            className="ls-group"
                                                             key={group.type}
                                                             data-sot-group="library-search-results"
                                                             data-sot-result-type={
                                                                 group.type
                                                             }
                                                         >
-                                                            <div className="ls-group-label">
+                                                            <div data-sot-part="library-search-group-label">
                                                                 {t(
                                                                     `librarySearch.types.${group.type}`,
                                                                 )}
@@ -4328,8 +4315,9 @@ export function Workstation({
                                                                             result,
                                                                         );
                                                                     return (
-                                                                        <button
-                                                                            className="ls-item"
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
                                                                             type="button"
                                                                             key={`${result.entityType}:${result.entityId}`}
                                                                             data-active={
@@ -4365,27 +4353,30 @@ export function Workstation({
                                                                         >
                                                                             {result.entityType ===
                                                                             "tag" ? (
-                                                                                <span className="utag c-violet">
-                                                                                    <SotSearchTagIcon />
+                                                                                <Badge
+                                                                                    variant="secondary"
+                                                                                    data-sot-part="library-search-tag-chip"
+                                                                                >
+                                                                                    <Tags data-icon="inline-start" />
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
                                                                                     )}
-                                                                                </span>
+                                                                                </Badge>
                                                                             ) : (
-                                                                                <span className="ls-item-title">
+                                                                                <span data-sot-part="library-search-result-title">
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
                                                                                     )}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="ls-item-meta">
+                                                                            <span data-sot-part="library-search-result-meta">
                                                                                 {
                                                                                     meta
                                                                                 }
                                                                             </span>
-                                                                        </button>
+                                                                        </Button>
                                                                     );
                                                                 },
                                                             )}
@@ -4395,15 +4386,15 @@ export function Workstation({
                                             </div>
                                         ) : (
                                             <div
-                                                className={
-                                                    query.trim()
-                                                        ? "ls-state ls-state-no-results"
-                                                        : "ls-state ls-state-no-query"
-                                                }
                                                 data-sot-part="library-search-empty"
+                                                data-sot-state={
+                                                    query.trim()
+                                                        ? "no-results"
+                                                        : "no-query"
+                                                }
                                             >
                                                 {query.trim() ? (
-                                                    <div className="ls-empty">
+                                                    <div data-sot-part="library-search-state-copy">
                                                         {language === "en" ? (
                                                             <>
                                                                 {
@@ -4425,7 +4416,7 @@ export function Workstation({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="ls-hint">
+                                                    <div data-sot-part="library-search-state-copy">
                                                         {t(
                                                             "librarySearch.noQuery",
                                                         )}
@@ -4433,8 +4424,8 @@ export function Workstation({
                                                 )}
                                             </div>
                                         )}
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             ) : null}
                         </div>
                         <div

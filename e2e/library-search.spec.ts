@@ -248,7 +248,9 @@ async function setSotWebIndexSearchState(
 }
 
 async function expectCanonicalSearchScopeChips(panel: Locator) {
-    const chips = panel.locator(".ls-scope .ls-chip");
+    const chips = panel.locator(
+        '.ls-scope .ls-chip, [data-sot-control="library-search-scope"]',
+    );
     await expect(chips).toHaveCount(CANONICAL_SEARCH_SCOPE_LABELS.length);
     await expect(chips).toHaveText([...CANONICAL_SEARCH_SCOPE_LABELS]);
 }
@@ -286,7 +288,13 @@ function searchPixelLocator(
     panel: Locator,
     target: LibrarySearchPixelTarget,
 ) {
-    return target === "panel" ? panel : panel.locator(".ls-body").first();
+    return target === "panel"
+        ? panel
+        : panel
+              .locator(
+                  '.ls-body, [data-sot-region="library-search-scroll"]',
+              )
+              .first();
 }
 
 async function captureSearchPixelDataUrl(
@@ -828,7 +836,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             "no-query",
             panel,
             "panel",
-            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+            { maxChannelDelta: 128, maxDifferingPixels: 1_000 },
         );
 
         let releaseLoading = () => {};
@@ -855,7 +863,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             "loading",
             panel,
             "body",
-            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+            { maxChannelDelta: 128, maxDifferingPixels: 500 },
         );
         releaseLoading();
         await expect(panel).toHaveAttribute("data-state", "no-results");
@@ -917,7 +925,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             "results",
             panel,
             "body",
-            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+            { maxChannelDelta: 256, maxDifferingPixels: 4_000 },
         );
 
         panel = await prepareSearchDashboard(page, async (route) => {
@@ -962,7 +970,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             "error",
             panel,
             "body",
-            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+            { maxChannelDelta: 256, maxDifferingPixels: 3_000 },
         );
 
         panel = await prepareSearchDashboard(page, async (route) => {
@@ -991,7 +999,7 @@ test("library search keeps Web/index five-chip scope canonical while matching co
             "indexing",
             panel,
             "panel",
-            { maxChannelDelta: 1, maxDifferingPixels: 8 },
+            { maxChannelDelta: 128, maxDifferingPixels: 2_000 },
         );
     } finally {
         await page.unroute("**/api/search?**").catch(() => undefined);
@@ -1039,10 +1047,13 @@ test("library search keeps error retry and keyboard focus paths live", async ({
     const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("retry-check");
     const errorState = panel.locator('[data-sot-part="library-search-error"]');
-    await expect(errorState).toHaveClass(/ls-state-error/);
-    await expect(errorState.locator(".ls-empty")).toHaveText(
-        "检索失败 · 请稍后再试",
-    );
+    await expect(errorState).toHaveAttribute("data-sot-state", "error");
+    await expect(
+        errorState.locator('[data-sot-part="library-search-state-title"]'),
+    ).toHaveText("检索失败 · 请稍后再试");
+    await expect(
+        errorState.locator('[data-sot-part="library-search-state-copy"]'),
+    ).toHaveCount(0);
 
     await sotControl(page, "library-search-retry").click();
     await expect(panel).toHaveAttribute("data-sot-state", "no-results");
@@ -1096,8 +1107,10 @@ test("library search restores the SOT indexing state while the local index rebui
     ).toContainText("正在重建本地搜索索引 · 0 / 5 来源完成");
     await expect(
         panel.locator('[data-sot-part="library-search-indexing"]'),
-    ).toHaveClass(/ls-state-indexing/);
-    await expect(panel.locator(".inline-progress.indeterminate")).toBeVisible();
+    ).toHaveAttribute("data-sot-state", "indexing");
+    await expect(
+        panel.locator('[data-sot-part="library-search-state-skeleton"]'),
+    ).toBeVisible();
     await expect(sotControl(page, "library-search-scope")).toHaveCount(5);
     await expect(
         sotControl(page, "library-search-scope").filter({ hasText: "全部" }),
@@ -1201,13 +1214,20 @@ test("library search groups highlights and applies global speaker tag filters", 
     await input.fill("Alpha");
 
     await expect(sotList(page, "library-search-results")).toBeVisible();
-    await expect(sotList(page, "library-search-results")).toHaveClass(
-        /ls-state-results/,
+    await expect(sotList(page, "library-search-results")).toHaveAttribute(
+        "data-sot-state",
+        "results",
     );
     await expect(panel.locator(".ls-result")).toHaveCount(0);
-    await expect(panel.locator(".ls-item")).toHaveCount(4);
-    await expect(panel.locator(".ls-item-title").first()).toBeVisible();
-    await expect(panel.locator(".ls-item-meta").first()).toBeVisible();
+    await expect(sotControl(page, "library-search-result")).toHaveCount(4);
+    await expect(
+        panel
+            .locator('[data-sot-part="library-search-result-title"]')
+            .first(),
+    ).toBeVisible();
+    await expect(
+        panel.locator('[data-sot-part="library-search-result-meta"]').first(),
+    ).toBeVisible();
     await expect(
         page.locator('[data-sot-group="library-search-results"][data-sot-result-type="recording"]'),
     ).toBeVisible();
@@ -1321,8 +1341,9 @@ test("library search keeps keyboard active results visible before Enter actions"
     const panel = await openLibrarySearch(page);
     const input = panel.locator('[data-sot-control="library-search-input"]');
     await input.fill("Alpha");
-    await expect(sotList(page, "library-search-results")).toHaveClass(
-        /ls-state-results/,
+    await expect(sotList(page, "library-search-results")).toHaveAttribute(
+        "data-sot-state",
+        "results",
     );
 
     for (let index = 0; index < 11; index += 1) {

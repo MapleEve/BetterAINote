@@ -42,15 +42,23 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             'data-sot-control="library-search-clear"',
         );
+        expect(workstation).toContain("<InputGroup");
+        expect(workstation).toContain("<InputGroupInput");
+        expect(workstation).toContain("<InputGroupButton");
+        expect(workstation).toContain("<ToggleGroup");
+        expect(workstation).toContain("<ToggleGroupItem");
+        expect(workstation).toContain('data-sot-panel="library-search"');
+        expect(workstation).toContain(
+            'data-sot-part="library-search-input-row"',
+        );
+        expect(workstation).toContain('data-sot-part="library-search-scope"');
         expect(workstation).toContain('data-sot-part="library-search-loading"');
         expect(workstation).toContain('data-sot-part="library-search-error"');
-        expect(workstation).toContain("ls-state ls-state-loading");
-        expect(workstation).toContain("ls-state ls-state-error");
-        expect(workstation).toContain("ls-state ls-state-results");
-        expect(workstation).toContain("ls-state ls-state-no-query");
-        expect(workstation).toContain("ls-state ls-state-no-results");
-        expect(workstation).toContain('className="ls-scope"');
-        expect(workstation).toContain('role="tablist"');
+        expect(workstation).toContain('data-sot-state="loading"');
+        expect(workstation).toContain('data-sot-state="results"');
+        expect(workstation).toContain('data-sot-state="indexing"');
+        expect(workstation).toContain('data-sot-state="error"');
+        expect(workstation).toContain("data-sot-state={");
         expect(workstation).toContain('data-sot-canonical="web-index-runtime"');
         expect(workstation).toContain("data-sot-scope-count={String(");
         expect(workstation).toContain("SEARCH_SCOPES.length");
@@ -67,10 +75,16 @@ describe("dashboard SOT search and activity interactions", () => {
             'data-sot-control="library-search-retry"',
         );
         expect(workstation).toContain('data-sot-part="library-search-empty"');
+        expect(workstation).toContain(
+            'data-sot-part="library-search-state-copy"',
+        );
         expect(workstation).toContain('No content found for "');
         expect(workstation).toContain("没有找到与「");
         expect(workstation).toContain("<span>");
         expect(workstation).toContain("librarySearch.noQuery");
+        expect(workstation).not.toContain("ls-state ls-state-");
+        expect(workstation).not.toContain('className="ls-scope"');
+        expect(workstation).not.toContain("data-ls-retry");
     });
 
     it("keeps search scoped to backend search and applies result navigation", () => {
@@ -82,20 +96,30 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain('params.set("type", searchScope)');
         expect(workstation).toContain("SEARCH_SCOPES.map");
         expect(workstation).toContain("data-search-scope={item.value}");
-        expect(workstation).toContain("setSearchScope(item.value)");
+        expect(workstation).toContain("setSearchScope(");
+        expect(workstation).toContain("value as SearchScope");
         expect(workstation).toContain("groupedSearchResults.map");
         expect(workstation).toContain("group.results.map");
         expect(workstation).toContain("data-result-type=");
-        expect(workstation).toContain('className="ls-item"');
-        expect(workstation).toContain('className="ls-item-title"');
-        expect(workstation).toContain('className="ls-item-meta"');
-        expect(workstation).toContain('className="utag c-violet"');
-        expect(workstation).not.toContain('className="ls-result"');
-        expect(workstation).not.toContain('className="ls-section"');
-        expect(workstation).not.toContain('className="ls-tail"');
         expect(workstation).toContain(
             'data-sot-control="library-search-result"',
         );
+        expect(workstation).toContain(
+            'data-sot-part="library-search-result-title"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="library-search-result-meta"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="library-search-tag-chip"',
+        );
+        expect(workstation).not.toContain('className="ls-item"');
+        expect(workstation).not.toContain('className="ls-item-title"');
+        expect(workstation).not.toContain('className="ls-item-meta"');
+        expect(workstation).not.toContain('className="utag c-violet"');
+        expect(workstation).not.toContain('className="ls-result"');
+        expect(workstation).not.toContain('className="ls-section"');
+        expect(workstation).not.toContain('className="ls-tail"');
         expect(workstation).toContain("data-sot-result-index={String(");
         expect(workstation).toContain("data-sot-result-type=");
         expect(workstation).toContain("selectRecording(");
