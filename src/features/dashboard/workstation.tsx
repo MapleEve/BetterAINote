@@ -28,7 +28,13 @@ import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
@@ -4431,7 +4437,10 @@ export function Workstation({
                                 </div>
                             ) : null}
                         </div>
-                        <div className="notif-anchor" ref={activityOverlayRef}>
+                        <div
+                            data-sot-part="dashboard-activity-anchor"
+                            ref={activityOverlayRef}
+                        >
                             <Button
                                 ref={activityTriggerRef}
                                 variant="ghost"
@@ -4461,8 +4470,8 @@ export function Workstation({
                                 </span>
                             </Button>
                             {activityOpen ? (
-                                <div
-                                    className="notif-panel"
+                                <Card
+                                    hasNoPadding
                                     data-open="true"
                                     data-state={activityPanelState}
                                     data-sot-panel="dashboard-activity"
@@ -4473,303 +4482,318 @@ export function Workstation({
                                     role="dialog"
                                     aria-label={t("activityOverlay.title")}
                                 >
-                                    <header className="notif-head">
-                                        <div className="notif-head-l">
-                                            <span className="notif-title">
+                                    <CardHeader data-sot-part="dashboard-activity-header">
+                                        <div data-sot-part="dashboard-activity-heading">
+                                            <CardTitle data-sot-part="dashboard-activity-title">
                                                 {t("activityOverlay.title")}
-                                            </span>
-                                            <span className="notif-count">
+                                            </CardTitle>
+                                            <Badge
+                                                variant="outline"
+                                                data-sot-part="dashboard-activity-count"
+                                            >
                                                 {t(
                                                     "activityOverlay.pendingCount",
                                                     {
                                                         count: activityBadgeCount,
                                                     },
                                                 )}
-                                            </span>
+                                            </Badge>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-sm"
-                                            className="notif-close"
-                                            type="button"
-                                            aria-label={t(
-                                                "activityOverlay.close",
-                                            )}
-                                            data-sot-control="dashboard-activity-close"
-                                            onClick={() =>
-                                                closeActivityOverlay({
-                                                    restoreFocus: true,
-                                                })
-                                            }
+                                        <CardAction data-sot-part="dashboard-activity-header-action">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                type="button"
+                                                aria-label={t(
+                                                    "activityOverlay.close",
+                                                )}
+                                                data-sot-control="dashboard-activity-close"
+                                                onClick={() =>
+                                                    closeActivityOverlay({
+                                                        restoreFocus: true,
+                                                    })
+                                                }
+                                            >
+                                                <X data-icon="inline-start" />
+                                            </Button>
+                                        </CardAction>
+                                    </CardHeader>
+                                    <Separator data-sot-part="dashboard-activity-header-separator" />
+                                    <CardContent data-sot-part="dashboard-activity-content">
+                                        <div
+                                            data-state={syncButtonState}
+                                            data-sot-part="dashboard-activity-status"
+                                            data-sot-state={syncButtonState}
                                         >
-                                            <X data-icon="inline-start" />
-                                        </Button>
-                                    </header>
-                                    <div
-                                        className="notif-status"
-                                        data-state={syncButtonState}
-                                        data-sot-part="dashboard-activity-status"
-                                        data-sot-state={syncButtonState}
-                                    >
-                                        <span
-                                            className="notif-status-ico"
-                                            aria-hidden="true"
-                                        />
-                                        <div className="notif-status-text">
-                                            <div className="notif-status-line">
-                                                {syncStatusLabel}
+                                            <span
+                                                data-sot-part="dashboard-activity-status-indicator"
+                                                aria-hidden="true"
+                                            />
+                                            <div data-sot-part="dashboard-activity-status-copy">
+                                                <div data-sot-part="dashboard-activity-status-line">
+                                                    {syncStatusLabel}
+                                                </div>
+                                                <div
+                                                    className="mono"
+                                                    data-sot-part="dashboard-activity-status-sub"
+                                                >
+                                                    {syncSummary}
+                                                </div>
                                             </div>
-                                            <div className="notif-status-sub mono">
-                                                {syncSummary}
-                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                aria-busy={syncButtonBusy}
+                                                disabled={syncButtonBusy}
+                                                data-action-state={
+                                                    activitySyncActionState
+                                                }
+                                                data-sot-control="dashboard-activity-sync"
+                                                data-sot-state={
+                                                    activitySyncActionState
+                                                }
+                                                onClick={() =>
+                                                    void runManualSync()
+                                                }
+                                            >
+                                                {activitySyncActionState ===
+                                                "busy"
+                                                    ? t(
+                                                          "activityOverlay.actions.updatingShort",
+                                                      )
+                                                    : activitySyncActionState ===
+                                                        "done"
+                                                      ? t(
+                                                            "activityOverlay.actions.queued",
+                                                        )
+                                                      : t(
+                                                            "activityOverlay.actions.update",
+                                                        )}
+                                            </Button>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            aria-busy={syncButtonBusy}
-                                            disabled={syncButtonBusy}
-                                            data-action-state={
-                                                activitySyncActionState
-                                            }
-                                            data-sot-control="dashboard-activity-sync"
-                                            data-sot-state={
-                                                activitySyncActionState
-                                            }
-                                            onClick={() => void runManualSync()}
-                                        >
-                                            {activitySyncActionState === "busy"
-                                                ? t(
-                                                      "activityOverlay.actions.updatingShort",
-                                                  )
-                                                : activitySyncActionState ===
-                                                    "done"
-                                                  ? t(
-                                                        "activityOverlay.actions.queued",
-                                                    )
-                                                  : t(
-                                                        "activityOverlay.actions.update",
-                                                    )}
-                                        </Button>
-                                    </div>
-                                    {visibleActivityItems.length > 0 ? (
-                                        <ul
-                                            className="notif-list"
-                                            data-sot-list="dashboard-activity-items"
-                                        >
-                                            {visibleActivityItems.map(
-                                                (item) => (
-                                                    <li
-                                                        className="notif-item"
-                                                        data-kind={activityItemKind(
-                                                            item,
-                                                        )}
-                                                        role={
-                                                            item.recordingId
-                                                                ? "button"
-                                                                : undefined
-                                                        }
-                                                        tabIndex={
-                                                            item.recordingId
-                                                                ? 0
-                                                                : undefined
-                                                        }
-                                                        aria-label={t(
-                                                            "activityOverlay.itemAria",
-                                                            {
-                                                                action: item.action
-                                                                    ? item.action ===
-                                                                      "settings"
-                                                                        ? t(
-                                                                              "activityOverlay.actions.openDataSources",
-                                                                          )
-                                                                        : item.action ===
-                                                                            "recording"
-                                                                          ? t(
-                                                                                "activityOverlay.actions.view",
-                                                                            )
-                                                                          : t(
-                                                                                "activityOverlay.actions.retry",
-                                                                            )
-                                                                    : t(
-                                                                          "activityOverlay.allHandled",
-                                                                      ),
-                                                                title: item.title,
-                                                            },
-                                                        )}
-                                                        data-action-state={
-                                                            item.action ===
-                                                            "sync"
-                                                                ? activitySyncActionState
-                                                                : "idle"
-                                                        }
-                                                        data-activity-action={
-                                                            item.action ??
-                                                            "none"
-                                                        }
-                                                        data-activity-id={
-                                                            item.id
-                                                        }
-                                                        data-clickable={
-                                                            item.recordingId
-                                                                ? "true"
-                                                                : "false"
-                                                        }
-                                                        data-sot-action={
-                                                            item.action ??
-                                                            "none"
-                                                        }
-                                                        data-sot-activity-id={
-                                                            item.id
-                                                        }
-                                                        data-sot-item="dashboard-activity-item"
-                                                        data-sot-state={
-                                                            item.tone
-                                                        }
-                                                        data-tone={item.tone}
-                                                        key={item.id}
-                                                        onClick={(event) => {
-                                                            if (
-                                                                !item.recordingId ||
-                                                                (event.target instanceof
-                                                                    HTMLElement &&
-                                                                    event.target.closest(
-                                                                        "button",
-                                                                    ))
-                                                            ) {
-                                                                return;
-                                                            }
-                                                            void runActivityAction(
+                                        <Separator data-sot-part="dashboard-activity-status-separator" />
+                                        {visibleActivityItems.length > 0 ? (
+                                            <ul data-sot-list="dashboard-activity-items">
+                                                {visibleActivityItems.map(
+                                                    (item) => (
+                                                        <li
+                                                            data-kind={activityItemKind(
                                                                 item,
-                                                            );
-                                                        }}
-                                                        onKeyDown={(event) =>
-                                                            handleActivityItemKeyDown(
-                                                                event,
-                                                                item,
-                                                            )
-                                                        }
-                                                    >
-                                                        <span className="notif-ico">
-                                                            {item.tone ===
-                                                            "success" ? (
-                                                                <CheckCircle />
-                                                            ) : item.tone ===
-                                                              "info" ? (
-                                                                <Bell />
-                                                            ) : (
-                                                                <AlertCircle />
                                                             )}
-                                                        </span>
-                                                        <div className="notif-body">
-                                                            <div className="notif-item-title">
-                                                                {item.title}
-                                                            </div>
-                                                            <div className="notif-item-body">
-                                                                {item.body}
-                                                            </div>
-                                                            <div className="notif-item-meta">
-                                                                {t(
-                                                                    "activityOverlay.justNow",
+                                                            role={
+                                                                item.recordingId
+                                                                    ? "button"
+                                                                    : undefined
+                                                            }
+                                                            tabIndex={
+                                                                item.recordingId
+                                                                    ? 0
+                                                                    : undefined
+                                                            }
+                                                            aria-label={t(
+                                                                "activityOverlay.itemAria",
+                                                                {
+                                                                    action: item.action
+                                                                        ? item.action ===
+                                                                          "settings"
+                                                                            ? t(
+                                                                                  "activityOverlay.actions.openDataSources",
+                                                                              )
+                                                                            : item.action ===
+                                                                                "recording"
+                                                                              ? t(
+                                                                                    "activityOverlay.actions.view",
+                                                                                )
+                                                                              : t(
+                                                                                    "activityOverlay.actions.retry",
+                                                                                )
+                                                                        : t(
+                                                                              "activityOverlay.allHandled",
+                                                                          ),
+                                                                    title: item.title,
+                                                                },
+                                                            )}
+                                                            data-action-state={
+                                                                item.action ===
+                                                                "sync"
+                                                                    ? activitySyncActionState
+                                                                    : "idle"
+                                                            }
+                                                            data-activity-action={
+                                                                item.action ??
+                                                                "none"
+                                                            }
+                                                            data-activity-id={
+                                                                item.id
+                                                            }
+                                                            data-clickable={
+                                                                item.recordingId
+                                                                    ? "true"
+                                                                    : "false"
+                                                            }
+                                                            data-sot-action={
+                                                                item.action ??
+                                                                "none"
+                                                            }
+                                                            data-sot-activity-id={
+                                                                item.id
+                                                            }
+                                                            data-sot-item="dashboard-activity-item"
+                                                            data-sot-state={
+                                                                item.tone
+                                                            }
+                                                            data-tone={
+                                                                item.tone
+                                                            }
+                                                            key={item.id}
+                                                            onClick={(
+                                                                event,
+                                                            ) => {
+                                                                if (
+                                                                    !item.recordingId ||
+                                                                    (event.target instanceof
+                                                                        HTMLElement &&
+                                                                        event.target.closest(
+                                                                            "button",
+                                                                        ))
+                                                                ) {
+                                                                    return;
+                                                                }
+                                                                void runActivityAction(
+                                                                    item,
+                                                                );
+                                                            }}
+                                                            onKeyDown={(
+                                                                event,
+                                                            ) =>
+                                                                handleActivityItemKeyDown(
+                                                                    event,
+                                                                    item,
+                                                                )
+                                                            }
+                                                        >
+                                                            <span data-sot-part="dashboard-activity-item-icon">
+                                                                {item.tone ===
+                                                                "success" ? (
+                                                                    <CheckCircle />
+                                                                ) : item.tone ===
+                                                                  "info" ? (
+                                                                    <Bell />
+                                                                ) : (
+                                                                    <AlertCircle />
                                                                 )}
+                                                            </span>
+                                                            <div data-sot-part="dashboard-activity-item-copy">
+                                                                <div data-sot-part="dashboard-activity-item-title">
+                                                                    {item.title}
+                                                                </div>
+                                                                <div data-sot-part="dashboard-activity-item-body">
+                                                                    {item.body}
+                                                                </div>
+                                                                <div data-sot-part="dashboard-activity-item-meta">
+                                                                    {t(
+                                                                        "activityOverlay.justNow",
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="notif-actions">
-                                                            {item.action ? (
+                                                            <div data-sot-part="dashboard-activity-item-actions">
+                                                                {item.action ? (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        type="button"
+                                                                        data-action-state={
+                                                                            item.action ===
+                                                                            "sync"
+                                                                                ? activitySyncActionState
+                                                                                : "idle"
+                                                                        }
+                                                                        data-sot-control="dashboard-activity-action"
+                                                                        data-sot-state={
+                                                                            item.action ===
+                                                                            "sync"
+                                                                                ? activitySyncActionState
+                                                                                : "idle"
+                                                                        }
+                                                                        onClick={() =>
+                                                                            void runActivityAction(
+                                                                                item,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {item.action ===
+                                                                        "settings"
+                                                                            ? t(
+                                                                                  "activityOverlay.actions.openDataSources",
+                                                                              )
+                                                                            : item.action ===
+                                                                                "recording"
+                                                                              ? t(
+                                                                                    "activityOverlay.actions.view",
+                                                                                )
+                                                                              : t(
+                                                                                    "activityOverlay.actions.retry",
+                                                                                )}
+                                                                    </Button>
+                                                                ) : null}
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="sm"
+                                                                    size="icon-xs"
                                                                     type="button"
-                                                                    data-action-state={
-                                                                        item.action ===
-                                                                        "sync"
-                                                                            ? activitySyncActionState
-                                                                            : "idle"
-                                                                    }
-                                                                    data-sot-control="dashboard-activity-action"
-                                                                    data-sot-state={
-                                                                        item.action ===
-                                                                        "sync"
-                                                                            ? activitySyncActionState
-                                                                            : "idle"
-                                                                    }
+                                                                    aria-label={t(
+                                                                        "activityOverlay.dismissItem",
+                                                                        {
+                                                                            title: item.title,
+                                                                        },
+                                                                    )}
+                                                                    data-sot-control="dashboard-activity-dismiss"
                                                                     onClick={() =>
-                                                                        void runActivityAction(
-                                                                            item,
+                                                                        setDismissedActivityIds(
+                                                                            (
+                                                                                current,
+                                                                            ) => {
+                                                                                const next =
+                                                                                    new Set(
+                                                                                        current,
+                                                                                    );
+                                                                                next.add(
+                                                                                    item.id,
+                                                                                );
+                                                                                return next;
+                                                                            },
                                                                         )
                                                                     }
                                                                 >
-                                                                    {item.action ===
-                                                                    "settings"
-                                                                        ? t(
-                                                                              "activityOverlay.actions.openDataSources",
-                                                                          )
-                                                                        : item.action ===
-                                                                            "recording"
-                                                                          ? t(
-                                                                                "activityOverlay.actions.view",
-                                                                            )
-                                                                          : t(
-                                                                                "activityOverlay.actions.retry",
-                                                                            )}
+                                                                    <X />
                                                                 </Button>
-                                                            ) : null}
-                                                            <button
-                                                                className="notif-dismiss"
-                                                                type="button"
-                                                                aria-label={t(
-                                                                    "activityOverlay.dismissItem",
-                                                                    {
-                                                                        title: item.title,
-                                                                    },
-                                                                )}
-                                                                data-sot-control="dashboard-activity-dismiss"
-                                                                onClick={() =>
-                                                                    setDismissedActivityIds(
-                                                                        (
-                                                                            current,
-                                                                        ) => {
-                                                                            const next =
-                                                                                new Set(
-                                                                                    current,
-                                                                                );
-                                                                            next.add(
-                                                                                item.id,
-                                                                            );
-                                                                            return next;
-                                                                        },
-                                                                    )
-                                                                }
-                                                            >
-                                                                <X />
-                                                            </button>
-                                                        </div>
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    ) : (
-                                        <div
-                                            className="notif-empty"
-                                            data-sot-part="dashboard-activity-empty"
-                                        >
-                                            <div
-                                                className="notif-empty-ico"
-                                                aria-hidden="true"
-                                            >
-                                                <CheckCircle />
-                                            </div>
-                                            <p className="notif-empty-msg">
-                                                {t(
-                                                    "activityOverlay.emptyTitle",
+                                                            </div>
+                                                        </li>
+                                                    ),
                                                 )}
-                                            </p>
-                                            <p className="notif-empty-sub">
-                                                {t("activityOverlay.emptyBody")}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                            </ul>
+                                        ) : (
+                                            <div data-sot-part="dashboard-activity-empty">
+                                                <div
+                                                    data-sot-part="dashboard-activity-empty-icon"
+                                                    aria-hidden="true"
+                                                >
+                                                    <CheckCircle />
+                                                </div>
+                                                <p data-sot-part="dashboard-activity-empty-title">
+                                                    {t(
+                                                        "activityOverlay.emptyTitle",
+                                                    )}
+                                                </p>
+                                                <p data-sot-part="dashboard-activity-empty-body">
+                                                    {t(
+                                                        "activityOverlay.emptyBody",
+                                                    )}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
                             ) : null}
                         </div>
                         <button

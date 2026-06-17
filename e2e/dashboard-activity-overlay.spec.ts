@@ -802,8 +802,8 @@ async function writeActivityResponsiveEvidence(frames: ActivityEvidenceFrame[]) 
         },
         productSources: {
             runtime:
-                "src/features/dashboard/workstation.tsx activityItems/activityItemKind/.notif-panel",
-            styles: "src/app/globals.css .notif-* responsive rules",
+                "src/features/dashboard/workstation.tsx activityItems/activityItemKind/[data-sot-panel=\"dashboard-activity\"]",
+            styles: "src/app/globals.css [data-sot-panel=\"dashboard-activity\"] responsive rules",
         },
         runtimeBoundary: {
             independentPartialFailedKindHandledThisRound: true,
@@ -1398,20 +1398,30 @@ test("activity overlay opens data source settings for worker-down notifications"
     const panel = await openActivityOverlay(page);
     await expectActivityPortalOverlay(page);
     await expectActivityAnchoredToTrigger(page);
-    await expect(panel.locator(".notif-head-l")).toBeVisible();
-    await expect(panel.locator(".notif-count")).toContainText("1 项待处理");
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-heading"]'),
+    ).toBeVisible();
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-count"]'),
+    ).toContainText("1 项待处理");
 
     const item = panel.locator('[data-sot-activity-id="worker-unavailable"]');
     await expect(item).toBeVisible();
     await expect(item).toHaveAttribute("data-kind", "worker-down");
     await expect(item).toHaveAttribute("data-action-state", "idle");
-    await expect(item.locator(".notif-item-title")).toContainText(
+    await expect(
+        item.locator('[data-sot-part="dashboard-activity-item-title"]'),
+    ).toContainText(
         "自动更新暂时不可用",
     );
-    await expect(item.locator(".notif-item-body")).toContainText(
+    await expect(
+        item.locator('[data-sot-part="dashboard-activity-item-body"]'),
+    ).toContainText(
         "本地更新服务未响应。",
     );
-    await expect(item.locator(".notif-item-meta")).toHaveText("刚刚");
+    await expect(
+        item.locator('[data-sot-part="dashboard-activity-item-meta"]'),
+    ).toHaveText("刚刚");
 
     const action = item.locator('[data-sot-control="dashboard-activity-action"]');
     await expect(item).toHaveAttribute("data-sot-action", "settings");
@@ -1459,13 +1469,15 @@ test("activity overlay dismisses actionable notifications into an empty state", 
     await expect(
         panel.locator('[data-sot-part="dashboard-activity-empty"]'),
     ).toBeVisible();
-    await expect(panel.locator(".notif-empty-ico")).toBeVisible();
-    await expect(panel.locator(".notif-empty-msg")).toContainText(
-        "没有新的动态",
-    );
-    await expect(panel.locator(".notif-empty-sub")).toContainText(
-        "来源更新与转写任务都在正常运行",
-    );
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-empty-icon"]'),
+    ).toBeVisible();
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-empty-title"]'),
+    ).toContainText("没有新的动态");
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-empty-body"]'),
+    ).toContainText("来源更新与转写任务都在正常运行");
     await expect(
         panel.locator('[data-sot-list="dashboard-activity-items"]'),
     ).toHaveCount(0);
@@ -1516,14 +1528,22 @@ test("activity overlay exposes default summary and syncing states without layout
 
     await openActivityOverlay(page);
     await expect(panel).toHaveAttribute("data-sot-state", "default");
-    await expect(panel.locator(".notif-title")).toHaveText("最近动态");
-    await expect(panel.locator(".notif-count")).toContainText("0 项待处理");
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-title"]'),
+    ).toHaveText("最近动态");
+    await expect(
+        panel.locator('[data-sot-part="dashboard-activity-count"]'),
+    ).toContainText("0 项待处理");
     const status = panel.locator(
         '[data-sot-part="dashboard-activity-status"]',
     );
     await expect(status).toHaveAttribute("data-sot-state", "idle");
-    await expect(status.locator(".notif-status-line")).toBeVisible();
-    await expect(status.locator(".notif-status-sub")).toContainText("上次更新于");
+    await expect(
+        status.locator('[data-sot-part="dashboard-activity-status-line"]'),
+    ).toBeVisible();
+    await expect(
+        status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+    ).toContainText("上次更新于");
     const summaryItem = panel.locator(
         '[data-sot-activity-id="source-sync-summary"]',
     );
@@ -1531,10 +1551,16 @@ test("activity overlay exposes default summary and syncing states without layout
     await expect(summaryItem).toHaveAttribute("data-kind", "success");
     await expect(summaryItem).toContainText("最近一次更新完成");
     await expect(summaryItem).toContainText("新增 0，更新 0，移除 0。");
-    await expect(summaryItem.locator(".notif-item-title")).toContainText(
+    await expect(
+        summaryItem.locator(
+            '[data-sot-part="dashboard-activity-item-title"]',
+        ),
+    ).toContainText(
         "最近一次更新完成",
     );
-    await expect(summaryItem.locator(".notif-item-body")).toContainText(
+    await expect(
+        summaryItem.locator('[data-sot-part="dashboard-activity-item-body"]'),
+    ).toContainText(
         "新增 0，更新 0，移除 0。",
     );
     const summaryItemHeight = await summaryItem.evaluate((node) =>
@@ -1551,12 +1577,12 @@ test("activity overlay exposes default summary and syncing states without layout
     await openActivityOverlay(page);
     await expect(panel).toHaveAttribute("data-sot-state", "error");
     await expect(status).toHaveAttribute("data-sot-state", "error");
-    await expect(status.locator(".notif-status-line")).toHaveText(
-        "部分来源更新失败",
-    );
-    await expect(status.locator(".notif-status-sub")).toContainText(
-        "2 个来源更新失败，稍后可重试。",
-    );
+    await expect(
+        status.locator('[data-sot-part="dashboard-activity-status-line"]'),
+    ).toHaveText("部分来源更新失败");
+    await expect(
+        status.locator('[data-sot-part="dashboard-activity-status-sub"]'),
+    ).toContainText("2 个来源更新失败，稍后可重试。");
     const partialSummaryItem = panel.locator(
         '[data-sot-activity-id="source-sync-summary"]',
     );
@@ -1566,10 +1592,18 @@ test("activity overlay exposes default summary and syncing states without layout
         "partial-failed",
     );
     await expect(partialSummaryItem).toHaveAttribute("data-sot-state", "warn");
-    await expect(partialSummaryItem.locator(".notif-item-title")).toContainText(
+    await expect(
+        partialSummaryItem.locator(
+            '[data-sot-part="dashboard-activity-item-title"]',
+        ),
+    ).toContainText(
         "部分来源更新失败",
     );
-    await expect(partialSummaryItem.locator(".notif-item-body")).toContainText(
+    await expect(
+        partialSummaryItem.locator(
+            '[data-sot-part="dashboard-activity-item-body"]',
+        ),
+    ).toContainText(
         "新增 3，更新 5，移除 1，失败 2。",
     );
     await expect(
@@ -1744,9 +1778,9 @@ test("activity overlay follows display language for panel and status copy", asyn
 
         const panel = await openActivityOverlay(page);
         await expect(panel).toHaveAttribute("aria-label", "Recent activity");
-        await expect(panel.locator(".notif-title")).toHaveText(
-            "Recent activity",
-        );
+        await expect(
+            panel.locator('[data-sot-part="dashboard-activity-title"]'),
+        ).toHaveText("Recent activity");
         await expect(panel).toContainText("Last update complete");
         await expect(
             panel.locator('[data-sot-part="dashboard-activity-status"]'),

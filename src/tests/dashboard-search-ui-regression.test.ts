@@ -140,17 +140,32 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             'aria-label={t("activityOverlay.title")}',
         );
-        expect(workstation).toContain('className="notif-head-l"');
-        expect(workstation).toContain('className="notif-count"');
-        expect(workstation).toContain('className="notif-close"');
+        expect(workstation).toContain("<CardHeader");
+        expect(workstation).toContain("<CardTitle");
+        expect(workstation).toContain("<CardContent");
+        expect(workstation).toContain("<CardAction");
+        expect(workstation).toContain("<Badge");
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-heading"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-count"',
+        );
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-activity-close"',
+        );
         expect(workstation).toContain('size="icon-sm"');
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-activity-status"',
         );
-        expect(workstation).toContain('className="notif-status-line"');
-        expect(workstation).toContain('className="notif-status-sub mono"');
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-status-line"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-status-sub"',
+        );
         expect(workstation).toContain(
             'data-sot-control="dashboard-activity-sync"',
         );
@@ -170,12 +185,25 @@ describe("dashboard SOT search and activity interactions", () => {
             'data-sot-item="dashboard-activity-item"',
         );
         expect(workstation).toContain("data-kind={activityItemKind(");
-        expect(workstation).toContain('className="notif-item-title"');
-        expect(workstation).toContain('className="notif-item-body"');
-        expect(workstation).toContain('className="notif-item-meta"');
-        expect(workstation).toContain('className="notif-empty-ico"');
-        expect(workstation).toContain('className="notif-empty-msg"');
-        expect(workstation).toContain('className="notif-empty-sub"');
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-item-title"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-item-body"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-item-meta"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-empty-icon"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-empty-title"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-activity-empty-body"',
+        );
+        expect(workstation).not.toMatch(/\bclassName="notif-/);
         expect(workstation).not.toContain('<h2 className="notif-title"');
         expect(workstation).not.toContain('className="notif-msg"');
         expect(workstation).not.toContain('className="notif-time"');
