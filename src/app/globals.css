@@ -1078,6 +1078,23 @@ button {
     align-items: center;
     gap: 8px;
 }
+[data-sot-part="dashboard-topbar-actions"]
+    > [data-sot-part="library-search-anchor"],
+[data-sot-part="dashboard-topbar-actions"]
+    > [data-sot-part="dashboard-activity-anchor"],
+[data-sot-part="dashboard-topbar-actions"]
+    > [data-sot-part="library-search-anchor"]
+    [data-slot="button"],
+[data-sot-part="dashboard-topbar-actions"]
+    > [data-sot-part="dashboard-activity-anchor"]
+    [data-slot="button"] {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 .search {
     display: flex;
     align-items: center;
@@ -1124,6 +1141,7 @@ button {
     border: 1px solid var(--line-hairline);
 }
 
+[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"],
 .avatar {
     width: 30px;
     height: 30px;
@@ -1743,7 +1761,7 @@ button {
     [data-sot-control="dashboard-player-play"] {
     width: 44px;
     height: 44px;
-    padding: 0;
+    padding: 1px 6px;
     border-radius: 50%;
     background: linear-gradient(
         180deg,
@@ -1755,6 +1773,7 @@ button {
         0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.25);
     color: white;
+    font: 400 13.3333px var(--font-sans);
     gap: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
@@ -2017,7 +2036,7 @@ button {
     flex-shrink: 1;
     width: 44px;
     height: 44px;
-    padding: 0;
+    padding: 1px 6px;
     border-radius: 50%;
     background: linear-gradient(
         180deg,
@@ -2029,6 +2048,7 @@ button {
         0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.25);
     color: white;
+    font: 400 13.3333px var(--font-sans);
     gap: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
@@ -4289,10 +4309,12 @@ body[data-time-style="abs"]
 }
 
 /* avatar button */
+[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"],
 .avatar {
     border: 0;
     cursor: pointer;
 }
+[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]:hover,
 .avatar:hover {
     transform: scale(1.04);
 }

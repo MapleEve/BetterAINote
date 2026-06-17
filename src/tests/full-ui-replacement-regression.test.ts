@@ -1245,8 +1245,24 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("group.results.map");
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
+        expect(workstation).toMatch(
+            /<div\s+data-sot-format="mono"\s+data-sot-part="dashboard-activity-status-sub"\s*>/,
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-activity-status-sub"]',
+        );
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
+        expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
+        expect(workstation).toMatch(
+            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"\s*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+        );
+        expect(workstation).not.toMatch(
+            /className\s*=\s*(?:["'](?:mono|avatar)["']|\{["'](?:mono|avatar)["']\})/,
+        );
         expect(workstation).not.toContain('className="panel list-panel"');
         expect(workstation).not.toContain('className="real-list"');
         expect(workstation).toMatch(
@@ -1351,9 +1367,6 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(globals).toContain(
             '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
-        );
-        expect(workstation).toContain(
-            'className="avatar"\n                            type="button"',
         );
         expect(workstation).toContain("<Button");
         expect(workstation).toContain('variant="ghost"');

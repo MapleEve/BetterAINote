@@ -3250,30 +3250,40 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             "data-theme",
             "dark",
         );
-        await expect(sotPage.locator(".topbar-actions > *")).toHaveCount(3);
-        await expect(page.locator(".topbar-actions > *")).toHaveCount(3);
+
+        const productTopbarActionsSelector =
+            '[data-sot-part="dashboard-topbar-actions"]';
+        const sotTopbarActionsSelector = ".topbar-actions";
+        const productSettingsSelector = `${productTopbarActionsSelector} > [data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]`;
+
         await expect(
-            page.locator(
-                '.topbar-actions > .avatar[data-sot-control="dashboard-settings"]',
-            ),
-        ).toHaveCount(1);
-        expect(await readSotBox(page, ".topbar-actions")).toEqual(
-            await readSotBox(sotPage, ".topbar-actions"),
+            sotPage.locator(`${sotTopbarActionsSelector} > *`),
+        ).toHaveCount(3);
+        await expect(
+            page.locator(`${productTopbarActionsSelector} > *`),
+        ).toHaveCount(3);
+        await expect(page.locator(productSettingsSelector)).toHaveCount(1);
+        expect(await readSotBox(page, productTopbarActionsSelector)).toEqual(
+            await readSotBox(sotPage, sotTopbarActionsSelector),
         );
 
-        for (const selector of [
-            ".app",
-            ".sidebar",
-            ".workspace",
-            ".detail",
-            ".rec-head",
-            ".transcript",
-            ".liquid-tabs",
-        ]) {
-            await expectSotStyleMatch(
+        for (const [sotSelector, productSelector] of [
+            [".app", '[data-sot-surface="dashboard-workstation"]'],
+            [".sidebar", '[data-sot-panel="dashboard-sidebar"]'],
+            [".workspace", '[data-sot-panel="dashboard-workspace"]'],
+            [".detail", '[data-sot-panel="dashboard-detail"]'],
+            [".rec-head", '[data-sot-panel="dashboard-detail-header"]'],
+            [".transcript", '[data-sot-panel="dashboard-transcript-shell"]'],
+            [
+                ".liquid-tabs",
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .liquid-tabs',
+            ],
+        ] satisfies ReadonlyArray<readonly [string, string]>) {
+            await expectSotStylePairMatch(
                 sotPage,
                 page,
-                selector,
+                sotSelector,
+                productSelector,
                 SOT_SURFACE_STYLE_PROPS,
             );
         }
@@ -3285,13 +3295,30 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             SOT_SURFACE_STYLE_PROPS,
         );
 
-        for (const selector of [
-            '[data-sot-control="dashboard-player-play"][data-slot="button"]',
-            '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
-            '[data-sot-control="dashboard-player-speed"]',
-            ".lt-ind",
-        ]) {
-            await expectSotStyleMatch(sotPage, page, selector);
+        for (const [sotSelector, productSelector] of [
+            [
+                ".player-controls .play",
+                '[data-sot-control="dashboard-player-play"][data-slot="button"]',
+            ],
+            [
+                ".player-controls .track",
+                '[data-sot-control="dashboard-player-seek"] [data-slot="slider-track"]',
+            ],
+            [
+                ".player-controls .speed",
+                '[data-sot-control="dashboard-player-speed"]',
+            ],
+            [
+                ".transcript-head .lt-ind",
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .lt-ind',
+            ],
+        ] satisfies ReadonlyArray<readonly [string, string]>) {
+            await expectSotStylePairMatch(
+                sotPage,
+                page,
+                sotSelector,
+                productSelector,
+            );
         }
         await expectSotStylePairMatch(
             sotPage,
@@ -3307,7 +3334,11 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
         );
 
         const sotTabs = sotPage.locator(".transcript-head .liquid-tabs").first();
-        const productTabs = page.locator(".transcript-head .liquid-tabs").first();
+        const productTabs = page
+            .locator(
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .liquid-tabs',
+            )
+            .first();
         await expectRetxResponsivePixelsMatch(
             page,
             testInfo,
@@ -3320,7 +3351,7 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
 
         await Promise.all([
             sotPage.locator('.lt-tab[data-tab-key="speakers"]').click(),
-            page.locator('.lt-tab[data-tab-key="speakers"]').click(),
+            productTabs.locator('.lt-tab[data-tab-key="speakers"]').click(),
         ]);
         await expect(productTabs).toHaveAttribute("data-active", "1");
         await expectRetxResponsivePixelsMatch(
@@ -3335,7 +3366,9 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
 
         await Promise.all([
             sotPage.locator('.lt-tab[data-tab-key="source-report"]').click(),
-            page.locator('.lt-tab[data-tab-key="source-report"]').click(),
+            productTabs
+                .locator('.lt-tab[data-tab-key="source-report"]')
+                .click(),
         ]);
         await expect(productTabs).toHaveAttribute("data-active", "2");
         await expectRetxResponsivePixelsMatch(

@@ -4419,7 +4419,7 @@ export function Workstation({
                                                     {syncStatusLabel}
                                                 </div>
                                                 <div
-                                                    className="mono"
+                                                    data-sot-format="mono"
                                                     data-sot-part="dashboard-activity-status-sub"
                                                 >
                                                     {syncSummary}
@@ -4681,20 +4681,21 @@ export function Workstation({
                                 </Card>
                             ) : null}
                         </div>
-                        <button
-                            ref={settingsTriggerRef}
-                            className="avatar"
-                            type="button"
-                            aria-label="打开设置"
-                            aria-expanded={settingsOpen}
-                            aria-haspopup="dialog"
-                            data-sot-control="dashboard-settings"
-                            data-sot-part="dashboard-user-avatar"
-                            data-sot-state={settingsOpen ? "open" : "idle"}
-                            onClick={() => openSettings("data-sources")}
-                        >
-                            {Array.from(getUserDisplayName(user))[0]}
-                        </button>
+                        <Button asChild variant="ghost" size="icon-sm">
+                            <button
+                                ref={settingsTriggerRef}
+                                type="button"
+                                aria-label="打开设置"
+                                aria-expanded={settingsOpen}
+                                aria-haspopup="dialog"
+                                data-sot-control="dashboard-settings"
+                                data-sot-part="dashboard-user-avatar"
+                                data-sot-state={settingsOpen ? "open" : "idle"}
+                                onClick={() => openSettings("data-sources")}
+                            >
+                                {Array.from(getUserDisplayName(user))[0]}
+                            </button>
+                        </Button>
                     </div>
                 </header>
 

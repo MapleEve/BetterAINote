@@ -328,6 +328,7 @@ describe("dashboard SOT foundation", () => {
 
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
 
         for (const removed of [
             "ActivityOverlay",
@@ -374,7 +375,23 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(workstation).toMatch(
+            /<div\s+data-sot-format="mono"\s+data-sot-part="dashboard-activity-status-sub"\s*>/,
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-activity-status-sub"]',
+        );
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
+        expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
+        expect(workstation).toMatch(
+            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"\s*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+        );
+        expect(workstation).not.toMatch(
+            /className\s*=\s*(?:["'](?:mono|avatar)["']|\{["'](?:mono|avatar)["']\})/,
+        );
         expect(workstation).toContain(
             'data-empty={selectedRecording ? "false" : "true"}',
         );
