@@ -1106,12 +1106,14 @@ function SotDetailEmptyIcon() {
 
 function DashboardDetailEmptyState() {
     return (
-        <div className="detail-empty" data-detail-empty="">
-            <div className="detail-empty-ico" aria-hidden="true">
+        <div data-detail-empty="" data-sot-panel="dashboard-detail-empty">
+            <div data-sot-part="dashboard-detail-empty-icon" aria-hidden="true">
                 <SotDetailEmptyIcon />
             </div>
-            <div className="detail-empty-title">请选择一条录音</div>
-            <div className="detail-empty-sub">
+            <div data-sot-part="dashboard-detail-empty-title">
+                请选择一条录音
+            </div>
+            <div data-sot-part="dashboard-detail-empty-description">
                 在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
             </div>
         </div>

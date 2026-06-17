@@ -332,6 +332,16 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-actions"',
         );
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-detail-empty"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-detail-empty-title"',
+        );
+        expect(workstation).not.toContain('className="detail-empty"');
+        expect(workstation).not.toContain('className="detail-empty-ico"');
+        expect(workstation).not.toContain('className="detail-empty-title"');
+        expect(workstation).not.toContain('className="detail-empty-sub"');
         expect(workstation).toContain("aria-current={");
         expect(workstation).not.toContain("data-selected=");
         expect(workstation).toContain('listState === "loading"');

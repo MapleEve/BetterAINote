@@ -4443,7 +4443,7 @@ async function readWorkspaceVisualMetrics(
                 detail: read(nextSelectors.detail ?? ".workspace .detail"),
                 emptyDetail: read(
                     nextSelectors.emptyDetail ??
-                        ".workspace .detail-empty, .detail-empty",
+                        ".workspace [data-detail-empty], [data-detail-empty], .workspace .detail-empty, .detail-empty",
                 ),
                 listPanel: read(
                     nextSelectors.listPanel ??
@@ -5194,16 +5194,19 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
             .first();
         await expect(dashboardSeedRow).toBeVisible({ timeout: 15_000 });
         await dashboardSeedRow.click();
-        await expect(dashboardSeedRow).toHaveClass(/active/);
+        await expect(dashboardSeedRow).toHaveAttribute(
+            "data-sot-state",
+            "selected",
+        );
         await expect(page.locator(".workspace .detail").first()).toHaveAttribute(
             "data-empty",
             "false",
         );
         const dashboardSelectedFrames = await collectWorkspaceVisualFrames(page, {
             detail: ".workspace .detail",
-            emptyDetail: ".workspace .detail-empty",
+            emptyDetail: ".workspace [data-detail-empty]",
             listPanel: '[data-sot-surface="dashboard-recording-list"]',
-            selectedRow: `[data-sot-recording-id="${recordingId}"].active`,
+            selectedRow: `[data-sot-recording-id="${recordingId}"][data-sot-state="selected"]`,
             workspace: ".workspace",
         });
         const dashboardSelectedDesktop = dashboardSelectedFrames.find(
@@ -5219,9 +5222,10 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         const dashboardEmptyFrames = emptyProvider
             ? await collectWorkspaceVisualFrames(page, {
                   detail: ".workspace .detail",
-                  emptyDetail: ".workspace .detail-empty",
+                  emptyDetail: ".workspace [data-detail-empty]",
                   listPanel: '[data-sot-surface="dashboard-recording-list"]',
-                  selectedRow: ".workspace .real-list .row.active",
+                  selectedRow:
+                      '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
                   workspace: ".workspace",
               })
             : [];

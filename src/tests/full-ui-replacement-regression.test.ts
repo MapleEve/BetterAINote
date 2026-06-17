@@ -1094,6 +1094,16 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain("rowStatus.className");
         expect(workstation).not.toContain("rowStatus.dotClassName");
         expect(workstation).not.toContain("data-selected=");
+        expect(workstation).toContain(
+            'data-sot-panel="dashboard-detail-empty"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-detail-empty-title"',
+        );
+        expect(workstation).not.toContain('className="detail-empty"');
+        expect(workstation).not.toContain('className="detail-empty-ico"');
+        expect(workstation).not.toContain('className="detail-empty-title"');
+        expect(workstation).not.toContain('className="detail-empty-sub"');
         expect(globals).toContain('[data-sot-list="dashboard-recording-rows"]');
         const recordingRowIndex = workstation.indexOf(
             'data-sot-control="dashboard-recording-row"',
