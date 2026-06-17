@@ -287,7 +287,6 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     data-sot-state={isFinishing ? "saving" : onboardingState}
                 >
                     <div
-                        className="onboarding-progress"
                         data-sot-panel="onboarding-steps"
                         data-sot-progress={visibleStep}
                     >
@@ -305,7 +304,6 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             return (
                                 <button
                                     aria-label={`第 ${index + 1} 步 · ${step.title}`}
-                                    className="onboarding-progress-segment"
                                     data-sot-control="onboarding-step"
                                     data-sot-step={step.id}
                                     data-sot-state={status}
@@ -328,9 +326,9 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     <div className="onboarding-step-body">
                         {finishError ? (
                             <div
-                                className="field-help err"
-                                role="alert"
+                                data-sot-part="onboarding-error"
                                 data-sot-state="error"
+                                role="alert"
                             >
                                 {finishError}
                             </div>
@@ -684,21 +682,22 @@ function TranscriptionStep({
                     );
                 })}
             </div>
-            <div className="onboarding-actions">
+            <div data-sot-part="onboarding-actions">
                 <Button
-                    className="sm"
+                    data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
+                    size="sm"
                     type="button"
                     variant="ghost"
                 >
                     跳过
                 </Button>
                 <Button
-                    className="sm"
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
+                    size="sm"
                     type="button"
                     variant="primary"
                 >
@@ -854,7 +853,7 @@ function FinishStep({
                     }
                 />
             </div>
-            <div className="onboarding-actions">
+            <div data-sot-part="onboarding-actions">
                 <Button
                     type="button"
                     variant="ghost"
@@ -895,13 +894,9 @@ function MatrixRow({
     value: string;
 }) {
     return (
-        <div
-            className="sr-meta-row"
-            data-sot-control="matrix-row"
-            data-sot-state={state}
-        >
-            <span>{label}</span>
-            <strong>{value}</strong>
+        <div data-sot-control="matrix-row" data-sot-state={state}>
+            <span data-sot-part="matrix-label">{label}</span>
+            <strong data-sot-part="matrix-value">{value}</strong>
         </div>
     );
 }
@@ -916,7 +911,7 @@ function WizardActions({
     onNext: () => void;
 }) {
     return (
-        <div className="onboarding-actions">
+        <div data-sot-part="onboarding-actions">
             {onBack ? (
                 <Button
                     type="button"

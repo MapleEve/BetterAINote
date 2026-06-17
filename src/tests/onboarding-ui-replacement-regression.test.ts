@@ -25,6 +25,10 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("data-sot-progress={visibleStep}");
         expect(source).toContain('data-sot-control="onboarding-step"');
         expect(source).toContain("data-sot-step={step.id}");
+        expect(source).toContain("data-sot-state={status}");
+        expect(source).toContain('data-sot-part="onboarding-error"');
+        expect(source).toContain('data-sot-part="onboarding-actions"');
+        expect(source).toContain('data-sot-control="onboarding-skip"');
         expect(source).toContain('"source"');
         expect(source).toContain('"transcription"');
         expect(source).toContain('"speakers"');
@@ -46,6 +50,12 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain("src-item");
         expect(source).not.toContain("sp-ico");
         expect(source).not.toContain("src-meta");
+        expect(source).not.toContain('className="onboarding-progress"');
+        expect(source).not.toContain('className="onboarding-progress-segment"');
+        expect(source).not.toContain('className="field-help err"');
+        expect(source).not.toContain('className="onboarding-actions"');
+        expect(source).not.toContain('className="sr-meta-row"');
+        expect(source).not.toContain('className="sm"');
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
@@ -88,8 +98,11 @@ describe("onboarding UI replacement regression", () => {
 
         expect(readOnlyMatrixRow).toContain("data-sot-state={state}");
         expect(readOnlyMatrixRow).toContain('data-sot-control="matrix-row"');
+        expect(readOnlyMatrixRow).toContain('data-sot-part="matrix-label"');
+        expect(readOnlyMatrixRow).toContain('data-sot-part="matrix-value"');
         expect(readOnlyMatrixRow).toContain("{label}");
         expect(readOnlyMatrixRow).toContain("{value}");
+        expect(readOnlyMatrixRow).not.toContain('className="sr-meta-row"');
         expect(readOnlyMatrixRow).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(readOnlyMatrixRow).not.toMatch(OLD_UI_CONTRACT_RE);
     });

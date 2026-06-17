@@ -907,9 +907,15 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
         expect(onboarding).not.toContain('className="card"');
         expect(onboarding).not.toContain('className="frame"');
-        expect(onboarding).toContain('className="onboarding-progress"');
         expect(onboarding).toContain('data-sot-panel="onboarding-steps"');
+        expect(onboarding).toContain("data-sot-progress={visibleStep}");
         expect(onboarding).toContain('data-sot-panel="onboarding-current"');
+        expect(onboarding).toContain('data-sot-control="onboarding-step"');
+        expect(onboarding).toContain("data-sot-step={step.id}");
+        expect(onboarding).toContain("data-sot-state={status}");
+        expect(onboarding).toContain('data-sot-part="onboarding-error"');
+        expect(onboarding).toContain('data-sot-part="onboarding-actions"');
+        expect(onboarding).toContain('data-sot-control="onboarding-skip"');
         expect(onboarding).toContain('data-sot-control="provider-card"');
         expect(onboarding).toContain(
             'data-sot-control="speaker-profile-draft"',
@@ -929,6 +935,14 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain("src-meta");
         expect(onboarding).not.toContain('className="app"');
         expect(onboarding).not.toContain('className="panel"');
+        expect(onboarding).not.toContain('className="onboarding-progress"');
+        expect(onboarding).not.toContain(
+            'className="onboarding-progress-segment"',
+        );
+        expect(onboarding).not.toContain('className="field-help err"');
+        expect(onboarding).not.toContain('className="onboarding-actions"');
+        expect(onboarding).not.toContain('className="sr-meta-row"');
+        expect(onboarding).not.toContain('className="sm"');
         expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
