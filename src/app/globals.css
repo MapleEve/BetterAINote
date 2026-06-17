@@ -3229,16 +3229,16 @@ button {
 [data-sot-control="onboarding-step"]:disabled {
     cursor: not-allowed;
 }
-.onboarding-step-title {
+[data-sot-part="onboarding-step-title"] {
     font: 600 14px var(--font-display);
     color: var(--fg-primary);
 }
-.onboarding-step-sub {
+[data-sot-part="onboarding-step-description"] {
     font: 12px var(--font-sans);
     color: var(--fg-tertiary);
     margin-bottom: 14px;
 }
-.onboarding-step-body {
+[data-sot-part="onboarding-step-body"] {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -4806,7 +4806,9 @@ body[data-time-style="abs"]
 }
 
 /* ===== Single-pane Data Sources variant — flat list of provider cards ===== */
-.src-list {
+[data-sot-list="provider-cards"],
+[data-sot-list="speaker-profiles"],
+[data-sot-list="finish-summary"] {
     display: flex;
     flex-direction: column;
     gap: 8px;

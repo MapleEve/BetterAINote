@@ -913,10 +913,17 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-control="onboarding-step"');
         expect(onboarding).toContain("data-sot-step={step.id}");
         expect(onboarding).toContain("data-sot-state={status}");
+        expect(onboarding).toContain('data-sot-part="onboarding-step-header"');
+        expect(onboarding).toContain('data-sot-part="onboarding-step-title"');
+        expect(onboarding).toContain(
+            'data-sot-part="onboarding-step-description"',
+        );
+        expect(onboarding).toContain('data-sot-part="onboarding-step-body"');
         expect(onboarding).toContain('data-sot-part="onboarding-error"');
         expect(onboarding).toContain('data-sot-part="onboarding-actions"');
         expect(onboarding).toContain('data-sot-control="onboarding-skip"');
         expect(onboarding).toContain('data-sot-control="provider-card"');
+        expect(onboarding).toContain('data-sot-list="provider-cards"');
         expect(onboarding).toContain(
             'data-sot-panel="onboarding-default-source-step"',
         );
@@ -932,6 +939,8 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'data-sot-control="speaker-profile-draft"',
         );
+        expect(onboarding).toContain('data-sot-list="speaker-profiles"');
+        expect(onboarding).toContain('data-sot-list="finish-summary"');
         expect(onboarding).toContain('data-sot-part="provider-icon"');
         expect(onboarding).toContain('data-sot-part="provider-meta"');
         expect(onboarding).toContain(
@@ -948,6 +957,11 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="app"');
         expect(onboarding).not.toContain('className="panel"');
         expect(onboarding).not.toContain('className="onboarding-progress"');
+        expect(onboarding).not.toContain('className="onboarding-step-head"');
+        expect(onboarding).not.toContain('className="onboarding-step-title"');
+        expect(onboarding).not.toContain('className="onboarding-step-sub"');
+        expect(onboarding).not.toContain('className="onboarding-step-body"');
+        expect(onboarding).not.toContain('className="src-list"');
         expect(onboarding).not.toContain(
             'className="onboarding-progress-segment"',
         );

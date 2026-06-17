@@ -30,6 +30,10 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain('data-sot-part="onboarding-error"');
         expect(source).toContain('data-sot-part="onboarding-actions"');
         expect(source).toContain('data-sot-control="onboarding-skip"');
+        expect(source).toContain('data-sot-part="onboarding-step-header"');
+        expect(source).toContain('data-sot-part="onboarding-step-title"');
+        expect(source).toContain('data-sot-part="onboarding-step-description"');
+        expect(source).toContain('data-sot-part="onboarding-step-body"');
         expect(source).toContain('"source"');
         expect(source).toContain('"transcription"');
         expect(source).toContain('"speakers"');
@@ -45,6 +49,7 @@ describe("onboarding UI replacement regression", () => {
             'import { Card } from "@/components/ui/card";',
         );
         expect(source).toContain('data-sot-control="provider-card"');
+        expect(source).toContain('data-sot-list="provider-cards"');
         expect(source).toContain(
             'data-sot-panel="onboarding-default-source-step"',
         );
@@ -56,8 +61,15 @@ describe("onboarding UI replacement regression", () => {
             'data-sot-part="onboarding-default-source-swatch"',
         );
         expect(source).toContain('data-sot-control="speaker-profile-draft"');
+        expect(source).toContain('data-sot-list="speaker-profiles"');
+        expect(source).toContain('data-sot-list="finish-summary"');
         expect(source).toContain('data-sot-part="provider-icon"');
         expect(source).toContain('data-sot-part="provider-meta"');
+        expect(source).not.toContain('className="onboarding-step-head"');
+        expect(source).not.toContain('className="onboarding-step-title"');
+        expect(source).not.toContain('className="onboarding-step-sub"');
+        expect(source).not.toContain('className="onboarding-step-body"');
+        expect(source).not.toContain('className="src-list"');
         expect(source).not.toMatch(
             /className="onboarding-default-source-(step|list|row|swatch)"/,
         );
@@ -70,9 +82,21 @@ describe("onboarding UI replacement regression", () => {
         expect(globals).toContain(
             '[data-sot-part="onboarding-default-source-swatch"]',
         );
+        expect(globals).toContain('[data-sot-list="provider-cards"]');
+        expect(globals).toContain('[data-sot-list="speaker-profiles"]');
+        expect(globals).toContain('[data-sot-list="finish-summary"]');
+        expect(globals).toContain('[data-sot-part="onboarding-step-title"]');
+        expect(globals).toContain(
+            '[data-sot-part="onboarding-step-description"]',
+        );
+        expect(globals).toContain('[data-sot-part="onboarding-step-body"]');
+        expect(globals).not.toMatch(
+            /\.onboarding-step-(head|title|sub|body)\b/,
+        );
         expect(globals).not.toMatch(
             /\.onboarding-default-source-(list|row|swatch)\b/,
         );
+        expect(globals).not.toMatch(/\.src-list\b/);
         expect(source).not.toContain("src-item");
         expect(source).not.toContain("sp-ico");
         expect(source).not.toContain("src-meta");

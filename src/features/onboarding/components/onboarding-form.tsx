@@ -315,15 +315,15 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             );
                         })}
                     </div>
-                    <div className="onboarding-step-head">
-                        <div className="onboarding-step-title">
+                    <div data-sot-part="onboarding-step-header">
+                        <div data-sot-part="onboarding-step-title">
                             {visibleStepTitle}
                         </div>
-                        <div className="onboarding-step-sub">
+                        <div data-sot-part="onboarding-step-description">
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </div>
                     </div>
-                    <div className="onboarding-step-body">
+                    <div data-sot-part="onboarding-step-body">
                         {finishError ? (
                             <div
                                 data-sot-part="onboarding-error"
@@ -469,7 +469,7 @@ function SourceStep({
                 />
             </OnboardingFieldRow>
 
-            <div className="src-list" data-sot-list="provider-cards">
+            <div data-sot-list="provider-cards">
                 {providerOptions.map((item) => {
                     const isActive = item.provider === provider;
                     const ProviderIcon = PROVIDER_ICONS[item.provider];
@@ -725,7 +725,7 @@ function SpeakersStep({
 }) {
     return (
         <>
-            <div className="src-list" data-sot-list="speaker-profiles">
+            <div data-sot-list="speaker-profiles">
                 <Card
                     hasNoPadding
                     data-sot-control="speaker-profile-draft"
@@ -819,7 +819,7 @@ function FinishStep({
 }) {
     return (
         <>
-            <div className="src-list" data-sot-list="finish-summary">
+            <div data-sot-list="finish-summary">
                 <MatrixRow
                     label="来源"
                     state={connectedSourceLabel ? "connected" : "ready"}
