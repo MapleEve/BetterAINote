@@ -1838,20 +1838,20 @@ function SettingsRow({
     fieldMessage,
     fieldState,
     label,
-    "data-field": dataField,
+    sotField,
 }: {
     children?: React.ReactNode;
     description?: string;
     fieldMessage?: string;
     fieldState?: "invalid";
     label: string;
-    "data-field"?: string;
+    sotField?: string;
 }) {
     return (
         <Field
-            data-field={dataField}
-            data-field-state={fieldState ?? "ready"}
             data-invalid={fieldState === "invalid" ? "true" : undefined}
+            data-sot-field={sotField}
+            data-sot-state={fieldState ?? "ready"}
             orientation="horizontal"
         >
             <FieldContent>
@@ -1860,7 +1860,13 @@ function SettingsRow({
                     <FieldDescription>{description}</FieldDescription>
                 ) : null}
                 {fieldMessage ? (
-                    <FieldError data-field-msg="">{fieldMessage}</FieldError>
+                    <FieldError
+                        data-sot-field={sotField}
+                        data-sot-part="settings-field-message"
+                        data-sot-state="invalid"
+                    >
+                        {fieldMessage}
+                    </FieldError>
                 ) : null}
             </FieldContent>
             {children ? (
@@ -2504,10 +2510,10 @@ function VoScriptSpeakerRows({
     return (
         <>
             <SettingsRow
-                data-field="min-speakers"
                 fieldMessage={minSpeakersMessage}
                 fieldState={minSpeakersInvalid ? "invalid" : undefined}
                 label={isZh ? "最少说话人数" : "Minimum speakers"}
+                sotField="min-speakers"
                 description={isZh ? "0 为自动" : "0 means automatic"}
             >
                 <Input
@@ -2530,10 +2536,10 @@ function VoScriptSpeakerRows({
                 />
             </SettingsRow>
             <SettingsRow
-                data-field="max-speakers"
                 fieldMessage={maxSpeakersMessage}
                 fieldState={maxSpeakersInvalid ? "invalid" : undefined}
                 label={isZh ? "最多说话人数" : "Maximum speakers"}
+                sotField="max-speakers"
                 description={
                     isZh
                         ? "0 为自动 · 必须 ≥ 最少说话人数"
@@ -3021,12 +3027,12 @@ function VoScriptSettingsPanel({
                     />
                 </SettingsRow>
                 <SettingsRow
-                    data-field="no-repeat-ngram"
                     fieldMessage={
                         noRepeatNgramInvalid ? noRepeatNgramMessage : undefined
                     }
                     fieldState={noRepeatNgramInvalid ? "invalid" : undefined}
                     label={isZh ? "重复抑制 n-gram" : "No-repeat n-gram"}
+                    sotField="no-repeat-ngram"
                     description={
                         isZh
                             ? "0 表示关闭；只有 3 及以上的值才会发送给服务"

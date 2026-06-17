@@ -5655,16 +5655,18 @@ body[data-drawer="open"] .drawer-scrim {
     [data-sot-control="source-save"] {
     position: relative;
 }
-[data-sot-panel="settings-scroll-body"] [data-slot="field"] [data-field-msg],
-.settings-main [data-slot="field"] [data-field-msg] {
+[data-sot-panel="settings-scroll-body"]
+    [data-slot="field"]
+    [data-sot-part="settings-field-message"],
+.settings-main [data-slot="field"] [data-sot-part="settings-field-message"] {
     display: block;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-slot="field"]:not([data-field-state="invalid"])
-    [data-field-msg],
+    [data-slot="field"]:not([data-invalid="true"])
+    [data-sot-part="settings-field-message"],
 .settings-main
-    [data-slot="field"]:not([data-field-state="invalid"])
-    [data-field-msg] {
+    [data-slot="field"]:not([data-invalid="true"])
+    [data-sot-part="settings-field-message"] {
     display: none;
 }
 [data-sot-panel="settings-scroll-body"] [data-sot-banner],

@@ -997,8 +997,13 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain(
             "<FieldDescription>{description}</FieldDescription>",
         );
+        expect(content).toContain("sotField?: string");
+        expect(content).toContain("data-sot-field={sotField}");
+        expect(content).toContain('data-sot-state={fieldState ?? "ready"}');
+        expect(content).toContain('data-sot-part="settings-field-message"');
+        expect(content).toContain('data-sot-state="invalid"');
         expect(content).toContain(
-            '<FieldError data-field-msg="">{fieldMessage}</FieldError>',
+            'data-invalid={fieldState === "invalid" ? "true" : undefined}',
         );
         expect(content).not.toContain("sm-section-title");
         expect(content).not.toContain("sm-row-name");
@@ -1028,8 +1033,10 @@ describe("settings SOT interaction regressions", () => {
             expect(content).not.toContain(legacySaveHook);
         }
         expect(content).toContain('data-voscript-unavail=""');
-        expect(content).toContain('data-field="no-repeat-ngram"');
-        expect(content).toContain("data-field-msg");
+        expect(content).toContain('sotField="no-repeat-ngram"');
+        expect(content).not.toContain("data-field=");
+        expect(content).not.toContain("data-field-state");
+        expect(content).not.toContain("data-field-msg");
         expect(content).toContain("isVoScriptNoRepeatNgramInvalid");
         expect(content).toContain("testVoScriptConnection");
         expect(content).toContain("useDisplaySettingsStore");
@@ -1126,7 +1133,7 @@ describe("settings SOT interaction regressions", () => {
             /function SettingsRow[\s\S]*?function SelectControl/,
         )?.[0];
         const noRepeatRow = voscriptPanel?.match(
-            /data-field="no-repeat-ngram"[\s\S]*?<SaveActions/,
+            /<SettingsRow[\s\S]*?sotField="no-repeat-ngram"[\s\S]*?<SaveActions/,
         )?.[0];
 
         expect(voscriptPanel).toContain(
@@ -1141,16 +1148,18 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toContain(
             'const noRepeatNgramMessage = "只支持 0 或 ≥ 3"',
         );
-        expect(noRepeatRow).toContain('data-field="no-repeat-ngram"');
+        expect(noRepeatRow).toContain('sotField="no-repeat-ngram"');
         expect(noRepeatRow).toContain(
             'fieldState={noRepeatNgramInvalid ? "invalid" : undefined}',
         );
         expect(noRepeatRow).toContain("aria-invalid={noRepeatNgramInvalid}");
         expect(noRepeatRow).toContain("fieldMessage={");
         expect(noRepeatRow).toContain("noRepeatNgramMessage");
-        expect(settingsRow).toContain("data-field-msg");
+        expect(settingsRow).toContain("data-sot-field={sotField}");
+        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
+        expect(settingsRow).toContain('data-sot-state="invalid"');
         expect(settingsRow).toContain(
-            '<FieldError data-field-msg="">{fieldMessage}</FieldError>',
+            'data-invalid={fieldState === "invalid" ? "true" : undefined}',
         );
         expect(settingsRow).toContain("{fieldMessage}");
         expect(noRepeatRow).toContain('placeholder={isZh ? "0 或 ≥ 3"');
@@ -1181,10 +1190,10 @@ describe("settings SOT interaction regressions", () => {
             /function SettingsRow[\s\S]*?function SelectControl/,
         )?.[0];
         const minSpeakersRow = speakerRows?.match(
-            /data-field="min-speakers"[\s\S]*?<\/SettingsRow>/,
+            /<SettingsRow[\s\S]*?sotField="min-speakers"[\s\S]*?<\/SettingsRow>/,
         )?.[0];
         const maxSpeakersRow = speakerRows?.match(
-            /data-field="max-speakers"[\s\S]*?<\/SettingsRow>/,
+            /<SettingsRow[\s\S]*?sotField="max-speakers"[\s\S]*?<\/SettingsRow>/,
         )?.[0];
         const speakerBoundsGuard = saveFunction?.match(
             /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;/,
@@ -1219,19 +1228,21 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toMatch(
             /const resolvedSpeakerBoundsMessage\s*=\s*minSpeakersMessage\s*\?\?\s*maxSpeakersMessage/,
         );
-        expect(minSpeakersRow).toContain('data-field="min-speakers"');
+        expect(minSpeakersRow).toContain('sotField="min-speakers"');
         expect(minSpeakersRow).toContain(
             'fieldState={minSpeakersInvalid ? "invalid" : undefined}',
         );
         expect(minSpeakersRow).toContain("fieldMessage={minSpeakersMessage}");
         expect(minSpeakersRow).toContain("aria-invalid={minSpeakersInvalid}");
-        expect(maxSpeakersRow).toContain('data-field="max-speakers"');
+        expect(maxSpeakersRow).toContain('sotField="max-speakers"');
         expect(maxSpeakersRow).toContain(
             'fieldState={maxSpeakersInvalid ? "invalid" : undefined}',
         );
         expect(maxSpeakersRow).toContain("fieldMessage={maxSpeakersMessage}");
         expect(maxSpeakersRow).toContain("aria-invalid={maxSpeakersInvalid}");
-        expect(settingsRow).toContain("data-field-msg");
+        expect(settingsRow).toContain("data-sot-field={sotField}");
+        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
+        expect(settingsRow).toContain('data-sot-state="invalid"');
         expect(speakerBoundsGuard).toContain(
             'paramsSave.setSaveState("error")',
         );
@@ -1241,6 +1252,16 @@ describe("settings SOT interaction regressions", () => {
         expect(saveFunction).toMatch(
             /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate[\s\S]*?await updateVoScriptSettings\(updates\)/,
         );
+    });
+
+    it("removes legacy SettingsRow field hooks from settings content", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+
+        expect(content).not.toContain("data-field=");
+        expect(content).not.toContain("data-field-state");
+        expect(content).not.toContain("data-field-msg");
     });
 
     it("keeps appearance segmented controls on SOT-facing aliases without changing saved values", () => {

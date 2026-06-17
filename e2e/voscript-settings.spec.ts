@@ -260,7 +260,9 @@ test("VoScript settings blocks invalid no-repeat n-gram inline before saving", a
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const ngramField = section.locator('[data-field="no-repeat-ngram"]');
+    const ngramField = section.locator(
+        '[data-slot="field"][data-sot-field="no-repeat-ngram"]',
+    );
     const ngramInput = section.locator("#voscript-no-repeat-ngram");
     const paramsSave = section.locator(
         '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
@@ -269,17 +271,20 @@ test("VoScript settings blocks invalid no-repeat n-gram inline before saving", a
 
     await ngramInput.fill("1");
 
-    await expect(ngramField).toHaveAttribute("data-field-state", "invalid");
+    await expect(ngramField).toHaveAttribute("data-sot-state", "invalid");
+    await expect(ngramField).toHaveAttribute("data-invalid", "true");
     await expect(ngramInput).toHaveAttribute("aria-invalid", "true");
-    await expect(ngramField.locator("[data-field-msg]")).toHaveText(
-        "只支持 0 或 ≥ 3",
-    );
+    await expect(
+        ngramField.locator('[data-sot-part="settings-field-message"]'),
+    ).toHaveText("只支持 0 或 ≥ 3");
 
     await saveButton.click();
 
     await expect(ngramInput).toHaveValue("1");
     await expect(saveButton).toHaveAttribute("data-sot-state", "error");
-    await expect(ngramField.locator("[data-field-msg]")).toBeVisible();
+    await expect(
+        ngramField.locator('[data-sot-part="settings-field-message"]'),
+    ).toBeVisible();
     await expect(paramsSave).toContainText("只支持 0 或 ≥ 3");
     await expect.poll(() => settingsPutCount).toBe(0);
 
@@ -325,8 +330,12 @@ test("VoScript settings blocks negative speaker bounds inline before saving", as
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const minSpeakerField = section.locator('[data-field="min-speakers"]');
-    const maxSpeakerField = section.locator('[data-field="max-speakers"]');
+    const minSpeakerField = section.locator(
+        '[data-slot="field"][data-sot-field="min-speakers"]',
+    );
+    const maxSpeakerField = section.locator(
+        '[data-slot="field"][data-sot-field="max-speakers"]',
+    );
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
     const paramsSave = section.locator(
@@ -335,14 +344,12 @@ test("VoScript settings blocks negative speaker bounds inline before saving", as
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await minSpeakerInput.fill("-1");
-    await expect(minSpeakerField).toHaveAttribute(
-        "data-field-state",
-        "invalid",
-    );
+    await expect(minSpeakerField).toHaveAttribute("data-sot-state", "invalid");
+    await expect(minSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(minSpeakerInput).toHaveAttribute("aria-invalid", "true");
-    await expect(minSpeakerField.locator("[data-field-msg]")).toHaveText(
-        "不能为负数",
-    );
+    await expect(
+        minSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+    ).toHaveText("不能为负数");
 
     await saveButton.click();
 
@@ -353,14 +360,12 @@ test("VoScript settings blocks negative speaker bounds inline before saving", as
 
     await minSpeakerInput.fill("1");
     await maxSpeakerInput.fill("-2");
-    await expect(maxSpeakerField).toHaveAttribute(
-        "data-field-state",
-        "invalid",
-    );
+    await expect(maxSpeakerField).toHaveAttribute("data-sot-state", "invalid");
+    await expect(maxSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
-    await expect(maxSpeakerField.locator("[data-field-msg]")).toHaveText(
-        "不能为负数",
-    );
+    await expect(
+        maxSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+    ).toHaveText("不能为负数");
 
     await saveButton.click();
 
@@ -405,7 +410,9 @@ test("VoScript settings blocks max speaker bounds below min before saving", asyn
 
     await expectSectionReady(page, "voscript");
     const section = settingsSection(page, "voscript");
-    const maxSpeakerField = section.locator('[data-field="max-speakers"]');
+    const maxSpeakerField = section.locator(
+        '[data-slot="field"][data-sot-field="max-speakers"]',
+    );
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
     const paramsSave = section.locator(
@@ -416,14 +423,12 @@ test("VoScript settings blocks max speaker bounds below min before saving", asyn
     await minSpeakerInput.fill("5");
     await maxSpeakerInput.fill("3");
 
-    await expect(maxSpeakerField).toHaveAttribute(
-        "data-field-state",
-        "invalid",
-    );
+    await expect(maxSpeakerField).toHaveAttribute("data-sot-state", "invalid");
+    await expect(maxSpeakerField).toHaveAttribute("data-invalid", "true");
     await expect(maxSpeakerInput).toHaveAttribute("aria-invalid", "true");
-    await expect(maxSpeakerField.locator("[data-field-msg]")).toHaveText(
-        "最多说话人数必须 ≥ 最少说话人数",
-    );
+    await expect(
+        maxSpeakerField.locator('[data-sot-part="settings-field-message"]'),
+    ).toHaveText("最多说话人数必须 ≥ 最少说话人数");
 
     await saveButton.click();
 
