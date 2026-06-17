@@ -131,6 +131,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const globals = readSource("app/globals.css");
         const sourceReportButtonControls = [
             'data-sot-control="copy-source-transcript"',
             'data-sot-control="copy-source-report"',
@@ -192,6 +193,23 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
+        expect(sourceReport).toContain(
+            'data-sot-part="source-report-copy-label"',
+        );
+        expect(sourceReport).toContain(
+            'data-sot-part="source-report-status-dot"',
+        );
+        expect(sourceReport).toContain("data-sot-source-report-segment-time");
+        expect(sourceReport).toContain('data-sot-format="mono"');
+        expect(sourceReport).toContain("data-sot-source-report-meta-value");
+        expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
+        expect(globals).toContain('[data-sot-part="source-report-status-dot"]');
+        expect(globals).toContain(
+            '[data-sot-source-report-segment-time][data-sot-format="mono"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-source-report-meta-value][data-sot-format="mono"]',
+        );
         expect(sourceReport).toContain("data-sot-source-report-state");
         expect(sourceReport).toContain("data-sot-source-report-empty");
         expect(sourceReport).toContain("data-sot-source-report-section");
@@ -202,6 +220,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain('className="sr-section"');
         expect(sourceReport).not.toContain('className="sr-seg"');
         expect(sourceReport).not.toContain('className="sr-meta"');
+        expect(sourceReport).not.toContain('className="copy-label"');
+        expect(sourceReport).not.toContain('className="dot"');
+        expect(sourceReport).not.toContain('className="mono"');
+        expect(sourceReport).not.toContain('data-sot-panel="source-actions"');
         for (const control of sourceReportButtonControls) {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);

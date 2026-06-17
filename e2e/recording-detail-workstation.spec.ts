@@ -6681,7 +6681,7 @@ test("recording detail source copy strip mirrors partial artifact availability",
         await expect(sourceReportInnerState(page, "loaded")).toBeVisible();
         await expect(
             sourceReportInnerState(page, "loaded").locator(
-                '[data-sot-panel="source-actions"]',
+                "[data-sot-source-report-actions]",
             ),
         ).toBeVisible();
         await expect(

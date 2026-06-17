@@ -8584,7 +8584,9 @@ body[data-ds-todo="show"] .design-todo {
 .sr-pill .dot,
 [data-sot-badge="source-report-status"][data-sot-tone] .dot,
 [data-sot-badge="source-report-status"][data-sot-tone]
-    [data-sot-part="dashboard-source-report-status-dot"] {
+    [data-sot-part="dashboard-source-report-status-dot"],
+[data-sot-badge="source-report-status"][data-sot-tone]
+    [data-sot-part="source-report-status-dot"] {
     display: inline-block;
     width: 5px;
     height: 5px;
@@ -15514,6 +15516,12 @@ select::-ms-expand {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+[data-slot="button"][data-copy] [data-sot-part="source-report-copy-label"],
+[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-label"] {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
 }
 [data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"],
 [data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"] {

@@ -430,6 +430,10 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
     );
 }
 
+function SourceReportStatusDot() {
+    return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
+}
+
 function SourceReportAlertGlyph() {
     return (
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1002,7 +1006,7 @@ export function SourceReportPanel({
     }, [loadReport, repullAvailable, repullDisabled, t]);
 
     const sourceActionControls = data ? (
-        <div data-sot-source-report-actions data-sot-panel="source-actions">
+        <div data-sot-source-report-actions>
             <Button
                 variant="ghost"
                 size="sm"
@@ -1091,7 +1095,7 @@ export function SourceReportPanel({
                                         : undefined
                                 }
                             />
-                            <span className="copy-label">
+                            <span data-sot-part="source-report-copy-label">
                                 {copyFeedback?.action === "source-transcript"
                                     ? copyFeedback.state === "ok"
                                         ? t("common.copied")
@@ -1132,7 +1136,7 @@ export function SourceReportPanel({
                                         : undefined
                                 }
                             />
-                            <span className="copy-label">
+                            <span data-sot-part="source-report-copy-label">
                                 {copyFeedback?.action === "source-report"
                                     ? copyFeedback.state === "ok"
                                         ? t("common.copied")
@@ -1300,7 +1304,7 @@ export function SourceReportPanel({
                             data-sot-badge="source-report-status"
                             data-sot-tone="warn"
                         >
-                            <span className="dot" />
+                            <SourceReportStatusDot />
                             <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
                         </Badge>
                     ) : null}
@@ -1330,7 +1334,7 @@ export function SourceReportPanel({
                                     sourceTranscriptStatusLabel,
                                 )}
                             >
-                                <span className="dot" />
+                                <SourceReportStatusDot />
                                 {sourceTranscriptStatusLabel}
                             </SourceReportStatusBadge>
                         </SourceReportMetricCard>
@@ -1343,7 +1347,7 @@ export function SourceReportPanel({
                                     sourceSummaryStatusLabel,
                                 )}
                             >
-                                <span className="dot" />
+                                <SourceReportStatusDot />
                                 {sourceSummaryStatusLabel}
                             </SourceReportStatusBadge>
                         </SourceReportMetricCard>
@@ -1381,8 +1385,8 @@ export function SourceReportPanel({
                                             data-sot-source-report-segment
                                         >
                                             <span
-                                                className="mono"
                                                 data-sot-source-report-segment-time
+                                                data-sot-format="mono"
                                             >
                                                 {timeRange || "--"}
                                             </span>
@@ -1446,19 +1450,25 @@ export function SourceReportPanel({
                                         sourceReportStatusLabel,
                                     )}
                                 >
-                                    <span className="dot" />
+                                    <SourceReportStatusDot />
                                     {sourceReportStatusLabel}
                                 </SourceReportStatusBadge>
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="录制于">
-                                <span className="mono">
+                                <span
+                                    data-sot-source-report-meta-value
+                                    data-sot-format="mono"
+                                >
                                     {formatSotSourceReportDate(
                                         sourceReportRecordedAt,
                                     )}
                                 </span>
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="最近更新">
-                                <span className="mono">
+                                <span
+                                    data-sot-source-report-meta-value
+                                    data-sot-format="mono"
+                                >
                                     {formatSotSourceReportDate(
                                         sourceReportUpdatedAt,
                                     )}
@@ -1474,7 +1484,10 @@ export function SourceReportPanel({
                                 {sourceReportLanguage}
                             </SourceReportMetaRow>
                             <SourceReportMetaRow label="时长">
-                                <span className="mono">
+                                <span
+                                    data-sot-source-report-meta-value
+                                    data-sot-format="mono"
+                                >
                                     {sourceReportDurationLabel}
                                 </span>
                             </SourceReportMetaRow>

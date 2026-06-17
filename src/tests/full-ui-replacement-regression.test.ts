@@ -2347,6 +2347,23 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
+        expect(sourceReport).toContain(
+            'data-sot-part="source-report-copy-label"',
+        );
+        expect(sourceReport).toContain(
+            'data-sot-part="source-report-status-dot"',
+        );
+        expect(sourceReport).toContain("data-sot-source-report-segment-time");
+        expect(sourceReport).toContain('data-sot-format="mono"');
+        expect(sourceReport).toContain("data-sot-source-report-meta-value");
+        expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
+        expect(globals).toContain('[data-sot-part="source-report-status-dot"]');
+        expect(globals).toContain(
+            '[data-sot-source-report-segment-time][data-sot-format="mono"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-source-report-meta-value][data-sot-format="mono"]',
+        );
         expect(sourceReport).toContain("data-sot-source-report-state");
         expect(sourceReport).toContain("data-sot-source-report-empty");
         expect(sourceReport).toContain("data-sot-source-report-section");
@@ -2363,6 +2380,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain('className="sr-pill warn"');
         expect(sourceReport).not.toContain('className="rec-h2"');
         expect(sourceReport).not.toContain('className="t-actions"');
+        expect(sourceReport).not.toContain('className="copy-label"');
+        expect(sourceReport).not.toContain('className="dot"');
+        expect(sourceReport).not.toContain('className="mono"');
+        expect(sourceReport).not.toContain('data-sot-panel="source-actions"');
         expect(sourceReport).not.toContain('className="copy-ico"');
         expect(sourceReport).not.toContain("copy-ico-default");
         expect(sourceReport).not.toContain("copy-ico-ok");

@@ -194,7 +194,7 @@ describe("React surface SSR coverage", () => {
             ),
         );
 
-        expect(html).toContain("settings-main");
+        expect(html).toContain('data-sot-panel="settings-scroll-body"');
         expect(html).toContain("数据源");
         expect(html).toContain('data-sot-surface="settings-data-sources"');
         expect(html).toContain('data-sot-panel="source-provider-detail"');
