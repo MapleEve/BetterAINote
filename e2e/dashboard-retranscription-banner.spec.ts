@@ -3290,10 +3290,15 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
             '[data-sot-control="dashboard-player-speed"]',
             ".lt-ind",
-            ".turn p",
         ]) {
             await expectSotStyleMatch(sotPage, page, selector);
         }
+        await expectSotStylePairMatch(
+            sotPage,
+            page,
+            ".turn p",
+            '[data-sot-item="dashboard-transcript-turn"] p',
+        );
         await expectSotStylePairMatch(
             sotPage,
             page,
@@ -3510,13 +3515,16 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         });
 
         const transcriptPane = dashboardTranscriptPane(page);
-        await expect(transcriptPane.locator(".turn.skel-turn")).toHaveCount(3);
+        const loadingTurns = transcriptPane.locator(
+            '[data-sot-item="dashboard-transcript-turn"][data-sot-state="loading"]',
+        );
+        await expect(loadingTurns).toHaveCount(3);
         const [sotSkeletonHtml, productSkeletonTurnsHtml] = await Promise.all([
             sotPage
                 .locator(".skel-detail .transcript-body")
                 .first()
                 .evaluate((element) => element.outerHTML),
-            transcriptPane.locator(".turn.skel-turn").evaluateAll((elements) =>
+            loadingTurns.evaluateAll((elements) =>
                 elements.map((element) => element.outerHTML).join(""),
             ),
         ]);
@@ -3533,7 +3541,9 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         );
 
         releaseDetail?.();
-        const turns = transcriptPane.locator(".turn");
+        const turns = transcriptPane.locator(
+            '[data-sot-item="dashboard-transcript-turn"][data-sot-state="ready"]',
+        );
         await expect(turns).toHaveCount(4);
         await expect(
             turns
@@ -3604,7 +3614,9 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             .getByRole("button", { name: /E2E transcript empty state/ })
             .click();
         const emptyState = page
-            .locator('[data-tab-pane="transcript"] .empty-state')
+            .locator(
+                '[data-tab-pane="transcript"] [data-sot-panel="dashboard-transcript-empty"]',
+            )
             .first();
         await expect(emptyState).toBeVisible();
         await expectRetxResponsivePixelsMatch(

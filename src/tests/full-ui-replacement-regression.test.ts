@@ -415,6 +415,18 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-part="dashboard-speaker-bar-fill"',
 ];
 
+const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
+    'data-sot-item="dashboard-transcript-turn"',
+    'data-sot-state="loading"',
+    'data-sot-state="ready"',
+    'data-sot-part="dashboard-transcript-speaker-time"',
+    'data-sot-format="mono"',
+    'data-sot-panel="dashboard-transcript-empty"',
+    'data-sot-part="dashboard-transcript-empty-icon"',
+    'data-sot-part="dashboard-transcript-empty-message"',
+    'data-sot-part="dashboard-transcript-empty-sub"',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -426,6 +438,16 @@ const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="sp-row-name"',
     'className="sp-row-sub"',
     'className="sp-bar"',
+];
+
+const DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES = [
+    'className="turn skel-turn"',
+    'className="turn"',
+    'className="ts mono"',
+    'className="empty-state"',
+    'className="empty-ico"',
+    'className="empty-msg"',
+    'className="empty-sub"',
 ];
 
 const DASHBOARD_RETRANSCRIPTION_SOT_HOOKS = [
@@ -1567,7 +1589,13 @@ describe("full UI replacement regression coverage", () => {
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
+        for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
         for (const legacyClassName of DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES) {
+            expect(workstation).not.toContain(legacyClassName);
+        }
+        for (const legacyClassName of DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES) {
             expect(workstation).not.toContain(legacyClassName);
         }
         for (const legacyClass of [

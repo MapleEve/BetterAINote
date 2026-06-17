@@ -638,7 +638,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const dashboardTranscriptLoadingTurn = extractBoundedSlice(
             dashboardTranscript,
-            "key={`transcript-skeleton:",
+            "TRANSCRIPT_LOADING_SKELETON_ROWS.map",
             ") : turns.length ? (",
         );
         const dashboardTranscriptReadyTurn = extractBoundedSlice(
@@ -758,12 +758,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain('data-tab-pane="transcript"');
         expect(dashboardTranscript).toContain('data-tab-pane="speakers"');
         expect(dashboardTranscript).toContain('data-tab-pane="source-report"');
-        expect(dashboardTranscript).toContain('className="turn skel-turn"');
+        expect(dashboardTranscriptLoadingTurn).toContain(
+            'data-sot-item="dashboard-transcript-turn"',
+        );
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-part="dashboard-transcript-speaker-row"',
         );
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-state="loading"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-item="dashboard-transcript-turn"',
         );
         expect(dashboardTranscriptReadyTurn).toContain(
             'data-sot-part="dashboard-transcript-speaker-row"',
@@ -777,6 +782,9 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscriptReadyTurn).toContain(
             'data-sot-part="dashboard-transcript-speaker-time"',
         );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-format="mono"',
+        );
         for (const localTurnSlice of [
             dashboardTranscriptLoadingTurn,
             dashboardTranscriptReadyTurn,
@@ -784,11 +792,29 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(localTurnSlice).not.toContain('className="speaker"');
             expect(localTurnSlice).not.toContain('className="speaker-name"');
         }
-        expect(dashboardTranscript).toContain('className="empty-state"');
-        expect(dashboardTranscript).toContain('className="empty-ico"');
-        expect(dashboardTranscript).toContain('className="empty-msg"');
-        expect(dashboardTranscript).toContain('className="empty-sub"');
-        expect(dashboardTranscript).toContain('className="ts mono"');
+        expect(dashboardTranscript).toContain(
+            'data-sot-panel="dashboard-transcript-empty"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-part="dashboard-transcript-empty-icon"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-part="dashboard-transcript-empty-message"',
+        );
+        expect(dashboardTranscript).toContain(
+            'data-sot-part="dashboard-transcript-empty-sub"',
+        );
+        for (const legacyClass of [
+            'className="turn skel-turn"',
+            'className="turn"',
+            'className="ts mono"',
+            'className="empty-state"',
+            'className="empty-ico"',
+            'className="empty-msg"',
+            'className="empty-sub"',
+        ]) {
+            expect(dashboardTranscript).not.toContain(legacyClass);
+        }
         expect(dashboardTranscript).not.toContain('className="empty-hint"');
         expect(dashboardTranscript).not.toContain('className="eh-t"');
         expect(dashboardTranscript).not.toContain('className="eh-h"');

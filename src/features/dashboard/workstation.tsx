@@ -6506,7 +6506,8 @@ export function Workstation({
                                         TRANSCRIPT_LOADING_SKELETON_ROWS.map(
                                             (item) => (
                                                 <div
-                                                    className="turn skel-turn"
+                                                    data-sot-item="dashboard-transcript-turn"
+                                                    data-sot-state="loading"
                                                     key={`transcript-skeleton:${item.key}`}
                                                 >
                                                     <div
@@ -6575,7 +6576,8 @@ export function Workstation({
 
                                             return (
                                                 <div
-                                                    className="turn"
+                                                    data-sot-item="dashboard-transcript-turn"
+                                                    data-sot-state="ready"
                                                     key={`${selectedRecording?.id}:${index}`}
                                                 >
                                                     <div
@@ -6597,7 +6599,7 @@ export function Workstation({
                                                             {speakerName}
                                                         </span>
                                                         <span
-                                                            className="ts mono"
+                                                            data-sot-format="mono"
                                                             data-sot-part="dashboard-transcript-speaker-time"
                                                         >
                                                             {timeLabel ?? "--"}
@@ -6608,17 +6610,17 @@ export function Workstation({
                                             );
                                         })
                                     ) : (
-                                        <div className="empty-state">
+                                        <div data-sot-panel="dashboard-transcript-empty">
                                             <div
-                                                className="empty-ico"
                                                 aria-hidden="true"
+                                                data-sot-part="dashboard-transcript-empty-icon"
                                             >
                                                 <SotTranscriptEmptyIcon />
                                             </div>
-                                            <p className="empty-msg">
+                                            <p data-sot-part="dashboard-transcript-empty-message">
                                                 还没有逐字稿
                                             </p>
-                                            <p className="empty-sub">
+                                            <p data-sot-part="dashboard-transcript-empty-sub">
                                                 来源已就绪，转写任务还在排队中。
                                             </p>
                                         </div>
