@@ -1965,6 +1965,83 @@ button {
     overflow-y: auto;
     padding: 16px 20px 22px;
 }
+[data-sot-part="recording-source-record-shell"] {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+}
+[data-sot-panel="recording-detail-metadata"][data-slot="card"],
+[data-sot-panel="recording-source-record"][data-slot="card"] {
+    min-height: 0;
+    gap: 0;
+    border-radius: 16px;
+    background: var(--bg-elevated);
+    border-color: color-mix(in srgb, var(--graphite-300) 70%, transparent);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: none;
+}
+[data-theme="dark"]
+    [data-sot-panel="recording-detail-metadata"][data-slot="card"],
+[data-theme="dark"]
+    [data-sot-panel="recording-source-record"][data-slot="card"] {
+    background: color-mix(in srgb, var(--fg-primary) 2.5%, transparent);
+    border-color: var(--glass-border-soft);
+    box-shadow: none;
+}
+[data-sot-part="recording-detail-metadata-header"],
+[data-sot-part="recording-source-record-header"] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line-hairline);
+}
+[data-theme="dark"] [data-sot-part="recording-detail-metadata-header"],
+[data-theme="dark"] [data-sot-part="recording-source-record-header"] {
+    border-bottom-color: var(--glass-border-soft);
+}
+[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"],
+[data-sot-part="recording-source-record-title"][data-slot="card-title"] {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--fg-primary);
+    font: 600 22px var(--font-display);
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+[data-sot-part="recording-detail-metadata-body"],
+[data-sot-part="recording-source-record-body"] {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    padding: 16px 20px 22px;
+}
+[data-sot-part="recording-source-record-actions"] {
+    margin-left: auto;
+    display: flex;
+    flex: 0 1 auto;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+[data-sot-part="recording-source-record-tabs"] {
+    display: flex;
+    min-width: 0;
+}
+[data-sot-part="recording-source-record-hint"] {
+    margin: 0;
+}
+[data-sot-part="recording-source-record-pane"] {
+    min-height: 0;
+}
 [data-sot-panel="recording-transcription"][data-slot="card"] {
     flex: 1;
     min-height: 0;

@@ -1134,6 +1134,7 @@ describe("full UI replacement regression coverage", () => {
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
+        const globals = readSource("app/globals.css");
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
@@ -1301,6 +1302,95 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain("data-rh-edit-save");
         expect(detailHeader).toContain("data-rh-edit-cancel");
         expect(detailHeader).not.toMatch(legacyDetailHeaderClassNamePattern);
+        const metadataPanelIndex = detail.indexOf(
+            'data-sot-panel="recording-detail-metadata"',
+        );
+        const metadataStart = detail.lastIndexOf("<Card", metadataPanelIndex);
+        const metadataEnd = detail.indexOf("</Card>", metadataStart);
+        const metadataPanel = detail.slice(
+            metadataStart,
+            metadataEnd + "</Card>".length,
+        );
+        const sourceRecordPanelIndex = detail.indexOf(
+            'data-sot-panel="recording-source-record"',
+        );
+        const sourceRecordStart = detail.lastIndexOf(
+            "<Card",
+            sourceRecordPanelIndex,
+        );
+        const sourceRecordEnd = detail.indexOf("</Card>", sourceRecordStart);
+        const sourceRecordPanel = detail.slice(
+            sourceRecordStart,
+            sourceRecordEnd + "</Card>".length,
+        );
+
+        expect(detail).toContain(
+            'import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";',
+        );
+        expect(metadataPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(metadataStart).toBeGreaterThanOrEqual(0);
+        expect(metadataEnd).toBeGreaterThan(metadataStart);
+        expect(metadataPanel).toContain("<Card");
+        expect(metadataPanel).toContain("<CardHeader");
+        expect(metadataPanel).toContain("<CardTitle");
+        expect(metadataPanel).toContain("<CardContent");
+        expect(metadataPanel).toContain(
+            'data-sot-panel="recording-detail-metadata"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-header"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-title"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-body"',
+        );
+        expect(sourceRecordPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(sourceRecordStart).toBeGreaterThanOrEqual(0);
+        expect(sourceRecordEnd).toBeGreaterThan(sourceRecordStart);
+        expect(sourceRecordPanel).toContain("<Card");
+        expect(sourceRecordPanel).toContain("<CardHeader");
+        expect(sourceRecordPanel).toContain("<CardTitle");
+        expect(sourceRecordPanel).toContain("<CardContent");
+        expect(sourceRecordPanel).toContain(
+            'data-sot-panel="recording-source-record"',
+        );
+        for (const part of [
+            "recording-source-record-header",
+            "recording-source-record-title",
+            "recording-source-record-actions",
+            "recording-source-record-body",
+            "recording-source-record-tabs",
+            "recording-source-record-hint",
+        ]) {
+            expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
+        }
+        for (const legacyClass of [
+            'className="panel"',
+            'className="transcript"',
+            'className="transcript-head"',
+            'className="rec-h2"',
+            'className="transcript-body"',
+        ]) {
+            expect(metadataPanel).not.toContain(legacyClass);
+            expect(sourceRecordPanel).not.toContain(legacyClass);
+        }
+        for (const selector of [
+            '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
+            '[data-sot-panel="recording-source-record"][data-slot="card"]',
+            '[data-sot-part="recording-detail-metadata-header"]',
+            '[data-sot-part="recording-source-record-header"]',
+            '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
+            '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
+            '[data-sot-part="recording-detail-metadata-body"]',
+            '[data-sot-part="recording-source-record-body"]',
+            '[data-sot-part="recording-source-record-actions"]',
+            '[data-sot-part="recording-source-record-tabs"]',
+            '[data-sot-part="recording-source-record-hint"]',
+        ]) {
+            expect(globals).toContain(selector);
+        }
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain('localDeleteAvailable ? "true" : "false"');
         expect(detail).toContain("data-more-anchor");

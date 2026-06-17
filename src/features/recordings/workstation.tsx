@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
@@ -1163,13 +1163,20 @@ export function RecordingWorkstation({
                                     }
                                 />
 
-                                <div className="panel">
-                                    <div className="transcript-head">
-                                        <h2 className="rec-h2">
+                                <Card
+                                    hasNoPadding
+                                    data-sot-panel="recording-detail-metadata"
+                                >
+                                    <CardHeader data-sot-part="recording-detail-metadata-header">
+                                        <CardTitle
+                                            data-sot-part="recording-detail-metadata-title"
+                                            role="heading"
+                                            aria-level={2}
+                                        >
                                             {t("recording.details")}
-                                        </h2>
-                                    </div>
-                                    <div className="transcript-body">
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent data-sot-part="recording-detail-metadata-body">
                                         <Field>
                                             <FieldContent>
                                                 <FieldTitle>
@@ -1220,96 +1227,107 @@ export function RecordingWorkstation({
                                                 </FieldDescription>
                                             </FieldContent>
                                         </Field>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             </section>
 
-                            <section className="transcript">
-                                <div className="detail">
-                                    <div className="transcript">
-                                        <div className="transcript-head">
-                                            <h2 className="rec-h2">
-                                                {t("recording.sourceRecord")}
-                                            </h2>
-                                            <div className="t-actions">
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    onClick={
-                                                        handleCopyLocalTranscript
-                                                    }
-                                                    disabled={
-                                                        copyingAction ===
-                                                            "local" ||
-                                                        !localTranscriptCopyText.trim()
-                                                    }
-                                                    aria-busy={
-                                                        copyingAction ===
-                                                        "local"
-                                                    }
-                                                >
-                                                    <Copy />
-                                                    {copyingAction === "local"
-                                                        ? t("common.copying")
-                                                        : t(
-                                                              "transcription.copyTranscript",
-                                                          )}
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    onClick={
-                                                        handleCopyRawTranscript
-                                                    }
-                                                    disabled={
-                                                        copyingAction ===
-                                                            "raw-transcript" ||
-                                                        !transcription?.text?.trim()
-                                                    }
-                                                    aria-busy={
-                                                        copyingAction ===
-                                                        "raw-transcript"
-                                                    }
-                                                >
-                                                    <Copy />
-                                                    {copyingAction ===
+                            <section
+                                data-sot-part="recording-source-record-shell"
+                                aria-label={t("recording.sourceRecord")}
+                            >
+                                <Card
+                                    hasNoPadding
+                                    data-sot-panel="recording-source-record"
+                                >
+                                    <CardHeader data-sot-part="recording-source-record-header">
+                                        <CardTitle
+                                            data-sot-part="recording-source-record-title"
+                                            role="heading"
+                                            aria-level={2}
+                                        >
+                                            {t("recording.sourceRecord")}
+                                        </CardTitle>
+                                        <div
+                                            className="t-actions"
+                                            data-sot-part="recording-source-record-actions"
+                                        >
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={
+                                                    handleCopyLocalTranscript
+                                                }
+                                                disabled={
+                                                    copyingAction === "local" ||
+                                                    !localTranscriptCopyText.trim()
+                                                }
+                                                aria-busy={
+                                                    copyingAction === "local"
+                                                }
+                                            >
+                                                <Copy />
+                                                {copyingAction === "local"
+                                                    ? t("common.copying")
+                                                    : t(
+                                                          "transcription.copyTranscript",
+                                                      )}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={
+                                                    handleCopyRawTranscript
+                                                }
+                                                disabled={
+                                                    copyingAction ===
+                                                        "raw-transcript" ||
+                                                    !transcription?.text?.trim()
+                                                }
+                                                aria-busy={
+                                                    copyingAction ===
                                                     "raw-transcript"
-                                                        ? t("common.copying")
-                                                        : t(
-                                                              "speakerReview.copyRawTranscript",
-                                                          )}
-                                                </Button>
-                                            </div>
+                                                }
+                                            >
+                                                <Copy />
+                                                {copyingAction ===
+                                                "raw-transcript"
+                                                    ? t("common.copying")
+                                                    : t(
+                                                          "speakerReview.copyRawTranscript",
+                                                      )}
+                                            </Button>
                                         </div>
-                                        <div className="transcript-body">
-                                            <Field>
-                                                <FieldContent>
-                                                    <FieldTitle>
-                                                        {t(
-                                                            "recording.sourceRecord",
-                                                        )}
-                                                    </FieldTitle>
-                                                    <FieldDescription>
-                                                        {t(
-                                                            "recording.sourceRecordDescription",
-                                                        )}
-                                                    </FieldDescription>
-                                                </FieldContent>
-                                            </Field>
-                                            <Field>
-                                                <FieldContent>
-                                                    <FieldTitle>
-                                                        {t(
-                                                            "recording.localTranscript",
-                                                        )}
-                                                    </FieldTitle>
-                                                    <FieldDescription>
-                                                        {t(
-                                                            "recording.localWorkflowDescription",
-                                                        )}
-                                                    </FieldDescription>
-                                                </FieldContent>
-                                            </Field>
+                                    </CardHeader>
+                                    <CardContent data-sot-part="recording-source-record-body">
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
+                                                    {t(
+                                                        "recording.sourceRecord",
+                                                    )}
+                                                </FieldTitle>
+                                                <FieldDescription>
+                                                    {t(
+                                                        "recording.sourceRecordDescription",
+                                                    )}
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <Field>
+                                            <FieldContent>
+                                                <FieldTitle>
+                                                    {t(
+                                                        "recording.localTranscript",
+                                                    )}
+                                                </FieldTitle>
+                                                <FieldDescription>
+                                                    {t(
+                                                        "recording.localWorkflowDescription",
+                                                    )}
+                                                </FieldDescription>
+                                            </FieldContent>
+                                        </Field>
+                                        <div data-sot-part="recording-source-record-tabs">
                                             <SegmentedTabs
                                                 items={[
                                                     {
@@ -1341,18 +1359,20 @@ export function RecordingWorkstation({
                                                     setActiveTranscriptTab
                                                 }
                                             />
-                                            <FieldDescription>
-                                                {showLocalTranscriptTab
-                                                    ? t(
-                                                          "recording.transcriptTabsHint",
-                                                      )
-                                                    : (transcriptionUnavailableReason ??
-                                                      t(
-                                                          "recording.transcriptTabsHint",
-                                                      ))}
-                                            </FieldDescription>
                                         </div>
-                                    </div>
+                                        <FieldDescription data-sot-part="recording-source-record-hint">
+                                            {showLocalTranscriptTab
+                                                ? t(
+                                                      "recording.transcriptTabsHint",
+                                                  )
+                                                : (transcriptionUnavailableReason ??
+                                                  t(
+                                                      "recording.transcriptTabsHint",
+                                                  ))}
+                                        </FieldDescription>
+                                    </CardContent>
+                                </Card>
+                                <div data-sot-part="recording-source-record-pane">
                                     {activeTranscriptTab === "source" ? (
                                         <SourceReportPanel
                                             hasAudio={recording.hasAudio}
@@ -1394,7 +1414,7 @@ export function RecordingWorkstation({
                                             showSpeakerReview={false}
                                         />
                                     ) : transcription?.text?.trim() ? (
-                                        <div className="transcript t-pane">
+                                        <div data-sot-part="recording-source-record-speakers-pane">
                                             <SpeakerLabelEditor
                                                 recordingId={recording.id}
                                                 speakerMap={liveSpeakerMap}
@@ -1404,7 +1424,10 @@ export function RecordingWorkstation({
                                             />
                                         </div>
                                     ) : (
-                                        <div className="detail-empty">
+                                        <div
+                                            className="detail-empty"
+                                            data-sot-part="recording-source-record-empty"
+                                        >
                                             {t(
                                                 "transcription.noTranscriptAvailable",
                                             )}

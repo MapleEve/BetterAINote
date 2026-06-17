@@ -10,7 +10,7 @@ function readSource(relativePath: string) {
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
@@ -255,7 +255,7 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(detailWorkstation).toContain(
-            'import { CardHeader, CardTitle } from "@/components/ui/card";',
+            'import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";',
         );
         expect(detailWorkstation).toContain(
             'import { Input } from "@/components/ui/input";',
@@ -291,6 +291,83 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain("data-rh-ai-trigger");
         expect(detailHeader).toContain('data-sot-control="ai-rename"');
         expect(detailHeader).not.toMatch(legacyHeaderClassNamePattern);
+        const metadataPanelIndex = detailWorkstation.indexOf(
+            'data-sot-panel="recording-detail-metadata"',
+        );
+        const metadataStart = detailWorkstation.lastIndexOf(
+            "<Card",
+            metadataPanelIndex,
+        );
+        const metadataEnd = detailWorkstation.indexOf("</Card>", metadataStart);
+        const metadataPanel = detailWorkstation.slice(
+            metadataStart,
+            metadataEnd + "</Card>".length,
+        );
+        const sourceRecordPanelIndex = detailWorkstation.indexOf(
+            'data-sot-panel="recording-source-record"',
+        );
+        const sourceRecordStart = detailWorkstation.lastIndexOf(
+            "<Card",
+            sourceRecordPanelIndex,
+        );
+        const sourceRecordEnd = detailWorkstation.indexOf(
+            "</Card>",
+            sourceRecordStart,
+        );
+        const sourceRecordPanel = detailWorkstation.slice(
+            sourceRecordStart,
+            sourceRecordEnd + "</Card>".length,
+        );
+
+        expect(metadataPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(metadataStart).toBeGreaterThanOrEqual(0);
+        expect(metadataEnd).toBeGreaterThan(metadataStart);
+        expect(metadataPanel).toContain("<Card");
+        expect(metadataPanel).toContain("<CardHeader");
+        expect(metadataPanel).toContain("<CardTitle");
+        expect(metadataPanel).toContain("<CardContent");
+        expect(metadataPanel).toContain(
+            'data-sot-panel="recording-detail-metadata"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-header"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-title"',
+        );
+        expect(metadataPanel).toContain(
+            'data-sot-part="recording-detail-metadata-body"',
+        );
+        expect(sourceRecordPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(sourceRecordStart).toBeGreaterThanOrEqual(0);
+        expect(sourceRecordEnd).toBeGreaterThan(sourceRecordStart);
+        expect(sourceRecordPanel).toContain("<Card");
+        expect(sourceRecordPanel).toContain("<CardHeader");
+        expect(sourceRecordPanel).toContain("<CardTitle");
+        expect(sourceRecordPanel).toContain("<CardContent");
+        expect(sourceRecordPanel).toContain(
+            'data-sot-panel="recording-source-record"',
+        );
+        for (const part of [
+            "recording-source-record-header",
+            "recording-source-record-title",
+            "recording-source-record-actions",
+            "recording-source-record-body",
+            "recording-source-record-tabs",
+            "recording-source-record-hint",
+        ]) {
+            expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
+        }
+        for (const legacyClass of [
+            'className="panel"',
+            'className="transcript"',
+            'className="transcript-head"',
+            'className="rec-h2"',
+            'className="transcript-body"',
+        ]) {
+            expect(metadataPanel).not.toContain(legacyClass);
+            expect(sourceRecordPanel).not.toContain(legacyClass);
+        }
         expect(detailWorkstation).toContain("handleCopyLocalTranscript");
         expect(detailWorkstation).toContain("handleCopyRawTranscript");
         expect(detailWorkstation).toContain("/transcript/raw");
