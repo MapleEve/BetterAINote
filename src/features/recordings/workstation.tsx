@@ -1431,10 +1431,7 @@ export function RecordingWorkstation({
                                             />
                                         </div>
                                     ) : (
-                                        <div
-                                            className="detail-empty"
-                                            data-sot-part="recording-source-record-empty"
-                                        >
+                                        <div data-sot-panel="recording-source-record-empty">
                                             {t(
                                                 "transcription.noTranscriptAvailable",
                                             )}

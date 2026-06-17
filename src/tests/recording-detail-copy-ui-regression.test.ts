@@ -457,16 +457,21 @@ describe("recording detail copy and title action UI regressions", () => {
         ]) {
             expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
         }
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="recording-source-record-empty"',
+        );
         for (const legacyClass of [
             'className="panel"',
             'className="transcript"',
             'className="transcript-head"',
             'className="rec-h2"',
             'className="transcript-body"',
+            'className="detail-empty"',
         ]) {
             expect(metadataPanel).not.toContain(legacyClass);
             expect(sourceRecordPanel).not.toContain(legacyClass);
         }
+        expect(detailWorkstation).not.toContain('className="detail-empty"');
         expect(detailWorkstation).toContain("handleCopyLocalTranscript");
         expect(detailWorkstation).toContain("handleCopyRawTranscript");
         expect(detailWorkstation).toContain("/transcript/raw");

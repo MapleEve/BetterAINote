@@ -1882,16 +1882,21 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
         }
+        expect(detail).toContain(
+            'data-sot-panel="recording-source-record-empty"',
+        );
         for (const legacyClass of [
             'className="panel"',
             'className="transcript"',
             'className="transcript-head"',
             'className="rec-h2"',
             'className="transcript-body"',
+            'className="detail-empty"',
         ]) {
             expect(metadataPanel).not.toContain(legacyClass);
             expect(sourceRecordPanel).not.toContain(legacyClass);
         }
+        expect(detail).not.toContain('className="detail-empty"');
         for (const selector of [
             '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
             '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
