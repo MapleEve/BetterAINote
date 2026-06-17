@@ -1,12 +1,10 @@
 "use client";
 
-import type * as React from "react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { RecordingTag } from "@/lib/recording-tags";
-import {
-    RecordingTagIconGlyph,
-    recordingTagColorClassName,
-} from "./recording-tag-visuals";
+import { RecordingTagIconGlyph } from "./recording-tag-visuals";
 
 const SOT_SOURCE_BADGES = {
     "dingtalk-a1": {
@@ -118,54 +116,41 @@ export function SotPlayerTagChip({
     tag: RecordingTag | null;
     trigger?: boolean;
 }) {
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
-        if (!onClick) {
-            return;
-        }
-
-        if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onClick();
-        }
-    };
-
     if (!tag) {
         if (!trigger) {
             return null;
         }
 
         return (
-            <button
-                className="utag-add tag-chip-action"
+            <Button
+                variant="outline"
+                size="xs"
                 aria-expanded={trigger ? state === "open" : undefined}
+                data-recording-tag-add=""
                 data-tagm-trigger="1"
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
+                data-sot-part="recording-tag-add"
                 data-sot-state={trigger ? state : undefined}
                 onClick={onClick}
                 type="button"
             >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M12 5v14" />
-                    <path d="M5 12h14" />
-                </svg>
+                <Plus aria-hidden="true" />
                 <span>标签</span>
-            </button>
+            </Button>
         );
     }
-
-    const className = `${recordingTagColorClassName[tag.color]} ${
-        trigger ? "is-trigger tag-chip-trigger" : "tag-chip-inline"
-    }`;
 
     if (!onClick) {
         return (
             <>
-                <span
-                    className={className}
+                <Badge
+                    variant="outline"
+                    data-recording-tag-chip=""
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
                     data-sot-tag-icon={tag.icon}
                     data-tagm-trigger={trigger ? "1" : undefined}
+                    data-sot-part="recording-tag-chip"
                     data-sot-control={
                         trigger ? "recording-tag-manager" : undefined
                     }
@@ -173,16 +158,16 @@ export function SotPlayerTagChip({
                 >
                     <RecordingTagIconGlyph icon={tag.icon} />
                     {tag.name}
-                </span>
+                </Badge>
                 {count > 1 ? (
-                    <span
-                        className={
-                            trigger ? "utag-plus is-trigger" : "utag-plus"
-                        }
+                    <Badge
+                        variant="outline"
+                        data-recording-tag-overflow=""
                         data-tagm-trigger={trigger ? "1" : undefined}
+                        data-sot-part="recording-tag-overflow"
                     >
                         +{count - 1}
-                    </span>
+                    </Badge>
                 ) : null}
             </>
         );
@@ -190,37 +175,37 @@ export function SotPlayerTagChip({
 
     return (
         <>
-            {/* biome-ignore lint/a11y/useSemanticElements: SOT tag chip is a span; keyboard support is added without changing the element. */}
-            <span
-                className={className}
+            <Button
+                variant="outline"
+                size="xs"
+                type="button"
                 data-tag-id={tag.id}
+                data-recording-tag-chip=""
                 data-sot-tag-color={tag.color}
                 data-sot-tag-icon={tag.icon}
                 data-tagm-trigger={trigger ? "1" : undefined}
+                data-sot-part="recording-tag-chip"
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
                 data-sot-state={trigger ? state : undefined}
                 onClick={onClick}
-                onKeyDown={handleKeyDown}
-                role="button"
                 aria-expanded={trigger ? state === "open" : undefined}
-                tabIndex={0}
             >
                 <RecordingTagIconGlyph icon={tag.icon} />
                 {tag.name}
-            </span>
+            </Button>
             {count > 1 ? (
-                // biome-ignore lint/a11y/useSemanticElements: SOT tag overflow chip is a span; keyboard support is added without changing the element.
-                <span
-                    className={trigger ? "utag-plus is-trigger" : "utag-plus"}
+                <Button
+                    variant="outline"
+                    size="xs"
+                    type="button"
+                    data-recording-tag-overflow=""
                     data-tagm-trigger={trigger ? "1" : undefined}
+                    data-sot-part="recording-tag-overflow"
                     onClick={onClick}
-                    onKeyDown={handleKeyDown}
-                    role="button"
                     aria-expanded={trigger ? state === "open" : undefined}
-                    tabIndex={0}
                 >
                     +{count - 1}
-                </span>
+                </Button>
             ) : null}
         </>
     );

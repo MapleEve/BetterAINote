@@ -58,10 +58,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
-import {
-    RecordingTagIconGlyph,
-    recordingTagColorClassName,
-} from "@/features/recordings/components/recording-tag-visuals";
+import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import {
     formatSotPlayerDate,
     formatSotPlayerTime,
@@ -5289,13 +5286,8 @@ export function Workstation({
                                                         </div>
                                                         {primaryTag ? (
                                                             <div className="right">
-                                                                <span
-                                                                    className={
-                                                                        recordingTagColorClassName[
-                                                                            primaryTag
-                                                                                .color
-                                                                        ]
-                                                                    }
+                                                                <Badge
+                                                                    variant="outline"
                                                                     data-recording-tag-chip=""
                                                                     data-sot-tag-color={
                                                                         primaryTag.color
@@ -5312,7 +5304,7 @@ export function Workstation({
                                                                     {
                                                                         primaryTag.name
                                                                     }
-                                                                </span>
+                                                                </Badge>
                                                             </div>
                                                         ) : null}
                                                     </button>

@@ -2212,6 +2212,10 @@ ${scope} .tagm-delete-confirm{display:flex;align-items:center;gap:8px;padding:10
 ${scope} .tagm-delete-confirm svg{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter}
 ${scope} .tagm-delete-msg{display:block;flex:1;color:var(--fg-primary);font:inherit}
 ${scope} .tagm-delete-msg strong{font-weight:700}
+${scope} .airp-actions{display:flex;align-items:center;gap:6px;padding:10px 14px;border-top:1px solid var(--line-hairline);background:var(--bg-recessed)}
+[data-theme="dark"] ${scope} .airp-actions{background:rgb(255 255 255 / .03);border-top-color:var(--glass-border-soft)}
+${scope} .airp-spacer{flex:1}
+${scope} .airp-actions .btn svg{width:11px;height:11px}
 `;
 }
 

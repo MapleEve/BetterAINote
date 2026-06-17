@@ -10,7 +10,7 @@ function readSource(relativePath: string) {
 }
 
 const OLD_UI_RE =
-    /uikit-|glass-surface|glass-control|border-border|rounded-2xl|shadow-2xl|from "@\/components\/ui\/card"|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|border-border|rounded-2xl|shadow-2xl|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
@@ -132,13 +132,9 @@ describe("dashboard SOT foundation", () => {
         expect(sidebar).toContain("const SidebarContext = React.createContext");
         expect(sidebar).toContain("--sidebar-width");
 
-        for (const dashboardImport of [
-            "@/components/ui/card",
-            "@/components/ui/breadcrumb",
-            "@/components/ui/sidebar",
-        ]) {
-            expect(workstation).not.toContain(dashboardImport);
-        }
+        expect(workstation).toContain("@/components/ui/card");
+        expect(workstation).not.toContain("@/components/ui/breadcrumb");
+        expect(workstation).not.toContain("@/components/ui/sidebar");
     });
 
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
@@ -247,7 +243,8 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("displayTag?: RecordingTag");
         expect(workstation).toContain("displayTag: tag");
         expect(workstation).toContain("entry.displayTag ??");
-        expect(workstation).toContain("recordingTagColorClassName");
+        expect(workstation).toContain("<Badge");
+        expect(workstation).toContain("data-recording-tag-chip");
         expect(workstation).toContain("<RecordingTagIconGlyph");
         expect(workstation).toContain("data-rec={");
         expect(workstation).not.toContain("function tagClass(");

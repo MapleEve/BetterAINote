@@ -1,17 +1,8 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import type { RecordingTag, RecordingTagIcon } from "@/lib/recording-tags";
-
-export const recordingTagColorClassName: Record<RecordingTag["color"], string> =
-    {
-        red: "utag c-rose",
-        orange: "utag c-amber",
-        green: "utag c-green",
-        blue: "utag c-blue",
-        purple: "utag c-violet",
-        slate: "utag c-slate",
-    };
 
 export const recordingTagSotColorClassName: Record<
     RecordingTag["color"],
@@ -151,34 +142,16 @@ export function RecordingTagIconGlyph({
     );
 }
 
-function mergeUserTagClassName(colorClassName: string, className?: string) {
-    const extraClassName = className
-        ?.split(/\s+/)
-        .filter((item) => item === "utag" || item.startsWith("c-"))
-        .join(" ");
-
-    return [colorClassName, extraClassName].filter(Boolean).join(" ");
-}
-
-export function RecordingTagChip({
-    tag,
-    className,
-}: {
-    tag: RecordingTag;
-    className?: string;
-}) {
+export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
     return (
-        <span
-            className={mergeUserTagClassName(
-                recordingTagColorClassName[tag.color],
-                className,
-            )}
+        <Badge
+            variant="outline"
             data-recording-tag-chip=""
             data-sot-tag-color={tag.color}
             data-sot-tag-icon={tag.icon}
         >
             <RecordingTagIconGlyph icon={tag.icon} />
             <span>{tag.name}</span>
-        </span>
+        </Badge>
     );
 }

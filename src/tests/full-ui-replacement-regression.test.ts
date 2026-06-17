@@ -1047,6 +1047,9 @@ describe("full UI replacement regression coverage", () => {
         const sotPlayerPrimitives = readSource(
             "features/recordings/components/sot-player-primitives.tsx",
         );
+        const recordingTagVisuals = readSource(
+            "features/recordings/components/recording-tag-visuals.tsx",
+        );
         const tagManager = readSource(
             "features/recordings/components/recording-tag-manager.tsx",
         );
@@ -1398,9 +1401,27 @@ describe("full UI replacement regression coverage", () => {
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );
         expect(sourceReport).not.toMatch(SOURCE_REPORT_LEGACY_SURFACE_RE);
-        expect(sotPlayerPrimitives).toContain("tag-chip-action");
-        expect(sotPlayerPrimitives).toContain("tag-chip-trigger");
-        expect(sotPlayerPrimitives).toContain("tag-chip-inline");
+        expect(sotPlayerPrimitives).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
+        expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-part="recording-tag-overflow"',
+        );
+        expect(sotPlayerPrimitives).not.toContain("tag-chip-action");
+        expect(sotPlayerPrimitives).not.toContain("tag-chip-trigger");
+        expect(sotPlayerPrimitives).not.toContain("tag-chip-inline");
+        expect(sotPlayerPrimitives).not.toContain("utag-add");
+        expect(sotPlayerPrimitives).not.toContain("utag-plus");
+        expect(sotPlayerPrimitives).not.toContain("recordingTagColorClassName");
+        expect(recordingTagVisuals).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(recordingTagVisuals).toContain("<Badge");
+        expect(recordingTagVisuals).toContain("data-recording-tag-chip");
+        expect(recordingTagVisuals).not.toContain("utag c-");
+        expect(recordingTagVisuals).not.toContain("mergeUserTagClassName");
         expect(sotPlayerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
