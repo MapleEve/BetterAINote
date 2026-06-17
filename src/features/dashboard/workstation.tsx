@@ -5198,11 +5198,13 @@ export function Workstation({
                                                                 <div className="meta">
                                                                     {sourceMeta?.icon ? (
                                                                         <span
-                                                                            className={
+                                                                            data-sot-part="dashboard-recording-source-mark"
+                                                                            data-sot-provider-cover={
                                                                                 sourceMeta.cover
-                                                                                    ? "src-mini cover"
-                                                                                    : "src-mini"
+                                                                                    ? "true"
+                                                                                    : "false"
                                                                             }
+                                                                            data-sot-variant="image"
                                                                             title={
                                                                                 sourceMeta.label
                                                                             }
@@ -5216,7 +5218,9 @@ export function Workstation({
                                                                         </span>
                                                                     ) : (
                                                                         <span
-                                                                            className="src-mini src-mini-letter"
+                                                                            data-sot-part="dashboard-recording-source-mark"
+                                                                            data-sot-provider-cover="false"
+                                                                            data-sot-variant="letter"
                                                                             title={providerLabel(
                                                                                 recording.sourceProvider,
                                                                                 language,

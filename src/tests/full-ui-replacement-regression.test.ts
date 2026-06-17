@@ -892,6 +892,47 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toMatch(
             /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
         );
+        const recordingRowIndex = workstation.indexOf(
+            'data-sot-control="dashboard-recording-row"',
+        );
+        const recordingRowMetaIndex = workstation.indexOf(
+            '<div className="meta">',
+            recordingRowIndex,
+        );
+        const recordingRowDurationIndex = workstation.indexOf(
+            '<span className="dur">',
+            recordingRowMetaIndex,
+        );
+        const recordingRowSourceMark = workstation.slice(
+            recordingRowMetaIndex,
+            recordingRowDurationIndex,
+        );
+        const legacySourceMiniClassNamePattern =
+            /className=(?:"[^"]*\bsrc-mini\b[^"]*"|\{[^}]*\bsrc-mini\b[^}]*\})/;
+
+        expect(recordingRowIndex).toBeGreaterThanOrEqual(0);
+        expect(recordingRowMetaIndex).toBeGreaterThanOrEqual(0);
+        expect(recordingRowDurationIndex).toBeGreaterThan(
+            recordingRowMetaIndex,
+        );
+        expect(recordingRowSourceMark).toContain(
+            'data-sot-part="dashboard-recording-source-mark"',
+        );
+        expect(recordingRowSourceMark).toContain('data-sot-variant="image"');
+        expect(recordingRowSourceMark).toContain('data-sot-variant="letter"');
+        expect(recordingRowSourceMark).toContain("data-sot-provider-cover={");
+        expect(recordingRowSourceMark).not.toMatch(
+            legacySourceMiniClassNamePattern,
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-recording-source-mark"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+        );
         expect(workstation).toContain(
             'className="avatar"\n                            type="button"',
         );
