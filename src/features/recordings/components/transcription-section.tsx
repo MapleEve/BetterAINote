@@ -296,7 +296,10 @@ export function TranscriptionSection({
                         data-sot-tone="info"
                     >
                         <span data-sot-banner-icon>
-                            <span className="airp-spinner" aria-hidden="true" />
+                            <RefreshCw
+                                data-sot-banner-spinner
+                                aria-hidden="true"
+                            />
                         </span>
                         <div data-sot-banner-body>
                             <div data-sot-banner-title>

@@ -8,6 +8,14 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function collectSourceFiles(directory: string): string[] {
+    return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+        const entryPath = path.join(directory, entry.name);
+        if (entry.isDirectory()) return collectSourceFiles(entryPath);
+        return /\.(css|ts|tsx)$/.test(entry.name) ? [entryPath] : [];
+    });
+}
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -712,6 +720,42 @@ describe("full UI replacement regression coverage", () => {
         expect(legacyTagManagerSelectorLines).toEqual([]);
     });
 
+    it("keeps AI rename preview legacy selectors out of product CSS", () => {
+        const globals = readSource("app/globals.css");
+        const legacyAiRenameSelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                /^\s*\.ai-rename-panel|,\s*\.ai-rename-panel|^\s*\.airp-|,\s*\.airp-/.test(
+                    text,
+                ),
+            );
+
+        expect(legacyAiRenameSelectorLines).toEqual([]);
+    });
+
+    it("keeps AI rename legacy tokens out of product source", () => {
+        const productRoots = ["app", "components", "features", "lib"];
+        const findings = productRoots.flatMap((root) =>
+            collectSourceFiles(path.join(ROOT, root)).flatMap((filePath) => {
+                const source = readFileSync(filePath, "utf8");
+                const relativePath = path.relative(ROOT, filePath);
+                return source
+                    .split("\n")
+                    .map((text, index) => ({
+                        line: index + 1,
+                        path: relativePath,
+                        text,
+                    }))
+                    .filter(({ text }) =>
+                        /\.ai-rename-panel|\.airp-|airp-|data-airp-/.test(text),
+                    );
+            }),
+        );
+
+        expect(findings).toEqual([]);
+    });
+
     it("keeps inline OKLCH tag swatches limited to the SOT catalog", () => {
         const findings = collectInlineModernColorFindings();
 
@@ -898,6 +942,54 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
         expect(aiRenamePreview).toContain("data-sot-state={state}");
         expect(aiRenamePreview).toContain("aria-label={title}");
+        expect(aiRenamePreview).toContain('from "@/components/ui/alert";');
+        expect(aiRenamePreview).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(aiRenamePreview).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(aiRenamePreview).toContain('from "@/components/ui/card";');
+        expect(aiRenamePreview).toContain("<Card");
+        expect(aiRenamePreview).toContain("<CardHeader");
+        expect(aiRenamePreview).toContain("<CardContent");
+        expect(aiRenamePreview).toContain("<CardFooter");
+        expect(aiRenamePreview).toContain("<Alert");
+        expect(aiRenamePreview).toContain("<Badge");
+        expect(aiRenamePreview).toContain("<Button");
+        expect(aiRenamePreview).toContain('data-sot-part="head"');
+        expect(aiRenamePreview).toContain('data-sot-part="body"');
+        expect(aiRenamePreview).toContain('data-sot-part="actions"');
+        expect(aiRenamePreview).toContain('data-sot-part="review-row"');
+        expect(aiRenamePreview).toContain('data-sot-part="review-old"');
+        expect(aiRenamePreview).toContain('data-sot-part="review-new"');
+        for (const rawClass of [
+            "ai-rename-panel",
+            "airp-head",
+            "airp-head-l",
+            "airp-eyebrow",
+            "airp-sub",
+            "airp-close",
+            "airp-body",
+            "airp-state",
+            "airp-spinner",
+            "airp-msg",
+            "airp-label",
+            "airp-title",
+            "airp-hint",
+            "airp-error-icon",
+            "airp-actions",
+            "airp-spacer",
+            "airp-review-row",
+            "airp-review-line",
+            "airp-review-tag",
+            "airp-review-old",
+            "airp-review-new",
+            "data-airp-",
+            "mergeAiRenameClassName",
+        ]) {
+            expect(aiRenamePreview).not.toContain(rawClass);
+        }
         expect(workstation).toContain("onApply={applyAiRename}");
         expect(workstation).toContain('aria-label="更多操作"');
         expect(workstation).toContain('from "@/components/ui/dropdown-menu"');

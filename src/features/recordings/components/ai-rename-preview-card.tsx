@@ -1,6 +1,25 @@
 "use client";
 
+import {
+    AlertTriangle,
+    Ban,
+    Check,
+    LoaderCircle,
+    RefreshCw,
+    X,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 
 interface AiRenamePreviewCardProps {
     title: string;
@@ -21,63 +40,6 @@ interface AiRenamePreviewCardProps {
     subtitle?: string;
     state?: "loading" | "preview" | "review" | "error" | "unavailable";
     className?: string;
-}
-
-function mergeAiRenameClassName(className?: string) {
-    const extraClassName = className
-        ?.split(/\s+/)
-        .filter(
-            (item) => item === "ai-rename-panel" || item.startsWith("airp-"),
-        )
-        .join(" ");
-
-    return ["ai-rename-panel", extraClassName].filter(Boolean).join(" ");
-}
-
-function SotCloseIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12" />
-        </svg>
-    );
-}
-
-function SotRefreshIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-            <path d="M21 3v5h-5" />
-            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-            <path d="M3 21v-5h5" />
-        </svg>
-    );
-}
-
-function SotApplyIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-    );
-}
-
-function SotErrorIcon({ state }: { state: "error" | "unavailable" }) {
-    if (state === "unavailable") {
-        return (
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M4.93 4.93l14.14 14.14" />
-            </svg>
-        );
-    }
-
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        </svg>
-    );
 }
 
 export function AiRenamePreviewCard({
@@ -109,93 +71,114 @@ export function AiRenamePreviewCard({
     const stateLabel = state === "review" ? "复核确认" : (bodyLabel ?? title);
     const reviewOldTitle = originalFilename?.trim() || "—";
     const reviewNewTitle = filename?.trim() || "—";
+    const ErrorIcon = state === "unavailable" ? Ban : AlertTriangle;
 
     return (
-        <div
-            className={mergeAiRenameClassName(className)}
+        <Card
+            hasNoPadding
+            className={className}
             data-open="true"
             data-sot-panel="ai-rename-preview"
             data-sot-state={state}
             role="dialog"
             aria-label={title}
         >
-            <header className="airp-head">
-                <div className="airp-head-l">
-                    <span className="airp-eyebrow">{title}</span>
-                    <span className="airp-sub">{subtitle ?? ""}</span>
+            <CardHeader data-sot-part="head">
+                <div data-sot-part="head-copy">
+                    <CardTitle data-sot-part="eyebrow">{title}</CardTitle>
+                    <CardDescription data-sot-part="subtitle">
+                        {subtitle ?? ""}
+                    </CardDescription>
                 </div>
                 {onCancel ? (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="airp-close"
-                        onClick={onCancel}
-                        disabled={isApplying}
-                        aria-label={closeLabel ?? cancelLabel}
-                        title={closeLabel ?? cancelLabel}
-                        data-sot-control="ai-rename-close"
-                        data-sot-state={isApplying ? "busy" : state}
-                    >
-                        <SotCloseIcon />
-                    </Button>
+                    <CardAction data-sot-part="head-action">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={onCancel}
+                            disabled={isApplying}
+                            aria-label={closeLabel ?? cancelLabel}
+                            title={closeLabel ?? cancelLabel}
+                            data-sot-control="ai-rename-close"
+                            data-sot-state={isApplying ? "busy" : state}
+                        >
+                            <X data-icon="inline-start" aria-hidden="true" />
+                        </Button>
+                    </CardAction>
                 ) : null}
-            </header>
+            </CardHeader>
 
-            <div className="airp-body">
+            <CardContent data-sot-part="body">
                 {state === "loading" ? (
-                    <div className="airp-state" data-airp-state="loading">
-                        <span className="airp-spinner" aria-hidden="true" />
-                        <p className="airp-msg">{message ?? title}</p>
+                    <div data-sot-part="state" data-sot-state="loading">
+                        <LoaderCircle
+                            data-sot-part="loading-spinner"
+                            aria-hidden="true"
+                        />
+                        <p data-sot-part="message">{message ?? title}</p>
                     </div>
                 ) : isErrorState ? (
-                    <div className="airp-state" data-airp-state={state}>
-                        <div className="airp-error-icon" aria-hidden="true">
-                            <SotErrorIcon state={state} />
-                        </div>
-                        <p className="airp-msg">{message ?? title}</p>
-                        {hint ? <p className="airp-hint">{hint}</p> : null}
-                    </div>
+                    <Alert
+                        variant={state === "error" ? "destructive" : "default"}
+                        data-sot-part="state"
+                        data-sot-state={state}
+                    >
+                        <span data-sot-part="error-icon" aria-hidden="true">
+                            <ErrorIcon />
+                        </span>
+                        <AlertTitle className="sr-only">{title}</AlertTitle>
+                        <AlertDescription data-sot-part="state-description">
+                            <p data-sot-part="message">{message ?? title}</p>
+                            {hint ? <p data-sot-part="hint">{hint}</p> : null}
+                        </AlertDescription>
+                    </Alert>
                 ) : (
-                    <div className="airp-state" data-airp-state={state}>
-                        <div className="airp-label">{stateLabel}</div>
+                    <div data-sot-part="state" data-sot-state={state}>
+                        <div data-sot-part="label">{stateLabel}</div>
                         {state === "review" ? (
-                            <div className="airp-review-row">
-                                <div className="airp-review-line">
-                                    <span className="airp-review-tag">
+                            <div data-sot-part="review-row">
+                                <div data-sot-part="review-line">
+                                    <Badge
+                                        variant="outline"
+                                        data-sot-part="review-tag"
+                                        data-sot-review-field="old"
+                                    >
                                         原标题
-                                    </span>
+                                    </Badge>
                                     <span
-                                        className="airp-review-old"
-                                        data-airp-old
+                                        data-sot-part="review-old"
+                                        data-sot-review-value="old"
                                     >
                                         {reviewOldTitle}
                                     </span>
                                 </div>
-                                <div className="airp-review-line">
-                                    <span className="airp-review-tag is-new">
+                                <div data-sot-part="review-line">
+                                    <Badge
+                                        variant="outline"
+                                        data-sot-part="review-tag"
+                                        data-sot-review-field="new"
+                                    >
                                         新标题
-                                    </span>
+                                    </Badge>
                                     <span
-                                        className="airp-review-new"
-                                        data-airp-title
+                                        data-sot-part="review-new"
+                                        data-sot-review-value="new"
                                     >
                                         {reviewNewTitle}
                                     </span>
                                 </div>
                             </div>
                         ) : filename ? (
-                            <div className="airp-title">{filename}</div>
+                            <div data-sot-part="title">{filename}</div>
                         ) : null}
-                        {message ? (
-                            <p className="airp-hint">{message}</p>
-                        ) : null}
+                        {message ? <p data-sot-part="hint">{message}</p> : null}
                     </div>
                 )}
-            </div>
+            </CardContent>
 
             {showRegenerate || showCancel || showApply ? (
-                <footer className="airp-actions">
+                <CardFooter data-sot-part="actions">
                     {showRegenerate ? (
                         <Button
                             type="button"
@@ -214,11 +197,14 @@ export function AiRenamePreviewCard({
                             data-sot-control="ai-rename-regenerate"
                             data-sot-state={isRegenerating ? "loading" : state}
                         >
-                            <SotRefreshIcon />
+                            <RefreshCw
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
                             {regenerateLabel}
                         </Button>
                     ) : null}
-                    <span className="airp-spacer" />
+                    <span data-sot-part="actions-spacer" />
                     {showCancel ? (
                         <Button
                             type="button"
@@ -248,12 +234,15 @@ export function AiRenamePreviewCard({
                             data-sot-control="ai-rename-apply"
                             data-sot-state={isApplying ? "loading" : state}
                         >
-                            <SotApplyIcon />
+                            <Check
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
                             {applyLabel}
                         </Button>
                     ) : null}
-                </footer>
+                </CardFooter>
             ) : null}
-        </div>
+        </Card>
     );
 }
