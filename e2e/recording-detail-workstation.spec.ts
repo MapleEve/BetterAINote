@@ -4944,7 +4944,7 @@ async function collectWorkspaceStandaloneErrorRuntimeFrames(
             const metrics = await readWorkspaceVisualMetrics(page, {
                 detail: '.workspace .detail[data-empty="true"]',
                 emptyDetail: '.workspace .detail[data-empty="true"] .detail-empty',
-                listPanel: ".workspace .panel",
+                listPanel: '[data-sot-panel="recording-detail-list"]',
                 selectedRow: ".workspace .real-list .row.active",
                 workspace: ".workspace",
             });
@@ -5324,7 +5324,7 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         const standaloneNotFoundFrames = await collectWorkspaceVisualFrames(page, {
             detail: ".workspace .detail",
             emptyDetail: ".workspace .detail-empty",
-            listPanel: ".workspace .panel",
+            listPanel: '[data-sot-panel="recording-detail-list"]',
             selectedRow: ".workspace .real-list .row.active",
             workspace: ".workspace",
         });

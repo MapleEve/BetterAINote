@@ -1264,6 +1264,15 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(transcriptionSkeletons).not.toContain(legacyClass);
         }
+        const listPanelIndex = detail.indexOf(
+            'data-sot-panel="recording-detail-list"',
+        );
+        const listPanelStart = detail.lastIndexOf("<Card", listPanelIndex);
+        const listPanelEnd = detail.indexOf("</Card>", listPanelStart);
+        const listPanel = detail.slice(
+            listPanelStart,
+            listPanelEnd + "</Card>".length,
+        );
         const detailHeaderPanelIndex = detail.indexOf(
             'data-sot-panel="recording-detail-header"',
         );
@@ -1283,6 +1292,35 @@ describe("full UI replacement regression coverage", () => {
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
         expect(detail).toContain('data-sot-surface="recording-workstation"');
+        expect(listPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(listPanelStart).toBeGreaterThanOrEqual(0);
+        expect(listPanelEnd).toBeGreaterThan(listPanelStart);
+        expect(listPanel).toContain("<Card");
+        expect(listPanel).toContain("hasNoPadding");
+        expect(listPanel).toContain("<CardHeader");
+        expect(listPanel).toContain("<CardTitle");
+        expect(listPanel).toContain("<CardContent");
+        expect(listPanel).toContain('data-sot-panel="recording-detail-list"');
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-header"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-title"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-content"',
+        );
+        expect(listPanel).toContain('className="real-list"');
+        expect(listPanel).toContain("<SotPlayerSourceTag");
+        expect(listPanel).toContain("<SotPlayerStatusBadge");
+        for (const legacyClass of [
+            'className="panel"',
+            'className="list-header"',
+            'className="lh-titlebar"',
+            'className="lh-title"',
+        ]) {
+            expect(listPanel).not.toContain(legacyClass);
+        }
         expect(detailHeaderPanelIndex).toBeGreaterThanOrEqual(0);
         expect(detailHeaderStart).toBeGreaterThanOrEqual(0);
         expect(detailHeaderEnd).toBeGreaterThan(detailHeaderStart);
@@ -1377,12 +1415,16 @@ describe("full UI replacement regression coverage", () => {
             expect(sourceRecordPanel).not.toContain(legacyClass);
         }
         for (const selector of [
+            '[data-sot-panel="recording-detail-list"][data-slot="card"]',
             '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
             '[data-sot-panel="recording-source-record"][data-slot="card"]',
+            '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
             '[data-sot-part="recording-detail-metadata-header"]',
             '[data-sot-part="recording-source-record-header"]',
+            '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
             '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
             '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
+            '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
             '[data-sot-part="recording-detail-metadata-body"]',
             '[data-sot-part="recording-source-record-body"]',
             '[data-sot-part="recording-source-record-actions"]',

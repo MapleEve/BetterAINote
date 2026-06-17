@@ -799,34 +799,39 @@ export function RecordingWorkstation({
                     </div>
                 </header>
                 <div className="workspace">
-                    <section
-                        className="panel"
+                    <Card
+                        hasNoPadding
                         data-sot-panel="recording-detail-list"
                         aria-label="当前录音"
+                        role="region"
                     >
-                        <div className="list-header">
-                            <div className="lh-titlebar">
-                                <h2 className="lh-title">当前录音</h2>
-                            </div>
-                        </div>
-                        <div className="real-list">
-                            <div className="row active">
-                                <div className="body">
-                                    <div className="title">{filename}</div>
-                                    <div className="meta">
-                                        <span className="dur mono">
-                                            {durationLabel}
-                                        </span>
-                                        <SotPlayerSourceTag
-                                            label={sourceLabel}
-                                            provider={recording.sourceProvider}
-                                        />
-                                        <SotPlayerStatusBadge label="已打开" />
+                        <CardHeader data-sot-part="recording-detail-list-header">
+                            <CardTitle data-sot-part="recording-detail-list-title">
+                                当前录音
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent data-sot-part="recording-detail-list-content">
+                            <div className="real-list">
+                                <div className="row active">
+                                    <div className="body">
+                                        <div className="title">{filename}</div>
+                                        <div className="meta">
+                                            <span className="dur mono">
+                                                {durationLabel}
+                                            </span>
+                                            <SotPlayerSourceTag
+                                                label={sourceLabel}
+                                                provider={
+                                                    recording.sourceProvider
+                                                }
+                                            />
+                                            <SotPlayerStatusBadge label="已打开" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </CardContent>
+                    </Card>
                     <section className="detail">
                         <CardHeader
                             data-sot-panel="recording-detail-header"

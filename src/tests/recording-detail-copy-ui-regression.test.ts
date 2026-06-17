@@ -219,9 +219,25 @@ describe("recording detail copy and title action UI regressions", () => {
         const detailWorkstation = readSource(
             "features/recordings/workstation.tsx",
         );
+        const globals = readSource("app/globals.css");
         const badge = readSource("components/ui/badge.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const listPanelIndex = detailWorkstation.indexOf(
+            'data-sot-panel="recording-detail-list"',
+        );
+        const listPanelStart = detailWorkstation.lastIndexOf(
+            "<Card",
+            listPanelIndex,
+        );
+        const listPanelEnd = detailWorkstation.indexOf(
+            "</Card>",
+            listPanelStart,
+        );
+        const listPanel = detailWorkstation.slice(
+            listPanelStart,
+            listPanelEnd + "</Card>".length,
+        );
         const headerPanelIndex = detailWorkstation.indexOf(
             'data-sot-panel="recording-detail-header"',
         );
@@ -264,6 +280,43 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(card).toContain('data-slot="card-header"');
         expect(card).toContain('data-slot="card-title"');
         expect(input).toContain('data-slot="input"');
+        expect(listPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(listPanelStart).toBeGreaterThanOrEqual(0);
+        expect(listPanelEnd).toBeGreaterThan(listPanelStart);
+        expect(listPanel).toContain("<Card");
+        expect(listPanel).toContain("hasNoPadding");
+        expect(listPanel).toContain("<CardHeader");
+        expect(listPanel).toContain("<CardTitle");
+        expect(listPanel).toContain("<CardContent");
+        expect(listPanel).toContain('data-sot-panel="recording-detail-list"');
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-header"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-title"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-content"',
+        );
+        expect(listPanel).toContain('className="real-list"');
+        expect(listPanel).toContain("<SotPlayerSourceTag");
+        expect(listPanel).toContain("<SotPlayerStatusBadge");
+        for (const legacyClass of [
+            'className="panel"',
+            'className="list-header"',
+            'className="lh-titlebar"',
+            'className="lh-title"',
+        ]) {
+            expect(listPanel).not.toContain(legacyClass);
+        }
+        for (const selector of [
+            '[data-sot-panel="recording-detail-list"][data-slot="card"]',
+            '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
+            '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
+            '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
+        ]) {
+            expect(globals).toContain(selector);
+        }
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);
