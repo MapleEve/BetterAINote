@@ -1929,7 +1929,8 @@ function SegmentControl<Value extends string>({
         <ToggleGroup
             aria-disabled={disabled ? "true" : "false"}
             aria-label={label}
-            data-seg={control}
+            data-sot-control={control}
+            data-sot-panel="settings-segment-control"
             disabled={disabled}
             size="sm"
             spacing={1}
@@ -1949,9 +1950,9 @@ function SegmentControl<Value extends string>({
                     <ToggleGroupItem
                         key={option.value}
                         data-sot-control={control}
+                        data-sot-display-value={option.sotValue ?? option.value}
                         data-sot-state={active ? "selected" : "idle"}
                         data-sot-value={option.value}
-                        data-v={option.sotValue ?? option.value}
                         disabled={disabled}
                         value={option.value}
                     >

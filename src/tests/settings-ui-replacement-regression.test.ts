@@ -1282,9 +1282,15 @@ describe("settings SOT interaction regressions", () => {
         )?.[0];
 
         expect(content).toContain("sotValue?: string");
+        expect(content).not.toContain("data-seg=");
+        expect(content).not.toContain("data-v=");
+        expect(segmentControl).toContain(
+            'data-sot-panel="settings-segment-control"',
+        );
+        expect(segmentControl).toContain("data-sot-control={control}");
         expect(segmentControl).toContain("data-sot-value={option.value}");
         expect(segmentControl).toContain(
-            "data-v={option.sotValue ?? option.value}",
+            "data-sot-display-value={option.sotValue ?? option.value}",
         );
         expect(segmentControl).toContain("value={option.value}");
         expect(themeOptions).toMatch(

@@ -1466,7 +1466,7 @@ async function expectRow117AppearanceReadyState(page: Page) {
 
     const section = settingsSectionSurface(page, "appearance");
     const selectedTimeStyle = section.locator(
-        '[data-sot-control="time-style"][data-v="abs"]',
+        '[data-sot-control="time-style"][data-sot-display-value="abs"]',
     );
     const selectedDensity = section.locator(
         '[data-sot-control="density"][data-sot-value="comfy"]',
@@ -1477,20 +1477,20 @@ async function expectRow117AppearanceReadyState(page: Page) {
     const itemsPerPage = section.locator("#display-items-per-page");
     const language = section.locator("#display-ui-language");
     const sortOrder = section.locator("#display-recording-list-sort-order");
+    const selectedLanguageLabel = "简体中文";
+    const selectedSortOrderLabel = "最新在前";
 
     await expect(selectedTimeStyle).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedTimeStyle).toHaveAttribute("aria-pressed", "true");
+    await expect(selectedTimeStyle).toHaveAttribute("aria-checked", "true");
     await expect(itemsPerPage).toHaveValue(
         String(row117AppearanceReadyState.itemsPerPage),
     );
     await expect(selectedDensity).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedDensity).toHaveAttribute("aria-pressed", "true");
-    await expect(sortOrder).toHaveValue(
-        row117AppearanceReadyState.recordingListSortOrder,
-    );
-    await expect(language).toHaveValue(row117AppearanceReadyState.uiLanguage);
+    await expect(selectedDensity).toHaveAttribute("aria-checked", "true");
+    await expect(sortOrder).toContainText(selectedSortOrderLabel);
+    await expect(language).toContainText(selectedLanguageLabel);
     await expect(selectedTheme).toHaveAttribute("data-sot-state", "selected");
-    await expect(selectedTheme).toHaveAttribute("aria-pressed", "true");
+    await expect(selectedTheme).toHaveAttribute("aria-checked", "true");
 
     return {
         api: {
@@ -1504,10 +1504,12 @@ async function expectRow117AppearanceReadyState(page: Page) {
         dom: {
             density: await selectedDensity.getAttribute("data-sot-value"),
             itemsPerPage: await itemsPerPage.inputValue(),
-            language: await language.inputValue(),
-            sortOrder: await sortOrder.inputValue(),
+            language: (await language.textContent())?.trim() ?? "",
+            sortOrder: (await sortOrder.textContent())?.trim() ?? "",
             theme: await selectedTheme.getAttribute("data-sot-value"),
-            timeStyle: await selectedTimeStyle.getAttribute("data-v"),
+            timeStyle: await selectedTimeStyle.getAttribute(
+                "data-sot-display-value",
+            ),
         },
     } satisfies Row117AppearanceReadyStateEvidence;
 }
