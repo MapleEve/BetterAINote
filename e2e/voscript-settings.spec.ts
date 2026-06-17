@@ -58,7 +58,7 @@ function settingsSection(page: Page, section: "transcription" | "voscript") {
 function sectionSaveButton(section: Locator, saveId?: string) {
     if (saveId) {
         return section.locator(
-            `[data-save-id="${saveId}"] [data-sot-control="settings-save"]`,
+            `[data-sot-panel="settings-save-actions"][data-sot-save-id="${saveId}"] [data-sot-control="settings-save"]`,
         );
     }
 
@@ -262,7 +262,9 @@ test("VoScript settings blocks invalid no-repeat n-gram inline before saving", a
     const section = settingsSection(page, "voscript");
     const ngramField = section.locator('[data-field="no-repeat-ngram"]');
     const ngramInput = section.locator("#voscript-no-repeat-ngram");
-    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const paramsSave = section.locator(
+        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
+    );
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await ngramInput.fill("1");
@@ -327,7 +329,9 @@ test("VoScript settings blocks negative speaker bounds inline before saving", as
     const maxSpeakerField = section.locator('[data-field="max-speakers"]');
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
-    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const paramsSave = section.locator(
+        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
+    );
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await minSpeakerInput.fill("-1");
@@ -404,7 +408,9 @@ test("VoScript settings blocks max speaker bounds below min before saving", asyn
     const maxSpeakerField = section.locator('[data-field="max-speakers"]');
     const minSpeakerInput = section.locator("#voscript-min-speakers");
     const maxSpeakerInput = section.locator("#voscript-max-speakers");
-    const paramsSave = section.locator('[data-save-id="voscript-params"]');
+    const paramsSave = section.locator(
+        '[data-sot-panel="settings-save-actions"][data-sot-save-id="voscript-params"]',
+    );
     const saveButton = sectionSaveButton(section, "voscript-params");
 
     await minSpeakerInput.fill("5");

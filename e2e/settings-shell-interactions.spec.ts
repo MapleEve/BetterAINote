@@ -674,7 +674,9 @@ async function readShellMetrics(locator: Locator) {
             element.querySelector(
                 '[data-sot-panel="source-actions"][data-sot-state="saving"]',
             ) ??
-            element.querySelector('[data-save-actions][data-save-state="saving"]');
+            element.querySelector(
+                '[data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
+            );
         const error = element.querySelector(
             '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
         );
@@ -2079,7 +2081,7 @@ test("settings shell locks navigation and close while display immediate save is 
     ).toHaveCount(0);
     await expect(
         page.locator(
-            '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-save-action]',
+            '[data-sot-surface="settings-section"][data-sot-section="appearance"] [data-sot-panel="settings-save-actions"]',
         ),
     ).toHaveCount(0);
 
@@ -2669,9 +2671,11 @@ test("settings shell row 117 captures responsive visual matrix", async ({
             '[data-sot-surface="settings-section"][data-sot-section="appearance"]',
         );
         const appearanceSaveControls = appearanceSection.locator(
-            '[data-sot-control="settings-save"], [data-save-action]',
+            '[data-sot-control="settings-save"]',
         );
-    const appearanceFooter = appearanceSection.locator("[data-save-actions]");
+        const appearanceFooter = appearanceSection.locator(
+            '[data-sot-panel="settings-save-actions"]',
+        );
         await expect(itemsPerPageInput).toHaveValue("50");
         await itemsPerPageInput.fill("42");
         await saveStarted;

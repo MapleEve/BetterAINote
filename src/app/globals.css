@@ -5578,16 +5578,17 @@ body[data-drawer="open"] .drawer-scrim {
 .settings-rail .sr-group {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-save-actions],
-.settings-main [data-save-actions] {
+[data-sot-panel="settings-scroll-body"]
+    [data-sot-panel="settings-save-actions"],
+.settings-main [data-sot-panel="settings-save-actions"] {
     display: flex;
 }
 [data-sot-panel="settings-scroll-body"] [data-sot-panel="source-actions"],
 .settings-main [data-sot-panel="source-actions"] {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-save-status],
-.settings-main [data-save-status] {
+[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"],
+.settings-main [data-sot-part="settings-save-status"] {
     display: inline-flex;
 }
 [data-sot-panel="settings-scroll-body"] [data-sot-part="source-action-status"],
@@ -5595,9 +5596,11 @@ body[data-drawer="open"] .drawer-scrim {
     display: inline-flex;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-save-actions][data-save-state="idle"]
-    [data-save-status],
-.settings-main [data-save-actions][data-save-state="idle"] [data-save-status] {
+    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]
+    [data-sot-part="settings-save-status"],
+.settings-main
+    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]
+    [data-sot-part="settings-save-status"] {
     display: none;
 }
 [data-sot-panel="settings-scroll-body"]
@@ -5608,14 +5611,18 @@ body[data-drawer="open"] .drawer-scrim {
     [data-sot-part="source-action-status"] {
     display: none;
 }
-.settings-main [data-save-actions][data-save-state="saving"] [data-save-action],
-.settings-main [data-save-actions][data-save-state="saving"] [data-save-test],
+.settings-main
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="settings-save"],
+.settings-main
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="voscript-test"],
 [data-sot-panel="settings-scroll-body"]
-    [data-save-actions][data-save-state="saving"]
-    [data-save-action],
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="settings-save"],
 [data-sot-panel="settings-scroll-body"]
-    [data-save-actions][data-save-state="saving"]
-    [data-save-test] {
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="voscript-test"] {
     pointer-events: none;
 }
 .settings-main
@@ -5633,11 +5640,11 @@ body[data-drawer="open"] .drawer-scrim {
     pointer-events: none;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-save-actions][data-save-state="saving"]
-    [data-save-action],
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="settings-save"],
 .settings-main
-    [data-save-actions][data-save-state="saving"]
-    [data-save-action] {
+    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="settings-save"] {
     position: relative;
 }
 [data-sot-panel="settings-scroll-body"]
@@ -5681,11 +5688,11 @@ body[data-drawer="open"] .drawer-scrim {
 [data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
     [data-voscript-unavail]
     ~ [data-sot-section-group]
-    [data-save-action],
+    [data-sot-control="settings-save"],
 [data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
     [data-voscript-unavail]
     ~ [data-sot-section-group]
-    [data-save-test],
+    [data-sot-control="voscript-test"],
 .settings-main[data-voscript-availability="unavailable"]
     [data-voscript-unavail]
     ~ [data-sot-section-group]
@@ -5693,11 +5700,11 @@ body[data-drawer="open"] .drawer-scrim {
 .settings-main[data-voscript-availability="unavailable"]
     [data-voscript-unavail]
     ~ [data-sot-section-group]
-    [data-save-action],
+    [data-sot-control="settings-save"],
 .settings-main[data-voscript-availability="unavailable"]
     [data-voscript-unavail]
     ~ [data-sot-section-group]
-    [data-save-test] {
+    [data-sot-control="voscript-test"] {
     pointer-events: none;
 }
 .list-state-block {
@@ -10112,7 +10119,7 @@ body[data-ds-todo="show"] .design-todo {
     margin-top: 2px;
 }
 
-[data-save-actions] {
+[data-sot-panel="settings-save-actions"] {
     align-items: center;
     gap: 8px;
     margin-top: 18px;
@@ -10126,7 +10133,7 @@ body[data-ds-todo="show"] .design-todo {
     margin-left: auto;
     flex-direction: row-reverse;
 }
-[data-save-status] {
+[data-sot-part="settings-save-status"] {
     align-items: center;
     gap: 4px;
     font: 500 11.5px var(--font-sans);
@@ -10138,7 +10145,7 @@ body[data-ds-todo="show"] .design-todo {
     font: 500 11.5px var(--font-sans);
     color: var(--fg-tertiary);
 }
-[data-save-status]::before {
+[data-sot-part="settings-save-status"]::before {
     content: "";
     width: 8px;
     height: 8px;
@@ -10152,7 +10159,8 @@ body[data-ds-todo="show"] .design-todo {
     border-radius: 50%;
     background: var(--signal-success);
 }
-[data-save-actions][data-save-state="saving"] [data-save-status]::before {
+[data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-part="settings-save-status"]::before {
     background: var(--signal-info);
     animation: bpulse 1.2s ease-in-out infinite;
 }
@@ -10161,28 +10169,32 @@ body[data-ds-todo="show"] .design-todo {
     background: var(--signal-info);
     animation: bpulse 1.2s ease-in-out infinite;
 }
-[data-save-actions][data-save-state="saved"] [data-save-status] {
+[data-sot-panel="settings-save-actions"][data-sot-state="saved"]
+    [data-sot-part="settings-save-status"] {
     color: var(--signal-success);
 }
 [data-sot-panel="source-actions"][data-sot-state="saved"]
     [data-sot-part="source-action-status"] {
     color: var(--signal-success);
 }
-[data-save-actions][data-save-state="error"] [data-save-status] {
+[data-sot-panel="settings-save-actions"][data-sot-state="error"]
+    [data-sot-part="settings-save-status"] {
     color: var(--signal-danger);
 }
 [data-sot-panel="source-actions"][data-sot-state="error"]
     [data-sot-part="source-action-status"] {
     color: var(--signal-danger);
 }
-[data-save-actions][data-save-state="error"] [data-save-status]::before {
+[data-sot-panel="settings-save-actions"][data-sot-state="error"]
+    [data-sot-part="settings-save-status"]::before {
     background: var(--signal-danger);
 }
 [data-sot-panel="source-actions"][data-sot-state="error"]
     [data-sot-part="source-action-status"]::before {
     background: var(--signal-danger);
 }
-[data-save-actions][data-save-state="saving"] [data-save-action]::after {
+[data-sot-panel="settings-save-actions"][data-sot-state="saving"]
+    [data-sot-control="settings-save"]::after {
     content: "";
     width: 11px;
     height: 11px;

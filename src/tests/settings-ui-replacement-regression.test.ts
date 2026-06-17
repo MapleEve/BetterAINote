@@ -577,7 +577,7 @@ describe("settings SOT interaction regressions", () => {
             expect(inputPrimitive).toContain(className);
         }
         expect(inputPrimitive).not.toContain("field-input");
-        expect(content).toContain("data-save-actions");
+        expect(content).toContain('data-sot-panel="settings-save-actions"');
         expect(content).toContain('data-sot-panel="source-actions"');
         expect(content).toContain('data-sot-part="source-action-status"');
         expect(content).toContain('data-sot-control="source-test"');
@@ -911,7 +911,7 @@ describe("settings SOT interaction regressions", () => {
         const globals = readSource("app/globals.css");
         const actionStateBaseCss = readCssBlock(
             globals,
-            "[data-save-actions] {\n    align-items: center;",
+            '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
         );
         const sourceActionBaseCss = readCssBlock(
             globals,
@@ -919,6 +919,10 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(actionStateBaseCss).toContain("flex-direction: row-reverse;");
         expect(sourceActionBaseCss).toContain("flex-direction: row-reverse;");
+        expect(globals).toContain(
+            '[data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
+        );
+        expect(globals).toContain('[data-sot-part="settings-save-status"]');
         expect(globals).toContain(
             '[data-sot-panel="source-actions"][data-sot-state="saving"]',
         );
@@ -999,15 +1003,30 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("sm-section-title");
         expect(content).not.toContain("sm-row-name");
         expect(content).toContain("function SaveActions");
-        expect(saveStatus).toContain("data-save-status={saveState}");
-        expect(content).toContain("data-save-id={saveId}");
-        expect(content).toContain("data-save-state={saveState}");
+        expect(saveStatus).toContain('data-sot-part="settings-save-status"');
+        expect(saveStatus).toContain("data-sot-state={saveState}");
+        expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(content).toContain("data-sot-save-id={saveId ?? section}");
+        expect(content).toContain("data-sot-section={section}");
+        expect(content).toContain("data-sot-state={saveState}");
         expect(content).toContain('aria-busy={saveState === "saving"}');
+        expect(content).toContain('data-sot-action="save"');
+        expect(content).toContain('data-sot-control="settings-save"');
         expect(content).toContain('control="density"');
         expect(content).toContain('saveId="voscript-connection"');
-        expect(content).toContain('data-save-test=""');
+        expect(content).toContain('data-sot-action="test"');
         expect(content).toContain('data-sot-control="voscript-test"');
         expect(content).toContain('saveId="voscript-params"');
+        for (const legacySaveHook of [
+            "data-save-actions",
+            "data-save-id",
+            "data-save-state",
+            "data-save-status",
+            "data-save-action",
+            "data-save-test",
+        ]) {
+            expect(content).not.toContain(legacySaveHook);
+        }
         expect(content).toContain('data-voscript-unavail=""');
         expect(content).toContain('data-field="no-repeat-ngram"');
         expect(content).toContain("data-field-msg");

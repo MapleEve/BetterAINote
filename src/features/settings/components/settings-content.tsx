@@ -1704,7 +1704,6 @@ function SaveStatus({
         <Badge
             variant="ghost"
             className="border-0 bg-transparent p-0"
-            data-save-status={saveState}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
@@ -1979,9 +1978,10 @@ function SaveActions({
 }) {
     return (
         <div
-            data-save-actions=""
-            data-save-id={saveId}
-            data-save-state={saveState}
+            data-sot-panel="settings-save-actions"
+            data-sot-save-id={saveId ?? section}
+            data-sot-section={section}
+            data-sot-state={saveState}
         >
             <SaveStatus error={error} isZh={isZh} saveState={saveState} />
             {children}
@@ -1991,8 +1991,7 @@ function SaveActions({
                 size="sm"
                 disabled={disabled}
                 aria-busy={saveState === "saving"}
-                data-save-action=""
-                data-save-state={saveState}
+                data-sot-action="save"
                 data-sot-control="settings-save"
                 data-sot-section={section}
                 data-sot-state={saveState}
@@ -2928,7 +2927,7 @@ function VoScriptSettingsPanel({
                         variant="ghost"
                         size="sm"
                         aria-busy={isTestingConnection}
-                        data-save-test=""
+                        data-sot-action="test"
                         data-sot-control="voscript-test"
                         data-sot-section="voscript"
                         data-sot-state={connectionTestState}
