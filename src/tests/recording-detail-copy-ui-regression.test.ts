@@ -59,6 +59,35 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailTranscript).toContain(
             "transcription.copyTranscriptFailed",
         );
+        expect(detailTranscript).toContain(
+            'data-sot-panel="recording-transcription"',
+        );
+        expect(detailTranscript).toContain(
+            'data-sot-control="copy-local-transcript"',
+        );
+        expect(detailTranscript).toContain(
+            'data-sot-control="retranscribe-local"',
+        );
+        expect(detailTranscript).toContain(
+            'data-sot-control="start-local-transcription"',
+        );
+        expect(detailTranscript).toContain('data-icon="inline-start"');
+        for (const legacyClass of [
+            'className="transcript t-pane"',
+            'className="transcript-head"',
+            'className="transcript-body"',
+            'className="sr-section"',
+            'className="sr-section-head"',
+            'className="sr-section-sub"',
+            'className="empty-hint"',
+            'className="eh-t"',
+            'className="eh-h"',
+            'className="turn"',
+            'className="speaker"',
+            'className="ts"',
+        ]) {
+            expect(detailTranscript).not.toContain(legacyClass);
+        }
 
         expect(dashboardTranscript).toContain(
             'data-sot-panel="dashboard-retranscription"',

@@ -11,8 +11,15 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FieldDescription } from "@/components/ui/field";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
@@ -270,25 +277,39 @@ export function TranscriptionSection({
     });
 
     return (
-        <section className="transcript t-pane">
-            <header className="transcript-head">
-                <FileText aria-hidden="true" />
-                <div>
-                    <h2 className="rec-h2">{t("transcription.localTitle")}</h2>
-                    <FieldDescription>
-                        {t("transcription.localDescription")}
-                    </FieldDescription>
-                    {!canTranscribe && (
-                        <FieldDescription>
-                            {transcribeUnavailableReason ??
-                                (uiLanguage === "zh-CN"
-                                    ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
-                                    : "This source does not provide downloadable local audio. You can only review the source transcript or report for now.")}
-                        </FieldDescription>
-                    )}
+        <Card
+            hasNoPadding
+            role="region"
+            aria-labelledby="recording-transcription-title"
+            data-sot-panel="recording-transcription"
+        >
+            <CardHeader data-sot-part="recording-transcription-header">
+                <div data-sot-part="recording-transcription-heading">
+                    <FileText
+                        aria-hidden="true"
+                        data-sot-part="recording-transcription-icon"
+                    />
+                    <div data-sot-part="recording-transcription-header-copy">
+                        <CardTitle data-sot-part="recording-transcription-title">
+                            <h2 id="recording-transcription-title">
+                                {t("transcription.localTitle")}
+                            </h2>
+                        </CardTitle>
+                        <CardDescription data-sot-part="recording-transcription-description">
+                            {t("transcription.localDescription")}
+                        </CardDescription>
+                        {!canTranscribe && (
+                            <FieldDescription data-sot-part="recording-transcription-unavailable">
+                                {transcribeUnavailableReason ??
+                                    (uiLanguage === "zh-CN"
+                                        ? "这个数据源没有可下载到本地的音频文件，当前只能查看来源逐字稿或报告。"
+                                        : "This source does not provide downloadable local audio. You can only review the source transcript or report for now.")}
+                            </FieldDescription>
+                        )}
+                    </div>
                 </div>
-            </header>
-            <div className="transcript-body">
+            </CardHeader>
+            <CardContent data-sot-part="recording-transcription-body">
                 {isTranscribing ? (
                     <Alert
                         data-sot-banner="transcription-job"
@@ -302,11 +323,11 @@ export function TranscriptionSection({
                             />
                         </span>
                         <div data-sot-banner-body>
-                            <div data-sot-banner-title>
+                            <AlertTitle data-sot-banner-title>
                                 {jobDisplayState
                                     ? t(`transcription.${jobDisplayState}`)
                                     : t("transcription.processing")}
-                            </div>
+                            </AlertTitle>
                         </div>
                     </Alert>
                 ) : null}
@@ -317,6 +338,7 @@ export function TranscriptionSection({
                         remoteStatus: jobRemoteStatus,
                     }) && (
                         <Alert
+                            variant="destructive"
                             data-sot-banner="transcription-job"
                             data-sot-state="error"
                             data-sot-tone="err"
@@ -325,32 +347,40 @@ export function TranscriptionSection({
                                 <AlertCircle aria-hidden="true" />
                             </span>
                             <div data-sot-banner-body>
-                                <div data-sot-banner-title>{jobError}</div>
+                                <AlertTitle data-sot-banner-title>
+                                    {jobError}
+                                </AlertTitle>
                             </div>
                         </Alert>
                     )}
 
                 {transcription ? (
                     <>
-                        <section className="sr-section">
-                            <div className="sr-section-head">
+                        <section data-sot-section="recording-transcription-output">
+                            <header data-sot-part="recording-transcription-section-head">
                                 <div>
-                                    <h4>{t("transcription.outputTitle")}</h4>
-                                    <span className="sr-section-sub">
+                                    <h3 data-sot-part="recording-transcription-section-title">
+                                        {t("transcription.outputTitle")}
+                                    </h3>
+                                    <p data-sot-part="recording-transcription-section-description">
                                         {t("transcription.outputDescription")}
-                                    </span>
+                                    </p>
                                 </div>
-                                <div className="t-actions">
+                                <div data-sot-part="recording-transcription-actions">
                                     <Button
                                         onClick={handleCopyTranscript}
                                         size="sm"
+                                        data-sot-control="copy-local-transcript"
                                         disabled={
                                             isCopyingTranscript ||
                                             !displayText.trim()
                                         }
                                         aria-busy={isCopyingTranscript}
                                     >
-                                        <Copy />
+                                        <Copy
+                                            aria-hidden="true"
+                                            data-icon="inline-start"
+                                        />
                                         {isCopyingTranscript
                                             ? t("common.copying")
                                             : t("transcription.copyTranscript")}
@@ -359,6 +389,7 @@ export function TranscriptionSection({
                                         onClick={handleConfirmRetranscribe}
                                         size="sm"
                                         variant="danger"
+                                        data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
                                         }
@@ -371,18 +402,26 @@ export function TranscriptionSection({
                                                   )
                                         }
                                     >
-                                        <RefreshCw />
+                                        <RefreshCw
+                                            aria-hidden="true"
+                                            data-icon="inline-start"
+                                        />
                                         {t("transcription.retranscribe")}
                                     </Button>
                                 </div>
+                            </header>
+                            <div data-sot-part="recording-transcription-turn">
+                                <p data-sot-part="recording-transcription-text">
+                                    {displayText}
+                                </p>
                             </div>
-                            <div className="turn">
-                                <p>{displayText}</p>
-                            </div>
-                            <div className="speaker">
+                            <div data-sot-list="recording-transcription-meta">
                                 {language ? (
-                                    <span className="ts">
-                                        <Languages aria-hidden="true" />
+                                    <span data-sot-meta="language">
+                                        <Languages
+                                            aria-hidden="true"
+                                            data-sot-part="recording-transcription-meta-icon"
+                                        />
                                         <span>
                                             {t("transcription.languagePrefix")}:{" "}
                                             {language}
@@ -390,28 +429,32 @@ export function TranscriptionSection({
                                     </span>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <span className="ts">
+                                    <span data-sot-meta="source">
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
                                     </span>
                                 ) : null}
-                                <span className="ts">
+                                <span data-sot-meta="words">
                                     {wordCount} {t("transcription.words")}
                                 </span>
-                                <span className="ts">
+                                <span data-sot-meta="characters">
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
                                 </span>
                             </div>
                         </section>
                         {showSpeakerReview ? (
-                            <section className="sr-section">
-                                <div className="sr-section-head">
-                                    <h4>{t("speakerReview.title")}</h4>
-                                    <span className="sr-section-sub">
-                                        {t("speakerReview.description")}
-                                    </span>
-                                </div>
+                            <section data-sot-section="recording-transcription-speaker-review">
+                                <header data-sot-part="recording-transcription-section-head">
+                                    <div>
+                                        <h3 data-sot-part="recording-transcription-section-title">
+                                            {t("speakerReview.title")}
+                                        </h3>
+                                        <p data-sot-part="recording-transcription-section-description">
+                                            {t("speakerReview.description")}
+                                        </p>
+                                    </div>
+                                </header>
                                 <SpeakerLabelEditor
                                     recordingId={recordingId}
                                     speakerMap={liveSpeakerMap}
@@ -421,17 +464,24 @@ export function TranscriptionSection({
                         ) : null}
                     </>
                 ) : (
-                    <div className="empty-hint">
-                        <FileText aria-hidden="true" />
-                        <p className="eh-t">
+                    <section
+                        data-sot-part="recording-transcription-empty"
+                        data-sot-state="empty"
+                    >
+                        <FileText
+                            aria-hidden="true"
+                            data-sot-part="recording-transcription-empty-icon"
+                        />
+                        <h3 data-sot-part="recording-transcription-empty-title">
                             {t("transcription.noTranscript")}
-                        </p>
-                        <p className="eh-h">
+                        </h3>
+                        <p data-sot-part="recording-transcription-empty-description">
                             {t("transcription.noTranscriptDescription")}
                         </p>
                         <Button
                             onClick={() => handleTranscribe(false)}
                             size="sm"
+                            data-sot-control="start-local-transcription"
                             disabled={!canTranscribe || isTranscribing}
                             title={
                                 !canTranscribe
@@ -439,12 +489,15 @@ export function TranscriptionSection({
                                     : undefined
                             }
                         >
-                            <Sparkles />
+                            <Sparkles
+                                aria-hidden="true"
+                                data-icon="inline-start"
+                            />
                             {t("transcription.transcribe")}
                         </Button>
-                    </div>
+                    </section>
                 )}
-            </div>
-        </section>
+            </CardContent>
+        </Card>
     );
 }

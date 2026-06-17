@@ -1053,6 +1053,9 @@ describe("full UI replacement regression coverage", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const transcriptionSection = readSource(
+            "features/recordings/components/transcription-section.tsx",
+        );
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
@@ -1107,6 +1110,50 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).not.toContain('className="sr-seg"');
         expect(speakerReview).not.toContain('className="sr-seg-speaker"');
         expect(speakerReview).not.toContain('className="sr-seg-text"');
+        expect(transcriptionSection).toContain(
+            'data-sot-panel="recording-transcription"',
+        );
+        expect(transcriptionSection).toContain('from "@/components/ui/card";');
+        expect(transcriptionSection).toContain("<Card");
+        expect(transcriptionSection).toContain("<CardHeader");
+        expect(transcriptionSection).toContain("<CardContent");
+        expect(transcriptionSection).toContain("<Alert");
+        expect(transcriptionSection).toContain("<AlertTitle");
+        expect(transcriptionSection).toContain("<Button");
+        expect(transcriptionSection).toContain(
+            'data-sot-section="recording-transcription-output"',
+        );
+        expect(transcriptionSection).toContain(
+            'data-sot-section="recording-transcription-speaker-review"',
+        );
+        expect(transcriptionSection).toContain(
+            'data-sot-part="recording-transcription-empty"',
+        );
+        expect(transcriptionSection).toContain(
+            'data-sot-control="copy-local-transcript"',
+        );
+        expect(transcriptionSection).toContain(
+            'data-sot-control="retranscribe-local"',
+        );
+        expect(transcriptionSection).toContain(
+            'data-sot-control="start-local-transcription"',
+        );
+        for (const legacyClass of [
+            'className="transcript t-pane"',
+            'className="transcript-head"',
+            'className="transcript-body"',
+            'className="sr-section"',
+            'className="sr-section-head"',
+            'className="sr-section-sub"',
+            'className="empty-hint"',
+            'className="eh-t"',
+            'className="eh-h"',
+            'className="turn"',
+            'className="speaker"',
+            'className="ts"',
+        ]) {
+            expect(transcriptionSection).not.toContain(legacyClass);
+        }
         expect(detail).toContain('data-sot-surface="recording-workstation"');
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain(
