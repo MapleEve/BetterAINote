@@ -1071,10 +1071,24 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain('data-sot-control="source-save"');
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');
         expect(speakerReview).toContain("data-sot-state=");
+        expect(speakerReview).toContain("<CardHeader");
+        expect(speakerReview).toContain("<ToggleGroup");
+        expect(speakerReview).toContain("<Badge");
+        expect(speakerReview).toContain("<Alert");
+        expect(speakerReview).toContain('data-sot-list="speaker-review-rows"');
+        expect(speakerReview).toContain('data-sot-item="speaker-review-row"');
         expect(speakerReview).toContain("<section");
         expect(speakerReview).toContain(
             "data-sot-speaker-label={speaker.rawLabel}",
         );
+        expect(speakerReview).not.toContain('className="sp-head"');
+        expect(speakerReview).not.toContain(
+            'className="sp-rows sp-rows-review"',
+        );
+        expect(speakerReview).not.toContain('className="sp-row"');
+        expect(speakerReview).not.toContain('className="sp-row-meta"');
+        expect(speakerReview).not.toContain('className="sp-edit-actions"');
+        expect(speakerReview).not.toContain('className="sp-suggest-row"');
         expect(detail).toContain('data-sot-surface="recording-workstation"');
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain(

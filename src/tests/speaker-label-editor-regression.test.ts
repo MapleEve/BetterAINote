@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 describe("dashboard speaker label editor regressions", () => {
     const source = readFileSync(
@@ -67,7 +67,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(labelIndex).toBeGreaterThan(-1);
         expect(createOptionIndex).toBeGreaterThan(labelIndex);
 
-        const cardStart = source.lastIndexOf("<div", labelIndex);
+        const cardStart = source.lastIndexOf("<Card", labelIndex);
         const cardOpeningSlice = source.slice(cardStart, labelIndex + 360);
         const cardInteractionSlice = source.slice(
             cardStart,
@@ -75,6 +75,9 @@ describe("dashboard speaker label editor regressions", () => {
         );
 
         expect(cardOpeningSlice).toContain(labelMarker);
+        expect(cardOpeningSlice).toContain(
+            'data-sot-item="speaker-review-row"',
+        );
         expect(cardOpeningSlice).toContain("data-sot-speaker-mapped={String(");
         expect(cardOpeningSlice).toContain(
             "data-sot-speaker-has-playable-sample={String(",
@@ -94,7 +97,8 @@ describe("dashboard speaker label editor regressions", () => {
 
     it("keeps speaker list load failures distinct from empty state", () => {
         expect(source).toContain("speakerLoadError");
-        expect(source).toContain('role="alert"');
+        expect(source).toContain("<Alert");
+        expect(source).toContain('variant="destructive"');
         expect(source).toContain("onClick={() => void refreshSpeakers()}");
         expect(source).toContain("speakerLoadError ? (");
         expect(source).toContain(") : speakers.length === 0 ? (");
@@ -129,11 +133,19 @@ describe("dashboard speaker label editor regressions", () => {
             'return hasLiveNoMatch ? "no-match" : undefined;',
         );
         expect(source).toContain("speakerReview.noMatchingSpeakers");
-        const rowSubIndex = source.indexOf('className="sp-row-sub mono"');
+        const rowSubIndex = source.indexOf(
+            'data-sot-part="speaker-review-row-sub"',
+        );
+        const noMatchBranchIndex = source.indexOf(
+            "hasLiveNoMatch",
+            rowSubIndex,
+        );
         expect(rowSubIndex).toBeGreaterThan(-1);
-        const rowSubEndIndex = source.indexOf("</div>", rowSubIndex);
-        expect(rowSubEndIndex).toBeGreaterThan(rowSubIndex);
-        const rowSubSlice = source.slice(rowSubIndex, rowSubEndIndex);
+        expect(noMatchBranchIndex).toBeGreaterThan(rowSubIndex);
+        const rowSubSlice = source.slice(
+            rowSubIndex,
+            noMatchBranchIndex + 2_400,
+        );
         expect(rowSubSlice).toContain("hasLiveNoMatch");
         expect(rowSubSlice).toContain("speakerReview.noMatchingSpeakers");
         expect(rowSubSlice).toContain("speakerReview.notMappedYet");
@@ -176,13 +188,22 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("data-spk-input");
         expect(source).toContain("data-spk-cancel");
         expect(source).toContain("data-spk-save");
+        expect(source).toContain(
+            'data-sot-control="speaker-review-inline-name"',
+        );
+        expect(source).toContain(
+            'data-sot-control="speaker-review-inline-cancel"',
+        );
+        expect(source).toContain(
+            'data-sot-control="speaker-review-inline-save"',
+        );
         expect(source).toContain('variant="primary"');
         expect(source).toContain('t("common.cancel")');
         expect(source).toContain('t("common.save")');
         expect(source).toMatch(/event\.key ===\s*"Escape"/);
         expect(source).toMatch(/event\.key ===\s*"Enter"/);
         expect(source).toMatch(
-            /<div className="sp-row-meta">[\s\S]*?<Input[\s\S]*?data-spk-input[\s\S]*?<\/div>\s*<div className="sp-edit-actions">[\s\S]*?data-spk-cancel[\s\S]*?data-spk-save/,
+            /<div data-sot-part="speaker-review-row-meta">[\s\S]*?<Input[\s\S]*?data-spk-input[\s\S]*?<\/div>\s*<div data-sot-part="speaker-review-actions">[\s\S]*?data-spk-cancel[\s\S]*?data-spk-save/,
         );
         expect(source).toMatch(
             /handleAssignProfile\(\s*speaker\.rawLabel,\s*nextProfileId,\s*nextName,\s*\)/,
@@ -201,11 +222,14 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("Record<string, SpeakerSaveError>");
         expect(source).toContain("[rawLabel]: failedPayload");
         expect(source).toContain('return "error";');
-        expect(source).toContain('<ul className="sp-rows sp-rows-review">');
-        expect(source).toContain("<li");
-        expect(source).toContain('className="sp-row-sub is-danger"');
+        expect(source).toContain('data-sot-list="speaker-review-rows"');
+        expect(source).toContain('data-sot-item="speaker-review-row"');
+        expect(source).toContain('data-sot-tone="danger"');
         expect(source).toContain("speakerReview.saveFailedRetry");
         expect(source).toContain('t("common.retry")');
+        expect(source).toContain(
+            'data-sot-control="speaker-review-save-retry"',
+        );
         expect(source).toMatch(
             /handleAssignProfile\(\s*saveError\.rawLabel,\s*saveError\.profileId,\s*saveError\.profileName,/,
         );
@@ -258,6 +282,18 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
         expect(source).toContain('variant="ghost"');
         expect(source).toContain('variant="danger"');
+        expect(source).toContain("<ToggleGroup");
+        expect(source).toContain("<ToggleGroupItem");
+        expect(source).toContain("<Badge");
+        expect(source).toContain("<Alert");
+        expect(source).toContain("<CardHeader");
+        expect(source).not.toContain('className="sp-head"');
+        expect(source).not.toContain('className="sp-rows sp-rows-review"');
+        expect(source).not.toContain('className="sp-row"');
+        expect(source).not.toContain('className="sp-row-meta"');
+        expect(source).not.toContain('className="sp-edit-actions"');
+        expect(source).not.toContain('className="sp-suggest-row"');
+        expect(source).not.toContain('className="sp-vp-pill');
 
         const confirmStart = source.indexOf(
             'data-sot-confirm="speaker-unlink"',
