@@ -294,6 +294,24 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain('className="sp-edit-actions"');
         expect(source).not.toContain('className="sp-suggest-row"');
         expect(source).not.toContain('className="sp-vp-pill');
+        expect(source).toContain('data-sot-list="speaker-review-meta"');
+        expect(source).toContain(
+            'data-sot-part="speaker-review-transcript-section"',
+        );
+        expect(source).toContain(
+            'data-sot-list="speaker-review-sample-segments"',
+        );
+        expect(source).toContain(
+            'data-sot-item="speaker-review-sample-segment"',
+        );
+        expect(source).not.toContain('className="sr-meta"');
+        expect(source).not.toContain('className="sr-section"');
+        expect(source).not.toContain('className="sr-section-head"');
+        expect(source).not.toContain('className="sr-section-sub"');
+        expect(source).not.toContain('className="sr-segments"');
+        expect(source).not.toContain('className="sr-seg"');
+        expect(source).not.toContain('className="sr-seg-speaker"');
+        expect(source).not.toContain('className="sr-seg-text"');
 
         const confirmStart = source.indexOf(
             'data-sot-confirm="speaker-unlink"',

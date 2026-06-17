@@ -854,7 +854,6 @@ export function SpeakerLabelEditor({
                 ) : activeReview ? (
                     <CardContent data-sot-part="speaker-review-transcript-content">
                         <div
-                            className="sr-meta"
                             data-sot-list="speaker-review-meta"
                         >
                             {activeReview.detectedLanguage ? (
@@ -914,8 +913,10 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div className="sr-section">
-                            <p className="sr-seg-text">{activeReview.text}</p>
+                        <div data-sot-part="speaker-review-transcript-section">
+                            <p data-sot-part="speaker-review-segment-text">
+                                {activeReview.text}
+                            </p>
                         </div>
                     </CardContent>
                 ) : null}
@@ -1235,31 +1236,30 @@ export function SpeakerLabelEditor({
                                         </div>
 
                                         <div
-                                            className="sr-section"
                                             data-sot-part="speaker-review-samples"
                                         >
-                                            <div className="sr-section-head">
+                                            <div data-sot-part="speaker-review-section-head">
                                                 <p data-sot-part="speaker-review-section-title">
                                                     {t(
                                                         "speakerReview.samplesTitle",
                                                     )}
                                                 </p>
-                                                <p className="sr-section-sub">
+                                                <p data-sot-part="speaker-review-section-description">
                                                     {t(
                                                         "speakerReview.samplesDescription",
                                                     )}
                                                 </p>
                                             </div>
                                             {speaker.sampleCount > 0 ? (
-                                                <div className="sr-segments">
+                                                <div data-sot-list="speaker-review-sample-segments">
                                                     {speaker.sampleSegments.map(
                                                         (segment, index) => (
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
-                                                                className="sr-seg"
+                                                                data-sot-item="speaker-review-sample-segment"
                                                             >
                                                                 <div data-sot-part="speaker-review-segment-meta">
-                                                                    <p className="sr-seg-speaker">
+                                                                    <p data-sot-part="speaker-review-segment-title">
                                                                         {t(
                                                                             "speakerReview.sample",
                                                                             {
@@ -1300,7 +1300,7 @@ export function SpeakerLabelEditor({
                                                                               )}
                                                                     </Button>
                                                                 </div>
-                                                                <p className="sr-seg-text">
+                                                                <p data-sot-part="speaker-review-segment-text">
                                                                     {segment.text?.trim() ||
                                                                         t(
                                                                             "speakerReview.noSampleSnippet",

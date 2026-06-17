@@ -1077,6 +1077,16 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain("<Alert");
         expect(speakerReview).toContain('data-sot-list="speaker-review-rows"');
         expect(speakerReview).toContain('data-sot-item="speaker-review-row"');
+        expect(speakerReview).toContain('data-sot-list="speaker-review-meta"');
+        expect(speakerReview).toContain(
+            'data-sot-part="speaker-review-transcript-section"',
+        );
+        expect(speakerReview).toContain(
+            'data-sot-list="speaker-review-sample-segments"',
+        );
+        expect(speakerReview).toContain(
+            'data-sot-item="speaker-review-sample-segment"',
+        );
         expect(speakerReview).toContain("<section");
         expect(speakerReview).toContain(
             "data-sot-speaker-label={speaker.rawLabel}",
@@ -1089,6 +1099,14 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).not.toContain('className="sp-row-meta"');
         expect(speakerReview).not.toContain('className="sp-edit-actions"');
         expect(speakerReview).not.toContain('className="sp-suggest-row"');
+        expect(speakerReview).not.toContain('className="sr-meta"');
+        expect(speakerReview).not.toContain('className="sr-section"');
+        expect(speakerReview).not.toContain('className="sr-section-head"');
+        expect(speakerReview).not.toContain('className="sr-section-sub"');
+        expect(speakerReview).not.toContain('className="sr-segments"');
+        expect(speakerReview).not.toContain('className="sr-seg"');
+        expect(speakerReview).not.toContain('className="sr-seg-speaker"');
+        expect(speakerReview).not.toContain('className="sr-seg-text"');
         expect(detail).toContain('data-sot-surface="recording-workstation"');
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain(

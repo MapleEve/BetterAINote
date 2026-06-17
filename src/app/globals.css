@@ -11666,6 +11666,76 @@ select::-ms-expand {
 [data-sot-part="speaker-review-transcript-content"] {
     padding: 0 16px 14px;
 }
+[data-sot-list="speaker-review-meta"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 14px;
+    margin: 1em 0;
+}
+[data-sot-list="speaker-review-meta"] > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 500 11.5px var(--font-sans);
+    color: var(--fg-tertiary);
+}
+[data-sot-part="speaker-review-transcript-section"],
+[data-sot-part="speaker-review-samples"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-hairline);
+}
+[data-theme="dark"] [data-sot-part="speaker-review-transcript-section"],
+[data-theme="dark"] [data-sot-part="speaker-review-samples"] {
+    border-top-color: var(--glass-border-soft);
+}
+[data-sot-part="speaker-review-section-head"] {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+[data-sot-part="speaker-review-section-description"] {
+    margin: 0;
+    font: 500 11.5px var(--font-sans);
+    color: var(--fg-tertiary);
+}
+[data-sot-list="speaker-review-sample-segments"] {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+[data-sot-item="speaker-review-sample-segment"] {
+    display: grid;
+    grid-template-columns: 96px 56px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: transparent;
+}
+[data-sot-item="speaker-review-sample-segment"]:hover {
+    background: var(--bg-recessed);
+}
+[data-theme="dark"] [data-sot-item="speaker-review-sample-segment"]:hover {
+    background: rgb(255 255 255 / 0.03);
+}
+[data-sot-part="speaker-review-segment-title"] {
+    margin: 0;
+    font: 600 12px var(--font-sans);
+    color: var(--fg-secondary);
+}
+[data-sot-part="speaker-review-segment-text"] {
+    margin: 0;
+    font: 500 12.5px / 1.55 var(--font-sans);
+    color: var(--fg-primary);
+    text-wrap: pretty;
+}
 [data-sot-part="speaker-review-state"] {
     display: flex;
     flex-direction: column;
@@ -11789,12 +11859,12 @@ select::-ms-expand {
         max-width: 100%;
     }
     [data-sot-part="speaker-review-row-sub"],
-    [data-sot-part="speaker-review-samples"] .sr-section-sub,
-    [data-sot-part="speaker-review-samples"] .sr-seg-text {
+    [data-sot-part="speaker-review-section-description"],
+    [data-sot-part="speaker-review-segment-text"] {
         white-space: normal;
         overflow-wrap: anywhere;
     }
-    [data-sot-part="speaker-review-samples"] .sr-seg {
+    [data-sot-item="speaker-review-sample-segment"] {
         grid-template-columns: minmax(0, 1fr);
     }
 }
