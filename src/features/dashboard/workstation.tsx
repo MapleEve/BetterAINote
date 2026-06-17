@@ -6531,7 +6531,10 @@ export function Workstation({
                                                     className="turn skel-turn"
                                                     key={`transcript-skeleton:${item.key}`}
                                                 >
-                                                    <div className="speaker">
+                                                    <div
+                                                        data-sot-part="dashboard-transcript-speaker-row"
+                                                        data-sot-state="loading"
+                                                    >
                                                         <Skeleton
                                                             aria-hidden="true"
                                                             className="dashboard-transcript-avatar-skeleton size-6 rounded-full"
@@ -6591,7 +6594,10 @@ export function Workstation({
                                                     className="turn"
                                                     key={`${selectedRecording?.id}:${index}`}
                                                 >
-                                                    <div className="speaker">
+                                                    <div
+                                                        data-sot-part="dashboard-transcript-speaker-row"
+                                                        data-sot-state="ready"
+                                                    >
                                                         <span
                                                             className={
                                                                 TRANSCRIPT_AVATAR_TONE_CLASSES[
@@ -6602,10 +6608,13 @@ export function Workstation({
                                                         >
                                                             {avatarLabel}
                                                         </span>
-                                                        <span className="speaker-name">
+                                                        <span data-sot-part="dashboard-transcript-speaker-name">
                                                             {speakerName}
                                                         </span>
-                                                        <span className="ts mono">
+                                                        <span
+                                                            className="ts mono"
+                                                            data-sot-part="dashboard-transcript-speaker-time"
+                                                        >
                                                             {timeLabel ?? "--"}
                                                         </span>
                                                     </div>

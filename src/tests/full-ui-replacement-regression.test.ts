@@ -18,6 +18,18 @@ function extractCardSlice(source: string, marker: string) {
     return source.slice(start, end + "</Card>".length);
 }
 
+function extractBoundedSlice(
+    source: string,
+    startMarker: string,
+    endMarker: string,
+) {
+    const start = source.indexOf(startMarker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(endMarker, start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end);
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -994,6 +1006,16 @@ describe("full UI replacement regression coverage", () => {
             workstation,
             'data-sot-panel="dashboard-transcript-shell"',
         );
+        const dashboardTranscriptLoadingTurn = extractBoundedSlice(
+            workstation,
+            "key={`transcript-skeleton:",
+            ") : turns.length ? (",
+        );
+        const dashboardTranscriptReadyTurn = extractBoundedSlice(
+            workstation,
+            "turns.map((turn, index) => {",
+            ") : (",
+        );
         const headerPanelIndex = workstation.indexOf(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -1076,6 +1098,31 @@ describe("full UI replacement regression coverage", () => {
             'className="transcript-body"',
         ]) {
             expect(dashboardTranscriptShell).not.toContain(legacyClass);
+        }
+        expect(dashboardTranscriptLoadingTurn).toContain(
+            'data-sot-part="dashboard-transcript-speaker-row"',
+        );
+        expect(dashboardTranscriptLoadingTurn).toContain(
+            'data-sot-state="loading"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-part="dashboard-transcript-speaker-row"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-state="ready"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-part="dashboard-transcript-speaker-name"',
+        );
+        expect(dashboardTranscriptReadyTurn).toContain(
+            'data-sot-part="dashboard-transcript-speaker-time"',
+        );
+        for (const localTurnSlice of [
+            dashboardTranscriptLoadingTurn,
+            dashboardTranscriptReadyTurn,
+        ]) {
+            expect(localTurnSlice).not.toContain('className="speaker"');
+            expect(localTurnSlice).not.toContain('className="speaker-name"');
         }
         expect(workstation).toContain('aria-label="详情标签"');
         expect(workstation).toContain(
