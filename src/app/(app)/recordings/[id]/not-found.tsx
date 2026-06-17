@@ -23,9 +23,12 @@ export default function RecordingNotFound() {
                 </header>
                 <div className="workspace">
                     <section className="detail" data-empty="true">
-                        <div className="detail-empty">
+                        <div
+                            data-detail-empty=""
+                            data-sot-panel="recording-route-empty"
+                        >
                             <div
-                                className="detail-empty-ico"
+                                data-sot-part="recording-route-empty-icon"
                                 aria-hidden="true"
                             >
                                 {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT decorative empty-state icon is hidden from assistive tech. */}
@@ -35,8 +38,10 @@ export default function RecordingNotFound() {
                                     <circle cx="18" cy="16" r="3" />
                                 </svg>
                             </div>
-                            <div className="detail-empty-title">录音不存在</div>
-                            <div className="detail-empty-sub">
+                            <div data-sot-part="recording-route-empty-title">
+                                录音不存在
+                            </div>
+                            <div data-sot-part="recording-route-empty-description">
                                 这条录音不存在或已经被删除，返回工作台后可以继续查看其他录音。
                             </div>
                             <Button asChild variant="primary">

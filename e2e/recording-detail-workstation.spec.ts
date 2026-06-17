@@ -4943,7 +4943,8 @@ async function collectWorkspaceStandaloneErrorRuntimeFrames(
 
             const metrics = await readWorkspaceVisualMetrics(page, {
                 detail: '.workspace .detail[data-empty="true"]',
-                emptyDetail: '.workspace .detail[data-empty="true"] .detail-empty',
+                emptyDetail:
+                    '.workspace .detail[data-empty="true"] [data-sot-panel="recording-route-empty"]',
                 listPanel: '[data-sot-panel="recording-detail-list"]',
                 selectedRow: ".workspace .real-list .row.active",
                 workspace: ".workspace",
@@ -5107,10 +5108,10 @@ async function readStandaloneErrorSourceEvidence() {
     const source = await readFile(absoluteFile, "utf8");
     const selectors = {
         detail: 'className="detail" data-empty="true"',
-        detailEmpty: 'className="detail-empty"',
-        detailEmptyIcon: 'className="detail-empty-ico"',
-        detailEmptySub: 'className="detail-empty-sub"',
-        detailEmptyTitle: 'className="detail-empty-title"',
+        detailEmpty: 'data-sot-panel="recording-route-empty"',
+        detailEmptyIcon: 'data-sot-part="recording-route-empty-icon"',
+        detailEmptySub: 'data-sot-part="recording-route-empty-description"',
+        detailEmptyTitle: 'data-sot-part="recording-route-empty-title"',
         workspace: 'className="workspace"',
     };
     const selectorsPresent = Object.fromEntries(
@@ -5322,12 +5323,12 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         await page.goto(`/recordings/e2e-row96-missing-${Date.now()}`, {
             waitUntil: "domcontentloaded",
         });
-        await expect(page.locator(".detail-empty-title")).toContainText(
-            "录音不存在",
-        );
+        await expect(
+            page.locator('[data-sot-part="recording-route-empty-title"]'),
+        ).toContainText("录音不存在");
         const standaloneNotFoundFrames = await collectWorkspaceVisualFrames(page, {
             detail: ".workspace .detail",
-            emptyDetail: ".workspace .detail-empty",
+            emptyDetail: '.workspace [data-sot-panel="recording-route-empty"]',
             listPanel: '[data-sot-panel="recording-detail-list"]',
             selectedRow: ".workspace .real-list .row.active",
             workspace: ".workspace",
@@ -5482,10 +5483,12 @@ test("Workspace standalone error boundary runtime visual row 96", async ({
     await expect(
         page.locator('.detail[data-empty="true"]').first(),
     ).toBeVisible();
-    await expect(page.locator(".detail-empty").first()).toBeVisible();
-    await expect(page.locator(".detail-empty-title").first()).toContainText(
-        "加载失败",
-    );
+    await expect(
+        page.locator('[data-sot-panel="recording-route-empty"]').first(),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-part="recording-route-empty-title"]').first(),
+    ).toContainText("加载失败");
     await expect(page.getByRole("button", { name: "重试" })).toBeVisible();
     await expect(page.getByRole("link", { name: "返回工作台" })).toBeVisible();
 

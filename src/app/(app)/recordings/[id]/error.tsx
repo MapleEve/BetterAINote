@@ -23,9 +23,12 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                 </header>
                 <div className="workspace">
                     <section className="detail" data-empty="true">
-                        <div className="detail-empty">
+                        <div
+                            data-detail-empty=""
+                            data-sot-panel="recording-route-empty"
+                        >
                             <div
-                                className="detail-empty-ico"
+                                data-sot-part="recording-route-empty-icon"
                                 aria-hidden="true"
                             >
                                 {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT decorative empty-state icon is hidden from assistive tech. */}
@@ -35,8 +38,10 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                     <circle cx="18" cy="16" r="3" />
                                 </svg>
                             </div>
-                            <div className="detail-empty-title">加载失败</div>
-                            <div className="detail-empty-sub">
+                            <div data-sot-part="recording-route-empty-title">
+                                加载失败
+                            </div>
+                            <div data-sot-part="recording-route-empty-description">
                                 录音详情暂时无法加载，可以重试或返回工作台。
                             </div>
                             <div

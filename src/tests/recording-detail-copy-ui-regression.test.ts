@@ -764,11 +764,19 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).toContain("BetterAINote");
             expect(source).toContain('href="/dashboard"');
             expect(source).toContain("返回工作台");
+            expect(source).toContain('data-sot-panel="recording-route-empty"');
+            expect(source).toContain(
+                'data-sot-part="recording-route-empty-title"',
+            );
             expect(source).toContain(
                 'import { Button } from "@/components/ui/button";',
             );
             expect(source).not.toContain('className="btn primary"');
             expect(source).not.toContain('className="btn ghost"');
+            expect(source).not.toContain('className="detail-empty"');
+            expect(source).not.toContain('className="detail-empty-ico"');
+            expect(source).not.toContain('className="detail-empty-title"');
+            expect(source).not.toContain('className="detail-empty-sub"');
         }
 
         expect(notFound).toContain('<Button asChild variant="primary">');
