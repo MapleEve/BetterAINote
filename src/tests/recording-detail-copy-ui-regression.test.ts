@@ -339,7 +339,58 @@ describe("recording detail copy and title action UI regressions", () => {
         const dashboardTranscript = readSource(
             "features/dashboard/workstation.tsx",
         );
+        const badge = readSource("components/ui/badge.tsx");
+        const card = readSource("components/ui/card.tsx");
+        const input = readSource("components/ui/input.tsx");
+        const headerPanelIndex = dashboardTranscript.indexOf(
+            'data-sot-panel="dashboard-detail-header"',
+        );
+        const headerStart = dashboardTranscript.lastIndexOf(
+            "<CardHeader",
+            headerPanelIndex,
+        );
+        const headerEnd = dashboardTranscript.indexOf(
+            "</CardHeader>",
+            headerStart,
+        );
+        const dashboardDetailHeader = dashboardTranscript.slice(
+            headerStart,
+            headerEnd + "</CardHeader>".length,
+        );
+        const legacyHeaderClassNamePattern =
+            /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
+        expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(headerStart).toBeGreaterThanOrEqual(0);
+        expect(headerEnd).toBeGreaterThan(headerStart);
+        expect(dashboardTranscript).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(dashboardTranscript).toContain(
+            'import { Input } from "@/components/ui/input";',
+        );
+        expect(badge).toContain('data-slot="badge"');
+        expect(card).toContain('data-slot="card-header"');
+        expect(input).toContain('data-slot="input"');
+        expect(dashboardDetailHeader).toContain(
+            'data-sot-panel="dashboard-detail-header"',
+        );
+        expect(dashboardDetailHeader).toContain("<CardHeader");
+        expect(dashboardDetailHeader).toContain("<CardTitle");
+        expect(dashboardDetailHeader).toContain("<Badge");
+        expect(dashboardDetailHeader).toContain("data-rename-mode");
+        expect(dashboardDetailHeader).toContain(
+            'data-sot-part="detail-header-title-input"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'data-sot-part="detail-header-action"',
+        );
+        expect(dashboardDetailHeader).toContain("data-rh-edit-start");
+        expect(dashboardDetailHeader).toContain("data-rh-edit-save");
+        expect(dashboardDetailHeader).toContain("data-rh-edit-cancel");
+        expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
+        expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
+        expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(dashboardTranscript).toContain(
             'data-sot-panel="dashboard-retranscription"',
         );

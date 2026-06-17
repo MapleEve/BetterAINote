@@ -571,7 +571,7 @@ function selectedRecordingTitle(page: Page, title: string | RegExp) {
 }
 
 function dashboardRecordingHeader(page: Page) {
-    return page.locator(".detail .rec-head").first();
+    return page.locator('[data-sot-panel="dashboard-detail-header"]').first();
 }
 
 function tagDialog(page: Page) {
@@ -704,11 +704,34 @@ async function openSotAiRenamePanel(
     );
 }
 
-async function readFixtureOuterHtml(locator: Locator) {
-    return locator.evaluate((element) => {
+async function readFixtureOuterHtml(
+    locator: Locator,
+    options: { localOnly?: boolean } = {},
+) {
+    return locator.evaluate((element, readOptions) => {
         const clone = element.cloneNode(true) as Element;
         const sourceFields = element.querySelectorAll("input, textarea, select");
         const cloneFields = clone.querySelectorAll("input, textarea, select");
+        const head =
+            clone instanceof HTMLElement &&
+            (clone.matches(".rec-head") ||
+                clone.matches('[data-sot-panel="dashboard-detail-header"]'))
+                ? clone
+                : clone.querySelector<HTMLElement>(
+                      '.rec-head, [data-sot-panel="dashboard-detail-header"]',
+                  );
+
+        if (typeof readOptions.localOnly === "boolean") {
+            head?.setAttribute("data-local-only", String(readOptions.localOnly));
+            const localBadge = head?.querySelector<HTMLElement>("[data-rh-local]");
+            if (localBadge) {
+                if (readOptions.localOnly) {
+                    localBadge.style.removeProperty("display");
+                } else {
+                    localBadge.style.display = "none";
+                }
+            }
+        }
 
         sourceFields.forEach((source, index) => {
             const target = cloneFields[index];
@@ -750,7 +773,7 @@ async function readFixtureOuterHtml(locator: Locator) {
         });
 
         return clone.outerHTML;
-    });
+    }, options);
 }
 
 async function captureHeaderPlacementFixture(
@@ -829,8 +852,10 @@ async function expectDashboardHeaderPlacementPixelMatch(
     const defaultWidth = await sotHeader.evaluate((element) =>
         Math.round(element.getBoundingClientRect().width),
     );
+    const productLocalOnly =
+        (await productHeader.getAttribute("data-local-only")) === "true";
     const [sotHtml, productHtml] = await Promise.all([
-        readFixtureOuterHtml(sotHeader),
+        readFixtureOuterHtml(sotHeader, { localOnly: productLocalOnly }),
         readFixtureOuterHtml(productHeader),
     ]);
     const targetWidths = widths ?? [defaultWidth];

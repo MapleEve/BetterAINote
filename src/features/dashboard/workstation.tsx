@@ -7,13 +7,16 @@ import {
     CheckCircle,
     CloudDownload,
     Copy,
+    EllipsisVertical,
     FileText,
     Mic,
     PanelLeft,
+    Pencil,
     Plus,
     RefreshCw,
     Search,
     Tags,
+    WandSparkles,
     X,
 } from "lucide-react";
 import {
@@ -46,6 +49,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
     InputGroup,
     InputGroupAddon,
@@ -1077,48 +1081,6 @@ function searchResultFilterLabel(result: SearchResult) {
         return result.speaker || result.title || result.body;
     }
     return result.title || result.tags?.[0] || result.body;
-}
-
-function SotHeaderRenameIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-        </svg>
-    );
-}
-
-function SotHeaderAiIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-        </svg>
-    );
-}
-
-function SotHeaderApplyIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-    );
-}
-
-function SotHeaderCloseIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M18 6 6 18M6 6l12 12" />
-        </svg>
-    );
-}
-
-function SotHeaderMoreIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="5" r="1" />
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="12" cy="19" r="1" />
-        </svg>
-    );
 }
 
 function RetxWarnIcon() {
@@ -5534,31 +5496,52 @@ export function Workstation({
                         className="detail"
                         data-empty={selectedRecording ? "false" : "true"}
                     >
-                        <div
-                            className="rec-head"
+                        <CardHeader
+                            data-sot-panel="dashboard-detail-header"
+                            data-sot-mode={editingTitle ? "editing" : "normal"}
+                            data-sot-state={
+                                renaming
+                                    ? "saving"
+                                    : editingTitle
+                                      ? "editing"
+                                      : "normal"
+                            }
                             data-rename-mode={
-                                editingTitle ? "editing" : "normal"
+                                renaming
+                                    ? "saving"
+                                    : editingTitle
+                                      ? "editing"
+                                      : "normal"
                             }
                             data-local-only={
                                 localDeleteAvailable ? "true" : "false"
                             }
                         >
-                            <h2 className="rec-h2" data-rh-title>
+                            <CardTitle
+                                data-sot-part="detail-header-title"
+                                data-rh-title
+                                role="heading"
+                                aria-level={2}
+                            >
                                 {selectedRecording?.filename ?? "未选择录音"}
-                            </h2>
-                            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: SOT rec-head local badge keeps aria-label on this span. */}
-                            <span
-                                className="rec-h2-local"
+                            </CardTitle>
+                            <Badge
+                                variant="outline"
+                                data-sot-part="detail-header-local-badge"
                                 data-rh-local
                                 aria-label="仅存在本地副本"
                             >
                                 本地副本
-                            </span>
+                            </Badge>
                             {editingTitle ? (
                                 <>
-                                    <input
-                                        className="rec-h2-input"
+                                    <Input
+                                        type="text"
                                         data-rh-input
+                                        data-sot-part="detail-header-title-input"
+                                        data-sot-state={
+                                            renaming ? "saving" : "editing"
+                                        }
                                         value={draftTitle}
                                         aria-label="录音标题"
                                         maxLength={120}
@@ -5578,33 +5561,47 @@ export function Workstation({
                                             }
                                         }}
                                     />
-                                    <span
-                                        className="rec-h2-status"
+                                    <Badge
+                                        variant="ghost"
+                                        data-sot-part="detail-header-title-status"
+                                        data-sot-state={
+                                            renaming ? "saving" : "editing"
+                                        }
                                         data-rh-status
                                     >
                                         {renaming ? "正在保存…" : "编辑中"}
-                                    </span>
+                                    </Badge>
                                 </>
                             ) : null}
                             <Button
                                 variant="ghost"
                                 size="icon-sm"
-                                className="rh-norm"
                                 type="button"
                                 aria-label="重命名"
                                 title="重命名"
+                                data-rh-edit-start
+                                data-sot-control="rename-recording-title"
+                                data-sot-part="detail-header-action"
+                                data-sot-mode="normal"
                                 disabled={!selectedRecording}
                                 onClick={() => setEditingTitle(true)}
                             >
-                                <SotHeaderRenameIcon />
+                                <Pencil data-icon="inline-start" />
                             </Button>
-                            <div className="ai-rename-anchor rh-norm">
+                            <div
+                                data-rh-ai-anchor
+                                data-sot-part="detail-header-action-anchor"
+                                data-sot-mode="normal"
+                            >
                                 <Button
                                     variant="glass"
                                     type="button"
                                     aria-haspopup="dialog"
                                     aria-expanded={aiOpen}
+                                    data-rh-ai-trigger
                                     data-sot-control="ai-rename"
+                                    data-sot-part="detail-header-action"
+                                    data-sot-mode="normal"
                                     data-sot-state={
                                         aiUnavailableReason
                                             ? "unavailable"
@@ -5615,7 +5612,7 @@ export function Workstation({
                                     title={aiUnavailableReason || undefined}
                                     onClick={() => void previewAutoRename()}
                                 >
-                                    <SotHeaderAiIcon />
+                                    <WandSparkles data-icon="inline-start" />
                                     AI 重命名
                                 </Button>
                                 {aiOpen && selectedRecording ? (
@@ -5666,22 +5663,28 @@ export function Workstation({
                                     <Button
                                         variant="ghost"
                                         size="icon-sm"
-                                        className="rh-edit rh-edit-save"
                                         type="button"
                                         aria-label="保存新标题"
                                         title="保存"
+                                        data-rh-edit-save
+                                        data-sot-control="save-recording-title"
+                                        data-sot-part="detail-header-action"
+                                        data-sot-mode="editing"
                                         disabled={renaming}
                                         onClick={() => void renameRecording()}
                                     >
-                                        <SotHeaderApplyIcon />
+                                        <Check data-icon="inline-start" />
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon-sm"
-                                        className="rh-edit"
                                         type="button"
                                         aria-label="取消重命名"
                                         title="取消"
+                                        data-rh-edit-cancel
+                                        data-sot-control="cancel-recording-title"
+                                        data-sot-part="detail-header-action"
+                                        data-sot-mode="editing"
                                         onClick={() => {
                                             setEditingTitle(false);
                                             setDraftTitle(
@@ -5690,11 +5693,14 @@ export function Workstation({
                                             );
                                         }}
                                     >
-                                        <SotHeaderCloseIcon />
+                                        <X data-icon="inline-start" />
                                     </Button>
                                 </>
                             ) : null}
-                            <div className="more-anchor rh-norm">
+                            <div
+                                data-sot-part="detail-header-action-anchor"
+                                data-sot-mode="normal"
+                            >
                                 <DropdownMenu
                                     modal={false}
                                     open={moreOpen}
@@ -5715,9 +5721,12 @@ export function Workstation({
                                             aria-label="更多操作"
                                             aria-haspopup="menu"
                                             aria-expanded={moreOpen}
+                                            data-sot-control="recording-more-actions"
+                                            data-sot-part="detail-header-action"
+                                            data-sot-mode="normal"
                                             ref={moreTriggerRef}
                                         >
-                                            <SotHeaderMoreIcon />
+                                            <EllipsisVertical data-icon="inline-start" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
@@ -5847,7 +5856,7 @@ export function Workstation({
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </div>
+                        </CardHeader>
 
                         <div
                             className="player"
