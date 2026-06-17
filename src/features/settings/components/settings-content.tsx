@@ -1418,7 +1418,6 @@ function DataSourcesSettingsPanel({
                                 <div className={SETTINGS_CONTROL_CLASS}>
                                     <Switch
                                         id={`${selectedSource.provider}-enabled`}
-                                        data-ds-enable=""
                                         data-sot-control="source-enable-sync"
                                         data-sot-provider={
                                             selectedSource.provider
@@ -1455,14 +1454,15 @@ function DataSourcesSettingsPanel({
                         </div>
 
                         <footer
-                            data-save-actions=""
-                            data-save-id={`ds-${selectedSource.provider}`}
-                            data-save-state={sourceSaveState}
+                            data-sot-panel="source-actions"
+                            data-sot-provider={selectedSource.provider}
+                            data-sot-state={sourceSaveState}
                         >
                             <Badge
                                 variant="ghost"
                                 className="border-0 bg-transparent p-0"
-                                data-save-status
+                                data-sot-part="source-action-status"
+                                data-sot-state={sourceSaveState}
                             >
                                 {actionMessage?.title ?? ""}
                             </Badge>
@@ -1470,8 +1470,9 @@ function DataSourcesSettingsPanel({
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                data-save-test=""
+                                data-sot-action="test"
                                 data-sot-control="source-test"
+                                data-sot-provider={selectedSource.provider}
                                 data-sot-state={sourceTestState}
                                 disabled={interactionDisabled}
                                 aria-busy={actionState === "testing"}
@@ -1495,8 +1496,9 @@ function DataSourcesSettingsPanel({
                                 type="button"
                                 variant="primary"
                                 size="sm"
-                                data-save-action=""
+                                data-sot-action="save"
                                 data-sot-control="source-save"
+                                data-sot-provider={selectedSource.provider}
                                 data-sot-state={sourceSaveState}
                                 disabled={interactionDisabled}
                                 aria-busy={actionState === "saving"}

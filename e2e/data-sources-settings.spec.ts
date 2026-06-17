@@ -1149,8 +1149,26 @@ async function expectComputedStyleMatch(
 
 function sourceEnableSyncControl(page: Page, provider: string) {
     return page.locator(
-        `[data-ds-enable][data-sot-control="source-enable-sync"][data-sot-provider="${provider}"]`,
+        `[data-sot-control="source-enable-sync"][data-sot-provider="${provider}"]`,
     );
+}
+
+function sourceActionFooter(root: Locator, provider: string) {
+    return root.locator(
+        `[data-sot-panel="source-actions"][data-sot-provider="${provider}"][data-sot-state]`,
+    );
+}
+
+function sourceActionStatus(root: Locator) {
+    return root.locator('[data-sot-part="source-action-status"]');
+}
+
+function sourceTestControl(root: Locator) {
+    return root.locator('[data-sot-control="source-test"]');
+}
+
+function sourceSaveControl(root: Locator) {
+    return root.locator('[data-sot-control="source-save"]');
 }
 
 async function expectSotSwitchChecked(locator: Locator) {
@@ -1321,20 +1339,10 @@ test("data sources settings rail and provider primitives match SOT computed styl
             '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
         );
         await expect(detail).toBeVisible();
-        const actionFooter = detail.locator(
-            '[data-save-id="ds-dingtalk-a1"][data-save-state]',
-        );
+        const actionFooter = sourceActionFooter(detail, "dingtalk-a1");
         await expect(actionFooter).toBeVisible();
-        await expect(
-            actionFooter.locator(
-                '[data-sot-control="source-test"][data-save-test]',
-            ),
-        ).toBeVisible();
-        await expect(
-            actionFooter.locator(
-                '[data-sot-control="source-save"][data-save-action]',
-            ),
-        ).toBeVisible();
+        await expect(sourceTestControl(actionFooter)).toBeVisible();
+        await expect(sourceSaveControl(actionFooter)).toBeVisible();
         const sotIndexPage = await browser.newPage();
         try {
             await openSotDataSourcesIndex(sotIndexPage);
@@ -1564,9 +1572,7 @@ test("data sources settings drives real backend forced save and expired states",
             .locator("#ticnote-source-secret")
             .fill("fake-real-backend-e2e-token");
 
-        const ticnoteSave = ticnoteDetail.locator(
-            '[data-sot-control="source-save"][data-save-action]',
-        );
+        const ticnoteSave = sourceSaveControl(ticnoteDetail);
         const saveSuccessResponse = page.waitForResponse(
             (response) =>
                 response.url().includes("/api/data-sources") &&
@@ -1584,10 +1590,11 @@ test("data sources settings drives real backend forced save and expired states",
         await expect(
             ticnoteDetail.locator('[data-sot-panel="source-state-banner"]'),
         ).toHaveAttribute("data-sot-tone", "ok");
-        await expect(
-            ticnoteDetail.locator('[data-save-id="ds-ticnote"][data-save-state]'),
-        ).toHaveAttribute("data-save-state", "saved");
-        await expect(ticnoteDetail.locator("[data-save-status]")).toContainText(
+        await expect(sourceActionFooter(ticnoteDetail, "ticnote")).toHaveAttribute(
+            "data-sot-state",
+            "saved",
+        );
+        await expect(sourceActionStatus(ticnoteDetail)).toContainText(
             "已保存",
         );
 
@@ -1598,9 +1605,7 @@ test("data sources settings drives real backend forced save and expired states",
             '[data-sot-panel="source-provider-detail"][data-sot-provider="iflyrec"]',
         );
         await sourceEnableSyncControl(page, "iflyrec").click();
-        const iflyrecSave = iflyrecDetail.locator(
-            '[data-sot-control="source-save"][data-save-action]',
-        );
+        const iflyrecSave = sourceSaveControl(iflyrecDetail);
         const saveErrorResponse = page.waitForResponse(
             (response) =>
                 response.url().includes("/api/data-sources") &&
@@ -1618,10 +1623,11 @@ test("data sources settings drives real backend forced save and expired states",
         await expect(
             iflyrecDetail.locator('[data-sot-panel="source-state-banner"]'),
         ).toHaveAttribute("data-sot-tone", "err");
-        await expect(
-            iflyrecDetail.locator('[data-save-id="ds-iflyrec"][data-save-state]'),
-        ).toHaveAttribute("data-save-state", "error");
-        await expect(iflyrecDetail.locator("[data-save-status]")).toContainText(
+        await expect(sourceActionFooter(iflyrecDetail, "iflyrec")).toHaveAttribute(
+            "data-sot-state",
+            "error",
+        );
+        await expect(sourceActionStatus(iflyrecDetail)).toContainText(
             "保存失败",
         );
     } finally {
@@ -1733,16 +1739,10 @@ test("data sources settings tests missing details then saves a provider through 
     ).toBeVisible();
 
     const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]');
-    const sourceTest = detail.locator(
-        '[data-sot-control="source-test"][data-save-test]',
-    );
-    const sourceSave = detail.locator(
-        '[data-sot-control="source-save"][data-save-action]',
-    );
-    const actionStatus = detail.locator("[data-save-status]");
-    const actionFooter = detail.locator(
-        '[data-save-id="ds-ticnote"][data-save-state]',
-    );
+    const sourceTest = sourceTestControl(detail);
+    const sourceSave = sourceSaveControl(detail);
+    const actionStatus = sourceActionStatus(detail);
+    const actionFooter = sourceActionFooter(detail, "ticnote");
     const stateBanner = detail.locator('[data-sot-panel="source-state-banner"]');
     const ticnoteEnable = sourceEnableSyncControl(page, "ticnote");
     await expect(detail).toBeVisible();
@@ -1761,12 +1761,12 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(detail.locator('[data-slot="field"]').first()).toBeVisible();
     await expect(detail.locator('[data-slot="field-content"]').first()).toBeVisible();
     await expect(detail.locator('[data-slot="input"]').first()).toBeVisible();
-    await expect(detail.locator("[data-save-actions]")).toBeVisible();
+    await expect(actionFooter).toBeVisible();
     await expect(detail.locator(".sm-detail-head")).toHaveCount(0);
     await expect(detail.locator(".modal-foot")).toHaveCount(0);
     await expect(sourceTest).toHaveAttribute("data-sot-state", "idle");
     await expect(sourceSave).toHaveAttribute("data-sot-state", "idle");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "idle");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
 
     await sourceTest.click();
     await expect(detail).toHaveAttribute(
@@ -1776,7 +1776,7 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(ticnoteRow).toHaveAttribute("data-sot-status", "test-error");
     await expect(stateBanner).toHaveAttribute("data-sot-tone", "err");
     await expect(sourceTest).toHaveAttribute("data-sot-state", "error");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "idle");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
     await expect(
         stateBanner,
     ).toContainText("信息不完整");
@@ -1798,7 +1798,7 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(sourceTest).toHaveAttribute("aria-busy", "true");
     await expect(sourceSave).toHaveAttribute("data-sot-state", "disabled");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "disabled");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "disabled");
     await expect(actionStatus).toContainText("测试中");
     await expect(shell).toHaveAttribute("data-sot-busy", "true");
     await expect(detail).toHaveAttribute(
@@ -1838,7 +1838,7 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
     await expect(sourceSave).toHaveAttribute("data-sot-state", "idle");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "idle");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "idle");
     await expect(actionStatus).toContainText("连接测试通过");
     await expect(detail).toHaveAttribute(
         "data-sot-interaction-disabled",
@@ -1885,7 +1885,7 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
     await expect(sourceSave).toHaveAttribute("data-sot-state", "saving");
     await expect(sourceSave).toHaveAttribute("aria-busy", "true");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "saving");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "saving");
     await expect(actionStatus).toContainText("保存中");
     await expect(shell).toHaveAttribute("data-sot-busy", "true");
     await expect(detail).toHaveAttribute(
@@ -1909,7 +1909,7 @@ test("data sources settings tests missing details then saves a provider through 
     await expect(sourceTest).toHaveAttribute("aria-busy", "false");
     await expect(sourceSave).toHaveAttribute("data-sot-state", "saved");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "saved");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "saved");
     await expect(stateBanner).toHaveAttribute("data-sot-tone", "ok");
     await expect(actionStatus).toContainText("已保存");
     await expect(detail).toHaveAttribute(
@@ -2049,16 +2049,10 @@ test("data sources settings keeps save failures scoped and editable", async ({
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
     const detail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="ticnote"]');
-    const sourceSave = detail.locator(
-        '[data-sot-control="source-save"][data-save-action]',
-    );
-    const sourceTest = detail.locator(
-        '[data-sot-control="source-test"][data-save-test]',
-    );
-    const actionStatus = detail.locator("[data-save-status]");
-    const actionFooter = detail.locator(
-        '[data-save-id="ds-ticnote"][data-save-state]',
-    );
+    const sourceSave = sourceSaveControl(detail);
+    const sourceTest = sourceTestControl(detail);
+    const actionStatus = sourceActionStatus(detail);
+    const actionFooter = sourceActionFooter(detail, "ticnote");
     const stateBanner = detail.locator('[data-sot-panel="source-state-banner"]');
     const ticnoteRow = section.locator('[data-sot-control="source-provider"][data-sot-provider="ticnote"]');
     const ticnoteEnable = sourceEnableSyncControl(page, "ticnote");
@@ -2072,7 +2066,7 @@ test("data sources settings keeps save failures scoped and editable", async ({
         "save-error",
     );
     await expect(sourceSave).toHaveAttribute("data-sot-state", "error");
-    await expect(actionFooter).toHaveAttribute("data-save-state", "error");
+    await expect(actionFooter).toHaveAttribute("data-sot-state", "error");
     await expect(ticnoteRow).toHaveAttribute("data-sot-status", "save-error");
     await expect(stateBanner).toHaveAttribute("data-sot-tone", "err");
     await expect(sourceSave).toHaveAttribute("aria-busy", "false");
@@ -2326,13 +2320,13 @@ test("data sources settings keeps responsive provider states and disabled action
         plannedDetail.locator("[data-sot-control=\"source-test\"]"),
     ).toBeDisabled();
     await expect(
-        plannedDetail.locator('[data-sot-control="source-test"][data-save-test]'),
+        sourceTestControl(plannedDetail),
     ).toHaveAttribute("data-sot-state", "disabled");
     await expect(
-        plannedDetail.locator("[data-sot-control=\"source-save\"][data-save-action]"),
+        sourceSaveControl(plannedDetail),
     ).toBeDisabled();
     await expect(
-        plannedDetail.locator('[data-sot-control="source-save"][data-save-action]'),
+        sourceSaveControl(plannedDetail),
     ).toHaveAttribute("data-sot-state", "disabled");
 });
 
@@ -2586,10 +2580,8 @@ test("data sources settings saves pause and reconnect lifecycle states", async (
         "connected",
     );
     await sourceEnableSyncControl(page, "plaud").click();
-    await expect(
-        plaudDetail.locator('[data-save-id="ds-plaud"][data-save-state]'),
-    ).toBeVisible();
-    await plaudDetail.locator("[data-sot-control=\"source-save\"][data-save-action]").click();
+    await expect(sourceActionFooter(plaudDetail, "plaud")).toBeVisible();
+    await sourceSaveControl(plaudDetail).click();
     await expect
         .poll(() => savePayloads.at(-1)?.provider)
         .toBe("plaud");
@@ -2618,10 +2610,8 @@ test("data sources settings saves pause and reconnect lifecycle states", async (
     await page
         .locator("#dingtalk-a1-source-secret")
         .fill("dt-meeting-agent-token-e2e");
-    await expect(
-        dingtalkDetail.locator('[data-save-id="ds-dingtalk-a1"][data-save-state]'),
-    ).toBeVisible();
-    await dingtalkDetail.locator("[data-sot-control=\"source-save\"][data-save-action]").click();
+    await expect(sourceActionFooter(dingtalkDetail, "dingtalk-a1")).toBeVisible();
+    await sourceSaveControl(dingtalkDetail).click();
     await expect
         .poll(() => savePayloads.at(-1)?.provider)
         .toBe("dingtalk-a1");

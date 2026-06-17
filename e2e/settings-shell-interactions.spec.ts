@@ -671,6 +671,9 @@ async function readShellMetrics(locator: Locator) {
             element.querySelector(
                 '[data-sot-control="settings-save"][data-sot-state="saving"]',
             ) ??
+            element.querySelector(
+                '[data-sot-panel="source-actions"][data-sot-state="saving"]',
+            ) ??
             element.querySelector('[data-save-actions][data-save-state="saving"]');
         const error = element.querySelector(
             '[data-sot-panel="settings-section-load-error"], [data-sot-banner][data-sot-tone="err"]',
@@ -820,7 +823,7 @@ async function readShellMetrics(locator: Locator) {
                           dedupe(
                               Array.from(
                                   dataSourcesRoot.querySelectorAll<HTMLElement>(
-                                      'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
+                                      'button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
                                   ),
                               )
                                   .filter(isVisible)
@@ -1005,7 +1008,7 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
         function collectVisibleActionLabels() {
             const stableActions = Array.from(
                 root.querySelectorAll<HTMLElement>(
-                    'button[data-save-test], button[data-save-action], button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
+                    'button[data-sot-control="source-test"], button[data-sot-control="source-save"], button[data-sot-control="source-reconnect"], button[data-sot-control="source-disconnect"], button[data-sot-control="source-auth-mode"]',
                 ),
             );
             const structuralActions = Array.from(

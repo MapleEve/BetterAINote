@@ -578,6 +578,8 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(inputPrimitive).not.toContain("field-input");
         expect(content).toContain("data-save-actions");
+        expect(content).toContain('data-sot-panel="source-actions"');
+        expect(content).toContain('data-sot-part="source-action-status"');
         expect(content).toContain('data-sot-control="source-test"');
         expect(content).toContain('data-sot-control="source-save"');
         expect(content).toContain('data-sot-control="source-reconnect"');
@@ -665,7 +667,7 @@ describe("settings SOT interaction regressions", () => {
             /<Switch\s+id=\{`\$\{selectedSource\.provider\}-enabled`\}[\s\S]*?\/>/,
         )?.[0];
 
-        expect(enableSwitch).toContain("data-ds-enable");
+        expect(enableSwitch).not.toContain("data-ds-enable");
         expect(enableSwitch).toContain('data-sot-control="source-enable-sync"');
         expect(enableSwitch).toMatch(
             /data-sot-state=\{\s*selectedSource\.enabled\s*\?\s*"checked"\s*:\s*"unchecked"\s*\}/,
@@ -755,8 +757,25 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourcesPanel).toContain(
             'data-sot-control="source-enable-sync"',
         );
+        expect(dataSourcesPanel).not.toContain("data-ds-enable");
+        expect(dataSourcesPanel).toContain('data-sot-panel="source-actions"');
+        expect(dataSourcesPanel).toContain(
+            "data-sot-provider={selectedSource.provider}",
+        );
+        expect(dataSourcesPanel).toContain("data-sot-state={sourceSaveState}");
+        expect(dataSourcesPanel).toContain(
+            'data-sot-part="source-action-status"',
+        );
         expect(dataSourcesPanel).toContain('data-sot-control="source-test"');
+        expect(dataSourcesPanel).toContain('data-sot-action="test"');
         expect(dataSourcesPanel).toContain('data-sot-control="source-save"');
+        expect(dataSourcesPanel).toContain('data-sot-action="save"');
+        expect(dataSourcesPanel).not.toContain('data-save-actions=""');
+        expect(dataSourcesPanel).not.toMatch(
+            /data-save-id=\{`ds-\$\{selectedSource\.provider\}`\}/,
+        );
+        expect(dataSourcesPanel).not.toContain('data-save-test=""');
+        expect(dataSourcesPanel).not.toContain('data-save-action=""');
         expect(dataSourcesPanel).toContain(
             'data-sot-control="source-reconnect"',
         );
@@ -852,7 +871,7 @@ describe("settings SOT interaction regressions", () => {
 
         const actionFooter =
             dataSourcesPanel.match(
-                /<footer[\s\S]*?data-save-actions=""[\s\S]*?<\/footer>/,
+                /<footer[\s\S]*?data-sot-panel="source-actions"[\s\S]*?<\/footer>/,
             )?.[0] ?? "";
         const actionOrder = [
             ...actionFooter.matchAll(
@@ -860,7 +879,18 @@ describe("settings SOT interaction regressions", () => {
             ),
         ].map((match) => match[1]);
 
-        expect(actionFooter).toContain("data-save-status");
+        expect(actionFooter).toContain('data-sot-panel="source-actions"');
+        expect(actionFooter).toContain(
+            "data-sot-provider={selectedSource.provider}",
+        );
+        expect(actionFooter).toContain("data-sot-state={sourceSaveState}");
+        expect(actionFooter).toContain('data-sot-part="source-action-status"');
+        expect(actionFooter).not.toContain("data-save-actions");
+        expect(actionFooter).not.toContain("data-save-id");
+        expect(actionFooter).not.toContain("data-save-state");
+        expect(actionFooter).not.toContain("data-save-status");
+        expect(actionFooter).not.toContain("data-save-test");
+        expect(actionFooter).not.toContain("data-save-action");
         expect(actionOrder).toEqual(["source-test", "source-save"]);
 
         const stateBannerBlock =
@@ -883,7 +913,16 @@ describe("settings SOT interaction regressions", () => {
             globals,
             "[data-save-actions] {\n    align-items: center;",
         );
+        const sourceActionBaseCss = readCssBlock(
+            globals,
+            '[data-sot-panel="source-actions"] {\n    align-items: center;',
+        );
         expect(actionStateBaseCss).toContain("flex-direction: row-reverse;");
+        expect(sourceActionBaseCss).toContain("flex-direction: row-reverse;");
+        expect(globals).toContain(
+            '[data-sot-panel="source-actions"][data-sot-state="saving"]',
+        );
+        expect(globals).toContain('[data-sot-part="source-action-status"]');
         expect(globals).not.toContain('data-sot-actions="source-actions"');
         expect([...actionOrder].reverse()).toEqual([
             "source-save",
@@ -1006,13 +1045,22 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(denoiseOptions).not.toContain('"关闭"');
         expect(denoiseOptions).not.toContain('"Noisereduce"');
+        expect(dataSourcesPanel).toContain('data-sot-panel="source-actions"');
+        expect(dataSourcesPanel).toContain(
+            'data-sot-part="source-action-status"',
+        );
+        expect(dataSourcesPanel).toContain('data-sot-control="source-test"');
         expect(dataSourcesPanel).toContain('data-sot-control="source-save"');
-        expect(dataSourcesPanel).toContain('data-save-actions=""');
-        expect(dataSourcesPanel).toMatch(
+        expect(dataSourcesPanel).toContain('data-sot-action="test"');
+        expect(dataSourcesPanel).toContain('data-sot-action="save"');
+        expect(dataSourcesPanel).not.toContain("data-ds-enable");
+        expect(dataSourcesPanel).not.toContain('data-save-actions=""');
+        expect(dataSourcesPanel).not.toMatch(
             /data-save-id=\{`ds-\$\{selectedSource\.provider\}`\}/,
         );
-        expect(dataSourcesPanel).toContain('data-save-test=""');
-        expect(dataSourcesPanel).toContain('data-save-action=""');
+        expect(dataSourcesPanel).not.toContain('data-save-test=""');
+        expect(dataSourcesPanel).not.toContain('data-save-action=""');
+        expect(dataSourcesPanel).not.toContain("data-save-status");
         expect(miscPanel).not.toContain("<SaveActions");
         expect(miscPanel).not.toContain('saveId="misc"');
         expect(miscPanel).not.toContain("data-save-action");
