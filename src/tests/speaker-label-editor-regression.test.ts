@@ -54,6 +54,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("speakerReview.mappedNamesCount");
         expect(source).toContain('data-sot-panel="speaker-review"');
         expect(source).toContain("<section");
+        expect(source).not.toContain('className="t-pane"');
         expect(previewSlice).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(previewSlice).not.toMatch(OLD_UI_CONTRACT_RE);
     });

@@ -320,7 +320,25 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-content"',
         );
-        expect(listPanel).toContain('className="real-list"');
+        expect(listPanel).toContain(
+            'data-sot-list="recording-detail-list-rows"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-item="recording-detail-list-row"',
+        );
+        expect(listPanel).toContain('data-sot-state="selected"');
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-body"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-title"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-meta"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-duration"',
+        );
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");
         for (const legacyClass of [
@@ -328,6 +346,12 @@ describe("recording detail copy and title action UI regressions", () => {
             'className="list-header"',
             'className="lh-titlebar"',
             'className="lh-title"',
+            'className="real-list"',
+            'className="row active"',
+            'className="body"',
+            'className="title"',
+            'className="meta"',
+            'className="dur mono"',
         ]) {
             expect(listPanel).not.toContain(legacyClass);
         }
@@ -453,7 +477,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("<SourceReportPanel");
         expect(detailWorkstation).toContain("onAvailabilityChange");
         expect(detailWorkstation).toContain("autoLoad");
-        expect(detailWorkstation).toContain('className="t-actions"');
+        expect(detailWorkstation).toContain(
+            'data-sot-part="recording-source-record-actions"',
+        );
+        expect(detailWorkstation).not.toContain('className="t-actions"');
         expect(detailWorkstation).toMatch(
             /aria-busy=\{\s*copyingAction ===\s*"local"\s*\}/,
         );

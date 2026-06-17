@@ -1665,7 +1665,25 @@ describe("full UI replacement regression coverage", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-content"',
         );
-        expect(listPanel).toContain('className="real-list"');
+        expect(listPanel).toContain(
+            'data-sot-list="recording-detail-list-rows"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-item="recording-detail-list-row"',
+        );
+        expect(listPanel).toContain('data-sot-state="selected"');
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-body"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-title"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-meta"',
+        );
+        expect(listPanel).toContain(
+            'data-sot-part="recording-detail-list-row-duration"',
+        );
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");
         for (const legacyClass of [
@@ -1673,6 +1691,12 @@ describe("full UI replacement regression coverage", () => {
             'className="list-header"',
             'className="lh-titlebar"',
             'className="lh-title"',
+            'className="real-list"',
+            'className="row active"',
+            'className="body"',
+            'className="title"',
+            'className="meta"',
+            'className="dur mono"',
         ]) {
             expect(listPanel).not.toContain(legacyClass);
         }

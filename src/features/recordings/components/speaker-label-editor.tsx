@@ -680,7 +680,6 @@ export function SpeakerLabelEditor({
 
     return (
         <section
-            className="t-pane"
             aria-label={panelLabel}
             data-tab-pane="speakers"
             data-sot-panel="speaker-review"
@@ -853,9 +852,7 @@ export function SpeakerLabelEditor({
                     </Alert>
                 ) : activeReview ? (
                     <CardContent data-sot-part="speaker-review-transcript-content">
-                        <div
-                            data-sot-list="speaker-review-meta"
-                        >
+                        <div data-sot-list="speaker-review-meta">
                             {activeReview.detectedLanguage ? (
                                 <span>
                                     {t("speakerReview.languageLabel")}:{" "}
@@ -948,14 +945,12 @@ export function SpeakerLabelEditor({
                 </Card>
             ) : (
                 <div
-                    role="list"
                     data-sot-list="speaker-review-rows"
                     data-sot-variant="review"
                 >
                     {speakers.map((speaker) => (
                         <Card
                             key={speaker.rawLabel}
-                            role="listitem"
                             hasNoPadding
                             data-sot-item="speaker-review-row"
                             data-sot-speaker-has-playable-sample={String(
@@ -1235,9 +1230,7 @@ export function SpeakerLabelEditor({
                                             )}
                                         </div>
 
-                                        <div
-                                            data-sot-part="speaker-review-samples"
-                                        >
+                                        <div data-sot-part="speaker-review-samples">
                                             <div data-sot-part="speaker-review-section-head">
                                                 <p data-sot-part="speaker-review-section-title">
                                                     {t(

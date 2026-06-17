@@ -3365,7 +3365,8 @@ button {
 /* ===========================================================
    New rich list (preview/15) — overrides old .rec-row
    =========================================================== */
-.real-list {
+.real-list,
+[data-sot-list="recording-detail-list-rows"] {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -3394,7 +3395,8 @@ button {
     margin-left: 4px;
 }
 
-.real-list .row {
+.real-list .row,
+[data-sot-item="recording-detail-list-row"] {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
@@ -3411,20 +3413,24 @@ button {
         background var(--duration-fast) var(--ease-out),
         border-color var(--duration-fast) var(--ease-out);
 }
-.real-list .row:hover {
+.real-list .row:hover,
+[data-sot-item="recording-detail-list-row"]:hover {
     background: var(--bg-recessed);
 }
-.real-list .row.active {
+.real-list .row.active,
+[data-sot-item="recording-detail-list-row"][data-sot-state="selected"] {
     background: var(--accent-soft);
     border-color: color-mix(in srgb, var(--accent) 38%, transparent);
 }
-.real-list .body {
+.real-list .body,
+[data-sot-part="recording-detail-list-row-body"] {
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
-.real-list .title {
+.real-list .title,
+[data-sot-part="recording-detail-list-row-title"] {
     font: 600 13.5px var(--font-sans);
     color: var(--fg-primary);
     white-space: nowrap;
@@ -3432,13 +3438,15 @@ button {
     text-overflow: ellipsis;
     letter-spacing: -0.005em;
 }
-.real-list .meta {
+.real-list .meta,
+[data-sot-part="recording-detail-list-row-meta"] {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
-.real-list .meta .dur {
+.real-list .meta .dur,
+[data-sot-part="recording-detail-list-row-duration"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-secondary);
     letter-spacing: 0.02em;
@@ -13902,7 +13910,8 @@ select::-ms-expand {
 
 /* ---- Speaker pane state blocks (overlay for non-default states) ---- */
 .t-pane[data-tab-pane="speakers"] .sp-state-block,
-[data-sot-panel="dashboard-speakers-pane"] .sp-state-block {
+[data-sot-panel="dashboard-speakers-pane"] .sp-state-block,
+[data-sot-panel="speaker-review"] .sp-state-block {
     display: flex;
     flex-direction: column;
     align-items: center;

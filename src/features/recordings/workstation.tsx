@@ -811,12 +811,17 @@ export function RecordingWorkstation({
                             </CardTitle>
                         </CardHeader>
                         <CardContent data-sot-part="recording-detail-list-content">
-                            <div className="real-list">
-                                <div className="row active">
-                                    <div className="body">
-                                        <div className="title">{filename}</div>
-                                        <div className="meta">
-                                            <span className="dur mono">
+                            <div data-sot-list="recording-detail-list-rows">
+                                <div
+                                    data-sot-item="recording-detail-list-row"
+                                    data-sot-state="selected"
+                                >
+                                    <div data-sot-part="recording-detail-list-row-body">
+                                        <div data-sot-part="recording-detail-list-row-title">
+                                            {filename}
+                                        </div>
+                                        <div data-sot-part="recording-detail-list-row-meta">
+                                            <span data-sot-part="recording-detail-list-row-duration">
                                                 {durationLabel}
                                             </span>
                                             <SotPlayerSourceTag
@@ -1252,10 +1257,7 @@ export function RecordingWorkstation({
                                         >
                                             {t("recording.sourceRecord")}
                                         </CardTitle>
-                                        <div
-                                            className="t-actions"
-                                            data-sot-part="recording-source-record-actions"
-                                        >
+                                        <div data-sot-part="recording-source-record-actions">
                                             <Button
                                                 type="button"
                                                 size="sm"
