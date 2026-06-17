@@ -2,12 +2,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RecordingLoading() {
     return (
-        <div className="app" aria-busy="true">
-            <aside className="sidebar glass glass-strong" />
-            <main className="main">
-                <header className="topbar">
-                    <div className="crumbs">
-                        <span className="crumb-current">录音加载中</span>
+        <div data-sot-shell="recording-route-loading" aria-busy="true">
+            <aside data-sot-panel="route-sidebar" />
+            <main data-sot-panel="route-main">
+                <header data-sot-panel="route-topbar">
+                    <div data-sot-part="route-crumbs">
+                        <span data-sot-part="route-crumb-current">
+                            录音加载中
+                        </span>
                     </div>
                 </header>
                 <section data-sot-panel="recording-route-loading-detail">

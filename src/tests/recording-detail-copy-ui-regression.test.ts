@@ -756,14 +756,35 @@ describe("recording detail copy and title action UI regressions", () => {
         const loading = readSource("app/(app)/recordings/[id]/loading.tsx");
         const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
         const error = readSource("app/(app)/recordings/[id]/error.tsx");
+        const globals = readSource("app/globals.css");
 
         for (const source of [loading, notFound, error]) {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
+            expect(source).toContain('data-sot-panel="route-sidebar"');
+            expect(source).toContain('data-sot-panel="route-main"');
+            expect(source).toContain('data-sot-panel="route-topbar"');
+            expect(source).toContain('data-sot-part="route-crumbs"');
+            expect(source).toContain('data-sot-part="route-crumb-current"');
+            expect(source).not.toContain('className="app"');
+            expect(source).not.toContain(
+                'className="sidebar glass glass-strong"',
+            );
+            expect(source).not.toContain('className="main"');
+            expect(source).not.toContain('className="topbar"');
+            expect(source).not.toContain('className="brand"');
+            expect(source).not.toContain('className="brand-name"');
+            expect(source).not.toContain('className="brand-sub"');
+            expect(source).not.toContain('className="crumbs"');
+            expect(source).not.toContain('className="crumb-current"');
         }
         for (const source of [notFound, error]) {
             expect(source).toContain("BetterAINote");
             expect(source).toContain('href="/dashboard"');
             expect(source).toContain("返回工作台");
+            expect(source).toContain('data-sot-panel="route-workspace"');
+            expect(source).toContain(
+                'data-sot-panel="recording-route-empty-detail"',
+            );
             expect(source).toContain('data-sot-panel="recording-route-empty"');
             expect(source).toContain(
                 'data-sot-part="recording-route-empty-title"',
@@ -777,6 +798,8 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).not.toContain('className="detail-empty-ico"');
             expect(source).not.toContain('className="detail-empty-title"');
             expect(source).not.toContain('className="detail-empty-sub"');
+            expect(source).not.toContain('className="workspace"');
+            expect(source).not.toContain('className="detail"');
         }
 
         expect(notFound).toContain('<Button asChild variant="primary">');
@@ -791,10 +814,19 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('data-sot-shell="recording-route-loading"');
         expect(loading).toContain(
             'data-sot-panel="recording-route-loading-detail"',
         );
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(notFound).toContain('data-sot-shell="recording-route-empty"');
+        expect(error).toContain('data-sot-shell="recording-route-error"');
+        expect(globals).toContain('[data-sot-shell="recording-route-loading"]');
+        expect(globals).toContain('[data-sot-shell="recording-route-empty"]');
+        expect(globals).toContain('[data-sot-shell="recording-route-error"]');
+        expect(globals).toContain(
+            '[data-sot-panel="recording-route-empty-detail"]',
+        );
         expect(loading).not.toContain('className="detail panel"');
         expect(loading).not.toContain('className="skel-detail"');
         expect(loading).not.toContain('className="sk sk-bar"');

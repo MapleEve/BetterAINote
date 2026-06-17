@@ -5,24 +5,31 @@ import { Button } from "@/components/ui/button";
 
 export default function RecordingError({ reset }: { reset: () => void }) {
     return (
-        <main className="app">
-            <aside className="sidebar glass glass-strong">
-                <div className="brand">
+        <main data-sot-shell="recording-route-error">
+            <aside data-sot-panel="route-sidebar">
+                <div data-sot-part="route-brand">
                     <img src="/assets/logo-mark-steel.svg" alt="" />
                     <div>
-                        <div className="brand-name">BetterAINote</div>
-                        <div className="brand-sub">私人工作空间</div>
+                        <div data-sot-part="route-brand-name">BetterAINote</div>
+                        <div data-sot-part="route-brand-subtitle">
+                            私人工作空间
+                        </div>
                     </div>
                 </div>
             </aside>
-            <section className="main">
-                <header className="topbar">
-                    <div className="crumbs">
-                        <span className="crumb-current">录音详情加载失败</span>
+            <section data-sot-panel="route-main">
+                <header data-sot-panel="route-topbar">
+                    <div data-sot-part="route-crumbs">
+                        <span data-sot-part="route-crumb-current">
+                            录音详情加载失败
+                        </span>
                     </div>
                 </header>
-                <div className="workspace">
-                    <section className="detail" data-empty="true">
+                <div data-sot-panel="route-workspace">
+                    <section
+                        data-sot-panel="recording-route-empty-detail"
+                        data-empty="true"
+                    >
                         <div
                             data-detail-empty=""
                             data-sot-panel="recording-route-empty"

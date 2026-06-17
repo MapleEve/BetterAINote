@@ -47,16 +47,43 @@ const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
+        const globals = readSource("app/globals.css");
 
         expect(loading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain('aria-busy="true"');
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('data-sot-shell="dashboard-loading"');
+        expect(loading).toContain('data-sot-panel="route-sidebar"');
+        expect(loading).toContain('data-sot-panel="route-main"');
+        expect(loading).toContain('data-sot-panel="route-topbar"');
+        expect(loading).toContain('data-sot-panel="route-workspace"');
+        expect(loading).toContain('data-sot-part="route-brand"');
+        expect(loading).toContain('data-sot-part="route-brand-name"');
+        expect(loading).toContain('data-sot-part="route-brand-subtitle"');
+        expect(loading).toContain('data-sot-part="route-crumbs"');
+        expect(loading).toContain('data-sot-part="route-crumb-current"');
         expect(loading).toContain('data-sot-panel="dashboard-loading-list"');
         expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(globals).toContain('[data-sot-shell="dashboard-loading"]');
+        expect(globals).toContain('[data-sot-panel="route-sidebar"]');
+        expect(globals).toContain('[data-sot-panel="route-main"]');
+        expect(globals).toContain('[data-sot-panel="route-topbar"]');
+        expect(globals).toContain('[data-sot-panel="route-workspace"]');
+        expect(loading).not.toContain('className="app"');
+        expect(loading).not.toContain('className="sidebar glass glass-strong"');
+        expect(loading).not.toContain('className="main"');
+        expect(loading).not.toContain('className="topbar"');
+        expect(loading).not.toContain('className="workspace"');
+        expect(loading).not.toContain('className="brand"');
+        expect(loading).not.toContain('className="brand-text"');
+        expect(loading).not.toContain('className="brand-name"');
+        expect(loading).not.toContain('className="brand-sub"');
+        expect(loading).not.toContain('className="crumbs"');
+        expect(loading).not.toContain('className="crumb-current"');
         expect(loading).not.toContain('className="panel"');
         expect(loading).not.toContain('className="detail panel"');
         expect(loading).not.toContain('className="skel-list"');

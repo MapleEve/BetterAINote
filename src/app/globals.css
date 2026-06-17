@@ -417,7 +417,8 @@ kbd {
 /* ===========================================================
    GLASS PRIMITIVES
    =========================================================== */
-.glass {
+.glass,
+[data-sot-panel="route-sidebar"] {
     position: relative;
     background:
         linear-gradient(
@@ -433,7 +434,8 @@ kbd {
         saturate(var(--glass-saturate));
     box-shadow: var(--glass-shadow-cast), var(--shadow-inset);
 }
-.glass-strong {
+.glass-strong,
+[data-sot-panel="route-sidebar"] {
     background: var(--glass-tint-strong);
 }
 /* SOT web kit: exact visual source */
@@ -489,7 +491,11 @@ button {
 }
 
 /* ======== App grid ======== */
-.app {
+.app,
+[data-sot-shell="dashboard-loading"],
+[data-sot-shell="recording-route-loading"],
+[data-sot-shell="recording-route-empty"],
+[data-sot-shell="recording-route-error"] {
     display: grid;
     grid-template-columns: 264px 1fr;
     height: 100vh;
@@ -573,7 +579,8 @@ button {
 /* ======== Glass surfaces ========
    Light mode: nearly-solid white veil so chrome reads on a tinted canvas.
    Dark mode: translucent + saturated so backdrop-blur actually shows. */
-.glass {
+.glass,
+[data-sot-panel="route-sidebar"] {
     background:
         linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
         color-mix(in srgb, white 78%, transparent);
@@ -584,7 +591,8 @@ button {
         var(--shadow-sm),
         inset 0 1px 0 rgb(255 255 255 / 0.65);
 }
-.glass-strong {
+.glass-strong,
+[data-sot-panel="route-sidebar"] {
     background:
         linear-gradient(180deg, var(--glass-highlight-top), transparent 55%),
         color-mix(in srgb, white 86%, transparent);
@@ -592,7 +600,9 @@ button {
 /* Liquid glass — actually translucent. No gradient. Single hairline.
    The canvas behind shows through; backdrop-filter does the work. */
 [data-theme="dark"] .glass,
-.dark .glass {
+[data-theme="dark"] [data-sot-panel="route-sidebar"],
+.dark .glass,
+.dark [data-sot-panel="route-sidebar"] {
     background: var(--glass-tint-base);
     border-color: var(--glass-border-soft);
     backdrop-filter: blur(28px) saturate(160%);
@@ -600,14 +610,17 @@ button {
     box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.04);
 }
 [data-theme="dark"] .glass-strong,
-.dark .glass-strong {
+[data-theme="dark"] [data-sot-panel="route-sidebar"],
+.dark .glass-strong,
+.dark [data-sot-panel="route-sidebar"] {
     background: var(--glass-tint-strong);
     backdrop-filter: blur(36px) saturate(180%);
     -webkit-backdrop-filter: blur(36px) saturate(180%);
 }
 
 /* ======== Sidebar ======== */
-.sidebar {
+.sidebar,
+[data-sot-panel="route-sidebar"] {
     display: flex;
     flex-direction: column;
     padding: 16px 12px 12px;
@@ -615,23 +628,27 @@ button {
     border-radius: 0;
     position: relative;
 }
-.brand {
+.brand,
+[data-sot-part="route-brand"] {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 4px 8px 16px;
 }
-.brand img {
+.brand img,
+[data-sot-part="route-brand"] img {
     width: 36px;
     height: 36px;
     border-radius: 9px;
 }
-.brand-name {
+.brand-name,
+[data-sot-part="route-brand-name"] {
     font: 600 15px var(--font-sans);
     letter-spacing: -0.012em;
     color: var(--fg-primary);
 }
-.brand-sub {
+.brand-sub,
+[data-sot-part="route-brand-subtitle"] {
     font: 500 11px var(--font-sans);
     color: var(--fg-tertiary);
     margin-top: 1px;
@@ -832,7 +849,8 @@ button {
 }
 
 /* ======== Main column ======== */
-.main {
+.main,
+[data-sot-panel="route-main"] {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -858,7 +876,8 @@ button {
 }
 
 /* Topbar */
-.topbar {
+.topbar,
+[data-sot-panel="route-topbar"] {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -882,14 +901,16 @@ button {
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
-[data-theme="dark"] .topbar {
+[data-theme="dark"] .topbar,
+[data-theme="dark"] [data-sot-panel="route-topbar"] {
     border-bottom-color: var(--glass-border-soft);
     background: rgb(255 255 255 / 0.03);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     box-shadow: none;
 }
-.crumbs {
+.crumbs,
+[data-sot-part="route-crumbs"] {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -903,7 +924,8 @@ button {
     color: var(--fg-tertiary);
     opacity: 0.6;
 }
-.crumb-current {
+.crumb-current,
+[data-sot-part="route-crumb-current"] {
     color: var(--fg-primary);
     font-weight: 600;
 }
@@ -974,7 +996,8 @@ button {
 }
 
 /* ======== Workspace split ======== */
-.workspace {
+.workspace,
+[data-sot-panel="route-workspace"] {
     flex: 1;
     min-height: 0;
     display: grid;
@@ -986,7 +1009,8 @@ button {
 .panel,
 [data-sot-panel="dashboard-loading-list"],
 [data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-loading-detail"] {
+[data-sot-panel="recording-route-loading-detail"],
+[data-sot-panel="recording-route-empty-detail"] {
     border-radius: 16px;
     border: 1px solid var(--line-hairline);
     background: var(--bg-elevated);
@@ -999,7 +1023,8 @@ button {
 [data-theme="dark"] .panel,
 [data-theme="dark"] [data-sot-panel="dashboard-loading-list"],
 [data-theme="dark"] [data-sot-panel="dashboard-loading-detail"],
-[data-theme="dark"] [data-sot-panel="recording-route-loading-detail"] {
+[data-theme="dark"] [data-sot-panel="recording-route-loading-detail"],
+[data-theme="dark"] [data-sot-panel="recording-route-empty-detail"] {
     border-color: var(--glass-border);
 }
 [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
@@ -1422,7 +1447,8 @@ button {
 /* ======== Detail panel ======== */
 .detail,
 [data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-loading-detail"] {
+[data-sot-panel="recording-route-loading-detail"],
+[data-sot-panel="recording-route-empty-detail"] {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -6089,11 +6115,20 @@ body[data-drawer="open"] .drawer-scrim {
 }
 .detail[data-empty="true"] .rec-head,
 .detail[data-empty="true"] [data-sot-panel="dashboard-detail-header"],
-.detail[data-empty="true"] .real-detail {
+.detail[data-empty="true"] .real-detail,
+[data-sot-panel="recording-route-empty-detail"][data-empty="true"] .rec-head,
+[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
+    [data-sot-panel="dashboard-detail-header"],
+[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
+    .real-detail {
     display: none;
 }
 .detail[data-empty="true"] .detail-empty,
-.detail[data-empty="true"] [data-detail-empty] {
+.detail[data-empty="true"] [data-detail-empty],
+[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
+    .detail-empty,
+[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
+    [data-detail-empty] {
     display: flex;
 }
 .detail-empty-ico,
@@ -13861,10 +13896,12 @@ select::-ms-expand {
 /* ============================================================
    5) Sidebar collapsed-state focus hooks (no native focus ring)
    ============================================================ */
-.app *:focus {
+.app *:focus,
+[data-sot-shell] *:focus {
     outline: none;
 }
-.app [data-slot="button"]:focus-visible {
+.app [data-slot="button"]:focus-visible,
+[data-sot-shell] [data-slot="button"]:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 

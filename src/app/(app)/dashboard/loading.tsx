@@ -2,23 +2,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
     return (
-        <div className="app" aria-busy="true">
-            <aside className="sidebar glass glass-strong">
-                <div className="brand">
+        <div data-sot-shell="dashboard-loading" aria-busy="true">
+            <aside data-sot-panel="route-sidebar">
+                <div data-sot-part="route-brand">
                     <img src="/assets/logo-mark-steel.svg" alt="" />
-                    <div className="brand-text">
-                        <div className="brand-name">BetterAINote</div>
-                        <div className="brand-sub">私人工作空间</div>
+                    <div data-sot-part="route-brand-text">
+                        <div data-sot-part="route-brand-name">BetterAINote</div>
+                        <div data-sot-part="route-brand-subtitle">
+                            私人工作空间
+                        </div>
                     </div>
                 </div>
             </aside>
-            <main className="main">
-                <header className="topbar">
-                    <div className="crumbs">
-                        <span className="crumb-current">加载中</span>
+            <main data-sot-panel="route-main">
+                <header data-sot-panel="route-topbar">
+                    <div data-sot-part="route-crumbs">
+                        <span data-sot-part="route-crumb-current">加载中</span>
                     </div>
                 </header>
-                <div className="workspace">
+                <div data-sot-panel="route-workspace">
                     <section data-sot-panel="dashboard-loading-list">
                         <div
                             data-sot-panel="recording-list-loading"

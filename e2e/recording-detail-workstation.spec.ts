@@ -4942,12 +4942,13 @@ async function collectWorkspaceStandaloneErrorRuntimeFrames(
             await page.waitForTimeout(150);
 
             const metrics = await readWorkspaceVisualMetrics(page, {
-                detail: '.workspace .detail[data-empty="true"]',
+                detail:
+                    '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"][data-empty="true"]',
                 emptyDetail:
-                    '.workspace .detail[data-empty="true"] [data-sot-panel="recording-route-empty"]',
+                    '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"][data-empty="true"] [data-sot-panel="recording-route-empty"]',
                 listPanel: '[data-sot-panel="recording-detail-list"]',
                 selectedRow: ".workspace .real-list .row.active",
-                workspace: ".workspace",
+                workspace: '[data-sot-panel="route-workspace"]',
             });
             const controls = await readStandaloneErrorControls(page);
             const screenshot = await page.screenshot({
@@ -5107,12 +5108,13 @@ async function readStandaloneErrorSourceEvidence() {
     const absoluteFile = path.resolve(process.cwd(), relativeFile);
     const source = await readFile(absoluteFile, "utf8");
     const selectors = {
-        detail: 'className="detail" data-empty="true"',
+        detail: 'data-sot-panel="recording-route-empty-detail"',
         detailEmpty: 'data-sot-panel="recording-route-empty"',
         detailEmptyIcon: 'data-sot-part="recording-route-empty-icon"',
         detailEmptySub: 'data-sot-part="recording-route-empty-description"',
         detailEmptyTitle: 'data-sot-part="recording-route-empty-title"',
-        workspace: 'className="workspace"',
+        routeShell: 'data-sot-shell="recording-route-error"',
+        workspace: 'data-sot-panel="route-workspace"',
     };
     const selectorsPresent = Object.fromEntries(
         Object.entries(selectors).map(([name, needle]) => [
@@ -5327,11 +5329,13 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
             page.locator('[data-sot-part="recording-route-empty-title"]'),
         ).toContainText("录音不存在");
         const standaloneNotFoundFrames = await collectWorkspaceVisualFrames(page, {
-            detail: ".workspace .detail",
-            emptyDetail: '.workspace [data-sot-panel="recording-route-empty"]',
+            detail:
+                '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty-detail"]',
+            emptyDetail:
+                '[data-sot-panel="route-workspace"] [data-sot-panel="recording-route-empty"]',
             listPanel: '[data-sot-panel="recording-detail-list"]',
             selectedRow: ".workspace .real-list .row.active",
-            workspace: ".workspace",
+            workspace: '[data-sot-panel="route-workspace"]',
         });
         const standaloneNotFoundDesktop = standaloneNotFoundFrames.find(
             (frame) => frame.frame === "desktop",
@@ -5477,11 +5481,17 @@ test("Workspace standalone error boundary runtime visual row 96", async ({
         waitUntil: "domcontentloaded",
     });
 
-    await expect(page.locator(".workspace").first()).toBeVisible({
+    await expect(
+        page.locator('[data-sot-panel="route-workspace"]').first(),
+    ).toBeVisible({
         timeout: 30_000,
     });
     await expect(
-        page.locator('.detail[data-empty="true"]').first(),
+        page
+            .locator(
+                '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]',
+            )
+            .first(),
     ).toBeVisible();
     await expect(
         page.locator('[data-sot-panel="recording-route-empty"]').first(),
