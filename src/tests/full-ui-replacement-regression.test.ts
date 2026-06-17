@@ -994,7 +994,16 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-surface="dashboard-workstation"',
         );
-        expect(workstation).toContain('className="sidebar glass glass-strong"');
+        expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
+        expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        expect(workstation).toContain('data-sot-panel="dashboard-main"');
+        expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
+        expect(workstation).toContain('data-sot-panel="dashboard-detail"');
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-drawer-trigger"',
+        );
         expect(workstation).toContain('id="drawer-scrim"');
         expect(workstation).toContain('id="drawer-trigger"');
         expect(workstation).not.toContain("data-drawer-open=");
@@ -1012,7 +1021,7 @@ describe("full UI replacement regression coverage", () => {
         const sourceProviderRows = extractBoundedSlice(
             workstation,
             "{sourceRows.map((item) => {",
-            "className={`sync-pill",
+            'data-sot-panel="dashboard-sync"',
         );
         const sourceFilterStackStart = workstation.indexOf(
             'data-sot-panel="dashboard-source-filter-stack"',
@@ -1034,7 +1043,12 @@ describe("full UI replacement regression coverage", () => {
         const legacySourceAttributePattern =
             /\bdata-(?:connected|provider|source|source-status|source-action-state)=/;
 
-        expect(sourceProviderRows).toContain('className="nav-item"');
+        expect(sourceProviderRows).not.toContain('className="nav-item"');
+        expect(sourceProviderRows).toContain(
+            'data-sot-control="dashboard-source-provider"',
+        );
+        expect(sourceProviderRows).toContain('variant="ghost"');
+        expect(sourceProviderRows).toContain('size="sm"');
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-mark"',
         );

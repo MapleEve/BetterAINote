@@ -227,7 +227,16 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-state={hydrated ? "ready" : "loading"}',
         );
-        expect(workstation).toContain('className="sidebar glass glass-strong"');
+        expect(workstation).toContain('data-sot-shell="dashboard-workstation"');
+        expect(workstation).toContain('data-sot-panel="dashboard-sidebar"');
+        expect(workstation).toContain('data-sot-list="dashboard-nav"');
+        expect(workstation).toContain('data-sot-panel="dashboard-main"');
+        expect(workstation).toContain('data-sot-panel="dashboard-topbar"');
+        expect(workstation).toContain('data-sot-panel="dashboard-workspace"');
+        expect(workstation).toContain('data-sot-panel="dashboard-detail"');
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-drawer-trigger"',
+        );
         expect(workstation).toContain('id="drawer-scrim"');
         expect(workstation).toContain('id="drawer-trigger"');
         expect(workstation).not.toContain("data-drawer-open=");

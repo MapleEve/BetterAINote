@@ -5201,16 +5201,21 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
             "data-sot-state",
             "selected",
         );
-        await expect(page.locator(".workspace .detail").first()).toHaveAttribute(
-            "data-empty",
-            "false",
-        );
+        await expect(
+            page
+                .locator(
+                    '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+                )
+                .first(),
+        ).toHaveAttribute("data-empty", "false");
         const dashboardSelectedFrames = await collectWorkspaceVisualFrames(page, {
-            detail: ".workspace .detail",
-            emptyDetail: ".workspace [data-detail-empty]",
+            detail:
+                '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+            emptyDetail:
+                '[data-sot-panel="dashboard-workspace"] [data-detail-empty]',
             listPanel: '[data-sot-surface="dashboard-recording-list"]',
             selectedRow: `[data-sot-recording-id="${recordingId}"][data-sot-state="selected"]`,
-            workspace: ".workspace",
+            workspace: '[data-sot-panel="dashboard-workspace"]',
         });
         const dashboardSelectedDesktop = dashboardSelectedFrames.find(
             (frame) => frame.frame === "desktop",
@@ -5224,12 +5229,14 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         const emptyProvider = await selectDashboardZeroCountProvider(page);
         const dashboardEmptyFrames = emptyProvider
             ? await collectWorkspaceVisualFrames(page, {
-                  detail: ".workspace .detail",
-                  emptyDetail: ".workspace [data-detail-empty]",
+                  detail:
+                      '[data-sot-panel="dashboard-workspace"] [data-sot-panel="dashboard-detail"]',
+                  emptyDetail:
+                      '[data-sot-panel="dashboard-workspace"] [data-detail-empty]',
                   listPanel: '[data-sot-surface="dashboard-recording-list"]',
                   selectedRow:
                       '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
-                  workspace: ".workspace",
+                  workspace: '[data-sot-panel="dashboard-workspace"]',
               })
             : [];
         const dashboardEmptyReached = dashboardEmptyFrames.some(

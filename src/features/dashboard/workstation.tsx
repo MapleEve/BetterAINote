@@ -3553,7 +3553,7 @@ export function Workstation({
 
     return (
         <div
-            className={collapsed ? "app sidebar-collapsed" : "app"}
+            data-sot-shell="dashboard-workstation"
             data-hydrated={hydrated ? "true" : "false"}
             data-playback-auto-next={
                 playbackSettings.autoPlayNext ? "true" : "false"
@@ -3565,17 +3565,21 @@ export function Workstation({
             data-sot-surface="dashboard-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
         >
-            <aside className="sidebar glass glass-strong" ref={sourceDrawerRef}>
-                <div className="brand">
+            <aside data-sot-panel="dashboard-sidebar" ref={sourceDrawerRef}>
+                <div data-sot-part="dashboard-brand">
                     <img src="/assets/logo-mark-steel.svg" alt="" />
-                    <div className="brand-text">
-                        <div className="brand-name">BetterAINote</div>
-                        <div className="brand-sub">私人工作空间</div>
+                    <div data-sot-part="dashboard-brand-text">
+                        <div data-sot-part="dashboard-brand-name">
+                            BetterAINote
+                        </div>
+                        <div data-sot-part="dashboard-brand-subtitle">
+                            私人工作空间
+                        </div>
                     </div>
                 </div>
 
-                <nav className="nav" aria-label="录音筛选">
-                    <div className="nav-section-label">收藏</div>
+                <nav data-sot-list="dashboard-nav" aria-label="录音筛选">
+                    <div data-sot-part="dashboard-nav-section-label">收藏</div>
                     {FAVORITES.map((item) => {
                         const Icon = item.icon;
                         const count =
@@ -3594,12 +3598,9 @@ export function Workstation({
                                         ),
                                     ).size;
                         return (
-                            <button
-                                className={
-                                    favorite === item.value
-                                        ? "nav-item is-selected"
-                                        : "nav-item"
-                                }
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 type="button"
                                 aria-pressed={favorite === item.value}
                                 data-active={
@@ -3627,17 +3628,14 @@ export function Workstation({
                             >
                                 <Icon />
                                 <span>{getFavoriteLabel(item.value, t)}</span>
-                                <span
-                                    className="count"
-                                    data-sot-part="dashboard-favorite-count"
-                                >
+                                <span data-sot-part="dashboard-favorite-count">
                                     {count}
                                 </span>
-                            </button>
+                            </Button>
                         );
                     })}
 
-                    <div className="nav-section-label">
+                    <div data-sot-part="dashboard-nav-section-label">
                         {t("sourceProviderRows.heading")}
                     </div>
                     <div
@@ -3703,8 +3701,9 @@ export function Workstation({
                                     ? 0
                                     : item.count;
                             return (
-                                <button
-                                    className="nav-item"
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     type="button"
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
@@ -3820,42 +3819,33 @@ export function Workstation({
                                         </span>
                                     ) : (
                                         <span
-                                            className="count"
                                             data-count={`src:${item.key}`}
                                             data-sot-part="source-provider-count"
                                         >
                                             {visibleCount}
                                         </span>
                                     )}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>
                 </nav>
 
-                <div className="sidebar-footer">
+                <div data-sot-part="dashboard-sidebar-footer">
                     <div
-                        className={`sync-pill ${
-                            syncButtonState === "queued" ||
-                            syncButtonState === "running"
-                                ? "is-syncing"
-                                : syncButtonState === "error"
-                                  ? "is-error"
-                                  : syncButtonState === "success"
-                                    ? "is-done"
-                                    : ""
-                        }`}
                         data-sot-panel="dashboard-sync"
                         data-sot-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
                         <span data-sot-part="dashboard-sync-indicator" />
-                        <div className="sync-text">
-                            <div className="sync-title">
+                        <div data-sot-part="dashboard-sync-text">
+                            <div data-sot-part="dashboard-sync-title">
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
                             </div>
-                            <div className="sync-sub">{syncSummary}</div>
+                            <div data-sot-part="dashboard-sync-subtitle">
+                                {syncSummary}
+                            </div>
                         </div>
                         <Button
                             variant="ghost"
@@ -3875,15 +3865,15 @@ export function Workstation({
             </aside>
 
             <div
-                className="drawer-scrim"
+                data-sot-panel="dashboard-drawer-scrim"
                 id="drawer-scrim"
                 aria-hidden="true"
             />
 
-            <main className="main">
-                <header className="topbar">
+            <main data-sot-panel="dashboard-main">
+                <header data-sot-panel="dashboard-topbar">
                     <button
-                        className="mobile-drawer-trigger"
+                        data-sot-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
                         aria-label="打开筛选抽屉"
@@ -3900,12 +3890,14 @@ export function Workstation({
                             <line x1="3" y1="12" x2="15" y2="12" />
                             <line x1="3" y1="18" x2="21" y2="18" />
                         </svg>{" "}
-                        <span className="dot-active" aria-hidden="true" />
+                        <span
+                            data-sot-part="dashboard-drawer-active-dot"
+                            aria-hidden="true"
+                        />
                     </button>
                     <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="sidebar-toggle"
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
@@ -3914,20 +3906,20 @@ export function Workstation({
                     >
                         <PanelLeft data-icon="inline-start" />
                     </Button>
-                    <div className="crumbs">
-                        <span className="crumb">
+                    <div data-sot-part="dashboard-crumbs">
+                        <span data-sot-part="dashboard-crumb">
                             {favorite === "all"
                                 ? "全部录音"
                                 : favorite === "transcribed"
                                   ? "转写记录"
                                   : "标签"}
                         </span>
-                        <span className="crumb-sep">/</span>
-                        <span className="crumb-current">
+                        <span data-sot-part="dashboard-crumb-separator">/</span>
+                        <span data-sot-part="dashboard-crumb-current">
                             {selectedRecording?.filename ?? "未选择录音"}
                         </span>
                     </div>
-                    <div className="topbar-actions">
+                    <div data-sot-part="dashboard-topbar-actions">
                         <div
                             data-sot-part="library-search-anchor"
                             ref={searchOverlayRef}
@@ -4679,7 +4671,7 @@ export function Workstation({
 
                 <SystemBanner />
 
-                <div className="workspace">
+                <div data-sot-panel="dashboard-workspace">
                     <Card
                         hasNoPadding
                         data-current-page={String(currentListPage)}
@@ -5426,7 +5418,7 @@ export function Workstation({
                     </Card>
 
                     <section
-                        className="detail"
+                        data-sot-panel="dashboard-detail"
                         data-empty={selectedRecording ? "false" : "true"}
                     >
                         <CardHeader
