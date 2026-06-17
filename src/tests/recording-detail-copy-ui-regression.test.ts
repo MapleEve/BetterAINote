@@ -9,6 +9,16 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractCardSlice(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf("<Card", markerIndex);
+    const end = source.indexOf("</Card>", start);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "</Card>".length);
+}
+
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -522,6 +532,10 @@ describe("recording detail copy and title action UI regressions", () => {
         const badge = readSource("components/ui/badge.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const dashboardTranscriptShell = extractCardSlice(
+            dashboardTranscript,
+            'data-sot-panel="dashboard-transcript-shell"',
+        );
         const headerPanelIndex = dashboardTranscript.indexOf(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -577,6 +591,29 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "data-retx-state={dashboardRetxState}",
         );
+        expect(dashboardTranscriptShell).toContain("<Card");
+        expect(dashboardTranscriptShell).toContain("hasNoPadding");
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-panel="dashboard-transcript-shell"',
+        );
+        expect(dashboardTranscriptShell).toContain("<CardHeader");
+        expect(dashboardTranscriptShell).toContain("<CardContent");
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-header"',
+        );
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-actions"',
+        );
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-body"',
+        );
+        for (const legacyClass of [
+            'className="transcript"',
+            'className="transcript-head"',
+            'className="transcript-body"',
+        ]) {
+            expect(dashboardTranscriptShell).not.toContain(legacyClass);
+        }
         expect(dashboardTranscript).toContain("void retranscribe()");
         expect(dashboardTranscript).toContain('"transcript"');
         expect(dashboardTranscript).toContain('"source"');

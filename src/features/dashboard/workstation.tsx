@@ -6149,8 +6149,11 @@ export function Workstation({
                             ) : null}
                         </div>
 
-                        <div className="transcript">
-                            <div className="transcript-head">
+                        <Card
+                            hasNoPadding
+                            data-sot-panel="dashboard-transcript-shell"
+                        >
+                            <CardHeader data-sot-part="dashboard-transcript-header">
                                 <SegmentedTabs
                                     aria-label="详情标签"
                                     items={[
@@ -6172,7 +6175,10 @@ export function Workstation({
                                         setActivityOpen(false);
                                     }}
                                 />
-                                <div className="t-actions">
+                                <div
+                                    className="t-actions"
+                                    data-sot-part="dashboard-transcript-actions"
+                                >
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -6414,8 +6420,8 @@ export function Workstation({
                                         重新转写
                                     </Button>
                                 </div>
-                            </div>
-                            <div className="transcript-body">
+                            </CardHeader>
+                            <CardContent data-sot-part="dashboard-transcript-body">
                                 <div
                                     className="retx-banner"
                                     data-sot-panel="dashboard-retranscription"
@@ -7177,11 +7183,11 @@ export function Workstation({
                                         ))}
                                     </ul>
                                 </div>
-                            </div>
-                            {!selectedRecording ? (
-                                <DashboardDetailEmptyState />
-                            ) : null}
-                        </div>
+                            </CardContent>
+                        </Card>
+                        {!selectedRecording ? (
+                            <DashboardDetailEmptyState />
+                        ) : null}
                     </section>
                 </div>
             </main>

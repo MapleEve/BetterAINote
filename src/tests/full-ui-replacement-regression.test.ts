@@ -8,6 +8,16 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractCardSlice(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf("<Card", markerIndex);
+    const end = source.indexOf("</Card>", start);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "</Card>".length);
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -980,6 +990,10 @@ describe("full UI replacement regression coverage", () => {
         const badge = readSource("components/ui/badge.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const dashboardTranscriptShell = extractCardSlice(
+            workstation,
+            'data-sot-panel="dashboard-transcript-shell"',
+        );
         const headerPanelIndex = workstation.indexOf(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -1040,6 +1054,29 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-retranscription"',
         );
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        expect(dashboardTranscriptShell).toContain("<Card");
+        expect(dashboardTranscriptShell).toContain("hasNoPadding");
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-panel="dashboard-transcript-shell"',
+        );
+        expect(dashboardTranscriptShell).toContain("<CardHeader");
+        expect(dashboardTranscriptShell).toContain("<CardContent");
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-header"',
+        );
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-actions"',
+        );
+        expect(dashboardTranscriptShell).toContain(
+            'data-sot-part="dashboard-transcript-body"',
+        );
+        for (const legacyClass of [
+            'className="transcript"',
+            'className="transcript-head"',
+            'className="transcript-body"',
+        ]) {
+            expect(dashboardTranscriptShell).not.toContain(legacyClass);
+        }
         expect(workstation).toContain('aria-label="详情标签"');
         expect(workstation).toContain(
             'aria-label={isPlaying ? "暂停" : "播放"}',
@@ -1456,6 +1493,9 @@ describe("full UI replacement regression coverage", () => {
             expect(sourceRecordPanel).not.toContain(legacyClass);
         }
         for (const selector of [
+            '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
+            '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
+            '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
             '[data-sot-panel="recording-detail-list"][data-slot="card"]',
             '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
             '[data-sot-panel="recording-source-record"][data-slot="card"]',
