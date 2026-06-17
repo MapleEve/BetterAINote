@@ -681,6 +681,48 @@ describe("settings SOT interaction regressions", () => {
         expect(enableSwitch).toContain("onCheckedChange={(checked) =>");
     });
 
+    it("keeps provider tile and detail runtime hooks on SOT attributes only", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const providerTile =
+            content.match(
+                /function DataSourceProviderTile[\s\S]*?function DataSourcesSettingsPanel/,
+            )?.[0] ?? "";
+        const detailRoot =
+            content.match(
+                /<section[\s\S]*?data-sot-panel="source-provider-detail"[\s\S]*?>/,
+            )?.[0] ?? "";
+        const detailHeader =
+            content.match(
+                /<div[\s\S]*?data-sot-part="source-provider-header"[\s\S]*?>/,
+            )?.[0] ?? "";
+
+        expect(content).not.toMatch(
+            /data-provider=|data-selected=|data-dimmed=|data-provider-detail=|data-ds-state=/,
+        );
+        expect(providerTile).toContain('data-sot-control="source-provider"');
+        expect(providerTile).toContain("data-sot-provider={source.provider}");
+        expect(providerTile).toContain(
+            'data-sot-state={isSelected ? "selected" : "idle"}',
+        );
+        expect(providerTile).toContain("data-sot-status={status.state}");
+        expect(providerTile).toContain(
+            'data-sot-dimmed={isDimmed ? "true" : "false"}',
+        );
+        expect(detailRoot).toContain('data-sot-panel="source-provider-detail"');
+        expect(detailRoot).toContain(
+            'data-sot-provider={selectedSource?.provider ?? "none"}',
+        );
+        expect(detailRoot).toContain(
+            'data-sot-status={status?.state ?? "empty"}',
+        );
+        expect(detailHeader).toContain(
+            'data-sot-part="source-provider-header"',
+        );
+        expect(detailHeader).toContain("data-sot-state={status.state}");
+    });
+
     it("keeps data-source P0 detail rows explicit, safe, and wired to real actions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",

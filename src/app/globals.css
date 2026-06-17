@@ -4656,10 +4656,10 @@ body[data-time-style="abs"]
         transform: scale(0.7);
     }
 }
-[data-sot-provider-card][data-dimmed="true"] {
+[data-sot-provider-card][data-sot-dimmed="true"] {
     opacity: 0.55;
 }
-[data-sot-provider-card][data-dimmed="true"] [data-sot-provider-status] {
+[data-sot-provider-card][data-sot-dimmed="true"] [data-sot-provider-status] {
     background: var(--bg-recessed);
     color: var(--fg-tertiary);
     border-color: var(--line-hairline);

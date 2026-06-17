@@ -338,7 +338,7 @@ const sectionAcceptanceTargets: Record<
             },
             {
                 name: "provider detail header",
-                selector: ".sd-head",
+                selector: '[data-sot-part="source-provider-header"]',
             },
             {
                 name: "provider save action",
@@ -696,16 +696,6 @@ async function readShellMetrics(locator: Locator) {
             return provider ? (providerNormalization[provider] ?? provider) : null;
         }
 
-        function statusFromClass(target: Element | null) {
-            if (!target) return null;
-            if (target.classList.contains("syncing")) return "syncing";
-            if (target.classList.contains("err")) return "error";
-            if (target.classList.contains("warn")) return "expired";
-            if (target.classList.contains("ok")) return "connected";
-            if (target.classList.contains("neu")) return "needs-setup";
-            return null;
-        }
-
         function isVisible(target: HTMLElement) {
             if (target.hidden) return false;
             const targetStyle = window.getComputedStyle(target);
@@ -746,22 +736,19 @@ async function readShellMetrics(locator: Locator) {
             ? (() => {
                   const providerCards = Array.from(
                       dataSourcesRoot.querySelectorAll<HTMLElement>(
-                          '[data-sot-control="source-provider"], .sp-card[data-provider]',
+                          '[data-sot-control="source-provider"]',
                       ),
                   ).map((providerCard) => {
                       const statusElement =
                           providerCard.querySelector<HTMLElement>(
                               "[data-sot-provider-status]",
-                          ) ??
-                          providerCard.querySelector<HTMLElement>(".sp-status");
+                          );
                       const labelElement =
                           providerCard.querySelector<HTMLElement>(
                               "[data-sot-provider-name]",
-                          ) ??
-                          providerCard.querySelector<HTMLElement>(".sp-name");
+                          );
                       const provider =
-                          providerCard.getAttribute("data-sot-provider") ??
-                          providerCard.getAttribute("data-provider");
+                          providerCard.getAttribute("data-sot-provider");
 
                       return {
                           label: textOf(labelElement),
@@ -770,24 +757,19 @@ async function readShellMetrics(locator: Locator) {
                           status:
                               providerCard.getAttribute("data-sot-status") ??
                               statusElement?.getAttribute("data-sot-status") ??
-                              statusFromClass(statusElement),
+                              null,
                           statusLabel: textOf(statusElement),
                       };
                   });
                   const activeProvider =
                       dataSourcesRoot
                           .querySelector<HTMLElement>(
-                              '[data-sot-control="source-provider"][data-sot-state="selected"], .sp-card.active[data-provider]',
+                              '[data-sot-control="source-provider"][data-sot-state="selected"]',
                           )
                           ?.getAttribute("data-sot-provider") ??
-                      dataSourcesRoot
-                          .querySelector<HTMLElement>(
-                              '[data-sot-control="source-provider"][data-sot-state="selected"], .sp-card.active[data-provider]',
-                          )
-                          ?.getAttribute("data-provider") ??
                       null;
                   const detail = dataSourcesRoot.querySelector<HTMLElement>(
-                      '[data-sot-panel="source-provider-detail"], #ds-detail',
+                      '[data-sot-panel="source-provider-detail"]',
                   );
                   const detailStatusElement =
                       detail?.querySelector<HTMLElement>("[data-sot-status]") ??
@@ -798,7 +780,6 @@ async function readShellMetrics(locator: Locator) {
                       ) ?? null;
                   const detailProvider =
                       detail?.getAttribute("data-sot-provider") ??
-                      detail?.getAttribute("data-provider-detail") ??
                       activeProvider;
 
                   return {
@@ -807,10 +788,17 @@ async function readShellMetrics(locator: Locator) {
                           provider: detailProvider,
                           status:
                               detail?.getAttribute("data-sot-status") ??
-                              detailHead?.getAttribute("data-ds-state") ??
-                              statusFromClass(detailStatusElement),
+                              detailHead?.getAttribute("data-sot-state") ??
+                              detailStatusElement?.getAttribute(
+                                  "data-sot-status",
+                              ) ??
+                              null,
                           statusLabel: textOf(detailStatusElement),
-                          title: textOf(detail?.querySelector(".sd-title") ?? null),
+                          title: textOf(
+                              detail?.querySelector(
+                                  '[data-sot-part="source-provider-title"]',
+                              ) ?? null,
+                          ),
                       },
                       fieldLabels: dedupe(
                           Array.from(
@@ -954,16 +942,6 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             return provider ? (providerNormalization[provider] ?? provider) : null;
         }
 
-        function statusFromClass(target: Element | null) {
-            if (!target) return null;
-            if (target.classList.contains("syncing")) return "syncing";
-            if (target.classList.contains("err")) return "error";
-            if (target.classList.contains("warn")) return "expired";
-            if (target.classList.contains("ok")) return "connected";
-            if (target.classList.contains("neu")) return "needs-setup";
-            return null;
-        }
-
         function normalizeFieldLabel(label: string | null) {
             return label ? (fieldLabelNormalization[label] ?? label) : null;
         }
@@ -1009,7 +987,9 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 return stableLabels;
             }
 
-            const detail = root.querySelector<HTMLElement>("#ds-detail");
+            const detail = root.querySelector<HTMLElement>(
+                '[data-sot-panel="source-provider-detail"]',
+            );
 
             return Array.from(
                 detail?.querySelectorAll<HTMLElement>("input, button, select") ??
@@ -1030,7 +1010,9 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             );
             const structuralActions = Array.from(
                 root
-                    .querySelector<HTMLElement>("#ds-detail")
+                    .querySelector<HTMLElement>(
+                        '[data-sot-panel="source-provider-detail"]',
+                    )
                     ?.querySelectorAll<HTMLElement>("button") ?? [],
             );
 
@@ -1044,21 +1026,18 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
 
         const providerCards = Array.from(
             root.querySelectorAll<HTMLElement>(
-                '[data-sot-control="source-provider"], .sp-card[data-provider]',
+                '[data-sot-control="source-provider"]',
             ),
         ).map((providerCard) => {
             const statusElement =
                 providerCard.querySelector<HTMLElement>(
                     "[data-sot-provider-status]",
-                ) ??
-                providerCard.querySelector<HTMLElement>(".sp-status");
+                );
             const labelElement =
                 providerCard.querySelector<HTMLElement>(
                     "[data-sot-provider-name]",
-                ) ?? providerCard.querySelector<HTMLElement>(".sp-name");
-            const provider =
-                providerCard.getAttribute("data-sot-provider") ??
-                providerCard.getAttribute("data-provider");
+                );
+            const provider = providerCard.getAttribute("data-sot-provider");
 
             return {
                 label: textOf(labelElement),
@@ -1067,24 +1046,19 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 status:
                     providerCard.getAttribute("data-sot-status") ??
                     statusElement?.getAttribute("data-sot-status") ??
-                    statusFromClass(statusElement),
+                    null,
                 statusLabel: textOf(statusElement),
             };
         });
         const activeProvider =
             root
                 .querySelector<HTMLElement>(
-                    '[data-sot-control="source-provider"][data-sot-state="selected"], .sp-card.active[data-provider]',
+                    '[data-sot-control="source-provider"][data-sot-state="selected"]',
                 )
                 ?.getAttribute("data-sot-provider") ??
-            root
-                .querySelector<HTMLElement>(
-                    '[data-sot-control="source-provider"][data-sot-state="selected"], .sp-card.active[data-provider]',
-                )
-                ?.getAttribute("data-provider") ??
             null;
         const detail = root.querySelector<HTMLElement>(
-            '[data-sot-panel="source-provider-detail"], #ds-detail',
+            '[data-sot-panel="source-provider-detail"]',
         );
         const detailStatusElement =
             detail?.querySelector<HTMLElement>("[data-sot-status]") ?? null;
@@ -1094,7 +1068,6 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
             ) ?? null;
         const detailProvider =
             detail?.getAttribute("data-sot-provider") ??
-            detail?.getAttribute("data-provider-detail") ??
             activeProvider;
 
         return {
@@ -1103,10 +1076,15 @@ async function readDataSourcesStructuralEvidence(locator: Locator) {
                 provider: detailProvider,
                 status:
                     detail?.getAttribute("data-sot-status") ??
-                    detailHead?.getAttribute("data-ds-state") ??
-                    statusFromClass(detailStatusElement),
+                    detailHead?.getAttribute("data-sot-state") ??
+                    detailStatusElement?.getAttribute("data-sot-status") ??
+                    null,
                 statusLabel: textOf(detailStatusElement),
-                title: textOf(detail?.querySelector(".sd-title") ?? null),
+                title: textOf(
+                    detail?.querySelector(
+                        '[data-sot-part="source-provider-title"]',
+                    ) ?? null,
+                ),
             },
             fieldLabels: orderByExpected(
                 dedupe(collectFieldLabels()).filter((label) =>
@@ -1601,7 +1579,9 @@ async function expectRow117DataSourcesReadyState(page: Page) {
         '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
     );
     await expect(detail).toHaveAttribute("data-sot-status", "connected");
-    await expect(detail.locator(".sd-title")).toContainText("钉钉");
+    await expect(
+        detail.locator('[data-sot-part="source-provider-title"]'),
+    ).toContainText("钉钉");
     await expect(detail).toContainText("已连接");
 
     const evidence = await readProductDataSourcesStructuralEvidence(section);

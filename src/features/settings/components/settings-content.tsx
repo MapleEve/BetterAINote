@@ -480,12 +480,10 @@ function DataSourceProviderTile({
             type="button"
             variant="ghost"
             aria-pressed={isSelected}
-            data-provider={source.provider}
-            data-selected={isSelected ? "true" : "false"}
-            data-dimmed={isDimmed ? "true" : "false"}
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
+            data-sot-dimmed={isDimmed ? "true" : "false"}
             data-sot-provider={source.provider}
             data-sot-state={isSelected ? "selected" : "idle"}
             data-sot-status={status.state}
@@ -1089,13 +1087,12 @@ function DataSourcesSettingsPanel({
                 data-sot-panel="source-provider-detail"
                 data-sot-provider={selectedSource?.provider ?? "none"}
                 data-sot-status={status?.state ?? "empty"}
-                data-provider-detail={selectedSource?.provider ?? "none"}
             >
                 {selectedSource && status ? (
                     <>
                         <div
-                            data-ds-state={status.state}
                             data-sot-part="source-provider-header"
+                            data-sot-state={status.state}
                         >
                             <div>
                                 <h3 data-sot-part="source-provider-title">
