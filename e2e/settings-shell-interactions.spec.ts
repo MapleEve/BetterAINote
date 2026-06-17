@@ -657,7 +657,7 @@ async function readShellMetrics(locator: Locator) {
         const element = node as HTMLElement;
         const rect = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
-        const rail = element.querySelector(".settings-rail");
+        const rail = element.querySelector('[data-sot-panel="settings-rail"]');
         const selector = element.querySelector(
             '[data-sot-control="settings-section-selector"], .settings-section-select',
         );
@@ -1308,9 +1308,10 @@ async function openSotSettingsFrame(
             scrim?.removeAttribute("inert");
             scrim?.removeAttribute("hidden");
 
+            const fixtureRailClass = ["settings", "rail"].join("-");
             document
                 .querySelector<HTMLElement>(
-                    `.settings-rail .sr-item[data-section="${targetSection}"]`,
+                    `.${fixtureRailClass} .sr-item[data-section="${targetSection}"]`,
                 )
                 ?.click();
         },
@@ -2173,7 +2174,7 @@ test("settings canonical route and mobile rail keep the shell fixed", async ({
     expect(baselineHeight).toBeLessThanOrEqual(844);
     await expectShellFitsViewport(page);
 
-    const rail = shell.locator(".settings-rail");
+    const rail = shell.locator('[data-sot-panel="settings-rail"]');
     await expect(
         shell.locator('[data-sot-control="settings-section-selector"]'),
     ).toHaveCount(0);
@@ -2490,7 +2491,7 @@ test("settings shell row 117 captures responsive visual matrix", async ({
         await expectShellFitsViewport(page);
         const desktopFocusEvidence = await page.evaluate(() => {
             const navSelector =
-                '.settings-rail [data-sot-control="settings-nav"]';
+                '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"]';
             const transcriptionNavSelector =
                 `${navSelector}[data-sot-section="transcription"]`;
 
@@ -2576,7 +2577,9 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                 '[data-sot-control="settings-section-selector"]',
             ),
         ).toHaveCount(0);
-        await expect(mobileShell.locator(".settings-rail")).toBeVisible();
+        await expect(
+            mobileShell.locator('[data-sot-panel="settings-rail"]'),
+        ).toBeVisible();
         await expect(settingsNav(page, "misc")).toBeVisible();
         await settingsNav(page, mobile.section).click();
         await expect(mobileShell).toHaveAttribute(
@@ -2842,7 +2845,9 @@ test("settings shell row 117 captures responsive visual matrix", async ({
                         ),
                     ).toHaveCount(0);
                     await expect(
-                        productShell.locator(".settings-rail"),
+                        productShell.locator(
+                            '[data-sot-panel="settings-rail"]',
+                        ),
                     ).toBeVisible();
                     await expect(settingsNav(page, section)).toBeVisible();
                 }

@@ -1210,7 +1210,7 @@ button {
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"],
 [data-sot-part="recording-transcription-body"],
 .tx-body,
-.settings-body,
+[data-sot-panel="settings-body"],
 .shortcuts-list {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--fg-tertiary) 40%, transparent)
@@ -1221,7 +1221,7 @@ button {
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar,
 .tx-body::-webkit-scrollbar,
-.settings-body::-webkit-scrollbar,
+[data-sot-panel="settings-body"]::-webkit-scrollbar,
 .shortcuts-list::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -1231,7 +1231,7 @@ button {
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-track,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-track,
 .tx-body::-webkit-scrollbar-track,
-.settings-body::-webkit-scrollbar-track,
+[data-sot-panel="settings-body"]::-webkit-scrollbar-track,
 .shortcuts-list::-webkit-scrollbar-track {
     background: transparent;
 }
@@ -1240,7 +1240,7 @@ button {
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-thumb,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb,
 .tx-body::-webkit-scrollbar-thumb,
-.settings-body::-webkit-scrollbar-thumb,
+[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb,
 .shortcuts-list::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--fg-tertiary) 35%, transparent);
     border-radius: 999px;
@@ -1252,7 +1252,7 @@ button {
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-thumb:hover,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb:hover,
 .tx-body::-webkit-scrollbar-thumb:hover,
-.settings-body::-webkit-scrollbar-thumb:hover,
+[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover,
 .shortcuts-list::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
@@ -4329,7 +4329,7 @@ body[data-time-style="abs"]
 /* ===========================================================
    Settings dialog (matches index.html structure)
    =========================================================== */
-.settings {
+[data-sot-surface="settings-shell"] {
     width: 920px;
     max-width: calc(100vw - 40px);
     /* Fixed shell height — independent of section content. Without this,
@@ -4349,16 +4349,16 @@ body[data-time-style="abs"]
         transform 280ms var(--ease-out),
         opacity 220ms var(--ease-out);
 }
-.scrim[data-open="false"] > .settings {
+.scrim[data-open="false"] > [data-sot-surface="settings-shell"] {
     transform: translateY(8px) scale(0.985);
     opacity: 0;
 }
-[data-theme="dark"] .settings {
+[data-theme="dark"] [data-sot-surface="settings-shell"] {
     background: var(--bg-elevated);
     border-color: var(--glass-border);
 }
 
-.settings-head {
+[data-sot-panel="settings-header"] {
     display: flex;
     align-items: center;
     padding: 18px 20px;
@@ -4366,37 +4366,37 @@ body[data-time-style="abs"]
     /* Header stays pinned regardless of section content height. */
     flex: none;
 }
-[data-theme="dark"] .settings-head {
+[data-theme="dark"] [data-sot-panel="settings-header"] {
     border-bottom-color: var(--glass-border-soft);
 }
-.settings-user {
+[data-sot-part="settings-user-summary"] {
     display: flex;
     align-items: center;
     gap: 12px;
     flex: 1;
     min-width: 0;
 }
-.settings-user > div {
+[data-sot-part="settings-user-summary"] > div {
     min-width: 0;
 }
-.su-name {
+[data-sot-part="settings-user-name"] {
     font: 600 14px var(--font-sans);
     color: var(--fg-primary);
     margin: 0;
 }
-.su-mail {
+[data-sot-part="settings-user-subtitle"] {
     font: 500 12px var(--font-mono);
     color: var(--fg-tertiary);
     margin: 2px 0 0;
 }
 
-.settings-body {
+[data-sot-panel="settings-body"] {
     display: grid;
     grid-template-columns: 200px 1fr;
     flex: 1;
     min-height: 0;
 }
-.settings-rail {
+[data-sot-panel="settings-rail"] {
     background: var(--bg-recessed);
     border-right: 1px solid var(--line-hairline);
     padding: 14px 8px;
@@ -4410,7 +4410,7 @@ body[data-time-style="abs"]
     overscroll-behavior: contain;
     min-height: 0;
 }
-[data-theme="dark"] .settings-rail {
+[data-theme="dark"] [data-sot-panel="settings-rail"] {
     background: rgb(0 0 0 / 0.15);
     border-right-color: var(--glass-border-soft);
 }
@@ -4472,17 +4472,17 @@ body[data-time-style="abs"]
      The JS handler resets scrollTop on activation. */
 }
 @media (max-width: 720px) {
-    .settings-head {
+    [data-sot-panel="settings-header"] {
         align-items: flex-start;
         flex-wrap: wrap;
         gap: 12px;
     }
-    .settings-user {
+    [data-sot-part="settings-user-summary"] {
         flex: 1 1 calc(100% - 42px);
         min-width: 0;
     }
-    .su-name,
-    .su-mail {
+    [data-sot-part="settings-user-name"],
+    [data-sot-part="settings-user-subtitle"] {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -5556,10 +5556,10 @@ body[data-drawer="open"] .drawer-scrim {
         grid-template-columns: minmax(0, 1fr);
     }
 }
-.settings-user-local {
+[data-sot-part="settings-user-summary"] {
     display: flex;
 }
-.settings-user-local .local-badge {
+[data-sot-part="settings-user-avatar"] {
     display: grid;
 }
 [data-tenant="single"] [data-tenant-multi] {
@@ -5575,7 +5575,7 @@ body[data-drawer="open"] .drawer-scrim {
 [data-tenant="single"] .src-item .src-hint .src-hint-email {
     display: none;
 }
-.settings-rail .sr-group {
+[data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
     display: flex;
 }
 [data-sot-panel="settings-scroll-body"]
@@ -11040,19 +11040,18 @@ body[data-ds-todo="show"] .design-todo {
 }
 
 /* ---------- Settings rail group fix ----------
-   Functional rule `.sr-group { display: flex }` defaults to row, so the
-   group label and each settings nav button were laid out side-by-side inside a
-   200px rail, leaving ~40px per child and forcing CJK per-character wrap.
+   The nav group is flex-based, so the group label and each settings nav
+   button need an explicit column flow inside the 200px rail.
    Force column on the group, give the label its own visual treatment, and
    keep item labels on one line. */
-.settings-rail {
+[data-sot-panel="settings-rail"] {
     writing-mode: horizontal-tb;
 }
-.settings-rail * {
+[data-sot-panel="settings-rail"] * {
     writing-mode: horizontal-tb;
 }
 
-.settings-rail .sr-group {
+[data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
     flex-direction: column !important;
     align-items: stretch;
     gap: 2px;
@@ -11060,11 +11059,13 @@ body[data-ds-todo="show"] .design-todo {
     width: 100%;
     min-width: 0;
 }
-.settings-rail .sr-group + .sr-group {
+[data-sot-panel="settings-rail"]
+    [data-sot-list="settings-nav-group"]
+    + [data-sot-list="settings-nav-group"] {
     margin-top: 10px;
 }
 
-.settings-rail .sr-group-label {
+[data-sot-panel="settings-rail"] [data-sot-part="settings-nav-group-label"] {
     display: block;
     width: 100%;
     padding: 10px 10px 4px;
@@ -11077,63 +11078,14 @@ body[data-ds-todo="show"] .design-todo {
     text-overflow: ellipsis;
 }
 
-.settings-rail [data-sot-control="settings-nav"] {
+[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] {
     width: 100%;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.settings-rail [data-sot-control="settings-nav"] svg {
-    flex: none;
-}
-
-/* ---------- Settings rail group fix ----------
-   Functional rule `.sr-group { display: flex }` defaults to row, so the
-   group label and each settings nav button were laid out side-by-side inside a
-   200px rail, leaving ~40px per child and forcing CJK per-character wrap.
-   Force column on the group, give the label its own visual treatment, and
-   keep item labels on one line. */
-.settings-rail {
-    writing-mode: horizontal-tb;
-}
-.settings-rail * {
-    writing-mode: horizontal-tb;
-}
-
-.settings-rail .sr-group {
-    flex-direction: column !important;
-    align-items: stretch;
-    gap: 2px;
-    padding: 0;
-    width: 100%;
-    min-width: 0;
-}
-.settings-rail .sr-group + .sr-group {
-    margin-top: 10px;
-}
-
-.settings-rail .sr-group-label {
-    display: block;
-    width: 100%;
-    padding: 10px 10px 4px;
-    font: 600 10px var(--font-sans);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.settings-rail [data-sot-control="settings-nav"] {
-    width: 100%;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.settings-rail [data-sot-control="settings-nav"] svg {
+[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg {
     flex: none;
 }
 

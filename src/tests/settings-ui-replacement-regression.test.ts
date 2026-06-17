@@ -99,6 +99,33 @@ const LEGACY_SETTINGS_FIELD_PATTERNS: Array<[RegExp, string]> = [
     [/\b_is-[\w-]+/, "_is-*"],
 ];
 
+const LEGACY_SETTINGS_SHELL_CLASSNAMES = [
+    'className="settings"',
+    'className="settings-head"',
+    'className="settings-body"',
+    'className="settings-rail"',
+    'className="settings-user settings-user-local"',
+    'className="local-badge"',
+    'className="su-name"',
+    'className="su-mail"',
+    'className="sr-group"',
+    'className="sr-group-label"',
+] as const;
+
+const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
+    [/\.settings(?![-\w])/, ".settings"],
+    [/(^|\n|,)\s*\.settings-head\b/, ".settings-head"],
+    [/(^|\n|,)\s*\.settings-body\b/, ".settings-body"],
+    [/(^|\n|,)\s*\.settings-rail\b/, ".settings-rail"],
+    [/(^|\n|,)\s*\.settings-user\b/, ".settings-user"],
+    [/(^|\n|,)\s*\.settings-user-local\b/, ".settings-user-local"],
+    [/(^|\n|,)\s*\.local-badge\b/, ".local-badge"],
+    [/(^|\n|,)\s*\.su-name\b/, ".su-name"],
+    [/(^|\n|,)\s*\.su-mail\b/, ".su-mail"],
+    [/(^|\n|,)\s*\.sr-group\b/, ".sr-group"],
+    [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
+] as const;
+
 function expectNoLegacySettingsFieldPatterns(
     sources: Partial<
         Record<(typeof TARGET_SETTINGS_MIGRATION_PATHS)[number], string>
@@ -136,16 +163,24 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("data-sot-busy=");
         expect(dialog).toContain("data-sot-section={activeSection}");
         expect(dialog).toContain("data-sot-state=");
-        expect(dialog).toContain('className="settings-head"');
-        expect(dialog).toContain('className="settings-body"');
-        expect(dialog).toContain('className="settings-rail"');
+        expect(dialog).toContain('data-sot-panel="settings-header"');
+        expect(dialog).toContain('data-sot-panel="settings-body"');
+        expect(dialog).toContain('data-sot-panel="settings-rail"');
         expect(dialog).toContain("<aside");
         expect(dialog).toContain('data-sot-control="settings-nav"');
         expect(dialog).toContain('data-sot-control="settings-close"');
         expect(dialog).toContain('data-sot-part="settings-user-summary"');
+        expect(dialog).toContain('data-sot-part="settings-user-avatar"');
+        expect(dialog).toContain('data-sot-part="settings-user-name"');
+        expect(dialog).toContain('data-sot-part="settings-user-subtitle"');
+        expect(dialog).toContain('data-sot-list="settings-nav-group"');
+        expect(dialog).toContain('data-sot-part="settings-nav-group-label"');
         expect(dialog).toContain("DialogTitle");
         expect(dialog).toContain("DialogDescription");
         expect(dialog).toContain('className="sr-only"');
+        for (const legacyClassName of LEGACY_SETTINGS_SHELL_CLASSNAMES) {
+            expect(dialog).not.toContain(legacyClassName);
+        }
         expect(dialog).toContain('variant="ghost"');
         expect(dialog).toContain('size="sm"');
         expect(dialog).toContain("data-state={");
@@ -229,6 +264,14 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain("z-index: var(--z-modal)");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");
+        expect(globals).toContain(
+            '.scrim[data-open="false"] > [data-sot-surface="settings-shell"]',
+        );
+        for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
+            expect(globals, `globals should not use ${label}`).not.toMatch(
+                pattern,
+            );
+        }
     });
 
     it("keeps settings selects on the shared Radix shadcn wrapper", () => {
@@ -346,7 +389,7 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-dialog.tsx",
         );
         const localBadge = dialog.match(
-            /<span\s+className="local-badge"[\s\S]*?<\/span>/,
+            /<span[\s\S]*?data-sot-part="settings-user-avatar"[\s\S]*?<\/span>/,
         )?.[0];
 
         expect(dialog).toContain("Monitor");
@@ -371,22 +414,31 @@ describe("settings SOT interaction regressions", () => {
         const globals = readSource("app/globals.css");
         const baseBodyCss = readCssBlock(
             globals,
-            ".settings-body {\n    display: grid;",
+            '[data-sot-panel="settings-body"] {\n    display: grid;',
         );
-        const baseRailCss = readCssBlock(globals, ".settings-rail");
+        const baseRailCss = readCssBlock(
+            globals,
+            '[data-sot-panel="settings-rail"]',
+        );
         const mobileSettingsCss = readCssBlock(
             globals,
             "@media (max-width: 720px)",
         );
-        const baseUserCss = readCssBlock(globals, ".settings-user");
-        const baseUserTextCss = readCssBlock(globals, ".settings-user > div");
+        const baseUserCss = readCssBlock(
+            globals,
+            '[data-sot-part="settings-user-summary"]',
+        );
+        const baseUserTextCss = readCssBlock(
+            globals,
+            '[data-sot-part="settings-user-summary"] > div',
+        );
         const mobileHeaderCss = readCssBlock(
             mobileSettingsCss,
-            ".settings-head",
+            '[data-sot-panel="settings-header"]',
         );
         const mobileTextCss = readCssBlock(
             mobileSettingsCss,
-            ".su-name,\n    .su-mail",
+            '[data-sot-part="settings-user-name"],\n    [data-sot-part="settings-user-subtitle"]',
         );
 
         expect(dialog).not.toContain(
@@ -412,10 +464,10 @@ describe("settings SOT interaction regressions", () => {
 
         expect(mobileSettingsCss).not.toContain(".settings-section-select");
         expect(mobileSettingsCss).not.toMatch(
-            /\.settings-body\s*{[\s\S]*?grid-template-columns:\s*1fr;[\s\S]*?}/,
+            /\[data-sot-panel="settings-body"\]\s*{[\s\S]*?grid-template-columns:\s*1fr;[\s\S]*?}/,
         );
         expect(mobileSettingsCss).not.toMatch(
-            /\.settings-rail\s*{[\s\S]*?display:\s*none;[\s\S]*?}/,
+            /\[data-sot-panel="settings-rail"\]\s*{[\s\S]*?display:\s*none;[\s\S]*?}/,
         );
     });
 

@@ -530,7 +530,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     }
                 }}
                 showCloseButton={false}
-                className="settings"
                 style={
                     {
                         "--tw-enter-scale": "1",
@@ -545,21 +544,19 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     {settingsUserSubtitle}
                 </DialogDescription>
                 <SettingsBusyProvider value={busyContextValue}>
-                    <header className="settings-head">
-                        <div
-                            className="settings-user settings-user-local"
-                            data-sot-part="settings-user-summary"
-                        >
+                    <header data-sot-panel="settings-header">
+                        <div data-sot-part="settings-user-summary">
                             <span
-                                className="local-badge"
                                 aria-hidden="true"
                                 data-sot-part="settings-user-avatar"
                             >
                                 <Monitor />
                             </span>
                             <div>
-                                <h2 className="su-name">{settingsUserName}</h2>
-                                <p className="su-mail">
+                                <h2 data-sot-part="settings-user-name">
+                                    {settingsUserName}
+                                </h2>
+                                <p data-sot-part="settings-user-subtitle">
                                     {settingsUserSubtitle}
                                 </p>
                             </div>
@@ -585,17 +582,20 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         </DialogClose>
                     </header>
 
-                    <div className="settings-body">
+                    <div data-sot-panel="settings-body">
                         {/* biome-ignore lint/a11y/useSemanticElements: SOT settings rail is aside[role=navigation]. */}
                         <aside
-                            className="settings-rail"
                             ref={navBoundaryRef}
                             role="navigation"
+                            data-sot-panel="settings-rail"
                             aria-label={t("settingsDialog.title")}
                         >
                             {settingsNavGroups.map((group) => (
-                                <div key={group.labelKey} className="sr-group">
-                                    <div className="sr-group-label">
+                                <div
+                                    key={group.labelKey}
+                                    data-sot-list="settings-nav-group"
+                                >
+                                    <div data-sot-part="settings-nav-group-label">
                                         {t(group.labelKey)}
                                     </div>
                                     {group.items.map((item) => {
