@@ -3,7 +3,28 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
+const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
+    'className="player"',
+    'className="player-meta"',
+    'className="player-controls"',
+    'className="player-controls is-disabled"',
+    'className="time mono"',
+    'className="no-audio-banner"',
+    'className="no-audio-ico"',
+    'className="no-audio-text"',
+    'className="no-audio-title"',
+    'className="no-audio-sub"',
+    'className="vol-anchor"',
+    'className="vol-pop"',
+    'className="vol-row"',
+    'className="vol-mute"',
+    'className="vol-ico"',
+    'className="vol-range-control"',
+    'inputClassName="vol-range"',
+    'className="vol-num mono"',
+];
 
 describe("dashboard recording player regressions", () => {
     it("does not pass an empty audio source to the hidden audio element", () => {
@@ -34,7 +55,10 @@ describe("dashboard recording player regressions", () => {
             "utf8",
         );
 
-        expect(source).toContain('className="no-audio-banner"');
+        expect(source).toContain('data-sot-part="recording-player-no-audio"');
+        expect(source).toContain("<Alert");
+        expect(source).toContain("<AlertTitle");
+        expect(source).toContain("<AlertDescription");
         expect(source).toContain('role="status"');
         expect(source).toContain(
             "这条录音没有本地音频，无法播放或运行私有重转写。",
@@ -61,8 +85,11 @@ describe("dashboard recording player regressions", () => {
             "utf8",
         );
 
-        expect(source).toContain('className="player"');
-        expect(source).not.toContain("data-has-no-padding");
+        expect(source).toContain("import { Card, CardContent, CardHeader }");
+        expect(source).toContain("<Card");
+        expect(source).toContain("hasNoPadding");
+        expect(source).toContain("<CardHeader");
+        expect(source).toContain("<CardContent");
         expect(source).not.toContain("recording-player-shell");
         expect(source).toContain(
             'data-sot-state={playbackDisabled ? "disabled" : "ready"}',
@@ -94,8 +121,15 @@ describe("dashboard recording player regressions", () => {
         expect(sliderSource).not.toContain("track-fill");
         expect(sliderSource).not.toContain("track-thumb");
         expect(source).toContain('"data-sot-control": "recording-player-seek"');
-        expect(source).toContain('className="vol-pop"');
-        expect(source).toContain('className="vol-num mono"');
+        expect(source).toContain(
+            'data-sot-panel="recording-player-volume-popover"',
+        );
+        expect(source).toContain(
+            'data-sot-control="recording-player-volume-slider"',
+        );
+        expect(source).toContain(
+            'data-sot-part="recording-player-volume-value"',
+        );
         expect(source).toContain('data-sot-control="recording-player-volume"');
         expect(source).toContain(
             'data-sot-part="recording-player-current-time"',
@@ -103,6 +137,9 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('data-sot-part="recording-player-duration"');
         expect(source).toContain("isTagManagerOpen");
         expect(source).toContain("tagManagerPanel");
+        expect(source).toContain(
+            'data-sot-panel="recording-player-tag-manager-slot"',
+        );
         expect(source).toContain("<SotPlayerTagChip");
         expect(source).toContain("onClick={onToggleTagManager}");
         expect(source).toContain("count={tags.length}");
@@ -125,9 +162,6 @@ describe("dashboard recording player regressions", () => {
         expect(speedControlSource).toContain("<Button");
         expect(speedControlSource).toContain('variant="ghost"');
         expect(speedControlSource).toContain('size="sm"');
-        expect(speedControlSource).toContain("min-w-12");
-        expect(speedControlSource).toContain("font-mono");
-        expect(speedControlSource).toContain("tabular-nums");
         expect(speedControlSource).toContain(
             'data-sot-control="recording-player-speed"',
         );
@@ -149,5 +183,8 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"Volume"');
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
+        for (const legacyClass of RECORDING_PLAYER_LEGACY_CLASS_TOKENS) {
+            expect(source).not.toContain(legacyClass);
+        }
     });
 });

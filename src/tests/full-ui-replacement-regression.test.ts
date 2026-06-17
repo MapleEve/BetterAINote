@@ -1175,12 +1175,8 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             'data-sot-part="recording-transcription-skeleton-line"',
         );
-        expect(transcriptionSkeletons).toContain(
-            "sanitizeSkeletonClassName",
-        );
-        expect(transcriptionSkeletons).not.toContain(
-            "mergeSkeletonClassName",
-        );
+        expect(transcriptionSkeletons).toContain("sanitizeSkeletonClassName");
+        expect(transcriptionSkeletons).not.toContain("mergeSkeletonClassName");
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',
@@ -1233,9 +1229,53 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("aria-label={");
         expect(player).toContain('title="Click to cycle playback speed"');
         expect(player).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(player).toContain(
+            'import { Card, CardContent, CardHeader } from "@/components/ui/card";',
+        );
+        expect(player).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(player).toContain("<Alert");
+        expect(player).toContain("<AlertTitle");
+        expect(player).toContain("<AlertDescription");
+        expect(player).toContain("<Card");
+        expect(player).toContain("hasNoPadding");
+        expect(player).toContain("<CardHeader");
+        expect(player).toContain("<CardContent");
         expect(player).toContain("<Button");
+        expect(player).toContain('data-sot-part="recording-player-no-audio"');
+        expect(player).toContain('data-sot-part="recording-player-meta"');
+        expect(player).toContain('data-sot-panel="recording-player-controls"');
+        expect(player).toContain(
+            'data-sot-panel="recording-player-volume-popover"',
+        );
+        expect(player).toContain(
+            'data-sot-control="recording-player-volume-slider"',
+        );
+        for (const legacyClass of [
+            'className="player"',
+            'className="player-meta"',
+            'className="player-controls"',
+            'className="player-controls is-disabled"',
+            'className="time mono"',
+            'className="no-audio-banner"',
+            'className="no-audio-ico"',
+            'className="no-audio-text"',
+            'className="no-audio-title"',
+            'className="no-audio-sub"',
+            'className="vol-anchor"',
+            'className="vol-pop"',
+            'className="vol-row"',
+            'className="vol-mute"',
+            'className="vol-ico"',
+            'className="vol-range-control"',
+            'inputClassName="vol-range"',
+            'className="vol-num mono"',
+        ]) {
+            expect(player).not.toContain(legacyClass);
+        }
         expect(tagManager).toContain('data-sot-panel="recording-tag-manager"');
         expect(tagManager).toContain('data-sot-control="recording-tag-toggle"');
         expect(tagManager).toContain('data-sot-part="head"');

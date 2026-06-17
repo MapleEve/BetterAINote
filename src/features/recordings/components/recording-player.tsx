@@ -3,11 +3,12 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
-import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import {
     formatSotPlayerDate,
@@ -36,10 +37,6 @@ interface RecordingPlayerProps {
 const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
     "--font-mono":
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-};
-
-const sotVolumeSliderRootStyle: CSSProperties = {
-    display: "contents",
 };
 
 export function RecordingPlayer({
@@ -113,33 +110,39 @@ export function RecordingPlayer({
     };
 
     return (
-        <div
-            className="player"
+        <Card
+            hasNoPadding
             data-no-audio={playbackDisabled ? "true" : undefined}
             data-playing={isPlaying ? "true" : undefined}
             data-sot-state={playbackDisabled ? "disabled" : "ready"}
             data-sot-surface="recording-player"
             style={sotPlayerFontVariables}
         >
-            {/* biome-ignore lint/a11y/useSemanticElements: SOT no-audio banner is a div with role=status. */}
-            <div
-                className="no-audio-banner"
-                data-no-audio-banner=""
+            <Alert
+                data-sot-part="recording-player-no-audio"
+                data-sot-state={playbackDisabled ? "visible" : "hidden"}
+                hidden={!playbackDisabled}
                 role="status"
             >
-                <span className="no-audio-ico" aria-hidden="true">
+                <span
+                    data-icon="inline-start"
+                    data-sot-part="recording-player-no-audio-icon"
+                >
                     <SotPlayerNoAudioIcon />
                 </span>
-                <div className="no-audio-text">
-                    <div className="no-audio-title">来源仅同步转写与报告</div>
-                    <div className="no-audio-sub">
-                        这条录音没有本地音频，无法播放或运行私有重转写。
-                    </div>
-                </div>
-            </div>
+                <AlertTitle data-sot-part="recording-player-no-audio-title">
+                    来源仅同步转写与报告
+                </AlertTitle>
+                <AlertDescription data-sot-part="recording-player-no-audio-description">
+                    这条录音没有本地音频，无法播放或运行私有重转写。
+                </AlertDescription>
+            </Alert>
 
-            <div className="player-meta">
-                <span className="ts" suppressHydrationWarning>
+            <CardHeader data-sot-part="recording-player-meta">
+                <span
+                    data-sot-part="recording-player-date"
+                    suppressHydrationWarning
+                >
                     {formatSotPlayerDate(recording.startTime)}
                 </span>
                 <SotPlayerSourceTag provider={recording.sourceProvider} />
@@ -150,21 +153,20 @@ export function RecordingPlayer({
                     trigger={Boolean(onToggleTagManager)}
                 />
                 <SotPlayerStatusBadge />
-            </div>
+            </CardHeader>
 
-            {isTagManagerOpen && tagManagerPanel ? tagManagerPanel : null}
+            {isTagManagerOpen && tagManagerPanel ? (
+                <div data-sot-panel="recording-player-tag-manager-slot">
+                    {tagManagerPanel}
+                </div>
+            ) : null}
 
-            <div
-                className={
-                    playbackDisabled
-                        ? "player-controls is-disabled"
-                        : "player-controls"
-                }
+            <CardContent
+                aria-disabled={playbackDisabled ? "true" : undefined}
                 data-sot-panel="recording-player-controls"
                 data-sot-state={controlsState}
             >
                 <Button
-                    className="rounded-full"
                     variant="ghost"
                     size="icon-sm"
                     type="button"
@@ -176,11 +178,15 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(-5)}
                 >
-                    <SotPlayerBackIcon />
+                    <span
+                        data-icon="inline-start"
+                        data-sot-part="recording-player-control-icon"
+                    >
+                        <SotPlayerBackIcon />
+                    </span>
                 </Button>
 
                 <Button
-                    className="rounded-full"
                     variant="default"
                     size="icon"
                     type="button"
@@ -205,11 +211,19 @@ export function RecordingPlayer({
                               : "Play"
                     }
                 >
-                    {isPlaying ? <SotPlayerPauseIcon /> : <SotPlayerPlayIcon />}
+                    <span
+                        data-icon="inline-start"
+                        data-sot-part="recording-player-control-icon"
+                    >
+                        {isPlaying ? (
+                            <SotPlayerPauseIcon />
+                        ) : (
+                            <SotPlayerPlayIcon />
+                        )}
+                    </span>
                 </Button>
 
                 <Button
-                    className="rounded-full"
                     variant="ghost"
                     size="icon-sm"
                     type="button"
@@ -221,21 +235,19 @@ export function RecordingPlayer({
                     disabled={playbackDisabled}
                     onClick={() => seekBySeconds(5)}
                 >
-                    <SotPlayerForwardIcon />
+                    <span
+                        data-icon="inline-start"
+                        data-sot-part="recording-player-control-icon"
+                    >
+                        <SotPlayerForwardIcon />
+                    </span>
                 </Button>
 
-                <span
-                    className="time mono"
-                    data-sot-part="recording-player-current-time"
-                >
+                <span data-sot-part="recording-player-current-time">
                     {formatSotPlayerTime(currentTime)}
                 </span>
 
                 <Slider
-                    className={cn(
-                        "min-w-0 flex-1",
-                        playbackDisabled ? "cursor-default" : "cursor-pointer",
-                    )}
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
@@ -287,10 +299,7 @@ export function RecordingPlayer({
                     value={[progress]}
                 />
 
-                <span
-                    className="time mono"
-                    data-sot-part="recording-player-duration"
-                >
+                <span data-sot-part="recording-player-duration">
                     {formatSotPlayerTime(playerDurationValue)}
                 </span>
 
@@ -299,7 +308,6 @@ export function RecordingPlayer({
                     onClick={cyclePlaybackSpeed}
                     variant="ghost"
                     size="sm"
-                    className="min-w-12 font-mono tabular-nums"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -313,9 +321,8 @@ export function RecordingPlayer({
                     {playbackSpeedLabel}
                 </Button>
 
-                <div className="vol-anchor">
+                <div data-sot-part="recording-player-volume-anchor">
                     <Button
-                        className="rounded-full"
                         variant="ghost"
                         size="icon-sm"
                         type="button"
@@ -345,55 +352,69 @@ export function RecordingPlayer({
                         disabled={playbackDisabled}
                         onClick={() => setVolumeOpen((open) => !open)}
                     >
-                        <SotPlayerVolumeIcon volume={volume} />
+                        <span
+                            data-icon="inline-start"
+                            data-sot-part="recording-player-control-icon"
+                        >
+                            <SotPlayerVolumeIcon volume={volume} />
+                        </span>
                     </Button>
-                    <div
-                        className="vol-pop"
+                    <Card
+                        hasNoPadding
                         data-open={volumePopoverOpen ? "true" : "false"}
+                        data-sot-panel="recording-player-volume-popover"
+                        data-sot-state={volumePopoverOpen ? "open" : "closed"}
                         hidden={!volumePopoverOpen}
                         aria-hidden={volumePopoverOpen ? undefined : "true"}
                         role="dialog"
                         aria-label={language === "zh-CN" ? "音量" : "Volume"}
                     >
-                        <div className="vol-row">
-                            <button
-                                className="vol-mute"
+                        <div data-sot-part="recording-player-volume-row">
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"
                                         ? "静音切换"
                                         : "Toggle mute"
                                 }
+                                data-sot-control="recording-player-volume-mute"
+                                data-sot-state={
+                                    volumeMuted ? "muted" : "audible"
+                                }
                                 disabled={playbackDisabled}
                                 onClick={() => setVolume(volumeMuted ? 70 : 0)}
                             >
-                                <SotPlayerVolumeIcon
-                                    className="vol-ico"
-                                    volume={volume}
-                                />
-                            </button>
+                                <span
+                                    data-icon="inline-start"
+                                    data-sot-part="recording-player-volume-icon"
+                                >
+                                    <SotPlayerVolumeIcon volume={volume} />
+                                </span>
+                            </Button>
                             <Slider
-                                className="vol-range-control"
-                                inputClassName="vol-range"
                                 min={0}
                                 max={100}
                                 step={1}
                                 value={[volume]}
                                 disabled={playbackDisabled}
+                                data-sot-control="recording-player-volume-slider"
+                                data-sot-state={controlState}
                                 aria-label={
                                     language === "zh-CN" ? "音量" : "Volume"
                                 }
                                 onValueChange={(nextValue) =>
                                     setVolume(nextValue[0] ?? volume)
                                 }
-                                renderTrack={false}
-                                rootProps={{ style: sotVolumeSliderRootStyle }}
                             />
-                            <span className="vol-num mono">{volume}</span>
+                            <span data-sot-part="recording-player-volume-value">
+                                {volume}
+                            </span>
                         </div>
-                    </div>
+                    </Card>
                 </div>
-            </div>
+            </CardContent>
 
             <audio
                 ref={audioRef}
@@ -403,6 +424,6 @@ export function RecordingPlayer({
             >
                 <track kind="captions" />
             </audio>
-        </div>
+        </Card>
     );
 }

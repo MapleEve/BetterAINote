@@ -1160,6 +1160,18 @@ function playerControlsPanel(page: Page) {
     return page.locator('[data-sot-panel="recording-player-controls"]').first();
 }
 
+function playerMetaPanel(page: Page) {
+    return playerShell(page)
+        .locator('[data-sot-part="recording-player-meta"]')
+        .first();
+}
+
+function playerNoAudioBanner(page: Page) {
+    return playerShell(page)
+        .locator('[data-sot-part="recording-player-no-audio"]')
+        .first();
+}
+
 function playerBackButton(page: Page) {
     return page
         .locator('[data-slot="button"][data-sot-control="recording-player-back"]')
@@ -1202,6 +1214,16 @@ function playerVolumeSlider(page: Page) {
     });
 }
 
+async function setPlayerVolumeSlider(page: Page, value: number) {
+    const slider = playerVolumeSlider(page);
+    await slider.focus();
+    await slider.press("Home");
+    for (let step = 0; step < value; step += 1) {
+        await slider.press("ArrowRight");
+    }
+    await expect(slider).toHaveAttribute("aria-valuenow", String(value));
+}
+
 function playerVolumeButton(page: Page) {
     return page
         .locator(
@@ -1212,6 +1234,14 @@ function playerVolumeButton(page: Page) {
 
 function playerAudio(page: Page) {
     return page.locator("audio").first();
+}
+
+function playerTagManagerTrigger(page: Page) {
+    return recordingWorkstation(page)
+        .locator(
+            '[data-sot-part="recording-player-meta"] [data-sot-control="recording-tag-manager"]',
+        )
+        .first();
 }
 
 function speakerReviewCard(panel: Locator, label: string) {
@@ -1583,6 +1613,21 @@ async function captureSotHtmlFixture(
                 stage.style.height = `${fixtureFrame.stage.height}px`;
             }
             stage.innerHTML = fixtureHtml;
+            stage
+                .querySelectorAll<HTMLElement>(".track-thumb")
+                .forEach((thumb) => {
+                    const pct = thumb.dataset.pct ?? "0";
+                    const left = thumb.hasAttribute("data-orientation")
+                        ? `calc(${pct}% - 7px)`
+                        : `${pct}%`;
+                    thumb.style.setProperty("left", left, "important");
+                    thumb.style.setProperty("top", "3px", "important");
+                    thumb.style.setProperty(
+                        "transform",
+                        "translate(-50%, -50%)",
+                        "important",
+                    );
+                });
 
             host.appendChild(stage);
             document.body.appendChild(host);
@@ -2211,6 +2256,44 @@ function appendClassForDataHook(
     return html.replace(tagPattern, `${nextOpeningTag}$2`);
 }
 
+function appendClassForDataHookAll(
+    html: string,
+    dataHook: string,
+    className: string,
+) {
+    const escapedHook = dataHook.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const tagPattern = new RegExp(`(<[^>]*${escapedHook}[^>]*)(>)`, "g");
+
+    return html.replace(tagPattern, (match, openingTag: string) => {
+        if (openingTag.includes(className)) {
+            return match;
+        }
+
+        const nextOpeningTag = openingTag.includes(' class="')
+            ? openingTag.replace(/ class="([^"]*)"/, ` class="$1 ${className}"`)
+            : `${openingTag} class="${className}"`;
+
+        return `${nextOpeningTag}>`;
+    });
+}
+
+function setClassForDataHookAll(
+    html: string,
+    dataHook: string,
+    className: string,
+) {
+    const escapedHook = dataHook.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const tagPattern = new RegExp(`(<[^>]*${escapedHook}[^>]*)(>)`, "g");
+
+    return html.replace(tagPattern, (match, openingTag: string) => {
+        const nextOpeningTag = openingTag.includes(' class="')
+            ? openingTag.replace(/ class="[^"]*"/, ` class="${className}"`)
+            : `${openingTag} class="${className}"`;
+
+        return `${nextOpeningTag}>`;
+    });
+}
+
 function appendAttributeForClass(
     html: string,
     className: string,
@@ -2267,6 +2350,7 @@ async function expectTransformedSotPixelsMatch(
         differingPixels?: number;
         maxChannelDelta?: number;
     } = {},
+    productCapturePage?: Page,
 ) {
     const width = await readSotFixtureWidth(sotLocator);
     const [rawSotHtml, productHtml] = await Promise.all([
@@ -2274,10 +2358,28 @@ async function expectTransformedSotPixelsMatch(
         readSotFixtureOuterHtml(productLocator),
     ]);
     const sotHtml = normalizeTagManagerSotHtml(rawSotHtml);
-    const [sotCapture, productCapture] = await Promise.all([
-        captureSotHtmlFixture(sotLocator.page(), transformHtml(sotHtml), width),
-        captureSotHtmlFixture(page, transformHtml(productHtml), width),
-    ]);
+    const sotPage = sotLocator.page();
+    const nextProductCapturePage = productCapturePage ?? page;
+    const transformedSotHtml = transformHtml(sotHtml);
+    const transformedProductHtml = transformHtml(productHtml);
+    const [sotCapture, productCapture] =
+        nextProductCapturePage === sotPage
+            ? [
+                  await captureSotHtmlFixture(sotPage, transformedSotHtml, width),
+                  await captureSotHtmlFixture(
+                      sotPage,
+                      transformedProductHtml,
+                      width,
+                  ),
+              ]
+            : await Promise.all([
+                  captureSotHtmlFixture(sotPage, transformedSotHtml, width),
+                  captureSotHtmlFixture(
+                      nextProductCapturePage,
+                      transformedProductHtml,
+                      width,
+                  ),
+              ]);
     const diff = await compareSotPixels(
         page,
         sotCapture.dataUrl,
@@ -2686,6 +2788,107 @@ function normalizePlayerResponsiveHtml(html: string) {
     return html.replace(/14:32/g, "0:00").replace(/data-pct="31"/g, 'data-pct="0"');
 }
 
+function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
+    let nextHtml = normalizePlayerResponsiveHtml(html);
+    if (
+        !nextHtml.includes('data-sot-surface="recording-player"') &&
+        !nextHtml.includes('data-sot-part="recording-player-') &&
+        !nextHtml.includes('data-sot-control="recording-player-') &&
+        !nextHtml.includes('data-sot-panel="recording-player-')
+    ) {
+        return nextHtml;
+    }
+
+    const sliderHookPattern =
+        'data-sot-control="recording-player-seek"|data-slot="slider-(?:track|range|thumb)"';
+
+    nextHtml = nextHtml
+        .replace(
+            /<span[^>]*data-sot-part="recording-player-control-icon"[^>]*>\s*([\s\S]*?<\/svg>)\s*<\/span>/g,
+            "$1",
+        )
+        .replace(
+            /<span[^>]*data-slot="slider-track"[^>]*>\s*(<span[^>]*data-slot="slider-range"[^>]*>\s*<\/span>)\s*<\/span>/g,
+            "$1",
+        )
+        .replace(
+            new RegExp(`(<[^>]*(?:${sliderHookPattern})[^>]*?)\\sstyle="[^"]*"`, "g"),
+            "$1",
+        )
+        .replace(
+            new RegExp(`(<[^>]*?)\\sstyle="[^"]*"([^>]*(?:${sliderHookPattern})[^>]*>)`, "g"),
+            "$1$2",
+        );
+
+    for (const [dataHook, className] of [
+        ['data-sot-surface="recording-player"', "player"],
+        ['data-sot-part="recording-player-no-audio"', "no-audio-banner"],
+        ['data-sot-part="recording-player-no-audio-icon"', "no-audio-ico"],
+        ['data-sot-part="recording-player-no-audio-title"', "no-audio-title"],
+        [
+            'data-sot-part="recording-player-no-audio-description"',
+            "no-audio-sub",
+        ],
+        ['data-sot-part="recording-player-meta"', "player-meta"],
+        ['data-sot-part="recording-player-date"', "ts"],
+        ['data-sot-control="player-source-tag"', "src-tag"],
+        ['data-sot-part="source-icon"', "ico"],
+        ['data-sot-control="recording-tag-manager"', "utag c-violet _is-2"],
+        ['data-sot-control="player-status"', "b ok _is-3"],
+        ['data-sot-part="status-dot"', "dot"],
+        ['data-sot-panel="recording-player-controls"', "player-controls"],
+        ['data-sot-control="recording-player-back"', "round-btn"],
+        ['data-sot-control="recording-player-play"', "round-btn play"],
+        ['data-sot-control="recording-player-forward"', "round-btn"],
+        ['data-sot-part="recording-player-current-time"', "time mono"],
+        ['data-sot-control="recording-player-seek"', "track"],
+        ['data-slot="slider-range"', "track-fill"],
+        ['data-slot="slider-thumb"', "track-thumb"],
+        ['data-sot-part="recording-player-duration"', "time mono"],
+        ['data-sot-control="recording-player-speed"', "btn ghost speed"],
+        ['data-sot-part="recording-player-volume-anchor"', "vol-anchor"],
+        ['data-sot-control="recording-player-volume"', "round-btn small"],
+        ['data-sot-panel="recording-player-volume-popover"', "vol-pop"],
+        ['data-sot-part="recording-player-volume-row"', "vol-row"],
+        ['data-sot-control="recording-player-volume-mute"', "vol-mute"],
+        ['data-sot-part="recording-player-volume-icon"', "vol-ico"],
+        ['data-sot-control="recording-player-volume-slider"', "vol-range"],
+        ['data-sot-part="recording-player-volume-value"', "vol-num mono"],
+    ] as const) {
+        nextHtml = setClassForDataHookAll(nextHtml, dataHook, className);
+    }
+
+    nextHtml = nextHtml.replace(
+        /(<[^>]*data-sot-panel="recording-player-controls"[^>]*data-sot-state="disabled"[^>]*class="[^"]*)"/g,
+        '$1 is-disabled"',
+    );
+    nextHtml = nextHtml.replace(
+        /<([^>]*class="track-thumb"[^>]*)>/g,
+        (match, attrs: string) => {
+            if (!attrs.includes('data-orientation="horizontal"')) {
+                return match;
+            }
+            const pct = attrs.match(/\bdata-pct="(\d+)"/)?.[1] ?? "0";
+            const nextAttrs = attrs.replace(/\sstyle="[^"]*"/g, "");
+            return `<${nextAttrs} style="left:calc(${pct}% - 7px);top:3px;transform:translate(-50%,-50%);">`;
+        },
+    );
+
+    return nextHtml
+        .replace(/src="\/assets\//g, 'src="../../assets/')
+        .replace(/\sdata-sot-[a-z-]+="[^"]*"/g, "")
+        .replace(/\sdata-slot="[^"]*"/g, "");
+}
+
+function bridgePlayerNoAudioBannerToSotClassHtml(html: string) {
+    const nextHtml = bridgeRecordingPlayerDataSotToSotClassHtml(html).replace(
+        /(<span[^>]*class="no-audio-ico"[\s\S]*?<\/span>)(\s*)(<div class="no-audio-title"[\s\S]*?<\/div>)(\s*)(<div class="no-audio-sub"[\s\S]*?<\/div>)/,
+        '$1<div class="no-audio-text">$3$5</div>',
+    );
+
+    return `<style>.sot-pixel-stage .no-audio-banner{display:flex!important}</style>${nextHtml}`;
+}
+
 async function capturePlayerResponsiveFrame(
     page: Page,
     html: string,
@@ -2746,6 +2949,21 @@ async function capturePlayerResponsiveFrame(
             stage.style.position = "relative";
             stage.style.width = `${fixtureFrame.stage.width}px`;
             stage.innerHTML = fixtureHtml;
+            stage
+                .querySelectorAll<HTMLElement>(".track-thumb")
+                .forEach((thumb) => {
+                    const pct = thumb.dataset.pct ?? "0";
+                    const left = thumb.hasAttribute("data-orientation")
+                        ? `calc(${pct}% - 7px)`
+                        : `${pct}%`;
+                    thumb.style.setProperty("left", left, "important");
+                    thumb.style.setProperty("top", "3px", "important");
+                    thumb.style.setProperty(
+                        "transform",
+                        "translate(-50%, -50%)",
+                        "important",
+                    );
+                });
 
             host.appendChild(stage);
             document.body.appendChild(host);
@@ -2811,7 +3029,7 @@ async function capturePlayerResponsiveFrame(
             }
             return Array.from(
                 stageElement.querySelectorAll<HTMLElement>(
-                    ".player, .no-audio-banner, .player-meta, .player-controls, .track, .speed, .vol-anchor",
+                    '[data-sot-surface="recording-player"], .player, [data-sot-part="recording-player-no-audio"], .no-audio-banner, [data-sot-part="recording-player-meta"], .player-meta, [data-sot-panel="recording-player-controls"], .player-controls, [data-sot-control="recording-player-seek"], .track, [data-sot-control="recording-player-speed"], .speed, [data-sot-part="recording-player-volume-anchor"], .vol-anchor',
                 ),
             )
                 .map((element) => {
@@ -2859,6 +3077,7 @@ async function capturePlayerResponsiveFrame(
             "height",
             "justifyContent",
             "letterSpacing",
+            "left",
             "lineHeight",
             "marginLeft",
             "marginRight",
@@ -2866,6 +3085,9 @@ async function capturePlayerResponsiveFrame(
             "paddingLeft",
             "paddingRight",
             "textAlign",
+            "top",
+            "transform",
+            "translate",
             "width",
         ] as const;
         const read = (selector: string): PlayerResponsiveElementBounds => {
@@ -2919,7 +3141,9 @@ async function capturePlayerResponsiveFrame(
             documentOverflowY:
                 document.documentElement.scrollHeight > window.innerHeight,
             elements: {
-                backButton: read(".player-controls > .round-btn:nth-of-type(1)"),
+                backButton: read(
+                    '[data-sot-control="recording-player-back"], .player-controls > .round-btn:nth-of-type(1)',
+                ),
                 currentTime: read(
                     '[data-sot-part="recording-player-current-time"], .player-controls > .time:nth-of-type(1)',
                 ),
@@ -2927,19 +3151,32 @@ async function capturePlayerResponsiveFrame(
                     '[data-sot-part="recording-player-duration"], .player-controls > .time:nth-of-type(2)',
                 ),
                 forwardButton: read(
-                    ".player-controls > .round-btn:nth-of-type(3)",
+                    '[data-sot-control="recording-player-forward"], .player-controls > .round-btn:nth-of-type(3)',
                 ),
-                playButton: read(".player-controls > .round-btn.play"),
-                player: read(".player"),
-                playerControls: read(".player-controls"),
-                playerMeta: read(".player-meta"),
-                speedControl: read(".speed"),
+                playButton: read(
+                    '[data-sot-control="recording-player-play"], .player-controls > .round-btn.play',
+                ),
+                player: read('[data-sot-surface="recording-player"], .player'),
+                playerControls: read(
+                    '[data-sot-panel="recording-player-controls"], .player-controls',
+                ),
+                playerMeta: read(
+                    '[data-sot-part="recording-player-meta"], .player-meta',
+                ),
+                speedControl: read(
+                    '[data-sot-control="recording-player-speed"], .speed',
+                ),
                 stage: read(":scope"),
-                track: read(".track"),
-                volumeAnchor: read(".vol-anchor"),
-                volumePopover: read(".vol-pop"),
+                track: read('[data-sot-control="recording-player-seek"], .track'),
+                trackThumb: read('[data-slot="slider-thumb"], .track-thumb'),
+                volumeAnchor: read(
+                    '[data-sot-part="recording-player-volume-anchor"], .vol-anchor',
+                ),
+                volumePopover: read(
+                    '[data-sot-panel="recording-player-volume-popover"], .vol-pop',
+                ),
                 volumeTrigger: read(
-                    '.vol-anchor > [data-slot="button"][data-sot-control="recording-player-volume"], [data-slot="button"][data-sot-control="recording-player-volume"], .vol-anchor > button[data-slot="button"], .player-controls > [data-slot="button"][data-sot-control="recording-player-volume"]',
+                    '[data-slot="button"][data-sot-control="recording-player-volume"], .vol-anchor > button[data-slot="button"]',
                 ),
             },
             viewport: {
@@ -2983,26 +3220,29 @@ async function collectPlayerResponsiveFrameResults(
         readSotFixtureOuterHtml(sotLocator),
         readSotFixtureOuterHtml(productLocator),
     ]);
-    const normalizedSotHtml = normalizePlayerResponsiveHtml(sotHtml);
-    const normalizedProductHtml = normalizePlayerResponsiveHtml(productHtml);
+    const bridgePlayerHtml =
+        state === "disabled-no-audio"
+            ? bridgePlayerNoAudioBannerToSotClassHtml
+            : bridgeRecordingPlayerDataSotToSotClassHtml;
+    const normalizedSotHtml = bridgePlayerHtml(sotHtml);
+    const normalizedProductHtml = bridgePlayerHtml(productHtml);
     const results: PlayerResponsiveFrameResult[] = [];
 
     try {
         await mkdir(PLAYER_RESPONSIVE_FRAMES_DIR, { recursive: true });
         for (const frame of PLAYER_RESPONSIVE_PIXEL_FRAMES) {
-            const [sotCapture, productCapture] = await Promise.all([
-                capturePlayerResponsiveFrame(
-                    sotPage,
-                    normalizedSotHtml,
-                    frame,
-                    "var(--bg-canvas)",
-                ),
-                capturePlayerResponsiveFrame(
-                    page,
-                    normalizedProductHtml,
-                    frame,
-                ),
-            ]);
+            const sotCapture = await capturePlayerResponsiveFrame(
+                sotPage,
+                normalizedSotHtml,
+                frame,
+                "var(--bg-canvas)",
+            );
+            const productCapture = await capturePlayerResponsiveFrame(
+                sotPage,
+                normalizedProductHtml,
+                frame,
+                "var(--bg-canvas)",
+            );
             const diff = await compareSotPixels(
                 page,
                 sotCapture.dataUrl,
@@ -3071,7 +3311,7 @@ Status: ${evidence.status}. This is a focused recording-detail Player slice; the
 
 ## Scope
 
-- Surface: standalone recording-detail \`.player\`.
+- Surface: standalone recording-detail \`[data-sot-surface="recording-player"]\`.
 - States: ready and disabled/no-audio.
 - SOT targets: \`ui_kits/web/component-library.html#player\`, \`ui_kits/web/index.html .real-detail .player\`, and \`ui_kits/web/kit.css\`.
 - Fixed frames: desktop \`580x240\` stage under \`1366x900\` viewport; mobile \`390x240\` stage under \`390x844\` viewport.
@@ -6851,7 +7091,6 @@ test("recording detail keeps the player controls live with local audio", async (
         const forward = playerForwardButton(page);
         const speed = playerSpeedButton(page);
         const seek = playerSeekSlider(page);
-        const volume = playerVolumeSlider(page);
         const audio = playerAudio(page);
 
         await expect(player).toBeVisible();
@@ -6883,7 +7122,7 @@ test("recording detail keeps the player controls live with local audio", async (
         await toggle.click();
         await expect(
             page
-                .locator('.toast.toast-err')
+                .locator("[data-sonner-toast]")
                 .filter({ hasText: "Failed to play audio" }),
         ).toBeVisible();
         await expect(toggle).toHaveAttribute("aria-label", "播放");
@@ -6908,7 +7147,7 @@ test("recording detail keeps the player controls live with local audio", async (
             "data-sot-state",
             "open",
         );
-        await volume.fill("0");
+        await setPlayerVolumeSlider(page, 0);
         await expect
             .poll(() =>
                 audio.evaluate((node) => (node as HTMLAudioElement).volume),
@@ -6919,7 +7158,7 @@ test("recording detail keeps the player controls live with local audio", async (
             "data-sot-volume-state",
             "muted",
         );
-        await volume.fill("35");
+        await setPlayerVolumeSlider(page, 35);
         await expect
             .poll(() =>
                 audio.evaluate((node) => (node as HTMLAudioElement).volume),
@@ -7004,13 +7243,11 @@ test("recording detail ready player matches SOT pixels", async (
             "data-sot-state",
             "ready",
         );
-        await expect(playerShell(page).locator(".player-meta")).toContainText(
+        await expect(playerMetaPanel(page)).toContainText(
             "2026-04-22 · 14:00",
         );
-        await expect(playerShell(page).locator(".player-meta")).toContainText(
-            "钉钉",
-        );
-        await expect(playerShell(page).locator(".player-meta")).toContainText(
+        await expect(playerMetaPanel(page)).toContainText("钉钉");
+        await expect(playerMetaPanel(page)).toContainText(
             SOT_DETAIL_TAG_NAME,
         );
 
@@ -7027,10 +7264,9 @@ test("recording detail ready player matches SOT pixels", async (
             "Recording detail ready player",
             sotPage.locator(".real-detail .player").first(),
             playerShell(page),
-            (html) =>
-                html
-                    .replace(/14:32/g, "0:00")
-                    .replace(/data-pct="31"/g, 'data-pct="0"'),
+            bridgeRecordingPlayerDataSotToSotClassHtml,
+            {},
+            sotPage,
         );
     } finally {
         await sotPage?.close();
@@ -7064,9 +7300,7 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
             "disabled",
         );
         await expect(playerShell(page)).toHaveAttribute("data-no-audio", "true");
-        await expect(
-            playerShell(page).locator(".no-audio-banner"),
-        ).toBeVisible();
+        await expect(playerNoAudioBanner(page)).toBeVisible();
         await expect(playerControlsPanel(page)).toHaveAttribute(
             "data-sot-state",
             "disabled",
@@ -7091,7 +7325,7 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
         sotPage = await page.context().newPage();
         const sotDisabledPlayer = await openSotDisabledNoAudioPlayer(sotPage);
         const sotBanner = sotDisabledPlayer.locator(".no-audio-banner").first();
-        const productBanner = playerShell(page).locator(".no-audio-banner").first();
+        const productBanner = playerNoAudioBanner(page);
 
         const diff = await expectTransformedSotPixelsMatch(
             page,
@@ -7099,11 +7333,7 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
             "Recording detail disabled no-audio player banner",
             sotBanner,
             productBanner,
-            (html) =>
-                html.replace(
-                    'class="no-audio-banner"',
-                    'class="no-audio-banner" style="display: flex;"',
-                ),
+            bridgePlayerNoAudioBannerToSotClassHtml,
         );
         console.log(
             `recording detail disabled/no-audio player banner pixel diff ${JSON.stringify(
@@ -8483,10 +8713,7 @@ test("recording detail tag manager default state matches SOT pixels", async ({
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         const selectedChips = tagsPanel.locator(
             '[data-sot-part="selected-chip"]',
@@ -8552,10 +8779,7 @@ test("recording detail tag manager delete-confirm state matches SOT pixels", asy
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await expect(
             tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
@@ -8652,10 +8876,7 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
         await tagsPanel
@@ -8749,10 +8970,7 @@ test("recording detail tag manager error state matches SOT pixels", async ({
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         const failedTagsUpdate = page.waitForResponse(
             (response) =>
@@ -8870,10 +9088,7 @@ test("recording detail tag manager toggle state matches SOT pixels", async ({
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await Promise.all([
             page.waitForResponse(
@@ -8949,10 +9164,7 @@ test("recording detail tag manager empty and create states match SOT responsive 
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        await recordingWorkstation(page)
-            .locator('.player-meta [data-sot-control="recording-tag-manager"]')
-            .first()
-            .click();
+        await playerTagManagerTrigger(page).click();
         const tagsPanel = tagManager(page);
         await expect(tagsPanel).toHaveAttribute("data-sot-state", "ready");
         await expect(
@@ -9015,9 +9227,7 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         sotPage = await browser.newPage();
         await prepareSotTagManagerFixture(sotPage, page);
 
-        const trigger = recordingWorkstation(page).locator(
-            '.player-meta [data-sot-control="recording-tag-manager"]',
-        );
+        const trigger = playerTagManagerTrigger(page);
         await expect(trigger).toBeVisible();
         await expect(trigger).toContainText("标签");
 
