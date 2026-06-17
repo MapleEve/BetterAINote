@@ -1,25 +1,57 @@
 "use client";
 
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function mergeSkeletonClassName(baseClassName: string, className?: string) {
-    const extraClassName = className
+const LEGACY_SKELETON_CLASS_NAMES = new Set([
+    "empty-hint",
+    "eh-h",
+    "eh-t",
+    "speaker",
+    "sp-row",
+    "sp-row-meta",
+    "sp-rows",
+    "sr-section",
+    "sr-section-head",
+    "sr-section-sub",
+    "sr-segments",
+    "transcript",
+    "transcript-body",
+    "transcript-head",
+    "t-pane",
+    "turn",
+    "ts",
+]);
+
+function sanitizeSkeletonClassName(className?: string) {
+    const filteredClassName = className
         ?.split(/\s+/)
-        .filter(
-            (item) =>
-                item === "transcript" ||
-                item === "t-pane" ||
-                item === "turn" ||
-                item === "speaker" ||
-                item === "sr-section" ||
-                item === "sr-segments" ||
-                item === "sp-row" ||
-                item === "sp-rows",
-        )
+        .filter(Boolean)
+        .filter((item) => !LEGACY_SKELETON_CLASS_NAMES.has(item))
         .join(" ");
 
-    return [baseClassName, extraClassName].filter(Boolean).join(" ");
+    return filteredClassName || undefined;
+}
+
+function SkeletonLine({
+    size = "line-medium",
+}: {
+    size?: string;
+}) {
+    return (
+        <Skeleton
+            data-sot-part="recording-transcription-skeleton-line"
+            data-sot-size={size}
+        />
+    );
 }
 
 function SkeletonLineGroup({
@@ -30,10 +62,22 @@ function SkeletonLineGroup({
     lines?: number;
 }) {
     return (
-        <div className={mergeSkeletonClassName("sr-segments", className)}>
+        <div
+            className={sanitizeSkeletonClassName(className)}
+            data-sot-list="recording-transcription-skeleton-lines"
+        >
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
-                (lineId) => (
-                    <Skeleton key={lineId} />
+                (lineId, index) => (
+                    <SkeletonLine
+                        key={lineId}
+                        size={
+                            index % 3 === 0
+                                ? "line-long"
+                                : index % 3 === 1
+                                  ? "line-medium"
+                                  : "line-short"
+                        }
+                    />
                 ),
             )}
         </div>
@@ -42,13 +86,16 @@ function SkeletonLineGroup({
 
 function TranscriptTurnSkeleton({ className }: { className?: string }) {
     return (
-        <div className={mergeSkeletonClassName("turn", className)}>
-            <div className="speaker">
-                <Skeleton />
-                <Skeleton />
+        <section
+            className={sanitizeSkeletonClassName(className)}
+            data-sot-item="recording-transcription-skeleton-turn"
+        >
+            <div data-sot-list="recording-transcription-skeleton-meta">
+                <SkeletonLine size="speaker" />
+                <SkeletonLine size="time" />
             </div>
             <SkeletonLineGroup lines={2} />
-        </div>
+        </section>
     );
 }
 
@@ -58,20 +105,31 @@ export function TranscriptOutputSkeleton({
     className?: string;
 }) {
     return (
-        <div className={mergeSkeletonClassName("transcript t-pane", className)}>
-            <div className="transcript-head">
-                <div>
-                    <Skeleton />
-                    <Skeleton />
+        <Card
+            className={sanitizeSkeletonClassName(className)}
+            data-sot-panel="recording-transcription-skeleton"
+            data-sot-section="recording-transcription-output-skeleton"
+            hasNoPadding
+        >
+            <CardHeader data-sot-part="recording-transcription-skeleton-header">
+                <div data-sot-part="recording-transcription-skeleton-heading">
+                    <CardTitle>
+                        <SkeletonLine size="title" />
+                    </CardTitle>
+                    <CardDescription>
+                        <SkeletonLine size="description" />
+                    </CardDescription>
                 </div>
-                <Skeleton />
-            </div>
-            <div className="transcript-body">
+                <CardAction data-sot-part="recording-transcription-skeleton-action">
+                    <SkeletonLine size="action" />
+                </CardAction>
+            </CardHeader>
+            <CardContent data-sot-part="recording-transcription-skeleton-body">
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }
 
@@ -81,63 +139,73 @@ export function TranscriptReviewSkeleton({
     className?: string;
 }) {
     return (
-        <div className={mergeSkeletonClassName("sr-section", className)}>
-            <div className="speaker">
-                <Skeleton />
-                <Skeleton />
-                <Skeleton />
+        <section
+            className={sanitizeSkeletonClassName(className)}
+            data-sot-panel="recording-transcription-review-skeleton"
+        >
+            <div data-sot-list="recording-transcription-skeleton-meta">
+                <SkeletonLine size="speaker" />
+                <SkeletonLine size="time" />
+                <SkeletonLine size="status" />
             </div>
-            <div className="transcript-body">
-                <SkeletonLineGroup lines={6} />
-            </div>
-        </div>
+            <SkeletonLineGroup lines={6} />
+        </section>
     );
 }
 
 function SpeakerCardSkeleton() {
     return (
-        <div className="sp-row">
-            <div className="sp-row-meta">
-                <Skeleton />
+        <section data-sot-item="recording-transcription-speaker-card-skeleton">
+            <div data-sot-list="recording-transcription-speaker-card-meta">
+                <SkeletonLine size="speaker" />
             </div>
-            <div className="sp-row-meta">
-                <Skeleton />
-                <Skeleton />
+            <div data-sot-list="recording-transcription-speaker-card-meta">
+                <SkeletonLine size="status" />
+                <SkeletonLine size="time" />
             </div>
-            <div className="sr-segments">
+            <div data-sot-list="recording-transcription-speaker-card-turns">
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
             </div>
-            <Field>
+            <Field data-sot-part="recording-transcription-speaker-card-field">
                 <FieldContent>
                     <FieldTitle>
-                        <Skeleton className="w-24" />
+                        <SkeletonLine size="field-label" />
                     </FieldTitle>
-                    <Skeleton className="w-32" />
+                    <SkeletonLine size="field-control" />
                 </FieldContent>
             </Field>
-        </div>
+        </section>
     );
 }
 
 export function SpeakerReviewSkeleton({ className }: { className?: string }) {
     return (
-        <div className={mergeSkeletonClassName("sr-section", className)}>
-            <div className="speaker">
-                <Skeleton />
-                <div>
-                    <Skeleton />
-                    <Skeleton />
+        <Card
+            className={sanitizeSkeletonClassName(className)}
+            data-sot-panel="recording-transcription-speaker-review-skeleton"
+            hasNoPadding
+        >
+            <CardHeader data-sot-part="recording-transcription-skeleton-header">
+                <div data-sot-part="recording-transcription-skeleton-heading">
+                    <CardTitle>
+                        <SkeletonLine size="title" />
+                    </CardTitle>
+                    <CardDescription>
+                        <SkeletonLine size="description" />
+                    </CardDescription>
                 </div>
-                <Skeleton />
-            </div>
-            <div className="sr-segments">
+                <CardAction data-sot-part="recording-transcription-skeleton-action">
+                    <SkeletonLine size="action" />
+                </CardAction>
+            </CardHeader>
+            <CardContent data-sot-part="recording-transcription-skeleton-body">
                 <TranscriptReviewSkeleton />
-            </div>
-            <div className="sp-rows">
+            </CardContent>
+            <CardContent data-sot-list="recording-transcription-speaker-cards">
                 <SpeakerCardSkeleton />
                 <SpeakerCardSkeleton />
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

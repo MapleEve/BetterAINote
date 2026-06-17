@@ -17,6 +17,7 @@ import { RecordingTagIconGlyph } from "@/features/recordings/components/recordin
 import { SourceReportPanel } from "@/features/recordings/components/source-report-panel";
 import {
     SpeakerReviewSkeleton,
+    TranscriptOutputSkeleton,
     TranscriptReviewSkeleton,
 } from "@/features/recordings/components/transcription-skeletons";
 import { RecordingWorkstation } from "@/features/recordings/workstation";
@@ -85,6 +86,12 @@ function render(element: React.ReactElement) {
             null,
             React.createElement(ConfirmDialogProvider, null, element),
         ),
+    );
+}
+
+function extractClassTokens(html: string) {
+    return Array.from(html.matchAll(/\sclass="([^"]*)"/g)).flatMap((match) =>
+        match[1].split(/\s+/).filter(Boolean),
     );
 }
 
@@ -255,12 +262,56 @@ describe("React surface SSR coverage", () => {
                     sourceProvider: "ticnote",
                     autoLoad: false,
                 }),
-                React.createElement(SpeakerReviewSkeleton),
-                React.createElement(TranscriptReviewSkeleton),
+                React.createElement(TranscriptOutputSkeleton, {
+                    className: "layout-preserved sr-section sp-row",
+                }),
+                React.createElement(SpeakerReviewSkeleton, {
+                    className: "review-layout sr-segments sp-rows",
+                }),
+                React.createElement(TranscriptReviewSkeleton, {
+                    className: "inline-layout turn speaker",
+                }),
             ),
         );
+        const classTokens = extractClassTokens(html);
 
         expect(html).toContain("Authorization");
         expect(html).toContain("source-report");
+        expect(html).toContain(
+            'data-sot-panel="recording-transcription-skeleton"',
+        );
+        expect(html).toContain(
+            'data-sot-panel="recording-transcription-speaker-review-skeleton"',
+        );
+        expect(html).toContain(
+            'data-sot-panel="recording-transcription-review-skeleton"',
+        );
+        expect(html).toContain(
+            'data-sot-part="recording-transcription-skeleton-line"',
+        );
+        expect(classTokens).toContain("layout-preserved");
+        expect(classTokens).toContain("review-layout");
+        expect(classTokens).toContain("inline-layout");
+        for (const legacyClass of [
+            "empty-hint",
+            "eh-h",
+            "eh-t",
+            "speaker",
+            "sp-row",
+            "sp-row-meta",
+            "sp-rows",
+            "sr-section",
+            "sr-section-head",
+            "sr-section-sub",
+            "sr-segments",
+            "transcript",
+            "transcript-body",
+            "transcript-head",
+            "t-pane",
+            "turn",
+            "ts",
+        ]) {
+            expect(classTokens).not.toContain(legacyClass);
+        }
     });
 });

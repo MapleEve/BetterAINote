@@ -1056,6 +1056,9 @@ describe("full UI replacement regression coverage", () => {
         const transcriptionSection = readSource(
             "features/recordings/components/transcription-section.tsx",
         );
+        const transcriptionSkeletons = readSource(
+            "features/recordings/components/transcription-skeletons.tsx",
+        );
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
@@ -1153,6 +1156,44 @@ describe("full UI replacement regression coverage", () => {
             'className="ts"',
         ]) {
             expect(transcriptionSection).not.toContain(legacyClass);
+        }
+        expect(transcriptionSkeletons).toContain(
+            'from "@/components/ui/card";',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'from "@/components/ui/skeleton";',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'data-sot-panel="recording-transcription-skeleton"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'data-sot-panel="recording-transcription-speaker-review-skeleton"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'data-sot-panel="recording-transcription-review-skeleton"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'data-sot-part="recording-transcription-skeleton-line"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            "sanitizeSkeletonClassName",
+        );
+        expect(transcriptionSkeletons).not.toContain(
+            "mergeSkeletonClassName",
+        );
+        for (const legacyClass of [
+            'className="transcript t-pane"',
+            'className="transcript-head"',
+            'className="transcript-body"',
+            'className="sr-section"',
+            'className="sr-segments"',
+            'className="sp-row"',
+            'className="sp-row-meta"',
+            'className="sp-rows"',
+            'className="turn"',
+            'className="speaker"',
+        ]) {
+            expect(transcriptionSkeletons).not.toContain(legacyClass);
         }
         expect(detail).toContain('data-sot-surface="recording-workstation"');
         expect(detail).toContain("data-rename-mode=");
