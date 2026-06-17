@@ -1289,6 +1289,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('data-sot-part="tag-option"');
         expect(tagManager).toContain('data-sot-part="color-swatch"');
         expect(tagManager).toContain('data-sot-part="icon-option"');
+        expect(tagManager).toContain('data-sot-part="toggle-note"');
         expect(tagManager).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
@@ -1345,6 +1346,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("mergeTagManagerClassName");
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
+        expect(tagManager).not.toContain("cl-note");
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',

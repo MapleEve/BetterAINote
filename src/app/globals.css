@@ -13039,6 +13039,11 @@ select::-ms-expand {
     color: rgba(0, 0, 0, 0.5);
     line-height: 1.45;
 }
+[data-sot-panel="recording-tag-manager"] [data-sot-part="toggle-note"] {
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 1.45;
+}
 
 .cl-stage {
     display: flex;

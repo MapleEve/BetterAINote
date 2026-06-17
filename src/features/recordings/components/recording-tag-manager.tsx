@@ -2,8 +2,8 @@
 
 import { Check, Plus, X } from "lucide-react";
 import {
-    Fragment,
     type ComponentProps,
+    Fragment,
     type ReactNode,
     useMemo,
     useState,
@@ -84,6 +84,8 @@ function RecordingTagAlertIcon(props: ComponentProps<"svg">) {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
+            focusable="false"
             {...props}
         >
             <path d="M12 9v4" />
@@ -636,7 +638,7 @@ export function RecordingTagManager({
             </div>
         );
         panelAfterBody = (
-            <div className="cl-note" data-sot-part="toggle-note">
+            <div data-sot-part="toggle-note">
                 aria-pressed=&quot;true&quot; → 标签已应用 ·
                 点击再次切换为「未应用」。
             </div>
@@ -857,7 +859,9 @@ export function RecordingTagManager({
                                         {renderTagToggle({
                                             interactive: true,
                                             saving: savingTagId === tag.id,
-                                            selected: selectedTagIds.has(tag.id),
+                                            selected: selectedTagIds.has(
+                                                tag.id,
+                                            ),
                                             tag,
                                         })}
                                         {index < sortedTags.length - 1

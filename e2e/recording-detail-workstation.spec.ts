@@ -9130,9 +9130,9 @@ test("recording detail tag manager toggle state matches SOT pixels", async ({
             tagsPanel.locator('[data-sot-control="recording-tag-toggle"]'),
         ).toHaveCount(4);
         await expect(tagsPanel.locator('[data-sot-part="tag-check"]')).toHaveCount(1);
-        await expect(tagsPanel.locator(".cl-note")).toContainText(
-            "标签已应用",
-        );
+        await expect(
+            tagsPanel.locator('[data-sot-part="toggle-note"]'),
+        ).toContainText("标签已应用");
 
         await expectSotTagManagerStyleMatch(
             sotPage,
