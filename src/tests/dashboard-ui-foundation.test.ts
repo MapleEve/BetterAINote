@@ -306,6 +306,18 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
+        for (const removedListHeaderClass of [
+            'className="list-header"',
+            'className="lh-titlebar"',
+            'className="lh-title"',
+            'className="lh-count"',
+            'className="stack-strip"',
+            'className="xref-strip"',
+            'className="list-mode-bar"',
+            'className="list-mode-seg"',
+        ]) {
+            expect(workstation).not.toContain(removedListHeaderClass);
+        }
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");

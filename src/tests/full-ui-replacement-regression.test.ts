@@ -1017,6 +1017,18 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
+        for (const removedListHeaderClass of [
+            'className="list-header"',
+            'className="lh-titlebar"',
+            'className="lh-title"',
+            'className="lh-count"',
+            'className="stack-strip"',
+            'className="xref-strip"',
+            'className="list-mode-bar"',
+            'className="list-mode-seg"',
+        ]) {
+            expect(workstation).not.toContain(removedListHeaderClass);
+        }
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
         const sourceProviderRows = extractBoundedSlice(
             workstation,
@@ -1088,7 +1100,7 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="source-provider-action"][data-sot-action="retry"]',
         );
         expect(globals).toMatch(
-            /\.stack-strip\s+\[data-sot-part="source-filter-action"\]\[data-sot-action="widen"\]/,
+            /\[data-sot-panel="dashboard-source-filter-stack"\]\s+\[data-sot-part="source-filter-action"\]\[data-sot-action="widen"\]/,
         );
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-panel="library-search"');

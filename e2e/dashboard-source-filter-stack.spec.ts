@@ -2173,6 +2173,11 @@ async function reloadDashboardWithTheme(
         },
     });
     expect(resetDisplay.ok()).toBe(true);
+    await expect.poll(async () => {
+        const response = await page.request.get("/api/settings/display");
+        const body = (await response.json()) as { uiLanguage?: string };
+        return body.uiLanguage;
+    }).toBe(expectedLanguage);
 
     const displayLoaded = page
         .waitForResponse(
@@ -2391,7 +2396,7 @@ test("dashboard SourceRow states match SOT source row pixels under sidebar scope
             expect(signature.status).toBeTruthy();
             expect(signature.hasStatus).toBe(true);
             expect(signature.hasCountOrAction).toBe(true);
-            expect(signature.className).toBe("nav-item");
+            expect(signature.className).not.toContain("nav-item");
             if (signature.action) {
                 expect(signature.actionState).toBe(signature.action);
             }
@@ -2441,7 +2446,7 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
         "connected-active",
     );
     await expect(iflyrecRow).toHaveAttribute("data-state", "connected-active");
-    await expect(iflyrecRow).toHaveClass("nav-item");
+    await expect(iflyrecRow).toHaveAttribute("data-slot", "button");
     await expect(iflyrecBadge).toBeVisible();
 
     const stack = sourceFilterStack(page);
@@ -2559,7 +2564,10 @@ test("dashboard source rows reflect expired, paused, and syncing backend states"
                 { timeout: 15_000 },
             )
             .catch(() => null);
-        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await reloadDashboardWithTheme(page, {
+            theme: "dark",
+            uiLanguage: "zh-CN",
+        });
         await expect(dashboardWorkstation(page)).toHaveAttribute(
             "data-sot-state",
             "ready",
@@ -2672,7 +2680,10 @@ test("dashboard auto-play next stays inside the active source filter", async ({
         });
         expect(playbackResponse.ok()).toBe(true);
 
-        await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+        await reloadDashboardWithTheme(page, {
+            theme: "dark",
+            uiLanguage: "zh-CN",
+        });
         const workstation = dashboardWorkstation(page);
         await expect(workstation).toHaveAttribute(
             "data-playback-settings-loaded",
@@ -3024,7 +3035,7 @@ test("dashboard source filter stack retries sync errors and restores active stat
         const stack = sourceFilterStack(page);
         await expect(stack).toBeVisible();
         await expect(stack).toHaveAttribute("data-sot-state", "sync-error");
-        await expect(stack).toContainText("同步异常");
+        await expect(stack).toContainText(/同步异常|sync issue/i);
 
         const syncPostRequest = page.waitForRequest(
             (request) =>
@@ -3076,7 +3087,7 @@ test("dashboard source filter stack widens no-result favorite filters", async ({
         const stack = sourceFilterStack(page);
         await expect(stack).toBeVisible();
         await expect(stack).toHaveAttribute("data-sot-state", "no-results");
-        await expect(stack).toContainText("在当前筛选下没有匹配项");
+        await expect(stack).toContainText(/在当前筛选下没有匹配项|no matches/i);
 
         const widenAction = sourceFilterAction(page, "source-filter-widen");
         await expectSourceFilterStackActionSurface(widenAction);

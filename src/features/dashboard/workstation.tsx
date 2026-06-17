@@ -4683,12 +4683,12 @@ export function Workstation({
                         data-visible-count={String(pagedListEntries.length)}
                     >
                         <CardContent data-sot-part="dashboard-recording-list-content">
-                            <div className="list-header">
-                                <div className="lh-titlebar">
-                                    <h2 className="lh-title">
+                            <div data-sot-part="dashboard-recording-list-header">
+                                <div data-sot-part="dashboard-recording-list-titlebar">
+                                    <h2 data-sot-part="dashboard-recording-list-title">
                                         {getFavoriteLabel(favorite, t)}
                                     </h2>
-                                    <span className="lh-count">
+                                    <span data-sot-part="dashboard-recording-list-count">
                                         {t("recordingList.totalCount", {
                                             count: listEntries.length,
                                         })}
@@ -4699,7 +4699,6 @@ export function Workstation({
                                 </div>
                                 {source !== "all" ? (
                                     <output
-                                        className="stack-strip"
                                         aria-live="polite"
                                         data-sot-panel="dashboard-source-filter-stack"
                                         data-sot-provider={source}
@@ -4709,7 +4708,7 @@ export function Workstation({
                                         }
                                         data-state={sourceFilterStackState}
                                     >
-                                        <span className="stack-from">
+                                        <span data-sot-part="source-filter-from">
                                             {t("sourceFilterStack.filter")} ·{" "}
                                             <b>
                                                 {t(
@@ -4717,19 +4716,19 @@ export function Workstation({
                                                 )}
                                             </b>
                                         </span>
-                                        <span className="stack-sep">›</span>
-                                        <span
-                                            className="stack-chip"
-                                            data-sot-part="source-filter-chip"
-                                        >
+                                        <span data-sot-part="source-filter-separator">
+                                            ›
+                                        </span>
+                                        <span data-sot-part="source-filter-chip">
                                             <span data-stack-label>
                                                 {providerLabel(
                                                     source,
                                                     language,
                                                 )}
                                             </span>
-                                            <button
-                                                className="x"
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
@@ -4737,10 +4736,10 @@ export function Workstation({
                                                 data-sot-control="source-filter-clear"
                                                 onClick={() => setSource("all")}
                                             >
-                                                <X />
-                                            </button>
+                                                <X data-icon="inline-start" />
+                                            </Button>
                                         </span>
-                                        <span className="stack-info">
+                                        <span data-sot-part="source-filter-info">
                                             {sourceFilterStackMessage ||
                                                 `${t("sourceFilterStack.showing")} `}
                                             {sourceFilterStackMessage ? null : (
@@ -4756,7 +4755,9 @@ export function Workstation({
                                         </span>
                                         {sourceFilterStackState ===
                                         "sync-error" ? (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 data-sot-control="source-filter-retry-sync"
                                                 data-sot-action="retry"
@@ -4765,15 +4766,17 @@ export function Workstation({
                                                     void runManualSync()
                                                 }
                                             >
-                                                <RefreshCw />
+                                                <RefreshCw data-icon="inline-start" />
                                                 {t(
                                                     "sourceFilterStack.retrySync",
                                                 )}
-                                            </button>
+                                            </Button>
                                         ) : null}
                                         {sourceFilterStackState ===
                                         "no-results" ? (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 data-sot-control="source-filter-widen"
                                                 data-sot-action="widen"
@@ -4789,13 +4792,15 @@ export function Workstation({
                                                 {t(
                                                     "sourceFilterStack.widenFilter",
                                                 )}
-                                            </button>
+                                            </Button>
                                         ) : null}
                                         {selectedSourceRow &&
                                         sourceNeedsSettings(
                                             selectedSourceRow.status,
                                         ) ? (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 data-sot-control="source-filter-open-settings"
                                                 data-sot-action="open-settings"
@@ -4813,21 +4818,21 @@ export function Workstation({
                                                 {t(
                                                     "sourceFilterStack.openSettings",
                                                 )}
-                                            </button>
+                                            </Button>
                                         ) : null}
-                                        <button
-                                            className="stack-clear"
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             type="button"
                                             data-sot-control="source-filter-clear-all"
                                             onClick={() => setSource("all")}
                                         >
                                             {t("sourceFilterStack.clearAll")}
-                                        </button>
+                                        </Button>
                                     </output>
                                 ) : null}
                                 {librarySearchFilter ? (
                                     <output
-                                        className="xref-strip"
                                         aria-live="polite"
                                         data-sot-panel="dashboard-library-search-filter"
                                         data-sot-filter={
@@ -4835,7 +4840,7 @@ export function Workstation({
                                         }
                                         data-sot-state="active"
                                     >
-                                        <span className="xref-text">
+                                        <span data-sot-part="library-search-filter-label">
                                             {librarySearchFilter.type === "tag"
                                                 ? t(
                                                       "dashboardFavorites.tagFilter",
@@ -4844,13 +4849,11 @@ export function Workstation({
                                                       "dashboardFavorites.speakerFilter",
                                                   )}
                                         </span>
-                                        <span
-                                            className="stack-chip"
-                                            data-sot-part="library-search-filter-chip"
-                                        >
+                                        <span data-sot-part="library-search-filter-chip">
                                             {librarySearchFilter.label}
-                                            <button
-                                                className="x"
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label={t(
                                                     "dashboardChrome.clear",
@@ -4860,29 +4863,29 @@ export function Workstation({
                                                     setLibrarySearchFilter(null)
                                                 }
                                             >
-                                                <X />
-                                            </button>
+                                                <X data-icon="inline-start" />
+                                            </Button>
                                         </span>
                                     </output>
                                 ) : null}
-                                <div className="list-mode-bar">
-                                    <div className="list-mode-label">
-                                        <span className="list-mode-label-text">
+                                <div data-sot-panel="dashboard-recording-list-mode">
+                                    <div data-sot-part="dashboard-recording-list-mode-label">
+                                        <span data-sot-part="dashboard-recording-list-mode-title">
                                             {listMode === "timeline"
                                                 ? t(
                                                       "recordingList.timelineTitle",
                                                   )
                                                 : t("recordingList.tagsTitle")}
                                         </span>
-                                        <span className="list-mode-count">
+                                        <span data-sot-part="dashboard-recording-list-mode-count">
                                             {t("recordingList.visibleCount", {
                                                 count: listEntries.length,
                                             })}
                                         </span>
                                     </div>
                                     <SegmentedTabs
-                                        className="list-mode-seg"
                                         aria-label="列表模式"
+                                        data-sot-part="dashboard-recording-list-mode-segmented"
                                         items={[
                                             {
                                                 value: "timeline",

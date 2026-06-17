@@ -1,5 +1,7 @@
 "use client";
 
+import type { ComponentPropsWithoutRef } from "react";
+
 import { cn } from "@/lib/utils";
 
 export type SegmentedTabItem<T extends string = string> = {
@@ -16,13 +18,12 @@ export function SegmentedTabs<T extends string>({
     className,
     size = "sm",
     "aria-label": ariaLabel,
-}: {
+    ...props
+}: Omit<ComponentPropsWithoutRef<"div">, "onChange"> & {
     items: SegmentedTabItem<T>[];
     value: T;
     onValueChange: (value: T) => void;
-    className?: string;
     size?: "default" | "sm";
-    "aria-label"?: string;
 }) {
     const activeIndex = Math.max(
         0,
@@ -31,6 +32,7 @@ export function SegmentedTabs<T extends string>({
 
     return (
         <div
+            {...props}
             className={cn("liquid-tabs", size === "sm" && "sm", className)}
             role="tablist"
             aria-label={ariaLabel}
