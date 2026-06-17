@@ -5308,11 +5308,14 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         });
         await waitForRecordingDetailReady(page);
         const standaloneSelectedFrames = await collectWorkspaceVisualFrames(page, {
-            detail: ".workspace .detail",
-            emptyDetail: ".workspace .detail-empty",
+            detail:
+                '[data-sot-panel="workstation-workspace"] [data-sot-panel="recording-workstation-detail"]',
+            emptyDetail:
+                '[data-sot-panel="workstation-workspace"] [data-detail-empty]',
             listPanel: '[data-sot-panel="recording-detail-list"]',
-            selectedRow: ".workspace .real-list .row.active",
-            workspace: ".workspace",
+            selectedRow:
+                '[data-sot-panel="workstation-workspace"] [data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
+            workspace: '[data-sot-panel="workstation-workspace"]',
         });
         const standaloneSelectedDesktop = standaloneSelectedFrames.find(
             (frame) => frame.frame === "desktop",

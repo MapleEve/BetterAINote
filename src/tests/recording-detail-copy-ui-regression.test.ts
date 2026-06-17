@@ -282,13 +282,69 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-surface="recording-workstation"',
         );
         expect(detailWorkstation).toContain(
+            'data-sot-shell="recording-workstation"',
+        );
+        expect(detailWorkstation).toContain(
             'data-sot-state={hydrated ? "ready" : "loading"}',
         );
         expect(detailWorkstation).toContain(
+            'data-sot-panel="workstation-sidebar"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="workstation-main"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="workstation-topbar"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="workstation-workspace"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="recording-workstation-detail"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-panel="recording-workstation-detail-body"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-list="recording-detail-nav"',
+        );
+        expect(detailWorkstation).toContain(
+            'data-sot-control="recording-detail-back"',
+        );
+        expect(detailWorkstation).toContain('data-sot-state="selected"');
+        expect(globals).toContain('[data-sot-shell="recording-workstation"]');
+        expect(globals).toContain('[data-sot-panel="workstation-sidebar"]');
+        expect(globals).toContain('[data-sot-panel="workstation-main"]');
+        expect(globals).toContain('[data-sot-panel="workstation-topbar"]');
+        expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
+        expect(globals).toContain(
+            '[data-sot-panel="recording-workstation-detail"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="recording-detail-back"][data-slot="button"]',
+        );
+        expect(detailWorkstation).not.toContain('className="app"');
+        expect(detailWorkstation).not.toContain(
             'className="sidebar glass glass-strong"',
         );
-        expect(detailWorkstation).toContain('className="topbar"');
-        expect(detailWorkstation).toContain('className="workspace"');
+        expect(detailWorkstation).not.toContain('className="topbar"');
+        expect(detailWorkstation).not.toContain('className="workspace"');
+        expect(detailWorkstation).not.toContain('className="detail"');
+        expect(detailWorkstation).not.toContain('className="brand"');
+        expect(detailWorkstation).not.toContain('className="brand-text"');
+        expect(detailWorkstation).not.toContain('className="brand-name"');
+        expect(detailWorkstation).not.toContain('className="brand-sub"');
+        expect(detailWorkstation).not.toContain('className="nav"');
+        expect(detailWorkstation).not.toContain(
+            'className="nav-section-label"',
+        );
+        expect(detailWorkstation).not.toContain(
+            'className="nav-item is-selected"',
+        );
+        expect(detailWorkstation).not.toContain('className="crumbs"');
+        expect(detailWorkstation).not.toContain('className="crumb"');
+        expect(detailWorkstation).not.toContain('className="crumb-sep"');
+        expect(detailWorkstation).not.toContain('className="crumb-current"');
         expect(detailWorkstation).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );

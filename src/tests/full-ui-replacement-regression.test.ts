@@ -1606,6 +1606,19 @@ describe("full UI replacement regression coverage", () => {
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
+        expect(detail).toContain('data-sot-shell="recording-workstation"');
+        expect(detail).toContain('data-sot-panel="workstation-sidebar"');
+        expect(detail).toContain('data-sot-panel="workstation-main"');
+        expect(detail).toContain('data-sot-panel="workstation-topbar"');
+        expect(detail).toContain('data-sot-panel="workstation-workspace"');
+        expect(detail).toContain(
+            'data-sot-panel="recording-workstation-detail"',
+        );
+        expect(detail).toContain('data-sot-control="recording-detail-back"');
+        expect(detail).not.toContain('className="app"');
+        expect(detail).not.toContain('className="sidebar glass glass-strong"');
+        expect(detail).not.toContain('className="workspace"');
+        expect(detail).not.toContain('className="detail"');
         expect(settings).toContain("data-sot-provider-card");
         expect(settings).toContain("data-sot-provider-icon");
         expect(settings).toContain("data-sot-provider-meta");

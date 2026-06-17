@@ -760,45 +760,58 @@ export function RecordingWorkstation({
 
     return (
         <div
-            className="app"
+            data-sot-shell="recording-workstation"
             data-hydrated={hydrated ? "true" : "false"}
             data-sot-surface="recording-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
         >
             <aside
-                className="sidebar glass glass-strong"
+                data-sot-panel="workstation-sidebar"
                 data-sot-surface="recording-source-rail"
             >
-                <div className="brand">
+                <div data-sot-part="workstation-brand">
                     <img src="/assets/logo-mark-steel.svg" alt="" />
-                    <div className="brand-text">
-                        <div className="brand-name">BetterAINote</div>
-                        <div className="brand-sub">私人工作空间</div>
+                    <div data-sot-part="workstation-brand-text">
+                        <div data-sot-part="workstation-brand-name">
+                            BetterAINote
+                        </div>
+                        <div data-sot-part="workstation-brand-subtitle">
+                            私人工作空间
+                        </div>
                     </div>
                 </div>
-                <nav className="nav" aria-label="录音详情导航">
-                    <div className="nav-section-label">录音</div>
-                    <button
-                        className="nav-item is-selected"
+                <nav
+                    data-sot-list="recording-detail-nav"
+                    aria-label="录音详情导航"
+                >
+                    <div data-sot-part="recording-detail-nav-label">录音</div>
+                    <Button
+                        variant="ghost"
+                        data-sot-control="recording-detail-back"
+                        data-sot-state="selected"
                         type="button"
                         onClick={() =>
                             navigateBrowserRoute(router, "/dashboard")
                         }
                     >
-                        <ArrowLeft />
+                        <ArrowLeft data-icon="inline-start" />
                         <span>{t("recording.backToDashboard")}</span>
-                    </button>
+                    </Button>
                 </nav>
             </aside>
-            <main className="main">
-                <header className="topbar">
-                    <div className="crumbs">
-                        <span className="crumb">录音</span>
-                        <span className="crumb-sep">/</span>
-                        <span className="crumb-current">{filename}</span>
+            <main data-sot-panel="workstation-main">
+                <header data-sot-panel="workstation-topbar">
+                    <div data-sot-part="workstation-crumbs">
+                        <span data-sot-part="workstation-crumb">录音</span>
+                        <span data-sot-part="workstation-crumb-separator">
+                            /
+                        </span>
+                        <span data-sot-part="workstation-crumb-current">
+                            {filename}
+                        </span>
                     </div>
                 </header>
-                <div className="workspace">
+                <div data-sot-panel="workstation-workspace">
                     <Card
                         hasNoPadding
                         data-sot-panel="recording-detail-list"
@@ -837,7 +850,7 @@ export function RecordingWorkstation({
                             </div>
                         </CardContent>
                     </Card>
-                    <section className="detail">
+                    <section data-sot-panel="recording-workstation-detail">
                         <CardHeader
                             data-sot-panel="recording-detail-header"
                             data-sot-mode={
@@ -1146,8 +1159,8 @@ export function RecordingWorkstation({
 
                         <SystemBanner />
 
-                        <div className="real-detail">
-                            <section className="detail">
+                        <div data-sot-panel="recording-workstation-real-detail">
+                            <section data-sot-panel="recording-workstation-detail-body">
                                 <RecordingPlayer
                                     recording={taggedRecording}
                                     tags={recordingTags}
