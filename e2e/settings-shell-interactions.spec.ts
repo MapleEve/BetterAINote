@@ -1644,7 +1644,9 @@ async function expectRow117VoScriptReadyState(page: Page) {
     const section = settingsSectionSurface(page, "voscript");
     const baseUrl = section.locator("#voscript-base-url");
     const keyStatus = section.locator("[data-sot-key-status]");
-    const unavailableBanner = section.locator("[data-voscript-unavail]");
+    const unavailableBanner = section.locator(
+        '[data-sot-panel="voscript-unavailable-banner"]',
+    );
     const keyActionControl = section.locator("#voscript-api-key-mode");
     const keyActionRow = keyActionControl.locator(
         'xpath=ancestor::*[@data-slot="field"][1]',
@@ -1653,6 +1655,7 @@ async function expectRow117VoScriptReadyState(page: Page) {
     await expect(baseUrl).toHaveValue(
         row117VoScriptReadyState.privateTranscriptionBaseUrl,
     );
+    await expect(section).toHaveAttribute("data-sot-availability", "ready");
     await expect(keyStatus).toContainText("已存储");
     const unavailableBannerVisible = await unavailableBanner.isVisible();
     expect(unavailableBannerVisible).toBe(false);
@@ -1672,10 +1675,9 @@ async function expectRow117SotVoScriptReadyState(page: Page) {
         '#settings-scrim > .settings .settings-main[data-section="voscript"]',
     );
     await expect(section).toBeVisible();
-    await expect(section).toHaveAttribute("data-voscript-availability", "ready");
     const baseUrl = section.locator('[data-field="voscript-url"] input');
     const keyStatus = section.locator(".sm-key-status");
-    const unavailableBanner = section.locator("[data-voscript-unavail]");
+    const unavailableBanner = section.locator(".sm-banner-unavailable");
     const keyActionRow = section.locator('[data-field="voscript-key-action"]');
     const keyActionControl = keyActionRow.locator("select");
 

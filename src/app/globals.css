@@ -5677,34 +5677,34 @@ body[data-drawer="open"] .drawer-scrim {
 .settings-main [data-sot-banner-icon] {
     display: inline-flex;
 }
-[data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
-    [data-voscript-unavail],
-.settings-main[data-voscript-availability="unavailable"]
-    [data-voscript-unavail] {
+[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"],
+.settings-main[data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"] {
     display: flex !important;
 }
-[data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-slot="select-trigger"],
-[data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-sot-control="settings-save"],
-[data-sot-panel="settings-scroll-body"][data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-sot-control="voscript-test"],
-.settings-main[data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+.settings-main[data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-slot="select-trigger"],
-.settings-main[data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+.settings-main[data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-sot-control="settings-save"],
-.settings-main[data-voscript-availability="unavailable"]
-    [data-voscript-unavail]
+.settings-main[data-sot-availability="unavailable"]
+    [data-sot-panel="voscript-unavailable-banner"]
     ~ [data-sot-section-group]
     [data-sot-control="voscript-test"] {
     pointer-events: none;

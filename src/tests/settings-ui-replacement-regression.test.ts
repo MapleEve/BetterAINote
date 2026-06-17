@@ -965,6 +965,7 @@ describe("settings SOT interaction regressions", () => {
         const saveStatus = content.match(
             /function SaveStatus[\s\S]*?function SectionShell/,
         )?.[0];
+        const globals = readSource("app/globals.css");
 
         for (const section of [
             "appearance",
@@ -986,6 +987,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-layout="section"');
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state=");
+        expect(content).toContain(
+            "data-sot-availability={voscriptAvailability}",
+        );
         expect(content).not.toContain('className="settings-main"');
         expect(content).toContain("<h3 data-sot-title>{title}</h3>");
         expect(content).toContain("data-sot-section-head");
@@ -1032,7 +1036,21 @@ describe("settings SOT interaction regressions", () => {
         ]) {
             expect(content).not.toContain(legacySaveHook);
         }
-        expect(content).toContain('data-voscript-unavail=""');
+        expect(content).toContain('data-sot-banner="voscript-unavailable"');
+        expect(content).toContain(
+            'data-sot-panel="voscript-unavailable-banner"',
+        );
+        expect(globals).toContain('[data-sot-availability="unavailable"]');
+        expect(globals).toContain(
+            '[data-sot-panel="voscript-unavailable-banner"]',
+        );
+        for (const legacyVoScriptHook of [
+            "data-voscript-availability",
+            "data-voscript-unavail",
+        ]) {
+            expect(content).not.toContain(legacyVoScriptHook);
+            expect(globals).not.toContain(legacyVoScriptHook);
+        }
         expect(content).toContain('sotField="no-repeat-ngram"');
         expect(content).not.toContain("data-field=");
         expect(content).not.toContain("data-field-state");

@@ -509,7 +509,9 @@ test("VoScript settings tests the service connection without persisting settings
         "voscript-connection",
     );
 
-    await expect(section.locator("[data-voscript-unavail]")).toHaveCount(0);
+    await expect(
+        section.locator('[data-sot-panel="voscript-unavailable-banner"]'),
+    ).toHaveCount(0);
     await section.locator("#voscript-base-url").fill(
         "https://voscript-test.e2e.example",
     );
@@ -560,7 +562,13 @@ test("VoScript settings tests the service connection without persisting settings
     });
     expect(settingsPutCount).toBe(0);
     await expect(testButton).toHaveAttribute("data-sot-state", "test-error");
-    await expect(section.locator("[data-voscript-unavail]")).toBeVisible();
+    await expect(section).toHaveAttribute(
+        "data-sot-availability",
+        "unavailable",
+    );
+    await expect(
+        section.locator('[data-sot-panel="voscript-unavailable-banner"]'),
+    ).toBeVisible();
     await expect(
         section.getByText("VoScript upstream unreachable", { exact: true }),
     ).toBeVisible();

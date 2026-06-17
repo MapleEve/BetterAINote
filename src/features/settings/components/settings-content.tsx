@@ -1799,7 +1799,7 @@ function SectionShell({
             data-sot-section={section}
             data-sot-state={busy ? "busy" : "ready"}
             data-sot-surface="settings-section"
-            data-voscript-availability={voscriptAvailability}
+            data-sot-availability={voscriptAvailability}
         >
             <h3 data-sot-title>{title}</h3>
             {subtitle ? (
@@ -2792,18 +2792,20 @@ function VoScriptSettingsPanel({
             scrollRef={scrollRef}
             section="voscript"
             title={isZh ? "VoScript 服务" : "VoScript Service"}
-            voscriptAvailability="ready"
+            voscriptAvailability={
+                showUnavailableBanner ? "unavailable" : "ready"
+            }
         >
             {showUnavailableBanner ? (
                 <output
                     data-sot-banner="voscript-unavailable"
+                    data-sot-panel="voscript-unavailable-banner"
                     data-sot-state={
                         connectionTestState === "test-error"
                             ? "test-error"
                             : "missing-connection"
                     }
                     data-sot-tone="warn"
-                    data-voscript-unavail=""
                 >
                     <span data-sot-banner-icon aria-hidden="true">
                         <AlertCircle aria-hidden="true" />
