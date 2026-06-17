@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
-import { cn } from "@/lib/utils";
 
 type SystemBannerState =
     | "offline"
@@ -207,7 +206,7 @@ function SystemBannerIcon({
 }) {
     if (state === "import-progress" && indeterminate) {
         return (
-            // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+            // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
             <svg viewBox="0 0 24 24">
                 <circle key="lens" cx="11" cy="11" r="8" />
                 <path key="handle" d="m21 21-4.35-4.35" />
@@ -219,7 +218,7 @@ function SystemBannerIcon({
         case "offline":
             if (isStacked) {
                 return (
-                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                     <svg viewBox="0 0 24 24">
                         <path key="top-wave" d="M2 12s4-7 10-7" />
                         <path key="bottom-wave" d="M22 12s-4 7-10 7" />
@@ -228,7 +227,7 @@ function SystemBannerIcon({
                 );
             }
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <path key="top-wave" d="M2 12s4-7 10-7c2.3 0 4.4.9 6 2.2" />
                     <path
@@ -240,7 +239,7 @@ function SystemBannerIcon({
             );
         case "permission-denied":
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <rect
                         key="body"
@@ -256,7 +255,7 @@ function SystemBannerIcon({
             );
         case "db-locked":
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <rect
                         key="body"
@@ -272,7 +271,7 @@ function SystemBannerIcon({
         case "update-available":
             if (isStacked) {
                 return (
-                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                    // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                     <svg viewBox="0 0 24 24">
                         <polyline key="tray" points="21 8 21 21 3 21 3 8" />
                         <rect key="box" x="1" y="3" width="22" height="5" />
@@ -280,7 +279,7 @@ function SystemBannerIcon({
                 );
             }
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <polyline key="tray" points="21 8 21 21 3 21 3 8" />
                     <rect key="box" x="1" y="3" width="22" height="5" />
@@ -289,7 +288,7 @@ function SystemBannerIcon({
             );
         case "import-progress":
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <path
                         key="tray"
@@ -301,7 +300,7 @@ function SystemBannerIcon({
             );
         case "export-progress":
             return (
-                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the parent .sbn-ico wrapper.
+                // biome-ignore lint/a11y/noSvgWithoutTitle: SOT icon SVG is hidden by the data-sot icon wrapper.
                 <svg viewBox="0 0 24 24">
                     <path
                         key="tray"
@@ -460,37 +459,42 @@ function SystemBannerItem({
     return (
         <section
             {...bannerA11y}
-            className={cn("sys-banner", className)}
+            className={className}
+            data-sot-panel="system-banner"
+            data-slot="system-banner"
             data-kind={banner.state}
             data-pct={progress ?? undefined}
         >
-            <span className="sbn-ico" aria-hidden="true">
+            <span data-sot-part="system-banner-icon" aria-hidden="true">
                 <SystemBannerIcon
                     isStacked={isStacked}
                     indeterminate={banner.indeterminate}
                     state={banner.state}
                 />
             </span>
-            <div className="sbn-body">
-                <div className="sbn-title">
+            <div data-sot-part="system-banner-body">
+                <div data-sot-part="system-banner-title">
                     {banner.title ?? defaultCopy.title}
                 </div>
-                <div className={cn("sbn-sub", hasProgress && "mono")}>
+                <div
+                    data-sot-part="system-banner-description"
+                    data-sot-format={hasProgress ? "mono" : undefined}
+                >
                     {banner.message ?? defaultCopy.message}
                 </div>
                 {hasProgress ? (
                     <div
                         aria-hidden="true"
-                        className={cn(
-                            "sbn-progress",
-                            banner.indeterminate && "indeterminate",
-                        )}
+                        data-sot-part="system-banner-progress"
+                        data-sot-state={
+                            banner.indeterminate ? "indeterminate" : "ready"
+                        }
                     >
-                        <span className="sbn-bar" />
+                        <span data-sot-part="system-banner-progress-bar" />
                     </div>
                 ) : null}
             </div>
-            <div className="sbn-actions">
+            <div data-sot-part="system-banner-actions">
                 {primaryLabel ? (
                     <Button
                         aria-busy={

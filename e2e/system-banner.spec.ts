@@ -209,7 +209,11 @@ async function readProgressRatio(page: Page, selector: string) {
     return page.locator(selector).first().evaluate((track) => {
         const trackWidth = track.getBoundingClientRect().width;
         const barWidth =
-            track.querySelector(".sbn-bar")?.getBoundingClientRect().width ?? 0;
+            track
+                .querySelector(
+                    '.sbn-bar, [data-sot-part="system-banner-progress-bar"]',
+                )
+                ?.getBoundingClientRect().width ?? 0;
         if (trackWidth === 0) {
             return 0;
         }
@@ -343,7 +347,11 @@ async function captureSystemBannerHtmlFixture(
     const stage = page
         .locator(`#${fixtureId} > .system-banner-pixel-stage`)
         .first();
-    await expect(stage.locator(".sys-banner").first()).toBeVisible();
+    await expect(
+        stage
+            .locator('.sys-banner, [data-sot-panel="system-banner"]')
+            .first(),
+    ).toBeVisible();
     await page.waitForTimeout(250);
     const screenshot = await stage.screenshot({
         animations: "disabled",
@@ -605,55 +613,55 @@ async function expectSystemBannerSurfaceMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-ico`,
-        `${productSelector} .sbn-ico`,
+        `${productSelector} [data-sot-part="system-banner-icon"]`,
         SYSTEM_BANNER_ICON_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-ico svg`,
-        `${productSelector} .sbn-ico svg`,
+        `${productSelector} [data-sot-part="system-banner-icon"] svg`,
         SYSTEM_BANNER_SVG_STYLE_PROPS,
     );
     await expectInnerHtmlMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-ico`,
-        `${productSelector} .sbn-ico`,
+        `${productSelector} [data-sot-part="system-banner-icon"]`,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-body`,
-        `${productSelector} .sbn-body`,
+        `${productSelector} [data-sot-part="system-banner-body"]`,
         SYSTEM_BANNER_BODY_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-title`,
-        `${productSelector} .sbn-title`,
+        `${productSelector} [data-sot-part="system-banner-title"]`,
         SYSTEM_BANNER_TEXT_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-sub`,
-        `${productSelector} .sbn-sub`,
+        `${productSelector} [data-sot-part="system-banner-description"]`,
         SYSTEM_BANNER_TEXT_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-actions`,
-        `${productSelector} .sbn-actions`,
+        `${productSelector} [data-sot-part="system-banner-actions"]`,
         SYSTEM_BANNER_ACTIONS_STYLE_PROPS,
     );
     await expectComputedStyleMatch(
         sotPage,
         productPage,
         `${sotSelector} .sbn-actions button:first-child`,
-        `${productSelector} .sbn-actions [data-slot="button"]:first-child`,
+        `${productSelector} [data-sot-part="system-banner-actions"] [data-slot="button"]:first-child`,
         SYSTEM_BANNER_BUTTON_STYLE_PROPS,
     );
 }
@@ -684,7 +692,7 @@ test("dashboard system banner responds to runtime events and offline state", asy
     await page.waitForLoadState("networkidle");
     await installSystemBannerActionRecorder(page);
 
-    const banner = page.locator(".sys-banner");
+    const banner = page.locator('[data-sot-panel="system-banner"]');
     await expect(banner).toHaveCount(0);
 
     await dispatchSystemBanner(page, {
@@ -830,7 +838,7 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
     ).toHaveAttribute("data-sot-state", "ready");
     await page.waitForLoadState("networkidle");
 
-    const banners = page.locator(".sys-banner");
+    const banners = page.locator('[data-sot-panel="system-banner"]');
 
     await dispatchSystemBanner(page, {
         actionLabel: "暂停",
@@ -848,14 +856,18 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
     await expect(importBanner).not.toHaveAttribute("role", /.+/);
     await expect(importBanner).not.toHaveAttribute("aria-live", /.+/);
     await expect(importBanner).toHaveAttribute("data-pct", "40");
-    await expect(importBanner.locator(".sbn-progress")).toHaveCSS(
+    await expect(
+        importBanner.locator('[data-sot-part="system-banner-progress"]'),
+    ).toHaveCSS(
         "display",
         "block",
     );
-    await expect(importBanner.locator(".sbn-progress .sbn-bar")).toHaveCount(1);
-    await expect(importBanner.locator(".sbn-progress")).not.toHaveClass(
-        /indeterminate/,
-    );
+    await expect(
+        importBanner.locator('[data-sot-part="system-banner-progress-bar"]'),
+    ).toHaveCount(1);
+    await expect(
+        importBanner.locator('[data-sot-part="system-banner-progress"]'),
+    ).toHaveAttribute("data-sot-state", "ready");
     await expect(importBanner.getByRole("button", { name: "暂停" })).toBeVisible();
     await expect(importBanner.getByRole("button", { name: "取消" })).toBeVisible();
 
@@ -868,9 +880,9 @@ test("dashboard system banner restores SOT progress, indeterminate, and stacked 
         title: "正在扫描备份包结构",
     });
     await expect(importBanner).not.toHaveAttribute("data-pct", /.+/);
-    await expect(importBanner.locator(".sbn-progress")).toHaveClass(
-        /indeterminate/,
-    );
+    await expect(
+        importBanner.locator('[data-sot-part="system-banner-progress"]'),
+    ).toHaveAttribute("data-sot-state", "indeterminate");
     await expect(importBanner.getByRole("button", { name: "取消" })).toBeDisabled();
 
     await page.evaluate(() => {
@@ -929,35 +941,39 @@ test("dashboard system banner primitives match SOT component library styles", as
         await sotPage.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
         await expect(sotPage.locator("#sysbanner")).toBeVisible();
 
-        const productBanners = page.locator(".sys-banner");
+        const productBanners = page.locator(
+            '[data-sot-panel="system-banner"]',
+        );
         await expect(productBanners).toHaveCount(0);
 
         await dispatchSystemBanner(page, { state: "offline" });
-        await expect(page.locator('.sys-banner[data-kind="offline"]')).toHaveCount(
-            1,
-        );
+        await expect(
+            page.locator(
+                '[data-sot-panel="system-banner"][data-kind="offline"]',
+            ),
+        ).toHaveCount(1);
         await expectSystemBannerSurfaceMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="offline"]',
-            '.sys-banner[data-kind="offline"]',
+            '[data-sot-panel="system-banner"][data-kind="offline"]',
         );
         await expect(
             page.locator(
-                '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toHaveCount(2);
         await expect(
             page
                 .locator(
-                    '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+                    '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
                 )
                 .first(),
         ).toHaveAttribute("data-variant", "ghost");
         await expect(
             page
                 .locator(
-                    '.sys-banner[data-kind="offline"] .sbn-actions [data-slot="button"]',
+                    '[data-sot-panel="system-banner"][data-kind="offline"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
                 )
                 .first(),
         ).toHaveAttribute("data-size", "sm");
@@ -968,11 +984,11 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="permission-denied"]',
-            '.sys-banner[data-kind="permission-denied"]',
+            '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
         );
         await expect(
             page.locator(
-                '.sys-banner[data-kind="permission-denied"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="permission-denied"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toHaveCount(2);
         await clearSystemBanners(page);
@@ -982,7 +998,7 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="db-locked"]',
-            '.sys-banner[data-kind="db-locked"]',
+            '[data-sot-panel="system-banner"][data-kind="db-locked"]',
         );
         await clearSystemBanners(page);
 
@@ -991,25 +1007,25 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="update-available"]',
-            '.sys-banner[data-kind="update-available"]',
+            '[data-sot-panel="system-banner"][data-kind="update-available"]',
         );
         await expect(
             page
                 .locator(
-                    '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
+                    '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
                 )
                 .first(),
         ).toHaveAttribute("data-variant", "glass");
         await expect(
             page
                 .locator(
-                    '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
+                    '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
                 )
                 .first(),
         ).toHaveAttribute("data-size", "sm");
         await expect(
             page.locator(
-                '.sys-banner[data-kind="update-available"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toHaveCount(3);
         await clearSystemBanners(page);
@@ -1026,27 +1042,27 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"]',
-            '.sys-banner[data-kind="import-progress"][data-pct="40"]',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
-            '.sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress"]',
             SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-bar',
-            '.sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-bar',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress-bar"]',
             SYSTEM_BANNER_BAR_STYLE_PROPS,
         );
         await expectProgressRatioMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
-            '.sys-banner[data-kind="import-progress"][data-pct="40"] .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"] [data-sot-part="system-banner-progress"]',
         );
         await clearSystemBanners(page);
 
@@ -1061,41 +1077,41 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct])',
-            '.sys-banner[data-kind="import-progress"]:not([data-pct])',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
-            '.sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress"]',
             SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-bar',
-            '.sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-bar',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress-bar"]',
             SYSTEM_BANNER_BAR_STYLE_PROPS,
         );
         await expectProgressRatioMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
-            '.sys-banner[data-kind="import-progress"]:not([data-pct]) .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct]) [data-sot-part="system-banner-progress"]',
         );
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toHaveCount(1);
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toBeDisabled();
         await expect(
             page.locator(
-                '.sys-banner[data-kind="import-progress"] .sbn-actions [data-slot="button"]',
+                '[data-sot-panel="system-banner"][data-kind="import-progress"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
             ),
         ).toHaveAttribute("aria-busy", "true");
         await clearSystemBanners(page);
@@ -1112,27 +1128,27 @@ test("dashboard system banner primitives match SOT component library styles", as
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"]',
-            '.sys-banner[data-kind="export-progress"][data-pct="70"]',
+            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"]',
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
-            '.sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
             SYSTEM_BANNER_PROGRESS_STYLE_PROPS,
         );
         await expectComputedStyleMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-bar',
-            '.sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-bar',
+            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress-bar"]',
             SYSTEM_BANNER_BAR_STYLE_PROPS,
         );
         await expectProgressRatioMatch(
             sotPage,
             page,
             '#sysbanner .sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
-            '.sys-banner[data-kind="export-progress"][data-pct="70"] .sbn-progress',
+            '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"] [data-sot-part="system-banner-progress"]',
         );
     } finally {
         await sotPage.close();
@@ -1159,7 +1175,9 @@ test("dashboard system banner screenshots match SOT component library states", a
         await expect(sotPage.locator("#sysbanner")).toBeVisible();
         await sotPage.evaluate(() => document.fonts.ready);
 
-        const productBanners = page.locator(".sys-banner");
+        const productBanners = page.locator(
+            '[data-sot-panel="system-banner"]',
+        );
         const sotCard = (index: number) =>
             sotPage.locator(
                 `#sysbanner .cl-grid > .cl-card:nth-child(${index})`,
@@ -1195,19 +1213,22 @@ test("dashboard system banner screenshots match SOT component library states", a
         await expectSingleState({
             detail: { state: "offline" },
             label: "SystemBanner offline",
-            productSelector: '.sys-banner[data-kind="offline"]',
+            productSelector:
+                '[data-sot-panel="system-banner"][data-kind="offline"]',
             sotCardIndex: 1,
         });
         await expectSingleState({
             detail: { state: "permission-denied" },
             label: "SystemBanner permission denied",
-            productSelector: '.sys-banner[data-kind="permission-denied"]',
+            productSelector:
+                '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
             sotCardIndex: 2,
         });
         await expectSingleState({
             detail: { state: "db-locked" },
             label: "SystemBanner db locked",
-            productSelector: '.sys-banner[data-kind="db-locked"]',
+            productSelector:
+                '[data-sot-panel="system-banner"][data-kind="db-locked"]',
             sotCardIndex: 3,
         });
         const updateSotCopy = await sotCard(4)
@@ -1224,7 +1245,8 @@ test("dashboard system banner screenshots match SOT component library states", a
         await expectSingleState({
             detail: { state: "update-available", ...updateSotCopy },
             label: "SystemBanner update available",
-            productSelector: '.sys-banner[data-kind="update-available"]',
+            productSelector:
+                '[data-sot-panel="system-banner"][data-kind="update-available"]',
             sotCardIndex: 4,
         });
         await expectSingleState({
@@ -1238,7 +1260,7 @@ test("dashboard system banner screenshots match SOT component library states", a
             },
             label: "SystemBanner import progress 40",
             productSelector:
-                '.sys-banner[data-kind="import-progress"][data-pct="40"]',
+                '[data-sot-panel="system-banner"][data-kind="import-progress"][data-pct="40"]',
             sotCardIndex: 5,
         });
         await expectSingleState({
@@ -1251,7 +1273,7 @@ test("dashboard system banner screenshots match SOT component library states", a
             },
             label: "SystemBanner import indeterminate",
             productSelector:
-                '.sys-banner[data-kind="import-progress"]:not([data-pct])',
+                '[data-sot-panel="system-banner"][data-kind="import-progress"]:not([data-pct])',
             sotCardIndex: 6,
         });
         await expectSingleState({
@@ -1265,7 +1287,7 @@ test("dashboard system banner screenshots match SOT component library states", a
             },
             label: "SystemBanner export progress 70",
             productSelector:
-                '.sys-banner[data-kind="export-progress"][data-pct="70"]',
+                '[data-sot-panel="system-banner"][data-kind="export-progress"][data-pct="70"]',
             sotHtmlTransform: sanitizeExportProgressSotHtml,
             sotCardIndex: 7,
         });
@@ -1389,27 +1411,33 @@ test("dashboard sync status exposes worker unavailable, queued, and running stat
     const status = page.locator('[data-sot-panel="dashboard-sync"]');
     await expect(status).toHaveAttribute("data-sot-state", "error");
     await expect(status).toContainText("本地更新服务未响应");
-    await expect(page.locator(".sys-banner")).toHaveCount(0);
+    await expect(page.locator('[data-sot-panel="system-banner"]')).toHaveCount(
+        0,
+    );
 
     mode = "db-locked";
     await reloadDashboardAfterSyncStatus(page);
     await expect(status).toHaveAttribute("data-sot-state", "error");
-    await expect(page.locator('.sys-banner[data-kind="db-locked"]')).toContainText(
-        "本地数据库被另一个 BetterAINote 实例占用",
-    );
+    await expect(
+        page.locator('[data-sot-panel="system-banner"][data-kind="db-locked"]'),
+    ).toContainText("本地数据库被另一个 BetterAINote 实例占用");
 
     mode = "permission-denied";
     await reloadDashboardAfterSyncStatus(page);
     await expect(status).toHaveAttribute("data-sot-state", "error");
     await expect(
-        page.locator('.sys-banner[data-kind="permission-denied"]'),
+        page.locator(
+            '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
+        ),
     ).toContainText("未授权访问录音文件夹");
 
     mode = "queued";
     await reloadDashboardAfterSyncStatus(page);
     await expect(status).toHaveAttribute("data-sot-state", "queued");
     await expect(status).toContainText("已加入更新");
-    await expect(page.locator(".sys-banner")).toHaveCount(0);
+    await expect(page.locator('[data-sot-panel="system-banner"]')).toHaveCount(
+        0,
+    );
 
     mode = "running";
     await reloadDashboardAfterSyncStatus(page);

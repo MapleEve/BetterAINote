@@ -2,8 +2,6 @@
 
 import type { ComponentPropsWithoutRef } from "react";
 
-import { cn } from "@/lib/utils";
-
 export type SegmentedTabItem<T extends string = string> = {
     value: T;
     label: string;
@@ -33,18 +31,28 @@ export function SegmentedTabs<T extends string>({
     return (
         <div
             {...props}
-            className={cn("liquid-tabs", size === "sm" && "sm", className)}
+            className={className}
             role="tablist"
             aria-label={ariaLabel}
+            data-sot-control="liquid-tabs"
+            data-slot="segmented-tabs"
+            data-sot-size={size}
             data-idx={activeIndex}
             data-tabs={items.length}
             data-active={activeIndex}
         >
-            <span className="lt-ind" aria-hidden="true" />
+            <span data-sot-part="liquid-tabs-indicator" aria-hidden="true" />
             {items.map((item) => (
                 <button
-                    className={cn("lt-tab", item.value === value && "active")}
                     type="button"
+                    data-sot-control="liquid-tab"
+                    data-sot-state={
+                        item.disabled
+                            ? "disabled"
+                            : item.value === value
+                              ? "active"
+                              : "idle"
+                    }
                     data-tab-key={item.tabKey ?? item.value}
                     role="tab"
                     disabled={item.disabled}

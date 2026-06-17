@@ -2823,7 +2823,9 @@ test("dashboard keeps retranscription visible while system banners are stacked",
             state: "update-available",
         });
 
-        const systemBanners = page.locator(".sys-banner");
+        const systemBanners = page.locator(
+            '[data-sot-panel="system-banner"]',
+        );
         await expect(systemBanners).toHaveCount(2);
         await expect(systemBanners.nth(0)).toHaveAttribute(
             "data-kind",
@@ -2843,7 +2845,9 @@ test("dashboard keeps retranscription visible while system banners are stacked",
 
         const layout = await page.evaluate(() => {
             const systemRects = Array.from(
-                document.querySelectorAll<HTMLElement>(".sys-banner"),
+                document.querySelectorAll<HTMLElement>(
+                    '[data-sot-panel="system-banner"]',
+                ),
             ).map((element) => element.getBoundingClientRect());
             const retxRect = document
                 .querySelector<HTMLElement>(
@@ -3276,7 +3280,7 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             [".transcript", '[data-sot-panel="dashboard-transcript-shell"]'],
             [
                 ".liquid-tabs",
-                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .liquid-tabs',
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] [data-sot-control="liquid-tabs"]',
             ],
         ] satisfies ReadonlyArray<readonly [string, string]>) {
             await expectSotStylePairMatch(
@@ -3310,7 +3314,7 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
             ],
             [
                 ".transcript-head .lt-ind",
-                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .lt-ind',
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] [data-sot-part="liquid-tabs-indicator"]',
             ],
         ] satisfies ReadonlyArray<readonly [string, string]>) {
             await expectSotStylePairMatch(
@@ -3336,7 +3340,7 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
         const sotTabs = sotPage.locator(".transcript-head .liquid-tabs").first();
         const productTabs = page
             .locator(
-                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] .liquid-tabs',
+                '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"] [data-sot-control="liquid-tabs"]',
             )
             .first();
         await expectRetxResponsivePixelsMatch(
@@ -3351,7 +3355,11 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
 
         await Promise.all([
             sotPage.locator('.lt-tab[data-tab-key="speakers"]').click(),
-            productTabs.locator('.lt-tab[data-tab-key="speakers"]').click(),
+            productTabs
+                .locator(
+                    '[data-sot-control="liquid-tab"][data-tab-key="speakers"]',
+                )
+                .click(),
         ]);
         await expect(productTabs).toHaveAttribute("data-active", "1");
         await expectRetxResponsivePixelsMatch(
@@ -3367,7 +3375,9 @@ test("dashboard selected workstation primitives match SOT computed styles", asyn
         await Promise.all([
             sotPage.locator('.lt-tab[data-tab-key="source-report"]').click(),
             productTabs
-                .locator('.lt-tab[data-tab-key="source-report"]')
+                .locator(
+                    '[data-sot-control="liquid-tab"][data-tab-key="source-report"]',
+                )
                 .click(),
         ]);
         await expect(productTabs).toHaveAttribute("data-active", "2");

@@ -665,6 +665,7 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps SOT global tokens and system banner state semantics available", () => {
         const globals = readSource("app/globals.css");
+        const segmentedTabs = readSource("components/ui/segmented-tabs.tsx");
         const banner = readSource(
             "features/dashboard/components/system-banner.tsx",
         );
@@ -680,11 +681,39 @@ describe("dashboard SOT foundation", () => {
             expect(globals).toContain(token);
         }
 
-        expect(banner).toContain('className={cn("sys-banner", className)}');
+        expect(segmentedTabs).toContain('data-sot-control="liquid-tabs"');
+        expect(segmentedTabs).toContain('data-slot="segmented-tabs"');
+        expect(segmentedTabs).toContain("data-sot-size={size}");
+        expect(segmentedTabs).toContain(
+            'data-sot-part="liquid-tabs-indicator"',
+        );
+        expect(segmentedTabs).toContain('data-sot-control="liquid-tab"');
+        expect(segmentedTabs).toContain("data-sot-state={");
+        expect(segmentedTabs).not.toContain('className={cn("liquid-tabs"');
+        expect(segmentedTabs).not.toContain('className="liquid-tabs"');
+        expect(segmentedTabs).not.toContain('className="lt-ind"');
+        expect(segmentedTabs).not.toContain('className={cn("lt-tab"');
+        expect(segmentedTabs).not.toContain('className="lt-tab"');
+
+        expect(banner).toContain('data-sot-panel="system-banner"');
+        expect(banner).toContain('data-slot="system-banner"');
+        expect(banner).toContain('data-sot-part="system-banner-icon"');
+        expect(banner).toContain('data-sot-part="system-banner-body"');
+        expect(banner).toContain('data-sot-part="system-banner-title"');
+        expect(banner).toContain('data-sot-part="system-banner-description"');
+        expect(banner).toContain('data-sot-part="system-banner-progress"');
+        expect(banner).toContain('data-sot-part="system-banner-progress-bar"');
+        expect(banner).toContain('data-sot-part="system-banner-actions"');
+        expect(banner).toContain('data-sot-format={hasProgress ? "mono"');
+        expect(banner).not.toContain('className={cn("sys-banner", className)}');
+        expect(banner).not.toContain('className="sys-banner"');
+        expect(banner).not.toContain('"sbn-progress"');
+        expect(banner).not.toContain('"sbn-bar"');
+        expect(banner).not.toContain("sbn-");
+        expect(banner).not.toContain('className="mono"');
         expect(banner).toContain("getBannerA11y(banner.state)");
         expect(banner).toContain("data-kind={banner.state}");
         expect(banner).toContain("data-pct={progress ?? undefined}");
-        expect(banner).toContain('"sbn-progress"');
         expect(banner).toContain(
             'import { Button } from "@/components/ui/button";',
         );
@@ -700,8 +729,6 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain("window.location.reload()");
         expect(banner).not.toContain("lucide-react");
         expect(banner).not.toContain("data-system-banner");
-        expect(banner).not.toContain("data-sot-panel");
-        expect(banner).not.toContain("data-sot-state");
         expect(banner).not.toMatch(OLD_UI_RE);
     });
 });

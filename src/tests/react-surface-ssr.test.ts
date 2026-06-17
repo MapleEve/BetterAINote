@@ -133,7 +133,12 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain('data-slot="label"');
         expect(html).toContain('data-slot="textarea"');
         expect(html).toContain('data-slot="switch"');
-        expect(html).toContain("liquid-tabs");
+        expect(html).toContain('data-sot-control="liquid-tabs"');
+        expect(html).toContain('data-slot="segmented-tabs"');
+        expect(html).toContain('data-sot-part="liquid-tabs-indicator"');
+        expect(html).toContain('data-sot-control="liquid-tab"');
+        expect(html).not.toContain('class="liquid-tabs');
+        expect(html).not.toContain('class="lt-tab');
         expect(html).not.toContain("card-content");
         expect(html).not.toContain("uikit-");
     });
