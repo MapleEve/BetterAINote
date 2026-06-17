@@ -2546,10 +2546,11 @@ test("dashboard exposes unavailable retranscription state for sources without lo
         await expect(
             dashboardRetranscriptionBanner(page, "unavailable"),
         ).toBeHidden();
-        await expect(page.locator(".retx-disabled-hint")).toHaveText(
-            "当前来源不支持私有重转写",
+        const disabledHint = page.locator(
+            '[data-sot-part="dashboard-retranscription-disabled-hint"]',
         );
-        await expect(page.locator(".retx-disabled-hint")).toBeVisible();
+        await expect(disabledHint).toHaveText("当前来源不支持私有重转写");
+        await expect(disabledHint).toBeVisible();
         await expect(retranscribeButton(page)).toHaveAttribute(
             "data-retx-state",
             "unavailable",
@@ -2607,20 +2608,20 @@ test("dashboard retranscription primitives match SOT component library styles", 
             sotPage,
             page,
             `${sotRoot} .retx-banner-ico`,
-            `${productRoot} .retx-banner-ico`,
+            `${productRoot} [data-sot-part="dashboard-retranscription-icon"]`,
             SOT_RETX_STYLE_PROPS,
         );
         await expectSotStylePairMatch(
             sotPage,
             page,
             `${sotRoot} .retx-banner-title`,
-            `${productRoot} .retx-banner-title`,
+            `${productRoot} [data-sot-part="dashboard-retranscription-title"]`,
         );
         await expectSotStylePairMatch(
             sotPage,
             page,
             `${sotRoot} .retx-banner-sub`,
-            `${productRoot} .retx-banner-sub`,
+            `${productRoot} [data-sot-part="dashboard-retranscription-sub"]`,
         );
         await expectRetxPixelsMatch(
             page,
@@ -2720,7 +2721,7 @@ test("dashboard retranscription primitives match SOT component library styles", 
             completedSotStage,
             completedSotStage.locator(".retx-banner, .retx-refresh-marker"),
             page.locator(
-                '[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"], .retx-refresh-marker',
+                '[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"], [data-sot-part="dashboard-retranscription-refresh-marker"]',
             ),
         );
         await expectRetxResponsiveGroupPixelsMatch(
@@ -2730,7 +2731,7 @@ test("dashboard retranscription primitives match SOT component library styles", 
             completedSotStage,
             completedSotStage.locator(".retx-banner, .retx-refresh-marker"),
             page.locator(
-                '[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"], .retx-refresh-marker',
+                '[data-sot-panel="dashboard-retranscription"][data-retx-state="completed"], [data-sot-part="dashboard-retranscription-refresh-marker"]',
             ),
         );
 
@@ -2757,21 +2758,29 @@ test("dashboard retranscription primitives match SOT component library styles", 
             sotPage,
             page,
             "#retx-disabled-hint",
-            ".retx-disabled-hint",
+            '[data-sot-part="dashboard-retranscription-disabled-hint"]',
         );
         await expectRetxPixelsMatch(
             page,
             testInfo,
             "Retx unavailable",
             sotPage.locator("#retx-disabled-hint").first(),
-            page.locator(".retx-disabled-hint").first(),
+            page
+                .locator(
+                    '[data-sot-part="dashboard-retranscription-disabled-hint"]',
+                )
+                .first(),
         );
         await expectRetxResponsivePixelsMatch(
             page,
             testInfo,
             "Retx unavailable responsive frame",
             sotPage.locator("#retx-disabled-hint").first(),
-            page.locator(".retx-disabled-hint").first(),
+            page
+                .locator(
+                    '[data-sot-part="dashboard-retranscription-disabled-hint"]',
+                )
+                .first(),
         );
     } finally {
         await sotPage?.close();

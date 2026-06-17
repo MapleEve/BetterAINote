@@ -44,6 +44,34 @@ const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="sp-bar"',
 ];
 
+const DASHBOARD_RETRANSCRIPTION_SOT_HOOKS = [
+    'data-sot-panel="dashboard-retranscription"',
+    'data-sot-part="dashboard-retranscription-disabled-hint"',
+    'data-sot-part="dashboard-retranscription-icon"',
+    'data-sot-part="dashboard-retranscription-spinner"',
+    'data-sot-part="dashboard-retranscription-icon-warn"',
+    'data-sot-part="dashboard-retranscription-icon-ok"',
+    'data-sot-part="dashboard-retranscription-body"',
+    'data-sot-part="dashboard-retranscription-title"',
+    'data-sot-part="dashboard-retranscription-sub"',
+    'data-sot-part="dashboard-retranscription-actions"',
+    'data-sot-part="dashboard-retranscription-refresh-marker"',
+];
+
+const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
+    "retx-disabled-hint",
+    "retx-banner",
+    "retx-banner-ico",
+    "retx-spinner",
+    "retx-banner-body",
+    "retx-banner-title",
+    "retx-banner-sub",
+    "retx-banner-actions",
+    "retx-refresh-marker",
+    "retx-ico-warn",
+    "retx-ico-ok",
+];
+
 const DASHBOARD_RECORDING_LIST_BATCH_LEGACY_CLASS_NAMES = [
     'className="tag-filter"',
     'className="tag-filter-trigger"',
@@ -301,6 +329,14 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-retranscription"',
         );
         expect(workstation).toContain("data-retx-state={dashboardRetxState}");
+        for (const hook of DASHBOARD_RETRANSCRIPTION_SOT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const className of DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES) {
+            expect(workstation).not.toMatch(
+                new RegExp(`className=\\{?["']${className}["']\\}?`),
+            );
+        }
         expect(workstation).toContain('aria-label="详情标签"');
         expect(workstation).toContain(
             'aria-label={isPlaying ? "暂停" : "播放"}',

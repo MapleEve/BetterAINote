@@ -1040,8 +1040,11 @@ function searchResultFilterLabel(result: SearchResult) {
 
 function RetxWarnIcon() {
     return (
-        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent .retx-banner-ico wrapper.
-        <svg className="retx-ico-warn" viewBox="0 0 24 24">
+        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
+        <svg
+            data-sot-part="dashboard-retranscription-icon-warn"
+            viewBox="0 0 24 24"
+        >
             <path d="M12 9v4" />
             <path d="M12 17h.01" />
             <circle cx="12" cy="12" r="10" />
@@ -1051,8 +1054,11 @@ function RetxWarnIcon() {
 
 function RetxOkIcon() {
     return (
-        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent .retx-banner-ico wrapper.
-        <svg className="retx-ico-ok" viewBox="0 0 24 24">
+        // biome-ignore lint/a11y/noSvgWithoutTitle: SOT retx icon SVG is hidden by the parent icon wrapper.
+        <svg
+            data-sot-part="dashboard-retranscription-icon-ok"
+            viewBox="0 0 24 24"
+        >
             <path d="M20 6 9 17l-5-5" />
         </svg>
     );
@@ -1060,7 +1066,16 @@ function RetxOkIcon() {
 
 function RetxCloseIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+            aria-hidden="true"
+            focusable="false"
+        >
             <path d="M18 6 6 18M6 6l12 12" />
         </svg>
     );
@@ -6348,7 +6363,7 @@ export function Workstation({
                                         </Button>
                                     ) : null}
                                     <span
-                                        className="retx-disabled-hint"
+                                        data-sot-part="dashboard-retranscription-disabled-hint"
                                         hidden={
                                             detailTab !== "transcript" ||
                                             dashboardRetxState !== "unavailable"
@@ -6386,7 +6401,6 @@ export function Workstation({
                             </CardHeader>
                             <CardContent data-sot-part="dashboard-transcript-body">
                                 <div
-                                    className="retx-banner"
                                     data-sot-panel="dashboard-retranscription"
                                     data-sot-state={dashboardRetxState}
                                     data-retx-state={dashboardRetxState}
@@ -6396,12 +6410,12 @@ export function Workstation({
                                     }
                                 >
                                     <span
-                                        className="retx-banner-ico"
+                                        data-sot-part="dashboard-retranscription-icon"
                                         aria-hidden="true"
                                     >
                                         {dashboardRetxState === "queued" ||
                                         dashboardRetxState === "running" ? (
-                                            <span className="retx-spinner" />
+                                            <span data-sot-part="dashboard-retranscription-spinner" />
                                         ) : dashboardRetxState === "failed" ? (
                                             <RetxWarnIcon />
                                         ) : dashboardRetxState ===
@@ -6414,16 +6428,16 @@ export function Workstation({
                                             <RefreshCw />
                                         )}
                                     </span>
-                                    <div className="retx-banner-body">
-                                        <div className="retx-banner-title">
+                                    <div data-sot-part="dashboard-retranscription-body">
+                                        <div data-sot-part="dashboard-retranscription-title">
                                             {dashboardRetxTitle}
                                         </div>
-                                        <div className="retx-banner-sub">
+                                        <div data-sot-part="dashboard-retranscription-sub">
                                             {dashboardRetxSub}
                                         </div>
                                     </div>
                                     {dashboardRetxState === "failed" ? (
-                                        <div className="retx-banner-actions">
+                                        <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -6452,7 +6466,7 @@ export function Workstation({
                                         </div>
                                     ) : dashboardRetxState === "completed" &&
                                       selectedRecording ? (
-                                        <div className="retx-banner-actions">
+                                        <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -6477,7 +6491,7 @@ export function Workstation({
                                     ) : null}
                                 </div>
                                 <p
-                                    className="retx-refresh-marker"
+                                    data-sot-part="dashboard-retranscription-refresh-marker"
                                     hidden={dashboardRetxState !== "completed"}
                                 >
                                     刚刷新 · 1 秒前
