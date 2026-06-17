@@ -5113,11 +5113,6 @@ export function Workstation({
                                                                     ? "selected"
                                                                     : "idle"
                                                             }
-                                                            data-selected={
-                                                                active
-                                                                    ? "true"
-                                                                    : "false"
-                                                            }
                                                             onClick={() =>
                                                                 selectRecording(
                                                                     recording.id,

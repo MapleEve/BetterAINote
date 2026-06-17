@@ -333,6 +333,7 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-recording-row-actions"',
         );
         expect(workstation).toContain("aria-current={");
+        expect(workstation).not.toContain("data-selected=");
         expect(workstation).toContain('listState === "loading"');
         expect(workstation).toContain("<SotRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");
