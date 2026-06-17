@@ -808,7 +808,8 @@ button {
     border: 1px solid var(--glass-border);
 }
 .sync-dot,
-[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"] {
+[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"],
+[data-sot-part="settings-skeleton-sync-dot"] {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -4452,7 +4453,10 @@ body[data-time-style="abs"]
     flex: none;
 }
 
-.settings-main {
+.settings-main,
+[data-sot-panel="settings-card-skeleton"],
+[data-sot-panel="settings-section-skeleton"],
+[data-sot-panel="settings-list-skeleton"] {
     padding: 22px 26px;
     overflow-y: auto;
     /* Lock wheel/touch scrolling to this body — the workspace blurred
@@ -4731,19 +4735,23 @@ body[data-time-style="abs"]
 }
 
 /* Empty-state hint */
-.empty-hint {
+.empty-hint,
+[data-sot-panel="settings-empty-hint"] {
     margin-top: 16px;
     padding: 18px;
     border: 1px dashed var(--line-hairline);
     border-radius: 10px;
     text-align: center;
 }
-.empty-hint .eh-t {
+.empty-hint .eh-t,
+[data-sot-panel="settings-empty-hint"] [data-sot-part="settings-empty-title"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
     margin-bottom: 4px;
 }
-.empty-hint .eh-h {
+.empty-hint .eh-h,
+[data-sot-panel="settings-empty-hint"]
+    [data-sot-part="settings-empty-description"] {
     font: 12px / 1.5 var(--font-sans);
     color: var(--fg-tertiary);
 }

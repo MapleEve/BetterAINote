@@ -77,17 +77,48 @@ async function resetCoreSettings(page: Page) {
 }
 
 async function expectSotSwitchState(locator: Locator, checked: boolean) {
+    const expectedState = checked ? "checked" : "unchecked";
+
     await expect(locator).toHaveAttribute("role", "switch");
     await expect(locator).toHaveAttribute(
         "aria-checked",
         checked ? "true" : "false",
     );
-    await expect(locator).toHaveClass(/\btoggle\b/);
-    if (checked) {
-        await expect(locator).toHaveClass(/\bon\b/);
-    } else {
-        await expect(locator).not.toHaveClass(/\bon\b/);
+    await expect(locator).toHaveAttribute("data-slot", "switch");
+    await expect(locator).toHaveAttribute("data-state", expectedState);
+    if ((await locator.getAttribute("data-sot-state")) !== null) {
+        await expect(locator).toHaveAttribute("data-sot-state", expectedState);
     }
+    const thumb = locator.locator('[data-slot="switch-thumb"]');
+    await expect(thumb).toBeVisible();
+    await expect(thumb).toHaveAttribute("data-state", expectedState);
+}
+
+async function chooseShadcnSelectOption(
+    page: Page,
+    trigger: Locator,
+    optionName: string,
+) {
+    await expect(trigger).toHaveAttribute("role", "combobox");
+    await expect(trigger).toHaveAttribute("data-slot", "select-trigger");
+    await trigger.click();
+    await page.getByRole("option", { name: optionName, exact: true }).click();
+}
+
+async function expectShadcnSelectTrigger(
+    trigger: Locator,
+    {
+        label,
+        text,
+    }: {
+        label: string;
+        text: string;
+    },
+) {
+    await expect(trigger).toHaveAttribute("role", "combobox");
+    await expect(trigger).toHaveAttribute("data-slot", "select-trigger");
+    await expect(trigger).toHaveAttribute("aria-label", label);
+    await expect(trigger).toContainText(text);
 }
 
 function settingsShell(page: Page) {
@@ -352,9 +383,7 @@ test("transcription settings save auto-transcribe and language changes through S
     const autoTranscribeSwitch = section.locator(
         "#transcription-auto-transcribe",
     );
-    await expect(autoTranscribeSwitch).toHaveAttribute("aria-checked", "true");
-    await expect(autoTranscribeSwitch).not.toHaveAttribute("data-state", /.*/);
-    await expect(autoTranscribeSwitch).toHaveClass(/(^|\s)on(\s|$)/);
+    await expectSotSwitchState(autoTranscribeSwitch, true);
 
     const autoTranscribeOffResponse = page.waitForResponse(
         (response) =>
@@ -374,9 +403,13 @@ test("transcription settings save auto-transcribe and language changes through S
         autoTranscribe: false,
     });
     await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(autoTranscribeSwitch).toHaveAttribute("aria-checked", "false");
-    await expect(autoTranscribeSwitch).not.toHaveClass(/(^|\s)on(\s|$)/);
+    await expectSotSwitchState(autoTranscribeSwitch, false);
 
+    const languageSelect = section.locator("#transcription-language");
+    await expectShadcnSelectTrigger(languageSelect, {
+        label: "默认转录语言",
+        text: "自动检测",
+    });
     const languageResponse = page.waitForResponse(
         (response) =>
             response.url().includes("/api/settings/transcription") &&
@@ -385,8 +418,10 @@ test("transcription settings save auto-transcribe and language changes through S
             response.request().postDataJSON()?.defaultTranscriptionLanguage ===
                 "zh",
     );
-    await section.locator("#transcription-language").selectOption("zh");
-    await languageResponse;
+    await Promise.all([
+        languageResponse,
+        chooseShadcnSelectOption(page, languageSelect, "中文"),
+    ]);
 
     expect(transcriptionPayloads.at(-1)).toEqual({
         defaultTranscriptionLanguage: "zh",
@@ -398,14 +433,11 @@ test("transcription settings save auto-transcribe and language changes through S
     const reloadedAutoTranscribeSwitch = page.locator(
         "#transcription-auto-transcribe",
     );
-    await expect(reloadedAutoTranscribeSwitch).toHaveAttribute(
-        "aria-checked",
-        "false",
-    );
-    await expect(reloadedAutoTranscribeSwitch).not.toHaveClass(
-        /(^|\s)on(\s|$)/,
-    );
-    await expect(page.locator("#transcription-language")).toHaveValue("zh");
+    await expectSotSwitchState(reloadedAutoTranscribeSwitch, false);
+    await expectShadcnSelectTrigger(page.locator("#transcription-language"), {
+        label: "默认转录语言",
+        text: "中文",
+    });
 });
 
 test("VoScript speaker profiles restore SOT states and backend actions", async ({
@@ -977,9 +1009,11 @@ test("VoScript settings save current SOT controls without testing connection", a
     await section.locator("#voscript-no-repeat-ngram").fill("4");
     await section.locator("#voscript-snr-threshold").fill("12.5");
     await section.locator("#voscript-max-inflight-jobs").fill("2");
-    await section
-        .getByRole("combobox", { name: "降噪模型" })
-        .selectOption("deepfilternet");
+    await chooseShadcnSelectOption(
+        page,
+        section.locator("#voscript-denoise-model"),
+        "DeepFilterNet",
+    );
 
     await Promise.all([
         page.waitForResponse(

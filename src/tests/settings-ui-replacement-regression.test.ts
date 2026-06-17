@@ -1307,6 +1307,14 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(skeletons).toContain('data-sot-panel="settings-list-skeleton"');
         expect(skeletons).toContain('data-sot-part="settings-skeleton-row"');
+        expect(skeletons).toContain('data-sot-panel="settings-empty-hint"');
+        expect(skeletons).toContain('data-sot-part="settings-empty-title"');
+        expect(skeletons).toContain(
+            'data-sot-part="settings-empty-description"',
+        );
+        expect(skeletons).toContain(
+            'data-sot-part="settings-skeleton-sync-dot"',
+        );
         expect(skeletons).toContain(
             'import { Field, FieldContent } from "@/components/ui/field";',
         );
@@ -1322,6 +1330,11 @@ describe("settings SOT interaction regressions", () => {
         expect(skeletons).not.toContain('className="field-row"');
         expect(skeletons).not.toContain('className="field-name"');
         expect(skeletons).not.toContain('className="field-desc"');
+        expect(skeletons).not.toContain('"settings-main"');
+        expect(skeletons).not.toContain('className="empty-hint"');
+        expect(skeletons).not.toContain('className="eh-t"');
+        expect(skeletons).not.toContain('className="eh-h"');
+        expect(skeletons).not.toContain('className="sync-dot"');
         expect(skeletons).not.toMatch(OLD_UI_RE);
         expect(skeletons).not.toContain("animate-pulse");
         expect(skeletons).not.toMatch(/\bspace-y-/);

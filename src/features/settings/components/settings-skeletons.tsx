@@ -3,7 +3,6 @@
 import type { Ref } from "react";
 import { Field, FieldContent } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 const makeSkeletonKeys = (prefix: string, count: number) =>
     Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`);
@@ -22,13 +21,13 @@ export function SettingsCardSkeleton({
 }: SettingsCardSkeletonProps) {
     return (
         <div
-            className={cn("settings-main", className)}
+            className={className}
             data-sot-panel="settings-card-skeleton"
             data-sot-state="loading"
         >
-            <div className="empty-hint">
-                <Skeleton className="eh-t" />
-                <Skeleton className="eh-h" />
+            <div data-sot-panel="settings-empty-hint">
+                <Skeleton data-sot-part="settings-empty-title" />
+                <Skeleton data-sot-part="settings-empty-description" />
             </div>
 
             <div>
@@ -44,7 +43,7 @@ export function SettingsCardSkeleton({
                         </FieldContent>
                         <div className={SKELETON_ROW_CONTROL_CLASS}>
                             {index === 0 ? (
-                                <Skeleton className="sync-dot" />
+                                <Skeleton data-sot-part="settings-skeleton-sync-dot" />
                             ) : null}
                             <Skeleton className="h-9 w-60 max-w-full rounded-md" />
                         </div>
@@ -76,15 +75,15 @@ export function SettingsSectionSkeleton({
         <div
             ref={scrollRef}
             aria-busy="true"
-            className={cn("settings-main", className)}
+            className={className}
             data-sot-panel="settings-section-skeleton"
             data-sot-section={section}
             data-sot-state="loading"
             data-sot-surface={surface}
         >
-            <div className="empty-hint">
-                <Skeleton className="eh-t" />
-                <Skeleton className="eh-h" />
+            <div data-sot-panel="settings-empty-hint">
+                <Skeleton data-sot-part="settings-empty-title" />
+                <Skeleton data-sot-part="settings-empty-description" />
             </div>
 
             <div>
@@ -105,11 +104,7 @@ interface SettingsListSkeletonProps {
 
 export function SettingsListSkeleton({ rows = 3 }: SettingsListSkeletonProps) {
     return (
-        <div
-            className="settings-main"
-            data-sot-panel="settings-list-skeleton"
-            data-sot-state="loading"
-        >
+        <div data-sot-panel="settings-list-skeleton" data-sot-state="loading">
             {makeSkeletonKeys("settings-row", rows).map((rowKey) => (
                 <Field key={rowKey} orientation="horizontal">
                     <FieldContent>
