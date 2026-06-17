@@ -2257,7 +2257,9 @@ async function switchRecordingListToTags(page: Page) {
     await expect(
         panel.locator('[data-list-filter-row="timeline"]'),
     ).toBeHidden();
-    await expect(panel.locator(".tag-filter")).toBeVisible();
+    await expect(
+        panel.locator('[data-sot-panel="recording-list-tag-filter"]'),
+    ).toBeVisible();
     await expect(panel.locator("[data-tag-filter-trigger]")).toHaveAttribute(
         "aria-expanded",
         "false",
@@ -2343,11 +2345,15 @@ test("recording list paginates without leaking tweak controls across dark, light
     await expect(sotControl(page, "recording-list-last-page")).toHaveCount(0);
     await expect(sotControl(page, "recording-list-load-more")).toHaveCount(0);
     await expect(
-        pagination.locator('.lsb-page-nav > [data-slot="button"]'),
+        pagination.locator(
+            '[data-sot-part="recording-list-page-nav"] > [data-slot="button"]',
+        ),
     ).toHaveCount(2);
     await expect(pagination.locator("[data-page-prev]")).toHaveCount(1);
     await expect(pagination.locator("[data-page-next]")).toHaveCount(1);
-    await expect(pagination.locator(".lsb-page-num.mono")).toHaveText("1 / 3");
+    await expect(
+        pagination.locator('[data-sot-part="recording-list-page-number"]'),
+    ).toHaveText("1 / 3");
     await expect(
         seededRecordingRows(panel),
     ).toHaveCount(10);
@@ -2365,7 +2371,9 @@ test("recording list paginates without leaking tweak controls across dark, light
     await expect(sotControl(page, "recording-list-prev-page")).toBeEnabled();
     await expect(sotControl(page, "recording-list-next-page")).toBeEnabled();
     await expect(sotControl(page, "recording-list-load-more")).toBeVisible();
-    await expect(pagination.locator(".lsb-page-num.mono")).toHaveText("2 / 3");
+    await expect(
+        pagination.locator('[data-sot-part="recording-list-page-number"]'),
+    ).toHaveText("2 / 3");
     await expect(recordingRow(page, "e2e-list-state-11")).toBeVisible();
     await expect(recordingRow(page, "e2e-list-state-20")).toBeVisible();
 
@@ -2380,7 +2388,9 @@ test("recording list paginates without leaking tweak controls across dark, light
     ).toHaveCount(3);
     await expect(sotControl(page, "recording-list-next-page")).toBeDisabled();
     await expect(sotControl(page, "recording-list-load-more")).toHaveCount(0);
-    await expect(pagination.locator(".lsb-page-num.mono")).toHaveText("3 / 3");
+    await expect(
+        pagination.locator('[data-sot-part="recording-list-page-number"]'),
+    ).toHaveText("3 / 3");
     await expect(recordingRow(page, "e2e-list-state-23")).toBeVisible();
 
     await sotControl(page, "recording-list-prev-page").click();
@@ -2452,7 +2462,11 @@ test("recording list loading state restores the SOT skeleton list", async ({
         skeleton.locator('[data-sot-part="skeleton-title"]'),
     ).toHaveCount(5);
     await expect(skeleton.locator('[data-slot="skeleton"]')).toHaveCount(24);
-    await expect(panel.locator(".list-scroll > .list-state-block")).toHaveCount(0);
+    await expect(
+        panel.locator(
+            '[data-sot-list="dashboard-recording-list-scroll"] > [data-sot-part="recording-list-state"]',
+        ),
+    ).toHaveCount(0);
 
     releaseDisplaySettings?.();
     await expect(panel).toHaveAttribute("data-sot-state", "ready");

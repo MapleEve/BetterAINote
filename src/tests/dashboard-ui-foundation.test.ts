@@ -44,6 +44,54 @@ const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="sp-bar"',
 ];
 
+const DASHBOARD_RECORDING_LIST_BATCH_LEGACY_CLASS_NAMES = [
+    'className="tag-filter"',
+    'className="tag-filter-trigger"',
+    'className="tag-filter-label"',
+    'className="tag-filter-count"',
+    'className="tag-filter-caret"',
+    'className="tag-filter-list"',
+    'className="tag-filter-option"',
+    'className="tag-filter-option-label"',
+    'className="tag-filter-option-count"',
+    'className="list-scroll"',
+    'className="ls-group"',
+    'className="day"',
+    'className="d"',
+    'className="c"',
+    'className="line"',
+    'className="list-state-block"',
+    'className="list-state-block list-state-pagination"',
+    'className="lsb-ico"',
+    'className="lsb-t"',
+    'className="lsb-h"',
+    'className="lsb-page-divider"',
+    'className="lsb-page-nav"',
+    'className="lsb-page-num mono"',
+];
+
+const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
+    'data-sot-control="recording-list-tag-filter-trigger"',
+    'data-sot-part="recording-list-tag-filter-label"',
+    'data-sot-part="recording-list-tag-filter-count"',
+    'data-sot-part="recording-list-tag-filter-caret"',
+    'data-sot-list="recording-list-tag-filter-list"',
+    'data-sot-part="recording-list-tag-filter-option-label"',
+    'data-sot-part="recording-list-tag-filter-option-count"',
+    'data-sot-list="dashboard-recording-list-scroll"',
+    'data-sot-part="dashboard-recording-list-group"',
+    'data-sot-part="dashboard-recording-list-group-heading"',
+    'data-sot-part="dashboard-recording-list-group-label"',
+    'data-sot-part="dashboard-recording-list-group-count"',
+    'data-sot-part="dashboard-recording-list-group-divider"',
+    'data-sot-part="recording-list-state-icon"',
+    'data-sot-part="recording-list-state-title"',
+    'data-sot-part="recording-list-state-description"',
+    'data-sot-part="recording-list-page-divider"',
+    'data-sot-part="recording-list-page-nav"',
+    'data-sot-part="recording-list-page-number"',
+];
+
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
@@ -327,15 +375,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-recording-time-filter"',
         );
-        expect(workstation).toContain('className="tag-filter"');
         expect(workstation).toContain("data-tag-filter-trigger");
         expect(workstation).toContain("data-tag-filter-list");
         expect(workstation).toContain('role="listbox"');
         expect(workstation).toContain('role="option"');
         expect(workstation).toContain("data-tag-value={option.value}");
-        expect(workstation).toContain(
-            'data-sot-control="recording-list-tag-filter-trigger"',
-        );
+        for (const hook of DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const legacyClassName of DASHBOARD_RECORDING_LIST_BATCH_LEGACY_CLASS_NAMES) {
+            expect(workstation).not.toContain(legacyClassName);
+        }
         expect(workstation).toContain("tagFilterValue(tag.id)");
         expect(workstation).toContain('"untagged"');
         expect(workstation).toContain("displayTag?: RecordingTag");

@@ -5,6 +5,7 @@ import {
     Bell,
     Check,
     CheckCircle,
+    ChevronDown,
     CloudDownload,
     Copy,
     EllipsisVertical,
@@ -4952,7 +4953,6 @@ export function Workstation({
                                     })}
                                 </ToggleGroup>
                                 <div
-                                    className="tag-filter"
                                     data-list-filter-row="tags"
                                     data-sot-panel="recording-list-tag-filter"
                                     hidden={listMode !== "tags"}
@@ -4961,8 +4961,9 @@ export function Workstation({
                                     }
                                     ref={tagFilterRef}
                                 >
-                                    <button
-                                        className="tag-filter-trigger"
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         type="button"
                                         aria-haspopup="listbox"
                                         aria-expanded={tagFilterOpen}
@@ -4973,35 +4974,33 @@ export function Workstation({
                                         }
                                     >
                                         <span
-                                            className="tag-filter-label"
                                             data-tag-filter-label=""
+                                            data-sot-part="recording-list-tag-filter-label"
                                         >
                                             {selectedTagOption.label}
                                         </span>
                                         <span
-                                            className="tag-filter-count"
                                             data-tag-filter-count=""
+                                            data-sot-part="recording-list-tag-filter-count"
                                         >
                                             {selectedTagOption.count}
                                         </span>
-                                        <svg
-                                            className="tag-filter-caret"
-                                            viewBox="0 0 24 24"
+                                        <ChevronDown
+                                            data-icon="inline-end"
+                                            data-sot-part="recording-list-tag-filter-caret"
                                             aria-hidden="true"
-                                            focusable="false"
-                                        >
-                                            <path d="m6 9 6 6 6-6" />
-                                        </svg>
-                                    </button>
+                                        />
+                                    </Button>
                                     <div
-                                        className="tag-filter-list"
                                         role="listbox"
                                         data-tag-filter-list=""
+                                        data-sot-list="recording-list-tag-filter-list"
                                         hidden={!tagFilterOpen}
                                     >
                                         {tagFilterOptions.map((option) => (
-                                            <button
-                                                className="tag-filter-option"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 type="button"
                                                 role="option"
                                                 data-tag-value={option.value}
@@ -5025,38 +5024,38 @@ export function Workstation({
                                                     setTagFilterOpen(false);
                                                 }}
                                             >
-                                                <span className="tag-filter-option-label">
+                                                <span data-sot-part="recording-list-tag-filter-option-label">
                                                     {option.label}
                                                 </span>
-                                                <span className="tag-filter-option-count">
+                                                <span data-sot-part="recording-list-tag-filter-option-count">
                                                     {option.count}
                                                 </span>
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                            <div className="list-scroll">
+                            <div data-sot-list="dashboard-recording-list-scroll">
                                 {listState === "loading" ? (
                                     <SotRecordingListSkeleton />
                                 ) : listState === "ready" ? (
                                     <div data-sot-list="dashboard-recording-rows">
                                         {groupedListEntries.map((group) => (
                                             <div
-                                                className="ls-group"
                                                 data-sot-group-id={group.id}
                                                 data-sot-group="recording-list"
+                                                data-sot-part="dashboard-recording-list-group"
                                                 data-sot-mode={listMode}
                                                 key={group.id}
                                             >
-                                                <div className="day">
-                                                    <span className="d">
+                                                <div data-sot-part="dashboard-recording-list-group-heading">
+                                                    <span data-sot-part="dashboard-recording-list-group-label">
                                                         {group.label}
                                                     </span>
-                                                    <span className="c">
+                                                    <span data-sot-part="dashboard-recording-list-group-count">
                                                         {group.entries.length}
                                                     </span>
-                                                    <span className="line" />
+                                                    <span data-sot-part="dashboard-recording-list-group-divider" />
                                                 </div>
                                                 {group.entries.map((entry) => {
                                                     const { recording } = entry;
@@ -5219,14 +5218,14 @@ export function Workstation({
                                     </div>
                                 ) : (
                                     <div
-                                        className="list-state-block"
+                                        data-list-state-block={listState}
                                         data-sot-part="recording-list-state"
                                         data-sot-state={listState}
                                     >
-                                        <span className="lsb-ico">
+                                        <span data-sot-part="recording-list-state-icon">
                                             <FileText />
                                         </span>
-                                        <div className="lsb-t">
+                                        <div data-sot-part="recording-list-state-title">
                                             {listState === "empty"
                                                 ? t("recordingList.emptyTitle")
                                                 : listState === "timeline-empty"
@@ -5241,7 +5240,7 @@ export function Workstation({
                                                           "recordingList.noMatchTitle",
                                                       )}
                                         </div>
-                                        <div className="lsb-h">
+                                        <div data-sot-part="recording-list-state-description">
                                             {listState === "empty"
                                                 ? t(
                                                       "recordingList.emptyDescription",
@@ -5327,14 +5326,13 @@ export function Workstation({
                                 )}
                                 {listState === "ready" && listTotalPages > 1 ? (
                                     <div
-                                        className="list-state-block list-state-pagination"
                                         data-list-state-block={
                                             listPaginationState
                                         }
                                         data-sot-panel="recording-list-pagination"
                                         data-sot-state={listPaginationState}
                                     >
-                                        <div className="lsb-page-divider">
+                                        <div data-sot-part="recording-list-page-divider">
                                             <span data-sot-part="recording-list-page-status">
                                                 {t(listPageStatusKey, {
                                                     current: currentListPage,
@@ -5343,7 +5341,7 @@ export function Workstation({
                                                 })}
                                             </span>
                                         </div>
-                                        <div className="lsb-page-nav">
+                                        <div data-sot-part="recording-list-page-nav">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -5364,7 +5362,7 @@ export function Workstation({
                                             >
                                                 {t("recordingList.previous")}
                                             </Button>
-                                            <span className="lsb-page-num mono">
+                                            <span data-sot-part="recording-list-page-number">
                                                 {currentListPage} /{" "}
                                                 {listTotalPages}
                                             </span>

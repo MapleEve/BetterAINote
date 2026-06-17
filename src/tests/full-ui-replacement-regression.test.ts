@@ -147,6 +147,54 @@ const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
     "text-decoration-color",
 ]);
 
+const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
+    "tag-filter",
+    "tag-filter-trigger",
+    "tag-filter-label",
+    "tag-filter-count",
+    "tag-filter-caret",
+    "tag-filter-list",
+    "tag-filter-option",
+    "tag-filter-option-label",
+    "tag-filter-option-count",
+    "list-scroll",
+    "ls-group",
+    "day",
+    "d",
+    "c",
+    "line",
+    "list-state-block",
+    "list-state-pagination",
+    "lsb-ico",
+    "lsb-t",
+    "lsb-h",
+    "lsb-page-divider",
+    "lsb-page-nav",
+    "lsb-page-num",
+];
+
+const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
+    'data-sot-control="recording-list-tag-filter-trigger"',
+    'data-sot-part="recording-list-tag-filter-label"',
+    'data-sot-part="recording-list-tag-filter-count"',
+    'data-sot-part="recording-list-tag-filter-caret"',
+    'data-sot-list="recording-list-tag-filter-list"',
+    'data-sot-part="recording-list-tag-filter-option-label"',
+    'data-sot-part="recording-list-tag-filter-option-count"',
+    'data-sot-list="dashboard-recording-list-scroll"',
+    'data-sot-part="dashboard-recording-list-group"',
+    'data-sot-part="dashboard-recording-list-group-heading"',
+    'data-sot-part="dashboard-recording-list-group-label"',
+    'data-sot-part="dashboard-recording-list-group-count"',
+    'data-sot-part="dashboard-recording-list-group-divider"',
+    'data-sot-part="recording-list-state-icon"',
+    'data-sot-part="recording-list-state-title"',
+    'data-sot-part="recording-list-state-description"',
+    'data-sot-part="recording-list-page-divider"',
+    'data-sot-part="recording-list-page-nav"',
+    'data-sot-part="recording-list-page-number"',
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -769,6 +817,25 @@ describe("full UI replacement regression coverage", () => {
         // `.tag-filter-option .tg-ico` predates this batch; this guard only blocks
         // recording tag manager selectors reintroduced by the current cleanup.
         expect(legacyTagManagerSelectorLines).toEqual([]);
+    });
+
+    it("keeps dashboard recording-list replacement hooks out of legacy JSX className selectors", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+
+        for (const hook of DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const className of DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES) {
+            expect(workstation).not.toMatch(
+                new RegExp(`className=\\{?["']${className}["']\\}?`),
+            );
+        }
+        expect(workstation).toContain("<Button");
+        expect(workstation).toContain("data-tag-filter-trigger");
+        expect(workstation).toContain("data-tag-filter-list");
+        expect(workstation).toContain("data-page-prev");
+        expect(workstation).toContain("data-page-next");
+        expect(workstation).toContain("data-list-state-block");
     });
 
     it("keeps AI rename preview legacy selectors out of product CSS", () => {
