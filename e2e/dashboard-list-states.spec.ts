@@ -2475,19 +2475,23 @@ test("recording list rows expose every SOT status badge variant", async ({
         const panel = recordingListPanel(page);
         await expect(panel).toHaveAttribute("data-sot-state", "ready");
 
-        for (const [id, className, dotClassName, label] of [
-            ["row-updated", "b ok", "dot", "已更新"],
-            ["row-transcribing", "b warn", "dot", "正在转写"],
-            ["row-failed", "b err", "dot", "更新失败"],
-            ["row-local-only", "b info", "dot", "仅本地"],
-            ["row-pending", "b neu", "dot status-dot-muted", "待处理"],
+        for (const [id, tone, label] of [
+            ["row-updated", "ok", "已更新"],
+            ["row-transcribing", "warn", "正在转写"],
+            ["row-failed", "err", "更新失败"],
+            ["row-local-only", "info", "仅本地"],
+            ["row-pending", "neu", "待处理"],
         ] as const) {
             const badge = recordingRow(
                 page,
                 `${LIST_RECORDING_PREFIX}${id}`,
-            ).locator(".meta2 .b");
-            await expect(badge).toHaveClass(className);
-            await expect(badge.locator(".dot")).toHaveClass(dotClassName);
+            ).locator('[data-sot-part="dashboard-recording-status"]');
+            await expect(badge).toHaveAttribute("data-sot-tone", tone);
+            await expect(
+                badge.locator(
+                    '[data-sot-part="dashboard-recording-status-dot"]',
+                ),
+            ).toBeVisible();
             await expect(badge).toContainText(label);
         }
     } finally {
@@ -2576,17 +2580,17 @@ test("recording list item primitives match SOT component library styles", async 
             LIST_ROW_STYLE_PROPS,
         );
 
-        for (const [id, selector] of [
-            ["row-updated", ".b.ok"],
-            ["row-transcribing", ".b.warn"],
-            ["row-failed", ".b.err"],
-            ["row-local-only", ".b.info"],
-            ["row-pending", ".b.neu"],
+        for (const [id, selector, tone] of [
+            ["row-updated", ".b.ok", "ok"],
+            ["row-transcribing", ".b.warn", "warn"],
+            ["row-failed", ".b.err", "err"],
+            ["row-local-only", ".b.info", "info"],
+            ["row-pending", ".b.neu", "neu"],
         ] as const) {
             await expectComputedStyleMatch(
                 sotBadge.locator(selector),
                 recordingRow(page, `${LIST_RECORDING_PREFIX}${id}`).locator(
-                    selector,
+                    `[data-sot-part="dashboard-recording-status"][data-sot-tone="${tone}"]`,
                 ),
                 LIST_BADGE_STYLE_PROPS,
             );

@@ -310,6 +310,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain('"chip-f active"');
         expect(workstation).not.toContain('className="chip-c"');
         expect(workstation).not.toContain('className="row"');
+        expect(workstation).not.toContain('className="real-list"');
         expect(workstation).not.toContain('"row active"');
         expect(workstation).not.toContain('className="body"');
         expect(workstation).not.toContain('className="title"');
@@ -335,12 +336,22 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('listState === "loading"');
         expect(workstation).toContain("<SotRecordingListSkeleton />");
         expect(workstation).toContain("function getRecordingListStatus(");
-        expect(workstation).toContain('className: "b err"');
-        expect(workstation).toContain('className: "b warn"');
-        expect(workstation).toContain('className: "b ok"');
-        expect(workstation).toContain('className: "b info"');
-        expect(workstation).toContain('className: "b neu"');
-        expect(workstation).toContain('dotClassName: "dot status-dot-muted"');
+        expect(workstation).toContain(
+            'data-sot-list="dashboard-recording-rows"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status-dot"',
+        );
+        expect(workstation).toContain('tone: "err"');
+        expect(workstation).toContain('tone: "warn"');
+        expect(workstation).toContain('tone: "ok"');
+        expect(workstation).toContain('tone: "info"');
+        expect(workstation).toContain('tone: "neu"');
+        expect(workstation).not.toContain('className: "b err"');
+        expect(workstation).not.toContain("dotClassName");
         expect(workstation).toContain("recordingList.status.failed");
         expect(workstation).toContain("recordingList.status.pending");
         expect(workstation).not.toContain(
@@ -394,10 +405,14 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain("refreshBrowserRoute(router)");
         expect(workstation).toContain('data-sot-panel="dashboard-sync"');
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-sync-indicator"',
+        );
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
+        expect(workstation).not.toContain('className="sync-dot"');
         expect(workstation).toContain(
             'data-sot-control="dashboard-activity-sync"',
         );

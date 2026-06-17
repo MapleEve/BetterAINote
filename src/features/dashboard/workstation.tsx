@@ -840,8 +840,6 @@ function hasTranscriptContent(
 }
 
 type RecordingListStatus = {
-    className: string;
-    dotClassName: string;
     label: string;
     tone: SotPlayerStatusTone;
 };
@@ -854,39 +852,29 @@ function getRecordingListStatus(
 ): RecordingListStatus {
     if (job?.status === "failed") {
         return {
-            className: "b err",
-            dotClassName: "dot",
             label: t("recordingList.status.failed"),
             tone: "err" satisfies SotPlayerStatusTone,
         };
     }
     if (isActiveTranscriptionJob(job)) {
         return {
-            className: "b warn",
-            dotClassName: "dot",
             label: t("recordingList.status.transcribing"),
             tone: "warn" satisfies SotPlayerStatusTone,
         };
     }
     if (hasTranscriptContent(transcription) || transcription?.hasTranscript) {
         return {
-            className: "b ok",
-            dotClassName: "dot",
             label: t("recordingList.status.updated"),
             tone: "ok" satisfies SotPlayerStatusTone,
         };
     }
     if (recording.upstreamDeleted) {
         return {
-            className: "b info",
-            dotClassName: "dot",
             label: t("recordingList.status.localOnly"),
             tone: "info" satisfies SotPlayerStatusTone,
         };
     }
     return {
-        className: "b neu",
-        dotClassName: "dot status-dot-muted",
         label: t("recordingList.status.pending"),
         tone: "neu" satisfies SotPlayerStatusTone,
     };
@@ -3859,7 +3847,7 @@ export function Workstation({
                         data-sot-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
-                        <span className="sync-dot" />
+                        <span data-sot-part="dashboard-sync-indicator" />
                         <div className="sync-text">
                             <div className="sync-title">
                                 {syncStateLabel(syncButtonState, t)} ·
@@ -5055,10 +5043,7 @@ export function Workstation({
                                 {listState === "loading" ? (
                                     <SotRecordingListSkeleton />
                                 ) : listState === "ready" ? (
-                                    <div
-                                        className="real-list"
-                                        data-sot-list="dashboard-recording-rows"
-                                    >
+                                    <div data-sot-list="dashboard-recording-rows">
                                         {groupedListEntries.map((group) => (
                                             <div
                                                 className="ls-group"
@@ -5199,20 +5184,12 @@ export function Workstation({
                                                                         </span>
                                                                     </span>
                                                                     <span
-                                                                        className={
-                                                                            rowStatus.className
-                                                                        }
                                                                         data-sot-part="dashboard-recording-status"
                                                                         data-sot-tone={
                                                                             rowStatus.tone
                                                                         }
                                                                     >
-                                                                        <span
-                                                                            className={
-                                                                                rowStatus.dotClassName
-                                                                            }
-                                                                            data-sot-part="dashboard-recording-status-dot"
-                                                                        />
+                                                                        <span data-sot-part="dashboard-recording-status-dot" />
                                                                         {
                                                                             rowStatus.label
                                                                         }

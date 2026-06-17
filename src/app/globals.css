@@ -807,7 +807,8 @@ button {
     background: var(--glass-tint-subtle);
     border: 1px solid var(--glass-border);
 }
-.sync-dot {
+.sync-dot,
+[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"] {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -3385,29 +3386,34 @@ button {
    New rich list (preview/15) — overrides old .rec-row
    =========================================================== */
 .real-list,
+[data-sot-list="dashboard-recording-rows"],
 [data-sot-list="recording-detail-list-rows"] {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding: 4px;
 }
-.real-list .day {
+.real-list .day,
+[data-sot-list="dashboard-recording-rows"] .day {
     display: flex;
     align-items: baseline;
     gap: 10px;
     padding: 14px 10px 6px 10px;
 }
-.real-list .day .d {
+.real-list .day .d,
+[data-sot-list="dashboard-recording-rows"] .day .d {
     font: 600 11px var(--font-mono);
     color: var(--fg-tertiary);
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
-.real-list .day .c {
+.real-list .day .c,
+[data-sot-list="dashboard-recording-rows"] .day .c {
     font: 500 11px var(--font-mono);
     color: var(--fg-disabled);
 }
-.real-list .day .line {
+.real-list .day .line,
+[data-sot-list="dashboard-recording-rows"] .day .line {
     flex: 1;
     height: 1px;
     background: var(--line-hairline);
@@ -3579,7 +3585,8 @@ body[data-time-style="abs"]
 }
 
 /* status pill */
-.b {
+.b,
+[data-sot-part="dashboard-recording-status"] {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -3590,13 +3597,17 @@ body[data-time-style="abs"]
     border: 1px solid transparent;
     letter-spacing: 0.005em;
 }
-.b .dot {
+.b .dot,
+[data-sot-part="dashboard-recording-status"]
+    [data-sot-part="dashboard-recording-status-dot"] {
     width: 5px;
     height: 5px;
     border-radius: 50%;
     background: currentColor;
 }
-.b .dot.status-dot-muted {
+.b .dot.status-dot-muted,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="neu"]
+    [data-sot-part="dashboard-recording-status-dot"] {
     background: var(--fg-tertiary);
 }
 [data-sot-control="player-status"][data-slot="badge"] {
@@ -3617,7 +3628,8 @@ body[data-time-style="abs"]
     border-radius: 50%;
     background: currentColor;
 }
-.b.ok {
+.b.ok,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="ok"] {
     background: color-mix(in srgb, var(--signal-success) 14%, transparent);
     color: var(--signal-success);
     border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
@@ -3627,7 +3639,8 @@ body[data-time-style="abs"]
     color: var(--signal-success);
     border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
 }
-.b.warn {
+.b.warn,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] {
     background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
     color: var(--signal-warning-strong);
     border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
@@ -3637,7 +3650,8 @@ body[data-time-style="abs"]
     color: var(--signal-warning-strong);
     border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
 }
-.b.err {
+.b.err,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="err"] {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
     color: var(--signal-danger);
     border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
@@ -3647,7 +3661,8 @@ body[data-time-style="abs"]
     color: var(--signal-danger);
     border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
 }
-.b.info {
+.b.info,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="info"] {
     background: color-mix(in srgb, var(--signal-info) 14%, transparent);
     color: var(--signal-info);
     border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
@@ -3657,7 +3672,8 @@ body[data-time-style="abs"]
     color: var(--signal-info);
     border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
 }
-.b.neu {
+.b.neu,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="neu"] {
     background: var(--bg-recessed);
     color: var(--fg-secondary);
     border-color: var(--line-hairline);
@@ -3667,7 +3683,9 @@ body[data-time-style="abs"]
     color: var(--fg-secondary);
     border-color: var(--line-hairline);
 }
-.b.warn .dot {
+.b.warn .dot,
+[data-sot-part="dashboard-recording-status"][data-sot-tone="warn"]
+    [data-sot-part="dashboard-recording-status-dot"] {
     animation: bpulse 1.4s ease-in-out infinite;
 }
 [data-sot-control="player-status"][data-sot-tone="warn"]
@@ -3683,7 +3701,9 @@ body[data-time-style="abs"]
         opacity: 0.45;
     }
 }
-[data-theme="dark"] .b.warn {
+[data-theme="dark"] .b.warn,
+[data-theme="dark"]
+    [data-sot-part="dashboard-recording-status"][data-sot-tone="warn"] {
     color: var(--signal-warning-strong);
 }
 [data-theme="dark"] [data-sot-control="player-status"][data-sot-tone="warn"] {
@@ -7098,13 +7118,19 @@ body[data-drawer="open"] .drawer-scrim {
 /* The retry pill replaces the count on hover only — already wired by functional rules. Hidden by default. */
 
 /* Footer sync pill — extra states (syncing/error/done) */
-.sync-pill.is-syncing .sync-dot {
+.sync-pill.is-syncing .sync-dot,
+[data-sot-panel="dashboard-sync"][data-sot-state="queued"]
+    [data-sot-part="dashboard-sync-indicator"],
+[data-sot-panel="dashboard-sync"][data-sot-state="running"]
+    [data-sot-part="dashboard-sync-indicator"] {
     background: var(--signal-info);
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-info) 22%, transparent);
     animation: bpulse 1.4s ease-in-out infinite;
 }
-.sync-pill.is-error .sync-dot {
+.sync-pill.is-error .sync-dot,
+[data-sot-panel="dashboard-sync"][data-sot-state="error"]
+    [data-sot-part="dashboard-sync-indicator"] {
     background: var(--signal-danger);
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-danger) 22%, transparent);

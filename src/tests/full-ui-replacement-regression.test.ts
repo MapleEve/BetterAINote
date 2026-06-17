@@ -1045,6 +1045,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).not.toContain('className="panel list-panel"');
+        expect(workstation).not.toContain('className="real-list"');
         expect(workstation).toMatch(
             /<Card\s+hasNoPadding[\s\S]*data-sot-surface="dashboard-recording-list"[\s\S]*<CardContent\s+data-sot-part="dashboard-recording-list-content">/,
         );
@@ -1054,6 +1055,18 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toMatch(
             /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
         );
+        expect(workstation).toContain(
+            'data-sot-list="dashboard-recording-rows"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status"',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status-dot"',
+        );
+        expect(workstation).not.toContain("rowStatus.className");
+        expect(workstation).not.toContain("rowStatus.dotClassName");
+        expect(globals).toContain('[data-sot-list="dashboard-recording-rows"]');
         const recordingRowIndex = workstation.indexOf(
             'data-sot-control="dashboard-recording-row"',
         );
@@ -1238,6 +1251,10 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(dashboardPlayer).not.toMatch(/<input[\s\S]*type="range"/);
         expect(workstation).toContain('data-icon="inline-start"');
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-sync-indicator"',
+        );
+        expect(workstation).not.toContain('className="sync-dot"');
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("listMode");
         expect(workstation).toContain("detailTab");
