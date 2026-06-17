@@ -15,8 +15,8 @@ import {
     Plus,
     RefreshCw,
     Search,
+    Sparkles,
     Tags,
-    WandSparkles,
     X,
 } from "lucide-react";
 import {
@@ -5612,7 +5612,7 @@ export function Workstation({
                                     title={aiUnavailableReason || undefined}
                                     onClick={() => void previewAutoRename()}
                                 >
-                                    <WandSparkles data-icon="inline-start" />
+                                    <Sparkles data-icon="inline-start" />
                                     AI 重命名
                                 </Button>
                                 {aiOpen && selectedRecording ? (

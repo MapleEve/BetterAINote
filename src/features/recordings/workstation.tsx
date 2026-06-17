@@ -1,10 +1,20 @@
 "use client";
 
-import { ArrowLeft, Copy } from "lucide-react";
+import {
+    ArrowLeft,
+    Check,
+    Copy,
+    EllipsisVertical,
+    Pencil,
+    Sparkles,
+    X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CardHeader, CardTitle } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
@@ -818,8 +828,22 @@ export function RecordingWorkstation({
                         </div>
                     </section>
                     <section className="detail">
-                        <header
-                            className="rec-head"
+                        <CardHeader
+                            data-sot-panel="recording-detail-header"
+                            data-sot-mode={
+                                isSavingRename
+                                    ? "saving"
+                                    : isRenaming
+                                      ? "editing"
+                                      : "normal"
+                            }
+                            data-sot-state={
+                                isSavingRename
+                                    ? "saving"
+                                    : isRenaming
+                                      ? "editing"
+                                      : "normal"
+                            }
                             data-rename-mode={
                                 isSavingRename
                                     ? "saving"
@@ -827,19 +851,26 @@ export function RecordingWorkstation({
                                       ? "editing"
                                       : "normal"
                             }
-                            data-local-only={String(recording.upstreamDeleted)}
+                            data-local-only={
+                                localDeleteAvailable ? "true" : "false"
+                            }
                         >
-                            <h2 className="rec-h2" data-rh-title>
+                            <CardTitle
+                                data-sot-part="detail-header-title"
+                                data-rh-title
+                                role="heading"
+                                aria-level={2}
+                            >
                                 {filename}
-                            </h2>
-                            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: SOT rec-head local badge keeps aria-label on this span. */}
-                            <span
-                                className="rec-h2-local"
+                            </CardTitle>
+                            <Badge
+                                variant="outline"
+                                data-sot-part="detail-header-local-badge"
                                 data-rh-local
                                 aria-label={t("recording.localOnly")}
                             >
                                 {t("recording.localOnly")}
-                            </span>
+                            </Badge>
                             <Input
                                 value={renameValue}
                                 onChange={(event) =>
@@ -853,38 +884,48 @@ export function RecordingWorkstation({
                                         handleRenameCancel();
                                     }
                                 }}
-                                className="rec-h2-input"
                                 data-rh-input
+                                data-sot-part="detail-header-title-input"
+                                data-sot-state={
+                                    isSavingRename ? "saving" : "editing"
+                                }
                                 aria-label="录音标题"
                                 maxLength={120}
                                 autoFocus={isRenaming}
                                 disabled={isSavingRename}
                             />
-                            <span
-                                className="rec-h2-status"
+                            <Badge
+                                variant="ghost"
+                                data-sot-part="detail-header-title-status"
+                                data-sot-state={
+                                    isSavingRename ? "saving" : "editing"
+                                }
                                 data-rh-status
                                 aria-live="polite"
                             >
                                 {isSavingRename ? "正在保存…" : ""}
-                            </span>
+                            </Badge>
 
                             {canRenameRecording ? (
                                 <Button
-                                    size="icon"
+                                    variant="ghost"
+                                    size="icon-sm"
                                     onClick={handleRenameStart}
                                     aria-label="重命名"
                                     title="重命名"
-                                    className="rh-norm"
+                                    data-rh-edit-start
+                                    data-sot-control="rename-recording-title"
+                                    data-sot-part="detail-header-action"
+                                    data-sot-mode="normal"
                                 >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                    </svg>
+                                    <Pencil data-icon="inline-start" />
                                 </Button>
                             ) : null}
 
                             <div
-                                className="ai-rename-anchor rh-norm"
                                 data-rh-ai-anchor
+                                data-sot-part="detail-header-action-anchor"
+                                data-sot-mode="normal"
                             >
                                 <Button
                                     variant="glass"
@@ -901,6 +942,8 @@ export function RecordingWorkstation({
                                     }
                                     data-rh-ai-trigger
                                     data-sot-control="ai-rename"
+                                    data-sot-part="detail-header-action"
+                                    data-sot-mode="normal"
                                     data-sot-state={
                                         autoRenameDisabledReason
                                             ? "unavailable"
@@ -909,44 +952,45 @@ export function RecordingWorkstation({
                                               : "idle"
                                     }
                                 >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-                                    </svg>
+                                    <Sparkles data-icon="inline-start" />
                                     {t("transcription.aiRename")}
                                 </Button>
                                 {autoRenamePanel}
                             </div>
 
                             <Button
-                                size="icon"
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={handleRenameSave}
                                 disabled={isSavingRename}
                                 aria-busy={isSavingRename}
                                 aria-label="保存新标题"
                                 title="保存（Enter）"
-                                className="rh-edit rh-edit-save"
                                 data-rh-edit-save
+                                data-sot-control="save-recording-title"
+                                data-sot-part="detail-header-action"
+                                data-sot-mode="editing"
                             >
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M20 6 9 17l-5-5" />
-                                </svg>
+                                <Check data-icon="inline-start" />
                             </Button>
                             <Button
-                                size="icon"
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={handleRenameCancel}
                                 disabled={isSavingRename}
                                 aria-label={t("recording.cancelRename")}
                                 title="取消（Esc）"
-                                className="rh-edit"
                                 data-rh-edit-cancel
+                                data-sot-control="cancel-recording-title"
+                                data-sot-part="detail-header-action"
+                                data-sot-mode="editing"
                             >
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M18 6 6 18M6 6l12 12" />
-                                </svg>
+                                <X data-icon="inline-start" />
                             </Button>
                             <div
-                                className="more-anchor rh-norm"
                                 data-more-anchor
+                                data-sot-part="detail-header-action-anchor"
+                                data-sot-mode="normal"
                                 ref={moreAnchorRef}
                             >
                                 <DropdownMenu
@@ -964,19 +1008,13 @@ export function RecordingWorkstation({
                                             )}
                                             aria-haspopup="menu"
                                             aria-expanded={moreOpen}
+                                            data-sot-control="recording-more-actions"
+                                            data-sot-part="detail-header-action"
+                                            data-sot-mode="normal"
                                             data-more-trigger
                                             ref={moreTriggerRef}
                                         >
-                                            <svg
-                                                data-icon="inline-start"
-                                                viewBox="0 0 24 24"
-                                                aria-hidden="true"
-                                                focusable="false"
-                                            >
-                                                <circle cx="12" cy="5" r="1" />
-                                                <circle cx="12" cy="12" r="1" />
-                                                <circle cx="12" cy="19" r="1" />
-                                            </svg>
+                                            <EllipsisVertical data-icon="inline-start" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
@@ -1094,7 +1132,7 @@ export function RecordingWorkstation({
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </header>
+                        </CardHeader>
 
                         <SystemBanner />
 

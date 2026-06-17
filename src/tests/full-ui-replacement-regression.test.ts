@@ -1263,11 +1263,46 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(transcriptionSkeletons).not.toContain(legacyClass);
         }
-        expect(detail).toContain('data-sot-surface="recording-workstation"');
-        expect(detail).toContain("data-rename-mode=");
-        expect(detail).toContain(
-            "data-local-only={String(recording.upstreamDeleted)}",
+        const detailHeaderPanelIndex = detail.indexOf(
+            'data-sot-panel="recording-detail-header"',
         );
+        const detailHeaderStart = detail.lastIndexOf(
+            "<CardHeader",
+            detailHeaderPanelIndex,
+        );
+        const detailHeaderEnd = detail.indexOf(
+            "</CardHeader>",
+            detailHeaderStart,
+        );
+        const detailHeader = detail.slice(
+            detailHeaderStart,
+            detailHeaderEnd + "</CardHeader>".length,
+        );
+        const legacyDetailHeaderClassNamePattern =
+            /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
+
+        expect(detail).toContain('data-sot-surface="recording-workstation"');
+        expect(detailHeaderPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(detailHeaderStart).toBeGreaterThanOrEqual(0);
+        expect(detailHeaderEnd).toBeGreaterThan(detailHeaderStart);
+        expect(detail).toContain('data-sot-panel="recording-detail-header"');
+        expect(detailHeader).toContain("<CardHeader");
+        expect(detailHeader).toContain("<CardTitle");
+        expect(detailHeader).toContain("<Badge");
+        expect(detailHeader).toContain('data-sot-part="detail-header-title"');
+        expect(detailHeader).toContain(
+            'data-sot-part="detail-header-title-input"',
+        );
+        expect(detailHeader).toContain(
+            'data-sot-part="detail-header-title-status"',
+        );
+        expect(detailHeader).toContain('data-sot-part="detail-header-action"');
+        expect(detailHeader).toContain("data-rh-edit-start");
+        expect(detailHeader).toContain("data-rh-edit-save");
+        expect(detailHeader).toContain("data-rh-edit-cancel");
+        expect(detailHeader).not.toMatch(legacyDetailHeaderClassNamePattern);
+        expect(detail).toContain("data-rename-mode=");
+        expect(detail).toContain('localDeleteAvailable ? "true" : "false"');
         expect(detail).toContain("data-more-anchor");
         expect(detail).toContain("data-more-trigger");
         expect(detail).toContain('from "@/components/ui/dropdown-menu"');

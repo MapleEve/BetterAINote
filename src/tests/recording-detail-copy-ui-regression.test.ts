@@ -219,6 +219,26 @@ describe("recording detail copy and title action UI regressions", () => {
         const detailWorkstation = readSource(
             "features/recordings/workstation.tsx",
         );
+        const badge = readSource("components/ui/badge.tsx");
+        const card = readSource("components/ui/card.tsx");
+        const input = readSource("components/ui/input.tsx");
+        const headerPanelIndex = detailWorkstation.indexOf(
+            'data-sot-panel="recording-detail-header"',
+        );
+        const headerStart = detailWorkstation.lastIndexOf(
+            "<CardHeader",
+            headerPanelIndex,
+        );
+        const headerEnd = detailWorkstation.indexOf(
+            "</CardHeader>",
+            headerStart,
+        );
+        const detailHeader = detailWorkstation.slice(
+            headerStart,
+            headerEnd + "</CardHeader>".length,
+        );
+        const legacyHeaderClassNamePattern =
+            /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
 
         expect(detailWorkstation).toContain(
             'data-sot-surface="recording-workstation"',
@@ -231,15 +251,46 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(detailWorkstation).toContain('className="topbar"');
         expect(detailWorkstation).toContain('className="workspace"');
-        expect(detailWorkstation).toContain('className="rec-head"');
-        expect(detailWorkstation).toContain('className="rec-h2"');
-        expect(detailWorkstation).toContain('className="rec-h2-input"');
-        expect(detailWorkstation).toContain('className="rec-h2-status"');
         expect(detailWorkstation).toContain(
-            'className="ai-rename-anchor rh-norm"',
+            'import { Badge } from "@/components/ui/badge";',
         );
-        expect(detailWorkstation).toContain("data-rh-ai-anchor");
-        expect(detailWorkstation).toContain("data-rh-ai-trigger");
+        expect(detailWorkstation).toContain(
+            'import { CardHeader, CardTitle } from "@/components/ui/card";',
+        );
+        expect(detailWorkstation).toContain(
+            'import { Input } from "@/components/ui/input";',
+        );
+        expect(badge).toContain('data-slot="badge"');
+        expect(card).toContain('data-slot="card-header"');
+        expect(card).toContain('data-slot="card-title"');
+        expect(input).toContain('data-slot="input"');
+        expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
+        expect(headerStart).toBeGreaterThanOrEqual(0);
+        expect(headerEnd).toBeGreaterThan(headerStart);
+        expect(detailHeader).toContain("<CardHeader");
+        expect(detailHeader).toContain("<CardTitle");
+        expect(detailHeader).toContain("<Badge");
+        expect(detailHeader).toContain(
+            'data-sot-panel="recording-detail-header"',
+        );
+        expect(detailHeader).toContain('data-sot-part="detail-header-title"');
+        expect(detailHeader).toContain(
+            'data-sot-part="detail-header-title-input"',
+        );
+        expect(detailHeader).toContain(
+            'data-sot-part="detail-header-title-status"',
+        );
+        expect(detailHeader).toContain('data-sot-part="detail-header-action"');
+        expect(detailHeader).toContain("data-rh-title");
+        expect(detailHeader).toContain("data-rh-input");
+        expect(detailHeader).toContain("data-rh-status");
+        expect(detailHeader).toContain("data-rh-edit-start");
+        expect(detailHeader).toContain("data-rh-edit-save");
+        expect(detailHeader).toContain("data-rh-edit-cancel");
+        expect(detailHeader).toContain("data-rh-ai-anchor");
+        expect(detailHeader).toContain("data-rh-ai-trigger");
+        expect(detailHeader).toContain('data-sot-control="ai-rename"');
+        expect(detailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(detailWorkstation).toContain("handleCopyLocalTranscript");
         expect(detailWorkstation).toContain("handleCopyRawTranscript");
         expect(detailWorkstation).toContain("/transcript/raw");
@@ -274,9 +325,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).not.toContain(">←<");
         expect(detailWorkstation).toContain("data-rename-mode=");
         expect(detailWorkstation).toContain(
-            "data-local-only={String(recording.upstreamDeleted)}",
+            'localDeleteAvailable ? "true" : "false"',
         );
-        expect(detailWorkstation).toContain('className="more-anchor rh-norm"');
         expect(detailWorkstation).toContain("data-more-anchor");
         expect(detailWorkstation).toContain("data-more-trigger");
         expect(detailWorkstation).toContain(

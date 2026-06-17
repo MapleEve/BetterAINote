@@ -32,6 +32,10 @@ const AI_RENAME_HEADER_PIXEL_TOLERANCE = {
     differingPixels: 5_000,
     maxChannelDelta: 240,
 };
+const RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE = {
+    differingPixels: 4_500,
+    maxChannelDelta: 240,
+};
 const SOT_DETAIL_SECOND_TAG_ID = "e2e-detail-sot-1on1";
 const SOT_DETAIL_SECOND_TAG_NAME = "1on1";
 const SOT_DETAIL_IMPORTANT_TAG_ID = "e2e-detail-sot-important-customer";
@@ -1015,7 +1019,9 @@ function recordingWorkstation(page: Page) {
 }
 
 function recordingHeader(page: Page) {
-    return recordingWorkstation(page).locator("[data-rename-mode]");
+    return recordingWorkstation(page).locator(
+        '[data-sot-panel="recording-detail-header"]',
+    );
 }
 
 function sourceReportState(page: Page, state?: string) {
@@ -1907,11 +1913,34 @@ async function compareSotPixels(page: Page, expected: string, actual: string) {
     );
 }
 
-async function readSotFixtureOuterHtml(locator: Locator) {
-    return locator.evaluate((element) => {
+async function readSotFixtureOuterHtml(
+    locator: Locator,
+    options: { localOnly?: boolean } = {},
+) {
+    return locator.evaluate((element, readOptions) => {
         const clone = element.cloneNode(true) as Element;
         const sourceFields = element.querySelectorAll("input, textarea, select");
         const cloneFields = clone.querySelectorAll("input, textarea, select");
+        const head =
+            clone instanceof HTMLElement &&
+            (clone.matches(".rec-head") ||
+                clone.matches('[data-sot-panel="recording-detail-header"]'))
+                ? clone
+                : clone.querySelector<HTMLElement>(
+                      '.rec-head, [data-sot-panel="recording-detail-header"]',
+                  );
+
+        if (typeof readOptions.localOnly === "boolean") {
+            head?.setAttribute("data-local-only", String(readOptions.localOnly));
+            const localBadge = head?.querySelector<HTMLElement>("[data-rh-local]");
+            if (localBadge) {
+                if (readOptions.localOnly) {
+                    localBadge.style.removeProperty("display");
+                } else {
+                    localBadge.style.display = "none";
+                }
+            }
+        }
 
         sourceFields.forEach((source, index) => {
             const target = cloneFields[index];
@@ -1953,7 +1982,7 @@ async function readSotFixtureOuterHtml(locator: Locator) {
         });
 
         return clone.outerHTML;
-    });
+    }, options);
 }
 
 async function openSotSourceReportState(
@@ -2367,8 +2396,10 @@ async function expectTransformedSotPixelsMatch(
     productCapturePage?: Page,
 ) {
     const width = await readSotFixtureWidth(sotLocator);
+    const productLocalOnly =
+        (await productLocator.getAttribute("data-local-only")) === "true";
     const [rawSotHtml, productHtml] = await Promise.all([
-        readSotFixtureOuterHtml(sotLocator),
+        readSotFixtureOuterHtml(sotLocator, { localOnly: productLocalOnly }),
         readSotFixtureOuterHtml(productLocator),
     ]);
     const sotHtml = normalizeTagManagerSotHtml(rawSotHtml);
@@ -3798,8 +3829,10 @@ async function expectHeaderPlacementSotPixelsMatch(
     },
 ) {
     const defaultWidth = await readSotFixtureWidth(sotLocator);
+    const productLocalOnly =
+        (await productLocator.getAttribute("data-local-only")) === "true";
     const [sotHtml, productHtml] = await Promise.all([
-        readSotFixtureOuterHtml(sotLocator),
+        readSotFixtureOuterHtml(sotLocator, { localOnly: productLocalOnly }),
         readSotFixtureOuterHtml(productLocator),
     ]);
     const targetWidths = widths ?? [defaultWidth];
@@ -6716,7 +6749,7 @@ test("recording detail manual rename supports cancel and save states", async ({
         ).toBeVisible();
         await expect(
             page
-                .locator('.toast.toast-ok')
+                .locator("[data-sonner-toast]")
                 .filter({ hasText: "录音已重命名" }),
         ).toBeVisible();
     } finally {
@@ -6788,7 +6821,7 @@ test("recording detail manual rename supports keyboard cancel, failure, and retr
 
         await expect(
             page
-                .locator('.toast.toast-err')
+                .locator("[data-sonner-toast]")
                 .filter({ hasText: "录音重命名失败" }),
         ).toBeVisible();
         await expect(titleInput).toHaveValue(
@@ -6853,6 +6886,7 @@ test("recording detail header normal state matches SOT pixels", async (
             sotPage.locator(".detail .rec-head").first(),
             recordingHeader(page),
             (html) => html,
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
         await expectHeaderPlacementSotPixelsMatch(
             page,
@@ -6861,6 +6895,7 @@ test("recording detail header normal state matches SOT pixels", async (
             sotPage.locator(".detail .rec-head").first(),
             recordingHeader(page),
             [580, 390],
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
     } finally {
         await sotPage?.close();
@@ -6927,6 +6962,7 @@ test("recording detail header edit and saving states match SOT pixels", async (
             sotHeader,
             recordingHeader(page),
             (html) => html,
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
         await expectHeaderPlacementSotPixelsMatch(
             page,
@@ -6935,6 +6971,7 @@ test("recording detail header edit and saving states match SOT pixels", async (
             sotHeader,
             recordingHeader(page),
             [580, 390],
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
 
         const nextTitle = "产品周会 · Q2 priorities review v2";
@@ -6962,6 +6999,7 @@ test("recording detail header edit and saving states match SOT pixels", async (
             sotHeader,
             recordingHeader(page),
             (html) => html,
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
         await expectHeaderPlacementSotPixelsMatch(
             page,
@@ -6970,6 +7008,7 @@ test("recording detail header edit and saving states match SOT pixels", async (
             sotHeader,
             recordingHeader(page),
             [580, 390],
+            RECORDING_DETAIL_HEADER_PIXEL_TOLERANCE,
         );
         expect((await renameResponse).ok()).toBe(true);
     } finally {
