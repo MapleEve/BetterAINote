@@ -1091,12 +1091,84 @@ const LOCAL_TRANSCRIPT_PIXEL_FRAMES = [
     },
 ] as const satisfies readonly RetxPixelFrame[];
 
+function dashboardCopyButtonStyle(state: "idle" | "ok" | "err") {
+    const base = [
+        "box-sizing: border-box",
+        "display: flex",
+        "flex-shrink: 0",
+        "align-items: center",
+        "justify-content: center",
+        "gap: 6px",
+        "height: 30px",
+        "padding: 0 9.375px",
+        "border: 0 solid transparent",
+        "border-radius: 10px",
+        "background: transparent",
+        "color: inherit",
+        "box-shadow: none",
+        "font: 500 13.125px/18.75px var(--font-sans)",
+        "white-space: nowrap",
+        "outline: none",
+        "transition: all 150ms ease",
+    ];
+
+    if (state === "ok") {
+        base.push(
+            "color: var(--signal-success)",
+            "border-color: color-mix(in srgb, var(--signal-success) 36%, transparent)",
+            "background: color-mix(in srgb, var(--signal-success) 10%, transparent)",
+        );
+    } else if (state === "err") {
+        base.push(
+            "color: var(--signal-danger)",
+            "border-color: color-mix(in srgb, var(--signal-danger) 36%, transparent)",
+        );
+    }
+
+    return base.join("; ");
+}
+
+function dashboardCopyIconHtml(state: "idle" | "ok" | "err") {
+    if (state === "ok") {
+        return [
+            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"',
+            ' viewBox="0 0 24 24" fill="none" stroke="currentColor"',
+            ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"',
+            ' class="lucide lucide-check" data-icon="inline-start"',
+            ' data-sot-part="dashboard-copy-icon" aria-hidden="true"',
+            ' style="width: 14px; height: 14px; flex: none; stroke: currentColor;">',
+            '<path d="M20 6 9 17l-5-5"></path>',
+            "</svg>",
+        ].join("");
+    }
+
+    return [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"',
+        ' viewBox="0 0 24 24" fill="none" stroke="currentColor"',
+        ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"',
+        ' class="lucide lucide-copy" data-icon="inline-start"',
+        ' data-sot-part="dashboard-copy-icon" aria-hidden="true"',
+        ' style="width: 14px; height: 14px; flex: none; stroke: currentColor;">',
+        '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>',
+        '<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>',
+        "</svg>",
+    ].join("");
+}
+
 function copyButtonHtmlState(
     html: string,
     state: "idle" | "ok" | "err",
     label: string,
 ) {
     let next = html
+        .replace(
+            /<button\s+class="btn ghost btn-sm copy-btn"/,
+            `<button data-slot="button" data-variant="ghost" data-size="sm" style="${dashboardCopyButtonStyle(state)}"`,
+        )
+        .replace(
+            /<span class="copy-ico"[^>]*>[\s\S]*?<\/span>/,
+            dashboardCopyIconHtml(state),
+        )
         .replace(/\sdata-copy-state="[^"]*"/g, "")
         .replace(/\saria-live="[^"]*"/g, "")
         .replace(
@@ -3656,8 +3728,10 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
             "transcript",
         );
         await expect(
-            localTranscriptCopyButton(page).locator(".copy-ico svg"),
-        ).toHaveCount(2);
+            localTranscriptCopyButton(page).locator(
+                '[data-sot-part="dashboard-copy-icon"]',
+            ),
+        ).toHaveCount(1);
         await expect(sourceTranscriptCopyButton(page)).toBeHidden();
         await expect(sourceReportCopyButton(page)).toBeHidden();
 

@@ -12775,7 +12775,8 @@ select::-ms-expand {
     align-items: center;
     gap: 6px;
 }
-[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"] {
+[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"],
+[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"] {
     width: 14px;
     height: 14px;
     flex: none;

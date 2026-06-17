@@ -355,9 +355,13 @@ describe("recording detail copy and title action UI regressions", () => {
             '{ value: "transcript", label: "转写" }',
         );
         expect(dashboardTranscript).toContain('tabKey: "source-report"');
-        expect(dashboardTranscript).toContain("function SotCopyIcon()");
-        expect(dashboardTranscript).toContain('className="copy-ico-default"');
-        expect(dashboardTranscript).toContain('className="copy-ico-ok"');
+        expect(dashboardTranscript).toContain("function SotCopyIcon({ state }");
+        expect(dashboardTranscript).toContain(
+            'data-sot-part="dashboard-copy-icon"',
+        );
+        expect(dashboardTranscript).not.toContain('className="copy-ico"');
+        expect(dashboardTranscript).not.toContain("copy-ico-default");
+        expect(dashboardTranscript).not.toContain("copy-ico-ok");
         expect(dashboardTranscript).toContain('data-copy="transcript"');
         expect(dashboardTranscript).toContain('data-copy="source-transcript"');
         expect(dashboardTranscript).toContain('data-copy="source-report"');

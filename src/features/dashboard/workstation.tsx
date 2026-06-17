@@ -3,8 +3,10 @@
 import {
     AlertCircle,
     Bell,
+    Check,
     CheckCircle,
     CloudDownload,
+    Copy,
     FileText,
     Mic,
     PanelLeft,
@@ -1147,37 +1149,15 @@ function RetxCloseIcon() {
     );
 }
 
-function SotCopyIcon() {
+function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
+    const Icon = state === "ok" ? Check : Copy;
+
     return (
-        <span className="copy-ico" data-icon="inline-start" aria-hidden="true">
-            <svg
-                className="copy-ico-default"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                focusable="false"
-            >
-                <rect x="9" y="9" width="13" height="13" rx="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-            <svg
-                className="copy-ico-ok"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                focusable="false"
-            >
-                <path d="M20 6 9 17l-5-5" />
-            </svg>
-        </span>
+        <Icon
+            data-icon="inline-start"
+            data-sot-part="dashboard-copy-icon"
+            aria-hidden="true"
+        />
     );
 }
 
@@ -6173,7 +6153,14 @@ export function Workstation({
                                             void handleCopyLocalTranscript()
                                         }
                                     >
-                                        <SotCopyIcon />
+                                        <SotCopyIcon
+                                            state={
+                                                copyFeedback?.action ===
+                                                "local-transcript"
+                                                    ? copyFeedback.state
+                                                    : undefined
+                                            }
+                                        />
                                         <span className="copy-label">
                                             {copyFeedback?.action ===
                                             "local-transcript"
@@ -6229,7 +6216,14 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotCopyIcon />
+                                        <SotCopyIcon
+                                            state={
+                                                copyFeedback?.action ===
+                                                "source-transcript"
+                                                    ? copyFeedback.state
+                                                    : undefined
+                                            }
+                                        />
                                         <span className="copy-label">
                                             {copyFeedback?.action ===
                                             "source-transcript"
@@ -6282,7 +6276,14 @@ export function Workstation({
                                             )
                                         }
                                     >
-                                        <SotCopyIcon />
+                                        <SotCopyIcon
+                                            state={
+                                                copyFeedback?.action ===
+                                                "source-report"
+                                                    ? copyFeedback.state
+                                                    : undefined
+                                            }
+                                        />
                                         <span className="copy-label">
                                             {copyFeedback?.action ===
                                             "source-report"
