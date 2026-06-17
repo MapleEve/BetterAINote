@@ -2361,12 +2361,21 @@ test("dashboard SourceRow states match SOT source row pixels under sidebar scope
         await expect(runtimeRows).toHaveCount(5);
         const runtimeSignatures = await runtimeRows.evaluateAll((rows) =>
             rows.map((row) => {
-                const sourceAction = row.querySelector(".src-action");
-                const sourceCount = row.querySelector(".count");
+                const sourceAction = row.querySelector(
+                    '[data-sot-part="source-provider-action"]',
+                );
+                const sourceCount = row.querySelector(
+                    '[data-sot-part="source-provider-count"]',
+                );
+                const sourceStatus = row.querySelector(
+                    '[data-sot-part="source-provider-status"]',
+                );
                 return {
-                    className: row.getAttribute("class"),
+                    action: sourceAction?.getAttribute("data-sot-action") ?? null,
+                    actionState: row.getAttribute("data-sot-action-state"),
+                    className: row.getAttribute("class") ?? "",
                     hasCountOrAction: Boolean(sourceAction) !== Boolean(sourceCount),
-                    hasStatus: Boolean(row.querySelector(".src-status")),
+                    hasStatus: Boolean(sourceStatus),
                     provider: row.getAttribute("data-sot-provider"),
                     state: row.getAttribute("data-state"),
                     status: row.getAttribute("data-sot-status"),
@@ -2382,10 +2391,9 @@ test("dashboard SourceRow states match SOT source row pixels under sidebar scope
             expect(signature.status).toBeTruthy();
             expect(signature.hasStatus).toBe(true);
             expect(signature.hasCountOrAction).toBe(true);
-            if (signature.state === "connected-active") {
-                expect(signature.className).toBe(
-                    "nav-item nav-source is-active-filter",
-                );
+            expect(signature.className).toBe("nav-item");
+            if (signature.action) {
+                expect(signature.actionState).toBe(signature.action);
             }
         }
 
@@ -2433,7 +2441,7 @@ test("dashboard source filter stack exposes clear and setup actions", async ({
         "connected-active",
     );
     await expect(iflyrecRow).toHaveAttribute("data-state", "connected-active");
-    await expect(iflyrecRow).toHaveClass("nav-item nav-source is-active-filter");
+    await expect(iflyrecRow).toHaveClass("nav-item");
     await expect(iflyrecBadge).toBeVisible();
 
     const stack = sourceFilterStack(page);
@@ -2572,12 +2580,11 @@ test("dashboard source rows reflect expired, paused, and syncing backend states"
         await expect(
             expiredRow.locator('[data-sot-part="source-provider-status"]'),
         ).toBeVisible();
-        await expect(
-            expiredRow.locator('[data-sot-part="source-provider-action"]'),
-        ).toBeVisible();
-        await expect(
-            expiredRow.locator('[data-sot-part="source-provider-action"]'),
-        ).toHaveClass(/is-reauth/);
+        const expiredAction = expiredRow.locator(
+            '[data-sot-part="source-provider-action"]',
+        );
+        await expect(expiredAction).toBeVisible();
+        await expect(expiredAction).toHaveAttribute("data-sot-action", "reauth");
 
         const pausedRow = sourceProvider(page, "plaud");
         await expect(pausedRow).toHaveAttribute("data-sot-status", "paused");

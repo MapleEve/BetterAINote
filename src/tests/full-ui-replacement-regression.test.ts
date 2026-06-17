@@ -895,6 +895,73 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-source-filter-stack"',
         );
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        const sourceProviderRows = extractBoundedSlice(
+            workstation,
+            "{sourceRows.map((item) => {",
+            "className={`sync-pill",
+        );
+        const sourceFilterStackStart = workstation.indexOf(
+            'data-sot-panel="dashboard-source-filter-stack"',
+        );
+        const sourceFilterStackEnd = workstation.indexOf(
+            "</output>",
+            sourceFilterStackStart,
+        );
+        expect(sourceFilterStackStart).toBeGreaterThanOrEqual(0);
+        expect(sourceFilterStackEnd).toBeGreaterThan(sourceFilterStackStart);
+        const sourceFilterStack = workstation.slice(
+            sourceFilterStackStart,
+            sourceFilterStackEnd,
+        );
+        const legacySourceRowClassNamePattern =
+            /className=(?:"[^"]*\b(?:nav-source|is-active-filter|is-connected-idle|is-syncing|is-sync-error|is-no-results|is-needs-setup|is-not-connected|is-expired|is-disabled|src-ico|src-status|src-action)\b[^"]*"|\{[^}]*\b(?:nav-source|is-active-filter|is-connected-idle|is-syncing|is-sync-error|is-no-results|is-needs-setup|is-not-connected|is-expired|is-disabled|src-ico|src-status|src-action)\b[^}]*\})/;
+        const legacySourceFilterActionClassNamePattern =
+            /className=(?:"[^"]*\b(?:src-action|is-retry|is-connect|is-reauth)\b[^"]*"|\{[^}]*\b(?:src-action|is-retry|is-connect|is-reauth)\b[^}]*\})/;
+        const legacySourceAttributePattern =
+            /\bdata-(?:connected|provider|source|source-status|source-action-state)=/;
+
+        expect(sourceProviderRows).toContain('className="nav-item"');
+        expect(sourceProviderRows).toContain(
+            'data-sot-part="source-provider-mark"',
+        );
+        expect(sourceProviderRows).toContain('data-sot-variant="image"');
+        expect(sourceProviderRows).toContain('data-sot-variant="letter"');
+        expect(sourceProviderRows).toContain("data-sot-provider-cover={");
+        expect(sourceProviderRows).toContain(
+            'data-sot-part="source-provider-status"',
+        );
+        expect(sourceProviderRows).toContain(
+            'data-sot-part="source-provider-action"',
+        );
+        expect(sourceProviderRows).toContain("data-sot-action={actionKind}");
+        expect(sourceProviderRows).toContain("data-state={sourceRowState}");
+        expect(sourceProviderRows).not.toMatch(legacySourceRowClassNamePattern);
+        expect(sourceProviderRows).not.toMatch(legacySourceAttributePattern);
+        expect(sourceFilterStack).toContain(
+            "data-state={sourceFilterStackState}",
+        );
+        expect(sourceFilterStack).toContain(
+            'data-sot-part="source-filter-action"',
+        );
+        expect(sourceFilterStack).toContain('data-sot-action="retry"');
+        expect(sourceFilterStack).toContain('data-sot-action="widen"');
+        expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
+        expect(sourceFilterStack).not.toMatch(
+            legacySourceFilterActionClassNamePattern,
+        );
+        expect(sourceFilterStack).not.toMatch(legacySourceAttributePattern);
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="source-provider-mark"][data-sot-variant="letter"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="source-provider-action"][data-sot-action="retry"]',
+        );
+        expect(globals).toMatch(
+            /\.stack-strip\s+\[data-sot-part="source-filter-action"\]\[data-sot-action="widen"\]/,
+        );
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-panel="library-search"');
         expect(workstation).toContain('data-sot-list="library-search-results"');

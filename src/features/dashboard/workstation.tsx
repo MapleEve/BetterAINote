@@ -916,29 +916,6 @@ function getRetxStateFromActiveJob(
         : "running";
 }
 
-function getSourceStatusClass(status: SourceStatus, active: boolean) {
-    if (active && (status === "connected" || status === "connected-empty")) {
-        return "nav-item nav-source is-active-filter";
-    }
-
-    const stateClass =
-        status === "syncing" || status === "loading"
-            ? "is-syncing"
-            : status === "sync-error"
-              ? "is-sync-error"
-              : status === "expired"
-                ? "is-expired"
-                : status === "no-results"
-                  ? "is-no-results"
-                  : status === "planned" || status === "paused"
-                    ? "is-disabled"
-                    : status === "connected" || status === "connected-empty"
-                      ? "is-connected-idle"
-                      : "is-needs-setup";
-
-    return `nav-item nav-source ${stateClass}`;
-}
-
 function getSourceRowState(status: SourceStatus, active: boolean) {
     if (status === "syncing" || status === "loading") {
         return "syncing";
@@ -3706,7 +3683,10 @@ export function Workstation({
                             </Button>
                         ) : null}
                         {dataSourcesError ? (
-                            <div className="src-status err">
+                            <div
+                                data-sot-part="source-provider-error"
+                                data-sot-state="error"
+                            >
                                 {dataSourcesError}
                             </div>
                         ) : null}
@@ -3745,10 +3725,7 @@ export function Workstation({
                                     : item.count;
                             return (
                                 <button
-                                    className={getSourceStatusClass(
-                                        item.status,
-                                        item.active,
-                                    )}
+                                    className="nav-item"
                                     type="button"
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
@@ -3757,11 +3734,7 @@ export function Workstation({
                                     aria-label={`${item.label} · ${item.statusLabel}`}
                                     disabled={disabledSourceRow}
                                     data-active={item.active ? "true" : "false"}
-                                    data-connected={
-                                        item.connected ? "true" : "false"
-                                    }
                                     data-count-badge={String(visibleCount)}
-                                    data-provider={item.key}
                                     data-sot-action-state={
                                         disabledSourceRow
                                             ? "disabled"
@@ -3772,13 +3745,6 @@ export function Workstation({
                                     data-sot-state={sourceRowState}
                                     data-sot-status={item.status}
                                     data-state={sourceRowState}
-                                    data-source={item.key}
-                                    data-source-status={item.status}
-                                    data-source-action-state={
-                                        disabledSourceRow
-                                            ? "disabled"
-                                            : (actionKind ?? "count")
-                                    }
                                     key={item.key}
                                     onClick={() => {
                                         if (disabledSourceRow) return;
@@ -3798,43 +3764,31 @@ export function Workstation({
                                 >
                                     {item.icon ? (
                                         <span
-                                            className={
-                                                item.cover
-                                                    ? "src-ico cover"
-                                                    : "src-ico"
-                                            }
                                             data-sot-part="source-provider-mark"
+                                            data-sot-provider-cover={
+                                                item.cover ? "true" : "false"
+                                            }
+                                            data-sot-variant="image"
                                         >
                                             <img src={item.icon} alt="" />
                                         </span>
                                     ) : (
                                         <span
-                                            className="src-ico src-ico-letter"
                                             data-sot-part="source-provider-mark"
+                                            data-sot-provider-cover="false"
+                                            data-sot-variant="letter"
                                         >
                                             讯
                                         </span>
                                     )}
                                     <span>{item.label}</span>
                                     <span
-                                        className={
-                                            item.status === "sync-error"
-                                                ? "src-status err"
-                                                : "src-status"
-                                        }
                                         aria-hidden="true"
                                         data-sot-part="source-provider-status"
                                     />
                                     {actionKind ? (
-                                        // biome-ignore lint/a11y/useSemanticElements: SOT defines source row action as span[role=button] inside nav-source.
+                                        // biome-ignore lint/a11y/useSemanticElements: SOT defines source row action as span[role=button] inside the provider row.
                                         <span
-                                            className={
-                                                actionKind === "retry"
-                                                    ? "src-action is-retry"
-                                                    : actionKind === "reauth"
-                                                      ? "src-action is-reauth"
-                                                      : "src-action is-connect"
-                                            }
                                             role="button"
                                             tabIndex={0}
                                             aria-label={actionAriaLabel}
@@ -3843,6 +3797,7 @@ export function Workstation({
                                                     ? "retry-sync"
                                                     : actionKind
                                             }
+                                            data-sot-action={actionKind}
                                             data-sot-part="source-provider-action"
                                             onClick={(event) => {
                                                 event.stopPropagation();
@@ -4782,9 +4737,6 @@ export function Workstation({
                                             selectedSourceRow?.status ?? ""
                                         }
                                         data-state={sourceFilterStackState}
-                                        data-source-status={
-                                            selectedSourceRow?.status ?? ""
-                                        }
                                     >
                                         <span className="stack-from">
                                             {t("sourceFilterStack.filter")} ·{" "}
@@ -4834,9 +4786,10 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "sync-error" ? (
                                             <button
-                                                className="src-action is-retry"
                                                 type="button"
                                                 data-sot-control="source-filter-retry-sync"
+                                                data-sot-action="retry"
+                                                data-sot-part="source-filter-action"
                                                 onClick={() =>
                                                     void runManualSync()
                                                 }
@@ -4850,9 +4803,10 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "no-results" ? (
                                             <button
-                                                className="src-action is-connect"
                                                 type="button"
                                                 data-sot-control="source-filter-widen"
+                                                data-sot-action="widen"
+                                                data-sot-part="source-filter-action"
                                                 onClick={() => {
                                                     setFavorite("all");
                                                     applyListMode("timeline", {
@@ -4871,9 +4825,10 @@ export function Workstation({
                                             selectedSourceRow.status,
                                         ) ? (
                                             <button
-                                                className="src-action is-connect"
                                                 type="button"
                                                 data-sot-control="source-filter-open-settings"
+                                                data-sot-action="open-settings"
+                                                data-sot-part="source-filter-action"
                                                 onClick={() => {
                                                     window.localStorage.setItem(
                                                         SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
