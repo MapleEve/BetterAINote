@@ -1539,12 +1539,14 @@ test("SOT auth sends a magic link and never exposes the old password form", asyn
     await sendLoginLink(page);
 
     await expect(form).toHaveAttribute("data-sot-state", "success");
-    await expect(form.locator('[data-auth-form-state="success"]')).toContainText(
-        "登录链接已发送",
+    const successMessage = form.locator(
+        '[data-sot-part="auth-form-message"][data-sot-state="success"]',
     );
-    await expect(form.locator('[data-auth-form-state="success"]')).toHaveClass(
-        /field-help/,
+    await expect(successMessage).toHaveAttribute(
+        "data-auth-form-state",
+        "success",
     );
+    await expect(successMessage).toContainText("登录链接已发送");
     expect(await readMagicLinkVerification("magic-ui@example.com")).toBe(true);
 });
 
@@ -1564,8 +1566,15 @@ test("SOT auth blocks second-user magic links and supports local-only session", 
         "aria-invalid",
         "true",
     );
-    await expect(sotControl(page, "auth-email")).toHaveClass(/error/);
-    await expect(form.locator('[data-auth-form-state="error"]')).toContainText(
+    await expect(sotControl(page, "auth-email")).toHaveAttribute(
+        "data-sot-state",
+        "error",
+    );
+    await expect(
+        form.locator(
+            '[data-sot-part="auth-form-message"][data-sot-state="error"]',
+        ),
+    ).toContainText(
         /Registration is disabled|登录链接发送失败/,
     );
     expect(await readMagicLinkVerification("other-admin@example.com")).toBe(

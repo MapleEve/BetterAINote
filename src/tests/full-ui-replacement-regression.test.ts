@@ -830,6 +830,7 @@ describe("full UI replacement regression coverage", () => {
         const onboarding = readSource(
             "features/onboarding/components/onboarding-form.tsx",
         );
+        const globals = readSource("app/globals.css");
 
         expect(login).toContain('data-sot-layout="auth-workstation"');
         expect(login).toContain('import { Card } from "@/components/ui/card";');
@@ -839,9 +840,23 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain("data-sot-state={surfaceState}");
         expect(login).toContain('data-sot-frame="auth"');
         expect(login).toContain('data-sot-part="card-heading"');
+        expect(login).toContain('data-sot-part="auth-logo-mark"');
+        expect(login).toContain('data-sot-part="auth-heading"');
+        expect(login).toContain('data-sot-part="auth-description"');
+        expect(login).toContain('data-sot-part="auth-form-message"');
+        expect(login).toContain('data-sot-part="auth-local-choice"');
         expect(login).not.toContain('className="auth-sot-canvas"');
         expect(login).not.toContain('className="card"');
         expect(login).not.toContain('className="frame"');
+        for (const legacyAuthClassName of [
+            "auth-mark",
+            "auth-title",
+            "auth-sub",
+            "field-help",
+            "auth-local-link",
+        ]) {
+            expect(login).not.toContain(legacyAuthClassName);
+        }
         expect(login).toContain(
             'import { Input } from "@/components/ui/input";',
         );
@@ -853,6 +868,9 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('variant="primary"');
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
+        expect(login).toContain('data-sot-control="local-only"');
+        expect(login).toContain('variant="link"');
+        expect(login).toContain("data-sot-state={formState.kind}");
         expect(login).toContain("data-auth-form-state");
         expect(login).not.toContain('"inp"');
         expect(login).not.toContain('className="btn primary"');
@@ -860,6 +878,18 @@ describe("full UI replacement regression coverage", () => {
         expect(login).not.toContain('className="app"');
         expect(login).not.toContain('className="panel"');
         expect(login).not.toContain('className="modal-foot"');
+        for (const authDataSotSelector of [
+            '[data-sot-part="auth-logo-mark"]',
+            '[data-sot-part="auth-heading"]',
+            '[data-sot-part="auth-description"]',
+            '[data-sot-part="auth-form-message"]',
+            '[data-sot-part="auth-form-message"][data-sot-state="error"]',
+            '[data-sot-part="auth-form-message"][data-sot-state="success"]',
+            '[data-sot-part="auth-local-choice"]',
+            '[data-sot-control="local-only"][data-slot="button"]',
+        ]) {
+            expect(globals).toContain(authDataSotSelector);
+        }
         expect(register).toContain("<LoginForm");
         expect(register).toContain('intent="setup"');
         for (const source of [login, register]) {

@@ -3101,14 +3101,17 @@ button {
     border-radius: 12px;
     overflow: hidden;
 }
-.field-help {
+.field-help,
+[data-sot-part="auth-form-message"] {
     font: 12px var(--font-sans);
     color: var(--fg-tertiary);
 }
-.field-help.err {
+.field-help.err,
+[data-sot-part="auth-form-message"][data-sot-state="error"] {
     color: var(--signal-danger);
 }
-.field-help.ok {
+.field-help.ok,
+[data-sot-part="auth-form-message"][data-sot-state="success"] {
     color: var(--signal-success);
 }
 .auth-sot-canvas,
@@ -3131,33 +3134,39 @@ button {
     padding: 28px;
     text-align: center;
 }
-.auth-mark {
+.auth-mark,
+[data-sot-frame="auth"] [data-sot-part="auth-logo-mark"] {
     width: 36px;
     height: 36px;
     margin: 0 0 14px;
     display: inline;
     vertical-align: baseline;
 }
-.auth-title {
+.auth-title,
+[data-sot-frame="auth"] [data-sot-part="auth-heading"] {
     font: 600 18px var(--font-display);
     margin-bottom: 4px;
 }
-.auth-sub {
+.auth-sub,
+[data-sot-frame="auth"] [data-sot-part="auth-description"] {
     font: 12px var(--font-sans);
     color: var(--fg-tertiary);
     margin-bottom: 18px;
 }
-[data-sot-frame="auth"] .field-help {
+[data-sot-frame="auth"] .field-help,
+[data-sot-frame="auth"] [data-sot-part="auth-form-message"] {
     max-width: 280px;
     margin: -2px auto 10px;
     text-align: left;
 }
-.auth-local-row {
+.auth-local-row,
+[data-sot-frame="auth"] [data-sot-part="auth-local-choice"] {
     font: 12px var(--font-sans);
     color: var(--fg-disabled);
     margin-top: 14px;
 }
-.auth-local-link {
+.auth-local-link,
+[data-sot-frame="auth"] [data-sot-control="local-only"][data-slot="button"] {
     padding: 0;
     border: 0;
     background: transparent;
@@ -3168,7 +3177,9 @@ button {
     text-decoration: underline;
     cursor: pointer;
 }
-.auth-local-link:disabled {
+.auth-local-link:disabled,
+[data-sot-frame="auth"]
+    [data-sot-control="local-only"][data-slot="button"]:disabled {
     color: var(--fg-disabled);
     cursor: not-allowed;
 }

@@ -10,7 +10,6 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import { cn } from "@/lib/utils";
 
 export function LoginForm({
     intent = "login",
@@ -118,12 +117,12 @@ export function LoginForm({
                     <div data-sot-part="card-sub">邮箱 + 链接 · 不要密码</div>
                     <div data-sot-frame="auth">
                         <img
-                            className="auth-mark"
+                            data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                         />{" "}
-                        <div className="auth-title">{title}</div>
-                        <div className="auth-sub">{subtitle}</div>
+                        <div data-sot-part="auth-heading">{title}</div>
+                        <div data-sot-part="auth-description">{subtitle}</div>
                         <Input
                             id="email"
                             name="email"
@@ -146,15 +145,13 @@ export function LoginForm({
                         />
                         {formState ? (
                             <div
-                                className={cn(
-                                    "field-help",
-                                    formState.kind === "error" ? "err" : "ok",
-                                )}
                                 role={
                                     formState.kind === "error"
                                         ? "alert"
                                         : "status"
                                 }
+                                data-sot-part="auth-form-message"
+                                data-sot-state={formState.kind}
                                 data-auth-form-state={formState.kind}
                             >
                                 {formState.message}
@@ -169,18 +166,22 @@ export function LoginForm({
                         >
                             {isLoading ? "发送中..." : "发送登录链接"}
                         </Button>
-                        <div className="auth-local-row">
+                        <div data-sot-part="auth-local-choice">
                             或{" "}
-                            <button
+                            <Button
                                 type="button"
-                                className="auth-local-link"
+                                variant="link"
+                                size="sm"
                                 disabled={!isMounted || isLocalLoading}
                                 aria-busy={isLocalLoading}
                                 data-sot-control="local-only"
+                                data-sot-state={
+                                    isLocalLoading ? "loading" : "ready"
+                                }
                                 onClick={() => void handleLocalUse()}
                             >
                                 {isLocalLoading ? "启动中..." : "仅本地使用"}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </form>
