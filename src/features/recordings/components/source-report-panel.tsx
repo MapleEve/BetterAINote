@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, CloudDownload, FileX2, LoaderCircle } from "lucide-react";
+import { Check, CloudDownload, Copy, LoaderCircle } from "lucide-react";
 import {
     type ReactNode,
     useCallback,
@@ -13,7 +13,13 @@ import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+    Card,
+    CardAction,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -412,37 +418,34 @@ function formatSourceReportStatusLabel(
     return value;
 }
 
-function SotCopyIcon() {
+function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
+    const Icon = state === "ok" ? Check : Copy;
+
     return (
-        <span className="copy-ico" data-icon="inline-start" aria-hidden="true">
-            <svg
-                className="copy-ico-default"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                focusable="false"
-            >
-                <rect x="9" y="9" width="13" height="13" rx="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-            <svg
-                className="copy-ico-ok"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                focusable="false"
-            >
-                <path d="M20 6 9 17l-5-5" />
-            </svg>
-        </span>
+        <Icon
+            data-icon="inline-start"
+            data-sot-part="source-report-copy-icon"
+            aria-hidden="true"
+        />
+    );
+}
+
+function SourceReportAlertGlyph() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v5" />
+            <circle cx="12" cy="16" r=".8" fill="currentColor" />
+        </svg>
+    );
+}
+
+function SourceReportEmptyGlyph() {
+    return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="6" width="18" height="14" rx="2" />
+            <path d="M8 6V4h8v2" />
+        </svg>
     );
 }
 
@@ -1039,17 +1042,20 @@ export function SourceReportPanel({
     ) : null;
 
     const header = (
-        <div data-sot-source-report-header>
-            <div>
-                <h3 className="rec-h2" data-sot-source-report-title>
-                    <CloudDownload aria-hidden="true" />
+        <CardHeader data-sot-source-report-header>
+            <div data-sot-source-report-heading>
+                <CardTitle data-sot-source-report-title>
+                    <CloudDownload
+                        data-icon="inline-start"
+                        aria-hidden="true"
+                    />
                     {getSourceTabLabel(sourceProvider, language)}
-                </h3>
-                <p data-sot-source-report-description>
+                </CardTitle>
+                <CardDescription data-sot-source-report-description>
                     {getSourceRecordDescription(sourceProvider, language)}
-                </p>
+                </CardDescription>
             </div>
-            <div className="t-actions">
+            <CardAction data-sot-source-report-header-actions>
                 {data ? (
                     <>
                         <Button
@@ -1078,7 +1084,13 @@ export function SourceReportPanel({
                             disabled={sourceTranscriptCopyDisabled}
                             onClick={() => void handleCopySourceTranscript()}
                         >
-                            <SotCopyIcon />
+                            <SotCopyIcon
+                                state={
+                                    copyFeedback?.action === "source-transcript"
+                                        ? copyFeedback.state
+                                        : undefined
+                                }
+                            />
                             <span className="copy-label">
                                 {copyFeedback?.action === "source-transcript"
                                     ? copyFeedback.state === "ok"
@@ -1113,7 +1125,13 @@ export function SourceReportPanel({
                             disabled={sourceReportCopyDisabled}
                             onClick={() => void handleCopySourceReport()}
                         >
-                            <SotCopyIcon />
+                            <SotCopyIcon
+                                state={
+                                    copyFeedback?.action === "source-report"
+                                        ? copyFeedback.state
+                                        : undefined
+                                }
+                            />
                             <span className="copy-label">
                                 {copyFeedback?.action === "source-report"
                                     ? copyFeedback.state === "ok"
@@ -1152,8 +1170,8 @@ export function SourceReportPanel({
                         </>
                     )}
                 </Button>
-            </div>
-        </div>
+            </CardAction>
+        </CardHeader>
     );
 
     const content = (
@@ -1169,7 +1187,7 @@ export function SourceReportPanel({
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
-                            <AlertCircle />
+                            <SourceReportAlertGlyph />
                         </div>
                         <AlertTitle data-sot-source-report-empty-title>
                             无法读取来源详情
@@ -1477,7 +1495,7 @@ export function SourceReportPanel({
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
-                            <FileX2 />
+                            <SourceReportEmptyGlyph />
                         </div>
                         <div data-sot-source-report-empty-title>
                             这条录音没有关联来源
@@ -1493,27 +1511,31 @@ export function SourceReportPanel({
 
     if (variant === "embedded") {
         return (
-            <div
+            <Card
+                hasNoPadding
                 className={className}
                 data-sot-source-report-pane
                 data-sot-panel="recording-source-report"
                 data-sot-state={sourceReportState}
+                data-sot-variant="embedded"
             >
                 {header}
                 {content}
-            </div>
+            </Card>
         );
     }
 
     return (
-        <div
-            className={className ? `panel ${className}` : "panel"}
+        <Card
+            hasNoPadding
+            className={className}
             data-sot-source-report-pane
             data-sot-panel="recording-source-report"
             data-sot-state={sourceReportState}
+            data-sot-variant="card"
         >
             {header}
             {content}
-        </div>
+        </Card>
     );
 }

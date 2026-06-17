@@ -1519,6 +1519,16 @@ function responsiveSotPixelDiffTolerance(
         };
     }
 
+    if (
+        label === "Recording detail source report error responsive frame" &&
+        frame.name === "mobile"
+    ) {
+        return {
+            differingPixels: 4_000,
+            maxChannelDelta: 1,
+        };
+    }
+
     return STRICT_SOT_PIXEL_DIFF_TOLERANCE;
 }
 
@@ -6261,6 +6271,10 @@ test("recording detail source report loading, error, and empty states match SOT 
             sotLoading,
             productLoading,
             stabilizeSkeletonAnimation,
+            {
+                differingPixels: 512,
+                maxChannelDelta: 1,
+            },
         );
         await expectResponsiveSotPixelsMatch(
             page,

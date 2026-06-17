@@ -6383,6 +6383,17 @@ body[data-ds-todo="show"] .design-todo {
     gap: 14px;
     padding: 16px 20px 22px;
 }
+[data-sot-source-report-pane][data-slot="card"] {
+    border-radius: 16px;
+    border: 1px solid var(--line-hairline);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+    min-height: 0;
+    overflow: hidden;
+}
+[data-theme="dark"] [data-sot-source-report-pane][data-slot="card"] {
+    border-color: var(--glass-border);
+}
 .sr-state,
 [data-sot-source-report-state] {
     flex-direction: column;
@@ -6528,11 +6539,45 @@ body[data-ds-todo="show"] .design-todo {
     border-top-color: var(--glass-border-soft);
 }
 .sr-section-head,
-[data-sot-source-report-header],
 [data-sot-source-report-section-header] {
     display: flex;
     align-items: baseline;
     gap: 10px;
+}
+[data-sot-source-report-header][data-slot="card-header"] {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+}
+[data-sot-source-report-heading] {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+}
+[data-sot-source-report-title][data-slot="card-title"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    color: var(--fg-primary);
+    font: 600 22px var(--font-display);
+    letter-spacing: -0.014em;
+}
+[data-sot-source-report-header-actions][data-slot="card-action"] {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 .sr-section-head h4,
 [data-sot-source-report-section-title] {
@@ -6544,7 +6589,8 @@ body[data-ds-todo="show"] .design-todo {
     gap: 6px;
 }
 .sr-section-head h4 svg,
-.rec-h2 svg {
+.rec-h2 svg,
+[data-sot-source-report-title][data-slot="card-title"] svg {
     width: 16px;
     height: 16px;
     stroke: currentColor;
@@ -12728,6 +12774,12 @@ select::-ms-expand {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"] {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    stroke: currentColor;
 }
 [data-slot="button"][data-copy] .copy-ico {
     width: 14px;

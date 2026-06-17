@@ -1362,9 +1362,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expect(sourceReport).toContain(
-            'import { Card } from "@/components/ui/card";',
-        );
+        expect(sourceReport).toContain("CardHeader");
+        expect(sourceReport).toContain("CardTitle");
+        expect(sourceReport).toContain("CardAction");
+        expect(sourceReport).toContain("CardDescription");
         expect(sourceReport).toContain(
             'import { Separator } from "@/components/ui/separator";',
         );
@@ -1374,10 +1375,17 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("<Alert");
         expect(sourceReport).toContain("<Badge");
         expect(sourceReport).toContain("<Card");
+        expect(sourceReport).toContain("<CardHeader");
+        expect(sourceReport).toContain("<CardTitle");
+        expect(sourceReport).toContain("<CardAction");
+        expect(sourceReport).toContain("<CardDescription");
         expect(sourceReport).toContain("<Separator");
+        expect(sourceReport).toContain("Copy");
+        expect(sourceReport).toContain("Check");
         expect(sourceReport).toContain('data-sot-list="source-report-cards"');
         expect(sourceReport).toContain('data-sot-card="source-report-metric"');
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
+        expect(sourceReport).toContain("data-sot-source-report-header-actions");
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
@@ -1395,6 +1403,12 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain('className="sr-card"');
         expect(sourceReport).not.toContain('className="sr-cards"');
         expect(sourceReport).not.toContain('className="sr-pill warn"');
+        expect(sourceReport).not.toContain('className="rec-h2"');
+        expect(sourceReport).not.toContain('className="t-actions"');
+        expect(sourceReport).not.toContain('className="copy-ico"');
+        expect(sourceReport).not.toContain("copy-ico-default");
+        expect(sourceReport).not.toContain("copy-ico-ok");
+        expect(sourceReport).not.toContain("className={className ? `panel");
         expect(sourceReport).not.toContain("sourceReportReadinessPillClass");
         expect(sourceReport).not.toContain("sourceReportSyncPillClass");
         expect(sourceReport).not.toMatch(
