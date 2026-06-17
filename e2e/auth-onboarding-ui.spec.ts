@@ -1261,7 +1261,12 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             "data-sot-state",
             "transcription",
         );
-        await expect(sotList(page, "transcription-defaults")).toBeVisible();
+        await expect(
+            sotList(page, "onboarding-default-sources"),
+        ).toBeVisible();
+        await expect(
+            sotPanel(page, "onboarding-default-source-step"),
+        ).toBeVisible();
         frames.push({
             id: "onboarding-default-source-desktop-responsive",
             label: "Onboarding default-source runtime responsive frame, desktop",
@@ -1277,7 +1282,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             assertions: [
                 "data-sot-state=transcription",
                 "four progress segments are present",
-                "transcription default list is visible",
+                "onboarding default-source list is visible",
                 "default-source row has a selected state",
             ],
             sotRelationship:
@@ -1303,6 +1308,12 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             "data-sot-state",
             "transcription",
         );
+        await expect(
+            sotList(page, "onboarding-default-sources"),
+        ).toBeVisible();
+        await expect(
+            sotPanel(page, "onboarding-default-source-step"),
+        ).toBeVisible();
         frames.push({
             id: "onboarding-default-source-mobile-responsive",
             label: "Onboarding default-source runtime responsive frame, mobile",
@@ -1647,13 +1658,16 @@ test("SOT onboarding exposes source, default transcription, speaker, and finish 
     ).toHaveAttribute("data-sot-state", "selected");
 
     await goToOnboardingState(page, "transcription");
-    await expect(sotList(page, "transcription-defaults")).toBeVisible();
+    await expect(sotList(page, "onboarding-default-sources")).toBeVisible();
     await expect(
-        page.locator('[data-sot-control="transcription-default"]').first(),
+        sotPanel(page, "onboarding-default-source-step"),
+    ).toBeVisible();
+    await expect(
+        page.locator('[data-sot-control="onboarding-default-source"]').first(),
     ).toHaveAttribute("data-sot-state", "selected");
     await page.getByRole("button", { name: /TicNote/ }).click();
     await expect(
-        page.locator('[data-sot-control="transcription-default"]').nth(1),
+        page.locator('[data-sot-control="onboarding-default-source"]').nth(1),
     ).toHaveAttribute("data-sot-state", "selected");
 
     await goToOnboardingState(page, "speakers");

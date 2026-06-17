@@ -918,6 +918,18 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-control="onboarding-skip"');
         expect(onboarding).toContain('data-sot-control="provider-card"');
         expect(onboarding).toContain(
+            'data-sot-panel="onboarding-default-source-step"',
+        );
+        expect(onboarding).toContain(
+            'data-sot-list="onboarding-default-sources"',
+        );
+        expect(onboarding).toContain(
+            'data-sot-control="onboarding-default-source"',
+        );
+        expect(onboarding).toContain(
+            'data-sot-part="onboarding-default-source-swatch"',
+        );
+        expect(onboarding).toContain(
             'data-sot-control="speaker-profile-draft"',
         );
         expect(onboarding).toContain('data-sot-part="provider-icon"');
@@ -939,10 +951,25 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain(
             'className="onboarding-progress-segment"',
         );
+        expect(onboarding).not.toMatch(
+            /className="onboarding-default-source-(step|list|row|swatch)"/,
+        );
         expect(onboarding).not.toContain('className="field-help err"');
         expect(onboarding).not.toContain('className="onboarding-actions"');
         expect(onboarding).not.toContain('className="sr-meta-row"');
         expect(onboarding).not.toContain('className="sm"');
+        expect(globals).toContain(
+            '[data-sot-list="onboarding-default-sources"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="onboarding-default-source"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="onboarding-default-source-swatch"]',
+        );
+        expect(globals).not.toMatch(
+            /\.onboarding-default-source-(list|row|swatch)\b/,
+        );
         expect(onboarding).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 

@@ -3235,12 +3235,12 @@ button {
     flex-direction: column;
     gap: 12px;
 }
-.onboarding-default-source-list {
+[data-sot-list="onboarding-default-sources"] {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-.onboarding-default-source-row {
+[data-sot-control="onboarding-default-source"] {
     appearance: none;
     display: flex;
     align-items: center;
@@ -3255,22 +3255,22 @@ button {
     text-align: left;
     cursor: pointer;
 }
-.onboarding-default-source-row[data-sot-state="selected"] {
+[data-sot-control="onboarding-default-source"][data-sot-state="selected"] {
     border-color: var(--accent);
     background: color-mix(in oklab, var(--accent) 6%, transparent);
 }
-.onboarding-default-source-row[data-sot-state="disabled"] {
+[data-sot-control="onboarding-default-source"][data-sot-state="disabled"] {
     opacity: 0.55;
     cursor: not-allowed;
 }
-.onboarding-default-source-swatch {
+[data-sot-part="onboarding-default-source-swatch"] {
     width: 20px;
     height: 20px;
     flex: 0 0 20px;
     border-radius: 4px;
     background: transparent;
 }
-.onboarding-default-source-swatch[data-sot-swatch="accent"] {
+[data-sot-part="onboarding-default-source-swatch"][data-sot-swatch="accent"] {
     background: #1296db;
 }
 .onboarding-actions,

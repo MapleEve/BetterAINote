@@ -17,6 +17,7 @@ describe("onboarding UI replacement regression", () => {
         const source = readSource(
             "features/onboarding/components/onboarding-form.tsx",
         );
+        const globals = readSource("app/globals.css");
 
         expect(source).toContain('data-sot-layout="onboarding-workstation"');
         expect(source).toContain('data-sot-surface="onboarding"');
@@ -44,9 +45,34 @@ describe("onboarding UI replacement regression", () => {
             'import { Card } from "@/components/ui/card";',
         );
         expect(source).toContain('data-sot-control="provider-card"');
+        expect(source).toContain(
+            'data-sot-panel="onboarding-default-source-step"',
+        );
+        expect(source).toContain('data-sot-list="onboarding-default-sources"');
+        expect(source).toContain(
+            'data-sot-control="onboarding-default-source"',
+        );
+        expect(source).toContain(
+            'data-sot-part="onboarding-default-source-swatch"',
+        );
         expect(source).toContain('data-sot-control="speaker-profile-draft"');
         expect(source).toContain('data-sot-part="provider-icon"');
         expect(source).toContain('data-sot-part="provider-meta"');
+        expect(source).not.toMatch(
+            /className="onboarding-default-source-(step|list|row|swatch)"/,
+        );
+        expect(globals).toContain(
+            '[data-sot-list="onboarding-default-sources"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="onboarding-default-source"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="onboarding-default-source-swatch"]',
+        );
+        expect(globals).not.toMatch(
+            /\.onboarding-default-source-(list|row|swatch)\b/,
+        );
         expect(source).not.toContain("src-item");
         expect(source).not.toContain("sp-ico");
         expect(source).not.toContain("src-meta");

@@ -631,19 +631,15 @@ function TranscriptionStep({
     ] as const;
 
     return (
-        <div className="onboarding-default-source-step">
-            <div
-                className="onboarding-default-source-list"
-                data-sot-list="transcription-defaults"
-            >
+        <div data-sot-panel="onboarding-default-source-step">
+            <div data-sot-list="onboarding-default-sources">
                 {options.map((option) => {
                     const isActive = option.id === defaultTranscriptionSource;
 
                     return (
                         // biome-ignore lint/a11y/useSemanticElements: SOT §09 rows are divs; click and keyboard handlers keep the restored row interactive.
                         <div
-                            className="onboarding-default-source-row"
-                            data-sot-control="transcription-default"
+                            data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
                             data-sot-state={
                                 isActive
@@ -674,7 +670,7 @@ function TranscriptionStep({
                             tabIndex={isSaving || !option.connected ? -1 : 0}
                         >
                             <span
-                                className="onboarding-default-source-swatch"
+                                data-sot-part="onboarding-default-source-swatch"
                                 data-sot-swatch={option.swatch}
                             />
                             {option.label}
