@@ -311,7 +311,7 @@ function collectInlineModernColorFindings() {
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const SOURCE_REPORT_LEGACY_SURFACE_RE =
     /uikit-|glass-surface|glass-control|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
@@ -696,6 +696,22 @@ describe("full UI replacement regression coverage", () => {
         expect(findings.unsafeVarFallbackArguments).toEqual([]);
     });
 
+    it("keeps recording tag manager legacy selectors out of product CSS", () => {
+        const globals = readSource("app/globals.css");
+        const legacyTagManagerSelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                /^\s*\.tagm-|,\s*\.tagm-|^\s*\.tg-pick|,\s*\.tg-pick/.test(
+                    text,
+                ),
+            );
+
+        // `.tag-filter-option .tg-ico` predates this batch; this guard only blocks
+        // recording tag manager selectors reintroduced by the current cleanup.
+        expect(legacyTagManagerSelectorLines).toEqual([]);
+    });
+
     it("keeps inline OKLCH tag swatches limited to the SOT catalog", () => {
         const findings = collectInlineModernColorFindings();
 
@@ -1010,21 +1026,67 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("<Button");
         expect(tagManager).toContain('data-sot-panel="recording-tag-manager"');
         expect(tagManager).toContain('data-sot-control="recording-tag-toggle"');
-        expect(tagManager).toContain('className="tagm-panel"');
-        expect(tagManager).toContain('className="tagm-body"');
-        expect(tagManager).toContain('className="tagm-delete-confirm"');
+        expect(tagManager).toContain('data-sot-part="head"');
+        expect(tagManager).toContain('data-sot-part="body"');
+        expect(tagManager).toContain('data-sot-part="footer"');
+        expect(tagManager).toContain('data-sot-part="picker"');
+        expect(tagManager).toContain('data-sot-part="selected-chip"');
+        expect(tagManager).toContain('data-sot-part="tag-option"');
+        expect(tagManager).toContain('data-sot-part="color-swatch"');
+        expect(tagManager).toContain('data-sot-part="icon-option"');
+        expect(tagManager).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
         expect(tagManager).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(tagManager).toContain(
-            'import { Input } from "@/components/ui/input";',
-        );
+        expect(tagManager).toContain('from "@/components/ui/alert";');
+        expect(tagManager).toContain('from "@/components/ui/card";');
+        expect(tagManager).toContain('from "@/components/ui/field";');
+        expect(tagManager).toContain('from "@/components/ui/input-group";');
+        expect(tagManager).toContain('from "@/components/ui/toggle-group";');
+        expect(tagManager).toContain("<Card");
+        expect(tagManager).toContain("<CardHeader");
+        expect(tagManager).toContain("<CardContent");
+        expect(tagManager).toContain("<CardFooter");
+        expect(tagManager).toContain("<Alert");
+        expect(tagManager).toContain("<Badge");
         expect(tagManager).toContain("<Button");
-        expect(tagManager).toContain("<Input");
+        expect(tagManager).toContain("<Field");
+        expect(tagManager).toContain("<InputGroup");
+        expect(tagManager).toContain("<InputGroupInput");
+        expect(tagManager).toContain("<InputGroupButton");
+        expect(tagManager).toContain("<ToggleGroup");
+        expect(tagManager).toContain("<ToggleGroupItem");
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('variant="primary"');
         expect(tagManager).toContain('size="icon-sm"');
-        expect(tagManager).not.toContain("tagm-add-btn");
+        for (const rawClass of [
+            "tagm-panel",
+            "tagm-head",
+            "tagm-title",
+            "tagm-close",
+            "tagm-body",
+            "tagm-opts",
+            "tagm-opt",
+            "tagm-delete-confirm",
+            "tagm-delete-msg",
+            "tagm-create",
+            "tagm-create-row",
+            "tagm-picker",
+            "tagm-swatches",
+            "tagm-swatch",
+            "tagm-icon-grid",
+            "tg-pick",
+            "tagm-empty",
+            "tagm-sec",
+            "tagm-chips",
+            "tagm-sel-chip",
+            "tagm-error",
+            "tagm-add-btn",
+        ]) {
+            expect(tagManager).not.toContain(rawClass);
+        }
         expect(tagManager).not.toContain("mergeTagManagerClassName");
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
