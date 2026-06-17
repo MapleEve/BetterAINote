@@ -270,40 +270,28 @@ const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
     {
-        firstLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[96%]",
+        firstLine: "line-96",
         key: "opening",
-        secondLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[88%]",
-        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[120px]",
-        thirdLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-tertiary mt-1.5 h-3.5 w-[60%]",
+        secondLine: "line-88",
+        speaker: "speaker-120",
+        thirdLine: "line-60",
     },
     {
-        firstLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[92%]",
+        firstLine: "line-92",
         key: "middle",
-        secondLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[78%]",
-        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[140px]",
+        secondLine: "line-78",
+        speaker: "speaker-140",
         thirdLine: null,
     },
     {
-        firstLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-primary mt-1 h-3.5 w-[94%]",
+        firstLine: "line-94",
         key: "closing",
-        secondLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-secondary mt-1.5 h-3.5 w-[82%]",
-        speaker: "dashboard-transcript-speaker-skeleton h-[13px] w-[130px]",
-        thirdLine:
-            "dashboard-transcript-line-skeleton dashboard-transcript-line-skeleton-tertiary mt-1.5 h-3.5 w-[70%]",
+        secondLine: "line-82",
+        speaker: "speaker-130",
+        thirdLine: "line-70",
     },
 ] as const;
-const TRANSCRIPT_AVATAR_TONE_CLASSES = [
-    "avatar-sm dashboard-transcript-avatar-tone-info",
-    "avatar-sm dashboard-transcript-avatar-tone-accent",
-    "avatar-sm dashboard-transcript-avatar-tone-success",
-] as const;
+const TRANSCRIPT_AVATAR_TONES = ["steel", "info", "success"] as const;
 
 const SOURCE_ORDER = [
     {
@@ -6186,10 +6174,7 @@ export function Workstation({
                                         setActivityOpen(false);
                                     }}
                                 />
-                                <div
-                                    className="t-actions"
-                                    data-sot-part="dashboard-transcript-actions"
-                                >
+                                <div data-sot-part="dashboard-transcript-actions">
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -6531,7 +6516,8 @@ export function Workstation({
                                     刚刷新 · 1 秒前
                                 </p>
                                 <div
-                                    className="t-pane"
+                                    data-sot-panel="dashboard-transcript-pane"
+                                    data-sot-tab-pane="transcript"
                                     data-tab-pane="transcript"
                                     hidden={detailTab !== "transcript"}
                                 >
@@ -6548,35 +6534,41 @@ export function Workstation({
                                                     >
                                                         <Skeleton
                                                             aria-hidden="true"
-                                                            className="dashboard-transcript-avatar-skeleton size-6 rounded-full"
+                                                            data-sot-part="dashboard-transcript-skeleton"
+                                                            data-sot-size="avatar"
                                                         />
                                                         <Skeleton
                                                             aria-hidden="true"
-                                                            className={
+                                                            data-sot-part="dashboard-transcript-skeleton"
+                                                            data-sot-size={
                                                                 item.speaker
                                                             }
                                                         />
                                                         <Skeleton
                                                             aria-hidden="true"
-                                                            className="dashboard-transcript-time-skeleton h-[11px] w-20"
+                                                            data-sot-part="dashboard-transcript-skeleton"
+                                                            data-sot-size="time"
                                                         />
                                                     </div>
                                                     <Skeleton
                                                         aria-hidden="true"
-                                                        className={
+                                                        data-sot-part="dashboard-transcript-skeleton"
+                                                        data-sot-size={
                                                             item.firstLine
                                                         }
                                                     />
                                                     <Skeleton
                                                         aria-hidden="true"
-                                                        className={
+                                                        data-sot-part="dashboard-transcript-skeleton"
+                                                        data-sot-size={
                                                             item.secondLine
                                                         }
                                                     />
                                                     {item.thirdLine ? (
                                                         <Skeleton
                                                             aria-hidden="true"
-                                                            className={
+                                                            data-sot-part="dashboard-transcript-skeleton"
+                                                            data-sot-size={
                                                                 item.thirdLine
                                                             }
                                                         />
@@ -6610,10 +6602,11 @@ export function Workstation({
                                                         data-sot-state="ready"
                                                     >
                                                         <span
-                                                            className={
-                                                                TRANSCRIPT_AVATAR_TONE_CLASSES[
+                                                            data-sot-part="dashboard-transcript-avatar"
+                                                            data-sot-tone={
+                                                                TRANSCRIPT_AVATAR_TONES[
                                                                     index %
-                                                                        TRANSCRIPT_AVATAR_TONE_CLASSES.length
+                                                                        TRANSCRIPT_AVATAR_TONES.length
                                                                 ]
                                                             }
                                                         >
@@ -6651,12 +6644,12 @@ export function Workstation({
                                     )}
                                 </div>
                                 <div
-                                    className="t-pane"
-                                    data-tab-pane="source-report"
-                                    hidden={detailTab !== "source"}
                                     data-sot-source-report-pane
                                     data-sot-panel="dashboard-source-report"
+                                    data-sot-tab-pane="source-report"
                                     data-sot-state={sourceReportVisualState}
+                                    data-tab-pane="source-report"
+                                    hidden={detailTab !== "source"}
                                 >
                                     {sourceReportState === "loading" ? (
                                         <SotSourceReportState state="loading">
@@ -7149,23 +7142,25 @@ export function Workstation({
                                     )}
                                 </div>
                                 <div
-                                    className="t-pane"
+                                    data-sot-panel="dashboard-speakers-pane"
+                                    data-sot-tab-pane="speakers"
                                     data-tab-pane="speakers"
                                     hidden={detailTab !== "speakers"}
                                 >
-                                    <div className="sp-head">
-                                        <div className="sp-head-title">
+                                    <div data-sot-part="dashboard-speakers-head">
+                                        <div data-sot-part="dashboard-speakers-head-title">
                                             {turns.length || 0} 段说话人
                                         </div>
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             type="button"
+                                            data-sot-control="dashboard-speakers-merge"
                                         >
                                             合并相似…
                                         </Button>
                                     </div>
-                                    <ul className="sp-rows">
+                                    <ul data-sot-list="dashboard-speaker-rows">
                                         {(turns.length
                                             ? turns
                                             : [
@@ -7174,33 +7169,43 @@ export function Workstation({
                                                       speakerName: null,
                                                   },
                                               ]
-                                        ).map((turn, index) => (
-                                            <li
-                                                className="sp-row"
-                                                key={`${selectedRecording?.id}:speaker:${index}`}
-                                            >
-                                                <span className="avatar-sm">
-                                                    {index + 1}
-                                                </span>
-                                                <div className="sp-row-meta">
-                                                    <div className="sp-row-name">
-                                                        {turn.speakerName ||
-                                                            `说话人 ${index + 1}`}
+                                        ).map((turn, index) => {
+                                            const speakerBarPct = Math.min(
+                                                100,
+                                                24 + index * 12,
+                                            );
+
+                                            return (
+                                                <li
+                                                    data-sot-item="dashboard-speaker-row"
+                                                    key={`${selectedRecording?.id}:speaker:${index}`}
+                                                >
+                                                    <span data-sot-part="dashboard-speaker-avatar">
+                                                        {index + 1}
+                                                    </span>
+                                                    <div data-sot-part="dashboard-speaker-row-meta">
+                                                        <div data-sot-part="dashboard-speaker-name">
+                                                            {turn.speakerName ||
+                                                                `说话人 ${index + 1}`}
+                                                        </div>
+                                                        <div data-sot-part="dashboard-speaker-sub">
+                                                            {turn.text.length}{" "}
+                                                            字
+                                                        </div>
                                                     </div>
-                                                    <div className="sp-row-sub mono">
-                                                        {turn.text.length} 字
-                                                    </div>
-                                                </div>
-                                                <span className="sp-bar">
                                                     <span
-                                                        data-pct={Math.min(
-                                                            100,
-                                                            24 + index * 12,
-                                                        )}
-                                                    />
-                                                </span>
-                                            </li>
-                                        ))}
+                                                        data-sot-part="dashboard-speaker-bar"
+                                                        style={
+                                                            {
+                                                                "--dashboard-speaker-share": `${speakerBarPct}%`,
+                                                            } as CSSProperties
+                                                        }
+                                                    >
+                                                        <span data-sot-part="dashboard-speaker-bar-fill" />
+                                                    </span>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 </div>
                             </CardContent>

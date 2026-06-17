@@ -15,6 +15,35 @@ const OLD_UI_RE =
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
+const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
+    'data-sot-panel="dashboard-transcript-pane"',
+    'data-sot-tab-pane="transcript"',
+    'data-sot-tab-pane="source-report"',
+    'data-sot-tab-pane="speakers"',
+    'data-sot-part="dashboard-transcript-actions"',
+    'data-sot-part="dashboard-transcript-avatar"',
+    'data-sot-list="dashboard-speaker-rows"',
+    'data-sot-item="dashboard-speaker-row"',
+    'data-sot-part="dashboard-speaker-avatar"',
+    'data-sot-part="dashboard-speaker-row-meta"',
+    'data-sot-part="dashboard-speaker-name"',
+    'data-sot-part="dashboard-speaker-sub"',
+    'data-sot-part="dashboard-speaker-bar"',
+    'data-sot-part="dashboard-speaker-bar-fill"',
+];
+
+const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
+    'className="t-actions"',
+    'className="t-pane"',
+    'className="avatar-sm"',
+    'className="sp-rows"',
+    'className="sp-row"',
+    'className="sp-row-meta"',
+    'className="sp-row-name"',
+    'className="sp-row-sub"',
+    'className="sp-bar"',
+];
+
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
@@ -331,6 +360,12 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('value: "speakers"');
         expect(workstation).toContain('label: "说话人"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
+        for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const legacyClassName of DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES) {
+            expect(workstation).not.toContain(legacyClassName);
+        }
         expect(workstation).toContain(
             'import { Button } from "@/components/ui/button";',
         );

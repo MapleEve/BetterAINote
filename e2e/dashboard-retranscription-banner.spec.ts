@@ -546,6 +546,18 @@ function dashboardRetranscriptionBanner(page: Page, state?: string) {
     );
 }
 
+function dashboardTranscriptPane(page: Page) {
+    return page.locator(
+        '[data-sot-panel="dashboard-transcript-pane"][data-sot-tab-pane="transcript"]',
+    );
+}
+
+function dashboardSpeakersPane(page: Page) {
+    return page.locator(
+        '[data-sot-panel="dashboard-speakers-pane"][data-sot-tab-pane="speakers"]',
+    );
+}
+
 async function dispatchSystemBanner(
     page: Page,
     detail: {
@@ -572,8 +584,8 @@ async function dispatchSystemBanner(
 function dashboardSourceReport(page: Page, state?: string) {
     return page.locator(
         state
-            ? `[data-sot-panel="dashboard-source-report"][data-sot-state="${state}"]`
-            : '[data-sot-panel="dashboard-source-report"]',
+            ? `[data-sot-panel="dashboard-source-report"][data-sot-tab-pane="source-report"][data-sot-state="${state}"]`
+            : '[data-sot-panel="dashboard-source-report"][data-sot-tab-pane="source-report"]',
     );
 }
 
@@ -3488,7 +3500,7 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             document.body.dataset.theme = "dark";
         });
 
-        const transcriptPane = page.locator('[data-tab-pane="transcript"]');
+        const transcriptPane = dashboardTranscriptPane(page);
         await expect(transcriptPane.locator(".turn.skel-turn")).toHaveCount(3);
         const [sotSkeletonHtml, productSkeletonTurnsHtml] = await Promise.all([
             sotPage
@@ -3514,28 +3526,48 @@ test("dashboard local transcript renders backend segment timestamps", async ({
         releaseDetail?.();
         const turns = transcriptPane.locator(".turn");
         await expect(turns).toHaveCount(4);
-        await expect(turns.nth(0).locator(".speaker-name")).toHaveText(
-            "志远 · CEO",
-        );
-        await expect(turns.nth(0).locator(".avatar-sm")).toHaveText("志");
-        await expect(turns.nth(0).locator(".ts.mono")).toHaveText(
-            "00:12 – 01:48",
-        );
+        await expect(
+            turns
+                .nth(0)
+                .locator('[data-sot-part="dashboard-transcript-speaker-name"]'),
+        ).toHaveText("志远 · CEO");
+        await expect(
+            turns
+                .nth(0)
+                .locator('[data-sot-part="dashboard-transcript-avatar"]'),
+        ).toHaveText("志");
+        await expect(
+            turns
+                .nth(0)
+                .locator('[data-sot-part="dashboard-transcript-speaker-time"]'),
+        ).toHaveText("00:12 – 01:48");
         await expect(turns.nth(0).locator("p")).toHaveText(
             sotSegments[0].text,
         );
-        await expect(turns.nth(1).locator(".speaker-name")).toHaveText(
-            "文丽 · PM",
-        );
-        await expect(turns.nth(1).locator(".avatar-sm")).toHaveText("文");
-        await expect(turns.nth(1).locator(".ts.mono")).toHaveText(
-            "01:50 – 02:34",
-        );
+        await expect(
+            turns
+                .nth(1)
+                .locator('[data-sot-part="dashboard-transcript-speaker-name"]'),
+        ).toHaveText("文丽 · PM");
+        await expect(
+            turns
+                .nth(1)
+                .locator('[data-sot-part="dashboard-transcript-avatar"]'),
+        ).toHaveText("文");
+        await expect(
+            turns
+                .nth(1)
+                .locator('[data-sot-part="dashboard-transcript-speaker-time"]'),
+        ).toHaveText("01:50 – 02:34");
         await expect(turns.nth(1).locator("p")).toHaveText(
             sotSegments[1].text,
         );
         await expect(
-            transcriptPane.locator(".turn .ts.mono").filter({ hasText: "--" }),
+            transcriptPane
+                .locator(
+                    '[data-sot-part="dashboard-transcript-speaker-time"]',
+                )
+                .filter({ hasText: "--" }),
         ).toHaveCount(0);
         await expectRetxResponsivePixelsMatch(
             page,
@@ -3753,12 +3785,12 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
             .getByRole("button", { name: /E2E transcript tabs and copy/ })
             .click();
 
-        const transcriptPane = page.locator('[data-tab-pane="transcript"]');
-        const speakersPane = page.locator('[data-tab-pane="speakers"]');
-        const sourceReportPane = page.locator('[data-tab-pane="source-report"]');
+        const transcriptPane = dashboardTranscriptPane(page);
+        const speakersPane = dashboardSpeakersPane(page);
+        const sourceReportPane = dashboardSourceReport(page);
         await expect(
             page.locator(
-                '.transcript-body > [data-sot-panel="dashboard-retranscription"]',
+                '[data-sot-panel="dashboard-transcript-shell"] [data-sot-panel="dashboard-retranscription"]',
             ),
         ).toHaveCount(1);
         await expect(
