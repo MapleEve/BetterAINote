@@ -791,7 +791,11 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain(
+            'data-sot-panel="recording-route-loading-detail"',
+        );
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(loading).not.toContain('className="detail panel"');
         expect(loading).not.toContain('className="skel-detail"');
         expect(loading).not.toContain('className="sk sk-bar"');
     });

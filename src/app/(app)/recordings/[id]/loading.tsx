@@ -10,7 +10,7 @@ export default function RecordingLoading() {
                         <span className="crumb-current">录音加载中</span>
                     </div>
                 </header>
-                <section className="detail panel">
+                <section data-sot-panel="recording-route-loading-detail">
                     <div
                         data-sot-panel="recording-detail-loading"
                         aria-hidden="true"

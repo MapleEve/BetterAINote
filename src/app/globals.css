@@ -983,7 +983,10 @@ button {
     padding: 16px 20px 20px;
 }
 
-.panel {
+.panel,
+[data-sot-panel="dashboard-loading-list"],
+[data-sot-panel="dashboard-loading-detail"],
+[data-sot-panel="recording-route-loading-detail"] {
     border-radius: 16px;
     border: 1px solid var(--line-hairline);
     background: var(--bg-elevated);
@@ -993,7 +996,10 @@ button {
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
-[data-theme="dark"] .panel {
+[data-theme="dark"] .panel,
+[data-theme="dark"] [data-sot-panel="dashboard-loading-list"],
+[data-theme="dark"] [data-sot-panel="dashboard-loading-detail"],
+[data-theme="dark"] [data-sot-panel="recording-route-loading-detail"] {
     border-color: var(--glass-border);
 }
 [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
@@ -1414,7 +1420,9 @@ button {
 }
 
 /* ======== Detail panel ======== */
-.detail {
+.detail,
+[data-sot-panel="dashboard-loading-detail"],
+[data-sot-panel="recording-route-loading-detail"] {
     display: flex;
     flex-direction: column;
     gap: 16px;

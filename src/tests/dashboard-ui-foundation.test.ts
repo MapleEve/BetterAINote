@@ -53,8 +53,12 @@ describe("dashboard SOT foundation", () => {
         );
         expect(loading).toContain('aria-busy="true"');
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('data-sot-panel="dashboard-loading-list"');
+        expect(loading).toContain('data-sot-panel="dashboard-loading-detail"');
         expect(loading).toContain('data-sot-panel="recording-list-loading"');
         expect(loading).toContain('data-sot-panel="recording-detail-loading"');
+        expect(loading).not.toContain('className="panel"');
+        expect(loading).not.toContain('className="detail panel"');
         expect(loading).not.toContain('className="skel-list"');
         expect(loading).not.toContain('className="skel-detail"');
         expect(loading).not.toContain('className="sk sk-title"');

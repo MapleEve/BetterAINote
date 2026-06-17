@@ -19,7 +19,7 @@ export default function DashboardLoading() {
                     </div>
                 </header>
                 <div className="workspace">
-                    <section className="panel">
+                    <section data-sot-panel="dashboard-loading-list">
                         <div
                             data-sot-panel="recording-list-loading"
                             aria-hidden="true"
@@ -56,7 +56,7 @@ export default function DashboardLoading() {
                             </div>
                         </div>
                     </section>
-                    <section className="detail panel">
+                    <section data-sot-panel="dashboard-loading-detail">
                         <div
                             data-sot-panel="recording-detail-loading"
                             aria-hidden="true"
