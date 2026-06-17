@@ -853,6 +853,7 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
 
         expect(workstation).toContain(
             'data-sot-surface="dashboard-workstation"',
@@ -881,6 +882,16 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
+        expect(workstation).not.toContain('className="panel list-panel"');
+        expect(workstation).toMatch(
+            /<Card\s+hasNoPadding[\s\S]*data-sot-surface="dashboard-recording-list"[\s\S]*<CardContent\s+data-sot-part="dashboard-recording-list-content">/,
+        );
+        expect(globals).toContain(
+            '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+        );
+        expect(globals).toMatch(
+            /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
+        );
         expect(workstation).toContain(
             'className="avatar"\n                            type="button"',
         );

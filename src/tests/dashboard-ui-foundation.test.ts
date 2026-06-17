@@ -197,6 +197,7 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
 
         for (const provider of [
             "dingtalk-a1",
@@ -208,6 +209,16 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).toContain(provider);
         }
 
+        expect(workstation).not.toContain('className="panel list-panel"');
+        expect(workstation).toMatch(
+            /<Card\s+hasNoPadding[\s\S]*data-sot-surface="dashboard-recording-list"[\s\S]*<CardContent\s+data-sot-part="dashboard-recording-list-content">/,
+        );
+        expect(globals).toContain(
+            '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+        );
+        expect(globals).toMatch(
+            /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
+        );
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',

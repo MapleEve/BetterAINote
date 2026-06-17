@@ -4784,8 +4784,8 @@ export function Workstation({
                 <SystemBanner />
 
                 <div className="workspace">
-                    <section
-                        className="panel list-panel"
+                    <Card
+                        hasNoPadding
                         data-current-page={String(currentListPage)}
                         data-list-state={listState}
                         data-sot-list-mode={listMode}
@@ -4794,695 +4794,741 @@ export function Workstation({
                         data-total-pages={String(listTotalPages)}
                         data-visible-count={String(pagedListEntries.length)}
                     >
-                        <div className="list-header">
-                            <div className="lh-titlebar">
-                                <h2 className="lh-title">
-                                    {getFavoriteLabel(favorite, t)}
-                                </h2>
-                                <span className="lh-count">
-                                    {t("recordingList.totalCount", {
-                                        count: listEntries.length,
-                                    })}
-                                    {source !== "all"
-                                        ? ` · ${providerLabel(source, language)}`
-                                        : ""}
-                                </span>
-                            </div>
-                            {source !== "all" ? (
-                                <output
-                                    className="stack-strip"
-                                    aria-live="polite"
-                                    data-sot-panel="dashboard-source-filter-stack"
-                                    data-sot-provider={source}
-                                    data-sot-state={sourceFilterStackState}
-                                    data-sot-status={
-                                        selectedSourceRow?.status ?? ""
-                                    }
-                                    data-state={sourceFilterStackState}
-                                    data-source-status={
-                                        selectedSourceRow?.status ?? ""
-                                    }
-                                >
-                                    <span className="stack-from">
-                                        {t("sourceFilterStack.filter")} ·{" "}
-                                        <b>
-                                            {t(
-                                                "dashboardFavorites.allRecordings",
-                                            )}
-                                        </b>
-                                    </span>
-                                    <span className="stack-sep">›</span>
-                                    <span
-                                        className="stack-chip"
-                                        data-sot-part="source-filter-chip"
-                                    >
-                                        <span data-stack-label>
-                                            {providerLabel(source, language)}
-                                        </span>
-                                        <button
-                                            className="x"
-                                            type="button"
-                                            aria-label={t(
-                                                "sourceFilterStack.clearSourceFilter",
-                                            )}
-                                            data-sot-control="source-filter-clear"
-                                            onClick={() => setSource("all")}
-                                        >
-                                            <X />
-                                        </button>
-                                    </span>
-                                    <span className="stack-info">
-                                        {sourceFilterStackMessage ||
-                                            `${t("sourceFilterStack.showing")} `}
-                                        {sourceFilterStackMessage ? null : (
-                                            <>
-                                                <b>
-                                                    {filteredRecordings.length}
-                                                </b>{" "}
-                                                / {liveRecordings.length}
-                                            </>
-                                        )}
-                                    </span>
-                                    {sourceFilterStackState === "sync-error" ? (
-                                        <button
-                                            className="src-action is-retry"
-                                            type="button"
-                                            data-sot-control="source-filter-retry-sync"
-                                            onClick={() => void runManualSync()}
-                                        >
-                                            <RefreshCw />
-                                            {t("sourceFilterStack.retrySync")}
-                                        </button>
-                                    ) : null}
-                                    {sourceFilterStackState === "no-results" ? (
-                                        <button
-                                            className="src-action is-connect"
-                                            type="button"
-                                            data-sot-control="source-filter-widen"
-                                            onClick={() => {
-                                                setFavorite("all");
-                                                applyListMode("timeline", {
-                                                    fromFavorite: true,
-                                                });
-                                                setQuery("");
-                                            }}
-                                        >
-                                            {t("sourceFilterStack.widenFilter")}
-                                        </button>
-                                    ) : null}
-                                    {selectedSourceRow &&
-                                    sourceNeedsSettings(
-                                        selectedSourceRow.status,
-                                    ) ? (
-                                        <button
-                                            className="src-action is-connect"
-                                            type="button"
-                                            data-sot-control="source-filter-open-settings"
-                                            onClick={() => {
-                                                window.localStorage.setItem(
-                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
-                                                    selectedSourceRow.key,
-                                                );
-                                                openSettings("data-sources");
-                                            }}
-                                        >
-                                            {t(
-                                                "sourceFilterStack.openSettings",
-                                            )}
-                                        </button>
-                                    ) : null}
-                                    <button
-                                        className="stack-clear"
-                                        type="button"
-                                        data-sot-control="source-filter-clear-all"
-                                        onClick={() => setSource("all")}
-                                    >
-                                        {t("sourceFilterStack.clearAll")}
-                                    </button>
-                                </output>
-                            ) : null}
-                            {librarySearchFilter ? (
-                                <output
-                                    className="xref-strip"
-                                    aria-live="polite"
-                                    data-sot-panel="dashboard-library-search-filter"
-                                    data-sot-filter={librarySearchFilter.type}
-                                    data-sot-state="active"
-                                >
-                                    <span className="xref-text">
-                                        {librarySearchFilter.type === "tag"
-                                            ? t("dashboardFavorites.tagFilter")
-                                            : t(
-                                                  "dashboardFavorites.speakerFilter",
-                                              )}
-                                    </span>
-                                    <span
-                                        className="stack-chip"
-                                        data-sot-part="library-search-filter-chip"
-                                    >
-                                        {librarySearchFilter.label}
-                                        <button
-                                            className="x"
-                                            type="button"
-                                            aria-label={t(
-                                                "dashboardChrome.clear",
-                                            )}
-                                            data-sot-control="library-search-filter-clear"
-                                            onClick={() =>
-                                                setLibrarySearchFilter(null)
-                                            }
-                                        >
-                                            <X />
-                                        </button>
-                                    </span>
-                                </output>
-                            ) : null}
-                            <div className="list-mode-bar">
-                                <div className="list-mode-label">
-                                    <span className="list-mode-label-text">
-                                        {listMode === "timeline"
-                                            ? t("recordingList.timelineTitle")
-                                            : t("recordingList.tagsTitle")}
-                                    </span>
-                                    <span className="list-mode-count">
-                                        {t("recordingList.visibleCount", {
+                        <CardContent data-sot-part="dashboard-recording-list-content">
+                            <div className="list-header">
+                                <div className="lh-titlebar">
+                                    <h2 className="lh-title">
+                                        {getFavoriteLabel(favorite, t)}
+                                    </h2>
+                                    <span className="lh-count">
+                                        {t("recordingList.totalCount", {
                                             count: listEntries.length,
                                         })}
+                                        {source !== "all"
+                                            ? ` · ${providerLabel(source, language)}`
+                                            : ""}
                                     </span>
                                 </div>
-                                <SegmentedTabs
-                                    className="list-mode-seg"
-                                    aria-label="列表模式"
-                                    items={[
-                                        {
-                                            value: "timeline",
-                                            label: t("recordingList.timeTab"),
-                                        },
-                                        {
-                                            value: "tags",
-                                            label: t("recordingList.tagsTab"),
-                                        },
-                                    ]}
-                                    value={listMode}
-                                    onValueChange={applyListMode}
-                                />
-                            </div>
-                            <div
-                                className="filter-row"
-                                data-list-filter-row="timeline"
-                                data-sot-panel="recording-list-timeline-filter"
-                                hidden={listMode !== "timeline"}
-                                inert={
-                                    listMode !== "timeline" ? true : undefined
-                                }
-                            >
-                                {TIMELINE_FILTERS.map((item) => {
-                                    const active =
-                                        timelineFilter === item.value;
-                                    return (
-                                        <button
-                                            className={
-                                                active
-                                                    ? "chip-f active"
-                                                    : "chip-f"
-                                            }
-                                            type="button"
-                                            aria-pressed={active}
-                                            data-tf={item.value}
-                                            data-sot-control="recording-list-timeline-filter"
-                                            data-sot-filter={item.value}
-                                            data-sot-state={
-                                                active ? "selected" : "idle"
-                                            }
-                                            key={item.value}
-                                            onClick={() =>
-                                                setTimelineFilter(item.value)
-                                            }
+                                {source !== "all" ? (
+                                    <output
+                                        className="stack-strip"
+                                        aria-live="polite"
+                                        data-sot-panel="dashboard-source-filter-stack"
+                                        data-sot-provider={source}
+                                        data-sot-state={sourceFilterStackState}
+                                        data-sot-status={
+                                            selectedSourceRow?.status ?? ""
+                                        }
+                                        data-state={sourceFilterStackState}
+                                        data-source-status={
+                                            selectedSourceRow?.status ?? ""
+                                        }
+                                    >
+                                        <span className="stack-from">
+                                            {t("sourceFilterStack.filter")} ·{" "}
+                                            <b>
+                                                {t(
+                                                    "dashboardFavorites.allRecordings",
+                                                )}
+                                            </b>
+                                        </span>
+                                        <span className="stack-sep">›</span>
+                                        <span
+                                            className="stack-chip"
+                                            data-sot-part="source-filter-chip"
                                         >
-                                            {t(item.labelKey)}
-                                            <span className="chip-c">
-                                                {timelineCounts[item.value]}
+                                            <span data-stack-label>
+                                                {providerLabel(
+                                                    source,
+                                                    language,
+                                                )}
                                             </span>
+                                            <button
+                                                className="x"
+                                                type="button"
+                                                aria-label={t(
+                                                    "sourceFilterStack.clearSourceFilter",
+                                                )}
+                                                data-sot-control="source-filter-clear"
+                                                onClick={() => setSource("all")}
+                                            >
+                                                <X />
+                                            </button>
+                                        </span>
+                                        <span className="stack-info">
+                                            {sourceFilterStackMessage ||
+                                                `${t("sourceFilterStack.showing")} `}
+                                            {sourceFilterStackMessage ? null : (
+                                                <>
+                                                    <b>
+                                                        {
+                                                            filteredRecordings.length
+                                                        }
+                                                    </b>{" "}
+                                                    / {liveRecordings.length}
+                                                </>
+                                            )}
+                                        </span>
+                                        {sourceFilterStackState ===
+                                        "sync-error" ? (
+                                            <button
+                                                className="src-action is-retry"
+                                                type="button"
+                                                data-sot-control="source-filter-retry-sync"
+                                                onClick={() =>
+                                                    void runManualSync()
+                                                }
+                                            >
+                                                <RefreshCw />
+                                                {t(
+                                                    "sourceFilterStack.retrySync",
+                                                )}
+                                            </button>
+                                        ) : null}
+                                        {sourceFilterStackState ===
+                                        "no-results" ? (
+                                            <button
+                                                className="src-action is-connect"
+                                                type="button"
+                                                data-sot-control="source-filter-widen"
+                                                onClick={() => {
+                                                    setFavorite("all");
+                                                    applyListMode("timeline", {
+                                                        fromFavorite: true,
+                                                    });
+                                                    setQuery("");
+                                                }}
+                                            >
+                                                {t(
+                                                    "sourceFilterStack.widenFilter",
+                                                )}
+                                            </button>
+                                        ) : null}
+                                        {selectedSourceRow &&
+                                        sourceNeedsSettings(
+                                            selectedSourceRow.status,
+                                        ) ? (
+                                            <button
+                                                className="src-action is-connect"
+                                                type="button"
+                                                data-sot-control="source-filter-open-settings"
+                                                onClick={() => {
+                                                    window.localStorage.setItem(
+                                                        SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                        selectedSourceRow.key,
+                                                    );
+                                                    openSettings(
+                                                        "data-sources",
+                                                    );
+                                                }}
+                                            >
+                                                {t(
+                                                    "sourceFilterStack.openSettings",
+                                                )}
+                                            </button>
+                                        ) : null}
+                                        <button
+                                            className="stack-clear"
+                                            type="button"
+                                            data-sot-control="source-filter-clear-all"
+                                            onClick={() => setSource("all")}
+                                        >
+                                            {t("sourceFilterStack.clearAll")}
                                         </button>
-                                    );
-                                })}
-                            </div>
-                            <div
-                                className="tag-filter"
-                                data-list-filter-row="tags"
-                                data-sot-panel="recording-list-tag-filter"
-                                hidden={listMode !== "tags"}
-                                inert={listMode !== "tags" ? true : undefined}
-                                ref={tagFilterRef}
-                            >
-                                <button
-                                    className="tag-filter-trigger"
-                                    type="button"
-                                    aria-haspopup="listbox"
-                                    aria-expanded={tagFilterOpen}
-                                    data-tag-filter-trigger=""
-                                    data-sot-control="recording-list-tag-filter-trigger"
-                                    onClick={() =>
-                                        setTagFilterOpen((open) => !open)
+                                    </output>
+                                ) : null}
+                                {librarySearchFilter ? (
+                                    <output
+                                        className="xref-strip"
+                                        aria-live="polite"
+                                        data-sot-panel="dashboard-library-search-filter"
+                                        data-sot-filter={
+                                            librarySearchFilter.type
+                                        }
+                                        data-sot-state="active"
+                                    >
+                                        <span className="xref-text">
+                                            {librarySearchFilter.type === "tag"
+                                                ? t(
+                                                      "dashboardFavorites.tagFilter",
+                                                  )
+                                                : t(
+                                                      "dashboardFavorites.speakerFilter",
+                                                  )}
+                                        </span>
+                                        <span
+                                            className="stack-chip"
+                                            data-sot-part="library-search-filter-chip"
+                                        >
+                                            {librarySearchFilter.label}
+                                            <button
+                                                className="x"
+                                                type="button"
+                                                aria-label={t(
+                                                    "dashboardChrome.clear",
+                                                )}
+                                                data-sot-control="library-search-filter-clear"
+                                                onClick={() =>
+                                                    setLibrarySearchFilter(null)
+                                                }
+                                            >
+                                                <X />
+                                            </button>
+                                        </span>
+                                    </output>
+                                ) : null}
+                                <div className="list-mode-bar">
+                                    <div className="list-mode-label">
+                                        <span className="list-mode-label-text">
+                                            {listMode === "timeline"
+                                                ? t(
+                                                      "recordingList.timelineTitle",
+                                                  )
+                                                : t("recordingList.tagsTitle")}
+                                        </span>
+                                        <span className="list-mode-count">
+                                            {t("recordingList.visibleCount", {
+                                                count: listEntries.length,
+                                            })}
+                                        </span>
+                                    </div>
+                                    <SegmentedTabs
+                                        className="list-mode-seg"
+                                        aria-label="列表模式"
+                                        items={[
+                                            {
+                                                value: "timeline",
+                                                label: t(
+                                                    "recordingList.timeTab",
+                                                ),
+                                            },
+                                            {
+                                                value: "tags",
+                                                label: t(
+                                                    "recordingList.tagsTab",
+                                                ),
+                                            },
+                                        ]}
+                                        value={listMode}
+                                        onValueChange={applyListMode}
+                                    />
+                                </div>
+                                <div
+                                    className="filter-row"
+                                    data-list-filter-row="timeline"
+                                    data-sot-panel="recording-list-timeline-filter"
+                                    hidden={listMode !== "timeline"}
+                                    inert={
+                                        listMode !== "timeline"
+                                            ? true
+                                            : undefined
                                     }
                                 >
-                                    <span
-                                        className="tag-filter-label"
-                                        data-tag-filter-label=""
-                                    >
-                                        {selectedTagOption.label}
-                                    </span>
-                                    <span
-                                        className="tag-filter-count"
-                                        data-tag-filter-count=""
-                                    >
-                                        {selectedTagOption.count}
-                                    </span>
-                                    <svg
-                                        className="tag-filter-caret"
-                                        viewBox="0 0 24 24"
-                                        aria-hidden="true"
-                                        focusable="false"
-                                    >
-                                        <path d="m6 9 6 6 6-6" />
-                                    </svg>
-                                </button>
+                                    {TIMELINE_FILTERS.map((item) => {
+                                        const active =
+                                            timelineFilter === item.value;
+                                        return (
+                                            <button
+                                                className={
+                                                    active
+                                                        ? "chip-f active"
+                                                        : "chip-f"
+                                                }
+                                                type="button"
+                                                aria-pressed={active}
+                                                data-tf={item.value}
+                                                data-sot-control="recording-list-timeline-filter"
+                                                data-sot-filter={item.value}
+                                                data-sot-state={
+                                                    active ? "selected" : "idle"
+                                                }
+                                                key={item.value}
+                                                onClick={() =>
+                                                    setTimelineFilter(
+                                                        item.value,
+                                                    )
+                                                }
+                                            >
+                                                {t(item.labelKey)}
+                                                <span className="chip-c">
+                                                    {timelineCounts[item.value]}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                                 <div
-                                    className="tag-filter-list"
-                                    role="listbox"
-                                    data-tag-filter-list=""
-                                    hidden={!tagFilterOpen}
+                                    className="tag-filter"
+                                    data-list-filter-row="tags"
+                                    data-sot-panel="recording-list-tag-filter"
+                                    hidden={listMode !== "tags"}
+                                    inert={
+                                        listMode !== "tags" ? true : undefined
+                                    }
+                                    ref={tagFilterRef}
                                 >
-                                    {tagFilterOptions.map((option) => (
-                                        <button
-                                            className="tag-filter-option"
-                                            type="button"
-                                            role="option"
-                                            data-tag-value={option.value}
-                                            aria-selected={
-                                                option.value ===
-                                                selectedTagFilter
-                                            }
-                                            data-sot-control="recording-list-tag-filter"
-                                            data-sot-filter={option.value}
-                                            data-sot-state={
-                                                option.value ===
-                                                selectedTagFilter
-                                                    ? "selected"
-                                                    : "idle"
-                                            }
-                                            key={option.value}
-                                            onClick={() => {
-                                                setSelectedTagFilter(
-                                                    option.value,
-                                                );
-                                                setTagFilterOpen(false);
-                                            }}
+                                    <button
+                                        className="tag-filter-trigger"
+                                        type="button"
+                                        aria-haspopup="listbox"
+                                        aria-expanded={tagFilterOpen}
+                                        data-tag-filter-trigger=""
+                                        data-sot-control="recording-list-tag-filter-trigger"
+                                        onClick={() =>
+                                            setTagFilterOpen((open) => !open)
+                                        }
+                                    >
+                                        <span
+                                            className="tag-filter-label"
+                                            data-tag-filter-label=""
                                         >
-                                            <span className="tag-filter-option-label">
-                                                {option.label}
-                                            </span>
-                                            <span className="tag-filter-option-count">
-                                                {option.count}
-                                            </span>
-                                        </button>
-                                    ))}
+                                            {selectedTagOption.label}
+                                        </span>
+                                        <span
+                                            className="tag-filter-count"
+                                            data-tag-filter-count=""
+                                        >
+                                            {selectedTagOption.count}
+                                        </span>
+                                        <svg
+                                            className="tag-filter-caret"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                        >
+                                            <path d="m6 9 6 6 6-6" />
+                                        </svg>
+                                    </button>
+                                    <div
+                                        className="tag-filter-list"
+                                        role="listbox"
+                                        data-tag-filter-list=""
+                                        hidden={!tagFilterOpen}
+                                    >
+                                        {tagFilterOptions.map((option) => (
+                                            <button
+                                                className="tag-filter-option"
+                                                type="button"
+                                                role="option"
+                                                data-tag-value={option.value}
+                                                aria-selected={
+                                                    option.value ===
+                                                    selectedTagFilter
+                                                }
+                                                data-sot-control="recording-list-tag-filter"
+                                                data-sot-filter={option.value}
+                                                data-sot-state={
+                                                    option.value ===
+                                                    selectedTagFilter
+                                                        ? "selected"
+                                                        : "idle"
+                                                }
+                                                key={option.value}
+                                                onClick={() => {
+                                                    setSelectedTagFilter(
+                                                        option.value,
+                                                    );
+                                                    setTagFilterOpen(false);
+                                                }}
+                                            >
+                                                <span className="tag-filter-option-label">
+                                                    {option.label}
+                                                </span>
+                                                <span className="tag-filter-option-count">
+                                                    {option.count}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="list-scroll">
-                            {listState === "loading" ? (
-                                <SotRecordingListSkeleton />
-                            ) : listState === "ready" ? (
-                                <div className="real-list">
-                                    {groupedListEntries.map((group) => (
-                                        <div
-                                            className="ls-group"
-                                            data-sot-group-id={group.id}
-                                            data-sot-group="recording-list"
-                                            data-sot-mode={listMode}
-                                            key={group.id}
-                                        >
-                                            <div className="day">
-                                                <span className="d">
-                                                    {group.label}
-                                                </span>
-                                                <span className="c">
-                                                    {group.entries.length}
-                                                </span>
-                                                <span className="line" />
-                                            </div>
-                                            {group.entries.map((entry) => {
-                                                const { recording } = entry;
-                                                const active =
-                                                    recording.id ===
-                                                    selectedRecording?.id;
-                                                const sourceMeta =
-                                                    SOURCE_ORDER.find(
-                                                        (item) =>
-                                                            item.key ===
-                                                            recording.sourceProvider,
-                                                    );
-                                                const job = liveJobs.get(
-                                                    recording.id,
-                                                );
-                                                const transcription =
-                                                    liveTranscriptions.get(
+                            <div className="list-scroll">
+                                {listState === "loading" ? (
+                                    <SotRecordingListSkeleton />
+                                ) : listState === "ready" ? (
+                                    <div className="real-list">
+                                        {groupedListEntries.map((group) => (
+                                            <div
+                                                className="ls-group"
+                                                data-sot-group-id={group.id}
+                                                data-sot-group="recording-list"
+                                                data-sot-mode={listMode}
+                                                key={group.id}
+                                            >
+                                                <div className="day">
+                                                    <span className="d">
+                                                        {group.label}
+                                                    </span>
+                                                    <span className="c">
+                                                        {group.entries.length}
+                                                    </span>
+                                                    <span className="line" />
+                                                </div>
+                                                {group.entries.map((entry) => {
+                                                    const { recording } = entry;
+                                                    const active =
+                                                        recording.id ===
+                                                        selectedRecording?.id;
+                                                    const sourceMeta =
+                                                        SOURCE_ORDER.find(
+                                                            (item) =>
+                                                                item.key ===
+                                                                recording.sourceProvider,
+                                                        );
+                                                    const job = liveJobs.get(
                                                         recording.id,
                                                     );
-                                                const rowStatus =
-                                                    getRecordingListStatus(
-                                                        recording,
-                                                        transcription,
-                                                        job,
-                                                        t,
-                                                    );
-                                                const primaryTag =
-                                                    entry.displayTag ??
-                                                    recording.tags[0];
-                                                return (
-                                                    <button
-                                                        className={
-                                                            active
-                                                                ? "row active"
-                                                                : "row"
-                                                        }
-                                                        key={recording.id}
-                                                        type="button"
-                                                        data-recording-id={
-                                                            recording.id
-                                                        }
-                                                        data-rec={recording.id}
-                                                        data-sot-control="dashboard-recording-row"
-                                                        data-sot-recording-id={
-                                                            recording.id
-                                                        }
-                                                        data-sot-state={
-                                                            active
-                                                                ? "selected"
-                                                                : "idle"
-                                                        }
-                                                        data-selected={
-                                                            active
-                                                                ? "true"
-                                                                : "false"
-                                                        }
-                                                        onClick={() =>
-                                                            selectRecording(
-                                                                recording.id,
-                                                            )
-                                                        }
-                                                    >
-                                                        <div className="body">
-                                                            <div className="title">
-                                                                {
-                                                                    recording.filename
-                                                                }
-                                                            </div>
-                                                            <div className="meta">
-                                                                {sourceMeta?.icon ? (
-                                                                    <span
-                                                                        className={
-                                                                            sourceMeta.cover
-                                                                                ? "src-mini cover"
-                                                                                : "src-mini"
-                                                                        }
-                                                                        title={
-                                                                            sourceMeta.label
-                                                                        }
-                                                                    >
-                                                                        <img
-                                                                            src={
-                                                                                sourceMeta.icon
-                                                                            }
-                                                                            alt=""
-                                                                        />
-                                                                    </span>
-                                                                ) : (
-                                                                    <span
-                                                                        className="src-mini src-mini-letter"
-                                                                        title={providerLabel(
-                                                                            recording.sourceProvider,
-                                                                            language,
-                                                                        )}
-                                                                    >
-                                                                        讯
-                                                                    </span>
-                                                                )}
-                                                                <span className="dur">
-                                                                    {formatDuration(
-                                                                        recording.duration,
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                            <div className="meta2">
-                                                                <span className="ts">
-                                                                    <span className="ts-abs">
-                                                                        {formatAbsoluteDate(
-                                                                            recording.startTime,
-                                                                        )}
-                                                                    </span>
-                                                                    <span className="ts-rel">
-                                                                        {formatRelativeDate(
-                                                                            recording.startTime,
-                                                                        )}
-                                                                    </span>
-                                                                </span>
-                                                                <span
-                                                                    className={
-                                                                        rowStatus.className
-                                                                    }
-                                                                >
-                                                                    <span
-                                                                        className={
-                                                                            rowStatus.dotClassName
-                                                                        }
-                                                                    />
+                                                    const transcription =
+                                                        liveTranscriptions.get(
+                                                            recording.id,
+                                                        );
+                                                    const rowStatus =
+                                                        getRecordingListStatus(
+                                                            recording,
+                                                            transcription,
+                                                            job,
+                                                            t,
+                                                        );
+                                                    const primaryTag =
+                                                        entry.displayTag ??
+                                                        recording.tags[0];
+                                                    return (
+                                                        <button
+                                                            className={
+                                                                active
+                                                                    ? "row active"
+                                                                    : "row"
+                                                            }
+                                                            key={recording.id}
+                                                            type="button"
+                                                            data-recording-id={
+                                                                recording.id
+                                                            }
+                                                            data-rec={
+                                                                recording.id
+                                                            }
+                                                            data-sot-control="dashboard-recording-row"
+                                                            data-sot-recording-id={
+                                                                recording.id
+                                                            }
+                                                            data-sot-state={
+                                                                active
+                                                                    ? "selected"
+                                                                    : "idle"
+                                                            }
+                                                            data-selected={
+                                                                active
+                                                                    ? "true"
+                                                                    : "false"
+                                                            }
+                                                            onClick={() =>
+                                                                selectRecording(
+                                                                    recording.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <div className="body">
+                                                                <div className="title">
                                                                     {
-                                                                        rowStatus.label
+                                                                        recording.filename
                                                                     }
-                                                                </span>
+                                                                </div>
+                                                                <div className="meta">
+                                                                    {sourceMeta?.icon ? (
+                                                                        <span
+                                                                            className={
+                                                                                sourceMeta.cover
+                                                                                    ? "src-mini cover"
+                                                                                    : "src-mini"
+                                                                            }
+                                                                            title={
+                                                                                sourceMeta.label
+                                                                            }
+                                                                        >
+                                                                            <img
+                                                                                src={
+                                                                                    sourceMeta.icon
+                                                                                }
+                                                                                alt=""
+                                                                            />
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span
+                                                                            className="src-mini src-mini-letter"
+                                                                            title={providerLabel(
+                                                                                recording.sourceProvider,
+                                                                                language,
+                                                                            )}
+                                                                        >
+                                                                            讯
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="dur">
+                                                                        {formatDuration(
+                                                                            recording.duration,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="meta2">
+                                                                    <span className="ts">
+                                                                        <span className="ts-abs">
+                                                                            {formatAbsoluteDate(
+                                                                                recording.startTime,
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="ts-rel">
+                                                                            {formatRelativeDate(
+                                                                                recording.startTime,
+                                                                            )}
+                                                                        </span>
+                                                                    </span>
+                                                                    <span
+                                                                        className={
+                                                                            rowStatus.className
+                                                                        }
+                                                                    >
+                                                                        <span
+                                                                            className={
+                                                                                rowStatus.dotClassName
+                                                                            }
+                                                                        />
+                                                                        {
+                                                                            rowStatus.label
+                                                                        }
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        {primaryTag ? (
-                                                            <div className="right">
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    data-recording-tag-chip=""
-                                                                    data-sot-tag-color={
-                                                                        primaryTag.color
-                                                                    }
-                                                                    data-sot-tag-icon={
-                                                                        primaryTag.icon
-                                                                    }
-                                                                >
-                                                                    <RecordingTagIconGlyph
-                                                                        icon={
+                                                            {primaryTag ? (
+                                                                <div className="right">
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        data-recording-tag-chip=""
+                                                                        data-sot-tag-color={
+                                                                            primaryTag.color
+                                                                        }
+                                                                        data-sot-tag-icon={
                                                                             primaryTag.icon
                                                                         }
-                                                                    />
-                                                                    {
-                                                                        primaryTag.name
-                                                                    }
-                                                                </Badge>
-                                                            </div>
-                                                        ) : null}
-                                                    </button>
-                                                );
-                                            })}
+                                                                    >
+                                                                        <RecordingTagIconGlyph
+                                                                            icon={
+                                                                                primaryTag.icon
+                                                                            }
+                                                                        />
+                                                                        {
+                                                                            primaryTag.name
+                                                                        }
+                                                                    </Badge>
+                                                                </div>
+                                                            ) : null}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div
+                                        className="list-state-block"
+                                        data-sot-part="recording-list-state"
+                                        data-sot-state={listState}
+                                    >
+                                        <span className="lsb-ico">
+                                            <FileText />
+                                        </span>
+                                        <div className="lsb-t">
+                                            {listState === "empty"
+                                                ? t("recordingList.emptyTitle")
+                                                : listState === "timeline-empty"
+                                                  ? t(
+                                                        "recordingList.timelineEmptyTitle",
+                                                    )
+                                                  : listState === "tag-empty"
+                                                    ? t(
+                                                          "recordingList.tagEmptyTitle",
+                                                      )
+                                                    : t(
+                                                          "recordingList.noMatchTitle",
+                                                      )}
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div
-                                    className="list-state-block"
-                                    data-sot-part="recording-list-state"
-                                    data-sot-state={listState}
-                                >
-                                    <span className="lsb-ico">
-                                        <FileText />
-                                    </span>
-                                    <div className="lsb-t">
-                                        {listState === "empty"
-                                            ? t("recordingList.emptyTitle")
-                                            : listState === "timeline-empty"
-                                              ? t(
-                                                    "recordingList.timelineEmptyTitle",
-                                                )
-                                              : listState === "tag-empty"
+                                        <div className="lsb-h">
+                                            {listState === "empty"
                                                 ? t(
-                                                      "recordingList.tagEmptyTitle",
+                                                      "recordingList.emptyDescription",
                                                   )
-                                                : t(
-                                                      "recordingList.noMatchTitle",
-                                                  )}
+                                                : listState === "timeline-empty"
+                                                  ? t(
+                                                        "recordingList.timelineEmptyDescription",
+                                                    )
+                                                  : listState === "tag-empty"
+                                                    ? t(
+                                                          "recordingList.tagEmptyDescription",
+                                                      )
+                                                    : t(
+                                                          "recordingList.noMatchDescription",
+                                                      )}
+                                        </div>
+                                        {listState === "empty" ? (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                type="button"
+                                                data-sot-control="recording-list-open-data-sources"
+                                                onClick={() =>
+                                                    openSettings("data-sources")
+                                                }
+                                            >
+                                                {t(
+                                                    "recordingList.openDataSources",
+                                                )}
+                                            </Button>
+                                        ) : null}
+                                        {listState === "no-match" ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-sot-control="recording-list-clear-filters"
+                                                onClick={() => {
+                                                    setFavorite("all");
+                                                    setSource("all");
+                                                    setQuery("");
+                                                    setLibrarySearchFilter(
+                                                        null,
+                                                    );
+                                                    setTimelineFilter("all");
+                                                    setSelectedTagFilter("all");
+                                                }}
+                                            >
+                                                {t(
+                                                    "recordingList.clearFilters",
+                                                )}
+                                            </Button>
+                                        ) : null}
+                                        {listState === "timeline-empty" ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-sot-control="recording-list-clear-timeline"
+                                                onClick={() =>
+                                                    setTimelineFilter("all")
+                                                }
+                                            >
+                                                {t(
+                                                    "recordingList.clearTimeline",
+                                                )}
+                                            </Button>
+                                        ) : null}
+                                        {listState === "tag-empty" ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-sot-control="recording-list-clear-tag"
+                                                onClick={() =>
+                                                    setSelectedTagFilter("all")
+                                                }
+                                            >
+                                                {t("recordingList.clearTag")}
+                                            </Button>
+                                        ) : null}
                                     </div>
-                                    <div className="lsb-h">
-                                        {listState === "empty"
-                                            ? t(
-                                                  "recordingList.emptyDescription",
-                                              )
-                                            : listState === "timeline-empty"
-                                              ? t(
-                                                    "recordingList.timelineEmptyDescription",
-                                                )
-                                              : listState === "tag-empty"
-                                                ? t(
-                                                      "recordingList.tagEmptyDescription",
-                                                  )
-                                                : t(
-                                                      "recordingList.noMatchDescription",
-                                                  )}
+                                )}
+                                {listState === "ready" && listTotalPages > 1 ? (
+                                    <div
+                                        className="list-state-block list-state-pagination"
+                                        data-list-state-block={
+                                            listPaginationState
+                                        }
+                                        data-sot-panel="recording-list-pagination"
+                                        data-sot-state={listPaginationState}
+                                    >
+                                        <div className="lsb-page-divider">
+                                            <span data-sot-part="recording-list-page-status">
+                                                {t(listPageStatusKey, {
+                                                    current: currentListPage,
+                                                    loaded: listLoadedCount,
+                                                    total: listEntries.length,
+                                                })}
+                                            </span>
+                                        </div>
+                                        <div className="lsb-page-nav">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-page-prev=""
+                                                disabled={currentListPage <= 1}
+                                                aria-disabled={
+                                                    currentListPage <= 1
+                                                        ? "true"
+                                                        : undefined
+                                                }
+                                                data-sot-control="recording-list-prev-page"
+                                                onClick={() =>
+                                                    setListPage((page) =>
+                                                        Math.max(1, page - 1),
+                                                    )
+                                                }
+                                            >
+                                                {t("recordingList.previous")}
+                                            </Button>
+                                            <span className="lsb-page-num mono">
+                                                {currentListPage} /{" "}
+                                                {listTotalPages}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-page-next=""
+                                                disabled={
+                                                    currentListPage >=
+                                                    listTotalPages
+                                                }
+                                                aria-disabled={
+                                                    currentListPage >=
+                                                    listTotalPages
+                                                        ? "true"
+                                                        : undefined
+                                                }
+                                                data-sot-control="recording-list-next-page"
+                                                onClick={() =>
+                                                    setListPage((page) =>
+                                                        Math.min(
+                                                            listTotalPages,
+                                                            page + 1,
+                                                        ),
+                                                    )
+                                                }
+                                            >
+                                                {t("recordingList.next")}
+                                            </Button>
+                                        </div>
+                                        {listPaginationState === "paginated" ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                data-sot-control="recording-list-load-more"
+                                                onClick={() =>
+                                                    setListPage((page) =>
+                                                        Math.min(
+                                                            listTotalPages,
+                                                            page + 1,
+                                                        ),
+                                                    )
+                                                }
+                                            >
+                                                {t("recordingList.loadMore")}
+                                            </Button>
+                                        ) : null}
                                     </div>
-                                    {listState === "empty" ? (
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            type="button"
-                                            data-sot-control="recording-list-open-data-sources"
-                                            onClick={() =>
-                                                openSettings("data-sources")
-                                            }
-                                        >
-                                            {t("recordingList.openDataSources")}
-                                        </Button>
-                                    ) : null}
-                                    {listState === "no-match" ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-sot-control="recording-list-clear-filters"
-                                            onClick={() => {
-                                                setFavorite("all");
-                                                setSource("all");
-                                                setQuery("");
-                                                setLibrarySearchFilter(null);
-                                                setTimelineFilter("all");
-                                                setSelectedTagFilter("all");
-                                            }}
-                                        >
-                                            {t("recordingList.clearFilters")}
-                                        </Button>
-                                    ) : null}
-                                    {listState === "timeline-empty" ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-sot-control="recording-list-clear-timeline"
-                                            onClick={() =>
-                                                setTimelineFilter("all")
-                                            }
-                                        >
-                                            {t("recordingList.clearTimeline")}
-                                        </Button>
-                                    ) : null}
-                                    {listState === "tag-empty" ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-sot-control="recording-list-clear-tag"
-                                            onClick={() =>
-                                                setSelectedTagFilter("all")
-                                            }
-                                        >
-                                            {t("recordingList.clearTag")}
-                                        </Button>
-                                    ) : null}
-                                </div>
-                            )}
-                            {listState === "ready" && listTotalPages > 1 ? (
-                                <div
-                                    className="list-state-block list-state-pagination"
-                                    data-list-state-block={listPaginationState}
-                                    data-sot-panel="recording-list-pagination"
-                                    data-sot-state={listPaginationState}
-                                >
-                                    <div className="lsb-page-divider">
-                                        <span data-sot-part="recording-list-page-status">
-                                            {t(listPageStatusKey, {
-                                                current: currentListPage,
-                                                loaded: listLoadedCount,
-                                                total: listEntries.length,
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="lsb-page-nav">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-page-prev=""
-                                            disabled={currentListPage <= 1}
-                                            aria-disabled={
-                                                currentListPage <= 1
-                                                    ? "true"
-                                                    : undefined
-                                            }
-                                            data-sot-control="recording-list-prev-page"
-                                            onClick={() =>
-                                                setListPage((page) =>
-                                                    Math.max(1, page - 1),
-                                                )
-                                            }
-                                        >
-                                            {t("recordingList.previous")}
-                                        </Button>
-                                        <span className="lsb-page-num mono">
-                                            {currentListPage} / {listTotalPages}
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-page-next=""
-                                            disabled={
-                                                currentListPage >=
-                                                listTotalPages
-                                            }
-                                            aria-disabled={
-                                                currentListPage >=
-                                                listTotalPages
-                                                    ? "true"
-                                                    : undefined
-                                            }
-                                            data-sot-control="recording-list-next-page"
-                                            onClick={() =>
-                                                setListPage((page) =>
-                                                    Math.min(
-                                                        listTotalPages,
-                                                        page + 1,
-                                                    ),
-                                                )
-                                            }
-                                        >
-                                            {t("recordingList.next")}
-                                        </Button>
-                                    </div>
-                                    {listPaginationState === "paginated" ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            type="button"
-                                            data-sot-control="recording-list-load-more"
-                                            onClick={() =>
-                                                setListPage((page) =>
-                                                    Math.min(
-                                                        listTotalPages,
-                                                        page + 1,
-                                                    ),
-                                                )
-                                            }
-                                        >
-                                            {t("recordingList.loadMore")}
-                                        </Button>
-                                    ) : null}
-                                </div>
-                            ) : null}
-                        </div>
-                    </section>
+                                ) : null}
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     <section
                         className="detail"

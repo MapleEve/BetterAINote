@@ -904,6 +904,12 @@ function recordingListPanel(page: Page) {
     return page.locator('[data-sot-surface="dashboard-recording-list"]');
 }
 
+function sotRecordingListPanel(page: Page) {
+    return page.locator(
+        '[data-sot-surface="dashboard-recording-list"], .list-panel',
+    );
+}
+
 function sotControl(page: Page, name: string) {
     return page.locator(`[data-sot-control="${name}"]`);
 }
@@ -1100,15 +1106,38 @@ async function readSotListStateBlockHtml(page: Page) {
 }
 
 async function readSotListPanelHtml(page: Page) {
-    await page.evaluate(() => {
-        document
-            .querySelectorAll(".list-panel .stack-banner, .list-panel [hidden]")
-            .forEach((element) => element.remove());
+    const panel = sotRecordingListPanel(page).first();
+    return panel.evaluate((element) => {
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone
+            .querySelectorAll(".stack-banner, [hidden]")
+            .forEach((child) => child.remove());
+        clone.querySelectorAll("._is-1").forEach((child) => {
+            child.classList.remove("_is-1");
+        });
+        clone.classList.remove("panel", "list-panel");
+        clone.setAttribute("data-slot", "card");
+        clone.setAttribute("data-sot-surface", "dashboard-recording-list");
+
+        if (
+            !clone.querySelector(
+                ':scope > [data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
+            )
+        ) {
+            const content = document.createElement("div");
+            content.setAttribute(
+                "data-sot-part",
+                "dashboard-recording-list-content",
+            );
+            content.setAttribute("data-slot", "card-content");
+            while (clone.firstChild) {
+                content.appendChild(clone.firstChild);
+            }
+            clone.appendChild(content);
+        }
+
+        return clone.outerHTML;
     });
-    return page
-        .locator(".list-panel")
-        .first()
-        .evaluate((element) => element.outerHTML);
 }
 
 async function waitForListRowFixtureImages(page: Page, fixtureId: string) {
@@ -1613,13 +1642,36 @@ async function captureListPanelFrameFixture(
             host.style.top = "0";
             host.style.zIndex = "2147483647";
             host.style.pointerEvents = "none";
-            host.style.background = "var(--bg-canvas)";
+            host.style.background = "rgb(24, 29, 35)";
 
             const stage = document.createElement("div");
             stage.className = "workspace list-panel-frame-stage";
+            stage.style.background = "rgb(24, 29, 35)";
             stage.style.boxSizing = "border-box";
             stage.style.width = `${width}px`;
             stage.innerHTML = html;
+
+            const style = document.createElement("style");
+            style.setAttribute("data-list-panel-frame-fixture", id);
+            style.textContent = `
+                #${CSS.escape(id)} [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 0;
+                    gap: 0;
+                    overflow: hidden;
+                    border-radius: 16px;
+                    border: 1px solid var(--glass-border);
+                    background: var(--bg-elevated);
+                    box-shadow: var(--shadow-sm);
+                }
+                #${CSS.escape(id)} [data-sot-surface="dashboard-recording-list"] [data-sot-part="dashboard-recording-list-content"][data-slot="card-content"] {
+                    display: flex;
+                    min-height: 0;
+                    flex-direction: column;
+                    padding: 0;
+                }
+            `;
             const stackStrip = stage.querySelector<HTMLElement>(".stack-strip");
             if (stackStrip) {
                 stackStrip.style.display = "flex";
@@ -1632,6 +1684,7 @@ async function captureListPanelFrameFixture(
                 }
             }
 
+            host.appendChild(style);
             host.appendChild(stage);
             document.body.appendChild(host);
         },
@@ -1645,7 +1698,11 @@ async function captureListPanelFrameFixture(
 
     await waitForListRowFixtureImages(page, fixtureId);
     const stage = page.locator(`#${fixtureId} > .list-panel-frame-stage`).first();
-    await expect(stage.locator(".list-panel")).toBeVisible();
+    await expect(
+        stage.locator(
+            '[data-sot-surface="dashboard-recording-list"], .list-panel',
+        ),
+    ).toBeVisible();
     await page.waitForTimeout(250);
     await page.evaluate(() => {
         document.querySelectorAll("nextjs-portal").forEach((element) => {

@@ -988,6 +988,25 @@ button {
 [data-theme="dark"] .panel {
     border-color: var(--glass-border);
 }
+[data-sot-surface="dashboard-recording-list"][data-slot="card"] {
+    min-height: 0;
+    gap: 0;
+    border-radius: 16px;
+    border-color: var(--line-hairline);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"]
+    [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
+    border-color: var(--glass-border);
+}
+[data-sot-surface="dashboard-recording-list"]
+    [data-sot-part="dashboard-recording-list-content"][data-slot="card-content"] {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    padding: 0;
+}
 
 /* List panel */
 .list-header {
@@ -1600,8 +1619,7 @@ button {
     margin-bottom: 12px;
     padding: 0;
 }
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-date"] {
+[data-sot-surface="recording-player"] [data-sot-part="recording-player-date"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
     letter-spacing: 0.02em;
@@ -4422,7 +4440,8 @@ body[data-drawer="open"] .drawer-scrim {
     }
     .main,
     .topbar,
-    .panel {
+    .panel,
+    [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
         min-width: 0;
         max-width: 100%;
         box-sizing: border-box;
