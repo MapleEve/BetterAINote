@@ -792,14 +792,27 @@ function SotSourceReportSection({
 function SotSourceReportMetaRow({
     children,
     label,
+    valueFormat,
 }: {
     children: ReactNode;
     label: string;
+    valueFormat?: "mono";
 }) {
     return (
         <div data-sot-source-report-meta-row>
             <dt>{label}</dt>
-            <dd>{children}</dd>
+            <dd>
+                {valueFormat ? (
+                    <span
+                        data-sot-source-report-meta-value
+                        data-sot-format={valueFormat}
+                    >
+                        {children}
+                    </span>
+                ) : (
+                    children
+                )}
+            </dd>
         </div>
     );
 }
@@ -6774,7 +6787,7 @@ export function Workstation({
                                                     data-sot-badge="source-report-status"
                                                     data-sot-tone="warn"
                                                 >
-                                                    <span className="dot" />
+                                                    <span data-sot-part="dashboard-source-report-status-dot" />
                                                     {t(
                                                         "sourceReport.sourceOnlyNoAudio",
                                                     )}
@@ -6818,7 +6831,7 @@ export function Workstation({
                                                             sourceTranscriptStatusLabel,
                                                         )}
                                                     >
-                                                        <span className="dot" />
+                                                        <span data-sot-part="dashboard-source-report-status-dot" />
                                                         {
                                                             sourceTranscriptStatusLabel
                                                         }
@@ -6833,7 +6846,7 @@ export function Workstation({
                                                             sourceSummaryStatusLabel,
                                                         )}
                                                     >
-                                                        <span className="dot" />
+                                                        <span data-sot-part="dashboard-source-report-status-dot" />
                                                         {
                                                             sourceSummaryStatusLabel
                                                         }
@@ -6889,8 +6902,8 @@ export function Workstation({
                                                                 ].join(":")}
                                                             >
                                                                 <span
-                                                                    className="mono"
                                                                     data-sot-source-report-segment-time
+                                                                    data-sot-format="mono"
                                                                 >
                                                                     {[
                                                                         formatSourceReportTimestamp(
@@ -6988,25 +7001,27 @@ export function Workstation({
                                                                 sourceReportSyncStatusLabel,
                                                             )}
                                                         >
-                                                            <span className="dot" />
+                                                            <span data-sot-part="dashboard-source-report-status-dot" />
                                                             {
                                                                 sourceReportSyncStatusLabel
                                                             }
                                                         </SotSourceReportStatusBadge>
                                                     </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="录制于">
-                                                        <span className="mono">
-                                                            {formatSourceReportDate(
-                                                                sourceReportRecordedAt,
-                                                            )}
-                                                        </span>
+                                                    <SotSourceReportMetaRow
+                                                        label="录制于"
+                                                        valueFormat="mono"
+                                                    >
+                                                        {formatSourceReportDate(
+                                                            sourceReportRecordedAt,
+                                                        )}
                                                     </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="最近更新">
-                                                        <span className="mono">
-                                                            {formatSourceReportDate(
-                                                                sourceReportUpdatedAt,
-                                                            )}
-                                                        </span>
+                                                    <SotSourceReportMetaRow
+                                                        label="最近更新"
+                                                        valueFormat="mono"
+                                                    >
+                                                        {formatSourceReportDate(
+                                                            sourceReportUpdatedAt,
+                                                        )}
                                                     </SotSourceReportMetaRow>
                                                     <SotSourceReportMetaRow label="可读内容">
                                                         {sourceReportReadable}
@@ -7017,19 +7032,19 @@ export function Workstation({
                                                     <SotSourceReportMetaRow label="语种">
                                                         {sourceReportLanguage}
                                                     </SotSourceReportMetaRow>
-                                                    <SotSourceReportMetaRow label="时长">
-                                                        <span className="mono">
-                                                            {selectedRecording
-                                                                ? formatDuration(
-                                                                      selectedRecording.duration,
-                                                                  )
-                                                                : "--"}
-                                                        </span>
+                                                    <SotSourceReportMetaRow
+                                                        label="时长"
+                                                        valueFormat="mono"
+                                                    >
+                                                        {selectedRecording
+                                                            ? formatDuration(
+                                                                  selectedRecording.duration,
+                                                              )
+                                                            : "--"}
                                                     </SotSourceReportMetaRow>
                                                 </dl>
                                                 <div
                                                     data-sot-source-report-actions
-                                                    data-sot-panel="source-actions"
                                                 >
                                                     <Button
                                                         variant="ghost"

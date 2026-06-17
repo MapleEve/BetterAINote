@@ -9,6 +9,18 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractBoundedSlice(
+    source: string,
+    startMarker: string,
+    endMarker: string,
+) {
+    const start = source.indexOf(startMarker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(endMarker, start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end);
+}
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|border-border|rounded-2xl|shadow-2xl|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -43,6 +55,23 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-icon"',
     'data-sot-part="dashboard-transcript-empty-message"',
     'data-sot-part="dashboard-transcript-empty-sub"',
+];
+
+const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
+    'data-sot-part="dashboard-source-report-status-dot"',
+    "data-sot-source-report-segment-time",
+    'data-sot-format="mono"',
+    'valueFormat="mono"',
+];
+
+const DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS = [
+    "data-sot-source-report-meta-value",
+    "data-sot-format={valueFormat}",
+];
+
+const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
+    'className="dot"',
+    'className="mono"',
 ];
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
@@ -561,6 +590,20 @@ describe("dashboard SOT foundation", () => {
         }
         for (const legacyClassName of DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES) {
             expect(workstation).not.toContain(legacyClassName);
+        }
+        const sourceReportLoaded = extractBoundedSlice(
+            workstation,
+            'state="loaded"\n                                            subState={sourceReportSubState}',
+            "data-sot-source-report-actions",
+        );
+        for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
+            expect(sourceReportLoaded).toContain(hook);
+        }
+        for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const legacyClassName of DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES) {
+            expect(sourceReportLoaded).not.toContain(legacyClassName);
         }
         expect(workstation).toContain(
             'import { Button } from "@/components/ui/button";',

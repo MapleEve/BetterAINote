@@ -427,6 +427,23 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-sub"',
 ];
 
+const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
+    'data-sot-part="dashboard-source-report-status-dot"',
+    "data-sot-source-report-segment-time",
+    'data-sot-format="mono"',
+    'valueFormat="mono"',
+];
+
+const DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS = [
+    "data-sot-source-report-meta-value",
+    "data-sot-format={valueFormat}",
+];
+
+const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
+    'className="dot"',
+    'className="mono"',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -1466,6 +1483,20 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("data-sot-source-report-segment");
         expect(workstation).toContain("data-sot-source-report-meta");
         expect(workstation).toContain("data-sot-source-report-actions");
+        const dashboardSourceReportLoaded = extractBoundedSlice(
+            workstation,
+            'state="loaded"\n                                            subState={sourceReportSubState}',
+            "data-sot-source-report-actions",
+        );
+        for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
+            expect(dashboardSourceReportLoaded).toContain(hook);
+        }
+        for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        for (const legacyClassName of DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES) {
+            expect(dashboardSourceReportLoaded).not.toContain(legacyClassName);
+        }
         expect(workstation).toContain("<Alert");
         expect(workstation).toContain("<Card");
         expect(workstation).toContain("<Separator");

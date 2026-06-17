@@ -8560,9 +8560,13 @@ body[data-ds-todo="show"] .design-todo {
     transition: none;
 }
 .sr-pill .dot,
-[data-sot-badge="source-report-status"][data-sot-tone] .dot {
+[data-sot-badge="source-report-status"][data-sot-tone] .dot,
+[data-sot-badge="source-report-status"][data-sot-tone]
+    [data-sot-part="dashboard-source-report-status-dot"] {
+    display: inline-block;
     width: 5px;
     height: 5px;
+    margin-right: 4px;
     border-radius: 50%;
     background: currentColor;
 }
@@ -8711,7 +8715,8 @@ body[data-ds-todo="show"] .design-todo {
     background: rgb(255 255 255 / 0.03);
 }
 .sr-seg-ts,
-[data-sot-source-report-segment-time] {
+[data-sot-source-report-segment-time],
+[data-sot-source-report-segment-time][data-sot-format="mono"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
 }
@@ -8770,6 +8775,11 @@ body[data-ds-todo="show"] .design-todo {
     font: 500 12px var(--font-sans);
     color: var(--fg-primary);
     word-break: break-word;
+}
+[data-sot-source-report-meta-row]
+    dd
+    [data-sot-source-report-meta-value][data-sot-format="mono"] {
+    font-family: var(--font-mono);
 }
 
 .sr-actions,
