@@ -665,7 +665,7 @@ async function readShellMetrics(locator: Locator) {
             '.sr-item.active, [data-sot-control="settings-nav"][data-sot-state="selected"]',
         );
         const activeSection = element.querySelector(
-            '.settings-main:not([hidden]), [data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden])',
+            '[data-sot-surface="settings-section"]:not([hidden]), [data-sot-surface="settings-data-sources"]:not([hidden])',
         );
         const save =
             element.querySelector(
@@ -740,7 +740,7 @@ async function readShellMetrics(locator: Locator) {
         }
 
         const dataSourcesRoot = element.querySelector<HTMLElement>(
-            '[data-sot-surface="settings-data-sources"], .settings-main[data-section="data-sources"]',
+            '[data-sot-surface="settings-data-sources"]',
         );
         const dataSourcesStructure = dataSourcesRoot
             ? (() => {

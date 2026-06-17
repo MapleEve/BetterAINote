@@ -997,7 +997,7 @@ function DataSourcesSettingsPanel({
     return (
         <div
             ref={scrollRef}
-            className="settings-main three-pane"
+            data-sot-layout="three-pane"
             data-sot-panel="settings-scroll-body"
             data-sot-load-state={
                 loadError ? "error" : isLoading ? "loading" : "ready"
@@ -1040,11 +1040,15 @@ function DataSourcesSettingsPanel({
                 ) : null}
 
                 {isLoading && orderedSources.length === 0 ? (
-                    <div className="empty-hint">
-                        <div className="eh-t">
+                    <div
+                        data-sot-panel="settings-empty-hint"
+                        data-sot-section="data-sources"
+                        data-sot-state="loading"
+                    >
+                        <div data-sot-part="settings-empty-title">
                             {isZh ? "正在读取来源" : "Loading sources"}
                         </div>
-                        <div className="eh-h">
+                        <div data-sot-part="settings-empty-description">
                             {isZh
                                 ? "请稍候，正在读取已保存的数据源状态。"
                                 : "Reading saved data source status."}
@@ -1212,7 +1216,10 @@ function DataSourcesSettingsPanel({
                             </div>
                         ) : null}
 
-                        <div className="ds-fields">
+                        <div
+                            data-sot-list="source-fields"
+                            data-sot-panel="source-provider-fields"
+                        >
                             {displayedServiceAddress &&
                             !providerUsesCustomServerSelector(
                                 selectedSource.provider,
@@ -1285,13 +1292,17 @@ function DataSourcesSettingsPanel({
 
                             {advancedFields.length > 0 ? (
                                 <>
-                                    <div className="empty-hint">
-                                        <div className="eh-t">
+                                    <div
+                                        data-sot-panel="settings-empty-hint"
+                                        data-sot-section="data-sources"
+                                        data-sot-state="advanced"
+                                    >
+                                        <div data-sot-part="settings-empty-title">
                                             {isZh
                                                 ? "高级选项（可选）"
                                                 : "Advanced options"}
                                         </div>
-                                        <div className="eh-h">
+                                        <div data-sot-part="settings-empty-description">
                                             {isZh
                                                 ? "仅在来源要求额外组织信息时填写。"
                                                 : "Fill these only when the source requires extra workspace details."}
@@ -1613,11 +1624,15 @@ function DataSourcesSettingsPanel({
                         </Field>
                     </>
                 ) : (
-                    <div className="empty-hint">
-                        <div className="eh-t">
+                    <div
+                        data-sot-panel="settings-empty-hint"
+                        data-sot-section="data-sources"
+                        data-sot-state="empty"
+                    >
+                        <div data-sot-part="settings-empty-title">
                             {isZh ? "没有可用数据源" : "No data sources"}
                         </div>
-                        <div className="eh-h">
+                        <div data-sot-part="settings-empty-description">
                             {isZh
                                 ? "请稍后重试，或检查服务端数据源接口。"
                                 : "Try again later or check the data source API."}
@@ -1741,7 +1756,7 @@ function SectionShell({
             <div
                 ref={scrollRef}
                 aria-busy={busy}
-                className="settings-main"
+                data-sot-layout="section"
                 data-sot-panel="settings-scroll-body"
                 data-sot-section={section}
                 data-sot-state="error"
@@ -1781,7 +1796,7 @@ function SectionShell({
         <div
             ref={scrollRef}
             aria-busy={busy}
-            className="settings-main"
+            data-sot-layout="section"
             data-sot-panel="settings-scroll-body"
             data-sot-section={section}
             data-sot-state={busy ? "busy" : "ready"}

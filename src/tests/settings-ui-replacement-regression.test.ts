@@ -433,6 +433,12 @@ describe("settings SOT interaction regressions", () => {
             expect(mobileBlock).not.toMatch(
                 /\.settings-main\.three-pane\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/,
             );
+            expect(mobileBlock).not.toMatch(
+                /\[data-sot-panel="settings-scroll-body"\]\[data-sot-layout="three-pane"\]\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+            );
+            expect(mobileBlock).not.toMatch(
+                /\[data-sot-panel="settings-scroll-body"\]\[data-sot-layout="three-pane"\]\s*{[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/,
+            );
         }
     });
 
@@ -467,6 +473,21 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("function DataSourcesSettingsPanel");
         expect(content).toContain("data-sot-load-state");
         expect(content).toContain('data-sot-surface="settings-data-sources"');
+        expect(content).toContain('data-sot-layout="three-pane"');
+        expect(content).toContain('data-sot-panel="settings-empty-hint"');
+        expect(content).toContain('data-sot-section="data-sources"');
+        expect(content).toContain('data-sot-state="loading"');
+        expect(content).toContain('data-sot-state="advanced"');
+        expect(content).toContain('data-sot-state="empty"');
+        expect(content).toContain('data-sot-part="settings-empty-title"');
+        expect(content).toContain('data-sot-part="settings-empty-description"');
+        expect(content).toContain('data-sot-list="source-fields"');
+        expect(content).toContain('data-sot-panel="source-provider-fields"');
+        expect(content).not.toContain('className="settings-main three-pane"');
+        expect(content).not.toContain('className="empty-hint"');
+        expect(content).not.toContain('className="eh-t"');
+        expect(content).not.toContain('className="eh-h"');
+        expect(content).not.toContain('className="ds-fields"');
         const providersTitle = content.match(
             /<div data-sot-part="source-providers-title">[\s\S]*?<\/div>/,
         )?.[0];
@@ -877,8 +898,10 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("function SectionShell");
         expect(content).toContain('data-sot-surface="settings-section"');
         expect(content).toContain('data-sot-panel="settings-scroll-body"');
+        expect(content).toContain('data-sot-layout="section"');
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state=");
+        expect(content).not.toContain('className="settings-main"');
         expect(content).toContain("<h3 data-sot-title>{title}</h3>");
         expect(content).toContain("data-sot-section-head");
         expect(content).toContain('from "@/components/ui/field";');
