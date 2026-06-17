@@ -3688,7 +3688,9 @@ test("dashboard local transcript copy states match SOT pixels", async ({
         await setClipboardRejectWrites(page, false);
         await localCopy.click();
         await expect(localCopy).toHaveAttribute("data-copy-state", "ok");
-        await expect(localCopy.locator(".copy-label")).toHaveText("已复制");
+        await expect(
+            localCopy.locator('[data-sot-part="dashboard-copy-label"]'),
+        ).toHaveText("已复制");
         await expectRetxResponsiveHtmlPixelsMatch(
             page,
             testInfo,
@@ -3704,7 +3706,9 @@ test("dashboard local transcript copy states match SOT pixels", async ({
         await setClipboardRejectWrites(page, true);
         await localCopy.click();
         await expect(localCopy).toHaveAttribute("data-copy-state", "err");
-        await expect(localCopy.locator(".copy-label")).toHaveText("复制失败");
+        await expect(
+            localCopy.locator('[data-sot-part="dashboard-copy-label"]'),
+        ).toHaveText("复制失败");
         await expectRetxResponsiveHtmlPixelsMatch(
             page,
             testInfo,
@@ -3835,9 +3839,11 @@ test("dashboard transcription panel copies text and switches speaker/source tabs
             "data-copy-state",
             "ok",
         );
-        await expect(localTranscriptCopyButton(page).locator(".copy-label")).toHaveText(
-            "已复制",
-        );
+        await expect(
+            localTranscriptCopyButton(page).locator(
+                '[data-sot-part="dashboard-copy-label"]',
+            ),
+        ).toHaveText("已复制");
         await expect
             .poll(() => copiedText)
             .toContain("切换标签也要稳定");
@@ -4762,9 +4768,9 @@ test("dashboard transcription copy actions recover after clipboard write rejecti
         const localCopyButton = localTranscriptCopyButton(page);
         await localCopyButton.click();
         await expect(localCopyButton).toHaveAttribute("data-copy-state", "err");
-        await expect(localCopyButton.locator(".copy-label")).toHaveText(
-            "复制失败",
-        );
+        await expect(
+            localCopyButton.locator('[data-sot-part="dashboard-copy-label"]'),
+        ).toHaveText("复制失败");
         await expect(
             page.getByText("复制转录失败，请检查浏览器剪贴板权限。"),
         ).toBeVisible();
@@ -4788,9 +4794,11 @@ test("dashboard transcription copy actions recover after clipboard write rejecti
             "data-copy-state",
             "err",
         );
-        await expect(sourceTranscriptButton.locator(".copy-label")).toHaveText(
-            "复制失败",
-        );
+        await expect(
+            sourceTranscriptButton.locator(
+                '[data-sot-part="dashboard-copy-label"]',
+            ),
+        ).toHaveText("复制失败");
         await expect(
             page.getByText("复制失败，请检查浏览器剪贴板权限。"),
         ).toBeVisible();

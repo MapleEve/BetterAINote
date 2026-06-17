@@ -5918,7 +5918,7 @@ export function Workstation({
                                 <Button
                                     variant="ghost"
                                     size="icon-lg"
-                                    className="play rounded-full"
+                                    className="rounded-full"
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6204,7 +6204,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span className="copy-label">
+                                        <span data-sot-part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "local-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -6267,7 +6267,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span className="copy-label">
+                                        <span data-sot-part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-transcript"
                                                 ? copyFeedback.state === "ok"
@@ -6327,7 +6327,7 @@ export function Workstation({
                                                     : undefined
                                             }
                                         />
-                                        <span className="copy-label">
+                                        <span data-sot-part="dashboard-copy-label">
                                             {copyFeedback?.action ===
                                             "source-report"
                                                 ? copyFeedback.state === "ok"

@@ -21,6 +21,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-tab-pane="source-report"',
     'data-sot-tab-pane="speakers"',
     'data-sot-part="dashboard-transcript-actions"',
+    'data-sot-part="dashboard-copy-label"',
     'data-sot-part="dashboard-transcript-avatar"',
     'data-sot-list="dashboard-speaker-rows"',
     'data-sot-item="dashboard-speaker-row"',
@@ -34,6 +35,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
+    'className="copy-label"',
     'className="t-pane"',
     'className="avatar-sm"',
     'className="sp-rows"',
@@ -341,6 +343,12 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'aria-label={isPlaying ? "暂停" : "播放"}',
         );
+        expect(workstation).toContain(
+            'data-sot-control="dashboard-player-play"',
+        );
+        expect(workstation).toContain('data-sot-part="dashboard-copy-label"');
+        expect(workstation).not.toContain('className="copy-label"');
+        expect(workstation).not.toContain('className="play rounded-full"');
         expect(workstation).toContain("<SettingsDialog");
         expect(workstation).not.toMatch(OLD_UI_RE);
         expect(workstation).not.toMatch(

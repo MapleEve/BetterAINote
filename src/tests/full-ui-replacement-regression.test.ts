@@ -403,6 +403,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
     'data-sot-tab-pane="source-report"',
     'data-sot-tab-pane="speakers"',
     'data-sot-part="dashboard-transcript-actions"',
+    'data-sot-part="dashboard-copy-label"',
     'data-sot-part="dashboard-transcript-avatar"',
     'data-sot-list="dashboard-speaker-rows"',
     'data-sot-item="dashboard-speaker-row"',
@@ -416,6 +417,7 @@ const DASHBOARD_DETAIL_PANE_SOT_HOOKS = [
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
+    'className="copy-label"',
     'className="t-pane"',
     'className="avatar-sm"',
     'className="sp-rows"',
@@ -1369,6 +1371,9 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-recording-player-controls"',
         );
         expect(dashboardPlayer).toContain("<Button");
+        expect(dashboardPlayer).toContain(
+            'data-sot-control="dashboard-player-play"',
+        );
         expect(dashboardPlayer).toContain("<Slider");
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-current-time"',
@@ -1402,6 +1407,7 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const legacyPlayerHook of [
             'className="player"',
+            'className="play rounded-full"',
             'className="player-meta"',
             'className="player-controls"',
             'className="player-controls is-disabled"',
