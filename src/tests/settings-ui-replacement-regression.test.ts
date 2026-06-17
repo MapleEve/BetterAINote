@@ -1224,9 +1224,14 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
+        expect(speakers).toContain(
+            'import { Avatar, AvatarFallback } from "@/components/ui/avatar";',
+        );
         expect(speakers).toMatch(
             /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
+        expect(speakers).toContain("<Avatar");
+        expect(speakers).toContain("<AvatarFallback>");
         expect(speakers).toContain("<Button");
         expect(speakers).toContain("<Badge");
         expect(speakers).toContain('data-sot-badge="speaker-state"');
@@ -1243,7 +1248,6 @@ describe("settings SOT interaction regressions", () => {
         });
         expect(speakers).not.toContain('className="btn"');
         expect(speakers).not.toContain('className="btn danger"');
-        expect(speakers).toContain("data-sot-speaker-profiles-panel");
         expect(speakers).toContain("data-sot-state={profilesState}");
         expect(speakers).toContain(
             "data-sot-voiceprints-state={voiceprintsState}",
@@ -1251,8 +1255,32 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain('data-sot-panel="speaker-voiceprints"');
         expect(speakers).toContain("data-sot-speaker-profile-row");
         expect(speakers).toContain("data-sot-voiceprint-row");
-        expect(speakers).toContain("sot-speaker-profiles");
-        expect(speakers).toContain("sot-speaker-avatar");
+        expect(speakers).toContain('data-sot-list="speaker-profile-rows"');
+        expect(speakers).toContain('data-sot-item="speaker-profile-row"');
+        expect(speakers).toContain('data-sot-part="speaker-profile-avatar"');
+        expect(speakers).toContain('data-sot-part="speaker-profile-row-meta"');
+        expect(speakers).toContain('data-sot-part="speaker-profile-row-sub"');
+        expect(speakers).toContain('data-sot-list="speaker-voiceprint-rows"');
+        expect(speakers).toContain('data-sot-item="speaker-voiceprint-row"');
+        expect(speakers).toContain('data-sot-part="speaker-voiceprint-avatar"');
+        expect(speakers).toContain(
+            'data-sot-part="speaker-voiceprint-row-meta"',
+        );
+        expect(speakers).toContain(
+            'data-sot-part="speaker-voiceprint-row-sub"',
+        );
+        for (const oldClassHook of [
+            'className="sot-speaker-profiles"',
+            'className="sp-rows"',
+            'className="sp-row"',
+            'className="sot-speaker-avatar"',
+            'className="sp-row-meta"',
+            'className="sp-row-sub"',
+        ]) {
+            expect(speakers).not.toContain(oldClassHook);
+        }
+        expect(speakers).not.toContain("sot-speaker-avatar");
+        expect(speakers).not.toContain("sot-speaker-profiles");
         expect(speakers).not.toContain("sot-speaker-pill");
         expect(speakers).not.toContain("data-profiles-state");
         expect(speakers).not.toContain("data-vs-state");

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -474,10 +475,8 @@ export function SpeakerProfilesPanel() {
 
     return (
         <div
-            className="sot-speaker-profiles"
             data-sot-panel="speaker-profiles"
             data-sot-section-group
-            data-sot-speaker-profiles-panel=""
             data-sot-state={profilesState}
             data-sot-voiceprints-state={voiceprintsState}
         >
@@ -585,7 +584,7 @@ export function SpeakerProfilesPanel() {
                             : "No saved speakers yet."}
                     </PanelNotice>
                 ) : (
-                    <div className="sp-rows">
+                    <div data-sot-list="speaker-profile-rows">
                         {profiles.map((profile) => {
                             const isProfileSaving =
                                 localSavingId === profile.id;
@@ -593,7 +592,7 @@ export function SpeakerProfilesPanel() {
                             return (
                                 <div
                                     key={profile.id}
-                                    className="sp-row"
+                                    data-sot-item="speaker-profile-row"
                                     data-sot-speaker-profile-row=""
                                     data-sot-speaker-profile-busy={
                                         isProfileSaving ? "true" : "false"
@@ -603,13 +602,15 @@ export function SpeakerProfilesPanel() {
                                         isProfileSaving ? "saving" : "ready"
                                     }
                                 >
-                                    <span className="sot-speaker-avatar">
-                                        {profile.displayName
-                                            .trim()
-                                            .slice(0, 1)
-                                            .toUpperCase() || "#"}
-                                    </span>
-                                    <div className="sp-row-meta">
+                                    <Avatar data-sot-part="speaker-profile-avatar">
+                                        <AvatarFallback>
+                                            {profile.displayName
+                                                .trim()
+                                                .slice(0, 1)
+                                                .toUpperCase() || "#"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div data-sot-part="speaker-profile-row-meta">
                                         <Input
                                             data-sot-control="speaker-profile-name"
                                             data-sot-speaker-profile-id={
@@ -633,7 +634,7 @@ export function SpeakerProfilesPanel() {
                                             }
                                             disabled={isProfileSaving}
                                         />
-                                        <div className="sp-row-sub">
+                                        <div data-sot-part="speaker-profile-row-sub">
                                             <span>
                                                 {isZh
                                                     ? `已用于 ${profile.assignmentCount} 条录音`
@@ -790,7 +791,7 @@ export function SpeakerProfilesPanel() {
                             : "No remote voiceprints found."}
                     </PanelNotice>
                 ) : (
-                    <div className="sp-rows">
+                    <div data-sot-list="speaker-voiceprint-rows">
                         {voiceprints.map((voiceprint) => {
                             const isVoiceprintSaving =
                                 voiceprintSavingId === voiceprint.id;
@@ -798,7 +799,7 @@ export function SpeakerProfilesPanel() {
                             return (
                                 <div
                                     key={voiceprint.id}
-                                    className="sp-row"
+                                    data-sot-item="speaker-voiceprint-row"
                                     data-sot-state={
                                         isVoiceprintSaving ? "saving" : "ready"
                                     }
@@ -808,14 +809,16 @@ export function SpeakerProfilesPanel() {
                                     data-sot-voiceprint-id={voiceprint.id}
                                     data-sot-voiceprint-row=""
                                 >
-                                    <span className="sot-speaker-avatar">
-                                        {voiceprint.displayName
-                                            .trim()
-                                            .slice(0, 1)
-                                            .toUpperCase() || "V"}
-                                    </span>
+                                    <Avatar data-sot-part="speaker-voiceprint-avatar">
+                                        <AvatarFallback>
+                                            {voiceprint.displayName
+                                                .trim()
+                                                .slice(0, 1)
+                                                .toUpperCase() || "V"}
+                                        </AvatarFallback>
+                                    </Avatar>
 
-                                    <div className="sp-row-meta">
+                                    <div data-sot-part="speaker-voiceprint-row-meta">
                                         <Label
                                             hidden
                                             htmlFor={`voiceprint-${voiceprint.id}`}
@@ -849,7 +852,7 @@ export function SpeakerProfilesPanel() {
                                             }
                                             disabled={isVoiceprintSaving}
                                         />
-                                        <div className="sp-row-sub">
+                                        <div data-sot-part="speaker-voiceprint-row-sub">
                                             <StatePill tone="success">
                                                 {isZh ? "远端声纹" : "Remote"}
                                             </StatePill>
