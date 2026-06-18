@@ -1443,7 +1443,6 @@ button {
 }
 
 /* ======== Liquid tabs ======== */
-.liquid-tabs,
 [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
     --idx: 0;
     --n: 2;
@@ -1459,19 +1458,16 @@ button {
     width: fit-content;
     min-width: 220px;
 }
-[data-theme="dark"] .liquid-tabs,
 [data-theme="dark"]
     [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
     background: rgb(255 255 255 / 0.04);
     border-color: var(--glass-border-soft);
     box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.03);
 }
-.liquid-tabs.sm,
 [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"] {
     padding: 3px;
     border-radius: 10px;
 }
-.lt-ind,
 [data-sot-part="liquid-tabs-indicator"] {
     position: absolute;
     left: 4px;
@@ -1490,7 +1486,6 @@ button {
     transform: translateX(calc(var(--idx) * 100%));
     transition: transform 460ms var(--ease-out);
 }
-.liquid-tabs.sm .lt-ind,
 [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"]
     [data-sot-part="liquid-tabs-indicator"] {
     left: 3px;
@@ -1499,7 +1494,6 @@ button {
     width: calc((100% - 6px) / var(--n));
     border-radius: 7px;
 }
-.lt-tab,
 [data-sot-control="liquid-tab"] {
     position: relative;
     z-index: 1;
@@ -1513,7 +1507,6 @@ button {
     border-radius: 9px;
     transition: color 220ms var(--ease-out);
 }
-.lt-tab.active,
 [data-sot-control="liquid-tab"][data-sot-state="active"] {
     color: white;
 }
@@ -3512,7 +3505,8 @@ button {
 /* ===========================================================
    FIX: kill warm white gradients in dark mode
    =========================================================== */
-[data-theme="dark"] .liquid-tabs {
+[data-theme="dark"]
+    [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
     background: rgb(255 255 255 / 0.04);
 }
 /* ===========================================================
@@ -10275,7 +10269,7 @@ body[data-ds-todo="show"] .design-todo {
 
 /* ---------- Transcript head tab visibility safety ---------- */
 [data-sot-part="dashboard-transcript-header"][data-slot="card-header"]
-    .liquid-tabs {
+    [data-sot-control="liquid-tabs"] {
     flex: none;
 }
 [data-sot-part="dashboard-transcript-actions"] {
@@ -10493,7 +10487,6 @@ body[data-ds-todo="show"] .design-todo {
 [data-sot-control="dashboard-recording-time-filter"]:focus-visible,
 [data-sot-control="dashboard-recording-row"]:focus-visible,
 .chip-f:focus-visible,
-.lt-tab:focus-visible,
 [data-sot-control="liquid-tab"]:focus-visible,
 [data-sot-control="settings-nav"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
@@ -10544,51 +10537,39 @@ body[data-ds-todo="show"] .design-todo {
    ============================================================ */
 
 /* Liquid tabs — segment count + active index ------------- */
-.liquid-tabs[data-tabs="1"],
 [data-sot-control="liquid-tabs"][data-tabs="1"] {
     --n: 1;
 }
-.liquid-tabs[data-tabs="2"],
 [data-sot-control="liquid-tabs"][data-tabs="2"] {
     --n: 2;
 }
-.liquid-tabs[data-tabs="3"],
 [data-sot-control="liquid-tabs"][data-tabs="3"] {
     --n: 3;
 }
-.liquid-tabs[data-tabs="4"],
 [data-sot-control="liquid-tabs"][data-tabs="4"] {
     --n: 4;
 }
-.liquid-tabs[data-tabs="5"],
 [data-sot-control="liquid-tabs"][data-tabs="5"] {
     --n: 5;
 }
-.liquid-tabs[data-tabs="6"],
 [data-sot-control="liquid-tabs"][data-tabs="6"] {
     --n: 6;
 }
-.liquid-tabs[data-idx="0"],
 [data-sot-control="liquid-tabs"][data-idx="0"] {
     --idx: 0;
 }
-.liquid-tabs[data-idx="1"],
 [data-sot-control="liquid-tabs"][data-idx="1"] {
     --idx: 1;
 }
-.liquid-tabs[data-idx="2"],
 [data-sot-control="liquid-tabs"][data-idx="2"] {
     --idx: 2;
 }
-.liquid-tabs[data-idx="3"],
 [data-sot-control="liquid-tabs"][data-idx="3"] {
     --idx: 3;
 }
-.liquid-tabs[data-idx="4"],
 [data-sot-control="liquid-tabs"][data-idx="4"] {
     --idx: 4;
 }
-.liquid-tabs[data-idx="5"],
 [data-sot-control="liquid-tabs"][data-idx="5"] {
     --idx: 5;
 }
@@ -14141,7 +14122,6 @@ select::-ms-expand {
 }
 
 .chip-f.is-focus-demo,
-.lt-tab.is-focus-demo,
 [data-sot-control="liquid-tab"].is-focus-demo,
 .ls-chip.is-focus-demo,
 .row.is-focus-demo {

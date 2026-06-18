@@ -223,6 +223,19 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="recording-list-page-number"]',
 ];
 
+const LIQUID_TABS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:liquid-tabs|lt-ind|lt-tab)(?![\w-])/;
+
+const LIQUID_TABS_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"]',
+    '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"]',
+    '[data-sot-part="liquid-tabs-indicator"]',
+    '[data-sot-control="liquid-tab"]',
+    '[data-sot-control="liquid-tab"][data-sot-state="active"]',
+    '[data-sot-control="liquid-tabs"][data-tabs="3"]',
+    '[data-sot-control="liquid-tabs"][data-idx="2"]',
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -989,6 +1002,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps liquid tabs product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                LIQUID_TABS_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of LIQUID_TABS_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
