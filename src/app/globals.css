@@ -960,75 +960,6 @@ button {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
 }
-/* ======== Liquid tabs ======== */
-[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
-    --idx: 0;
-    --n: 2;
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(var(--n), 1fr);
-    gap: 0;
-    padding: 4px;
-    border-radius: 12px;
-    background: var(--bg-recessed);
-    border: 1px solid color-mix(in srgb, var(--graphite-300) 60%, transparent);
-    box-shadow: inset 0 1px 2px rgb(20 22 28 / 0.04);
-    width: fit-content;
-    min-width: 220px;
-}
-[data-theme="dark"]
-    [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
-    background: rgb(255 255 255 / 0.04);
-    border-color: var(--glass-border-soft);
-    box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.03);
-}
-[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"] {
-    padding: 3px;
-    border-radius: 10px;
-}
-[data-sot-part="liquid-tabs-indicator"] {
-    position: absolute;
-    left: 4px;
-    top: 4px;
-    bottom: 4px;
-    width: calc((100% - 8px) / var(--n));
-    border-radius: 9px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    box-shadow:
-        0 4px 12px color-mix(in srgb, var(--accent) 22%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-    transform: translateX(calc(var(--idx) * 100%));
-    transition: transform 460ms var(--ease-out);
-}
-[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"]
-    [data-sot-part="liquid-tabs-indicator"] {
-    left: 3px;
-    top: 3px;
-    bottom: 3px;
-    width: calc((100% - 6px) / var(--n));
-    border-radius: 7px;
-}
-[data-sot-control="liquid-tab"] {
-    position: relative;
-    z-index: 1;
-    padding: 6px 14px;
-    min-width: 80px;
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-secondary);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    border-radius: 9px;
-    transition: color 220ms var(--ease-out);
-}
-[data-sot-control="liquid-tab"][data-sot-state="active"] {
-    color: white;
-}
-
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
 [data-sot-panel="dashboard-loading-detail"],
@@ -1888,13 +1819,6 @@ button {
     gap: 8px;
 }
 
-/* ===========================================================
-   FIX: kill warm white gradients in dark mode
-   =========================================================== */
-[data-theme="dark"]
-    [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
-    background: rgb(255 255 255 / 0.04);
-}
 /* ===========================================================
    New rich list (preview/15) — data-sot recording list
    =========================================================== */
@@ -5212,10 +5136,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     flex: none;
 }
 
-/* ---------- Transcript head tab visibility safety ---------- */
-[data-sot-part="dashboard-transcript-header"] [data-sot-control="liquid-tabs"] {
-    flex: none;
-}
 [data-sot-part="dashboard-transcript-actions"] {
     margin-left: auto;
     flex: none;
@@ -5289,7 +5209,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    keep their own.
    ============================================================ */
 [data-sot-control="dashboard-recording-row"]:focus-visible,
-[data-sot-control="liquid-tab"]:focus-visible,
 [data-sot-control="settings-nav"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
 [data-sot-part="source-provider-action"]:focus-visible,
@@ -5315,44 +5234,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    These rules let JS just set data-* attributes; the actual
    width/transform/positioning lives here.
    ============================================================ */
-
-/* Liquid tabs — segment count + active index ------------- */
-[data-sot-control="liquid-tabs"][data-tabs="1"] {
-    --n: 1;
-}
-[data-sot-control="liquid-tabs"][data-tabs="2"] {
-    --n: 2;
-}
-[data-sot-control="liquid-tabs"][data-tabs="3"] {
-    --n: 3;
-}
-[data-sot-control="liquid-tabs"][data-tabs="4"] {
-    --n: 4;
-}
-[data-sot-control="liquid-tabs"][data-tabs="5"] {
-    --n: 5;
-}
-[data-sot-control="liquid-tabs"][data-tabs="6"] {
-    --n: 6;
-}
-[data-sot-control="liquid-tabs"][data-idx="0"] {
-    --idx: 0;
-}
-[data-sot-control="liquid-tabs"][data-idx="1"] {
-    --idx: 1;
-}
-[data-sot-control="liquid-tabs"][data-idx="2"] {
-    --idx: 2;
-}
-[data-sot-control="liquid-tabs"][data-idx="3"] {
-    --idx: 3;
-}
-[data-sot-control="liquid-tabs"][data-idx="4"] {
-    --idx: 4;
-}
-[data-sot-control="liquid-tabs"][data-idx="5"] {
-    --idx: 5;
-}
 
 /* Speaker bars — discrete percent buckets (0..100) -------- */
 
@@ -7387,7 +7268,6 @@ select::-ms-expand {
 }
 
 [data-sot-control="dashboard-recording-time-filter"].is-focus-demo,
-[data-sot-control="liquid-tab"].is-focus-demo,
 [data-sot-control="dashboard-recording-row"].is-focus-demo {
     outline: 2px solid
         color-mix(in srgb, var(--accent, #5b6470) 70%, transparent);

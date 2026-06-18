@@ -501,12 +501,13 @@ const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 const LIQUID_TABS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:liquid-tabs|lt-ind|lt-tab)(?![\w-])/;
 
-const LIQUID_TABS_DATA_SOT_CSS_SELECTORS = [
+const RETIRED_LIQUID_TABS_CSS_SELECTORS = [
     '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"]',
     '[data-sot-control="liquid-tabs"][data-slot="segmented-tabs"][data-sot-size="sm"]',
     '[data-sot-part="liquid-tabs-indicator"]',
     '[data-sot-control="liquid-tab"]',
     '[data-sot-control="liquid-tab"][data-sot-state="active"]',
+    '[data-sot-control="liquid-tabs"]',
     '[data-sot-control="liquid-tabs"][data-tabs="3"]',
     '[data-sot-control="liquid-tabs"][data-idx="2"]',
 ];
@@ -1783,7 +1784,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps liquid tabs product CSS on data-sot selectors", () => {
+    it("does not keep the retired liquid tabs CSS framework", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
@@ -1793,9 +1794,11 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of LIQUID_TABS_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of RETIRED_LIQUID_TABS_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
+        expect(globals).not.toContain('[data-tabs="');
+        expect(globals).not.toContain('[data-idx="');
     });
 
     it("keeps system banners product CSS on data-sot selectors", () => {

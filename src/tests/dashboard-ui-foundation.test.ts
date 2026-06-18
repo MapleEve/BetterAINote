@@ -915,13 +915,36 @@ describe("dashboard SOT foundation", () => {
         }
 
         expect(segmentedTabs).toContain('data-sot-control="liquid-tabs"');
-        expect(segmentedTabs).toContain('data-slot="segmented-tabs"');
         expect(segmentedTabs).toContain("data-sot-size={size}");
-        expect(segmentedTabs).toContain(
-            'data-sot-part="liquid-tabs-indicator"',
-        );
+        expect(segmentedTabs).toContain("data-tabs={items.length}");
+        expect(segmentedTabs).toContain("data-active={activeIndex}");
         expect(segmentedTabs).toContain('data-sot-control="liquid-tab"');
         expect(segmentedTabs).toContain("data-sot-state={");
+        expect(segmentedTabs).toContain(
+            'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
+        );
+        expect(segmentedTabs).toContain("<ToggleGroup");
+        expect(segmentedTabs).toContain("<ToggleGroupItem");
+        expect(segmentedTabs).toContain('type="single"');
+        expect(segmentedTabs).toContain("value={value}");
+        expect(segmentedTabs).toContain("if (!nextValue) return;");
+        expect(segmentedTabs).toContain("onValueChange(nextValue as T)");
+        expect(segmentedTabs).toContain(
+            "data-tab-key={item.tabKey ?? item.value}",
+        );
+        expect(segmentedTabs).toContain(
+            "aria-disabled={item.disabled || undefined}",
+        );
+        expect(segmentedTabs).toContain(
+            "aria-selected={item.value === value}",
+        );
+        expect(segmentedTabs).toContain("disabled={item.disabled}");
+        expect(segmentedTabs).not.toContain("<button");
+        expect(segmentedTabs).not.toContain('data-slot="segmented-tabs"');
+        expect(segmentedTabs).not.toContain(
+            'data-sot-part="liquid-tabs-indicator"',
+        );
+        expect(segmentedTabs).not.toContain("data-idx");
         expect(segmentedTabs).not.toContain('className={cn("liquid-tabs"');
         expect(segmentedTabs).not.toContain('className="liquid-tabs"');
         expect(segmentedTabs).not.toContain('className="lt-ind"');

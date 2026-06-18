@@ -2,12 +2,19 @@
 
 import type { ComponentPropsWithoutRef } from "react";
 
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
 export type SegmentedTabItem<T extends string = string> = {
     value: T;
     label: string;
     disabled?: boolean;
     tabKey?: string;
 };
+
+type SegmentedTabsRootProps = Omit<
+    ComponentPropsWithoutRef<typeof ToggleGroup>,
+    "children" | "defaultValue" | "onValueChange" | "size" | "type" | "value"
+>;
 
 export function SegmentedTabs<T extends string>({
     items,
@@ -17,7 +24,7 @@ export function SegmentedTabs<T extends string>({
     size = "sm",
     "aria-label": ariaLabel,
     ...props
-}: Omit<ComponentPropsWithoutRef<"div">, "onChange"> & {
+}: SegmentedTabsRootProps & {
     items: SegmentedTabItem<T>[];
     value: T;
     onValueChange: (value: T) => void;
@@ -27,24 +34,30 @@ export function SegmentedTabs<T extends string>({
         0,
         items.findIndex((item) => item.value === value),
     );
+    const handleValueChange = (nextValue: string) => {
+        if (!nextValue) return;
+        onValueChange(nextValue as T);
+    };
 
     return (
-        <div
+        <ToggleGroup
             {...props}
             className={className}
+            type="single"
+            value={value}
+            onValueChange={handleValueChange}
+            size={size === "sm" ? "sm" : "default"}
             role="tablist"
             aria-label={ariaLabel}
             data-sot-control="liquid-tabs"
-            data-slot="segmented-tabs"
             data-sot-size={size}
-            data-idx={activeIndex}
             data-tabs={items.length}
             data-active={activeIndex}
         >
-            <span data-sot-part="liquid-tabs-indicator" aria-hidden="true" />
             {items.map((item) => (
-                <button
-                    type="button"
+                <ToggleGroupItem
+                    key={item.value}
+                    value={item.value}
                     data-sot-control="liquid-tab"
                     data-sot-state={
                         item.disabled
@@ -58,16 +71,10 @@ export function SegmentedTabs<T extends string>({
                     disabled={item.disabled}
                     aria-disabled={item.disabled || undefined}
                     aria-selected={item.value === value}
-                    key={item.value}
-                    onClick={() => {
-                        if (!item.disabled) {
-                            onValueChange(item.value);
-                        }
-                    }}
                 >
                     {item.label}
-                </button>
+                </ToggleGroupItem>
             ))}
-        </div>
+        </ToggleGroup>
     );
 }
