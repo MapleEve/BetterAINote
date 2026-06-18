@@ -2407,6 +2407,7 @@ describe("full UI replacement regression coverage", () => {
             "features/recordings/components/ai-rename-preview-card.tsx",
         );
         const badge = readSource("components/ui/badge.tsx");
+        const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
         const globals = readSource("app/globals.css");
@@ -2449,11 +2450,16 @@ describe("full UI replacement regression coverage", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
+        expect(button).toContain('data-slot="button"');
+        expect(button).toContain('data-variant={variant}');
+        expect(button).toContain('data-size={size}');
         expect(card).toContain('data-slot="card-header"');
         expect(input).toContain('data-slot="input"');
         expect(dashboardDetailHeader).toContain("<CardHeader");
         expect(dashboardDetailHeader).toContain("<CardTitle");
         expect(dashboardDetailHeader).toContain("<Badge");
+        expect(dashboardDetailHeader).toContain("<Button");
+        expect(dashboardDetailHeader).toContain("<Input");
         expect(dashboardDetailHeader).toContain(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -2479,7 +2485,21 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
         expect(dashboardDetailHeader).toContain('data-sot-control="ai-rename"');
+        expect(dashboardDetailHeader).toContain('variant="ghost"');
+        expect(dashboardDetailHeader).toContain('variant="outline"');
+        expect(dashboardDetailHeader).toContain('size="icon-sm"');
+        expect(dashboardDetailHeader).toContain('size="sm"');
+        expect(dashboardDetailHeader).toContain('className="h-8 flex-1"');
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
+        expect(globals).not.toMatch(
+            /\[data-sot-panel="dashboard-detail-header"\]\s*\[data-slot="button"\]/,
+        );
+        expect(globals).not.toMatch(
+            /:is\(\s*\[data-sot-panel="dashboard-detail-header"\],\s*\[data-sot-panel="recording-detail-header"\]\s*\)\s*\[data-slot="button"\]/,
+        );
+        expect(globals).not.toMatch(
+            /\[data-sot-part="detail-header-title-input"\]\[data-slot="input"\]\s*{[^}]*\b(?:height|padding|border-radius|background|border|font|color|box-shadow)\s*:/,
+        );
         const dashboardDetailHeaderLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2492,14 +2512,15 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeaderLegacySelectorLines).toEqual([]);
         for (const selector of [
             '[data-sot-panel="dashboard-detail"]',
-            '[data-sot-panel="dashboard-detail-header"][data-slot="card-header"]',
+            '[data-sot-panel="dashboard-detail-header"],',
+            '[data-sot-panel="recording-detail-header"]',
+            '[data-slot="card-header"]',
             '[data-sot-part="detail-header-title"][data-slot="card-title"]',
             '[data-sot-part="detail-header-title-input"]',
             '[data-sot-part="detail-header-title-status"]',
             '[data-sot-part="detail-header-local-badge"]',
             '[data-sot-part="detail-header-action"]',
             '[data-sot-part="detail-header-action-anchor"]',
-            '[data-sot-panel="recording-detail-header"]',
         ]) {
             expect(globals).toContain(selector);
         }
@@ -2995,6 +3016,13 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain("data-rh-edit-start");
         expect(detailHeader).toContain("data-rh-edit-save");
         expect(detailHeader).toContain("data-rh-edit-cancel");
+        expect(detailHeader).toContain("<Button");
+        expect(detailHeader).toContain("<Input");
+        expect(detailHeader).toContain('variant="ghost"');
+        expect(detailHeader).toContain('variant="outline"');
+        expect(detailHeader).toContain('size="icon-sm"');
+        expect(detailHeader).toContain('size="sm"');
+        expect(detailHeader).toContain('className="h-8 flex-1"');
         expect(detailHeader).not.toMatch(legacyDetailHeaderClassNamePattern);
         const metadataPanelIndex = detail.indexOf(
             'data-sot-panel="recording-detail-metadata"',

@@ -5512,6 +5512,7 @@ export function Workstation({
                                 <>
                                     <Input
                                         type="text"
+                                        className="h-8 flex-1"
                                         data-rh-input
                                         data-sot-part="detail-header-title-input"
                                         data-sot-state={
@@ -5570,6 +5571,7 @@ export function Workstation({
                             >
                                 <Button
                                     variant="outline"
+                                    size="sm"
                                     type="button"
                                     aria-haspopup="dialog"
                                     aria-expanded={aiOpen}

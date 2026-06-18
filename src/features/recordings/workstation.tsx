@@ -895,6 +895,7 @@ export function RecordingWorkstation({
                                 {t("recording.localOnly")}
                             </Badge>
                             <Input
+                                className="h-8 flex-1"
                                 value={renameValue}
                                 onChange={(event) =>
                                     setRenameValue(event.target.value)
@@ -952,6 +953,7 @@ export function RecordingWorkstation({
                             >
                                 <Button
                                     variant="outline"
+                                    size="sm"
                                     onClick={handleAutoRename}
                                     disabled={
                                         isAutoRenaming || isApplyingAutoRename
