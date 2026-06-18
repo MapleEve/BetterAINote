@@ -5990,32 +5990,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-sot-panel="voscript-unavailable-banner"] {
     display: flex !important;
 }
-[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-slot="select-trigger"],
-[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-sot-control="settings-save"],
-[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-sot-control="voscript-test"],
-.settings-main[data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-slot="select-trigger"],
-.settings-main[data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-sot-control="settings-save"],
-.settings-main[data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"]
-    ~ [data-sot-section-group]
-    [data-sot-control="voscript-test"] {
-    pointer-events: none;
-}
 .list-state-block,
 [data-sot-part="recording-list-state"],
 [data-sot-panel="recording-list-pagination"] {
@@ -10700,6 +10674,7 @@ body[data-ds-todo="show"] .design-todo {
 /* ---------- Settings panel: field groups, banners, save state, voscript, shortcuts ---------- */
 [data-sot-section-group] {
     margin-bottom: 22px;
+    position: relative;
 }
 [data-sot-panel="settings-scroll-body"] [data-sot-section-head],
 .settings-main [data-sot-section-head] {
@@ -10862,6 +10837,9 @@ body[data-ds-todo="show"] .design-todo {
     margin-top: 18px;
     margin-left: auto;
     flex-direction: row-reverse;
+    pointer-events: none;
+    position: relative;
+    z-index: 2;
 }
 [data-sot-panel="source-actions"] {
     align-items: center;
@@ -10869,6 +10847,17 @@ body[data-ds-todo="show"] .design-todo {
     margin-top: 18px;
     margin-left: auto;
     flex-direction: row-reverse;
+    pointer-events: none;
+    position: relative;
+    z-index: 2;
+}
+[data-sot-panel="settings-save-actions"] [data-slot="button"],
+[data-sot-panel="settings-save-actions"] [data-sot-part="settings-save-status"],
+[data-sot-panel="source-actions"] [data-slot="button"],
+[data-sot-panel="source-actions"] [data-sot-part="source-action-status"] {
+    pointer-events: auto;
+    position: relative;
+    z-index: 3;
 }
 [data-sot-part="settings-save-status"] {
     align-items: center;

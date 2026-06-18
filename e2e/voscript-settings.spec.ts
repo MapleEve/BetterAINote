@@ -1,8 +1,9 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
-
-const VOSCRIPT_KEY_KEEP = "__keep_voscript_key__";
-const VOSCRIPT_KEY_CLEAR = "__clear_voscript_key__";
+import {
+    chooseShadcnSelectOption,
+    expectShadcnSelectTrigger,
+} from "./helpers/shadcn-select";
 
 type VoScriptSettingsPayload = {
     privateTranscriptionApiKeySet: boolean;
@@ -185,9 +186,11 @@ test("VoScript settings saves current SOT controls and keeps the shell scroll-st
     await section.locator("#voscript-no-repeat-ngram").fill("4");
     await section.locator("#voscript-snr-threshold").fill("12.5");
     await section.locator("#voscript-max-inflight-jobs").fill("2");
-    await section
-        .getByRole("combobox", { name: "降噪模型" })
-        .selectOption("deepfilternet");
+    await chooseShadcnSelectOption(
+        page,
+        section.getByRole("combobox", { name: "降噪模型" }),
+        "DeepFilterNet",
+    );
 
     const saveResponse = page.waitForResponse(
         (response) =>
@@ -614,8 +617,11 @@ test("VoScript settings clears a stored API key through the SOT key action", asy
     );
 
     await expect(savedKeyDescription).toBeVisible();
-    await expect(keyMode).toHaveValue(VOSCRIPT_KEY_KEEP);
-    await keyMode.selectOption(VOSCRIPT_KEY_CLEAR);
+    await expectShadcnSelectTrigger(keyMode, {
+        label: "密钥操作",
+        text: "保留或替换",
+    });
+    await chooseShadcnSelectOption(page, keyMode, "清除已保存密钥");
     await expect(apiKeyInput).toBeDisabled();
 
     const saveButton = sectionSaveButton(section, "voscript-connection");

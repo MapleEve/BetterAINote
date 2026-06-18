@@ -6,6 +6,10 @@ import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
 import {
+    chooseShadcnSelectOption,
+    expectShadcnSelectTrigger,
+} from "./helpers/shadcn-select";
+import {
     SOT_COMPONENT_LIBRARY_URL,
     SOT_SOURCE_ASSET_DIR,
     SOT_WORKSTATION_URL as SOT_WEB_INDEX_URL,
@@ -2688,17 +2692,24 @@ test("data sources settings keeps provider selector usable and private fields sc
     await resetDisplayToChinese(page);
     const section = await openDataSourcesSettings(page);
 
-    await section.locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]').click();
-    const plaudDetail = section.locator('[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]');
+    await section
+        .locator('[data-sot-control="source-provider"][data-sot-provider="plaud"]')
+        .click();
+    const plaudDetail = section.locator(
+        '[data-sot-panel="source-provider-detail"][data-sot-provider="plaud"]',
+    );
     await expect(plaudDetail).toBeVisible();
     const plaudServerSelect = plaudDetail.getByRole("combobox", {
         name: "站点版本",
     });
-    await plaudServerSelect.selectOption("custom");
+    await chooseShadcnSelectOption(page, plaudServerSelect, "自定义");
     const selectedPlaudServer = plaudDetail.getByRole("combobox", {
         name: "站点版本",
     });
-    await expect(selectedPlaudServer).toHaveValue("custom");
+    await expectShadcnSelectTrigger(selectedPlaudServer, {
+        label: "站点版本",
+        text: "自定义",
+    });
     await expect(page.locator("#plaud-source-custom-api-base")).toBeVisible();
 
     await section.locator('[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]').click();

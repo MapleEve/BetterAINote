@@ -134,7 +134,7 @@ function settingsSection(page: Page, section: string) {
 function sectionSaveButton(section: Locator, saveId?: string) {
     if (saveId) {
         return section.locator(
-            `[data-save-id="${saveId}"] [data-sot-control="settings-save"]`,
+            `[data-sot-panel="settings-save-actions"][data-sot-save-id="${saveId}"] [data-sot-control="settings-save"]`,
         );
     }
 

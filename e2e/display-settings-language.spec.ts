@@ -1,5 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+import {
+    chooseShadcnSelectOption,
+    expectShadcnSelectTrigger,
+} from "./helpers/shadcn-select";
 
 async function resetDisplaySettings(
     page: Page,
@@ -52,6 +56,19 @@ function displaySegment(page: Page, control: string, value: string) {
     return displaySection(page).locator(
         `[data-sot-control="${control}"][data-sot-value="${value}"]`,
     );
+}
+
+async function expectDisplaySegmentSelected(
+    page: Page,
+    control: string,
+    value: string,
+) {
+    const segment = displaySegment(page, control, value);
+
+    await expect(segment).toHaveAttribute("role", "radio");
+    await expect(segment).toHaveAttribute("aria-checked", "true");
+    await expect(segment).toHaveAttribute("data-state", "on");
+    await expect(segment).toHaveAttribute("data-sot-state", "selected");
 }
 
 function displaySpinbutton(page: Page, label: string) {
@@ -133,18 +150,27 @@ test("display settings language changes persist immediately through the shared s
         page.getByRole("heading", { name: "主题与外观", exact: true }),
     ).toBeVisible();
     await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(languageSelect).toHaveValue("zh-CN");
+    await expectShadcnSelectTrigger(languageSelect, {
+        label: "界面语言",
+        text: "简体中文",
+    });
     await expectNoDisplaySaveFooter(page);
     await expect(page).toHaveURL(/\/settings#appearance$/);
 
-    await languageSelect.selectOption("en");
+    await chooseShadcnSelectOption(page, languageSelect, "English");
     await updateStarted;
     expect(updatePayloads[0]).toMatchObject({ uiLanguage: "en" });
     expect(Object.keys(updatePayloads[0])).toEqual(["uiLanguage"]);
     await expect(section).toHaveAttribute("data-sot-state", "busy");
     await expectNoDisplaySaveFooter(page);
 
-    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expectShadcnSelectTrigger(
+        displayCombobox(page, "Interface language"),
+        {
+            label: "Interface language",
+            text: "English",
+        },
+    );
     await expect(
         page.getByRole("heading", { name: "Display Settings", exact: true }),
     ).toBeVisible();
@@ -164,13 +190,25 @@ test("display settings language changes persist immediately through the shared s
     await expect(
         page.getByRole("heading", { name: "Display Settings", exact: true }),
     ).toBeVisible();
-    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expectShadcnSelectTrigger(
+        displayCombobox(page, "Interface language"),
+        {
+            label: "Interface language",
+            text: "English",
+        },
+    );
     await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expectNoDisplaySaveFooter(page);
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await selectSettingsSection(page, "appearance");
-    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expectShadcnSelectTrigger(
+        displayCombobox(page, "Interface language"),
+        {
+            label: "Interface language",
+            text: "English",
+        },
+    );
     await expectNoDisplaySaveFooter(page);
 });
 
@@ -216,19 +254,28 @@ test("display settings language immediate failure rolls back visible copy", asyn
     const languageSelect = displayCombobox(page, "界面语言");
     await expect(section).toBeVisible();
     await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(languageSelect).toHaveValue("zh-CN");
+    await expectShadcnSelectTrigger(languageSelect, {
+        label: "界面语言",
+        text: "简体中文",
+    });
     await expectNoDisplaySaveFooter(page);
     await expect(
         page.getByRole("heading", { name: "显示设置", exact: true }),
     ).toBeVisible();
 
-    await languageSelect.selectOption("en");
+    await chooseShadcnSelectOption(page, languageSelect, "English");
     await failedUpdateStarted;
     expect(failedPayload).toMatchObject({ uiLanguage: "en" });
     expect(Object.keys(failedPayload ?? {})).toEqual(["uiLanguage"]);
     await expect(section).toHaveAttribute("data-sot-state", "busy");
     await expectNoDisplaySaveFooter(page);
-    await expect(displayCombobox(page, "Interface language")).toHaveValue("en");
+    await expectShadcnSelectTrigger(
+        displayCombobox(page, "Interface language"),
+        {
+            label: "Interface language",
+            text: "English",
+        },
+    );
     await expect(
         page.getByRole("heading", { name: "Display Settings", exact: true }),
     ).toBeVisible();
@@ -247,7 +294,10 @@ test("display settings language immediate failure rolls back visible copy", asyn
     await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expectNoDisplaySaveFooter(page);
     await expect(displaySegment(page, "theme", "dark")).toBeEnabled();
-    await expect(displayCombobox(page, "界面语言")).toHaveValue("zh-CN");
+    await expectShadcnSelectTrigger(displayCombobox(page, "界面语言"), {
+        label: "界面语言",
+        text: "简体中文",
+    });
     await expect(
         page.getByRole("heading", { name: "显示设置", exact: true }),
     ).toBeVisible();
@@ -296,7 +346,7 @@ test("display settings theme switches light and dark with immediate persistence"
     const section = displaySection(page);
     const lightThemeButton = displaySegment(page, "theme", "light");
     const darkThemeButton = displaySegment(page, "theme", "dark");
-    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "theme", "light");
     await expect(html).toHaveAttribute("data-theme", "light");
     await expectNoDisplaySaveFooter(page);
 
@@ -304,7 +354,7 @@ test("display settings theme switches light and dark with immediate persistence"
     await firstUpdateStarted;
     await expect(section).toHaveAttribute("data-sot-state", "busy");
     await expectNoDisplaySaveFooter(page);
-    await expect(darkThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "theme", "dark");
     await expect(html).toHaveAttribute("data-theme", "dark");
     expect(updatePayloads[0]).toMatchObject({ theme: "dark" });
     expect(Object.keys(updatePayloads[0])).toEqual(["theme"]);
@@ -319,17 +369,17 @@ test("display settings theme switches light and dark with immediate persistence"
     resolveFirstUpdate();
     await firstSavedResponse;
     await expect(section).toHaveAttribute("data-sot-state", "ready");
-    await expect(darkThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "theme", "dark");
     await expectNoDisplaySaveFooter(page);
 
     await lightThemeButton.click();
-    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "theme", "light");
 
     await expect(html).toHaveAttribute("data-theme", "light");
     await expect
         .poll(() => updatePayloads.find((payload) => payload.theme === "light"))
         .toMatchObject({ theme: "light" });
-    await expect(lightThemeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "theme", "light");
 });
 
 test("display settings secondary controls persist immediately and normalize page size", async ({
@@ -388,10 +438,7 @@ test("display settings secondary controls persist immediately and normalize page
             response.request().postDataJSON()?.displayDensity === "compact",
     );
     await compactDensityButton.click();
-    await expect(compactDensityButton).toHaveAttribute(
-        "aria-pressed",
-        "true",
-    );
+    await expectDisplaySegmentSelected(page, "density", "compact");
     const densityPut = await densityResponse;
     expect(densityPut.request().postDataJSON()).toEqual({
         displayDensity: "compact",
@@ -401,7 +448,7 @@ test("display settings secondary controls persist immediately and normalize page
     await updateStarted;
     await expect(section).toHaveAttribute("data-sot-state", "busy");
     await expectNoDisplaySaveFooter(page);
-    await expect(absoluteTimeButton).toHaveAttribute("aria-pressed", "true");
+    await expectDisplaySegmentSelected(page, "time-style", "absolute");
     await expect(compactDensityButton).toBeDisabled();
     await expect(absoluteTimeButton).toBeDisabled();
     await expect(sortSelect).toBeDisabled();
@@ -430,12 +477,15 @@ test("display settings secondary controls persist immediately and normalize page
             response.request().postDataJSON()?.recordingListSortOrder ===
                 "oldest",
     );
-    await sortSelect.selectOption("oldest");
+    await chooseShadcnSelectOption(page, sortSelect, "最早在前");
     const sortPut = await sortResponse;
     expect(sortPut.request().postDataJSON()).toEqual({
         recordingListSortOrder: "oldest",
     });
-    await expect(sortSelect).toHaveValue("oldest");
+    await expectShadcnSelectTrigger(sortSelect, {
+        label: "列表排序",
+        text: "最早在前",
+    });
 
     const pageSizeResponse = page.waitForResponse(
         (response) =>
@@ -474,9 +524,6 @@ test("display settings secondary controls persist immediately and normalize page
     await page.reload({ waitUntil: "domcontentloaded" });
     await selectSettingsSection(page, "appearance");
     await expect(displaySection(page)).toHaveAttribute("data-sot-state", "ready");
-    await expect(displaySegment(page, "density", "compact")).toHaveAttribute(
-        "aria-pressed",
-        "true",
-    );
+    await expectDisplaySegmentSelected(page, "density", "compact");
     await expect(displaySpinbutton(page, "每页录音数")).toHaveValue("42");
 });

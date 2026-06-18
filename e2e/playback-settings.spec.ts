@@ -1,5 +1,9 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { ensureSignedIn } from "./helpers/auth";
+import {
+    chooseShadcnSelectOption,
+    expectShadcnSelectTrigger,
+} from "./helpers/shadcn-select";
 
 function settingsShell(page: Page) {
     return page.locator('[data-sot-surface="settings-shell"]');
@@ -32,6 +36,29 @@ function waitForSettingsPut(
             matchesPayload(payload as Record<string, unknown>)
         );
     });
+}
+
+async function expectShadcnSliderValue(slider: Locator, value: number) {
+    await expect(slider).toHaveAttribute("data-slot", "slider");
+    await expect(slider).toHaveAttribute("data-sot-state", "ready");
+    await expect(slider.getByRole("slider")).toHaveAttribute(
+        "aria-valuenow",
+        String(value),
+    );
+}
+
+async function setShadcnSliderValue(page: Page, slider: Locator, value: number) {
+    await slider.scrollIntoViewIfNeeded();
+
+    const box = await slider.boundingBox();
+    if (!box) {
+        throw new Error("Unable to locate shadcn slider bounds");
+    }
+
+    await page.mouse.click(
+        box.x + (box.width * value) / 100,
+        box.y + box.height / 2,
+    );
 }
 
 test("misc settings persist sync and playback controls immediately, then reload", async ({
@@ -72,7 +99,7 @@ test("misc settings persist sync and playback controls immediately, then reload"
     const autoPlaySwitch = section.locator(
         '[data-sot-control="playback-auto-next"]',
     );
-    const volumeInput = section.locator(
+    const volumeSlider = section.locator(
         '[data-sot-control="playback-volume"]',
     );
     const miscHeading = section.getByRole("heading", {
@@ -96,13 +123,15 @@ test("misc settings persist sync and playback controls immediately, then reload"
     ).toHaveCount(0);
     await expect(syncSwitch).toHaveAttribute("data-sot-state", "checked");
     await expect(syncIntervalInput).toHaveValue("300");
-    await expect(playbackSpeedSelect).toHaveValue("1");
+    await expectShadcnSelectTrigger(playbackSpeedSelect, {
+        label: "默认速度",
+        text: "1x",
+    });
     await expect(playbackSpeedSelect).toHaveAttribute(
         "data-sot-state",
         "ready",
     );
-    await expect(volumeInput).toHaveValue("75");
-    await expect(volumeInput).toHaveAttribute("data-sot-state", "ready");
+    await expectShadcnSliderValue(volumeSlider, 75);
     await expect(autoPlaySwitch).toHaveAttribute(
         "data-sot-state",
         "unchecked",
@@ -139,9 +168,12 @@ test("misc settings persist sync and playback controls immediately, then reload"
             payload.defaultPlaybackSpeed === 1.5 &&
             Object.keys(payload).length === 1,
     );
-    await playbackSpeedSelect.selectOption("1.5");
+    await chooseShadcnSelectOption(page, playbackSpeedSelect, "1.5x");
     await speedResponse;
-    await expect(playbackSpeedSelect).toHaveValue("1.5");
+    await expectShadcnSelectTrigger(playbackSpeedSelect, {
+        label: "默认速度",
+        text: "1.5x",
+    });
 
     const volumeResponse = waitForSettingsPut(
         page,
@@ -150,17 +182,9 @@ test("misc settings persist sync and playback controls immediately, then reload"
             payload.defaultVolume === 42 &&
             Object.keys(payload).length === 1,
     );
-    await volumeInput.evaluate((node) => {
-        const input = node as HTMLInputElement;
-        const valueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype,
-            "value",
-        )?.set;
-        valueSetter?.call(input, "42");
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    await setShadcnSliderValue(page, volumeSlider, 42);
     await volumeResponse;
-    await expect(volumeInput).toHaveValue("42");
+    await expectShadcnSliderValue(volumeSlider, 42);
 
     const autoNextResponse = waitForSettingsPut(
         page,
@@ -183,8 +207,11 @@ test("misc settings persist sync and playback controls immediately, then reload"
     await expect(playbackTitle).toBeVisible();
     await expect(syncSwitch).toHaveAttribute("data-sot-state", "unchecked");
     await expect(syncIntervalInput).toHaveValue("120");
-    await expect(playbackSpeedSelect).toHaveValue("1.5");
-    await expect(volumeInput).toHaveValue("42");
+    await expectShadcnSelectTrigger(playbackSpeedSelect, {
+        label: "默认速度",
+        text: "1.5x",
+    });
+    await expectShadcnSliderValue(volumeSlider, 42);
     await expect(autoPlaySwitch).toHaveAttribute("data-sot-state", "checked");
     await expect(section.locator("[data-save-actions]")).toHaveCount(0);
     await expect(section.locator("[data-save-action]")).toHaveCount(0);
