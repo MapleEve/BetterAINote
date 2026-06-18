@@ -148,6 +148,13 @@ const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
 ]);
 
 const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
+    "day-label",
+    "rec-row",
+    "rec-thumb",
+    "rec-body",
+    "rec-title",
+    "rec-meta",
+    "tag",
     "tag-filter",
     "tag-filter-trigger",
     "tag-filter-label",
@@ -174,6 +181,12 @@ const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
 ];
 
 const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
+    'data-sot-surface="dashboard-recording-list"',
+    'data-sot-part="dashboard-recording-list-content"',
+    'data-sot-part="dashboard-recording-list-header"',
+    'data-sot-part="dashboard-recording-list-titlebar"',
+    'data-sot-part="dashboard-recording-list-title"',
+    'data-sot-part="dashboard-recording-list-count"',
     'data-sot-control="recording-list-tag-filter-trigger"',
     'data-sot-part="recording-list-tag-filter-label"',
     'data-sot-part="recording-list-tag-filter-count"',
@@ -187,6 +200,12 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
     'data-sot-part="dashboard-recording-list-group-label"',
     'data-sot-part="dashboard-recording-list-group-count"',
     'data-sot-part="dashboard-recording-list-group-divider"',
+    'data-sot-control="dashboard-recording-row"',
+    'data-sot-part="dashboard-recording-source-mark"',
+    'data-sot-part="dashboard-recording-row-body"',
+    'data-sot-part="dashboard-recording-row-title"',
+    'data-sot-part="dashboard-recording-row-meta"',
+    'data-recording-tag-chip',
     'data-sot-part="recording-list-state-icon"',
     'data-sot-part="recording-list-state-title"',
     'data-sot-part="recording-list-state-description"',
@@ -196,9 +215,31 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
 ];
 
 const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
-    /\.(?:sidebar-footer|card|card-h|card-sub|frame|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
+    /\.(?:day-label|rec-row|rec-thumb|rec-body|rec-title|rec-meta|tag|sidebar-footer|card|card-h|card-sub|frame|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
 
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+    '[data-sot-surface="dashboard-recording-list"]',
+    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
+    '[data-sot-part="dashboard-recording-list-header"]',
+    '[data-sot-part="dashboard-recording-list-titlebar"]',
+    '[data-sot-part="dashboard-recording-list-title"]',
+    '[data-sot-part="dashboard-recording-list-count"]',
+    '[data-sot-list="dashboard-recording-list-scroll"]',
+    '[data-sot-list="dashboard-recording-rows"]',
+    '[data-sot-part="dashboard-recording-list-group"]',
+    '[data-sot-part="dashboard-recording-list-group-heading"]',
+    '[data-sot-part="dashboard-recording-list-group-label"]',
+    '[data-sot-part="dashboard-recording-list-group-count"]',
+    '[data-sot-part="dashboard-recording-list-group-divider"]',
+    '[data-sot-control="dashboard-recording-row"]',
+    '[data-sot-control="dashboard-recording-row"]:hover',
+    '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
+    '[data-sot-part="dashboard-recording-source-mark"]',
+    '[data-sot-part="dashboard-recording-row-body"]',
+    '[data-sot-part="dashboard-recording-row-title"]',
+    '[data-sot-part="dashboard-recording-row-meta"]',
+    "[data-recording-tag-chip]",
     '[data-sot-part="dashboard-sidebar-footer"]',
     "[data-sot-card]",
     '[data-sot-card="auth"]',

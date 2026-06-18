@@ -510,6 +510,7 @@ describe("settings SOT interaction regressions", () => {
         );
         const service = readSource("services/data-sources.ts");
         const providerTypes = readSource("lib/data-sources/types.ts");
+        const globals = readSource("app/globals.css");
 
         for (const provider of [
             "dingtalk-a1",
@@ -535,6 +536,10 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-part="settings-empty-description"');
         expect(content).toContain('data-sot-list="source-fields"');
         expect(content).toContain('data-sot-panel="source-provider-fields"');
+        expect(globals).toContain(
+            '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
+        );
+        expect(globals).not.toMatch(/(^|\n|,)\s*\.field-empty\b/);
         expect(content).not.toContain('className="settings-main three-pane"');
         expect(content).not.toContain('className="empty-hint"');
         expect(content).not.toContain('className="eh-t"');

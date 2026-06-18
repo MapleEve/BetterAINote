@@ -1264,95 +1264,6 @@ button {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
 }
-.day-label {
-    font: 600 10px var(--font-sans);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--fg-tertiary);
-    padding: 14px 10px 6px;
-}
-.rec-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 10px;
-    border-radius: 10px;
-    width: 100%;
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
-    text-align: left;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out);
-}
-.rec-row:hover {
-    background: var(--bg-recessed);
-}
-.rec-row.active {
-    background: var(--accent-soft);
-    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-}
-[data-theme="dark"] .rec-row.active .rec-thumb {
-    background: var(--bg-recessed);
-    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-    color: var(--accent);
-}
-.rec-thumb {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    flex: none;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--fg-tertiary);
-}
-.rec-thumb svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-.rec-row.active .rec-thumb {
-    background: white;
-    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-    color: var(--accent);
-}
-.rec-body {
-    flex: 1;
-    min-width: 0;
-}
-.rec-title {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.rec-meta {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.tag {
-    font: 500 11px var(--font-sans);
-    padding: 2px 7px;
-    border-radius: 6px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-secondary);
-    flex: none;
-}
-
 /* ======== Liquid tabs ======== */
 [data-sot-control="liquid-tabs"][data-slot="segmented-tabs"] {
     --idx: 0;
@@ -3403,7 +3314,7 @@ button {
     background: rgb(255 255 255 / 0.04);
 }
 /* ===========================================================
-   New rich list (preview/15) — overrides old .rec-row
+   New rich list (preview/15) — data-sot recording list
    =========================================================== */
 [data-sot-list="dashboard-recording-rows"],
 [data-sot-list="recording-detail-list-rows"] {
@@ -4441,12 +4352,6 @@ body[data-time-style="abs"]
     background: var(--bg-recessed);
     color: var(--fg-tertiary);
     border-color: var(--line-hairline);
-}
-
-.field-empty {
-    color: var(--fg-tertiary);
-    font-style: italic;
-    font-family: var(--font-sans);
 }
 
 /* Login-path picker (Open Platform vs Web session) */
