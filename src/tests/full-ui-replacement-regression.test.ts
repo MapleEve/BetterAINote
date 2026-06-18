@@ -770,9 +770,10 @@ const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
 ];
 
 const SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE =
-    /\.(?:sr-state|sr-cards|sr-section(?:-(?:head|sub))?|sr-summary-body|sr-segments|sr-seg(?:-(?:ts|speaker|text))?|sr-meta(?:-row)?|sr-actions)(?![\w-])/;
+    /\.(?:sr-pane|list-empty|sr-state|sr-cards|sr-section(?:-(?:head|sub))?|sr-summary-body|sr-segments|sr-seg(?:-(?:ts|speaker|text))?|sr-meta(?:-row)?|sr-actions)(?![\w-])/;
 
 const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
+    "[data-sot-source-report-pane]",
     "[data-sot-source-report-state]",
     "[data-sot-source-report-state][hidden]",
     "[data-sot-source-report-section]",
@@ -857,7 +858,7 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
-    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
+    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -867,6 +868,10 @@ const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-speaker-row"]',
     '[data-sot-part="dashboard-transcript-speaker-name"]',
     '[data-sot-part="dashboard-transcript-speaker-time"]',
+    '[data-sot-panel="dashboard-transcript-empty"]',
+    '[data-sot-part="dashboard-transcript-empty-icon"]',
+    '[data-sot-part="dashboard-transcript-empty-message"]',
+    '[data-sot-part="dashboard-transcript-empty-sub"]',
     '[data-sot-panel="dashboard-retranscription"]',
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-spinner"]',
