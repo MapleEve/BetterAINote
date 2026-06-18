@@ -22,6 +22,14 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import { FieldDescription } from "@/components/ui/field";
 import { SpeakerLabelEditor } from "@/features/recordings/components/speaker-label-editor";
 import {
@@ -494,39 +502,47 @@ export function TranscriptionSection({
                         ) : null}
                     </>
                 ) : (
-                    <section
+                    <Empty
+                        className="mt-4"
                         data-sot-part="recording-transcription-empty"
                         data-sot-state="empty"
                     >
-                        <FileText
-                            aria-hidden="true"
-                            data-sot-part="recording-transcription-empty-icon"
-                        />
-                        <h3 data-sot-part="recording-transcription-empty-title">
-                            {t("transcription.noTranscript")}
-                        </h3>
-                        <p data-sot-part="recording-transcription-empty-description">
-                            {t("transcription.noTranscriptDescription")}
-                        </p>
-                        <Button
-                            onClick={() => handleTranscribe(false)}
-                            size="sm"
-                            variant="primary"
-                            data-sot-control="start-local-transcription"
-                            disabled={!canTranscribe || isTranscribing}
-                            title={
-                                !canTranscribe
-                                    ? (transcribeUnavailableReason ?? undefined)
-                                    : undefined
-                            }
-                        >
-                            <Sparkles
-                                aria-hidden="true"
-                                data-icon="inline-start"
-                            />
-                            {t("transcription.transcribe")}
-                        </Button>
-                    </section>
+                        <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                                <FileText
+                                    aria-hidden="true"
+                                    data-sot-part="recording-transcription-empty-icon"
+                                />
+                            </EmptyMedia>
+                            <EmptyTitle data-sot-part="recording-transcription-empty-title">
+                                {t("transcription.noTranscript")}
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-part="recording-transcription-empty-description">
+                                {t("transcription.noTranscriptDescription")}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                        <EmptyContent>
+                            <Button
+                                onClick={() => handleTranscribe(false)}
+                                size="sm"
+                                variant="primary"
+                                data-sot-control="start-local-transcription"
+                                disabled={!canTranscribe || isTranscribing}
+                                title={
+                                    !canTranscribe
+                                        ? (transcribeUnavailableReason ??
+                                          undefined)
+                                        : undefined
+                                }
+                            >
+                                <Sparkles
+                                    aria-hidden="true"
+                                    data-icon="inline-start"
+                                />
+                                {t("transcription.transcribe")}
+                            </Button>
+                        </EmptyContent>
+                    </Empty>
                 )}
             </CardContent>
         </Card>

@@ -1145,9 +1145,19 @@ const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
     '[data-sot-part="recording-transcription-body"][data-slot="card-content"]',
     '[data-sot-banner="transcription-job"][data-slot="alert"]',
     '[data-sot-banner-title][data-slot="alert-title"]',
+    '[data-sot-part="recording-transcription-empty"][data-slot="empty"]',
+    '[data-sot-part="recording-transcription-empty-title"][data-slot="empty-title"]',
+    '[data-sot-part="recording-transcription-empty-description"][data-slot="empty-description"]',
     '[data-sot-control="copy-local-transcript"][data-slot="button"]',
     '[data-sot-control="retranscribe-local"][data-slot="button"]',
     '[data-sot-control="start-local-transcription"][data-slot="button"]',
+] as const;
+
+const RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS = [
+    '[data-sot-part="recording-transcription-empty"]',
+    '[data-sot-part="recording-transcription-empty-icon"]',
+    '[data-sot-part="recording-transcription-empty-title"]',
+    '[data-sot-part="recording-transcription-empty-description"]',
 ] as const;
 
 const RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE =
@@ -3570,6 +3580,55 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="recording-transcription-empty"',
         );
         expect(transcriptionSection).toContain(
+            'from "@/components/ui/empty";',
+        );
+        for (const primitive of [
+            "Empty,",
+            "EmptyContent,",
+            "EmptyDescription,",
+            "EmptyHeader,",
+            "EmptyMedia,",
+            "EmptyTitle,",
+        ]) {
+            expect(transcriptionSection).toContain(primitive);
+        }
+        const transcriptionEmpty = extractElementSlice(
+            transcriptionSection,
+            'data-sot-part="recording-transcription-empty"',
+            "Empty",
+        );
+        expect(transcriptionEmpty).toContain("<Empty");
+        expect(transcriptionEmpty).toContain(
+            'data-sot-part="recording-transcription-empty"',
+        );
+        expect(transcriptionEmpty).toContain('data-sot-state="empty"');
+        expect(transcriptionEmpty).toContain('className="mt-4"');
+        expect(transcriptionEmpty).toContain("<EmptyHeader>");
+        expect(transcriptionEmpty).toContain("<EmptyMedia");
+        expect(transcriptionEmpty).toContain('variant="icon"');
+        expect(transcriptionEmpty).toContain("<FileText");
+        expect(transcriptionEmpty).toContain(
+            'data-sot-part="recording-transcription-empty-icon"',
+        );
+        expect(transcriptionEmpty).toContain(
+            '<EmptyTitle data-sot-part="recording-transcription-empty-title">',
+        );
+        expect(transcriptionEmpty).toContain(
+            '<EmptyDescription data-sot-part="recording-transcription-empty-description">',
+        );
+        expect(transcriptionEmpty).toContain("<EmptyContent>");
+        expect(transcriptionEmpty).toContain("<Button");
+        expect(transcriptionEmpty).toContain(
+            'data-sot-control="start-local-transcription"',
+        );
+        expect(transcriptionEmpty).toContain("handleTranscribe(false)");
+        expect(transcriptionEmpty).toContain(
+            "transcribeUnavailableReason ??",
+        );
+        expect(transcriptionEmpty).not.toContain("<section");
+        expect(transcriptionEmpty).not.toContain("<h3");
+        expect(transcriptionEmpty).not.toContain("<p");
+        expect(transcriptionSection).toContain(
             'data-sot-control="copy-local-transcript"',
         );
         expect(transcriptionSection).toContain(
@@ -3599,6 +3658,9 @@ describe("full UI replacement regression coverage", () => {
             );
 
             expect(repaintBlocks).toEqual([]);
+        }
+        for (const selector of RECORDING_TRANSCRIPTION_EMPTY_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of [
             "[data-sot-banner]",

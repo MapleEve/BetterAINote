@@ -1500,32 +1500,6 @@ button {
     gap: 10px;
     margin-bottom: 6px;
 }
-[data-sot-part="recording-transcription-empty"] {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: 16px;
-    padding: 18px;
-    border: 1px dashed var(--line-hairline);
-    border-radius: 10px;
-    text-align: center;
-}
-[data-sot-part="recording-transcription-empty-icon"] {
-    width: 18px;
-    height: 18px;
-    color: var(--fg-tertiary);
-}
-[data-sot-part="recording-transcription-empty-title"] {
-    margin: 0;
-    color: var(--fg-primary);
-    font: 600 13px var(--font-sans);
-}
-[data-sot-part="recording-transcription-empty-description"] {
-    margin: 0;
-    color: var(--fg-tertiary);
-    font: 12px / 1.5 var(--font-sans);
-}
 @media (max-width: 860px) {
     [data-sot-part="recording-transcription-section-head"] {
         flex-direction: column;
