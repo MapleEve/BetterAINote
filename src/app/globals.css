@@ -1617,10 +1617,6 @@ button {
 [data-sot-content="confirm-dialog"][data-state="closed"] {
     opacity: 0;
 }
-[data-sot-surface="settings-shell"] [data-slot="dialog-header"],
-[data-sot-content="confirm-dialog"] [data-slot="dialog-header"] {
-    gap: 8px;
-}
 [data-sot-part="dialog-icon"] {
     width: 36px;
     height: 36px;
@@ -1641,26 +1637,6 @@ button {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-[data-sot-surface="settings-shell"] [data-slot="dialog-title"],
-[data-sot-content="confirm-dialog"] [data-slot="dialog-title"] {
-    font: 600 16px var(--font-display);
-    letter-spacing: -0.012em;
-    color: var(--fg-primary);
-    margin: 0 0 4px;
-}
-[data-sot-surface="settings-shell"] [data-slot="dialog-description"],
-[data-sot-content="confirm-dialog"] [data-slot="dialog-description"] {
-    font: 13px / 1.55 var(--font-sans);
-    color: var(--fg-secondary);
-    margin: 0;
-}
-[data-sot-surface="settings-shell"] [data-slot="dialog-footer"],
-[data-sot-content="confirm-dialog"] [data-slot="dialog-footer"] {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
 /* ===========================================================
    New rich list (preview/15) — data-sot recording list
    =========================================================== */

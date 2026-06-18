@@ -122,13 +122,22 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                     className="sm:max-w-md"
                     showCloseButton={false}
                 >
-                    <DialogHeader data-sot-part="confirm-head">
-                        <DialogTitle data-sot-part="confirm-title">
+                    <DialogHeader
+                        data-sot-part="confirm-head"
+                        className="gap-2 text-left"
+                    >
+                        <DialogTitle
+                            data-sot-part="confirm-title"
+                            className="m-0 text-base leading-snug font-semibold tracking-normal"
+                        >
                             {state?.title}
                         </DialogTitle>
                     </DialogHeader>
                     <div data-sot-part="confirm-body">
-                        <DialogDescription data-sot-part="confirm-description">
+                        <DialogDescription
+                            data-sot-part="confirm-description"
+                            className="m-0 text-sm leading-relaxed text-muted-foreground"
+                        >
                             {state?.description}
                         </DialogDescription>
                         {state?.details?.length || state?.warning ? (
@@ -153,7 +162,10 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                             </div>
                         ) : null}
                     </div>
-                    <DialogFooter data-sot-part="confirm-foot">
+                    <DialogFooter
+                        data-sot-part="confirm-foot"
+                        className="gap-2 sm:justify-end"
+                    >
                         <Button
                             type="button"
                             variant="outline"

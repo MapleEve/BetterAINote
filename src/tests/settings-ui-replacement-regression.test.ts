@@ -276,15 +276,17 @@ const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-content="confirm-dialog"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
     '[data-sot-content="confirm-dialog"][data-state="closed"]',
-    '[data-sot-surface="settings-shell"] [data-slot="dialog-header"]',
-    '[data-sot-content="confirm-dialog"] [data-slot="dialog-header"]',
     '[data-sot-part="dialog-icon"]',
-    '[data-sot-surface="settings-shell"] [data-slot="dialog-title"]',
-    '[data-sot-content="confirm-dialog"] [data-slot="dialog-description"]',
-    '[data-sot-surface="settings-shell"] [data-slot="dialog-footer"]',
     '[data-sot-part="confirm-head"]',
     '[data-sot-part="confirm-body"]',
     '[data-sot-part="confirm-foot"]',
+] as const;
+
+const DIALOG_SLOT_GLOBAL_SELECTORS = [
+    '[data-slot="dialog-header"]',
+    '[data-slot="dialog-title"]',
+    '[data-slot="dialog-description"]',
+    '[data-slot="dialog-footer"]',
 ] as const;
 
 function readProductCss(source: string) {
@@ -474,6 +476,9 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        for (const selector of DIALOG_SLOT_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         const confirmFooterButtonRules = collectCssRuleBlocks(
             productCss,
             '[data-sot-part="confirm-foot"]',
@@ -489,6 +494,18 @@ describe("settings SOT interaction regressions", () => {
             );
         }
         expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toMatch(
+            /<DialogHeader[\s\S]*data-sot-part="confirm-head"[\s\S]*className="gap-2 text-left"/,
+        );
+        expect(confirmDialog).toMatch(
+            /<DialogTitle[\s\S]*data-sot-part="confirm-title"[\s\S]*className="m-0 text-base leading-snug font-semibold tracking-normal"/,
+        );
+        expect(confirmDialog).toMatch(
+            /<DialogDescription[\s\S]*data-sot-part="confirm-description"[\s\S]*className="m-0 text-sm leading-relaxed text-muted-foreground"/,
+        );
+        expect(confirmDialog).toMatch(
+            /<DialogFooter[\s\S]*data-sot-part="confirm-foot"[\s\S]*className="gap-2 sm:justify-end"/,
+        );
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
         );
