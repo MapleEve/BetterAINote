@@ -1888,6 +1888,8 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
         const globals = readSource("app/globals.css");
+        const avatarFallbacks =
+            speakers.match(/<AvatarFallback\b[^>]*>/g) ?? [];
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
         const findButtonByControl = (control: string) =>
@@ -1924,7 +1926,15 @@ describe("settings SOT interaction regressions", () => {
             /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
         expect(speakers).toContain("<Avatar");
-        expect(speakers).toContain("<AvatarFallback>");
+        expect(speakers).toContain("<AvatarFallback");
+        expect(avatarFallbacks).toHaveLength(2);
+        for (const fallback of avatarFallbacks) {
+            expect(fallback).toContain("className=");
+            expect(fallback).toContain("speakerAvatarFallbackClassName");
+        }
+        expect(speakers).toContain("speakerAvatarFallbackClassName");
+        expect(speakers).toContain("bg-accent text-primary");
+        expect(speakers).toContain("text-[11px] font-bold");
         expect(speakers).toContain("<Button");
         expect(speakers).toContain("<Badge");
         expect(speakers).toContain('data-sot-badge="speaker-state"');
@@ -1976,6 +1986,12 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).not.toContain("sot-speaker-profiles");
         expect(speakers).not.toContain("sot-speaker-pill");
         expect(globals).not.toMatch(/(^|\n|,)\s*\.sot-speaker-/);
+        expect(globals).not.toContain(
+            '[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
+        );
         expect(globals).toContain('[data-sot-panel="speaker-profiles"]');
         expect(globals).toContain('[data-sot-list="speaker-profile-rows"]');
         expect(globals).toContain('[data-sot-item="speaker-profile-row"]');

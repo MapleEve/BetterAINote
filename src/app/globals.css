@@ -4468,12 +4468,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-theme="dark"] [data-sot-item="speaker-voiceprint-row"]:hover {
     background: rgb(255 255 255 / 0.03);
 }
-[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"],
-[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"] {
-    background: color-mix(in srgb, var(--steel-500) 18%, transparent);
-    color: var(--steel-700);
-    font: 700 11px var(--font-sans);
-}
 [data-sot-part="speaker-profile-row-meta"],
 [data-sot-part="speaker-voiceprint-row-meta"] {
     display: flex;

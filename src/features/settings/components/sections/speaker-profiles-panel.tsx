@@ -38,6 +38,9 @@ interface RemoteVoiceprint {
     updatedAt: string | null;
 }
 
+const speakerAvatarFallbackClassName =
+    "bg-accent text-primary text-[11px] font-bold";
+
 function formatTimestamp(value: string | null, locale: string) {
     if (!value) {
         return null;
@@ -603,7 +606,11 @@ export function SpeakerProfilesPanel() {
                                     }
                                 >
                                     <Avatar data-sot-part="speaker-profile-avatar">
-                                        <AvatarFallback>
+                                        <AvatarFallback
+                                            className={
+                                                speakerAvatarFallbackClassName
+                                            }
+                                        >
                                             {profile.displayName
                                                 .trim()
                                                 .slice(0, 1)
@@ -810,7 +817,11 @@ export function SpeakerProfilesPanel() {
                                     data-sot-voiceprint-row=""
                                 >
                                     <Avatar data-sot-part="speaker-voiceprint-avatar">
-                                        <AvatarFallback>
+                                        <AvatarFallback
+                                            className={
+                                                speakerAvatarFallbackClassName
+                                            }
+                                        >
                                             {voiceprint.displayName
                                                 .trim()
                                                 .slice(0, 1)

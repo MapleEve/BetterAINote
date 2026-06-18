@@ -4869,6 +4869,21 @@ describe("full UI replacement regression coverage", () => {
         const speakerProfiles = readSource(
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
+        const speakerAvatarFallbacks =
+            speakerProfiles.match(/<AvatarFallback\b[^>]*>/g) ?? [];
+        expect(speakerProfiles).toContain(
+            'import { Avatar, AvatarFallback } from "@/components/ui/avatar";',
+        );
+        expect(speakerProfiles).toContain("<Avatar");
+        expect(speakerProfiles).toContain("<AvatarFallback");
+        expect(speakerAvatarFallbacks).toHaveLength(2);
+        for (const fallback of speakerAvatarFallbacks) {
+            expect(fallback).toContain("className=");
+            expect(fallback).toContain("speakerAvatarFallbackClassName");
+        }
+        expect(speakerProfiles).toContain("speakerAvatarFallbackClassName");
+        expect(speakerProfiles).toContain("bg-accent text-primary");
+        expect(speakerProfiles).toContain("text-[11px] font-bold");
         expect(speakerProfiles).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
@@ -4876,6 +4891,12 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
         expect(speakerProfiles).toContain("data-sot-tone={tone}");
         expect(speakerProfiles).not.toContain("sot-speaker-pill");
+        expect(globals).not.toContain(
+            '[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"]',
+        );
         for (const source of [player, tagManager, sourceReport]) {
             expect(source).not.toContain('className="btn ghost btn-sm"');
             expect(source).not.toContain('className="btn primary btn-sm"');
