@@ -857,10 +857,10 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
     "retx-ico-ok",
 ];
 
-const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
-    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
+const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
+    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
-const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
+const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
     '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
     '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
@@ -868,6 +868,7 @@ const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-speaker-row"]',
     '[data-sot-part="dashboard-transcript-speaker-name"]',
     '[data-sot-part="dashboard-transcript-speaker-time"]',
+    "[data-sot-source-report-pane]",
     '[data-sot-panel="dashboard-transcript-empty"]',
     '[data-sot-part="dashboard-transcript-empty-icon"]',
     '[data-sot-part="dashboard-transcript-empty-message"]',
@@ -1280,18 +1281,18 @@ describe("full UI replacement regression coverage", () => {
         expect(legacyTagManagerSelectorLines).toEqual([]);
     });
 
-    it("keeps dashboard transcript, retx, and activity legacy selectors out of product CSS", () => {
+    it("keeps dashboard transcript, source report, retx, and activity legacy selectors out of product CSS", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
             .filter((line) =>
-                DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
+                DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
                     line,
                 ),
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
+        for (const selector of DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
