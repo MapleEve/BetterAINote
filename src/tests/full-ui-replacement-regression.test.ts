@@ -1370,6 +1370,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps recording tag manager legacy selectors out of product CSS", () => {
         const globals = readSource("app/globals.css");
+        const recordingTagVisuals = readSource(
+            "features/recordings/components/recording-tag-visuals.tsx",
+        );
         const legacyTagManagerSelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -1379,9 +1382,14 @@ describe("full UI replacement regression coverage", () => {
                 ),
             );
 
-        // `.tag-filter-option .tg-ico` predates this batch; this guard only blocks
-        // recording tag manager selectors reintroduced by the current cleanup.
         expect(legacyTagManagerSelectorLines).toEqual([]);
+        expect(recordingTagVisuals).not.toContain(
+            "recordingTagSotColorClassName",
+        );
+        expect(recordingTagVisuals).not.toMatch(
+            /\bc-(?:rose|amber|emerald|blue|violet|slate)\b/,
+        );
+        expect(recordingTagVisuals).not.toContain('"tg-ico"');
     });
 
     it("keeps dashboard transcript, source report, retx, and activity legacy selectors out of product CSS", () => {

@@ -4,18 +4,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { RecordingTag, RecordingTagIcon } from "@/lib/recording-tags";
 
-export const recordingTagSotColorClassName: Record<
-    RecordingTag["color"],
-    string
-> = {
-    red: "c-rose",
-    orange: "c-amber",
-    green: "c-emerald",
-    blue: "c-blue",
-    purple: "c-violet",
-    slate: "c-slate",
-};
-
 export const recordingTagSotColorLabel: Record<RecordingTag["color"], string> =
     {
         red: "玫",
@@ -114,21 +102,13 @@ const recordingTagManagerIconPaths: Partial<
 
 export function RecordingTagIconGlyph({
     icon,
-    className,
     variant = "full",
 }: {
     icon: RecordingTagIcon;
-    className?: string;
     variant?: "full" | "manager";
 }) {
-    const iconClassName = className
-        ?.split(/\s+/)
-        .filter((item) => item === "tg-ico")
-        .join(" ");
-
     return (
         <svg
-            className={iconClassName || undefined}
             viewBox="0 0 24 24"
             aria-hidden="true"
             focusable="false"
