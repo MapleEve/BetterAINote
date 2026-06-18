@@ -6484,6 +6484,7 @@ test("recording detail retranscribe confirmation restores SOT dialog and backend
 
     try {
         await ensureSignedIn(page);
+        await resetWorkspaceVisualDisplay(page);
         const userId = await getPlaywrightUserId();
         const storagePath = await writeAudioFixture();
         const recordingId = await seedRecordingDetail(userId, {

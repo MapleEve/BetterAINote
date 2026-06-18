@@ -6663,12 +6663,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-retx-dismiss] {
     display: none !important;
 }
-.retx-modal-list {
-    display: flex;
-}
-.retx-modal-list li {
-    display: flex;
-}
 .more-anchor {
     position: relative;
     display: inline-flex;
@@ -9734,26 +9728,6 @@ body[data-ds-todo="show"] .design-todo {
     border-radius: 4px;
     background: var(--bg-recessed);
     border: 1px solid var(--line-hairline);
-}
-
-/* Retranscribe modal extras */
-.retx-modal-list {
-    flex-direction: column;
-    gap: 4px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-.retx-modal-list li {
-    align-items: center;
-    gap: 6px;
-    font: 500 12px var(--font-sans);
-    color: var(--fg-secondary);
-}
-.retx-modal-list li::before {
-    content: "·";
-    color: var(--fg-tertiary);
-    font-weight: 700;
 }
 
 /* ---------- Tag manager popover ---------- */
