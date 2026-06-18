@@ -2310,7 +2310,7 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-frame="onboarding"');
         expect(onboarding).toContain('data-sot-part="card-heading"');
         expect(onboarding).toMatch(
-            /<CardHeader\s+data-sot-part="onboarding-card-header">[\s\S]*<CardTitle\s+data-sot-part="card-heading">[\s\S]*<CardDescription\s+data-sot-part="card-sub">/,
+            /<CardHeader(?=[^>]*\bclassName="gap-0 p-0")(?=[^>]*\bdata-sot-part="onboarding-card-header")[^>]*>[\s\S]*<CardTitle\s+data-sot-part="card-heading">[\s\S]*<CardDescription\s+data-sot-part="card-sub">/,
         );
         expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
         expect(onboarding).not.toContain('className="card"');
@@ -2328,10 +2328,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(onboarding).toContain('data-sot-part="onboarding-step-body"');
         expect(onboarding).toMatch(
-            /<CardHeader\s+data-sot-part="onboarding-step-header">[\s\S]*<CardTitle\s+data-sot-part="onboarding-step-title">[\s\S]*<CardDescription\s+data-sot-part="onboarding-step-description">/,
+            /<CardHeader(?=[^>]*\bclassName="gap-0 p-0")(?=[^>]*\bdata-sot-part="onboarding-step-header")[^>]*>[\s\S]*<CardTitle\s+data-sot-part="onboarding-step-title">[\s\S]*<CardDescription\s+data-sot-part="onboarding-step-description">/,
         );
-        expect(onboarding).toContain(
-            '<CardContent data-sot-part="onboarding-step-body">',
+        expect(onboarding).toMatch(
+            /<CardContent(?=[^>]*\bclassName="gap-0 p-0")(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
         );
         expect(onboarding).toContain('data-sot-part="onboarding-error"');
         expect(onboarding).toContain('data-sot-part="onboarding-actions"');
@@ -2429,13 +2429,13 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-control="onboarding-step"][data-sot-state="active"]',
         );
         expect(globals).toContain('[data-sot-part="onboarding-actions"]');
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-card="onboarding"] > [data-slot="card-header"]',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-part="onboarding-step-header"][data-slot="card-header"]',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
         );
         expect(globals).toContain('[data-sot-part="provider-meta"]');

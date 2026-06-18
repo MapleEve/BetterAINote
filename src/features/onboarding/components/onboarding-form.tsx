@@ -282,7 +282,10 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             data-sot-surface="onboarding"
         >
             <Card hasNoPadding data-sot-card="onboarding">
-                <CardHeader data-sot-part="onboarding-card-header">
+                <CardHeader
+                    className="gap-0 p-0"
+                    data-sot-part="onboarding-card-header"
+                >
                     <CardTitle data-sot-part="card-heading">
                         上手 / Onboarding · 4 步
                     </CardTitle>
@@ -326,7 +329,10 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             );
                         })}
                     </div>
-                    <CardHeader data-sot-part="onboarding-step-header">
+                    <CardHeader
+                        className="gap-0 p-0"
+                        data-sot-part="onboarding-step-header"
+                    >
                         <CardTitle data-sot-part="onboarding-step-title">
                             {visibleStepTitle}
                         </CardTitle>
@@ -334,7 +340,10 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent data-sot-part="onboarding-step-body">
+                    <CardContent
+                        className="gap-0 p-0"
+                        data-sot-part="onboarding-step-body"
+                    >
                         {finishError ? (
                             <div
                                 data-sot-part="onboarding-error"

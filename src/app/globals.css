@@ -1483,10 +1483,6 @@ button {
 [data-sot-card="onboarding"] {
     width: min(420px, 100%);
 }
-[data-sot-card="onboarding"] > [data-slot="card-header"] {
-    padding: 0;
-    gap: 0;
-}
 [data-sot-frame="onboarding"] {
     padding: 18px;
 }
@@ -1514,11 +1510,6 @@ button {
 [data-sot-part="onboarding-step-title"] {
     font: 600 14px var(--font-display);
     color: var(--fg-primary);
-}
-[data-sot-part="onboarding-step-header"][data-slot="card-header"],
-[data-sot-part="onboarding-step-body"][data-slot="card-content"] {
-    padding: 0;
-    gap: 0;
 }
 [data-sot-part="onboarding-step-description"] {
     font: 12px var(--font-sans);
