@@ -1951,7 +1951,10 @@ const SETTINGS_CONTROL_CLASS =
 const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
 const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
-const SOURCE_PROVIDER_DETAIL_FIELD_CLASS = SETTINGS_FIELD_CLASS;
+const SOURCE_PROVIDER_DETAIL_FIELD_CLASS = [
+    SETTINGS_FIELD_CLASS,
+    "gap-3.5 max-[720px]:flex-col max-[720px]:items-start",
+].join(" ");
 const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
     "h-8 min-w-60 max-w-full font-mono text-xs";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";

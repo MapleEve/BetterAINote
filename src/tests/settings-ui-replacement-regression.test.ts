@@ -258,7 +258,6 @@ const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="source-actions"][data-sot-state="idle"]',
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="source-actions"][data-sot-state="saving"]',
-    '[data-sot-panel="settings-scroll-body"]\n    [data-slot="field"]\n    [data-sot-part="settings-field-message"]',
     '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
     '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
     '[data-sot-panel="source-actions"] {\n    align-items: center;',
@@ -556,6 +555,7 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(globals).not.toContain('[data-slot="');
     });
 
     it("keeps migrated settings fields on shadcn Field, Slider, and Skeleton primitives", () => {
@@ -1205,6 +1205,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
         expect(content).toContain("SETTINGS_FIELD_CLASS");
+        expect(content).toContain(
+            '"gap-3.5 max-[720px]:flex-col max-[720px]:items-start"',
+        );
         expect(content).toContain("getSettingsBannerClassName");
         expect(content).toContain("getSettingsSaveStatusBadgeClassName");
         expect(content).toContain("getSettingsSaveStatusDotClassName");
@@ -1246,6 +1249,7 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="source-actions"] [data-slot="button"]',
         );
+        expect(globals).not.toContain('[data-slot="');
 
         for (const target of SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS) {
             expect(
@@ -1495,6 +1499,10 @@ describe("settings SOT interaction regressions", () => {
         const saveStatus = content.match(
             /function SaveStatus[\s\S]*?function SectionShell/,
         )?.[0];
+        const settingsRow =
+            content.match(
+                /function SettingsRow[\s\S]*?function SelectControl/,
+            )?.[0] ?? "";
         const globals = readSource("app/globals.css");
 
         for (const section of [
@@ -1534,7 +1542,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("sotField?: string");
         expect(content).toContain("data-sot-field={sotField}");
         expect(content).toContain('data-sot-state={fieldState ?? "ready"}');
-        expect(content).toContain('data-sot-part="settings-field-message"');
+        expect(settingsRow).toContain("{fieldMessage ? (");
+        expect(settingsRow).toContain("<FieldError");
+        expect(settingsRow).toContain('data-sot-part="settings-field-message"');
         expect(content).toContain('data-sot-state="invalid"');
         expect(content).toContain(
             'data-invalid={fieldState === "invalid" ? "true" : undefined}',

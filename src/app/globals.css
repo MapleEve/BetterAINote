@@ -2861,16 +2861,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-sot-control="source-save"] {
     position: relative;
 }
-[data-sot-panel="settings-scroll-body"]
-    [data-slot="field"]
-    [data-sot-part="settings-field-message"] {
-    display: block;
-}
-[data-sot-panel="settings-scroll-body"]
-    [data-slot="field"]:not([data-invalid="true"])
-    [data-sot-part="settings-field-message"] {
-    display: none;
-}
 [data-sot-panel="settings-scroll-body"] [data-sot-banner] {
     display: grid;
 }
@@ -4350,18 +4340,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-theme="dark"] [data-sot-section-divider] {
     border-top-color: var(--glass-border-soft);
-}
-
-[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]
-    [data-slot="field"] {
-    gap: 14px;
-}
-@media (max-width: 720px) {
-    [data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]
-        [data-slot="field"] {
-        flex-direction: column;
-        align-items: start;
-    }
 }
 
 [data-sot-panel="settings-save-actions"] {

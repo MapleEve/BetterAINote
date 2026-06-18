@@ -1247,6 +1247,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("@supports not (color: oklch(");
         expect(globals).not.toMatch(/(^|[{\s,])\.panel(?![\w-])/m);
         expect(globals).not.toMatch(/(^|\n|,)\s*\.storage-bar\b/);
+        expect(globals).not.toContain('[data-slot="');
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
