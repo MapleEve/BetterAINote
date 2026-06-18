@@ -509,6 +509,7 @@ const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-actions"]',
+    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
     '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-label"]',
     '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"]',
 ];

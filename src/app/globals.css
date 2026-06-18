@@ -3744,7 +3744,10 @@ body[data-time-style="abs"]
     box-shadow: var(--shadow-xl);
     display: flex;
     flex-direction: column;
+    gap: 0;
+    padding: 0;
     overflow: hidden;
+    box-sizing: border-box;
     transition:
         transform 280ms var(--ease-out),
         opacity 220ms var(--ease-out);
@@ -3817,15 +3820,22 @@ body[data-time-style="abs"]
 [data-sot-control="settings-nav"] {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 10px;
+    width: auto;
+    height: auto;
+    min-height: 0;
     padding: 8px 10px;
     border-radius: 8px;
     background: transparent;
     border: 0;
     cursor: pointer;
     font: 500 13px var(--font-sans);
+    line-height: normal;
+    letter-spacing: 0;
     color: var(--fg-secondary);
     text-align: left;
+    box-shadow: none;
 }
 [data-sot-control="settings-nav"]:hover {
     background: color-mix(in srgb, var(--fg-primary) 5%, transparent);
@@ -3851,6 +3861,35 @@ body[data-time-style="abs"]
     stroke-linecap: round;
     stroke-linejoin: round;
     flex: none;
+}
+
+[data-sot-control="settings-close"][data-slot="button"] {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    color: var(--fg-tertiary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: none;
+}
+[data-sot-control="settings-close"][data-slot="button"]:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+[data-sot-control="settings-close"][data-slot="button"] svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 [data-sot-panel="settings-scroll-body"],
