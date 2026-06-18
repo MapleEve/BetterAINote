@@ -1435,6 +1435,7 @@ describe("settings SOT interaction regressions", () => {
         const speakers = readSource(
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
+        const globals = readSource("app/globals.css");
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
         const findButtonByControl = (control: string) =>
@@ -1522,6 +1523,11 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).not.toContain("sot-speaker-avatar");
         expect(speakers).not.toContain("sot-speaker-profiles");
         expect(speakers).not.toContain("sot-speaker-pill");
+        expect(globals).not.toMatch(/(^|\n|,)\s*\.sot-speaker-/);
+        expect(globals).toContain('[data-sot-panel="speaker-profiles"]');
+        expect(globals).toContain('[data-sot-list="speaker-profile-rows"]');
+        expect(globals).toContain('[data-sot-item="speaker-profile-row"]');
+        expect(globals).toContain('[data-sot-badge="speaker-state"]');
         expect(speakers).not.toContain("data-profiles-state");
         expect(speakers).not.toContain("data-vs-state");
         expect(speakers).not.toMatch(/\bvs-profile/);

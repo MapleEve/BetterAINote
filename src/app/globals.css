@@ -8856,8 +8856,6 @@ body[data-ds-todo="show"] .design-todo {
     margin-left: 4px;
 }
 
-/* SOT speaker profile list */
-.sot-speaker-profiles,
 [data-sot-panel="speaker-profiles"] {
     display: flex;
     flex-direction: column;
@@ -8872,23 +8870,6 @@ body[data-ds-todo="show"] .design-todo {
     list-style: none;
     margin: 0;
     padding: 0;
-}
-.sot-speaker-row {
-    /* minmax(0, 1fr) prevents the meta column from inheriting its content's
-     min-content width. With Chinese text, every codepoint is a soft break
-     point — without minmax(0, …), the auto-track columns (pill + actions)
-     win the grid solve and force the meta column down to 1ch wide, which
-     collapses 姓名/副标题 into vertical one-character columns. */
-    grid-template-columns: 32px minmax(0, 1fr) auto auto;
-    gap: 10px 12px;
-    align-items: center;
-    padding: 8px 10px;
-    border-radius: 9px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    /* Allow the row to reflow at narrow widths instead of clipping the
-     action buttons. */
-    min-width: 0;
 }
 [data-sot-item="speaker-profile-row"],
 [data-sot-item="speaker-voiceprint-row"] {
@@ -8906,10 +8887,6 @@ body[data-ds-todo="show"] .design-todo {
 [data-sot-item="speaker-voiceprint-row"]:hover {
     background: var(--bg-recessed);
 }
-[data-theme="dark"] .sot-speaker-row {
-    background: rgb(255 255 255 / 0.03);
-    border-color: var(--glass-border-soft);
-}
 [data-theme="dark"] [data-sot-item="speaker-profile-row"],
 [data-theme="dark"] [data-sot-item="speaker-voiceprint-row"] {
     background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
@@ -8919,57 +8896,17 @@ body[data-ds-todo="show"] .design-todo {
 [data-theme="dark"] [data-sot-item="speaker-voiceprint-row"]:hover {
     background: rgb(255 255 255 / 0.03);
 }
-.sot-speaker-avatar {
-    display: inline-flex;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--steel-500) 18%, transparent);
-    color: var(--steel-700);
-    font: 700 11px var(--font-sans);
-}
 [data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"],
 [data-sot-part="speaker-voiceprint-avatar"] [data-slot="avatar-fallback"] {
     background: color-mix(in srgb, var(--steel-500) 18%, transparent);
     color: var(--steel-700);
     font: 700 11px var(--font-sans);
 }
-.sot-speaker-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-}
 [data-sot-part="speaker-profile-row-meta"],
 [data-sot-part="speaker-voiceprint-row-meta"] {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 0;
-}
-.sot-speaker-name {
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-    /* Single-line + ellipsis so a long display name can't blow out the
-     grid column at 920px-modal width. */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Defensive against any ancestor rule that flips CJK to break-all. */
-    word-break: keep-all;
-    overflow-wrap: normal;
-    min-width: 0;
-}
-.sot-speaker-sub {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-break: keep-all;
-    overflow-wrap: normal;
     min-width: 0;
 }
 [data-sot-part="speaker-profile-row-sub"],
@@ -8983,7 +8920,6 @@ body[data-ds-todo="show"] .design-todo {
     font: 500 11.5px / 1.4 var(--font-mono);
     letter-spacing: 0.02em;
 }
-.sot-speaker-pill,
 [data-sot-badge="speaker-state"][data-sot-tone] {
     display: inline-flex;
     align-items: center;
@@ -8999,13 +8935,11 @@ body[data-ds-todo="show"] .design-todo {
     color: var(--signal-success);
     border: 1px solid color-mix(in srgb, var(--signal-success) 30%, transparent);
 }
-.sot-speaker-pill.warn,
 [data-sot-badge="speaker-state"][data-sot-tone="warning"] {
     background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
     color: var(--signal-warning-strong);
     border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
 }
-.sot-speaker-pill.err,
 [data-sot-badge="speaker-state"][data-sot-tone="danger"] {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
     color: var(--signal-danger);
@@ -9015,92 +8949,6 @@ body[data-ds-todo="show"] .design-todo {
     background: var(--bg-recessed);
     color: var(--fg-secondary);
     border-color: var(--line-hairline);
-}
-.sot-speaker-actions {
-    align-items: center;
-    gap: 6px;
-    /* Buttons stay side-by-side in their auto column; never wrap into a
-     vertical stack inside the row. */
-    flex: none;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-}
-
-/* Narrow viewports / future modal shrink — wrap pill + actions to a
-   second row instead of compressing the meta column further. */
-@media (max-width: 720px) {
-    .sot-speaker-row {
-        grid-template-columns: 32px minmax(0, 1fr);
-        grid-template-areas:
-            "avatar meta"
-            "pill   pill"
-            "actions actions";
-    }
-    .sot-speaker-row > .sot-speaker-avatar {
-        grid-area: avatar;
-    }
-    .sot-speaker-row > .sot-speaker-meta {
-        grid-area: meta;
-    }
-    .sot-speaker-row > .sot-speaker-pill,
-    .sot-speaker-row > [data-sot-badge="speaker-state"] {
-        grid-area: pill;
-        justify-self: start;
-    }
-    .sot-speaker-row > .sot-speaker-actions {
-        grid-area: actions;
-        justify-self: end;
-    }
-}
-
-.sot-speaker-empty,
-.sot-speaker-error,
-.sot-speaker-loading {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 6px;
-    padding: 28px 18px;
-    background: var(--bg-recessed);
-    border: 1px dashed var(--line-hairline);
-    border-radius: 10px;
-}
-.sot-speaker-empty-ico,
-.sot-speaker-error-ico {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-tertiary);
-}
-.sot-speaker-error-ico {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
-    color: var(--signal-danger);
-}
-.sot-speaker-empty-ico svg,
-.sot-speaker-error-ico svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-}
-.sot-speaker-empty-msg,
-.sot-speaker-error-msg {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-    margin: 0;
-}
-.sot-speaker-empty-sub,
-.sot-speaker-error-sub {
-    font: 500 12px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-    margin: 0;
-    max-width: 320px;
 }
 
 [data-sot-shortcuts] {
