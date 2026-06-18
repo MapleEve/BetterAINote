@@ -60,6 +60,7 @@ import {
     readBrowserStorage,
     writeBrowserStorage,
 } from "@/lib/platform/browser-shell";
+import { cn } from "@/lib/utils";
 import type {
     DisplayDensity,
     DisplaySettings,
@@ -418,6 +419,23 @@ function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     }
 
     return null;
+}
+
+function getSourceActionStatusBadgeClassName(state: string) {
+    return cn(
+        "gap-1.5",
+        (state === "saved" || state === "saving") && "text-primary",
+        state === "error" && "text-destructive",
+    );
+}
+
+function getSourceActionStatusDotClassName(state: string) {
+    return cn(
+        "size-2 rounded-full bg-secondary-foreground/45",
+        state === "saved" && "bg-primary",
+        state === "saving" && "animate-pulse bg-primary",
+        state === "error" && "bg-destructive",
+    );
 }
 
 function getSourceProviderDetailSubtitle(
@@ -1492,17 +1510,32 @@ function DataSourcesSettingsPanel({
                             data-sot-state={sourceSaveState}
                         >
                             <Badge
-                                variant="ghost"
-                                className="border-0 bg-transparent p-0"
+                                variant="secondary"
+                                className={getSourceActionStatusBadgeClassName(
+                                    sourceSaveState,
+                                )}
                                 data-sot-part="source-action-status"
                                 data-sot-state={sourceSaveState}
                             >
+                                <span
+                                    aria-hidden="true"
+                                    className={getSourceActionStatusDotClassName(
+                                        sourceSaveState,
+                                    )}
+                                    data-sot-part="source-action-status-indicator"
+                                />
                                 {actionMessage?.title ?? ""}
                             </Badge>
                             <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
+                                className={cn(
+                                    sourceTestState === "success" &&
+                                        "text-primary",
+                                    sourceTestState === "error" &&
+                                        "text-destructive",
+                                )}
                                 data-sot-action="test"
                                 data-sot-control="source-test"
                                 data-sot-provider={selectedSource.provider}
@@ -1527,7 +1560,11 @@ function DataSourcesSettingsPanel({
                             </Button>
                             <Button
                                 type="button"
-                                variant="primary"
+                                variant={
+                                    sourceSaveState === "error"
+                                        ? "danger"
+                                        : "primary"
+                                }
                                 size="sm"
                                 data-sot-action="save"
                                 data-sot-control="source-save"
