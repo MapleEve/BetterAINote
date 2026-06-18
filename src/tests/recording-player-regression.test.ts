@@ -187,4 +187,32 @@ describe("dashboard recording player regressions", () => {
             expect(source).not.toContain(legacyClass);
         }
     });
+
+    it("keeps player product CSS on data-sot selectors without legacy aliases", () => {
+        const globals = readFileSync(
+            path.join(process.cwd(), "src/app/globals.css"),
+            "utf8",
+        );
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                /(^|\n|,)\s*\.(?:player|player-meta|player-controls|player-meta-warn|no-audio-[a-z-]+|skel-detail|time)(?![\w-])/.test(
+                    text,
+                ),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of [
+            '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
+            '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
+            '[data-sot-panel="dashboard-recording-player-controls"][data-slot="card-content"]',
+            '[data-sot-surface="recording-player"][data-slot="card"]',
+            '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
+            '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
+            '[data-sot-panel="recording-detail-loading"]',
+        ]) {
+            expect(globals).toContain(selector);
+        }
+    });
 });

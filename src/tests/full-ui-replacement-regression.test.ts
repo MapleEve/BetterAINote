@@ -390,6 +390,13 @@ const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
 ];
 
+const TAB_PANE_HIDDEN_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /(^|\n|,)\s*\.t-pane\[hidden\]/;
+
+const TAB_PANE_HIDDEN_DATA_SOT_CSS_SELECTORS = [
+    "[data-sot-tab-pane][hidden]",
+] as const;
+
 const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:filter-row|chip|chip-f|chip-c)(?![\w-])/;
 
@@ -1357,6 +1364,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps tab pane hidden product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                TAB_PANE_HIDDEN_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of TAB_PANE_HIDDEN_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });

@@ -117,6 +117,16 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.settings-head\b/, ".settings-head"],
     [/(^|\n|,)\s*\.settings-body\b/, ".settings-body"],
     [/(^|\n|,)\s*\.settings-rail\b/, ".settings-rail"],
+    [/(^|\n|,)\s*\.settings-main(?![\w-])/, ".settings-main"],
+    [
+        /(^|\n|,)\s*\.settings-main\.three-pane\b/,
+        ".settings-main.three-pane",
+    ],
+    [/(^|\n|,)\s*\.settings-main\[hidden\]/, ".settings-main[hidden]"],
+    [
+        /(^|\n|,)\s*\.settings-main\.three-pane\[hidden\]/,
+        ".settings-main.three-pane[hidden]",
+    ],
     [/(^|\n|,)\s*\.settings-user\b/, ".settings-user"],
     [/(^|\n|,)\s*\.settings-user-local\b/, ".settings-user-local"],
     [/(^|\n|,)\s*\.local-badge\b/, ".local-badge"],
@@ -124,6 +134,25 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.su-mail\b/, ".su-mail"],
     [/(^|\n|,)\s*\.sr-group\b/, ".sr-group"],
     [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
+] as const;
+
+const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="settings-scroll-body"],',
+    '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
+    '[data-sot-panel="settings-scroll-body"][hidden]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-panel="source-actions"]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"]',
+    '[data-sot-panel="settings-scroll-body"] [data-sot-part="source-action-status"]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="source-actions"][data-sot-state="idle"]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="source-actions"][data-sot-state="saving"]',
+    '[data-sot-panel="settings-scroll-body"]\n    [data-slot="field"]\n    [data-sot-part="settings-field-message"]',
+    '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
+    '[data-sot-surface="settings-data-sources"]',
+    '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
+    '[data-sot-panel="source-actions"] {\n    align-items: center;',
 ] as const;
 
 function expectNoLegacySettingsFieldPatterns(
@@ -303,6 +332,19 @@ describe("settings SOT interaction regressions", () => {
         expect(sharedSelect).toContain('data-slot="select-item"');
         expect(sharedSelect).not.toContain("<select");
         expect(sharedSelect).not.toContain("<option");
+    });
+
+    it("keeps settings main product CSS on data-sot selectors only", () => {
+        const globals = readSource("app/globals.css");
+
+        for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
+            expect(globals, `globals should not use ${label}`).not.toMatch(
+                pattern,
+            );
+        }
+        for (const selector of SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
     });
 
     it("keeps migrated settings fields on shadcn Field, Slider, and Skeleton primitives", () => {

@@ -1383,214 +1383,6 @@ button {
     text-overflow: ellipsis;
 }
 
-/* Player — solid surface, no backdrop-filter so it reads in any renderer */
-.player {
-    border-radius: 16px;
-    padding: 16px 18px;
-    background: var(--bg-elevated);
-    border: 1px solid color-mix(in srgb, var(--graphite-300) 70%, transparent);
-    box-shadow: var(--shadow-sm);
-}
-[data-theme="dark"] .player {
-    background: rgb(255 255 255 / 0.025);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
-}
-.player-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-.player-meta .ts {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.02em;
-}
-.player-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-back"],
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-forward"] {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    font-size: 13.3333px;
-    line-height: var(--lh-body);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-back"]:hover,
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-forward"]:hover {
-    background: white;
-    color: var(--fg-primary);
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-back"]:hover,
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-forward"]:hover {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-back"]:active,
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-forward"]:active {
-    transform: scale(0.96);
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-back"]
-    svg,
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-forward"]
-    svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-play"] {
-    width: 44px;
-    height: 44px;
-    padding: 1px 6px;
-    border-radius: 50%;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
-    box-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-    color: white;
-    font: 400 13.3333px var(--font-sans);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-play"]
-    svg {
-    width: 18px;
-    height: 18px;
-    stroke: white;
-    fill: white;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-speed"] {
-    height: 32px;
-    min-width: 50px;
-    padding: 0 12px;
-    border-radius: 9px;
-    background: transparent;
-    border: 1px solid transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-    font: 600 12.5px var(--font-mono);
-    justify-content: center;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-speed"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-volume"] {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-volume"]
-    svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-seek"][data-slot="slider"] {
-    flex: 1;
-    height: 14px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-seek"]
-    [data-slot="slider-track"] {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--graphite-200);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.04);
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-seek"]
-    [data-slot="slider-range"] {
-    background: linear-gradient(90deg, var(--steel-500), var(--accent));
-}
-[data-sot-surface="dashboard-recording-player"]
-    .player-controls
-    [data-sot-control="dashboard-player-seek"]
-    [data-slot="slider-thumb"] {
-    width: 14px;
-    height: 14px;
-    margin-left: -2.25px;
-    border: 0;
-    background: white;
-    box-shadow:
-        0 1px 4px rgb(0 0 0 / 0.15),
-        0 0 0 1px var(--line-hairline);
-}
-.time {
-    font: 500 12px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.03em;
-    min-width: 44px;
-    text-align: center;
-}
-
 /* Dashboard recording player — shadcn Card/Button/Slider surface scoped by data-sot. */
 [data-sot-surface="dashboard-recording-player"][data-slot="card"] {
     display: block;
@@ -3958,7 +3750,6 @@ body[data-time-style="abs"]
     width: 40%;
 }
 
-.skel-detail,
 [data-sot-panel="recording-detail-loading"] {
     display: flex;
     flex-direction: column;
@@ -3966,7 +3757,6 @@ body[data-time-style="abs"]
     flex: 1;
     min-height: 0;
 }
-.skel-detail .player-meta,
 [data-sot-panel="recording-detail-loading"]
     [data-sot-part="detail-player-meta"] {
     display: flex;
@@ -3974,7 +3764,6 @@ body[data-time-style="abs"]
     gap: 10px;
     margin-bottom: 12px;
 }
-.skel-detail .player-controls,
 [data-sot-panel="recording-detail-loading"]
     [data-sot-part="detail-player-controls"] {
     display: flex;
@@ -4092,7 +3881,7 @@ body[data-time-style="abs"]
     display: flex;
     flex-direction: column;
     gap: 2px;
-    /* Rail is fixed inside the shell — only the .settings-main body
+    /* Rail is fixed inside the shell — only the settings scroll body
      scrolls. If the rail itself grows past the body, scroll it
      locally so it never expands the modal. */
     overflow-y: auto;
@@ -4143,7 +3932,6 @@ body[data-time-style="abs"]
 }
 
 [data-sot-panel="settings-scroll-body"],
-.settings-main,
 [data-sot-panel="settings-card-skeleton"],
 [data-sot-panel="settings-section-skeleton"],
 [data-sot-panel="settings-list-skeleton"] {
@@ -4182,7 +3970,6 @@ body[data-time-style="abs"]
    Used when the active section needs an extra master/detail column inside
    the settings dialog. Replaces the single section scroll area with
    [providers list | provider detail], both scrolling independently. */
-.settings-main.three-pane,
 [data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"] {
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -5049,8 +4836,6 @@ body[data-time-style="abs"]
 #tweaks-panel .ds-only-mark {
     display: inline-flex;
 }
-.settings-main[hidden],
-.settings-main.three-pane[hidden],
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
 }
@@ -5235,44 +5020,28 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     display: flex;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"],
-.settings-main [data-sot-panel="settings-save-actions"] {
+    [data-sot-panel="settings-save-actions"] {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-panel="source-actions"],
-.settings-main [data-sot-panel="source-actions"] {
+[data-sot-panel="settings-scroll-body"] [data-sot-panel="source-actions"] {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"],
-.settings-main [data-sot-part="settings-save-status"] {
+[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"] {
     display: inline-flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-part="source-action-status"],
-.settings-main [data-sot-part="source-action-status"] {
+[data-sot-panel="settings-scroll-body"] [data-sot-part="source-action-status"] {
     display: inline-flex;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]
-    [data-sot-part="settings-save-status"],
-.settings-main
     [data-sot-panel="settings-save-actions"][data-sot-state="idle"]
     [data-sot-part="settings-save-status"] {
     display: none;
 }
 [data-sot-panel="settings-scroll-body"]
     [data-sot-panel="source-actions"][data-sot-state="idle"]
-    [data-sot-part="source-action-status"],
-.settings-main
-    [data-sot-panel="source-actions"][data-sot-state="idle"]
     [data-sot-part="source-action-status"] {
     display: none;
 }
-.settings-main
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="settings-save"],
-.settings-main
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="voscript-test"],
 [data-sot-panel="settings-scroll-body"]
     [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
     [data-sot-control="settings-save"],
@@ -5281,12 +5050,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-sot-control="voscript-test"] {
     pointer-events: none;
 }
-.settings-main
-    [data-sot-panel="source-actions"][data-sot-state="saving"]
-    [data-sot-control="source-save"],
-.settings-main
-    [data-sot-panel="source-actions"][data-sot-state="saving"]
-    [data-sot-control="source-test"],
 [data-sot-panel="settings-scroll-body"]
     [data-sot-panel="source-actions"][data-sot-state="saving"]
     [data-sot-control="source-save"],
@@ -5297,45 +5060,31 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-sot-panel="settings-scroll-body"]
     [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="settings-save"],
-.settings-main
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
     [data-sot-control="settings-save"] {
     position: relative;
 }
 [data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="source-actions"][data-sot-state="saving"]
-    [data-sot-control="source-save"],
-.settings-main
     [data-sot-panel="source-actions"][data-sot-state="saving"]
     [data-sot-control="source-save"] {
     position: relative;
 }
 [data-sot-panel="settings-scroll-body"]
     [data-slot="field"]
-    [data-sot-part="settings-field-message"],
-.settings-main [data-slot="field"] [data-sot-part="settings-field-message"] {
+    [data-sot-part="settings-field-message"] {
     display: block;
 }
 [data-sot-panel="settings-scroll-body"]
     [data-slot="field"]:not([data-invalid="true"])
-    [data-sot-part="settings-field-message"],
-.settings-main
-    [data-slot="field"]:not([data-invalid="true"])
     [data-sot-part="settings-field-message"] {
     display: none;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-banner],
-.settings-main [data-sot-banner] {
+[data-sot-panel="settings-scroll-body"] [data-sot-banner] {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-banner-icon],
-.settings-main [data-sot-banner-icon] {
+[data-sot-panel="settings-scroll-body"] [data-sot-banner-icon] {
     display: inline-flex;
 }
 [data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]
-    [data-sot-panel="voscript-unavailable-banner"],
-.settings-main[data-sot-availability="unavailable"]
     [data-sot-panel="voscript-unavailable-banner"] {
     display: flex !important;
 }
@@ -5358,19 +5107,15 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     top: -8px;
     left: 50%;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-key-status],
-.settings-main [data-sot-key-status] {
+[data-sot-panel="settings-scroll-body"] [data-sot-key-status] {
     display: inline-flex;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts],
-.settings-main [data-sot-shortcuts] {
+[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] {
     display: grid;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] > div,
-.settings-main [data-sot-shortcuts] > div {
+[data-sot-panel="settings-scroll-body"] [data-sot-shortcuts] > div {
     display: flex;
 }
-.t-pane[hidden],
 [data-sot-tab-pane][hidden] {
     display: none;
 }
@@ -5389,10 +5134,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-sot-part="dashboard-speaker-bar-fill"] {
     display: block;
-}
-.player-controls.is-disabled [data-slot="slider"],
-.player-controls.is-disabled [data-sot-control$="player-speed"] {
-    pointer-events: none;
 }
 .sr-pane {
     display: flex;
@@ -8495,19 +8236,16 @@ body[data-ds-todo="show"] .design-todo {
     margin-bottom: 22px;
     position: relative;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head],
-.settings-main [data-sot-section-head] {
+[data-sot-panel="settings-scroll-body"] [data-sot-section-head] {
     margin-bottom: 6px;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head] h4,
-.settings-main [data-sot-section-head] h4 {
+[data-sot-panel="settings-scroll-body"] [data-sot-section-head] h4 {
     margin: 0;
     font: 600 13.5px var(--font-display);
     color: var(--fg-primary);
     letter-spacing: 0;
 }
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head] p,
-.settings-main [data-sot-section-head] p {
+[data-sot-panel="settings-scroll-body"] [data-sot-section-head] p {
     margin: 4px 0 0;
     font: 12.5px / 1.55 var(--font-sans);
     color: var(--fg-tertiary);
@@ -8522,20 +8260,16 @@ body[data-ds-todo="show"] .design-todo {
     border-top-color: var(--glass-border-soft);
 }
 
-[data-sot-panel="settings-scroll-body"] [data-slot="field"],
-.settings-main [data-slot="field"] {
+[data-sot-panel="settings-scroll-body"] [data-slot="field"] {
     padding: 12px 0;
     border-bottom: 1px solid var(--line-hairline);
 }
-[data-sot-panel="settings-scroll-body"] [data-slot="field"]:last-child,
-.settings-main [data-slot="field"]:last-child {
+[data-sot-panel="settings-scroll-body"] [data-slot="field"]:last-child {
     border-bottom: 0;
 }
-[data-theme="dark"] [data-sot-panel="settings-scroll-body"] [data-slot="field"],
-[data-theme="dark"] .settings-main [data-slot="field"] {
+[data-theme="dark"] [data-sot-panel="settings-scroll-body"] [data-slot="field"] {
     border-bottom-color: var(--glass-border-soft);
 }
-.settings-main.three-pane [data-slot="field"],
 [data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]
     [data-slot="field"] {
     gap: 14px;
@@ -8555,15 +8289,13 @@ body[data-ds-todo="show"] .design-todo {
     font: 500 12px var(--font-mono);
 }
 @media (max-width: 720px) {
-    .settings-main.three-pane [data-slot="field"],
     [data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]
         [data-slot="field"] {
         flex-direction: column;
         align-items: start;
     }
 }
-[data-sot-panel="settings-scroll-body"] [data-slot="field-error"],
-.settings-main [data-slot="field-error"] {
+[data-sot-panel="settings-scroll-body"] [data-slot="field-error"] {
     grid-column: 1 / -1;
     font: 500 11.5px var(--font-sans);
     margin-top: 4px;
@@ -9295,11 +9027,6 @@ body[data-ds-todo="show"] .design-todo {
     background: transparent;
 }
 
-/* ---------- Skeleton-detail must obey hidden attribute ----------
-   Baseline `.skel-detail { display: flex }` was beating [hidden]; restore. */
-.skel-detail[hidden] {
-    display: none !important;
-}
 [data-detail-empty][hidden] {
     display: none !important;
 }
@@ -9307,11 +9034,10 @@ body[data-ds-todo="show"] .design-todo {
     display: none !important;
 }
 
-/* ---------- Player-meta inline alignment + source tag fixes ---------- */
-.player-meta {
-    flex-wrap: wrap;
-}
-.player-meta [data-sot-control="player-source-tag"] {
+/* ---------- Player meta inline alignment + source tag fixes ---------- */
+[data-sot-part="dashboard-recording-player-meta"]
+    [data-sot-control="player-source-tag"],
+[data-sot-part="recording-player-meta"] [data-sot-control="player-source-tag"] {
     flex: none;
 }
 
@@ -11035,12 +10761,6 @@ select::-ms-expand {
     font-family: var(--font-sans);
 }
 
-/* ---- Player meta warn ---- */
-.player-meta-warn {
-    font: 500 11.5px / 1.4 var(--font-sans);
-    color: var(--signal-warning);
-}
-
 /* ---- DetailHeader local-only badge ---- */
 .rec-h2-local {
     display: inline-flex;
@@ -11551,84 +11271,6 @@ select::-ms-expand {
    toggles plus product-natural transitions. The product UI shows
    exactly one variant at a time — no audit panels, no checklists.
    ============================================================ */
-
-/* ---- No-audio recording ---- */
-.no-audio-banner {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: color-mix(
-        in srgb,
-        var(--signal-warning) 8%,
-        var(--bg-elevated)
-    );
-    border: 1px solid color-mix(in srgb, var(--signal-warning) 28%, transparent);
-    color: var(--fg-primary);
-}
-.player[data-no-audio="true"] .no-audio-banner {
-    display: flex;
-}
-.no-audio-ico {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: var(--signal-warning);
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-}
-.no-audio-ico svg {
-    width: 14px;
-    height: 14px;
-}
-.no-audio-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-.no-audio-title {
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-}
-.no-audio-sub {
-    font: 500 11.5px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-}
-/* Gate player controls when no audio. */
-.player[data-no-audio="true"] .player-controls
-    [data-sot-control$="player-back"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-play"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-forward"],
-.player[data-no-audio="true"] .player-controls [data-slot="slider"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-speed"],
-.player[data-no-audio="true"] .player-controls .time {
-    opacity: 0.42;
-    pointer-events: none;
-}
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-back"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-play"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-forward"],
-.player[data-no-audio="true"]
-    .player-controls
-    [data-sot-control$="player-speed"] {
-    cursor: not-allowed;
-}
 
 /* ---- Transcription banner (top of transcript pane) ---- */
 .tx-banner {
@@ -12737,7 +12379,7 @@ select::-ms-expand {
         color-mix(in srgb, var(--accent, #5b6470) 70%, transparent);
     outline-offset: 2px;
 }
-/* Transcript skeleton (docs-only — kit.css has .skel-list / .skel-detail only) */
+/* Transcript skeleton for component-library docs only. */
 .cl-transcript-skel {
     display: flex;
     flex-direction: column;
