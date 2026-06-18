@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus, X } from "lucide-react";
+import { Check, LoaderCircle, Plus, X } from "lucide-react";
 import {
     type ComponentProps,
     type CSSProperties,
@@ -50,6 +50,7 @@ import {
     type RecordingTagColor,
     type RecordingTagIcon,
 } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import {
     RecordingTagIconGlyph,
@@ -425,7 +426,10 @@ export function RecordingTagManager({
             type="button"
             variant={selected ? "secondary" : "outline"}
             size="xs"
-            className="h-6 whitespace-nowrap"
+            className={cn(
+                "relative h-6 whitespace-nowrap",
+                saving && "pointer-events-none",
+            )}
             onClick={interactive ? () => void handleToggleTag(tag) : undefined}
             disabled={interactive ? busy : undefined}
             aria-pressed={selected}
@@ -440,19 +444,22 @@ export function RecordingTagManager({
             data-sot-tag-name={tag.name}
         >
             {saving ? (
-                <span
+                <LoaderCircle
                     data-icon="inline-start"
                     data-sot-part="tag-loading-icon"
                     aria-hidden="true"
+                    className="animate-spin"
                 />
             ) : showIcon ? (
                 <RecordingTagIconGlyph icon={tag.icon} variant="manager" />
             ) : null}
             {tag.name}
             {showCheck ? (
-                <span data-sot-part="tag-check" aria-hidden="true">
-                    <Check />
-                </span>
+                <Check
+                    data-icon="inline-end"
+                    data-sot-part="tag-check"
+                    aria-hidden="true"
+                />
             ) : null}
         </Button>
     );
@@ -482,7 +489,7 @@ export function RecordingTagManager({
             <FieldLabel htmlFor={tagNameInputId} className="sr-only">
                 标签名
             </FieldLabel>
-            <InputGroup className="h-8" data-sot-part="create-row">
+            <InputGroup className="h-8 gap-1.5" data-sot-part="create-row">
                 <InputGroupInput
                     id={tagNameInputId}
                     type="text"
@@ -570,18 +577,44 @@ export function RecordingTagManager({
     );
 
     const renderColorPicker = () => (
-        <div data-sot-part="picker-frame" data-sot-picker="color">
-            <FieldSet data-sot-part="picker" data-sot-picker="color">
-                <FieldLegend data-sot-part="picker-label">颜色</FieldLegend>
+        <div
+            className="flex min-h-[59px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3"
+            data-sot-part="picker-frame"
+            data-sot-picker="color"
+        >
+            <FieldSet
+                className="m-0 contents min-w-0 border-0 p-0"
+                data-sot-part="picker"
+                data-sot-picker="color"
+            >
+                <FieldLegend
+                    className="m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                    data-sot-part="picker-label"
+                >
+                    颜色
+                </FieldLegend>
                 {renderColorToggleGroup(RECORDING_TAG_COLORS, "full")}
             </FieldSet>
         </div>
     );
 
     const renderIconPicker = () => (
-        <div data-sot-part="picker-frame" data-sot-picker="icon">
-            <FieldSet data-sot-part="picker" data-sot-picker="icon">
-                <FieldLegend data-sot-part="picker-label">图标</FieldLegend>
+        <div
+            className="flex min-h-[103px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3"
+            data-sot-part="picker-frame"
+            data-sot-picker="icon"
+        >
+            <FieldSet
+                className="m-0 contents min-w-0 border-0 p-0"
+                data-sot-part="picker"
+                data-sot-picker="icon"
+            >
+                <FieldLegend
+                    className="m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                    data-sot-part="picker-label"
+                >
+                    图标
+                </FieldLegend>
                 <ToggleGroup
                     type="single"
                     value={icon}
@@ -682,7 +715,10 @@ export function RecordingTagManager({
             </div>
         );
         panelAfterBody = (
-            <div data-sot-part="toggle-note">
+            <div
+                className="px-3.5 pb-3 text-xs leading-relaxed text-muted-foreground"
+                data-sot-part="toggle-note"
+            >
                 aria-pressed=&quot;true&quot; → 标签已应用 ·
                 点击再次切换为「未应用」。
             </div>
@@ -757,10 +793,11 @@ export function RecordingTagManager({
                     onClick={() => void handleDeleteTag()}
                 >
                     {deletingTagId === deleteTarget.id ? (
-                        <span
+                        <LoaderCircle
                             data-icon="inline-start"
                             data-sot-part="tag-loading-icon"
                             aria-hidden="true"
+                            className="animate-spin"
                         />
                     ) : null}
                     删除标签
@@ -769,7 +806,7 @@ export function RecordingTagManager({
         );
     } else if (isCreateMode) {
         panelContent = (
-            <FieldGroup data-sot-part="create">
+            <FieldGroup className="gap-3.5" data-sot-part="create">
                 {renderNameField({
                     disabled: isCreating,
                     enableEnterCreate: true,
@@ -814,10 +851,11 @@ export function RecordingTagManager({
                     onClick={() => void handleCreateTag()}
                 >
                     {isCreating ? (
-                        <span
+                        <LoaderCircle
                             data-icon="inline-start"
                             data-sot-part="tag-loading-icon"
                             aria-hidden="true"
+                            className="animate-spin"
                         />
                     ) : null}
                     创建
@@ -845,11 +883,18 @@ export function RecordingTagManager({
                     </Empty>
                 ) : (
                     <>
-                        <section data-sot-part="section">
-                            <div data-sot-part="section-label">
+                        <section
+                            className="flex flex-col gap-2"
+                            data-sot-part="section"
+                        >
+                            <div
+                                className="mb-2 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+                                data-sot-part="section-label"
+                            >
                                 已选 · {selectedTags.length}
                             </div>
                             <div
+                                className="flex flex-wrap gap-1"
                                 data-sot-list="recording-selected-tags"
                                 data-sot-part="selected-chips"
                                 data-sot-state={
@@ -864,7 +909,7 @@ export function RecordingTagManager({
                                         <Badge
                                             key={tag.id}
                                             variant="secondary"
-                                            className="max-w-full"
+                                            className="min-w-0 max-w-full"
                                             data-sot-part="selected-chip"
                                             data-sot-tag-color={tag.color}
                                             data-sot-tag-icon={tag.icon}
@@ -882,7 +927,7 @@ export function RecordingTagManager({
                                                 type="button"
                                                 variant="ghost"
                                                 size="icon-xs"
-                                                className="shrink-0"
+                                                className="shrink-0 [&_svg]:invisible"
                                                 aria-label="移除"
                                                 data-sot-control="recording-tag-delete-open"
                                                 data-sot-state={
@@ -907,8 +952,16 @@ export function RecordingTagManager({
                             </div>
                         </section>
 
-                        <section data-sot-part="section">
-                            <div data-sot-part="section-label">全部标签</div>
+                        <section
+                            className="flex flex-col gap-2"
+                            data-sot-part="section"
+                        >
+                            <div
+                                className="mb-2 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+                                data-sot-part="section-label"
+                            >
+                                全部标签
+                            </div>
                             <div
                                 data-sot-list="recording-available-tags"
                                 data-sot-part="tag-options"
@@ -941,13 +994,16 @@ export function RecordingTagManager({
                       })
                     : null}
 
-                <FieldGroup data-sot-part="create">
+                <FieldGroup className="gap-2" data-sot-part="create">
                     {renderNameField({
                         placeholder: "新建标签…",
                         withInlineAction: true,
                     })}
                     {hasNoTags ? null : (
-                        <div data-sot-part="create-meta">
+                        <div
+                            className="flex flex-wrap items-center gap-2"
+                            data-sot-part="create-meta"
+                        >
                             {renderColorToggleGroup(
                                 QUICK_RECORDING_TAG_COLORS,
                                 "quick",
@@ -980,7 +1036,7 @@ export function RecordingTagManager({
                       : "idle"
             }
             data-sot-variant={variant}
-            className="w-80 max-w-[calc(100vw-2rem)] max-h-[460px] gap-0"
+            className="max-h-[460px] w-80 max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"
         >
             <CardHeader
                 className="items-center border-b px-3 py-2.5"
@@ -1007,7 +1063,7 @@ export function RecordingTagManager({
                 ) : null}
             </CardHeader>
             <CardContent
-                className="flex flex-col gap-3.5 overflow-auto px-3.5 py-3.5"
+                className="flex min-h-0 flex-col gap-3.5 overflow-auto px-3.5 py-3.5"
                 data-sot-part="body"
             >
                 {panelContent}

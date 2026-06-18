@@ -4370,6 +4370,31 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('data-sot-part="color-swatch"');
         expect(tagManager).toContain('data-sot-part="icon-option"');
         expect(tagManager).toContain('data-sot-part="toggle-note"');
+        for (const anchor of [
+            'data-open="true"',
+            'data-state={visibleError ? "error" : undefined}',
+            "data-sot-state={panelState}",
+            "data-sot-toggle-state={",
+            'data-sot-create-state={isCreating ? "saving" : "idle"}',
+            'data-sot-control="recording-tag-manager-close"',
+            'data-sot-control="recording-tag-error-retry"',
+            'data-sot-control="recording-tag-delete-open"',
+            'data-sot-control="recording-tag-delete-confirm"',
+            'data-sot-control="recording-tag-create-cancel"',
+            'data-sot-part="create-field"',
+            'data-sot-part="picker-frame"',
+            'data-sot-part="tag-loading-icon"',
+            'data-sot-part="tag-check"',
+            'data-sot-state={saving ? "saving" : selected ? "selected" : "idle"}',
+            'data-sot-state={color === item ? "selected" : "idle"}',
+            'data-sot-state={icon === item ? "selected" : "idle"}',
+            'data-sot-state={\n                        deletingTagId === deleteTarget.id ? "saving" : "ready"',
+            "SOT_TAG_MANAGER_ERROR_TEXT",
+            "renderErrorAlert",
+            "setDeleteTarget(catalogTag)",
+        ]) {
+            expect(tagManager).toContain(anchor);
+        }
         expect(tagManager).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
@@ -4394,21 +4419,48 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<Badge");
         expect(tagManager).toContain("<Button");
         expect(tagManager).toContain("<Field");
+        expect(tagManager).toContain("<FieldGroup");
+        expect(tagManager).toContain("<FieldSet");
+        expect(tagManager).toContain("<FieldLegend");
         expect(tagManager).toContain("<InputGroup");
         expect(tagManager).toContain("<InputGroupInput");
         expect(tagManager).toContain("<InputGroupButton");
         expect(tagManager).toContain("<ToggleGroup");
         expect(tagManager).toContain("<ToggleGroupItem");
+        for (const primitiveImport of [
+            "Field,",
+            "FieldGroup,",
+            "FieldLegend,",
+            "FieldSet,",
+            "InputGroup,",
+            "ToggleGroup,",
+            "Badge",
+            "Button",
+            "Card,",
+            "Alert,",
+            "Empty,",
+        ]) {
+            expect(tagManager).toContain(primitiveImport);
+        }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('variant="primary"');
         expect(tagManager).toContain('size="icon-sm"');
         expect(tagManager).toContain('variant="secondary"');
-        expect(tagManager).toContain('className="h-6 whitespace-nowrap"');
+        expect(tagManager).toContain('"relative h-6 whitespace-nowrap"');
+        expect(tagManager).toContain('saving && "pointer-events-none"');
+        expect(tagManager).toContain("<LoaderCircle");
+        expect(tagManager).toContain('className="animate-spin"');
         expect(tagManager).toContain(
-            'className="w-80 max-w-[calc(100vw-2rem)] max-h-[460px] gap-0"',
+            'className="max-h-[460px] w-80 max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
         );
         expect(tagManager).toContain(
-            '<InputGroup className="h-8" data-sot-part="create-row">',
+            '<InputGroup className="h-8 gap-1.5" data-sot-part="create-row">',
+        );
+        expect(tagManager).toContain('className="min-w-0 max-w-full"');
+        expect(tagManager).toContain('className="gap-3.5"');
+        expect(tagManager).toContain('className="gap-2"');
+        expect(tagManager).toContain(
+            'className="m-0 contents min-w-0 border-0 p-0"',
         );
         expect(tagManager).toContain("disabled={!canCreate}");
         expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
@@ -4481,6 +4533,21 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-panel="recording-tag-empty"] [data-sot-part="empty-description"]',
             '[data-sot-control="recording-tag-error-retry"][data-slot="button"]',
             '[data-sot-part="footer"]\n    [data-slot="button"]',
+            '[data-sot-panel="recording-tag-manager"][data-slot="card"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="head"][data-slot="card-header"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="body"][data-slot="card-content"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="create"][data-slot="field-group"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker"][data-slot="field-set"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="picker-label"][data-slot="field-legend"]',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="selected-chip"][data-slot="badge"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-loading-icon"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"] svg',
+            '[data-sot-panel="recording-tag-manager"]\n    [data-sot-part="create-row"][data-slot="input-group"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-meta"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="toggle-note"]',
+            '[data-theme="dark"] [data-sot-panel="recording-tag-manager"]',
         ];
 
         for (const selector of removedTagManagerPrimitiveSelectors) {
@@ -4515,6 +4582,38 @@ describe("full UI replacement regression coverage", () => {
                 );
             }
         }
+        const tagManagerGlobalPanelBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="recording-tag-manager"]',
+        ).filter(({ prelude }) => !prelude.includes(".cl-pop-host"));
+        const allowedTagManagerFunctionalProperties = new Set([
+            "left",
+            "max-width",
+            "pointer-events",
+            "position",
+            "right",
+            "top",
+            "width",
+            "z-index",
+        ]);
+
+        expect(tagManagerGlobalPanelBlocks.length).toBeGreaterThanOrEqual(4);
+        for (const block of tagManagerGlobalPanelBlocks) {
+            const declarationProperties = block.declarations
+                .split("\n")
+                .map((line) => line.match(/^\s*([\w-]+)\s*:/)?.[1])
+                .filter((property): property is string => Boolean(property));
+
+            for (const property of declarationProperties) {
+                expect(
+                    allowedTagManagerFunctionalProperties.has(property),
+                    `${block.prelude.trim()} should only keep functional placement/open declarations`,
+                ).toBe(true);
+            }
+        }
+        expect(globals).toContain(
+            '.cl-pop-host > [data-sot-panel="recording-tag-manager"],',
+        );
 
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         expect(sourceReport).toContain(
