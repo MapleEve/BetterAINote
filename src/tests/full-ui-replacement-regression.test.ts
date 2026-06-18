@@ -441,6 +441,21 @@ const COPY_ICON_DATA_SOT_CSS_SELECTORS = [
     '[data-slot="button"][data-copy][data-copy-state="err"]',
 ];
 
+const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.lang-pill(?![\w-])/;
+
+const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="dashboard-transcript-actions"]',
+    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-label"]',
+    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"]',
+];
+
+const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS = [
+    'data-sot-part="dashboard-transcript-actions"',
+    'data-sot-part="dashboard-copy-label"',
+    'data-sot-part="dashboard-copy-icon"',
+];
+
 const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail-empty(?:-(?:ico|title|sub))?)(?![\w-])/;
 
@@ -1447,6 +1462,28 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of COPY_ICON_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+    });
+
+    it("keeps dashboard transcript actions off lang-pill CSS selectors", () => {
+        const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(
+                    text,
+                ),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+        for (const hook of DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS) {
+            expect(workstation).toContain(hook);
+        }
+        expect(workstation).not.toContain('className="lang-pill"');
     });
 
     it("keeps detail empty product CSS on data-sot selectors", () => {

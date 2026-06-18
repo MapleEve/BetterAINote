@@ -2146,27 +2146,6 @@ button {
     align-items: center;
     gap: 8px;
 }
-.lang-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--signal-info) 12%, transparent);
-    color: var(--signal-info);
-    border: 1px solid color-mix(in srgb, var(--signal-info) 28%, transparent);
-    font: 600 11px var(--font-sans);
-}
-.lang-pill svg {
-    width: 11px;
-    height: 11px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
 
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"] {
     flex: 1;
@@ -11585,8 +11564,7 @@ select::-ms-expand {
     cursor: not-allowed;
     pointer-events: none;
 }
-/* Source-report tab places copy buttons in the detail action row at the top
-   of the transcript header — they slot in next to the language pill. */
+/* Source-report tab places copy buttons in the transcript header action row. */
 [data-sot-part="dashboard-transcript-actions"] {
     display: inline-flex;
     align-items: center;
