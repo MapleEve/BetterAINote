@@ -1145,12 +1145,28 @@ function DataSourcesSettingsPanel({
                                 </div>
                             </div>
                             <Badge
-                                variant="outline"
-                                className="h-6 gap-1.5 px-2.5 text-[11.5px]"
+                                variant={
+                                    status.tone === "err"
+                                        ? "destructive"
+                                        : status.tone === "neu"
+                                          ? "secondary"
+                                          : "outline"
+                                }
+                                className={cn(
+                                    "h-6 gap-1.5 px-2.5",
+                                    (status.tone === "ok" ||
+                                        status.tone === "syncing") &&
+                                        "text-primary",
+                                    status.tone === "warn" &&
+                                        "text-muted-foreground",
+                                )}
                                 data-sot-status={status.state}
                                 data-sot-tone={status.tone}
                             >
-                                <span data-sot-status-dot />
+                                <span
+                                    className="size-1.5 rounded-full bg-current"
+                                    data-sot-status-dot
+                                />
                                 {status.label}
                             </Badge>
                         </div>
@@ -1221,11 +1237,17 @@ function DataSourcesSettingsPanel({
                                                 )}
                                                 {modeBadge ? (
                                                     <Badge
+                                                        className="px-1.5"
                                                         data-sot-badge="source-auth-mode"
                                                         data-sot-tone={
                                                             modeBadge.tone
                                                         }
-                                                        variant="outline"
+                                                        variant={
+                                                            modeBadge.tone ===
+                                                            "recommended"
+                                                                ? "secondary"
+                                                                : "outline"
+                                                        }
                                                     >
                                                         {modeBadge.label}
                                                     </Badge>
@@ -1295,7 +1317,9 @@ function DataSourcesSettingsPanel({
                                     </FieldContent>
                                     <div className={SETTINGS_CONTROL_CLASS}>
                                         <Input
-                                            className={SETTINGS_INPUT_CLASS}
+                                            className={
+                                                SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                            }
                                             id={`${selectedSource.provider}-base-url`}
                                             value={
                                                 displayedServiceAddress.value
@@ -1335,6 +1359,7 @@ function DataSourcesSettingsPanel({
                                             value,
                                         )
                                     }
+                                    variant="settings"
                                 />
                             ))}
 
@@ -1369,6 +1394,7 @@ function DataSourcesSettingsPanel({
                                                     value,
                                                 )
                                             }
+                                            variant="settings"
                                         />
                                     ))}
                                 </>
@@ -1730,6 +1756,7 @@ const VOSCRIPT_API_KEY_CLEAR = "__clear_voscript_key__";
 const SETTINGS_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "min-w-60 max-w-full font-mono";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 
 function getErrorMessage(error: unknown, fallback: string) {
