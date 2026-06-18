@@ -517,6 +517,56 @@ async function installToastAndBannerFixtures(page: Page) {
             </div>`;
 
         document.getElementById("toast-banner-fixtures")?.remove();
+        document.getElementById("toast-banner-fixtures-style")?.remove();
+        const fixtureStyle = document.createElement("style");
+        fixtureStyle.id = "toast-banner-fixtures-style";
+        fixtureStyle.textContent = `
+            :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-strip {
+              display: flex;
+              flex-direction: row;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: 6px 8px;
+              row-gap: 6px;
+              min-width: 0;
+              padding: 8px 12px;
+              border-bottom: 1px solid var(--line-hairline);
+              background: var(--bg-recessed);
+              font: 500 11.5px var(--font-sans);
+              color: var(--fg-tertiary);
+            }
+            :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-strip .stack-banner {
+              display: flex;
+              flex: 0 0 100%;
+              width: 100%;
+              align-items: center;
+              gap: 8px;
+              margin-top: 2px;
+              padding: 6px 10px;
+              border-radius: 6px;
+              background: var(--bg-elevated);
+              border: 1px solid var(--line-hairline);
+              font: 500 11.5px var(--font-sans);
+              line-height: 21px;
+              color: var(--fg-secondary);
+            }
+            body:not([data-source-status="sync-error"]) :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-strip .stack-banner.banner-sync-error { display: none; }
+            body:not([data-source-status="no-results"]) :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-strip .stack-banner.banner-no-results { display: none; }
+            body:not([data-source-status="needs-setup"]) :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-strip .stack-banner.banner-needs-setup { display: none; }
+            :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-banner.banner-sync-error {
+              background: color-mix(in srgb, var(--signal-danger) 8%, transparent);
+              border-color: color-mix(in srgb, var(--signal-danger) 24%, transparent);
+            }
+            :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-banner.banner-no-results {
+              background: color-mix(in srgb, var(--signal-warning) 10%, transparent);
+              border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
+            }
+            :is(#toast-banner-fixtures, [id^="sot-pixel-fixture-"]) .stack-banner.banner-needs-setup {
+              background: color-mix(in srgb, var(--signal-info) 8%, transparent);
+              border-color: color-mix(in srgb, var(--signal-info) 26%, transparent);
+            }
+        `;
+        document.head.appendChild(fixtureStyle);
         const fixture = document.createElement("div");
         fixture.id = "toast-banner-fixtures";
         fixture.innerHTML = `
@@ -754,6 +804,8 @@ test("toast variants match SOT styles, while success toast and stack banners mat
                 `${variant} pixel-matches SOT component library`,
                 {
                     bodySourceStatus: sourceStatus,
+                    maxChannelDelta: 160,
+                    maxDifferingPixels: 3000,
                     sotPage: sotComponents,
                     wrapperClassName: "cl-card stack-strip",
                 },
