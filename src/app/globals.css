@@ -11641,14 +11641,14 @@ select::-ms-expand {
 [data-sot-control="library-search-scope"].is-hover-demo {
     background: rgba(0, 0, 0, 0.04);
 }
-.row.is-hover-demo {
+[data-sot-control="dashboard-recording-row"].is-hover-demo {
     background: rgba(0, 0, 0, 0.03);
 }
 
 [data-sot-control="dashboard-recording-time-filter"].is-focus-demo,
 [data-sot-control="liquid-tab"].is-focus-demo,
 [data-sot-control="library-search-scope"].is-focus-demo,
-.row.is-focus-demo {
+[data-sot-control="dashboard-recording-row"].is-focus-demo {
     outline: 2px solid
         color-mix(in srgb, var(--accent, #5b6470) 70%, transparent);
     outline-offset: 2px;
