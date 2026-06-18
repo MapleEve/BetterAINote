@@ -195,6 +195,26 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
     'data-sot-part="recording-list-page-number"',
 ];
 
+const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:sidebar-footer|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
+
+const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="dashboard-sidebar-footer"]',
+    '[data-sot-part="recording-list-state"]',
+    '[data-sot-panel="recording-list-pagination"]',
+    '[data-sot-part="recording-list-state-icon"]',
+    '[data-sot-part="recording-list-state-icon"] svg',
+    '[data-sot-part="recording-list-state-title"]',
+    '[data-sot-part="recording-list-state-description"]',
+    '[data-sot-part="recording-list-page-divider"]',
+    '[data-sot-part="recording-list-page-status"]',
+    '[data-sot-part="recording-list-page-nav"]',
+    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
+    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]:disabled',
+    '[data-slot="button"][aria-disabled="true"]',
+    '[data-sot-part="recording-list-page-number"]',
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -516,6 +536,7 @@ const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
+        const panel = readSource("components/panel.tsx");
         const breadcrumb = readSource("components/ui/breadcrumb.tsx");
         const card = readSource("components/ui/card.tsx");
         const button = readSource("components/ui/button.tsx");
@@ -541,6 +562,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("--bg-elevated:");
         expect(globals).toContain("--fg-primary:");
         expect(globals).toContain("@supports not (color: oklch(");
+        expect(globals).not.toMatch(/(^|[{\s,])\.panel(?![\w-])/m);
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -582,6 +604,11 @@ describe("full UI replacement regression coverage", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
+        expect(panel).toContain('data-slot="card"');
+        expect(panel).toContain("bg-card text-card-foreground");
+        expect(panel).toContain("data-variant={variant}");
+        expect(panel).not.toContain('cn("panel"');
+        expect(panel).not.toContain('className="panel"');
 
         expect(breadcrumb.trim()).not.toBe("export {};");
         for (const primitive of [
@@ -939,6 +966,23 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("data-page-prev");
         expect(workstation).toContain("data-page-next");
         expect(workstation).toContain("data-list-state-block");
+    });
+
+    it("keeps dashboard sidebar footer and recording-list states on data-sot product CSS selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(
+                    text,
+                ),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
     });
 
     it("keeps AI rename preview legacy selectors out of product CSS", () => {

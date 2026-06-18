@@ -125,7 +125,9 @@ describe("React surface SSR coverage", () => {
             ),
         );
 
-        expect(html).toContain("panel");
+        expect(html).toContain('data-slot="card"');
+        expect(html).toContain('data-variant="glass"');
+        expect(html).not.toContain('class="panel');
         expect(html).toContain('data-slot="button"');
         expect(html).toContain('data-variant="primary"');
         expect(html).toContain('data-variant="glass"');

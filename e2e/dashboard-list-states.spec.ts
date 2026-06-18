@@ -2195,11 +2195,75 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
                 stage.querySelector<HTMLElement>("[data-list-state-block]");
             stateBlock?.removeAttribute("hidden");
             stateBlock?.classList.add("list-state-block");
-            if (
-                stateBlock?.getAttribute("data-sot-panel") ===
-                "recording-list-pagination"
-            ) {
-                stateBlock.classList.add("list-state-pagination");
+            if (stateBlock) {
+                const state =
+                    stateBlock.getAttribute("data-list-state-block") ??
+                    stateBlock.getAttribute("data-sot-state") ??
+                    "";
+                const isPagination =
+                    state.startsWith("paginated") ||
+                    stateBlock.classList.contains("list-state-pagination") ||
+                    stateBlock.getAttribute("data-sot-panel") ===
+                        "recording-list-pagination";
+
+                stateBlock.setAttribute("data-sot-state", state);
+                if (isPagination) {
+                    stateBlock.setAttribute(
+                        "data-sot-panel",
+                        "recording-list-pagination",
+                    );
+                    stateBlock.classList.add("list-state-pagination");
+                } else {
+                    stateBlock.setAttribute(
+                        "data-sot-part",
+                        "recording-list-state",
+                    );
+                }
+
+                stateBlock
+                    .querySelector<HTMLElement>(".lsb-ico")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-state-icon",
+                    );
+                stateBlock
+                    .querySelector<HTMLElement>(".lsb-t")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-state-title",
+                    );
+                stateBlock
+                    .querySelector<HTMLElement>(".lsb-h")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-state-description",
+                    );
+                const pageDivider =
+                    stateBlock.querySelector<HTMLElement>(
+                        ".lsb-page-divider",
+                    );
+                pageDivider?.setAttribute(
+                    "data-sot-part",
+                    "recording-list-page-divider",
+                );
+                pageDivider
+                    ?.querySelector<HTMLElement>("span")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-page-status",
+                    );
+                stateBlock
+                    .querySelector<HTMLElement>(".lsb-page-nav")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-page-nav",
+                    );
+                stateBlock
+                    .querySelector<HTMLElement>(".lsb-page-num")
+                    ?.setAttribute(
+                        "data-sot-part",
+                        "recording-list-page-number",
+                    );
             }
             for (const button of stage.querySelectorAll<HTMLElement>(
                 '[data-slot="button"][data-variant="ghost"][data-size="sm"]',
