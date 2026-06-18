@@ -1271,6 +1271,11 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).toContain(
             '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
         );
+        expect(globals).not.toContain('[data-sot-shell] *:focus');
+        expect(globals).not.toContain('[data-slot="button"]:focus-visible');
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-recording-row"]:focus-visible',
+        );
         expect(productCss).not.toMatch(
             LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE,
         );
@@ -1426,6 +1431,14 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain('data-slot="button"');
         expect(button).toContain("data-variant={variant}");
         expect(button).toContain("data-size={size}");
+        for (const focusClass of [
+            "outline-none",
+            "focus-visible:border-ring",
+            "focus-visible:ring-[3px]",
+            "focus-visible:ring-ring/50",
+        ]) {
+            expect(button).toContain(focusClass);
+        }
         for (const variant of [
             "default",
             "destructive",

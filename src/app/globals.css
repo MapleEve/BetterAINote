@@ -5606,14 +5606,8 @@ select::-ms-expand {
 }
 
 /* ============================================================
-   5) Sidebar collapsed-state focus hooks (no native focus ring)
+   5) Sidebar collapsed-state non-button focus hooks
    ============================================================ */
-[data-sot-shell] *:focus {
-    outline: none;
-}
-[data-sot-shell] [data-slot="button"]:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
-}
 [data-sot-shell] [data-sot-control="dashboard-recording-row"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
     outline-offset: 2px;
@@ -5782,7 +5776,6 @@ select::-ms-expand {
     font-family: inherit;
 }
 
-.cl-shell [data-slot="button"]:focus-visible,
 .cl-shell [data-sot-menu-item]:focus-visible,
 .cl-shell [data-sot-control="recording-tag-toggle"]:focus-visible {
     outline: none;
