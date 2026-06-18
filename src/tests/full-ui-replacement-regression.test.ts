@@ -296,6 +296,38 @@ const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
 ];
 
+const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:filter-row|chip|chip-f|chip-c)(?![\w-])/;
+
+const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
+    '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"]',
+    '[data-sot-control="dashboard-recording-time-filter"]:focus-visible',
+    '[data-sot-control="dashboard-recording-time-filter"][disabled]',
+    '[data-sot-part="dashboard-recording-time-filter-count"]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
+];
+
+const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:detail-empty(?:-(?:ico|title|sub))?)(?![\w-])/;
+
+const DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-detail-empty"]',
+    '[data-sot-panel="recording-source-record-empty"]',
+    '[data-sot-panel="recording-route-empty"]',
+    '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
+    '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]\n    [data-detail-empty]',
+    '[data-sot-part="dashboard-detail-empty-icon"]',
+    '[data-sot-part="recording-route-empty-icon"]',
+    '[data-sot-part="dashboard-detail-empty-title"]',
+    '[data-sot-part="recording-route-empty-title"]',
+    '[data-sot-part="dashboard-detail-empty-description"]',
+    '[data-sot-part="recording-route-empty-description"]',
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -1135,6 +1167,36 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps dashboard time filters product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps detail empty product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });

@@ -1164,85 +1164,6 @@ button {
     background: transparent;
     border-bottom-color: var(--glass-border-soft);
 }
-.filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 10px;
-}
-.chip-f {
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 6px;
-    background: transparent;
-    border: 1px solid transparent;
-    font: 500 11px var(--font-sans);
-    color: var(--fg-secondary);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        color var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out);
-}
-.chip-f:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-.chip-f.active {
-    background: var(--bg-recessed);
-    border-color: var(--line-hairline);
-    color: var(--fg-primary);
-    box-shadow: var(--shadow-xs);
-}
-.chip-f .chip-c {
-    font: 500 10px var(--font-mono);
-    color: var(--fg-tertiary);
-    padding: 0 4px;
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--graphite-300) 35%, transparent);
-}
-.chip-f.active .chip-c {
-    background: color-mix(in srgb, var(--accent) 18%, transparent);
-    color: var(--accent);
-}
-[data-theme="dark"] .chip-f .chip-c {
-    background: rgb(255 255 255 / 0.06);
-}
-[data-theme="dark"] .chip-f.active .chip-c {
-    background: color-mix(in srgb, var(--accent) 22%, transparent);
-    color: var(--accent);
-}
-.chip {
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 999px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    font: 500 12px var(--font-sans);
-    color: var(--fg-secondary);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.chip.active {
-    background: var(--graphite-900);
-    color: white;
-    border-color: var(--graphite-900);
-}
-[data-theme="dark"] .chip.active {
-    background: var(--graphite-50);
-    color: var(--graphite-950);
-    border-color: var(--graphite-50);
-}
-.chip-c {
-    font: 500 11px var(--font-mono);
-    opacity: 0.7;
-}
-
 [data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"] {
     display: flex;
     flex-wrap: wrap;
@@ -5891,8 +5812,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 .del-modal-name {
     display: inline-block;
 }
-.detail-empty,
 [data-detail-empty],
+[data-sot-panel="dashboard-detail-empty"],
 [data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
     display: none;
@@ -5911,17 +5832,12 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     .real-detail {
     display: none;
 }
-.detail[data-empty="true"] .detail-empty,
 .detail[data-empty="true"] [data-detail-empty],
-[data-sot-panel="dashboard-detail"][data-empty="true"] .detail-empty,
 [data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty],
-[data-sot-panel="recording-route-empty-detail"][data-empty="true"]
-    .detail-empty,
 [data-sot-panel="recording-route-empty-detail"][data-empty="true"]
     [data-detail-empty] {
     display: flex;
 }
-.detail-empty-ico,
 [data-sot-part="dashboard-detail-empty-icon"],
 [data-sot-part="recording-route-empty-icon"] {
     display: inline-grid;
@@ -5956,7 +5872,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     overflow: hidden;
 }
 [data-sot-panel="dashboard-recording-time-filter"][hidden],
-.filter-row[hidden],
 [data-sot-panel="recording-list-tag-filter"][hidden] {
     display: none !important;
 }
@@ -9011,7 +8926,6 @@ body[data-ds-todo="show"] .design-todo {
 }
 
 /* ---------- Detail empty ---------- */
-.detail-empty,
 [data-sot-panel="dashboard-detail-empty"],
 [data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
@@ -9028,7 +8942,6 @@ body[data-ds-todo="show"] .design-todo {
     border-radius: 16px;
     box-shadow: var(--shadow-sm);
 }
-[data-theme="dark"] .detail-empty,
 [data-theme="dark"] [data-sot-panel="dashboard-detail-empty"],
 [data-theme="dark"] [data-sot-panel="recording-source-record-empty"],
 [data-theme="dark"] [data-sot-panel="recording-route-empty"] {
@@ -9036,7 +8949,6 @@ body[data-ds-todo="show"] .design-todo {
     border-color: var(--glass-border-soft);
     box-shadow: none;
 }
-.detail-empty-ico,
 [data-sot-part="dashboard-detail-empty-icon"],
 [data-sot-part="recording-route-empty-icon"] {
     width: 48px;
@@ -9048,7 +8960,6 @@ body[data-ds-todo="show"] .design-todo {
     place-items: center;
     margin-bottom: 4px;
 }
-.detail-empty-ico svg,
 [data-sot-part="dashboard-detail-empty-icon"] svg,
 [data-sot-part="recording-route-empty-icon"] svg {
     width: 22px;
@@ -9059,13 +8970,11 @@ body[data-ds-todo="show"] .design-todo {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.detail-empty-title,
 [data-sot-part="dashboard-detail-empty-title"],
 [data-sot-part="recording-route-empty-title"] {
     font: 600 14px var(--font-sans);
     color: var(--fg-primary);
 }
-.detail-empty-sub,
 [data-sot-part="dashboard-detail-empty-description"],
 [data-sot-part="recording-route-empty-description"] {
     font: 500 12.5px / 1.55 var(--font-sans);
@@ -10146,7 +10055,6 @@ body[data-ds-todo="show"] .design-todo {
 .skel-detail[hidden] {
     display: none !important;
 }
-.detail-empty[hidden],
 [data-detail-empty][hidden] {
     display: none !important;
 }
@@ -10381,7 +10289,6 @@ body[data-ds-todo="show"] .design-todo {
    ============================================================ */
 [data-sot-control="dashboard-recording-time-filter"]:focus-visible,
 [data-sot-control="dashboard-recording-row"]:focus-visible,
-.chip-f:focus-visible,
 [data-sot-control="liquid-tab"]:focus-visible,
 [data-sot-control="settings-nav"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
@@ -10415,7 +10322,6 @@ body[data-ds-todo="show"] .design-todo {
    surface dims the same way. Existing custom `.is-disabled` and
    `[disabled]` styles take precedence where they exist. */
 [data-sot-control="dashboard-recording-time-filter"][disabled],
-.chip-f[disabled],
 [data-sot-part="source-provider-action"][disabled],
 [data-sot-part="source-filter-action"][disabled],
 .tw-btn[disabled] {
@@ -12492,7 +12398,6 @@ select::-ms-expand {
 }
 
 /* ---- Detail empty (centered) ---- */
-.detail-empty,
 [data-sot-panel="dashboard-detail-empty"],
 [data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
@@ -13864,7 +13769,7 @@ select::-ms-expand {
 .cl-wide-card {
     grid-column: 1 / -1;
 }
-.chip-f.is-hover-demo {
+[data-sot-control="dashboard-recording-time-filter"].is-hover-demo {
     background: rgba(0, 0, 0, 0.04);
 }
 .ls-chip.is-hover-demo {
@@ -13874,7 +13779,7 @@ select::-ms-expand {
     background: rgba(0, 0, 0, 0.03);
 }
 
-.chip-f.is-focus-demo,
+[data-sot-control="dashboard-recording-time-filter"].is-focus-demo,
 [data-sot-control="liquid-tab"].is-focus-demo,
 .ls-chip.is-focus-demo,
 .row.is-focus-demo {
