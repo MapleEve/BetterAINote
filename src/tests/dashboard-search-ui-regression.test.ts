@@ -17,11 +17,22 @@ const LIBRARY_SEARCH_INDEXING_LEGACY_CSS_SELECTOR_RE =
 
 const LIBRARY_SEARCH_LEGACY_CSS_SELECTOR_RE = /\.ls-[a-z0-9-]+(?![\w-])/;
 
+const DASHBOARD_SEARCH_LEGACY_CSS_SELECTOR_RE = /\.search(?![\w-])/;
+
 const LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-indexing"]',
     '[data-sot-part="library-search-state-skeleton"]',
     '[data-sot-part="library-search-state-skeleton"]::after',
     '[data-sot-part="library-search-state-copy"]',
+];
+
+const DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-control="dashboard-search"][data-slot="button"]',
+    '[data-sot-control="dashboard-search"][data-slot="button"] svg',
+    '[data-sot-part="library-search-input-row"]',
+    '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
+    '[data-sot-part="library-search-input-row"] [data-slot="input-group-addon"] svg',
+    '[data-sot-panel="library-search"] kbd',
 ];
 
 describe("dashboard SOT search and activity interactions", () => {
@@ -134,6 +145,19 @@ describe("dashboard SOT search and activity interactions", () => {
             '[data-sot-list="library-search-results"]',
             '[data-sot-control="library-search-result"]',
         ]) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps dashboard search atom CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) => DASHBOARD_SEARCH_LEGACY_CSS_SELECTOR_RE.test(text));
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });

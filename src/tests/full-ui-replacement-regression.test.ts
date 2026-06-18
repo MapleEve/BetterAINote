@@ -314,6 +314,25 @@ const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-tag-chip"]',
 ];
 
+const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:src-dot|dot-success|dot-warning|dot-info|dot-muted|dot|search|avatar)(?![\w-])/;
+
+const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:detail|rec-head|rec-h2|rec-h2-status|rec-h2-local|rec-h2-input|rh-edit|rh-norm|real-detail|ai-rename-anchor)(?![\w-])/;
+
+const DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
+    '[data-sot-part="source-provider-mark"]',
+    '[data-sot-part="source-provider-status"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
+    '[data-sot-control="dashboard-search"][data-slot="button"]',
+    '[data-sot-control="dashboard-search"][data-slot="button"] svg',
+    '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
+    '[data-sot-panel="library-search"] kbd',
+    '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+];
+
 const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:field-help|auth-sot-canvas|onboarding-sot-canvas|auth-mark|auth-title|auth-sub|auth-local-row|auth-local-link|onboarding-progress|onboarding-progress-segment|onboarding-actions)(?![\w-])/;
 
@@ -1308,6 +1327,23 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
+    it("keeps dashboard topbar source/status atoms on data-sot product CSS selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(
+                    text,
+                ),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
     it("keeps liquid tabs product CSS on data-sot selectors", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
@@ -2143,6 +2179,7 @@ describe("full UI replacement regression coverage", () => {
         const badge = readSource("components/ui/badge.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const globals = readSource("app/globals.css");
         const dashboardTranscriptShell = extractCardSlice(
             workstation,
             'data-sot-panel="dashboard-transcript-shell"',
@@ -2213,6 +2250,29 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
         expect(dashboardDetailHeader).toContain('data-sot-control="ai-rename"');
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
+        const dashboardDetailHeaderLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(
+                    text,
+                ),
+            );
+
+        expect(dashboardDetailHeaderLegacySelectorLines).toEqual([]);
+        for (const selector of [
+            '[data-sot-panel="dashboard-detail"]',
+            '[data-sot-panel="dashboard-detail-header"][data-slot="card-header"]',
+            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
+            '[data-sot-part="detail-header-title-input"]',
+            '[data-sot-part="detail-header-title-status"]',
+            '[data-sot-part="detail-header-local-badge"]',
+            '[data-sot-part="detail-header-action"]',
+            '[data-sot-part="detail-header-action-anchor"]',
+            '[data-sot-panel="recording-detail-header"]',
+        ]) {
+            expect(globals).toContain(selector);
+        }
         expect(workstation).toContain(
             'data-sot-panel="dashboard-retranscription"',
         );
