@@ -2244,6 +2244,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
+            'className="gap-0 overflow-visible p-4"',
+        );
+        expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
         );
         expect(dashboardPlayer).toContain("<Alert");
@@ -2254,11 +2257,26 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardPlayer).toContain("<CardHeader");
         expect(dashboardPlayer).toContain(
+            'className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"',
+        );
+        expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-recording-player-meta"',
         );
         expect(dashboardPlayer).toContain("<CardContent");
         expect(dashboardPlayer).toContain(
+            'className="flex min-w-0 items-center gap-3 overflow-visible p-0"',
+        );
+        expect(dashboardPlayer).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',
+        );
+        expect(dashboardPlayer).toContain("<Badge");
+        expect(dashboardPlayer).toContain('variant="outline"');
+        expect(dashboardPlayer).toContain('className="ml-auto"');
+        expect(dashboardPlayer).toContain(
+            'data-sot-control="player-status"',
+        );
+        expect(dashboardPlayer).toContain(
+            "data-sot-tone={selectedPlayerStatus.tone}",
         );
         expect(dashboardPlayer).toContain("<Button");
         expect(dashboardPlayer).toContain(
@@ -2289,8 +2307,17 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-volume-value"',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
+        );
+        expect(globals).not.toMatch(
+            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-part="dashboard-recording-player-meta"\]\[data-slot="card-header"\]/,
+        );
+        expect(globals).not.toMatch(
+            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-panel="dashboard-recording-player-controls"\]\[data-slot="card-content"\]/,
+        );
+        expect(globals).not.toContain(
+            '[data-sot-control="player-status"][data-slot="badge"]',
         );
         expect(globals).toContain(
             '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',

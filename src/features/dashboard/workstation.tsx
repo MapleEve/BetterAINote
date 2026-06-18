@@ -77,7 +77,6 @@ import {
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
     SotPlayerSourceTag,
-    SotPlayerStatusBadge,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
     SotPlayerVolumeIcon,
@@ -5845,6 +5844,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
+                            className="gap-0 overflow-visible p-4"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -5875,7 +5875,10 @@ export function Workstation({
                                     这条录音没有本地音频，无法播放或运行私有重转写。
                                 </AlertDescription>
                             </Alert>
-                            <CardHeader data-sot-part="dashboard-recording-player-meta">
+                            <CardHeader
+                                className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"
+                                data-sot-part="dashboard-recording-player-meta"
+                            >
                                 <span
                                     data-sot-part="dashboard-recording-player-date"
                                     suppressHydrationWarning
@@ -5926,13 +5929,19 @@ export function Workstation({
                                     />
                                 ) : null}
                                 {selectedPlayerStatus ? (
-                                    <SotPlayerStatusBadge
-                                        label={selectedPlayerStatus.label}
-                                        tone={selectedPlayerStatus.tone}
-                                    />
+                                    <Badge
+                                        variant="outline"
+                                        className="ml-auto"
+                                        data-sot-control="player-status"
+                                        data-sot-tone={selectedPlayerStatus.tone}
+                                    >
+                                        <span data-sot-part="status-dot" />
+                                        {selectedPlayerStatus.label}
+                                    </Badge>
                                 ) : null}
                             </CardHeader>
                             <CardContent
+                                className="flex min-w-0 items-center gap-3 overflow-visible p-0"
                                 aria-disabled={
                                     playbackDisabled ? "true" : undefined
                                 }

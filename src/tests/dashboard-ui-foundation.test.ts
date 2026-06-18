@@ -326,6 +326,67 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain("@/components/ui/sidebar");
     });
 
+    it("keeps the dashboard recording player composed through shadcn slots instead of CSS primitive repaints", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
+        const playerSurfaceIndex = workstation.indexOf(
+            'data-sot-surface="dashboard-recording-player"',
+        );
+        const playerStart = workstation.lastIndexOf("<Card", playerSurfaceIndex);
+        const transcriptShellIndex = workstation.indexOf(
+            'data-sot-panel="dashboard-transcript-shell"',
+            playerSurfaceIndex,
+        );
+        expect(playerSurfaceIndex).toBeGreaterThanOrEqual(0);
+        expect(playerStart).toBeGreaterThanOrEqual(0);
+        expect(transcriptShellIndex).toBeGreaterThan(playerSurfaceIndex);
+        const player = workstation.slice(playerStart, transcriptShellIndex);
+
+        expect(player).toContain("<Card");
+        expect(player).toContain('className="gap-0 overflow-visible p-4"');
+        expect(player).toContain("<CardHeader");
+        expect(player).toContain(
+            'className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"',
+        );
+        expect(player).toContain("<CardContent");
+        expect(player).toContain(
+            'className="flex min-w-0 items-center gap-3 overflow-visible p-0"',
+        );
+        expect(player).toContain("<Badge");
+        expect(player).toContain('variant="outline"');
+        expect(player).toContain('className="ml-auto"');
+        expect(player).toContain('data-sot-control="player-status"');
+        expect(player).toContain("data-sot-tone={selectedPlayerStatus.tone}");
+        expect(player).toContain('data-sot-part="status-dot"');
+        expect(player).toContain(
+            'data-sot-panel="dashboard-recording-player-controls"',
+        );
+        expect(player).toContain('data-sot-control="dashboard-player-seek"');
+        expect(player).toContain('data-sot-control="dashboard-player-volume"');
+
+        expect(globals).not.toContain(
+            '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
+        );
+        expect(globals).not.toMatch(
+            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-part="dashboard-recording-player-meta"\]\[data-slot="card-header"\]/,
+        );
+        expect(globals).not.toMatch(
+            /\[data-sot-surface="dashboard-recording-player"\]\s+\[data-sot-panel="dashboard-recording-player-controls"\]\[data-slot="card-content"\]/,
+        );
+        expect(globals).not.toContain(
+            '[data-sot-control="player-status"][data-slot="badge"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-player-seek-shell"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+        );
+    });
+
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const globals = readSource("app/globals.css");
@@ -623,7 +684,7 @@ describe("dashboard SOT foundation", () => {
             expect(sourceReportLoaded).not.toContain(legacyClassName);
         }
         expect(workstation).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(workstation).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',

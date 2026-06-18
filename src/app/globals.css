@@ -1299,24 +1299,6 @@ button {
     min-width: 0;
 }
 /* Dashboard recording player — shadcn Card/Button/Slider surface scoped by data-sot. */
-[data-sot-surface="dashboard-recording-player"][data-slot="card"] {
-    display: block;
-    gap: 0;
-    overflow: visible;
-    border-radius: 16px;
-    padding: 16px 18px;
-    background: var(--bg-elevated);
-    border-color: color-mix(in srgb, var(--graphite-300) 70%, transparent);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"][data-slot="card"] {
-    background: rgb(255 255 255 / 0.025);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
-}
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"] {
     grid-template-columns: 26px minmax(0, 1fr);
@@ -1376,47 +1358,10 @@ button {
     letter-spacing: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-meta"][data-slot="card-header"] {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    padding: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-recording-player-date"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
     letter-spacing: 0.02em;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="player-status"][data-slot="badge"] {
-    width: auto;
-    padding-right: 8px;
-    padding-left: 12px;
-    justify-content: normal;
-    overflow: visible;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: normal;
-    letter-spacing: 0.005em;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="player-status"]
-    [data-sot-part="status-dot"] {
-    margin-right: 4px;
-    margin-left: -4px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-panel="dashboard-recording-player-controls"][data-slot="card-content"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    overflow: visible;
-    padding: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-control-icon"] {
@@ -3092,18 +3037,6 @@ body[data-time-style="abs"]
 [data-sot-part="dashboard-recording-status"][data-sot-tone="neu"]
     [data-sot-part="dashboard-recording-status-dot"] {
     background: var(--fg-tertiary);
-}
-[data-sot-control="player-status"][data-slot="badge"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: 999px;
-    font: 600 11px var(--font-sans);
-    border: 1px solid transparent;
-    letter-spacing: 0.005em;
-    margin-left: auto;
 }
 [data-sot-control="player-status"] [data-sot-part="status-dot"] {
     width: 5px;
