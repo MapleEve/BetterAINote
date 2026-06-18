@@ -107,6 +107,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
+}
+
 function extractCssBlockRange(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -876,7 +885,11 @@ const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
 const SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-seg-time-skeleton|sr-seg-speaker-skeleton|sr-seg-line-skeleton|sr-seg-line-skeleton-long|sr-seg-line-skeleton-medium|sr-seg-line-skeleton-wide|sr-seg-line-skeleton-short)(?![\w-])/;
 
-const SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS = [
+const SOURCE_REPORT_SKELETON_PRIMITIVE_SELECTORS = [
+    '[data-sot-part="source-report-card-skeleton"]',
+    '[data-sot-part="source-report-card-skeleton"][data-sot-size="source"]',
+    '[data-sot-part="source-report-card-skeleton"][data-sot-size="status"]',
+    '[data-sot-part="source-report-card-skeleton"][data-sot-size="count"]',
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="time"]',
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="speaker"]',
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size^="line-"]',
@@ -890,16 +903,16 @@ const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-empty(?:-(?:ico|title|sub|actions))?)(?![\w-])/;
 
 const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
-    "[data-sot-source-report-empty]",
-    '[data-sot-source-report-empty][data-sot-tone="err"]',
-    "[data-sot-source-report-empty-icon]",
-    '[data-sot-source-report-empty][data-sot-tone="err"]\n    [data-sot-source-report-empty-icon]',
-    "[data-sot-source-report-empty-icon] svg",
-    "[data-sot-source-report-empty-title]",
-    "[data-sot-source-report-empty-description]",
     "[data-sot-source-report-empty-actions]",
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"][data-sot-state="loading"]',
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"]:disabled',
+];
+
+const SOURCE_REPORT_EMPTY_PRIMITIVE_SELECTORS = [
+    "[data-sot-source-report-empty]",
+    '[data-sot-source-report-empty][data-sot-tone="err"]',
+    "[data-sot-source-report-empty-title]",
+    "[data-sot-source-report-empty-description]",
 ];
 
 const SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE =
@@ -907,12 +920,20 @@ const SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE =
 
 const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-list="source-report-cards"]',
-    '[data-sot-card="source-report-metric"][data-sot-metric]',
     '[data-sot-part="source-report-card-label"]',
     '[data-sot-part="source-report-card-value"]',
     '[data-sot-part="source-report-card-value"][data-sot-value="source"]',
     '[data-sot-part="source-report-card-source-fallback"]',
     '[data-sot-part="source-report-card-value"][data-sot-value="number"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="source-report-status-dot"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="ok"]\n    [data-sot-part="source-report-status-dot"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="warn"]\n    [data-sot-part="source-report-status-dot"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="err"]\n    [data-sot-part="source-report-status-dot"]',
+];
+
+const SOURCE_REPORT_METRIC_PRIMITIVE_SELECTORS = [
+    '[data-sot-card="source-report-metric"][data-sot-metric]',
+    '[data-theme="dark"] [data-sot-card="source-report-metric"][data-sot-metric]',
     '[data-sot-badge="source-report-status"][data-sot-tone]',
     '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="ok"]',
     '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="warn"]',
@@ -2619,9 +2640,39 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceReportSkeletonLegacySelectorLines).toEqual([]);
-        for (const selector of SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of SOURCE_REPORT_SKELETON_PRIMITIVE_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
+        expect(sourceReportPanel).toContain(
+            "const sourceReportCardSkeletonClassNames",
+        );
+        expect(sourceReportPanel).toContain(
+            "const sourceReportSegmentSkeletonClassNames",
+        );
+        expect(sourceReportPanel).toContain(
+            "className={sourceReportCardSkeletonClassNames[size]}",
+        );
+        expect(sourceReportPanel).toContain(
+            "className={sourceReportSegmentSkeletonClassNames[size]}",
+        );
+        const sourceReportEmptyPrimitive = readSource("components/ui/empty.tsx");
+        for (const slot of [
+            'data-slot="empty"',
+            'data-slot="empty-header"',
+            'data-slot="empty-icon"',
+            'data-slot="empty-title"',
+            'data-slot="empty-description"',
+            'data-slot="empty-content"',
+        ]) {
+            expect(sourceReportEmptyPrimitive).toContain(slot);
+        }
+        expect(sourceReportEmptyPrimitive).toContain("emptyMediaVariants");
+        expect(sourceReportEmptyPrimitive).toContain(
+            "VariantProps<typeof emptyMediaVariants>",
+        );
+        expect(sourceReportPanel).toContain(
+            'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyMedia,\n    EmptyTitle,\n} from "@/components/ui/empty";',
+        );
 
         const sourceReportEmptyLegacySelectorLines = globals
             .split("\n")
@@ -2631,9 +2682,35 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceReportEmptyLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_EMPTY_PRIMITIVE_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         for (const selector of SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        const sourceReportNoSourceEmpty = extractBoundedSlice(
+            sourceReportPanel,
+            '<Empty\n                        className="px-4 py-8"',
+            "</Empty>",
+        );
+        expect(sourceReportNoSourceEmpty).toContain(
+            "data-sot-source-report-empty",
+        );
+        expect(sourceReportNoSourceEmpty).toContain("<EmptyHeader>");
+        expect(sourceReportNoSourceEmpty).toContain("<EmptyMedia");
+        expect(sourceReportNoSourceEmpty).toContain('variant="icon"');
+        expect(sourceReportNoSourceEmpty).toContain(
+            "data-sot-source-report-empty-icon",
+        );
+        expect(sourceReportNoSourceEmpty).toContain(
+            "<EmptyTitle data-sot-source-report-empty-title>",
+        );
+        expect(sourceReportNoSourceEmpty).toContain(
+            "<EmptyDescription data-sot-source-report-empty-description>",
+        );
+        expect(sourceReportNoSourceEmpty).not.toContain("<Alert");
+        expect(sourceReportNoSourceEmpty).not.toContain("<AlertTitle");
+        expect(sourceReportNoSourceEmpty).not.toContain("<AlertDescription");
 
         const sourceReportMetricLegacySelectorLines = globals
             .split("\n")
@@ -2643,9 +2720,24 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceReportMetricLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_METRIC_PRIMITIVE_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(sourceReportPanel).toContain(
+            'className="gap-1.5 p-3"',
+        );
+        expect(sourceReportPanel).toContain(
+            "function sourceReportStatusBadgeVariant",
+        );
+        expect(sourceReportPanel).toContain(
+            "variant={sourceReportStatusBadgeVariant(tone)}",
+        );
+        expect(sourceReportPanel).toContain(
+            'className="justify-start whitespace-normal"',
+        );
 
         const sourceReportSectionLegacySelectorLines = globals
             .split("\n")
@@ -2720,11 +2812,14 @@ describe("full UI replacement regression coverage", () => {
         );
         const sourceReportEmptyActions = extractBoundedSlice(
             sourceReportPanel,
-            "<div data-sot-source-report-empty-actions>",
+            "data-sot-source-report-empty-actions",
             "</div>\n                    </Alert>",
         );
         expect(sourceReportEmptyActions).toContain(
-            "<div data-sot-source-report-empty-actions>",
+            "data-sot-source-report-empty-actions",
+        );
+        expect(sourceReportEmptyActions).toContain(
+            'className="justify-center"',
         );
         expect(sourceReportEmptyActions).toContain('variant="primary"');
         expect(sourceReportEmptyActions).toContain('variant="ghost"');
@@ -3870,7 +3965,15 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(sourceReport).toContain(
+            'from "@/components/ui/empty";',
+        );
         expect(sourceReport).toContain("<Alert");
+        expect(sourceReport).toContain("<Empty");
+        expect(sourceReport).toContain("<EmptyHeader");
+        expect(sourceReport).toContain("<EmptyMedia");
+        expect(sourceReport).toContain("<EmptyTitle");
+        expect(sourceReport).toContain("<EmptyDescription");
         expect(sourceReport).toContain("<Badge");
         expect(sourceReport).toContain("<Card");
         expect(sourceReport).toContain("<CardHeader");

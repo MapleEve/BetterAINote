@@ -21,6 +21,13 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -370,6 +377,36 @@ function sourceReportReadinessLabel(
 
 type SourceReportTone = "err" | "neu" | "ok" | "warn";
 
+type SourceReportCardSkeletonSize = "count" | "source" | "status";
+type SourceReportSegmentSkeletonSize =
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "line-wide"
+    | "speaker"
+    | "time";
+
+const sourceReportCardSkeletonClassNames: Record<
+    SourceReportCardSkeletonSize,
+    string
+> = {
+    count: "!h-[18px] w-12",
+    source: "!h-[18px] w-[120px]",
+    status: "!h-[18px] w-20",
+};
+
+const sourceReportSegmentSkeletonClassNames: Record<
+    SourceReportSegmentSkeletonSize,
+    string
+> = {
+    "line-long": "mt-1.5 !h-[13px] w-[92%]",
+    "line-medium": "mt-1.5 !h-[13px] w-3/4",
+    "line-short": "mt-1.5 !h-[13px] w-3/5",
+    "line-wide": "mt-1.5 !h-[13px] w-[88%]",
+    speaker: "ml-1 !h-3 w-14",
+    time: "!h-3 w-24",
+};
+
 function sourceReportReadinessTone(label: string): SourceReportTone {
     const normalized = label.toLowerCase();
     if (label === "已就绪" || normalized === "ready") return "ok";
@@ -440,13 +477,31 @@ function getSotCopyButtonVariant(
     return "ghost";
 }
 
+function sourceReportStatusBadgeVariant(
+    tone: SourceReportTone,
+): "destructive" | "outline" | "secondary" {
+    if (tone === "err") return "destructive";
+    if (tone === "neu") return "secondary";
+    return "outline";
+}
+
 function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
 }
 
 function SourceReportAlertGlyph() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            className="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <circle cx="12" cy="12" r="9" />
             <path d="M12 8v5" />
             <circle cx="12" cy="16" r=".8" fill="currentColor" />
@@ -456,7 +511,17 @@ function SourceReportAlertGlyph() {
 
 function SourceReportEmptyGlyph() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            className="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <rect x="3" y="6" width="18" height="14" rx="2" />
             <path d="M8 6V4h8v2" />
         </svg>
@@ -472,7 +537,8 @@ function SourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="outline"
+            variant={sourceReportStatusBadgeVariant(tone)}
+            className="justify-start whitespace-normal"
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -484,16 +550,11 @@ function SourceReportStatusBadge({
 function SourceReportSegmentSkeleton({
     size,
 }: {
-    size:
-        | "line-long"
-        | "line-medium"
-        | "line-short"
-        | "line-wide"
-        | "speaker"
-        | "time";
+    size: SourceReportSegmentSkeletonSize;
 }) {
     return (
         <Skeleton
+            className={sourceReportSegmentSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-segment-skeleton"
             data-sot-size={size}
@@ -571,6 +632,7 @@ function SourceReportMetricCard({
     return (
         <Card
             hasNoPadding
+            className="gap-1.5 p-3"
             data-sot-card="source-report-metric"
             data-sot-metric={metric}
         >
@@ -592,10 +654,11 @@ function SourceReportMetricCard({
 function SourceReportCardSkeleton({
     size,
 }: {
-    size: "count" | "source" | "status";
+    size: SourceReportCardSkeletonSize;
 }) {
     return (
         <Skeleton
+            className={sourceReportCardSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
@@ -1214,25 +1277,34 @@ export function SourceReportPanel({
                 <SourceReportState sotState="error" state="error" error={error}>
                     <Alert
                         variant="destructive"
+                        className="flex flex-col items-center gap-2 px-4 py-8 text-center"
                         data-sot-source-report-empty
                         data-sot-tone="err"
                     >
                         <div
+                            className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
                             <SourceReportAlertGlyph />
                         </div>
-                        <AlertTitle data-sot-source-report-empty-title>
+                        <AlertTitle
+                            className="text-center"
+                            data-sot-source-report-empty-title
+                        >
                             无法读取来源详情
                         </AlertTitle>
                         <AlertDescription
+                            className="max-w-xs justify-items-center text-center"
                             data-sot-source-report-empty-description
                         >
                             {sourceProviderSentenceName}
                             返回了一个错误，可能是网络抖动或来源临时不可用。
                         </AlertDescription>
-                        <div data-sot-source-report-empty-actions>
+                        <div
+                            data-sot-source-report-empty-actions
+                            className="justify-center"
+                        >
                             <Button
                                 type="button"
                                 size="xs"
@@ -1329,14 +1401,10 @@ export function SourceReportPanel({
                     subState={sourceReportSubState}
                 >
                     {!hasAudio ? (
-                        <Badge
-                            variant="outline"
-                            data-sot-badge="source-report-status"
-                            data-sot-tone="warn"
-                        >
+                        <SourceReportStatusBadge tone="warn">
                             <SourceReportStatusDot />
                             <span>{t("sourceReport.sourceOnlyNoAudio")}</span>
-                        </Badge>
+                        </SourceReportStatusBadge>
                     ) : null}
 
                     <SourceReportMetricCards>
@@ -1529,24 +1597,26 @@ export function SourceReportPanel({
 
             {!data && !error && !isLoading && (
                 <SourceReportState sotState="empty" state="empty">
-                    <Card
-                        hasNoPadding
+                    <Empty
+                        className="px-4 py-8"
                         data-sot-source-report-empty
                         data-sot-tone="neutral"
                     >
-                        <div
-                            data-sot-source-report-empty-icon
-                            aria-hidden="true"
-                        >
-                            <SourceReportEmptyGlyph />
-                        </div>
-                        <div data-sot-source-report-empty-title>
-                            这条录音没有关联来源
-                        </div>
-                        <div data-sot-source-report-empty-description>
-                            本地导入或离线录制的录音不会有来源详情。
-                        </div>
-                    </Card>
+                        <EmptyHeader>
+                            <EmptyMedia
+                                variant="icon"
+                                data-sot-source-report-empty-icon
+                            >
+                                <SourceReportEmptyGlyph />
+                            </EmptyMedia>
+                            <EmptyTitle data-sot-source-report-empty-title>
+                                这条录音没有关联来源
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-source-report-empty-description>
+                                本地导入或离线录制的录音不会有来源详情。
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
                 </SourceReportState>
             )}
         </CardContent>
