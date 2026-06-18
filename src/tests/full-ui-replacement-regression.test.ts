@@ -30,6 +30,20 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractElementSlice(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(`</${tagName}>`, markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + tagName.length + 3);
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -617,17 +631,31 @@ const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail-empty(?:-(?:ico|title|sub))?)(?![\w-])/;
 
 const DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-detail-empty"]',
+    "[data-detail-empty]",
     '[data-sot-panel="recording-source-record-empty"]',
     '[data-sot-panel="recording-route-empty"]',
     '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
     '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]\n    [data-detail-empty]',
-    '[data-sot-part="dashboard-detail-empty-icon"]',
     '[data-sot-part="recording-route-empty-icon"]',
-    '[data-sot-part="dashboard-detail-empty-title"]',
     '[data-sot-part="recording-route-empty-title"]',
-    '[data-sot-part="dashboard-detail-empty-description"]',
     '[data-sot-part="recording-route-empty-description"]',
+];
+
+const DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-detail-empty"]',
+    '[data-sot-part="dashboard-detail-empty-icon"]',
+    '[data-sot-part="dashboard-detail-empty-icon"] svg',
+    '[data-sot-part="dashboard-detail-empty-title"]',
+    '[data-sot-part="dashboard-detail-empty-description"]',
+    '[data-sot-part="dashboard-activity-empty"]',
+    '[data-sot-part="dashboard-activity-empty-icon"]',
+    '[data-sot-part="dashboard-activity-empty-icon"] svg',
+    '[data-sot-part="dashboard-activity-empty-title"]',
+    '[data-sot-part="dashboard-activity-empty-body"]',
+    '[data-sot-panel="dashboard-transcript-empty"]',
+    '[data-sot-part="dashboard-transcript-empty-icon"]',
+    '[data-sot-part="dashboard-transcript-empty-message"]',
+    '[data-sot-part="dashboard-transcript-empty-sub"]',
 ];
 
 function splitVarArguments(content: string) {
@@ -1071,15 +1099,10 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-speaker-name"]',
     '[data-sot-part="dashboard-transcript-speaker-time"]',
     "[data-sot-source-report-pane]",
-    '[data-sot-panel="dashboard-transcript-empty"]',
-    '[data-sot-part="dashboard-transcript-empty-icon"]',
-    '[data-sot-part="dashboard-transcript-empty-message"]',
-    '[data-sot-part="dashboard-transcript-empty-sub"]',
     '[data-sot-panel="dashboard-retranscription"]',
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-spinner"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
-    '[data-sot-part="dashboard-activity-empty"]',
     '[data-sot-panel="recording-detail-loading"]',
 ];
 
@@ -1904,6 +1927,109 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+    });
+
+    it("uses shadcn Empty for dashboard empty states without product repaint CSS", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
+
+        expect(workstation).toContain('from "@/components/ui/empty";');
+        for (const primitive of [
+            "Empty,",
+            "EmptyDescription,",
+            "EmptyHeader,",
+            "EmptyMedia,",
+            "EmptyTitle,",
+        ]) {
+            expect(workstation).toContain(primitive);
+        }
+
+        const detailEmpty = extractElementSlice(
+            workstation,
+            'data-sot-panel="dashboard-detail-empty"',
+            "Empty",
+        );
+        const activityEmpty = extractElementSlice(
+            workstation,
+            'data-sot-part="dashboard-activity-empty"',
+            "Empty",
+        );
+        const transcriptEmpty = extractElementSlice(
+            workstation,
+            'data-sot-panel="dashboard-transcript-empty"',
+            "Empty",
+        );
+
+        expect(detailEmpty).toContain("<Empty");
+        expect(detailEmpty).toContain('data-detail-empty=""');
+        expect(detailEmpty).toContain('data-sot-panel="dashboard-detail-empty"');
+        expect(detailEmpty).toContain("<EmptyHeader>");
+        expect(detailEmpty).toContain("<EmptyMedia");
+        expect(detailEmpty).toContain('variant="icon"');
+        expect(detailEmpty).toContain(
+            'data-sot-part="dashboard-detail-empty-icon"',
+        );
+        expect(detailEmpty).toContain("<SotDetailEmptyIcon />");
+        expect(detailEmpty).toContain(
+            '<EmptyTitle data-sot-part="dashboard-detail-empty-title">',
+        );
+        expect(detailEmpty).toContain(
+            '<EmptyDescription data-sot-part="dashboard-detail-empty-description">',
+        );
+        expect(detailEmpty).not.toContain("<div");
+        expect(detailEmpty).not.toContain("<p");
+
+        expect(activityEmpty).toContain("<Empty");
+        expect(activityEmpty).toContain(
+            'data-sot-part="dashboard-activity-empty"',
+        );
+        expect(activityEmpty).toContain("<EmptyHeader>");
+        expect(activityEmpty).toContain("<EmptyMedia");
+        expect(activityEmpty).toContain('variant="icon"');
+        expect(activityEmpty).toContain(
+            'data-sot-part="dashboard-activity-empty-icon"',
+        );
+        expect(activityEmpty).toContain("<CheckCircle />");
+        expect(activityEmpty).toContain(
+            '<EmptyTitle data-sot-part="dashboard-activity-empty-title">',
+        );
+        expect(activityEmpty).toContain(
+            '<EmptyDescription data-sot-part="dashboard-activity-empty-body">',
+        );
+        expect(activityEmpty).not.toContain("<div");
+        expect(activityEmpty).not.toContain("<p");
+
+        expect(transcriptEmpty).toContain("<Empty");
+        expect(transcriptEmpty).toContain(
+            'data-sot-panel="dashboard-transcript-empty"',
+        );
+        expect(transcriptEmpty).toContain("<EmptyHeader>");
+        expect(transcriptEmpty).toContain("<EmptyMedia");
+        expect(transcriptEmpty).toContain('variant="icon"');
+        expect(transcriptEmpty).toContain(
+            'data-sot-part="dashboard-transcript-empty-icon"',
+        );
+        expect(transcriptEmpty).toContain("<SotTranscriptEmptyIcon />");
+        expect(transcriptEmpty).toContain(
+            '<EmptyTitle data-sot-part="dashboard-transcript-empty-message">',
+        );
+        expect(transcriptEmpty).toContain(
+            '<EmptyDescription data-sot-part="dashboard-transcript-empty-sub">',
+        );
+        expect(transcriptEmpty).not.toContain("<div");
+        expect(transcriptEmpty).not.toContain("<p");
+
+        for (const selector of DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain("[data-detail-empty]");
+        expect(globals).toContain("[data-detail-empty][hidden]");
+        expect(globals).toContain(
+            '[data-sot-part="dashboard-activity-empty"][hidden]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
+        );
     });
 
     it("keeps AI rename preview legacy selectors out of product CSS", () => {

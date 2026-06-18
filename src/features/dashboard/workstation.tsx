@@ -52,6 +52,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import {
     InputGroup,
@@ -1194,8 +1201,6 @@ function SotTranscriptEmptyIcon() {
     return (
         <svg
             viewBox="0 0 24 24"
-            width="22"
-            height="22"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.6"
@@ -1209,7 +1214,16 @@ function SotTranscriptEmptyIcon() {
 
 function SotDetailEmptyIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <path d="M9 18V5l12-2v13" />
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
@@ -1219,17 +1233,27 @@ function SotDetailEmptyIcon() {
 
 function DashboardDetailEmptyState() {
     return (
-        <div data-detail-empty="" data-sot-panel="dashboard-detail-empty">
-            <div data-sot-part="dashboard-detail-empty-icon" aria-hidden="true">
-                <SotDetailEmptyIcon />
-            </div>
-            <div data-sot-part="dashboard-detail-empty-title">
-                请选择一条录音
-            </div>
-            <div data-sot-part="dashboard-detail-empty-description">
-                在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
-            </div>
-        </div>
+        <Empty
+            className="min-h-[280px] p-9 md:p-9"
+            data-detail-empty=""
+            data-sot-panel="dashboard-detail-empty"
+        >
+            <EmptyHeader>
+                <EmptyMedia
+                    data-sot-part="dashboard-detail-empty-icon"
+                    variant="icon"
+                    aria-hidden="true"
+                >
+                    <SotDetailEmptyIcon />
+                </EmptyMedia>
+                <EmptyTitle data-sot-part="dashboard-detail-empty-title">
+                    请选择一条录音
+                </EmptyTitle>
+                <EmptyDescription data-sot-part="dashboard-detail-empty-description">
+                    在左侧列表中挑一条录音，转写与说话人信息会显示在这里。
+                </EmptyDescription>
+            </EmptyHeader>
+        </Empty>
     );
 }
 
@@ -4788,24 +4812,30 @@ export function Workstation({
                                                 )}
                                             </ul>
                                         ) : (
-                                            <div data-sot-part="dashboard-activity-empty">
-                                                <div
-                                                    data-sot-part="dashboard-activity-empty-icon"
-                                                    aria-hidden="true"
-                                                >
-                                                    <CheckCircle />
-                                                </div>
-                                                <p data-sot-part="dashboard-activity-empty-title">
-                                                    {t(
-                                                        "activityOverlay.emptyTitle",
-                                                    )}
-                                                </p>
-                                                <p data-sot-part="dashboard-activity-empty-body">
-                                                    {t(
-                                                        "activityOverlay.emptyBody",
-                                                    )}
-                                                </p>
-                                            </div>
+                                            <Empty
+                                                data-sot-part="dashboard-activity-empty"
+                                                className="p-7 md:p-7"
+                                            >
+                                                <EmptyHeader>
+                                                    <EmptyMedia
+                                                        data-sot-part="dashboard-activity-empty-icon"
+                                                        variant="icon"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <CheckCircle />
+                                                    </EmptyMedia>
+                                                    <EmptyTitle data-sot-part="dashboard-activity-empty-title">
+                                                        {t(
+                                                            "activityOverlay.emptyTitle",
+                                                        )}
+                                                    </EmptyTitle>
+                                                    <EmptyDescription data-sot-part="dashboard-activity-empty-body">
+                                                        {t(
+                                                            "activityOverlay.emptyBody",
+                                                        )}
+                                                    </EmptyDescription>
+                                                </EmptyHeader>
+                                            </Empty>
                                         )}
                                     </CardContent>
                                 </Card>
@@ -6827,20 +6857,26 @@ export function Workstation({
                                             );
                                         })
                                     ) : (
-                                        <div data-sot-panel="dashboard-transcript-empty">
-                                            <div
-                                                aria-hidden="true"
-                                                data-sot-part="dashboard-transcript-empty-icon"
-                                            >
-                                                <SotTranscriptEmptyIcon />
-                                            </div>
-                                            <p data-sot-part="dashboard-transcript-empty-message">
-                                                还没有逐字稿
-                                            </p>
-                                            <p data-sot-part="dashboard-transcript-empty-sub">
-                                                来源已就绪，转写任务还在排队中。
-                                            </p>
-                                        </div>
+                                        <Empty
+                                            data-sot-panel="dashboard-transcript-empty"
+                                            className="p-6 md:p-6"
+                                        >
+                                            <EmptyHeader>
+                                                <EmptyMedia
+                                                    aria-hidden="true"
+                                                    data-sot-part="dashboard-transcript-empty-icon"
+                                                    variant="icon"
+                                                >
+                                                    <SotTranscriptEmptyIcon />
+                                                </EmptyMedia>
+                                                <EmptyTitle data-sot-part="dashboard-transcript-empty-message">
+                                                    还没有逐字稿
+                                                </EmptyTitle>
+                                                <EmptyDescription data-sot-part="dashboard-transcript-empty-sub">
+                                                    来源已就绪，转写任务还在排队中。
+                                                </EmptyDescription>
+                                            </EmptyHeader>
+                                        </Empty>
                                     )}
                                 </div>
                                 <div
