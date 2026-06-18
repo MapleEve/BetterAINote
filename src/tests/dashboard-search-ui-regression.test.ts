@@ -15,6 +15,8 @@ const OLD_UI_RE =
 const LIBRARY_SEARCH_INDEXING_LEGACY_CSS_SELECTOR_RE =
     /\.(?:inline-progress|ls-state-indexing)(?![\w-])/;
 
+const LIBRARY_SEARCH_LEGACY_CSS_SELECTOR_RE = /\.ls-[a-z0-9-]+(?![\w-])/;
+
 const LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-indexing"]',
     '[data-sot-part="library-search-state-skeleton"]',
@@ -108,6 +110,30 @@ describe("dashboard SOT search and activity interactions", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps library search runtime CSS off legacy ls aliases", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                LIBRARY_SEARCH_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of [
+            '[data-sot-part="library-search-anchor"]',
+            '[data-sot-panel="library-search"]',
+            '[data-sot-part="library-search-input-row"]',
+            '[data-sot-part="library-search-scope"]',
+            '[data-sot-control="library-search-scope"]',
+            '[data-sot-region="library-search-scroll"]',
+            '[data-sot-list="library-search-results"]',
+            '[data-sot-control="library-search-result"]',
+        ]) {
             expect(globals).toContain(selector);
         }
     });
