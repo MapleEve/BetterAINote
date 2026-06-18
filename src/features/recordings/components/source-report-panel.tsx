@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import {
     Card,
     CardAction,
@@ -428,6 +428,14 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
             aria-hidden="true"
         />
     );
+}
+
+function getSotCopyButtonVariant(
+    state: "err" | "ok" | undefined,
+): ButtonProps["variant"] {
+    if (state === "err") return "destructive";
+    if (state === "ok") return "secondary";
+    return "ghost";
 }
 
 function SourceReportStatusDot() {
@@ -1063,7 +1071,11 @@ export function SourceReportPanel({
                 {data ? (
                     <>
                         <Button
-                            variant="ghost"
+                            variant={getSotCopyButtonVariant(
+                                copyFeedback?.action === "source-transcript"
+                                    ? copyFeedback.state
+                                    : undefined,
+                            )}
                             size="sm"
                             type="button"
                             data-copy="source-transcript"
@@ -1104,7 +1116,11 @@ export function SourceReportPanel({
                             </span>
                         </Button>
                         <Button
-                            variant="ghost"
+                            variant={getSotCopyButtonVariant(
+                                copyFeedback?.action === "source-report"
+                                    ? copyFeedback.state
+                                    : undefined,
+                            )}
                             size="sm"
                             type="button"
                             data-copy="source-report"

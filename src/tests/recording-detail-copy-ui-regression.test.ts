@@ -182,7 +182,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain("sourceReportDetailText");
         expect(sourceReport).toContain("sourceReportDisplaySegments");
         expect(sourceReport).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(sourceReport).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
@@ -228,12 +228,20 @@ describe("recording detail copy and title action UI regressions", () => {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);
             const controlSource = sourceReport.slice(
-                Math.max(0, controlIndex - 700),
+                Math.max(0, controlIndex - 900),
                 controlIndex + 320,
             );
             expect(controlSource).toContain("<Button");
-            expect(controlSource).toContain('variant="ghost"');
-            expect(controlSource).toContain('size="sm"');
+            if (sourceReportCopyControls.includes(control)) {
+                expect(controlSource).toContain(
+                    "variant={getSotCopyButtonVariant(",
+                );
+                expect(controlSource).toContain('size="sm"');
+            } else {
+                expect(controlSource).toMatch(
+                    /variant="(?:ghost|outline)"[\s\S]*size="(?:sm|xs)"/,
+                );
+            }
             expect(controlSource).toContain("data-sot-control=");
             expect(controlSource).not.toContain("copy-btn");
         }

@@ -10022,41 +10022,18 @@ select::-ms-expand {
 }
 
 /* ---- Copy actions (transcript / source transcript / source report) ---- */
-[data-slot="button"][data-copy] {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-[data-slot="button"][data-copy] [data-sot-part="source-report-copy-label"],
-[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-label"] {
+[data-sot-part="source-report-copy-label"],
+[data-sot-part="dashboard-copy-label"] {
     display: inline-flex;
     min-width: 0;
     align-items: center;
 }
-[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"],
-[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"] {
-    width: 14px;
-    height: 14px;
-    flex: none;
+[data-sot-part="source-report-copy-icon"],
+[data-sot-part="dashboard-copy-icon"] {
     stroke: currentColor;
     transition:
         opacity 180ms var(--ease-out),
         transform 180ms var(--ease-out);
-}
-[data-slot="button"][data-copy][data-copy-state="ok"] {
-    color: var(--signal-success);
-    border-color: color-mix(in srgb, var(--signal-success) 36%, transparent);
-    background: color-mix(in srgb, var(--signal-success) 10%, transparent);
-}
-[data-slot="button"][data-copy][data-copy-state="err"] {
-    color: var(--signal-danger);
-    border-color: color-mix(in srgb, var(--signal-danger) 36%, transparent);
-}
-[data-slot="button"][data-copy][disabled],
-[data-slot="button"][data-copy][aria-disabled="true"] {
-    opacity: 0.42;
-    cursor: not-allowed;
-    pointer-events: none;
 }
 /* Source-report tab places copy buttons in the transcript header action row. */
 [data-sot-part="dashboard-transcript-actions"] {
@@ -10068,7 +10045,9 @@ select::-ms-expand {
 
 /* Per-tab visibility is driven by the `hidden` attribute so off-tab copy
    actions stay hidden even though shadcn buttons render inline-flex. */
-[data-slot="button"][data-copy][hidden] {
+[data-sot-control="copy-local-transcript"][hidden],
+[data-sot-control="copy-source-transcript"][hidden],
+[data-sot-control="copy-source-report"][hidden] {
     display: none !important;
 }
 

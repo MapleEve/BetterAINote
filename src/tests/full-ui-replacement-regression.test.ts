@@ -533,10 +533,19 @@ const COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:copy-ico|copy-ico-default|copy-ico-ok)(?![\w-])/;
 
 const COPY_ICON_DATA_SOT_CSS_SELECTORS = [
-    '[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"]',
-    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"]',
-    '[data-slot="button"][data-copy][data-copy-state="ok"]',
-    '[data-slot="button"][data-copy][data-copy-state="err"]',
+    '[data-sot-part="source-report-copy-icon"]',
+    '[data-sot-part="dashboard-copy-icon"]',
+    '[data-sot-control="copy-local-transcript"][hidden]',
+    '[data-sot-control="copy-source-transcript"][hidden]',
+    '[data-sot-control="copy-source-report"][hidden]',
+];
+
+const COPY_BUTTON_GLOBAL_APPEARANCE_PROPERTIES = [
+    "background",
+    "border-color",
+    "color",
+    "cursor",
+    "opacity",
 ];
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -545,8 +554,8 @@ const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-actions"]',
     '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
-    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-label"]',
-    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"]',
+    '[data-sot-part="dashboard-copy-label"]',
+    '[data-sot-part="dashboard-copy-icon"]',
 ];
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS = [
@@ -1617,7 +1626,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps copy icon product CSS on data-sot selectors", () => {
+    it("keeps copy icon product CSS scoped to data-sot hooks", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
@@ -1630,6 +1639,19 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of COPY_ICON_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+
+        const globalCopyButtonAppearanceRules = collectCssRuleBlocks(
+            stripCssComments(globals),
+            '[data-slot="button"][data-copy]',
+        ).filter(({ declarations }) =>
+            COPY_BUTTON_GLOBAL_APPEARANCE_PROPERTIES.some((property) =>
+                new RegExp(`(^|;)\\s*${property}\\s*:`, "m").test(
+                    declarations,
+                ),
+            ),
+        );
+
+        expect(globalCopyButtonAppearanceRules).toEqual([]);
     });
 
     it("keeps dashboard transcript actions off lang-pill CSS selectors", () => {
@@ -3388,7 +3410,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceReport).toContain("data-sot-state={sourceReportState}");
         expect(sourceReport).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(sourceReport).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
