@@ -797,10 +797,17 @@ test("Plaud PR #20 sync uses SOT controls and imports paged, backfilled, and sou
             `[data-sot-recording-id="${sourceOnly?.id}"]`,
         );
         await expect(sourceOnlyRow).toBeVisible();
-        await expect(sourceOnlyRow).toHaveClass(/(^|\s)row(\s|$)/);
+        await expect(sourceOnlyRow).toHaveAttribute(
+            "data-sot-control",
+            "dashboard-recording-row",
+        );
         await sourceOnlyRow.click();
-        await expect(sourceOnlyRow).toHaveClass(/(^|\s)active(\s|$)/);
-        await expect(sourceOnlyRow.locator(".src-mini")).toBeVisible();
+        await expect(sourceOnlyRow).toHaveAttribute("data-sot-state", "selected");
+        await expect(
+            sourceOnlyRow.locator(
+                '[data-sot-part="dashboard-recording-source-mark"]',
+            ),
+        ).toBeVisible();
         await expect(
             page.getByRole("heading", { name: SOURCE_ONLY_TITLE }),
         ).toBeVisible();
@@ -815,8 +822,11 @@ test("Plaud PR #20 sync uses SOT controls and imports paged, backfilled, and sou
             "data-no-audio",
             "true",
         );
-        await expect(dashboardPlayer.locator("[data-no-audio-banner]"))
-            .toContainText("来源仅同步转写与报告");
+        await expect(
+            dashboardPlayer.locator(
+                '[data-sot-part="dashboard-recording-player-no-audio"]',
+            ),
+        ).toContainText("来源仅同步转写与报告");
         await expect(
             page.locator('[data-sot-panel="dashboard-recording-player-controls"]'),
         ).toHaveAttribute("data-sot-state", "disabled");

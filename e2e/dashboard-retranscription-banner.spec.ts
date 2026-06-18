@@ -2347,10 +2347,9 @@ test("dashboard queues initial private transcription from the empty transcript s
             dashboardRetranscriptionBanner(page, "queued"),
         ).toContainText("转写任务已加入队列");
         const queuedToast = page
-            .locator("#toast-stack .toast")
+            .locator("[data-sonner-toast]")
             .filter({ hasText: "转写任务已加入队列" });
         await expect(queuedToast).toBeVisible();
-        await expect(queuedToast).toHaveAttribute("class", "toast");
     } finally {
         await cleanupRunningRetranscriptionSeed();
         if (userId) {

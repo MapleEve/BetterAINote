@@ -5,6 +5,7 @@ import {
     type ReactNode,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -81,6 +82,23 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const value = useMemo(() => ({ confirm }), [confirm]);
+
+    useEffect(() => {
+        if (!state) return;
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+
+            event.preventDefault();
+            close(false);
+        };
+
+        window.addEventListener("keydown", handleEscape, true);
+
+        return () => {
+            window.removeEventListener("keydown", handleEscape, true);
+        };
+    }, [close, state]);
 
     return (
         <ConfirmDialogContext.Provider value={value}>

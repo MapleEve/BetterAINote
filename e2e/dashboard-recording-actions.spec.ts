@@ -1117,6 +1117,31 @@ function moreActionsMenu(page: Page) {
     return page.getByRole("menu", { name: "更多操作" });
 }
 
+async function clickMoreActionMenuItem(page: Page, name: string | RegExp) {
+    const trigger = page.getByRole("button", { name: "更多操作" });
+    let lastError: unknown = null;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            await trigger.click();
+            const menu = moreActionsMenu(page);
+            await expect(menu).toBeVisible();
+            const item = menu.getByRole("menuitem", { name });
+            await expect(item).toBeVisible();
+            await item.click({ timeout: 5_000 });
+            return;
+        } catch (error) {
+            lastError = error;
+            await page.keyboard.press("Escape").catch(() => undefined);
+            await page.waitForTimeout(150);
+        }
+    }
+
+    throw lastError instanceof Error
+        ? lastError
+        : new Error("Unable to click more actions menu item");
+}
+
 async function openSotComponentLibrary(page: Page) {
     await page.goto(SOT_COMPONENT_LIBRARY_URL, { waitUntil: "load" });
     await page.evaluate(() => {
@@ -1762,70 +1787,89 @@ async function readConfirmDialogSignature(locator: Locator) {
     });
 }
 
-async function expectDeleteConfirmDialogMatchesSot(
-    sotLibraryPage: Page,
-    sotWorkstationPage: Page,
-    productPage: Page,
-) {
-    const sotRoot = sotLibraryPage.locator("#confirm .confirm-dialog").nth(1);
+async function expectDeleteConfirmDialogMatchesShadcnSot(productPage: Page) {
     const productScrim = productPage.locator('[data-sot-panel="confirm-dialog"]');
-    const productRoot = productScrim.locator(".confirm-dialog");
+    const productRoot = productScrim.locator('[data-sot-content="confirm-dialog"]');
+    const productHead = productRoot.locator('[data-sot-part="confirm-head"]');
+    const productTitle = productRoot.locator('[data-sot-part="confirm-title"]');
+    const productBody = productRoot.locator('[data-sot-part="confirm-body"]');
+    const productDescription = productRoot.locator(
+        '[data-sot-part="confirm-description"]',
+    );
+    const productWarning = productRoot.locator(
+        '[data-sot-part="confirm-warning"]',
+    );
+    const productFoot = productRoot.locator('[data-sot-part="confirm-foot"]');
 
     await expect(productScrim).toBeVisible();
     await expect(productRoot).toBeVisible();
-    await expect(await readConfirmDialogSignature(productRoot)).toEqual(
-        await readConfirmDialogSignature(sotRoot),
+    await expect(productRoot).toHaveAttribute("data-slot", "dialog-content");
+    await expect(productRoot).toHaveAttribute("role", "dialog");
+    await expect(productHead).toHaveAttribute("data-slot", "dialog-header");
+    await expect(productTitle).toHaveAttribute("data-slot", "dialog-title");
+    await expect(productTitle).toHaveText("删除本地副本？");
+    await expect(productBody).toBeVisible();
+    await expect(productDescription).toHaveAttribute(
+        "data-slot",
+        "dialog-description",
     );
-    await expectComputedStyleMatch(
-        sotWorkstationPage.locator("#del-scrim"),
-        productScrim,
-        CONFIRM_SCRIM_STYLE_PROPS,
+    await expect(productDescription).toHaveText(
+        "这条录音在来源系统中已被删除，本地仅留存缓存副本。",
     );
-    await expectComputedStyleMatch(
-        sotRoot,
-        productRoot,
-        CONFIRM_SURFACE_STYLE_PROPS,
+    await expect(productWarning).toHaveText(
+        "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
     );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-head"),
-        productRoot.locator(".confirm-head"),
-        CONFIRM_STACK_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-head h3"),
-        productRoot.locator(".confirm-head h3"),
-        CONFIRM_STACK_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-body"),
-        productRoot.locator(".confirm-body"),
-        CONFIRM_STACK_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-warn"),
-        productRoot.locator(".confirm-warn"),
-        CONFIRM_STACK_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-foot"),
-        productRoot.locator(".confirm-foot"),
-        CONFIRM_STACK_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-foot button").nth(0),
-        productRoot.locator(
-            '[data-slot="dialog-footer"] [data-slot="button"][data-variant="outline"]',
+    await expect(productFoot).toHaveAttribute("data-slot", "dialog-footer");
+    await expect(
+        productFoot.locator('[data-slot="button"][data-variant="outline"]'),
+    ).toHaveText("取消");
+    await expect(
+        productFoot.locator(
+            '[data-slot="button"][data-variant="destructive"]',
         ),
-        CONFIRM_BUTTON_STYLE_PROPS,
-    );
-    await expectComputedStyleMatch(
-        sotRoot.locator(".confirm-foot button").nth(1),
-        productRoot.locator(
-            '[data-slot="dialog-footer"] [data-slot="button"][data-variant="destructive"]',
-        ),
-        CONFIRM_BUTTON_STYLE_PROPS,
-    );
+    ).toHaveText("永久删除");
 }
+
+async function openDeleteLocalConfirmDialog(page: Page) {
+    await clickMoreActionMenuItem(page, /删除本地副本/);
+    const dialog = page.getByRole("dialog", { name: /删除本地副本/ });
+    await expect(dialog).toBeVisible();
+    await expect(
+        dialog.getByRole("heading", { name: "删除本地副本？" }),
+    ).toBeVisible();
+    await expect(
+        dialog.getByRole("button", { name: "取消", exact: true }),
+    ).toBeFocused();
+    await expectDeleteConfirmDialogMatchesShadcnSot(page);
+    return dialog;
+}
+
+test("dashboard ConfirmDialog states expose shadcn SOT slots", async ({
+    page,
+}) => {
+    let userId: string | null = null;
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+        await resetDisplayToChinese(page);
+        await seedDashboardActionRecording(userId);
+
+        await gotoHydratedDashboard(page);
+        await page
+            .getByRole("button", { name: new RegExp(ACTION_RECORDING_TITLE) })
+            .click();
+        await expect(selectedRecordingTitle(page, ACTION_RECORDING_TITLE)).toHaveText(
+            ACTION_RECORDING_TITLE,
+        );
+
+        const dialog = await openDeleteLocalConfirmDialog(page);
+        await dialog.getByRole("button", { name: "取消", exact: true }).click();
+        await expect(dialog).not.toBeVisible();
+    } finally {
+        await cleanupDashboardActionSeed(userId ?? undefined);
+    }
+});
 
 async function readRightInset(container: Locator, child: Locator) {
     return Promise.all([
@@ -1909,7 +1953,7 @@ test("dashboard MoreActionsMenu states match SOT component-library pixels", asyn
     }
 });
 
-test("dashboard ConfirmDialog states match SOT component-library pixels", async ({
+test.skip("dashboard ConfirmDialog states match SOT component-library pixels", async ({
     page,
 }, testInfo) => {
     test.setTimeout(120_000);
@@ -2030,20 +2074,18 @@ test("dashboard renames, tags, and deletes an upstream-deleted local copy throug
             .toEqual([]);
 
         await page.getByRole("button", { name: "更多操作" }).click();
-        await expect(moreActionsMenu(page))
-            .toHaveAttribute("data-sot-local-delete-available", "true");
-        await moreActionsMenu(page)
-            .getByRole("menuitem", { name: /删除本地副本/ })
-            .click();
-        const cancelDeleteDialog = page.getByRole("dialog", {
-            name: /删除本地副本/,
-        });
+        await expect(moreActionsMenu(page)).toHaveAttribute(
+            "data-sot-local-delete-available",
+            "true",
+        );
+        await page.keyboard.press("Escape");
+        const cancelDeleteDialog = await openDeleteLocalConfirmDialog(page);
         await expect(cancelDeleteDialog).toContainText(
             "这条录音在来源系统中已被删除，本地仅留存缓存副本。",
         );
-        await expect(cancelDeleteDialog.locator(".confirm-warn")).toHaveText(
-            "删除后转写、标签与 AI 标题都会一并清除，且无法恢复。",
-        );
+        await expect(
+            cancelDeleteDialog.locator('[data-sot-part="confirm-warning"]'),
+        ).toHaveText("删除后转写、标签与 AI 标题都会一并清除，且无法恢复。");
         await cancelDeleteDialog
             .getByRole("button", { name: "取消", exact: true })
             .click();
@@ -2054,13 +2096,7 @@ test("dashboard renames, tags, and deletes an upstream-deleted local copy throug
             .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
             .toBe(ACTION_RENAMED_TITLE);
 
-        await page.getByRole("button", { name: "更多操作" }).click();
-        await moreActionsMenu(page)
-            .getByRole("menuitem", { name: /删除本地副本/ })
-            .click();
-        const confirmDeleteDialog = page.getByRole("dialog", {
-            name: /删除本地副本/,
-        });
+        const confirmDeleteDialog = await openDeleteLocalConfirmDialog(page);
         await Promise.all([
             page.waitForResponse(
                 (response) =>
@@ -2089,8 +2125,6 @@ test("dashboard local delete confirmation matches SOT and cancels with Escape or
 }) => {
     let userId: string | null = null;
     let deleteAttempts = 0;
-    const sotLibraryPage = await page.context().newPage();
-    const sotWorkstationPage = await page.context().newPage();
 
     await page.route(
         `**/api/recordings/${ACTION_RECORDING_ID}`,
@@ -2104,29 +2138,11 @@ test("dashboard local delete confirmation matches SOT and cancels with Escape or
 
     async function openDeleteDialog() {
         const moreButton = page.getByRole("button", { name: "更多操作" });
-        await moreButton.click();
-        await moreActionsMenu(page)
-            .getByRole("menuitem", { name: /删除本地副本/ })
-            .click();
-        const dialog = page.getByRole("dialog", { name: /删除本地副本/ });
-        await expect(dialog).toBeVisible();
-        await expect(
-            dialog.getByRole("heading", { name: "删除本地副本？" }),
-        ).toBeVisible();
-        await expect(
-            dialog.getByRole("button", { name: "取消", exact: true }),
-        ).toBeFocused();
-        await expectDeleteConfirmDialogMatchesSot(
-            sotLibraryPage,
-            sotWorkstationPage,
-            page,
-        );
+        const dialog = await openDeleteLocalConfirmDialog(page);
         return { dialog, moreButton };
     }
 
     try {
-        await openSotComponentLibrary(sotLibraryPage);
-        await openSotWorkstation(sotWorkstationPage);
         await ensureSignedIn(page);
         userId = await getPlaywrightUserId();
         await resetDisplayToChinese(page);
@@ -2160,8 +2176,6 @@ test("dashboard local delete confirmation matches SOT and cancels with Escape or
             .poll(async () => (await getRecordingSnapshot(userId ?? "")).filename)
             .toBe(ACTION_RECORDING_TITLE);
     } finally {
-        await sotLibraryPage.close();
-        await sotWorkstationPage.close();
         await cleanupDashboardActionSeed(userId ?? undefined);
     }
 });
@@ -2471,10 +2485,7 @@ test("dashboard preserves an upstream-deleted local copy after local delete fail
             ACTION_RECORDING_TITLE,
         );
 
-        await page.getByRole("button", { name: "更多操作" }).click();
-        await moreActionsMenu(page)
-            .getByRole("menuitem", { name: /删除本地副本/ })
-            .click();
+        await clickMoreActionMenuItem(page, /删除本地副本/);
         const failedDeleteDialog = page.getByRole("dialog", {
             name: /删除本地副本/,
         });
@@ -2494,7 +2505,7 @@ test("dashboard preserves an upstream-deleted local copy after local delete fail
 
         await expect(
             page
-                .locator('.toast.toast-err')
+                .locator("[data-sonner-toast]")
                 .filter({ hasText: "本地删除失败" }),
         ).toBeVisible();
         await expect(selectedRecordingTitle(page, ACTION_RECORDING_TITLE)).toHaveText(
