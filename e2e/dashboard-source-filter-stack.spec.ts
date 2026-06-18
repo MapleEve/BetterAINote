@@ -2050,7 +2050,13 @@ async function expectResponsiveAppPixelMatch(
                 frame,
                 theme,
             );
-            const productCapture = sotCapture;
+            const productCapture = await captureResponsiveAppFixture(
+                page,
+                appHtml,
+                assetDataUrls,
+                frame,
+                theme,
+            );
             const diff = await compareSourceRowPixels(
                 page,
                 sotCapture.dataUrl,

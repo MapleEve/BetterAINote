@@ -2140,6 +2140,28 @@ button {
     align-items: center;
     gap: 8px;
 }
+[data-sot-part="dashboard-transcript-language"][data-slot="badge"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--signal-info) 12%, transparent);
+    color: var(--signal-info);
+    border: 1px solid color-mix(in srgb, var(--signal-info) 28%, transparent);
+    font: 600 11px var(--font-sans);
+}
+[data-sot-part="dashboard-transcript-language"][data-slot="badge"] svg {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
 
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"] {
     flex: 1;
@@ -4809,7 +4831,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         min-width: 0;
         max-width: 100%;
         box-sizing: border-box;
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: 380px 0px;
     }
     [data-sot-panel="workstation-workspace"] {
         min-width: 0;
