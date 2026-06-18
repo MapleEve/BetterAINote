@@ -485,6 +485,19 @@ const DASHBOARD_SOURCE_REPORT_LOADED_LEGACY_CLASS_NAMES = [
     'className="mono"',
 ];
 
+const SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:sr-seg-time-skeleton|sr-seg-speaker-skeleton|sr-seg-line-skeleton|sr-seg-line-skeleton-long|sr-seg-line-skeleton-medium|sr-seg-line-skeleton-wide|sr-seg-line-skeleton-short)(?![\w-])/;
+
+const SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="time"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="speaker"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size^="line-"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-long"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-medium"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-wide"]',
+    '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-short"]',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -1610,6 +1623,18 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("data-sot-source-report-segment");
         expect(workstation).toContain("data-sot-source-report-meta");
         expect(workstation).toContain("data-sot-source-report-actions");
+        const sourceReportSkeletonLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(sourceReportSkeletonLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+
         const dashboardSourceReportLoaded = extractBoundedSlice(
             workstation,
             'state="loaded"\n                                            subState={sourceReportSubState}',

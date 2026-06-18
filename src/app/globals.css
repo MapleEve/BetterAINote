@@ -4046,41 +4046,32 @@ body[data-time-style="abs"]
 [data-sot-part="source-report-card-skeleton"][data-sot-size="count"] {
     width: 48px;
 }
-.sr-seg-time-skeleton,
-.sr-seg-speaker-skeleton,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="time"],
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="speaker"] {
     height: 12px;
     border-radius: 4px;
 }
-.sr-seg-time-skeleton,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="time"] {
     width: 96px;
 }
-.sr-seg-speaker-skeleton,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="speaker"] {
     width: 54px;
     margin-left: 5px;
 }
-.sr-seg-line-skeleton,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size^="line-"] {
     height: 13px;
     margin-top: 6px;
     border-radius: 4px;
 }
-.sr-seg-line-skeleton-long,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="line-long"] {
     width: 92%;
 }
-.sr-seg-line-skeleton-medium,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="line-medium"] {
     width: 76%;
 }
-.sr-seg-line-skeleton-wide,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="line-wide"] {
     width: 88%;
 }
-.sr-seg-line-skeleton-short,
 [data-sot-part="source-report-segment-skeleton"][data-sot-size="line-short"] {
     width: 60%;
 }
