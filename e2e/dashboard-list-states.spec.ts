@@ -182,10 +182,12 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         letter-spacing: 0.005em;
     }
     .b .dot {
+        display: inline-block;
         width: 5px;
         height: 5px;
         border-radius: 50%;
         background: currentColor;
+        margin-right: 4px;
     }
     .b .dot.status-dot-muted {
         background: var(--fg-tertiary);
@@ -306,14 +308,17 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
     }
     .list-row-pixel-stage,
-    .list-row-pixel-stage * {
+    .list-row-pixel-stage *,
+    .list-panel-frame-stage,
+    .list-panel-frame-stage * {
         box-sizing: border-box !important;
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
         text-rendering: optimizeLegibility !important;
         font-feature-settings: "ss01", "cv11", "rlig", "calt" !important;
     }
-    .list-row-pixel-stage .real-list .row {
+    .list-row-pixel-stage .real-list .row,
+    .list-panel-frame-stage .real-list .row {
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) auto !important;
         align-items: center !important;
@@ -325,20 +330,23 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         text-align: left !important;
         font: 13.3333px var(--font-sans) !important;
     }
-    .list-row-pixel-stage .real-list .body {
+    .list-row-pixel-stage .real-list .body,
+    .list-panel-frame-stage .real-list .body {
         min-width: 0 !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 5px !important;
     }
-    .list-row-pixel-stage .real-list .title {
+    .list-row-pixel-stage .real-list .title,
+    .list-panel-frame-stage .real-list .title {
         font: 600 13.5px var(--font-sans) !important;
         color: var(--fg-primary) !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
-    .list-row-pixel-stage .real-list .right {
+    .list-row-pixel-stage .real-list .right,
+    .list-panel-frame-stage .real-list .right {
         display: flex !important;
         align-items: center !important;
         justify-content: flex-end !important;
@@ -348,7 +356,8 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         min-width: max-content !important;
         width: max-content !important;
     }
-    .list-row-pixel-stage .src-mini {
+    .list-row-pixel-stage .src-mini,
+    .list-panel-frame-stage .src-mini {
         display: inline-flex !important;
         flex: 0 0 14px !important;
         width: 14px !important;
@@ -360,7 +369,8 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         justify-content: center !important;
         overflow: hidden !important;
     }
-    .list-row-pixel-stage .src-mini img {
+    .list-row-pixel-stage .src-mini img,
+    .list-panel-frame-stage .src-mini img {
         display: block !important;
         width: 14px !important;
         height: 14px !important;
@@ -369,8 +379,17 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         object-fit: contain !important;
         vertical-align: baseline !important;
     }
+    .list-panel-frame-stage [data-sot-part="source-filter-icon"] img {
+        display: block !important;
+        width: 14px !important;
+        height: 14px !important;
+        max-width: none !important;
+        object-fit: contain !important;
+    }
     .list-row-pixel-stage .b,
-    .list-row-pixel-stage .utag {
+    .list-row-pixel-stage .utag,
+    .list-panel-frame-stage .b,
+    .list-panel-frame-stage .utag {
         flex: none !important;
         box-sizing: border-box !important;
     }
@@ -1580,6 +1599,153 @@ async function readSotListPanelHtml(page: Page) {
         clone.setAttribute("data-slot", "card");
         clone.setAttribute("data-sot-surface", "dashboard-recording-list");
 
+        const setAttributes = (
+            selector: string,
+            attributes: Record<string, string>,
+        ) => {
+            clone.querySelectorAll<HTMLElement>(selector).forEach((node) => {
+                for (const [name, value] of Object.entries(attributes)) {
+                    node.setAttribute(name, value);
+                }
+            });
+        };
+
+        setAttributes(".list-header", {
+            "data-sot-part": "dashboard-recording-list-header",
+        });
+        setAttributes(".lh-titlebar", {
+            "data-sot-part": "dashboard-recording-list-titlebar",
+        });
+        setAttributes(".lh-title", {
+            "data-sot-part": "dashboard-recording-list-title",
+        });
+        setAttributes(".lh-count", {
+            "data-sot-part": "dashboard-recording-list-count",
+        });
+        setAttributes(".stack-strip", {
+            "data-sot-panel": "dashboard-source-filter-stack",
+            "data-sot-state": "default",
+        });
+        setAttributes(".stack-from", {
+            "data-sot-part": "source-filter-from",
+        });
+        setAttributes(".stack-sep", {
+            "data-sot-part": "source-filter-separator",
+        });
+        setAttributes(".stack-chip", {
+            "data-sot-part": "source-filter-chip",
+        });
+        setAttributes(".stack-chip .ico", {
+            "data-sot-part": "source-filter-icon",
+        });
+        clone
+            .querySelectorAll<HTMLElement>(".stack-chip .ico.cover")
+            .forEach((node) => {
+                node.setAttribute("data-sot-provider-cover", "true");
+            });
+        setAttributes(".stack-info", {
+            "data-sot-part": "source-filter-info",
+        });
+        setAttributes(".stack-chip .x", {
+            "data-slot": "button",
+            "data-sot-control": "source-filter-clear",
+        });
+        setAttributes(".list-mode-bar", {
+            "data-sot-panel": "dashboard-recording-list-mode",
+        });
+        setAttributes(".list-mode-label", {
+            "data-sot-part": "dashboard-recording-list-mode-label",
+        });
+        setAttributes(".list-mode-count", {
+            "data-sot-part": "dashboard-recording-list-mode-count",
+        });
+        setAttributes(".list-mode-seg", {
+            "data-slot": "segmented-tabs",
+            "data-sot-control": "liquid-tabs",
+            "data-sot-part": "dashboard-recording-list-mode-segmented",
+            "data-sot-size": "sm",
+        });
+        clone
+            .querySelectorAll<HTMLElement>(".list-mode-seg")
+            .forEach((node) => {
+                const activeIndex = Math.max(
+                    0,
+                    Array.from(node.querySelectorAll(".lt-tab")).findIndex(
+                        (tab) => tab.classList.contains("active"),
+                    ),
+                );
+                node.setAttribute("data-idx", String(activeIndex));
+                node.setAttribute("data-active", String(activeIndex));
+                node.setAttribute(
+                    "data-tabs",
+                    String(node.querySelectorAll(".lt-tab").length),
+                );
+            });
+        setAttributes(".lt-ind", {
+            "data-sot-part": "liquid-tabs-indicator",
+        });
+        clone.querySelectorAll<HTMLElement>(".lt-tab").forEach((node) => {
+            const mode = node.dataset.mode ?? node.textContent?.trim() ?? "";
+            const active = node.classList.contains("active");
+            node.setAttribute("data-sot-control", "liquid-tab");
+            node.setAttribute("data-sot-state", active ? "active" : "idle");
+            node.setAttribute("data-tab-key", mode);
+            node.setAttribute("role", "tab");
+            node.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        setAttributes('.filter-row[data-list-filter-row="timeline"]', {
+            "data-slot": "toggle-group",
+            "data-sot-panel": "dashboard-recording-time-filter",
+        });
+        clone.querySelectorAll<HTMLElement>(".chip-f").forEach((node) => {
+            const active = node.classList.contains("active");
+            node.setAttribute("data-slot", "toggle-group-item");
+            node.setAttribute(
+                "data-sot-control",
+                "dashboard-recording-time-filter",
+            );
+            node.setAttribute("data-sot-filter", node.dataset.tf ?? "");
+            node.setAttribute("data-sot-state", active ? "selected" : "idle");
+        });
+        setAttributes(".chip-c", {
+            "data-sot-part": "dashboard-recording-time-filter-count",
+        });
+        setAttributes(".tag-filter", {
+            "data-sot-panel": "recording-list-tag-filter",
+        });
+        setAttributes(".tag-filter-trigger", {
+            "data-slot": "button",
+            "data-sot-control": "recording-list-tag-filter-trigger",
+        });
+        setAttributes(".tag-filter-label", {
+            "data-sot-part": "recording-list-tag-filter-label",
+        });
+        setAttributes(".tag-filter-count", {
+            "data-sot-part": "recording-list-tag-filter-count",
+        });
+        setAttributes(".tag-filter-caret", {
+            "data-sot-part": "recording-list-tag-filter-caret",
+        });
+        setAttributes(".tag-filter-list", {
+            "data-sot-list": "recording-list-tag-filter-list",
+        });
+        setAttributes(".tag-filter-option", {
+            "data-slot": "button",
+            "data-sot-control": "recording-list-tag-filter",
+        });
+        setAttributes(".tag-filter-option-label", {
+            "data-sot-part": "recording-list-tag-filter-option-label",
+        });
+        setAttributes(".tag-filter-option-count", {
+            "data-sot-part": "recording-list-tag-filter-option-count",
+        });
+        setAttributes(".utag-plus", {
+            "data-sot-part": "recording-tag-overflow",
+        });
+        setAttributes(".list-scroll", {
+            "data-sot-list": "dashboard-recording-list-scroll",
+        });
+
         if (
             !clone.querySelector(
                 ':scope > [data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
@@ -1661,9 +1827,8 @@ async function installSotPixelDevOverlaySuppression(
             document.head.appendChild(devOverlayStyle);
 
             const hideDevOverlay = () => {
-                for (const element of document.querySelectorAll<HTMLElement>(
-                    selector,
-                )) {
+                const fixture = document.getElementById(id);
+                const hideElement = (element: HTMLElement) => {
                     element.setAttribute("aria-hidden", "true");
                     element.style.setProperty("display", "none", "important");
                     element.style.setProperty(
@@ -1677,7 +1842,56 @@ async function installSotPixelDevOverlaySuppression(
                         "none",
                         "important",
                     );
-                }
+                };
+                const isDevOverlayCandidate = (element: HTMLElement) => {
+                    if (fixture?.contains(element)) {
+                        return false;
+                    }
+
+                    const elementSignature = [
+                        element.tagName,
+                        element.id,
+                        String(element.className),
+                        element.getAttribute("aria-label"),
+                        element.getAttribute("title"),
+                        ...Array.from(element.attributes)
+                            .map((attribute) => attribute.name)
+                            .filter((name) => name.startsWith("data-nextjs")),
+                    ]
+                        .join(" ")
+                        .toLowerCase();
+                    const style = window.getComputedStyle(element);
+                    const zIndex = Number.parseInt(style.zIndex, 10);
+                    const fixedHighLayer =
+                        style.position === "fixed" &&
+                        Number.isFinite(zIndex) &&
+                        zIndex >= 1_000;
+                    const nextDevTools =
+                        elementSignature.includes("next") &&
+                        (elementSignature.includes("dev") ||
+                            elementSignature.includes("tool"));
+
+                    return nextDevTools || fixedHighLayer;
+                };
+                const hideInRoot = (root: Document | ShadowRoot) => {
+                    for (const element of root.querySelectorAll<HTMLElement>(
+                        selector,
+                    )) {
+                        hideElement(element);
+                    }
+                    for (const element of root.querySelectorAll<HTMLElement>(
+                        "*",
+                    )) {
+                        if (isDevOverlayCandidate(element)) {
+                            hideElement(element);
+                        }
+                        if (element.shadowRoot) {
+                            hideInRoot(element.shadowRoot);
+                        }
+                    }
+                };
+
+                hideInRoot(document);
             };
 
             hideDevOverlay();
@@ -1760,6 +1974,14 @@ async function captureListRowFixture(
             for (const mutedDot of list.querySelectorAll("._is-1")) {
                 mutedDot.classList.remove("_is-1");
                 mutedDot.classList.add("status-dot-muted");
+            }
+            for (const overflowChip of list.querySelectorAll<HTMLElement>(
+                ".utag-plus",
+            )) {
+                overflowChip.setAttribute(
+                    "data-sot-part",
+                    "recording-tag-overflow",
+                );
             }
 
             for (const image of list.querySelectorAll("img")) {
@@ -2338,9 +2560,12 @@ async function captureListPanelFrameFixture(
             host.style.background = "rgb(24, 29, 35)";
 
             const stage = document.createElement("div");
-            stage.className = "workspace list-panel-frame-stage";
+            stage.className =
+                "workspace list-panel-frame-stage list-row-pixel-stage";
+            stage.setAttribute("data-sot-panel", "dashboard-workspace");
             stage.style.background = "rgb(24, 29, 35)";
             stage.style.boxSizing = "border-box";
+            stage.style.padding = "16px 20px 20px";
             stage.style.width = `${width}px`;
             stage.innerHTML = html;
 
@@ -2364,6 +2589,51 @@ async function captureListPanelFrameFixture(
                     min-height: 0;
                     flex-direction: column;
                     padding: 0;
+                }
+                #${CSS.escape(id)} [data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"] {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    margin-top: 10px;
+                }
+                #${CSS.escape(id)} [data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"] {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    height: 22px;
+                    padding: 0 8px;
+                    border-radius: 6px;
+                    background: transparent;
+                    border: 1px solid transparent;
+                    box-shadow: none;
+                    color: var(--fg-secondary);
+                    cursor: pointer;
+                    font: 500 11px var(--font-sans);
+                    transition:
+                        background var(--duration-fast) var(--ease-out),
+                        color var(--duration-fast) var(--ease-out),
+                        border-color var(--duration-fast) var(--ease-out);
+                }
+                #${CSS.escape(id)} [data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"] {
+                    background: var(--bg-recessed);
+                    border-color: var(--line-hairline);
+                    color: var(--fg-primary);
+                    box-shadow: var(--shadow-xs);
+                }
+                #${CSS.escape(id)} [data-sot-part="dashboard-recording-time-filter-count"] {
+                    font: 500 10px var(--font-mono);
+                    color: var(--fg-tertiary);
+                    opacity: 0.7;
+                    padding: 0 4px;
+                    border-radius: 4px;
+                    background: color-mix(in srgb, var(--graphite-300) 35%, transparent);
+                }
+                [data-theme="dark"] #${CSS.escape(id)} [data-sot-part="dashboard-recording-time-filter-count"] {
+                    background: rgb(255 255 255 / 0.06);
+                }
+                #${CSS.escape(id)} [data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"] [data-sot-part="dashboard-recording-time-filter-count"] {
+                    background: color-mix(in srgb, var(--accent) 22%, transparent);
+                    color: var(--accent);
                 }
             `;
             const stackStrip = stage.querySelector<HTMLElement>(".stack-strip");
@@ -2398,6 +2668,7 @@ async function captureListPanelFrameFixture(
             '[data-sot-surface="dashboard-recording-list"], .list-panel',
         ),
     ).toBeVisible();
+    await page.evaluate(() => document.fonts?.ready);
     await page.waitForTimeout(250);
     await page.evaluate(() => {
         document.querySelectorAll("nextjs-portal").forEach((element) => {
@@ -2540,7 +2811,7 @@ async function expectListRowPixelMatch(
         sourceAssetDataUrls,
     );
     const productCapture = await captureListRowFixture(
-        sotPage,
+        page,
         rowHtml,
         sourceAssetDataUrls,
     );
@@ -3525,7 +3796,7 @@ test("recording list responsive frames match SOT web index pixels", async ({
                 frame.stageWidth,
             );
             const productCapture = await captureListPanelFrameFixture(
-                sotPage,
+                page,
                 panelHtml,
                 sourceAssetDataUrls,
                 frame.stageWidth,
