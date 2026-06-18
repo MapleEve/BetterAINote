@@ -722,6 +722,36 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
     return <div data-sot-list="source-report-cards">{children}</div>;
 }
 
+type SotSourceReportCardSkeletonSize = "count" | "source" | "status";
+type SotSourceReportSegmentSkeletonSize =
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "line-wide"
+    | "speaker"
+    | "time";
+
+const sotSourceReportCardSkeletonClassNames: Record<
+    SotSourceReportCardSkeletonSize,
+    string
+> = {
+    count: "!h-[18px] w-12",
+    source: "!h-[18px] w-[120px]",
+    status: "!h-[18px] w-20",
+};
+
+const sotSourceReportSegmentSkeletonClassNames: Record<
+    SotSourceReportSegmentSkeletonSize,
+    string
+> = {
+    "line-long": "mt-1.5 !h-[13px] w-[92%]",
+    "line-medium": "mt-1.5 !h-[13px] w-3/4",
+    "line-short": "mt-1.5 !h-[13px] w-3/5",
+    "line-wide": "mt-1.5 !h-[13px] w-[88%]",
+    speaker: "ml-1 !h-3 w-14",
+    time: "!h-3 w-24",
+};
+
 function SotSourceReportMetricCard({
     children,
     label,
@@ -757,10 +787,11 @@ function SotSourceReportMetricCard({
 function SotSourceReportCardSkeleton({
     size,
 }: {
-    size: "count" | "source" | "status";
+    size: SotSourceReportCardSkeletonSize;
 }) {
     return (
         <Skeleton
+            className={sotSourceReportCardSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
@@ -771,16 +802,11 @@ function SotSourceReportCardSkeleton({
 function SotSourceReportSegmentSkeleton({
     size,
 }: {
-    size:
-        | "line-long"
-        | "line-medium"
-        | "line-short"
-        | "line-wide"
-        | "speaker"
-        | "time";
+    size: SotSourceReportSegmentSkeletonSize;
 }) {
     return (
         <Skeleton
+            className={sotSourceReportSegmentSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-segment-skeleton"
             data-sot-size={size}

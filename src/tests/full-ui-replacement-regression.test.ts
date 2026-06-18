@@ -2655,6 +2655,18 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportPanel).toContain(
             "className={sourceReportSegmentSkeletonClassNames[size]}",
         );
+        expect(workstation).toContain(
+            "const sotSourceReportCardSkeletonClassNames",
+        );
+        expect(workstation).toContain(
+            "const sotSourceReportSegmentSkeletonClassNames",
+        );
+        expect(workstation).toContain(
+            "className={sotSourceReportCardSkeletonClassNames[size]}",
+        );
+        expect(workstation).toContain(
+            "className={sotSourceReportSegmentSkeletonClassNames[size]}",
+        );
         const sourceReportEmptyPrimitive = readSource("components/ui/empty.tsx");
         for (const slot of [
             'data-slot="empty"',

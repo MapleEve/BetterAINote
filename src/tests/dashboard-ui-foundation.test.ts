@@ -837,6 +837,18 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("<Button");
         expect(workstation).toContain("<Skeleton");
         expect(workstation).toContain("<Slider");
+        expect(workstation).toContain(
+            "const sotSourceReportCardSkeletonClassNames",
+        );
+        expect(workstation).toContain(
+            "const sotSourceReportSegmentSkeletonClassNames",
+        );
+        expect(workstation).toContain(
+            "className={sotSourceReportCardSkeletonClassNames[size]}",
+        );
+        expect(workstation).toContain(
+            "className={sotSourceReportSegmentSkeletonClassNames[size]}",
+        );
         expect(workstation).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,
         );
