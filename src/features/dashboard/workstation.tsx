@@ -306,6 +306,40 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+type DashboardTranscriptSkeletonSize =
+    | "avatar"
+    | "line-60"
+    | "line-70"
+    | "line-78"
+    | "line-82"
+    | "line-88"
+    | "line-92"
+    | "line-94"
+    | "line-96"
+    | "speaker-120"
+    | "speaker-130"
+    | "speaker-140"
+    | "time";
+
+const dashboardTranscriptSkeletonClassNames: Record<
+    DashboardTranscriptSkeletonSize,
+    string
+> = {
+    avatar: "size-6 flex-none rounded-full",
+    "line-60": "mt-1.5 h-3.5 w-3/5",
+    "line-70": "mt-1.5 h-3.5 w-[70%]",
+    "line-78": "mt-1.5 h-3.5 w-[78%]",
+    "line-82": "mt-1.5 h-3.5 w-[82%]",
+    "line-88": "mt-1.5 h-3.5 w-[88%]",
+    "line-92": "mt-1 h-3.5 w-[92%]",
+    "line-94": "mt-1 h-3.5 w-[94%]",
+    "line-96": "mt-1 h-3.5 w-[96%]",
+    "speaker-120": "h-[13px] w-[120px] flex-none",
+    "speaker-130": "h-[13px] w-[130px] flex-none",
+    "speaker-140": "h-[13px] w-[140px] flex-none",
+    time: "h-[11px] w-20 flex-none",
+};
+
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
     {
         firstLine: "line-96",
@@ -328,7 +362,29 @@ const TRANSCRIPT_LOADING_SKELETON_ROWS = [
         speaker: "speaker-130",
         thirdLine: "line-70",
     },
-] as const;
+] as const satisfies ReadonlyArray<{
+    firstLine: DashboardTranscriptSkeletonSize;
+    key: string;
+    secondLine: DashboardTranscriptSkeletonSize;
+    speaker: DashboardTranscriptSkeletonSize;
+    thirdLine: DashboardTranscriptSkeletonSize | null;
+}>;
+
+function DashboardTranscriptSkeleton({
+    size,
+}: {
+    size: DashboardTranscriptSkeletonSize;
+}) {
+    return (
+        <Skeleton
+            aria-hidden="true"
+            className={dashboardTranscriptSkeletonClassNames[size]}
+            data-sot-part="dashboard-transcript-skeleton"
+            data-sot-size={size}
+        />
+    );
+}
+
 const TRANSCRIPT_AVATAR_TONES = ["steel", "info", "success"] as const;
 
 const SOURCE_ORDER = [
@@ -6762,43 +6818,21 @@ export function Workstation({
                                                         data-sot-part="dashboard-transcript-speaker-row"
                                                         data-sot-state="loading"
                                                     >
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            data-sot-part="dashboard-transcript-skeleton"
-                                                            data-sot-size="avatar"
+                                                        <DashboardTranscriptSkeleton size="avatar" />
+                                                        <DashboardTranscriptSkeleton
+                                                            size={item.speaker}
                                                         />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            data-sot-part="dashboard-transcript-skeleton"
-                                                            data-sot-size={
-                                                                item.speaker
-                                                            }
-                                                        />
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            data-sot-part="dashboard-transcript-skeleton"
-                                                            data-sot-size="time"
-                                                        />
+                                                        <DashboardTranscriptSkeleton size="time" />
                                                     </div>
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        data-sot-part="dashboard-transcript-skeleton"
-                                                        data-sot-size={
-                                                            item.firstLine
-                                                        }
+                                                    <DashboardTranscriptSkeleton
+                                                        size={item.firstLine}
                                                     />
-                                                    <Skeleton
-                                                        aria-hidden="true"
-                                                        data-sot-part="dashboard-transcript-skeleton"
-                                                        data-sot-size={
-                                                            item.secondLine
-                                                        }
+                                                    <DashboardTranscriptSkeleton
+                                                        size={item.secondLine}
                                                     />
                                                     {item.thirdLine ? (
-                                                        <Skeleton
-                                                            aria-hidden="true"
-                                                            data-sot-part="dashboard-transcript-skeleton"
-                                                            data-sot-size={
+                                                        <DashboardTranscriptSkeleton
+                                                            size={
                                                                 item.thirdLine
                                                             }
                                                         />

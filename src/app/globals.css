@@ -1512,138 +1512,6 @@ button {
         overflow-wrap: anywhere;
     }
 }
-[data-sot-panel="recording-transcription-skeleton"][data-slot="card"],
-[data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"] {
-    flex: 1;
-    min-height: 0;
-    gap: 0;
-}
-[data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"] {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 12px;
-}
-[data-sot-part="recording-transcription-skeleton-heading"] {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 6px;
-}
-[data-sot-part="recording-transcription-skeleton-action"] {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 0;
-}
-[data-sot-part="recording-transcription-skeleton-body"][data-slot="card-content"],
-[data-sot-list="recording-transcription-speaker-cards"][data-slot="card-content"] {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-[data-sot-panel="recording-transcription-review-skeleton"] {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px 0 4px;
-    border-top: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-panel="recording-transcription-review-skeleton"] {
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-list="recording-transcription-skeleton-meta"],
-[data-sot-list="recording-transcription-speaker-card-meta"] {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-width: 0;
-}
-[data-sot-list="recording-transcription-skeleton-lines"],
-[data-sot-list="recording-transcription-speaker-card-turns"] {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-[data-sot-item="recording-transcription-skeleton-turn"] {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    padding: 10px 0 16px;
-    border-bottom: 1px dashed var(--line-hairline);
-}
-[data-sot-item="recording-transcription-skeleton-turn"]:last-child {
-    border-bottom: 0;
-}
-[data-theme="dark"] [data-sot-item="recording-transcription-skeleton-turn"] {
-    border-bottom-color: var(--glass-border);
-}
-[data-sot-item="recording-transcription-speaker-card-skeleton"] {
-    display: flex;
-    flex-direction: column;
-    gap: 11px;
-    padding: 14px;
-    border: 1px solid var(--line-hairline);
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--fg-primary) 2%, transparent);
-}
-[data-theme="dark"]
-    [data-sot-item="recording-transcription-speaker-card-skeleton"] {
-    border-color: var(--glass-border-soft);
-    background: color-mix(in srgb, var(--fg-primary) 3.5%, transparent);
-}
-[data-sot-part="recording-transcription-speaker-card-field"][data-slot="field"] {
-    gap: 8px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-slot="skeleton"] {
-    display: block;
-    height: 13px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="title"] {
-    width: 128px;
-    height: 16px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="description"] {
-    width: min(220px, 100%);
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="action"] {
-    width: 72px;
-    height: 26px;
-    border-radius: 999px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="speaker"] {
-    width: 96px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="time"] {
-    width: 64px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="status"] {
-    width: 76px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="field-label"] {
-    width: 96px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="field-control"] {
-    width: 132px;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="line-long"] {
-    width: 92%;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="line-medium"] {
-    width: 76%;
-}
-[data-sot-part="recording-transcription-skeleton-line"][data-sot-size="line-short"] {
-    width: 60%;
-}
-@media (max-width: 860px) {
-    [data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"] {
-        grid-template-columns: 1fr;
-    }
-    [data-sot-part="recording-transcription-skeleton-action"] {
-        justify-content: flex-start;
-    }
-}
 [data-sot-item="dashboard-transcript-turn"] {
     padding: 10px 0 16px;
     border-bottom: 1px dashed var(--line-hairline);
@@ -1659,67 +1527,6 @@ button {
     align-items: center;
     gap: 10px;
     margin-bottom: 6px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"] {
-    display: inline-block;
-    flex: none;
-    vertical-align: middle;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="avatar"] {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="speaker-120"] {
-    width: 120px;
-    height: 13px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="speaker-140"] {
-    width: 140px;
-    height: 13px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="speaker-130"] {
-    width: 130px;
-    height: 13px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="time"] {
-    width: 80px;
-    height: 11px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size^="line-"] {
-    height: 14px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-96"] {
-    width: 96%;
-    margin-top: 4px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-92"] {
-    width: 92%;
-    margin-top: 4px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-94"] {
-    width: 94%;
-    margin-top: 4px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-88"] {
-    width: 88%;
-    margin-top: 6px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-78"] {
-    width: 78%;
-    margin-top: 6px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-82"] {
-    width: 82%;
-    margin-top: 6px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-60"] {
-    width: 60%;
-    margin-top: 6px;
-}
-[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="line-70"] {
-    width: 70%;
-    margin-top: 6px;
 }
 [data-sot-part="dashboard-transcript-avatar"],
 [data-sot-part="dashboard-speaker-avatar"] {
@@ -2516,40 +2323,6 @@ body[data-time-style="abs"]
     border-color: var(--glass-border);
 }
 
-/* ===========================================================
-   Skeleton placeholders
-   =========================================================== */
-[data-slot="skeleton"] {
-    display: inline-block;
-    vertical-align: middle;
-    background: linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--fg-primary) 5%, transparent) 0%,
-        color-mix(in srgb, var(--fg-primary) 10%, transparent) 50%,
-        color-mix(in srgb, var(--fg-primary) 5%, transparent) 100%
-    );
-    background-size: 220% 100%;
-    animation: skshimmer 1.6s ease-in-out infinite;
-    border-radius: 6px;
-    height: 12px;
-}
-[data-theme="dark"] [data-slot="skeleton"] {
-    background: linear-gradient(
-        90deg,
-        rgb(255 255 255 / 0.05) 0%,
-        rgb(255 255 255 / 0.12) 50%,
-        rgb(255 255 255 / 0.05) 100%
-    );
-    background-size: 220% 100%;
-}
-@keyframes skshimmer {
-    0% {
-        background-position: 200% 50%;
-    }
-    100% {
-        background-position: -100% 50%;
-    }
-}
 [data-sot-panel="recording-list-loading"] {
     padding: 4px;
     display: flex;
@@ -3688,7 +3461,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     display: none !important;
 }
 [data-detail-empty],
-[data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
     display: none;
 }
@@ -5080,7 +4852,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 
 /* ---------- Detail empty ---------- */
-[data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
     flex-direction: column;
     align-items: center;
@@ -5095,7 +4866,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     border-radius: 16px;
     box-shadow: var(--shadow-sm);
 }
-[data-theme="dark"] [data-sot-panel="recording-source-record-empty"],
 [data-theme="dark"] [data-sot-panel="recording-route-empty"] {
     background: rgb(255 255 255 / 0.025);
     border-color: var(--glass-border-soft);
@@ -6688,7 +6458,6 @@ select::-ms-expand {
 }
 
 /* ---- Detail empty (centered) ---- */
-[data-sot-panel="recording-source-record-empty"],
 [data-sot-panel="recording-route-empty"] {
     display: flex;
     flex-direction: column;

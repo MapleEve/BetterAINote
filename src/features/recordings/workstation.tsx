@@ -5,6 +5,7 @@ import {
     Check,
     Copy,
     EllipsisVertical,
+    FileText,
     Pencil,
     Sparkles,
     X,
@@ -24,6 +25,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import {
     Field,
     FieldContent,
@@ -1474,11 +1483,35 @@ export function RecordingWorkstation({
                                             />
                                         </div>
                                     ) : (
-                                        <div data-sot-panel="recording-source-record-empty">
-                                            {t(
-                                                "transcription.noTranscriptAvailable",
-                                            )}
-                                        </div>
+                                        <Empty
+                                            className="min-h-[280px] flex-1"
+                                            data-sot-panel="recording-source-record-empty"
+                                        >
+                                            <EmptyHeader>
+                                                <EmptyMedia
+                                                    aria-hidden="true"
+                                                    data-sot-part="recording-source-record-empty-icon"
+                                                    variant="icon"
+                                                >
+                                                    <FileText />
+                                                </EmptyMedia>
+                                                <EmptyTitle data-sot-part="recording-source-record-empty-title">
+                                                    {t(
+                                                        "transcription.noTranscriptAvailable",
+                                                    )}
+                                                </EmptyTitle>
+                                                <EmptyDescription data-sot-part="recording-source-record-empty-description">
+                                                    {t(
+                                                        "recording.localWorkflowDescription",
+                                                    )}
+                                                </EmptyDescription>
+                                            </EmptyHeader>
+                                            <EmptyContent data-sot-part="recording-source-record-empty-content">
+                                                {t(
+                                                    "recording.transcriptTabsHint",
+                                                )}
+                                            </EmptyContent>
+                                        </Empty>
                                     )}
                                 </div>
                             </section>

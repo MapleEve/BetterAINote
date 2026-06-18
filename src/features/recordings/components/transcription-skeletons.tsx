@@ -11,13 +11,41 @@ import {
 import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type SkeletonLineSize =
+    | "action"
+    | "description"
+    | "field-control"
+    | "field-label"
+    | "line-long"
+    | "line-medium"
+    | "line-short"
+    | "speaker"
+    | "status"
+    | "time"
+    | "title";
+
+const skeletonLineClassNames: Record<SkeletonLineSize, string> = {
+    action: "h-[26px] w-[72px]",
+    description: "h-[13px] w-full max-w-[220px]",
+    "field-control": "h-[13px] w-[132px]",
+    "field-label": "h-[13px] w-24",
+    "line-long": "h-[13px] w-[92%]",
+    "line-medium": "h-[13px] w-3/4",
+    "line-short": "h-[13px] w-3/5",
+    speaker: "h-[13px] w-24",
+    status: "h-[13px] w-[76px]",
+    time: "h-[13px] w-16",
+    title: "h-4 w-32",
+};
+
 function SkeletonLine({
     size = "line-medium",
 }: {
-    size?: string;
+    size?: SkeletonLineSize;
 }) {
     return (
         <Skeleton
+            className={skeletonLineClassNames[size]}
             data-sot-part="recording-transcription-skeleton-line"
             data-sot-size={size}
         />
@@ -30,7 +58,10 @@ function SkeletonLineGroup({
     lines?: number;
 }) {
     return (
-        <div data-sot-list="recording-transcription-skeleton-lines">
+        <div
+            className="flex flex-col gap-[7px]"
+            data-sot-list="recording-transcription-skeleton-lines"
+        >
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
                 (lineId, index) => (
                     <SkeletonLine
@@ -51,8 +82,14 @@ function SkeletonLineGroup({
 
 function TranscriptTurnSkeleton() {
     return (
-        <section data-sot-item="recording-transcription-skeleton-turn">
-            <div data-sot-list="recording-transcription-skeleton-meta">
+        <section
+            className="flex flex-col gap-[7px] border-b border-dashed py-2.5 pb-4 last:border-b-0"
+            data-sot-item="recording-transcription-skeleton-turn"
+        >
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-skeleton-meta"
+            >
                 <SkeletonLine size="speaker" />
                 <SkeletonLine size="time" />
             </div>
@@ -64,12 +101,19 @@ function TranscriptTurnSkeleton() {
 export function TranscriptOutputSkeleton() {
     return (
         <Card
+            className="min-h-0 flex-1 gap-0"
             data-sot-panel="recording-transcription-skeleton"
             data-sot-section="recording-transcription-output-skeleton"
             hasNoPadding
         >
-            <CardHeader data-sot-part="recording-transcription-skeleton-header">
-                <div data-sot-part="recording-transcription-skeleton-heading">
+            <CardHeader
+                className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1"
+                data-sot-part="recording-transcription-skeleton-header"
+            >
+                <div
+                    className="flex min-w-0 flex-col gap-1.5"
+                    data-sot-part="recording-transcription-skeleton-heading"
+                >
                     <CardTitle>
                         <SkeletonLine size="title" />
                     </CardTitle>
@@ -77,11 +121,17 @@ export function TranscriptOutputSkeleton() {
                         <SkeletonLine size="description" />
                     </CardDescription>
                 </div>
-                <CardAction data-sot-part="recording-transcription-skeleton-action">
+                <CardAction
+                    className="flex min-w-0 items-center justify-end max-[860px]:justify-start"
+                    data-sot-part="recording-transcription-skeleton-action"
+                >
                     <SkeletonLine size="action" />
                 </CardAction>
             </CardHeader>
-            <CardContent data-sot-part="recording-transcription-skeleton-body">
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-part="recording-transcription-skeleton-body"
+            >
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
@@ -93,9 +143,13 @@ export function TranscriptOutputSkeleton() {
 export function TranscriptReviewSkeleton() {
     return (
         <section
+            className="flex flex-col gap-2.5 border-t pt-3 pb-1"
             data-sot-panel="recording-transcription-review-skeleton"
         >
-            <div data-sot-list="recording-transcription-skeleton-meta">
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-skeleton-meta"
+            >
                 <SkeletonLine size="speaker" />
                 <SkeletonLine size="time" />
                 <SkeletonLine size="status" />
@@ -107,19 +161,34 @@ export function TranscriptReviewSkeleton() {
 
 function SpeakerCardSkeleton() {
     return (
-        <section data-sot-item="recording-transcription-speaker-card-skeleton">
-            <div data-sot-list="recording-transcription-speaker-card-meta">
+        <section
+            className="flex flex-col gap-[11px] p-3.5"
+            data-sot-item="recording-transcription-speaker-card-skeleton"
+        >
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-speaker-card-meta"
+            >
                 <SkeletonLine size="speaker" />
             </div>
-            <div data-sot-list="recording-transcription-speaker-card-meta">
+            <div
+                className="flex min-w-0 flex-wrap items-center gap-2"
+                data-sot-list="recording-transcription-speaker-card-meta"
+            >
                 <SkeletonLine size="status" />
                 <SkeletonLine size="time" />
             </div>
-            <div data-sot-list="recording-transcription-speaker-card-turns">
+            <div
+                className="flex flex-col gap-[7px]"
+                data-sot-list="recording-transcription-speaker-card-turns"
+            >
                 <TranscriptTurnSkeleton />
                 <TranscriptTurnSkeleton />
             </div>
-            <Field data-sot-part="recording-transcription-speaker-card-field">
+            <Field
+                className="gap-2"
+                data-sot-part="recording-transcription-speaker-card-field"
+            >
                 <FieldContent>
                     <FieldTitle>
                         <SkeletonLine size="field-label" />
@@ -134,11 +203,18 @@ function SpeakerCardSkeleton() {
 export function SpeakerReviewSkeleton() {
     return (
         <Card
+            className="min-h-0 flex-1 gap-0"
             data-sot-panel="recording-transcription-speaker-review-skeleton"
             hasNoPadding
         >
-            <CardHeader data-sot-part="recording-transcription-skeleton-header">
-                <div data-sot-part="recording-transcription-skeleton-heading">
+            <CardHeader
+                className="grid-cols-[minmax(0,1fr)_auto] items-start gap-3 max-[860px]:grid-cols-1"
+                data-sot-part="recording-transcription-skeleton-header"
+            >
+                <div
+                    className="flex min-w-0 flex-col gap-1.5"
+                    data-sot-part="recording-transcription-skeleton-heading"
+                >
                     <CardTitle>
                         <SkeletonLine size="title" />
                     </CardTitle>
@@ -146,14 +222,23 @@ export function SpeakerReviewSkeleton() {
                         <SkeletonLine size="description" />
                     </CardDescription>
                 </div>
-                <CardAction data-sot-part="recording-transcription-skeleton-action">
+                <CardAction
+                    className="flex min-w-0 items-center justify-end max-[860px]:justify-start"
+                    data-sot-part="recording-transcription-skeleton-action"
+                >
                     <SkeletonLine size="action" />
                 </CardAction>
             </CardHeader>
-            <CardContent data-sot-part="recording-transcription-skeleton-body">
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-part="recording-transcription-skeleton-body"
+            >
                 <TranscriptReviewSkeleton />
             </CardContent>
-            <CardContent data-sot-list="recording-transcription-speaker-cards">
+            <CardContent
+                className="flex flex-col gap-2.5"
+                data-sot-list="recording-transcription-speaker-cards"
+            >
                 <SpeakerCardSkeleton />
                 <SpeakerCardSkeleton />
             </CardContent>

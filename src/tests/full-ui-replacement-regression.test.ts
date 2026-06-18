@@ -632,7 +632,6 @@ const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DETAIL_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-detail-empty]",
-    '[data-sot-panel="recording-source-record-empty"]',
     '[data-sot-panel="recording-route-empty"]',
     '[data-sot-panel="dashboard-detail"][data-empty="true"] [data-detail-empty]',
     '[data-sot-panel="recording-route-empty-detail"][data-empty="true"]\n    [data-detail-empty]',
@@ -3290,6 +3289,22 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-state="loading"',
         );
+        expect(workstation).toContain(
+            "const dashboardTranscriptSkeletonClassNames",
+        );
+        expect(workstation).toContain(
+            "function DashboardTranscriptSkeleton",
+        );
+        expect(dashboardTranscriptLoadingTurn).toContain(
+            "<DashboardTranscriptSkeleton",
+        );
+        expect(dashboardTranscriptLoadingTurn).not.toContain("<Skeleton");
+        expect(globals).not.toContain(
+            '[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="dashboard-transcript-skeleton"][data-sot-size="avatar"]',
+        );
         expect(dashboardTranscriptReadyTurn).toContain(
             'data-sot-part="dashboard-transcript-speaker-row"',
         );
@@ -3464,6 +3479,7 @@ describe("full UI replacement regression coverage", () => {
             "features/recordings/components/speaker-label-editor.tsx",
         );
         const badge = readSource("components/ui/badge.tsx");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
@@ -3784,6 +3800,12 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             'data-sot-part="recording-transcription-skeleton-line"',
         );
+        expect(transcriptionSkeletons).toContain(
+            "const skeletonLineClassNames",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "className={skeletonLineClassNames[size]}",
+        );
         expect(transcriptionSkeletons).not.toContain(
             "sanitizeSkeletonClassName",
         );
@@ -3805,6 +3827,12 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(transcriptionSkeletons).not.toContain(legacyClass);
         }
+        expect(skeletonPrimitive).toContain(
+            '"animate-pulse rounded-md bg-accent"',
+        );
+        expect(skeletonPrimitive).not.toContain("data-sot");
+        expect(globals).not.toContain('[data-slot="skeleton"]');
+        expect(globals).not.toContain("skshimmer");
         const listPanelIndex = detail.indexOf(
             'data-sot-panel="recording-detail-list"',
         );
@@ -3996,6 +4024,43 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(detail).toContain(
             'data-sot-panel="recording-source-record-empty"',
+        );
+        expect(detail).toContain('from "@/components/ui/empty";');
+        for (const primitive of [
+            "Empty,",
+            "EmptyContent,",
+            "EmptyDescription,",
+            "EmptyHeader,",
+            "EmptyMedia,",
+            "EmptyTitle,",
+        ]) {
+            expect(detail).toContain(primitive);
+        }
+        const sourceRecordEmpty = extractElementSlice(
+            detail,
+            'data-sot-panel="recording-source-record-empty"',
+            "Empty",
+        );
+        expect(sourceRecordEmpty).toContain("<Empty");
+        expect(sourceRecordEmpty).toContain(
+            'data-sot-panel="recording-source-record-empty"',
+        );
+        expect(sourceRecordEmpty).toContain("<EmptyHeader>");
+        expect(sourceRecordEmpty).toContain("<EmptyMedia");
+        expect(sourceRecordEmpty).toContain('variant="icon"');
+        expect(sourceRecordEmpty).toContain("<FileText />");
+        expect(sourceRecordEmpty).toContain(
+            '<EmptyTitle data-sot-part="recording-source-record-empty-title">',
+        );
+        expect(sourceRecordEmpty).toContain(
+            '<EmptyDescription data-sot-part="recording-source-record-empty-description">',
+        );
+        expect(sourceRecordEmpty).toContain(
+            '<EmptyContent data-sot-part="recording-source-record-empty-content">',
+        );
+        expect(sourceRecordEmpty).not.toContain("<div");
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-source-record-empty"]',
         );
         for (const legacyClass of [
             'className="panel"',
