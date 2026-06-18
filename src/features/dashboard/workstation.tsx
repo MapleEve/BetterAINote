@@ -10,6 +10,7 @@ import {
     Copy,
     EllipsisVertical,
     FileText,
+    Globe2,
     Mic,
     PanelLeft,
     Pencil,
@@ -370,6 +371,25 @@ function providerLabel(provider: string, language: UiLanguage) {
         SOURCE_ORDER.find((source) => source.key === provider)?.label ??
         provider
     );
+}
+
+function transcriptLanguageLabel(
+    detectedLanguage: string | null | undefined,
+    language: UiLanguage,
+) {
+    const normalized = detectedLanguage?.trim().toLowerCase();
+    if (!normalized) {
+        return language === "zh-CN" ? "自动识别" : "Auto detect";
+    }
+    if (normalized === "zh" || normalized.startsWith("zh-")) {
+        return language === "zh-CN" ? "中文 · 自动识别" : "Chinese · Auto";
+    }
+    if (normalized === "en" || normalized.startsWith("en-")) {
+        return language === "zh-CN" ? "英文 · 自动识别" : "English · Auto";
+    }
+    return language === "zh-CN"
+        ? `${detectedLanguage} · 自动识别`
+        : `${detectedLanguage} · Auto`;
 }
 
 function sourceOpenLabel(
@@ -6171,6 +6191,19 @@ export function Workstation({
                                     }}
                                 />
                                 <div data-sot-part="dashboard-transcript-actions">
+                                    {detailTab === "transcript" &&
+                                    selectedTranscription?.language ? (
+                                        <Badge
+                                            variant="outline"
+                                            data-sot-part="dashboard-transcript-language"
+                                        >
+                                            <Globe2 />
+                                            {transcriptLanguageLabel(
+                                                selectedTranscription.language,
+                                                language,
+                                            )}
+                                        </Badge>
+                                    ) : null}
                                     <Button
                                         variant="ghost"
                                         size="sm"
