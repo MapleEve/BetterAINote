@@ -264,6 +264,56 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="recording-list-page-number"]',
 ];
 
+const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES = [
+    "ls-anchor",
+    "ls-panel",
+    "ls-trigger",
+    "ls-input",
+    "ls-input-row",
+    "ls-clear",
+    "ls-scope",
+    "ls-chip",
+    "ls-body",
+    "ls-section",
+    "ls-section-label",
+    "ls-result",
+    "ls-group",
+    "ls-group-label",
+    "ls-item",
+    "ls-item-title",
+    "ls-item-meta",
+    "ls-hint",
+    "ls-empty",
+    "ls-loading",
+    "ls-state",
+    "ls-error",
+    "ls-tail",
+    "inline-progress",
+    "ls-state-indexing",
+];
+
+const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE = new RegExp(
+    `\\.(${LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES.join("|")})(?![\\w-])`,
+);
+
+const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="library-search-anchor"]',
+    '[data-sot-panel="library-search"]',
+    '[data-sot-part="library-search-input-row"]',
+    '[data-sot-control="library-search-clear"]',
+    '[data-sot-part="library-search-scope"]',
+    '[data-sot-control="library-search-scope"]',
+    '[data-sot-region="library-search-scroll"]',
+    '[data-sot-part="library-search-indexing"]',
+    '[data-sot-list="library-search-results"]',
+    '[data-sot-group="library-search-results"]',
+    '[data-sot-part="library-search-group-label"]',
+    '[data-sot-control="library-search-result"]',
+    '[data-sot-part="library-search-result-title"]',
+    '[data-sot-part="library-search-result-meta"]',
+    '[data-sot-part="library-search-tag-chip"]',
+];
+
 const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:field-help|auth-sot-canvas|onboarding-sot-canvas|auth-mark|auth-title|auth-sub|auth-local-row|auth-local-link|onboarding-progress|onboarding-progress-segment|onboarding-actions)(?![\w-])/;
 
@@ -1232,6 +1282,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps library search product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
