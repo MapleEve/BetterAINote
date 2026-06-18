@@ -8709,8 +8709,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 
 /* Consistent disabled state for actionable buttons so every
-   surface dims the same way. Existing custom `.is-disabled` and
-   `[disabled]` styles take precedence where they exist. */
+   surface dims the same way. Component-specific disabled rules
+   still take precedence where they exist. */
 [data-sot-control="dashboard-recording-time-filter"][disabled],
 [data-sot-part="source-provider-action"][disabled],
 [data-sot-part="source-filter-action"][disabled] {
@@ -8721,7 +8721,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 
 /* ============================================================
    Static state hooks for runtime-driven values — replaces the
-   prior `.style.setProperty(...)` and `.style.width/left` writes.
+   prior imperative style mutation.
    These rules let JS just set data-* attributes; the actual
    width/transform/positioning lives here.
    ============================================================ */
@@ -9196,7 +9196,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--signal-info);
 }
 
-/* Static width hooks — keep the CSS-driven contract (no .style.width writes). */
+/* Static width hooks — keep the CSS-driven contract. */
 [data-sot-panel="system-banner"][data-pct="0"]
     [data-sot-part="system-banner-progress-bar"] {
     width: 0%;
