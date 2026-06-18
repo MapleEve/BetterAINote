@@ -910,6 +910,12 @@ const SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS = [
 const SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE =
     /\b(?:background|border(?:-color|-radius)?|box-shadow|color|fill|font|letter-spacing|margin|padding|stroke)\s*:/;
 
+const RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS = [
+    '[data-sot-surface="recording-player"][data-slot="card"]',
+    '[data-sot-part="recording-player-meta"][data-slot="card-header"]',
+    '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
+];
+
 const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
     /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
 
@@ -3361,6 +3367,15 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
+        );
+        for (const selector of RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain(
+            '[data-sot-surface="recording-player"] [data-sot-part="recording-player-meta"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="recording-player-controls"]',
         );
         for (const legacyClass of [
             'className="player"',
