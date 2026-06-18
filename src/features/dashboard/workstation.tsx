@@ -98,6 +98,7 @@ import {
 } from "@/lib/platform/browser-router";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
@@ -251,6 +252,35 @@ type SourceStatus =
     | "paused"
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
+
+const DASHBOARD_NAV_BUTTON_CLASS = cn(
+    "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent px-2.5 py-[7px] text-left text-[13px] font-medium",
+    "text-[var(--fg-secondary)] hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)]",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs",
+    "dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
+);
+
+const DASHBOARD_SOURCE_BUTTON_CLASS = cn(
+    DASHBOARD_NAV_BUTTON_CLASS,
+    "data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs",
+    "dark:data-[sot-state=connected-active]:border-[var(--glass-border)] dark:data-[sot-state=connected-active]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=connected-active]:shadow-none",
+    "data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)]",
+    "data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)]",
+    "data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55]",
+);
+
+const DASHBOARD_SYNC_BUTTON_CLASS =
+    "text-muted-foreground hover:text-foreground";
+
+const DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS =
+    "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:text-foreground";
+
+const DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS = cn(
+    "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs",
+    "hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
+);
+
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
     id: string;
@@ -3657,6 +3687,7 @@ export function Workstation({
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className={DASHBOARD_NAV_BUTTON_CLASS}
                                 type="button"
                                 aria-pressed={favorite === item.value}
                                 data-active={
@@ -3683,7 +3714,12 @@ export function Workstation({
                                 }}
                             >
                                 <Icon />
-                                <span>{getFavoriteLabel(item.value, t)}</span>
+                                <span
+                                    className="min-w-0 flex-1 truncate"
+                                    data-sot-part="dashboard-favorite-label"
+                                >
+                                    {getFavoriteLabel(item.value, t)}
+                                </span>
                                 <span data-sot-part="dashboard-favorite-count">
                                     {count}
                                 </span>
@@ -3760,6 +3796,7 @@ export function Workstation({
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className={DASHBOARD_SOURCE_BUTTON_CLASS}
                                     type="button"
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
@@ -3815,7 +3852,12 @@ export function Workstation({
                                             讯
                                         </span>
                                     )}
-                                    <span>{item.label}</span>
+                                    <span
+                                        className="min-w-0 flex-1 truncate"
+                                        data-sot-part="source-provider-label"
+                                    >
+                                        {item.label}
+                                    </span>
                                     <span
                                         aria-hidden="true"
                                         data-sot-part="source-provider-status"
@@ -3906,6 +3948,7 @@ export function Workstation({
                         <Button
                             variant="ghost"
                             size="icon-sm"
+                            className={DASHBOARD_SYNC_BUTTON_CLASS}
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
@@ -3954,13 +3997,20 @@ export function Workstation({
                     <Button
                         variant="ghost"
                         size="icon-sm"
+                        className={DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS}
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
                         data-sot-state={collapsed ? "collapsed" : "expanded"}
                         onClick={() => setCollapsed((value) => !value)}
                     >
-                        <PanelLeft data-icon="inline-start" />
+                        <PanelLeft
+                            className={cn(
+                                "transition-transform duration-300",
+                                collapsed && "rotate-180",
+                            )}
+                            data-icon="inline-start"
+                        />
                     </Button>
                     <div data-sot-part="dashboard-crumbs">
                         <span data-sot-part="dashboard-crumb">
@@ -4734,7 +4784,12 @@ export function Workstation({
                                 </Card>
                             ) : null}
                         </div>
-                        <Button asChild variant="ghost" size="icon-sm">
+                        <Button
+                            asChild
+                            variant="ghost"
+                            size="icon-sm"
+                            className={DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS}
+                        >
                             <button
                                 ref={settingsTriggerRef}
                                 type="button"

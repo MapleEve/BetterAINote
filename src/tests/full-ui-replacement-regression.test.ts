@@ -436,13 +436,32 @@ const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
 ] as const;
 
 const DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
+    '[data-sot-control="dashboard-source-provider"]',
     '[data-sot-part="source-provider-mark"]',
     '[data-sot-part="source-provider-status"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
-    '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
 ];
+
+const DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS = [
+    '[data-sot-control="sidebar-collapse"][data-slot="button"]',
+    '[data-sot-control="dashboard-favorite"][data-slot="button"]',
+    '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
+    '[data-sot-control="dashboard-sync"][data-slot="button"]',
+    '[data-sot-control="dashboard-settings"][data-slot="button"]',
+    '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
+] as const;
+
+const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="expired"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="no-results"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="needs-setup"]',
+    '[data-sot-control="dashboard-source-provider"][data-sot-state="disabled"]',
+] as const;
 
 const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:field-help|auth-sot-canvas|onboarding-sot-canvas|auth-mark|auth-title|auth-sub|auth-local-row|auth-local-link|onboarding-progress|onboarding-progress-segment|onboarding-actions)(?![\w-])/;
@@ -2075,6 +2094,15 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
+        expect(workstation).toContain("DASHBOARD_NAV_BUTTON_CLASS");
+        expect(workstation).toContain("DASHBOARD_SOURCE_BUTTON_CLASS");
+        expect(workstation).toContain("DASHBOARD_SYNC_BUTTON_CLASS");
+        expect(workstation).toContain(
+            "DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS",
+        );
+        expect(workstation).toContain(
+            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
+        );
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
@@ -2132,6 +2160,9 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="source-provider-status"',
         );
         expect(sourceProviderRows).toContain(
+            'data-sot-part="source-provider-label"',
+        );
+        expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-action"',
         );
         expect(sourceProviderRows).toContain("data-sot-action={actionKind}");
@@ -2154,6 +2185,17 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
         );
+        for (const selector of DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS) {
+            const directStateBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ prelude }) => !prelude.includes("[data-sot-part="));
+
+            expect(directStateBlocks).toEqual([]);
+        }
         expect(globals).toContain(
             '[data-sot-part="source-provider-mark"][data-sot-variant="letter"]',
         );
@@ -2179,10 +2221,13 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"\s*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        expect(workstation).toContain(
+            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
         );
-        expect(globals).toContain(
+        expect(workstation).toMatch(
+            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        );
+        expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
         );
         expect(workstation).not.toMatch(

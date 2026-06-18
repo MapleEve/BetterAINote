@@ -513,13 +513,9 @@ button {
 [data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
     [data-sot-part="dashboard-nav-section-label"],
 [data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-control="dashboard-favorite"]
-    span:not([data-sot-part="dashboard-favorite-count"]),
+    [data-sot-part="dashboard-favorite-label"],
 [data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-control="dashboard-source-provider"]
-    span:not([data-sot-part="source-provider-mark"]):not(
-        [data-sot-part="source-provider-status"]
-    ):not([data-sot-part="source-provider-action"]),
+    [data-sot-part="source-provider-label"],
 [data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
     [data-sot-part="dashboard-favorite-count"],
 [data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
@@ -549,45 +545,6 @@ button {
     [data-sot-panel="dashboard-sync"] {
     justify-content: center;
     padding: 8px 0;
-}
-
-[data-sot-control="sidebar-collapse"][data-slot="button"] {
-    position: absolute;
-    top: 18px;
-    right: -12px;
-    z-index: 5;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: rgb(112 115 118);
-    box-shadow: var(--shadow-sm);
-    transition:
-        transform 220ms var(--ease-out),
-        color 220ms var(--ease-out);
-}
-[data-sot-control="sidebar-collapse"][data-slot="button"]:not(:disabled):hover {
-    color: var(--fg-primary);
-}
-[data-sot-control="sidebar-collapse"][data-slot="button"] svg {
-    width: 11px;
-    height: 11px;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: transform 320ms var(--ease-out);
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-control="sidebar-collapse"][data-slot="button"]
-    svg {
-    transform: rotate(180deg);
 }
 
 /* ======== Glass surfaces ========
@@ -694,35 +651,9 @@ button {
     color: var(--fg-tertiary);
     padding: 14px 10px 6px;
 }
-[data-sot-control="dashboard-favorite"][data-slot="button"],
-[data-sot-control="dashboard-source-provider"][data-slot="button"],
-[data-sot-control="recording-detail-back"][data-slot="button"] {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 10px;
-    border-radius: 9px;
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
-    outline: none;
-    font: 500 13px var(--font-sans);
-    color: var(--fg-secondary);
-    text-align: left;
-    white-space: nowrap;
-    width: 100%;
-    height: auto;
-    justify-content: flex-start;
-    font-feature-settings: normal;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        color var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out);
-}
-[data-sot-control="dashboard-favorite"][data-slot="button"] svg,
-[data-sot-control="dashboard-source-provider"][data-slot="button"] svg,
-[data-sot-control="recording-detail-back"][data-slot="button"] svg {
+[data-sot-control="dashboard-favorite"] svg,
+[data-sot-control="dashboard-source-provider"] svg,
+[data-sot-control="recording-detail-back"] svg {
     width: 16px;
     height: 16px;
     stroke: currentColor;
@@ -733,15 +664,7 @@ button {
     flex: none;
     opacity: 0.85;
 }
-[data-sot-control="dashboard-favorite"][data-slot="button"]
-    > span:not([data-sot-part="dashboard-favorite-count"]),
-[data-sot-control="dashboard-source-provider"][data-slot="button"]
-    > span:not([data-sot-part="source-provider-mark"]):not(
-        [data-sot-part="source-provider-status"]
-    ):not([data-sot-part="source-provider-action"]):not(
-        [data-sot-part="source-provider-count"]
-    ),
-[data-sot-control="recording-detail-back"][data-slot="button"] > span {
+[data-sot-control="recording-detail-back"] > span {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -765,44 +688,7 @@ button {
     border-color: rgb(255 255 255 / 0.04);
     color: var(--fg-tertiary);
 }
-[data-sot-control="dashboard-favorite"][data-slot="button"]:not(
-        :disabled
-    ):hover,
-[data-sot-control="dashboard-source-provider"][data-slot="button"]:not(
-        :disabled
-    ):hover,
-[data-sot-control="recording-detail-back"][data-slot="button"]:not(
-        :disabled
-    ):hover {
-    background: color-mix(in srgb, var(--fg-primary) 5%, transparent);
-    color: var(--fg-primary);
-}
-[data-sot-control="dashboard-favorite"][data-slot="button"]:focus-visible,
-[data-sot-control="dashboard-source-provider"][data-slot="button"]:focus-visible,
-[data-sot-control="recording-detail-back"][data-slot="button"]:focus-visible {
-    background: color-mix(in srgb, var(--fg-primary) 6%, transparent);
-    color: var(--fg-primary);
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-[data-sot-control="dashboard-favorite"][data-slot="button"]:disabled,
-[data-sot-control="dashboard-source-provider"][data-slot="button"]:disabled,
-[data-sot-control="recording-detail-back"][data-slot="button"]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-/* Favorites active selection — "is-selected" matches the toggle pattern in the rail.
-   Minimal: neutral glass background + hairline border, no colored accents or left rail. */
-[data-sot-control="dashboard-favorite"][data-sot-state="selected"],
-[data-sot-control="recording-detail-back"][data-sot-state="selected"] {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    border-color: var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-}
-[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg,
-[data-sot-control="recording-detail-back"][data-sot-state="selected"] svg {
+[data-sot-control="dashboard-favorite"][data-sot-state="selected"] svg {
     opacity: 1;
 }
 [data-sot-control="dashboard-favorite"][data-sot-state="selected"]
@@ -810,14 +696,6 @@ button {
     background: color-mix(in srgb, var(--fg-primary) 9%, transparent);
     color: var(--fg-primary);
     border-color: color-mix(in srgb, var(--fg-primary) 8%, transparent);
-}
-[data-theme="dark"]
-    [data-sot-control="dashboard-favorite"][data-sot-state="selected"],
-[data-theme="dark"]
-    [data-sot-control="recording-detail-back"][data-sot-state="selected"] {
-    background: rgb(255 255 255 / 0.07);
-    border-color: var(--glass-border);
-    box-shadow: none;
 }
 [data-theme="dark"]
     [data-sot-control="dashboard-favorite"][data-sot-state="selected"]
@@ -972,19 +850,6 @@ button {
     svg
     path {
     stroke-linecap: butt;
-}
-
-[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"] {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font: 600 12px var(--font-sans);
-    color: white;
-    background: linear-gradient(180deg, var(--steel-500), var(--steel-700));
-    box-shadow: var(--shadow-xs);
 }
 
 /* ======== Workspace split ======== */
@@ -3142,15 +3007,6 @@ body[data-time-style="abs"]
     border-color: var(--glass-border);
 }
 
-/* avatar button */
-[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"] {
-    border: 0;
-    cursor: pointer;
-}
-[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]:hover {
-    transform: scale(1.04);
-}
-
 /* ===========================================================
    Skeleton placeholders
    =========================================================== */
@@ -4060,10 +3916,7 @@ body[data-time-style="abs"]
     display: inline-flex;
 }
 [data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"]
-    > span:not([data-sot-part="source-provider-mark"]):not(
-        [data-sot-part="source-provider-status"]
-    ):not([data-sot-part="source-provider-action"]) {
+    [data-sot-part="source-provider-label"] {
     overflow: hidden;
 }
 [data-sot-panel="dashboard-sidebar"]
@@ -4116,13 +3969,6 @@ body[data-time-style="abs"]
 }
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
-}
-[data-sot-panel="dashboard-topbar"]
-    [data-sot-control="sidebar-collapse"][data-slot="button"] {
-    position: static;
-    top: auto;
-    right: auto;
-    z-index: auto;
 }
 [data-sidebar="collapsed"]
     [data-sot-panel="dashboard-sidebar"]
@@ -4270,7 +4116,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         [data-sot-part="source-provider-status"] {
         position: static;
     }
-    [data-sot-control="sidebar-collapse"][data-slot="button"],
+    [data-sot-control="sidebar-collapse"],
     #sidebar-toggle {
         display: none !important;
     }
@@ -5026,20 +4872,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     margin-left: 2px;
 }
 [data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"] {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    border-color: var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-}
-[data-theme="dark"]
-    [data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"] {
-    background: rgb(255 255 255 / 0.07);
-    border-color: var(--glass-border);
-    box-shadow: none;
-}
-[data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]
     [data-sot-part="source-provider-count"] {
     background: color-mix(in srgb, var(--fg-primary) 9%, transparent);
@@ -5055,24 +4887,12 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--signal-success);
 }
 [data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"],
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="syncing"],
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="expired"] {
-    color: var(--fg-secondary);
-}
-[data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]
     [data-sot-part="source-provider-status"] {
     background: var(--signal-info);
     box-shadow: 0 0 0 2px
         color-mix(in srgb, var(--signal-info) 24%, transparent);
     animation: bpulse 1.2s ease-in-out infinite;
-}
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"] {
-    color: var(--fg-primary);
 }
 [data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]
@@ -5087,12 +4907,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
     border-color: color-mix(in srgb, var(--signal-danger) 28%, transparent);
     color: var(--signal-danger);
-}
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="no-results"],
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="needs-setup"] {
-    color: var(--fg-tertiary);
 }
 [data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"][data-sot-state="no-results"]
@@ -5129,11 +4943,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--signal-warning);
     box-shadow: 0 0 0 2px
         color-mix(in srgb, var(--signal-warning) 24%, transparent);
-}
-[data-sot-panel="dashboard-sidebar"]
-    [data-sot-control="dashboard-source-provider"][data-sot-state="disabled"] {
-    color: var(--fg-tertiary);
-    opacity: 0.55;
 }
 [data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"][data-sot-state="disabled"]

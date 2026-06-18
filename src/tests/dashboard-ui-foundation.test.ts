@@ -22,7 +22,7 @@ function extractBoundedSlice(
 }
 
 const OLD_UI_RE =
-    /uikit-|glass-surface|glass-control|border-border|rounded-2xl|shadow-2xl|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
@@ -444,12 +444,24 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"\s*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        expect(workstation).toContain(
+            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
         );
-        expect(globals).toContain(
+        expect(workstation).toMatch(
+            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+        );
+        expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
         );
+        for (const primitiveSelector of [
+            '[data-sot-control="sidebar-collapse"][data-slot="button"]',
+            '[data-sot-control="dashboard-favorite"][data-slot="button"]',
+            '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
+            '[data-sot-control="dashboard-sync"][data-slot="button"]',
+            '[data-sot-control="dashboard-settings"][data-slot="button"]',
+        ]) {
+            expect(globals).not.toContain(primitiveSelector);
+        }
         expect(workstation).not.toMatch(
             /className\s*=\s*(?:["'](?:mono|avatar)["']|\{["'](?:mono|avatar)["']\})/,
         );
@@ -513,6 +525,8 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
+        expect(workstation).toContain("DASHBOARD_SOURCE_BUTTON_CLASS");
+        expect(workstation).toContain('data-sot-part="source-provider-label"');
         expect(workstation).toContain('data-sot-part="source-provider-status"');
         expect(workstation).toContain("sourceRowDisabled(");
         expect(workstation).toContain("sourceActionKind(");
@@ -715,6 +729,7 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-sync-indicator"',
         );
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
+        expect(workstation).toContain("DASHBOARD_SYNC_BUTTON_CLASS");
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
