@@ -916,6 +916,18 @@ const RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
 ];
 
+const RECORDING_PLAYER_BUTTON_CONTROL_HOOKS = [
+    "recording-player-back",
+    "recording-player-forward",
+    "recording-player-play",
+    "recording-player-speed",
+    "recording-player-volume",
+    "recording-player-volume-mute",
+] as const;
+
+const RECORDING_PLAYER_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-[\w-]+)?|border(?:-[\w-]+)?|box-shadow|color|font(?:-[\w-]+)?|padding(?:-[\w-]+)?)\s*:|\b(?:linear-gradient|oklch)\(/m;
+
 const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
     /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
 
@@ -2377,7 +2389,6 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="recording-player-volume-anchor"]',
             '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
             '[data-sot-part="recording-player-volume-row"]',
-            '[data-sot-control="recording-player-volume-mute"]',
             '[data-sot-part="recording-player-volume-icon"]',
             '[data-sot-control="recording-player-volume-slider"][data-slot="slider"]',
         ]) {
@@ -3359,6 +3370,9 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("<CardHeader");
         expect(player).toContain("<CardContent");
         expect(player).toContain("<Button");
+        expect(player).toContain('variant="outline"');
+        expect(player).toContain('variant="primary"');
+        expect(player).toContain('size="icon-lg"');
         expect(player).toContain('data-sot-part="recording-player-no-audio"');
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
@@ -3368,8 +3382,27 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
         );
+        for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
+            expect(player).toContain(`data-sot-control="${hook}"`);
+        }
         for (const selector of RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
+            const directBlocks = collectCssRuleBlocks(
+                globals,
+                `[data-sot-control="${hook}"]`,
+            );
+            const primitiveBlocks = collectCssRuleBlocks(
+                globals,
+                `[data-sot-control="${hook}"][data-slot="button"]`,
+            );
+
+            for (const block of [...directBlocks, ...primitiveBlocks]) {
+                expect(block.declarations).not.toMatch(
+                    RECORDING_PLAYER_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
+                );
+            }
         }
         expect(globals).toContain(
             '[data-sot-surface="recording-player"] [data-sot-part="recording-player-meta"]',

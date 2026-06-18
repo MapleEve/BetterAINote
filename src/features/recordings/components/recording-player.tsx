@@ -167,8 +167,9 @@ export function RecordingPlayer({
                 data-sot-state={controlsState}
             >
                 <Button
-                    variant="ghost"
-                    size="icon-sm"
+                    variant="outline"
+                    size="icon"
+                    className="shrink rounded-full"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
@@ -187,8 +188,9 @@ export function RecordingPlayer({
                 </Button>
 
                 <Button
-                    variant="default"
-                    size="icon"
+                    variant="primary"
+                    size="icon-lg"
+                    className="shrink rounded-full shadow-sm"
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -224,8 +226,9 @@ export function RecordingPlayer({
                 </Button>
 
                 <Button
-                    variant="ghost"
-                    size="icon-sm"
+                    variant="outline"
+                    size="icon"
+                    className="shrink rounded-full"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
@@ -308,6 +311,7 @@ export function RecordingPlayer({
                     onClick={cyclePlaybackSpeed}
                     variant="ghost"
                     size="sm"
+                    className="min-w-12 justify-center font-mono tabular-nums"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -323,8 +327,9 @@ export function RecordingPlayer({
 
                 <div data-sot-part="recording-player-volume-anchor">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon-sm"
+                        className="shrink rounded-full"
                         type="button"
                         aria-label={
                             language === "zh-CN"
@@ -372,7 +377,7 @@ export function RecordingPlayer({
                         <div data-sot-part="recording-player-volume-row">
                             <Button
                                 variant="ghost"
-                                size="icon-sm"
+                                size="icon-xs"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"

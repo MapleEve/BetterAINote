@@ -1644,78 +1644,6 @@ button {
     overflow: visible;
 }
 [data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-back"],
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-forward"] {
-    flex-shrink: 1;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    gap: 0;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-back"]:hover,
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-forward"]:hover {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-play"] {
-    flex-shrink: 1;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
-    box-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-    color: white;
-    gap: 0;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-speed"] {
-    height: 32px;
-    min-width: 50px;
-    padding: 0 12px;
-    border-radius: 9px;
-    background: transparent;
-    border: 1px solid transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-    font: 600 12.5px var(--font-mono);
-    justify-content: center;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-speed"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-volume"] {
-    flex-shrink: 1;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    gap: 0;
-}
-[data-sot-surface="recording-player"]
     [data-sot-part="recording-player-control-icon"] {
     display: inline-flex;
     align-items: center;
@@ -1825,19 +1753,6 @@ button {
     gap: 8px;
 }
 [data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-volume-mute"] {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border-radius: 6px;
-    color: var(--fg-secondary);
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-volume-mute"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-surface="recording-player"]
     [data-sot-part="recording-player-volume-icon"] {
     display: inline-flex;
 }
@@ -1859,31 +1774,13 @@ button {
     height: 18px;
 }
 [data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-back"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-play"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-forward"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
     [data-sot-control="recording-player-seek"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-speed"],
 [data-sot-surface="recording-player"][data-no-audio="true"]
     [data-sot-part="recording-player-current-time"],
 [data-sot-surface="recording-player"][data-no-audio="true"]
     [data-sot-part="recording-player-duration"] {
     opacity: 0.42;
     pointer-events: none;
-}
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-back"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-play"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-forward"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-speed"] {
-    cursor: not-allowed;
 }
 @media (max-width: 640px) {
     [data-sot-surface="recording-player"]
