@@ -176,6 +176,16 @@ const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="confirm-foot"]',
 ] as const;
 
+const DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /(^|[,\s>{])\.(?:del-modal-icon|del-modal-name)(?![\w-])/m;
+
+const DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"]',
+    '[data-sot-part="confirm-extra"]',
+    '[data-sot-item="confirm-dialog-detail"]',
+    '[data-sot-part="confirm-warning"]',
+] as const;
+
 const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
     "day-label",
     "rec-row",
@@ -963,6 +973,30 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        expect(productCss).not.toMatch(
+            DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE,
+        );
+        for (const selector of DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).toContain(selector);
+        }
+        expect(
+            extractCssBlock(
+                productCss,
+                '[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"]',
+            ),
+        ).toContain("var(--signal-danger)");
+        expect(
+            extractCssBlock(productCss, '[data-sot-part="confirm-extra"]'),
+        ).toContain("display: flex;");
+        expect(
+            extractCssBlock(
+                productCss,
+                '[data-sot-item="confirm-dialog-detail"]',
+            ),
+        ).toContain("font: 500 12.5px / 1.55 var(--font-sans);");
+        expect(
+            extractCssBlock(productCss, '[data-sot-part="confirm-warning"]'),
+        ).toContain("var(--signal-danger)");
 
         expect(card.trim()).not.toBe("export {};");
         for (const primitive of [

@@ -2929,6 +2929,8 @@ button {
 
 /* ======== Dialog overlay + shadcn modal slots ======== */
 [data-slot="dialog-overlay"] {
+    position: fixed;
+    inset: 0;
     width: auto;
     max-width: none;
     max-height: none;
@@ -5170,9 +5172,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-panel="dashboard-detail-header"][data-local-only="true"][data-sot-mode="normal"]
     [data-sot-part="detail-header-local-badge"] {
     display: inline-flex;
-}
-.del-modal-name {
-    display: inline-block;
 }
 [data-detail-empty],
 [data-sot-panel="dashboard-detail-empty"],
@@ -7903,20 +7902,6 @@ body[data-ds-todo="show"] .design-todo {
     max-width: 320px;
 }
 
-/* ---------- Confirm delete modal extras ---------- */
-.del-modal-icon {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-}
-.del-modal-name {
-    font-family: var(--font-mono);
-    font-weight: 600;
-    color: var(--fg-primary);
-    padding: 1px 4px;
-    border-radius: 3px;
-    background: var(--bg-recessed);
-}
-
 /* ---------- list-state-block (empty / no-match / paginated) ---------- */
 [data-sot-part="recording-list-state"],
 [data-sot-panel="recording-list-pagination"] {
@@ -10070,6 +10055,10 @@ select::-ms-expand {
     background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
     border-color: var(--glass-border);
     box-shadow: 0 22px 56px rgb(0 0 0 / 0.5);
+}
+[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"] {
+    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+    color: var(--signal-danger);
 }
 [data-sot-part="confirm-head"] {
     padding: 16px 20px 4px;
