@@ -3767,6 +3767,13 @@ export function Workstation({
         seekToSliderValue([Math.min(100, Math.max(0, percent))]);
     };
 
+    const dashboardDetailHeaderState = renaming
+        ? "saving"
+        : editingTitle
+          ? "editing"
+          : "normal";
+    const dashboardDetailHeaderMode = editingTitle ? "editing" : "normal";
+
     return (
         <div
             data-sot-shell="dashboard-workstation"
@@ -5715,52 +5722,51 @@ export function Workstation({
                         data-empty={selectedRecording ? "false" : "true"}
                     >
                         <CardHeader
+                            className={cn(
+                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
+                                dashboardDetailHeaderState === "saving" &&
+                                    "py-0",
+                            )}
                             data-sot-panel="dashboard-detail-header"
-                            data-sot-mode={editingTitle ? "editing" : "normal"}
-                            data-sot-state={
-                                renaming
-                                    ? "saving"
-                                    : editingTitle
-                                      ? "editing"
-                                      : "normal"
-                            }
-                            data-rename-mode={
-                                renaming
-                                    ? "saving"
-                                    : editingTitle
-                                      ? "editing"
-                                      : "normal"
-                            }
+                            data-sot-mode={dashboardDetailHeaderMode}
+                            data-sot-state={dashboardDetailHeaderState}
+                            data-rename-mode={dashboardDetailHeaderState}
                             data-local-only={
                                 localDeleteAvailable ? "true" : "false"
                             }
                         >
-                            <CardTitle
-                                data-sot-part="detail-header-title"
-                                data-rh-title
-                                role="heading"
-                                aria-level={2}
-                            >
-                                {selectedRecording?.filename ?? "未选择录音"}
-                            </CardTitle>
-                            <Badge
-                                variant="outline"
-                                data-sot-part="detail-header-local-badge"
-                                data-rh-local
-                                aria-label="仅存在本地副本"
-                            >
-                                本地副本
-                            </Badge>
-                            {editingTitle ? (
+                            {dashboardDetailHeaderState === "normal" ? (
+                                <CardTitle
+                                    className="min-w-0 flex-1 truncate"
+                                    data-sot-part="detail-header-title"
+                                    data-rh-title
+                                    role="heading"
+                                    aria-level={2}
+                                >
+                                    {selectedRecording?.filename ??
+                                        "未选择录音"}
+                                </CardTitle>
+                            ) : null}
+                            {dashboardDetailHeaderState === "normal" &&
+                            localDeleteAvailable ? (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 shrink-0"
+                                    data-sot-part="detail-header-local-badge"
+                                    data-rh-local
+                                    aria-label="仅存在本地副本"
+                                >
+                                    本地副本
+                                </Badge>
+                            ) : null}
+                            {dashboardDetailHeaderState === "editing" ? (
                                 <>
                                     <Input
                                         type="text"
-                                        className="h-8 flex-1"
+                                        className="h-8 min-w-0 flex-1"
                                         data-rh-input
                                         data-sot-part="detail-header-title-input"
-                                        data-sot-state={
-                                            renaming ? "saving" : "editing"
-                                        }
+                                        data-sot-state="editing"
                                         value={draftTitle}
                                         aria-label="录音标题"
                                         maxLength={120}
@@ -5780,105 +5786,117 @@ export function Workstation({
                                             }
                                         }}
                                     />
-                                    <Badge
-                                        variant="ghost"
-                                        data-sot-part="detail-header-title-status"
-                                        data-sot-state={
-                                            renaming ? "saving" : "editing"
-                                        }
-                                        data-rh-status
-                                    >
-                                        {renaming ? "正在保存…" : "编辑中"}
-                                    </Badge>
                                 </>
                             ) : null}
-                            <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                type="button"
-                                aria-label="重命名"
-                                title="重命名"
-                                data-rh-edit-start
-                                data-sot-control="rename-recording-title"
-                                data-sot-part="detail-header-action"
-                                data-sot-mode="normal"
-                                disabled={!selectedRecording}
-                                onClick={() => setEditingTitle(true)}
-                            >
-                                <Pencil data-icon="inline-start" />
-                            </Button>
-                            <div
-                                data-rh-ai-anchor
-                                data-sot-part="detail-header-action-anchor"
-                                data-sot-mode="normal"
-                            >
+                            {dashboardDetailHeaderState === "saving" ? (
+                                <Badge
+                                    variant="ghost"
+                                    className="ml-1 shrink-0"
+                                    data-sot-part="detail-header-title-status"
+                                    data-sot-state="saving"
+                                    data-rh-status
+                                    aria-busy={renaming}
+                                    aria-live="polite"
+                                >
+                                    正在保存…
+                                </Badge>
+                            ) : null}
+                            {dashboardDetailHeaderState === "normal" ? (
                                 <Button
-                                    variant="outline"
-                                    size="sm"
+                                    variant="ghost"
+                                    size="icon-sm"
                                     type="button"
-                                    aria-haspopup="dialog"
-                                    aria-expanded={aiOpen}
-                                    data-rh-ai-trigger
-                                    data-sot-control="ai-rename"
+                                    aria-label="重命名"
+                                    title="重命名"
+                                    data-rh-edit-start
+                                    data-sot-control="rename-recording-title"
                                     data-sot-part="detail-header-action"
                                     data-sot-mode="normal"
-                                    data-sot-state={
-                                        aiUnavailableReason
-                                            ? "unavailable"
-                                            : aiOpen
-                                              ? aiState
-                                              : "idle"
-                                    }
-                                    title={aiUnavailableReason || undefined}
-                                    onClick={() => void previewAutoRename()}
+                                    disabled={!selectedRecording}
+                                    onClick={() => setEditingTitle(true)}
                                 >
-                                    <Sparkles data-icon="inline-start" />
-                                    AI 重命名
+                                    <Pencil data-icon="inline-start" />
                                 </Button>
-                                {aiOpen && selectedRecording ? (
-                                    <AiRenamePreview
-                                        applyLabel="应用"
-                                        bodyLabel="建议标题"
-                                        cancelLabel="取消"
-                                        closeLabel="关闭预览"
-                                        filename={aiPreviewTitle}
-                                        hint={
-                                            aiState === "unavailable"
-                                                ? aiUnavailableHint
-                                                : null
+                            ) : null}
+                            {dashboardDetailHeaderState === "normal" ? (
+                                <div
+                                    className="relative inline-flex items-center gap-1.5"
+                                    data-rh-ai-anchor
+                                    data-sot-part="detail-header-action-anchor"
+                                    data-sot-mode="normal"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        type="button"
+                                        aria-haspopup="dialog"
+                                        aria-expanded={aiOpen}
+                                        data-rh-ai-trigger
+                                        data-sot-control="ai-rename"
+                                        data-sot-part="detail-header-action"
+                                        data-sot-mode="normal"
+                                        data-sot-state={
+                                            aiUnavailableReason
+                                                ? "unavailable"
+                                                : aiOpen
+                                                  ? aiState
+                                                  : "idle"
                                         }
-                                        isApplying={aiApplying}
-                                        isRegenerating={aiState === "loading"}
-                                        message={
-                                            aiState === "loading"
-                                                ? "正在根据转写生成标题…"
-                                                : aiState === "review"
-                                                  ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
-                                                  : aiError
+                                        title={
+                                            aiUnavailableReason || undefined
                                         }
-                                        onApply={applyAiRename}
-                                        onCancel={() => {
-                                            setAiOpen(false);
-                                            setAiApplying(false);
-                                        }}
-                                        onRegenerate={previewAutoRename}
-                                        originalFilename={
-                                            selectedRecording.filename
-                                        }
-                                        regenerateLabel={
-                                            aiState === "error"
-                                                ? "重试"
-                                                : aiState === "loading"
-                                                  ? "生成中…"
-                                                  : "重新生成"
-                                        }
-                                        state={aiState}
-                                        subtitle="仅本次预览，不会写回来源"
-                                        title="AI 标题预览"
-                                    />
-                                ) : null}
-                            </div>
-                            {editingTitle ? (
+                                        onClick={() => void previewAutoRename()}
+                                    >
+                                        <Sparkles data-icon="inline-start" />
+                                        AI 重命名
+                                    </Button>
+                                    {aiOpen && selectedRecording ? (
+                                        <AiRenamePreview
+                                            applyLabel="应用"
+                                            bodyLabel="建议标题"
+                                            cancelLabel="取消"
+                                            closeLabel="关闭预览"
+                                            filename={aiPreviewTitle}
+                                            hint={
+                                                aiState === "unavailable"
+                                                    ? aiUnavailableHint
+                                                    : null
+                                            }
+                                            isApplying={aiApplying}
+                                            isRegenerating={
+                                                aiState === "loading"
+                                            }
+                                            message={
+                                                aiState === "loading"
+                                                    ? "正在根据转写生成标题…"
+                                                    : aiState === "review"
+                                                      ? "确认无误后点击「应用」，将替换录音标题且不可一键撤销。"
+                                                      : aiError
+                                            }
+                                            onApply={applyAiRename}
+                                            onCancel={() => {
+                                                setAiOpen(false);
+                                                setAiApplying(false);
+                                            }}
+                                            onRegenerate={previewAutoRename}
+                                            originalFilename={
+                                                selectedRecording.filename
+                                            }
+                                            regenerateLabel={
+                                                aiState === "error"
+                                                    ? "重试"
+                                                    : aiState === "loading"
+                                                      ? "生成中…"
+                                                      : "重新生成"
+                                            }
+                                            state={aiState}
+                                            subtitle="仅本次预览，不会写回来源"
+                                            title="AI 标题预览"
+                                        />
+                                    ) : null}
+                                </div>
+                            ) : null}
+                            {dashboardDetailHeaderState === "editing" ? (
                                 <>
                                     <Button
                                         variant="ghost"
@@ -5917,105 +5935,68 @@ export function Workstation({
                                     </Button>
                                 </>
                             ) : null}
-                            <div
-                                data-sot-part="detail-header-action-anchor"
-                                data-sot-mode="normal"
-                            >
-                                <DropdownMenu
-                                    modal={false}
-                                    open={moreOpen}
-                                    onOpenChange={(open) => {
-                                        setMoreOpen(open);
-                                        if (!open) return;
-                                        setSearchOpen(false);
-                                        setActivityOpen(false);
-                                        setTagOpen(false);
-                                        setAiOpen(false);
-                                    }}
+                            {dashboardDetailHeaderState === "normal" ? (
+                                <div
+                                    className="relative inline-flex items-center gap-1.5"
+                                    data-sot-part="detail-header-action-anchor"
+                                    data-sot-mode="normal"
                                 >
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-sm"
-                                            type="button"
-                                            aria-label="更多操作"
-                                            aria-haspopup="menu"
-                                            aria-expanded={moreOpen}
-                                            data-sot-control="recording-more-actions"
-                                            data-sot-part="detail-header-action"
-                                            data-sot-mode="normal"
-                                            ref={moreTriggerRef}
-                                        >
-                                            <EllipsisVertical data-icon="inline-start" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="end"
-                                        sideOffset={6}
-                                        data-sot-menu="recording-more-actions"
-                                        data-open="true"
-                                        data-sot-local-delete-available={
-                                            localDeleteAvailable
-                                                ? "true"
-                                                : "false"
-                                        }
-                                        data-sot-state={moreActionsState}
-                                        aria-label="更多操作"
+                                    <DropdownMenu
+                                        modal={false}
+                                        open={moreOpen}
+                                        onOpenChange={(open) => {
+                                            setMoreOpen(open);
+                                            if (!open) return;
+                                            setSearchOpen(false);
+                                            setActivityOpen(false);
+                                            setTagOpen(false);
+                                            setAiOpen(false);
+                                        }}
                                     >
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem
-                                                data-sot-menu-item="rename"
-                                                disabled={!selectedRecording}
-                                                onSelect={() => {
-                                                    setMoreOpen(false);
-                                                    setAiOpen(false);
-                                                    setTagOpen(false);
-                                                    setEditingTitle(true);
-                                                    setDraftTitle(
-                                                        selectedRecording?.filename ??
-                                                            "",
-                                                    );
-                                                }}
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                type="button"
+                                                aria-label="更多操作"
+                                                aria-haspopup="menu"
+                                                aria-expanded={moreOpen}
+                                                data-sot-control="recording-more-actions"
+                                                data-sot-part="detail-header-action"
+                                                data-sot-mode="normal"
+                                                ref={moreTriggerRef}
                                             >
-                                                {moreActionsShowPrimaryIcons ? (
-                                                    <svg
-                                                        viewBox="0 0 24 24"
-                                                        aria-hidden="true"
-                                                        focusable="false"
-                                                    >
-                                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                                    </svg>
-                                                ) : null}
-                                                重命名
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                data-sot-menu-item="ai-rename"
-                                                disabled={!selectedRecording}
-                                                onSelect={() => {
-                                                    setMoreOpen(false);
-                                                    void previewAutoRename();
-                                                }}
-                                            >
-                                                {moreActionsShowPrimaryIcons ? (
-                                                    <svg
-                                                        viewBox="0 0 24 24"
-                                                        aria-hidden="true"
-                                                        focusable="false"
-                                                    >
-                                                        <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
-                                                    </svg>
-                                                ) : null}
-                                                AI 重命名
-                                            </DropdownMenuItem>
-                                            {moreActionsShowRetranscribe ? (
+                                                <EllipsisVertical data-icon="inline-start" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            sideOffset={6}
+                                            data-sot-menu="recording-more-actions"
+                                            data-open="true"
+                                            data-sot-local-delete-available={
+                                                localDeleteAvailable
+                                                    ? "true"
+                                                    : "false"
+                                            }
+                                            data-sot-state={moreActionsState}
+                                            aria-label="更多操作"
+                                        >
+                                            <DropdownMenuGroup>
                                                 <DropdownMenuItem
-                                                    data-sot-menu-item="retranscribe"
+                                                    data-sot-menu-item="rename"
                                                     disabled={
                                                         !selectedRecording
                                                     }
                                                     onSelect={() => {
                                                         setMoreOpen(false);
-                                                        void retranscribe();
+                                                        setAiOpen(false);
+                                                        setTagOpen(false);
+                                                        setEditingTitle(true);
+                                                        setDraftTitle(
+                                                            selectedRecording?.filename ??
+                                                                "",
+                                                        );
                                                     }}
                                                 >
                                                     {moreActionsShowPrimaryIcons ? (
@@ -6024,58 +6005,104 @@ export function Workstation({
                                                             aria-hidden="true"
                                                             focusable="false"
                                                         >
-                                                            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
-                                                            <path d="M3 3v5h5" />
+                                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                                                         </svg>
                                                     ) : null}
-                                                    重新转写
+                                                    重命名
                                                 </DropdownMenuItem>
-                                            ) : null}
-                                            {moreActionsShowSeparator ? (
-                                                <DropdownMenuSeparator data-sot-menu-separator="delete" />
-                                            ) : null}
-                                            <DropdownMenuItem
-                                                data-sot-menu-item="delete-local"
-                                                data-sot-tone="danger"
-                                                disabled={!localDeleteAvailable}
-                                                aria-disabled={
-                                                    !localDeleteAvailable
-                                                }
-                                                onSelect={() =>
-                                                    void deleteRecording()
-                                                }
-                                            >
-                                                {moreActionsShowDeleteIcon ? (
-                                                    <svg
-                                                        viewBox="0 0 24 24"
-                                                        aria-hidden="true"
-                                                        focusable="false"
+                                                <DropdownMenuItem
+                                                    data-sot-menu-item="ai-rename"
+                                                    disabled={
+                                                        !selectedRecording
+                                                    }
+                                                    onSelect={() => {
+                                                        setMoreOpen(false);
+                                                        void previewAutoRename();
+                                                    }}
+                                                >
+                                                    {moreActionsShowPrimaryIcons ? (
+                                                        <svg
+                                                            viewBox="0 0 24 24"
+                                                            aria-hidden="true"
+                                                            focusable="false"
+                                                        >
+                                                            <path d="m12 3-1.6 4.6L6 9l4.4 1.4L12 15l1.6-4.6L18 9l-4.4-1.4z" />
+                                                        </svg>
+                                                    ) : null}
+                                                    AI 重命名
+                                                </DropdownMenuItem>
+                                                {moreActionsShowRetranscribe ? (
+                                                    <DropdownMenuItem
+                                                        data-sot-menu-item="retranscribe"
+                                                        disabled={
+                                                            !selectedRecording
+                                                        }
+                                                        onSelect={() => {
+                                                            setMoreOpen(false);
+                                                            void retranscribe();
+                                                        }}
                                                     >
-                                                        {moreActionsState ===
-                                                        "upstream-deleted" ? (
-                                                            <path d="M3 6h18" />
-                                                        ) : (
-                                                            <>
+                                                        {moreActionsShowPrimaryIcons ? (
+                                                            <svg
+                                                                viewBox="0 0 24 24"
+                                                                aria-hidden="true"
+                                                                focusable="false"
+                                                            >
+                                                                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                                                <path d="M3 3v5h5" />
+                                                            </svg>
+                                                        ) : null}
+                                                        重新转写
+                                                    </DropdownMenuItem>
+                                                ) : null}
+                                                {moreActionsShowSeparator ? (
+                                                    <DropdownMenuSeparator data-sot-menu-separator="delete" />
+                                                ) : null}
+                                                <DropdownMenuItem
+                                                    data-sot-menu-item="delete-local"
+                                                    data-sot-tone="danger"
+                                                    disabled={
+                                                        !localDeleteAvailable
+                                                    }
+                                                    aria-disabled={
+                                                        !localDeleteAvailable
+                                                    }
+                                                    onSelect={() =>
+                                                        void deleteRecording()
+                                                    }
+                                                >
+                                                    {moreActionsShowDeleteIcon ? (
+                                                        <svg
+                                                            viewBox="0 0 24 24"
+                                                            aria-hidden="true"
+                                                            focusable="false"
+                                                        >
+                                                            {moreActionsState ===
+                                                            "upstream-deleted" ? (
                                                                 <path d="M3 6h18" />
-                                                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                                <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                            </>
-                                                        )}
-                                                    </svg>
-                                                ) : null}
-                                                删除本地副本
-                                                {selectedRecording?.sourceProvider ? (
-                                                    <span data-sot-menu-hint="">
-                                                        {selectedRecording.upstreamDeleted
-                                                            ? "上游已删除"
-                                                            : "来源持有正本"}
-                                                    </span>
-                                                ) : null}
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                                                            ) : (
+                                                                <>
+                                                                    <path d="M3 6h18" />
+                                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                                    <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                                </>
+                                                            )}
+                                                        </svg>
+                                                    ) : null}
+                                                    删除本地副本
+                                                    {selectedRecording?.sourceProvider ? (
+                                                        <span data-sot-menu-hint="">
+                                                            {selectedRecording.upstreamDeleted
+                                                                ? "上游已删除"
+                                                                : "来源持有正本"}
+                                                        </span>
+                                                    ) : null}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuGroup>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            ) : null}
                         </CardHeader>
 
                         <Card

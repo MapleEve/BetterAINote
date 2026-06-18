@@ -630,7 +630,45 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain("data-rh-ai-anchor");
         expect(detailHeader).toContain("data-rh-ai-trigger");
         expect(detailHeader).toContain('data-sot-control="ai-rename"');
+        expect(detailWorkstation).toContain(
+            'import { cn } from "@/lib/utils";',
+        );
+        expect(detailWorkstation).toContain(
+            "const recordingDetailHeaderState = isSavingRename",
+        );
+        expect(detailHeader).toContain(
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+        );
+        expect(detailHeader).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
+        expect(detailHeader).toContain('className="h-8 min-w-0 flex-1"');
+        expect(detailHeader).toContain('className="ml-1 shrink-0"');
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "normal"',
+        );
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "editing"',
+        );
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "saving"',
+        );
+        expect(detailHeader).toContain('data-sot-state="saving"');
+        expect(detailHeader).toContain("localDeleteAvailable ? (");
         expect(detailHeader).not.toMatch(legacyHeaderClassNamePattern);
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-detail-header"]',
+        );
+        for (const selector of [
+            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
+            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
+            '[data-sot-part="detail-header-title-status"]',
+            '[data-sot-part="detail-header-local-badge"]',
+            '[data-sot-part="detail-header-action"]',
+            '[data-sot-part="detail-header-action-anchor"]',
+        ]) {
+            expect(globals).not.toContain(selector);
+        }
         const metadataPanelIndex = detailWorkstation.indexOf(
             'data-sot-panel="recording-detail-metadata"',
         );
@@ -897,6 +935,33 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardDetailHeader).toContain("data-rh-edit-cancel");
         expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
+        expect(dashboardTranscript).toContain(
+            "const dashboardDetailHeaderState = renaming",
+        );
+        expect(dashboardTranscript).toContain(
+            "const dashboardDetailHeaderMode = editingTitle",
+        );
+        expect(dashboardDetailHeader).toContain(
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="h-8 min-w-0 flex-1"',
+        );
+        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "normal"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "editing"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "saving"',
+        );
+        expect(dashboardDetailHeader).toContain('data-sot-state="saving"');
+        expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(dashboardTranscript).toContain(
             'data-sot-panel="dashboard-retranscription"',

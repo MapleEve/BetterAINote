@@ -3249,7 +3249,35 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain('variant="outline"');
         expect(dashboardDetailHeader).toContain('size="icon-sm"');
         expect(dashboardDetailHeader).toContain('size="sm"');
-        expect(dashboardDetailHeader).toContain('className="h-8 flex-1"');
+        expect(workstation).toContain(
+            "const dashboardDetailHeaderState = renaming",
+        );
+        expect(workstation).toContain(
+            "const dashboardDetailHeaderMode = editingTitle",
+        );
+        expect(dashboardDetailHeader).toContain(
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="h-8 min-w-0 flex-1"',
+        );
+        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "normal"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "editing"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'dashboardDetailHeaderState === "saving"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'data-sot-state="saving"',
+        );
+        expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(globals).not.toMatch(
             /\[data-sot-panel="dashboard-detail-header"\]\s*\[data-slot="button"\]/,
@@ -3271,18 +3299,15 @@ describe("full UI replacement regression coverage", () => {
 
         expect(dashboardDetailHeaderLegacySelectorLines).toEqual([]);
         for (const selector of [
-            '[data-sot-panel="dashboard-detail"]',
-            '[data-sot-panel="dashboard-detail-header"],',
             '[data-sot-panel="recording-detail-header"]',
-            '[data-slot="card-header"]',
             '[data-sot-part="detail-header-title"][data-slot="card-title"]',
-            '[data-sot-part="detail-header-title-input"]',
+            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
             '[data-sot-part="detail-header-title-status"]',
             '[data-sot-part="detail-header-local-badge"]',
             '[data-sot-part="detail-header-action"]',
             '[data-sot-part="detail-header-action-anchor"]',
         ]) {
-            expect(globals).toContain(selector);
+            expect(globals).not.toContain(selector);
         }
         expect(workstation).toContain(
             'data-sot-panel="dashboard-retranscription"',
@@ -4101,8 +4126,43 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain('variant="outline"');
         expect(detailHeader).toContain('size="icon-sm"');
         expect(detailHeader).toContain('size="sm"');
-        expect(detailHeader).toContain('className="h-8 flex-1"');
+        expect(detail).toContain('import { cn } from "@/lib/utils";');
+        expect(detail).toContain(
+            "const recordingDetailHeaderState = isSavingRename",
+        );
+        expect(detailHeader).toContain(
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+        );
+        expect(detailHeader).toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
+        expect(detailHeader).toContain('className="h-8 min-w-0 flex-1"');
+        expect(detailHeader).toContain('className="ml-1 shrink-0"');
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "normal"',
+        );
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "editing"',
+        );
+        expect(detailHeader).toContain(
+            'recordingDetailHeaderState === "saving"',
+        );
+        expect(detailHeader).toContain('data-sot-state="saving"');
+        expect(detailHeader).toContain("localDeleteAvailable ? (");
         expect(detailHeader).not.toMatch(legacyDetailHeaderClassNamePattern);
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-detail-header"]',
+        );
+        for (const selector of [
+            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
+            '[data-sot-part="detail-header-title-input"][data-slot="input"]',
+            '[data-sot-part="detail-header-title-status"]',
+            '[data-sot-part="detail-header-local-badge"]',
+            '[data-sot-part="detail-header-action"]',
+            '[data-sot-part="detail-header-action-anchor"]',
+        ]) {
+            expect(globals).not.toContain(selector);
+        }
         const metadataPanelIndex = detail.indexOf(
             'data-sot-panel="recording-detail-metadata"',
         );
