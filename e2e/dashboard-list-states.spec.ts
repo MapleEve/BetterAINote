@@ -1477,13 +1477,114 @@ async function captureListSkeletonFixture(page: Page, skeletonHtml: string) {
     }
 }
 
+function tagFilterPixelFixtureCss(scope: string) {
+    return `
+        ${scope} .tag-filter {
+            position: relative;
+            margin-top: 10px;
+        }
+        ${scope} .tag-filter-trigger {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            height: 30px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--line-hairline);
+            font: 600 12.5px var(--font-sans);
+            color: var(--fg-primary);
+            cursor: pointer;
+            text-align: left;
+        }
+        ${scope} .tag-filter-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        ${scope} .tag-filter-count {
+            font: 500 11px var(--font-mono);
+            color: var(--fg-tertiary);
+        }
+        ${scope} .tag-filter-caret {
+            width: 11px;
+            height: 11px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            color: var(--fg-tertiary);
+        }
+        ${scope} .tag-filter-list {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            z-index: var(--z-popover-inline);
+            overflow-y: auto;
+            background: var(--bg-elevated);
+            border: 1px solid var(--line-hairline);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            padding: 4px;
+            max-height: 260px;
+        }
+        [data-theme="dark"] ${scope} .tag-filter-list {
+            background: color-mix(in srgb, var(--graphite-900) 92%, transparent);
+            border-color: var(--glass-border);
+        }
+        ${scope} .tag-filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 8px;
+            border-radius: 6px;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font: 500 12.5px var(--font-sans);
+            color: var(--fg-primary);
+        }
+        ${scope} .tag-filter-option:hover {
+            background: var(--bg-recessed);
+        }
+        ${scope} .tag-filter-option .tg-ico {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        ${scope} .tag-filter-option-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        ${scope} .tag-filter-option-count {
+            font: 500 11px var(--font-mono);
+            color: var(--fg-tertiary);
+        }
+        ${scope} .tag-filter-option[aria-selected="true"] {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        ${scope} .tag-filter[hidden] {
+            display: none !important;
+        }
+    `;
+}
+
 async function captureTagFilterTriggerFixture(page: Page, triggerHtml: string) {
     const fixtureId = `sot-tag-filter-trigger-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureId: id, triggerHtml: html }) => {
+        ({ fixtureCss, fixtureId: id, triggerHtml: html }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
 
@@ -1509,11 +1610,20 @@ async function captureTagFilterTriggerFixture(page: Page, triggerHtml: string) {
             wrapper.style.width = "248px";
             wrapper.innerHTML = html;
 
+            const style = document.createElement("style");
+            style.setAttribute("data-tag-filter-fixture", id);
+            style.textContent = fixtureCss;
+
+            host.appendChild(style);
             stage.appendChild(wrapper);
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureId, triggerHtml },
+        {
+            fixtureCss: tagFilterPixelFixtureCss(`#${fixtureId}`),
+            fixtureId,
+            triggerHtml,
+        },
     );
 
     const stage = page
@@ -1543,7 +1653,7 @@ async function captureOpenTagFilterFixture(page: Page, tagFilterHtml: string) {
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureId: id, tagFilterHtml: html }) => {
+        ({ fixtureCss, fixtureId: id, tagFilterHtml: html }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
 
@@ -1579,10 +1689,19 @@ async function captureOpenTagFilterFixture(page: Page, tagFilterHtml: string) {
                 .querySelector<HTMLElement>("[data-tag-filter-list]")
                 ?.removeAttribute("hidden");
 
+            const style = document.createElement("style");
+            style.setAttribute("data-tag-filter-fixture", id);
+            style.textContent = fixtureCss;
+
+            host.appendChild(style);
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureId, tagFilterHtml },
+        {
+            fixtureCss: tagFilterPixelFixtureCss(`#${fixtureId}`),
+            fixtureId,
+            tagFilterHtml,
+        },
     );
 
     const stage = page
