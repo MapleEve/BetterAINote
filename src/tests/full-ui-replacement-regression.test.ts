@@ -158,6 +158,8 @@ const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
 const LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:scrim|modal|modal-head|modal-icon|modal-title|modal-desc|modal-body|modal-foot)(?![\w-])/m;
 
+const LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE = /(^|[,\s>{])\.mono(?![\w-])/m;
+
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-slot="dialog-overlay"]',
     '[data-slot="dialog-overlay"][data-state="open"]',
@@ -967,6 +969,10 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(token);
         }
         const productCss = readProductCss(globals);
+        expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
+        expect(productCss).toContain(
+            '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
+        );
         expect(productCss).not.toMatch(
             LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE,
         );

@@ -2688,10 +2688,6 @@ button {
     text-wrap: pretty;
 }
 
-.mono {
-    font-family: var(--font-mono);
-}
-
 /* ======== System reference cards / auth / onboarding ======== */
 [data-sot-card] {
     display: block;
@@ -10951,11 +10947,6 @@ select::-ms-expand {
     display: flex;
     gap: 6px;
     margin-top: 8px;
-}
-
-/* ---- Mono helper inline ---- */
-.mono {
-    font-family: var(--font-mono);
 }
 
 /* ============================================================
