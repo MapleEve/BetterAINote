@@ -174,6 +174,9 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
 const FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
+const FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
+
 const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
@@ -377,12 +380,32 @@ describe("settings SOT interaction regressions", () => {
 
     it("keeps modal and scrim product CSS on dialog/data-sot selectors only", () => {
         const globals = readSource("app/globals.css");
+        const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
         const productCss = readProductCss(globals);
 
         expect(productCss).not.toMatch(LEGACY_MODAL_SHELL_CSS_SELECTOR_RE);
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        const confirmFooterButtonRules = collectCssRuleBlocks(
+            productCss,
+            '[data-sot-part="confirm-foot"]',
+        ).filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+        expect(confirmFooterButtonRules).toEqual([]);
+        const destructiveButtonRules = collectCssRuleBlocks(
+            productCss,
+            '[data-slot="button"][data-variant="destructive"]',
+        );
+        for (const block of destructiveButtonRules) {
+            expect(block.declarations).not.toMatch(
+                FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION,
+            );
+        }
+        expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toContain(
+            'confirmVariant?: "default" | "destructive"',
+        );
+        expect(confirmDialog).toContain("variant={confirmButtonVariant}");
         expect(globals).toContain(".cl-stage-canvas > .scrim");
         expect(globals).toContain(".cl-stage-scrim > .scrim");
     });

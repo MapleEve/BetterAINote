@@ -235,6 +235,9 @@ const DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="confirm-warning"]',
 ] as const;
 
+const CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
 const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
     "day-label",
     "rec-row",
@@ -1093,6 +1096,20 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        const confirmFooterButtonRules = collectCssRuleBlocks(
+            productCss,
+            '[data-sot-part="confirm-foot"]',
+        ).filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+        expect(confirmFooterButtonRules).toEqual([]);
+        const destructiveButtonRules = collectCssRuleBlocks(
+            productCss,
+            '[data-slot="button"][data-variant="destructive"]',
+        );
+        for (const block of destructiveButtonRules) {
+            expect(block.declarations).not.toMatch(
+                CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
+            );
+        }
         expect(
             extractCssBlock(
                 productCss,
@@ -1413,6 +1430,15 @@ describe("full UI replacement regression coverage", () => {
         expect(confirmDialog).toContain('data-sot-part="confirm-head"');
         expect(confirmDialog).toContain('data-sot-part="confirm-body"');
         expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toContain(
+            'confirmVariant?: "default" | "destructive"',
+        );
+        expect(confirmDialog).toContain(
+            'state?.confirmVariant ?? "destructive"',
+        );
+        expect(confirmDialog).toContain('variant="outline"');
+        expect(confirmDialog).toContain("variant={confirmButtonVariant}");
+        expect(confirmDialog).toContain('size="sm"');
         expect(confirmDialog).toContain(
             'data-sot-list="confirm-dialog-details"',
         );

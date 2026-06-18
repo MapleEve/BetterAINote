@@ -26,6 +26,7 @@ interface ConfirmDialogOptions {
     description: string;
     confirmLabel: string;
     cancelLabel: string;
+    confirmVariant?: "default" | "destructive";
     details?: string[];
     warning?: string;
 }
@@ -82,6 +83,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const value = useMemo(() => ({ confirm }), [confirm]);
+    const confirmButtonVariant = state?.confirmVariant ?? "destructive";
 
     useEffect(() => {
         if (!state) return;
@@ -156,14 +158,16 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                             type="button"
                             variant="outline"
                             size="sm"
+                            className="sm:min-w-20"
                             onClick={() => close(false)}
                         >
                             {state?.cancelLabel}
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant={confirmButtonVariant}
                             size="sm"
+                            className="sm:min-w-20"
                             onClick={() => close(true)}
                         >
                             {state?.confirmLabel}

@@ -8502,44 +8502,7 @@ select::-ms-expand {
     gap: 12px;
 }
 [data-sot-part="confirm-foot"] {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 8px;
     padding: 12px 16px 16px;
-    background: var(--bg-recessed);
-    border-top: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-part="confirm-foot"] {
-    background: color-mix(in srgb, white 3%, transparent);
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-part="confirm-foot"] [data-slot="button"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    height: 26px;
-    min-width: auto;
-    padding: 0 10px;
-    border-radius: 7px;
-    font: 600 12px var(--font-sans);
-    color: var(--fg-secondary);
-    background: transparent;
-    border: 1px solid transparent;
-    box-shadow: none;
-}
-[data-sot-part="confirm-foot"]
-    [data-slot="button"][data-variant="destructive"] {
-    background: linear-gradient(
-        180deg,
-        oklch(0.62 0.18 25),
-        oklch(0.55 0.2 25)
-    );
-    border-color: oklch(0.5 0.2 25);
-    color: white;
-    box-shadow:
-        0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.2);
 }
 [data-sot-list="confirm-dialog-details"] {
     list-style: disc;
