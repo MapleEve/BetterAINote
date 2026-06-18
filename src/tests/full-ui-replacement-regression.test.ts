@@ -1005,6 +1005,18 @@ const RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
 ];
 
+const PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS = [
+    '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
+    '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
+    '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
+    '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
+    '[data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"]',
+    '[data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"]',
+    '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+    '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+    '[data-sot-control="player-source-tag"][data-slot="badge"]',
+] as const;
+
 const RECORDING_PLAYER_BUTTON_CONTROL_HOOKS = [
     "recording-player-back",
     "recording-player-forward",
@@ -2645,6 +2657,13 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-surface="dashboard-recording-player"',
         );
         expect(dashboardPlayer).toContain("<Alert");
+        expect(dashboardPlayer).toContain(
+            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+        );
+        expect(dashboardPlayer).toContain("<SotPlayerNoAudioIcon");
+        expect(dashboardPlayer).toContain(
+            'className="col-start-1 row-span-2 place-self-center"',
+        );
         expect(dashboardPlayer).toContain("<AlertTitle");
         expect(dashboardPlayer).toContain("<AlertDescription");
         expect(dashboardPlayer).toContain(
@@ -2692,6 +2711,9 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-player-volume-popover"',
         );
         expect(dashboardPlayer).toContain(
+            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+        );
+        expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-volume-mute"',
         );
         expect(dashboardPlayer).toContain(
@@ -2712,9 +2734,9 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             '[data-sot-control="player-status"][data-slot="badge"]',
         );
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
-        );
+        for (const selector of PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         const volumeLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2727,12 +2749,12 @@ describe("full UI replacement regression coverage", () => {
         expect(volumeLegacySelectorLines).toEqual([]);
         for (const selector of [
             '[data-sot-part="dashboard-player-volume-anchor"]',
-            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+            '[data-sot-panel="dashboard-player-volume-popover"]',
             '[data-sot-part="dashboard-player-volume-row"]',
             '[data-sot-part="dashboard-player-volume-icon"]',
             '[data-sot-control="dashboard-player-volume-slider"][data-slot="slider"]',
             '[data-sot-part="recording-player-volume-anchor"]',
-            '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+            '[data-sot-panel="recording-player-volume-popover"]',
             '[data-sot-part="recording-player-volume-row"]',
             '[data-sot-part="recording-player-volume-icon"]',
             '[data-sot-control="recording-player-volume-slider"][data-slot="slider"]',
@@ -3936,10 +3958,20 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain('variant="primary"');
         expect(player).toContain('size="icon-lg"');
         expect(player).toContain('data-sot-part="recording-player-no-audio"');
+        expect(player).toContain(
+            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+        );
+        expect(player).toContain("<SotPlayerNoAudioIcon");
+        expect(player).toContain(
+            'className="col-start-1 row-span-2 place-self-center"',
+        );
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
         expect(player).toContain(
             'data-sot-panel="recording-player-volume-popover"',
+        );
+        expect(player).toContain(
+            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
@@ -3948,6 +3980,9 @@ describe("full UI replacement regression coverage", () => {
             expect(player).toContain(`data-sot-control="${hook}"`);
         }
         for (const selector of RECORDING_PLAYER_CARD_PRIMITIVE_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
@@ -4198,6 +4233,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(sotPlayerPrimitives).toContain(
+            'import { cn } from "@/lib/utils";',
+        );
         expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
         expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
         expect(sotPlayerPrimitives).toContain(
@@ -4227,6 +4265,24 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).toContain("<Badge");
         expect(sotPlayerPrimitives).toContain('variant="outline"');
+        expect(sotPlayerPrimitives).toContain(
+            'className="h-[22px] gap-1.5 py-0 pl-1 pr-2"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'className="block size-4 max-w-none object-contain"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'className={cn("size-4", className)}',
+        );
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-control="player-source-tag"][data-slot="badge"]',
+            ),
+        ).toEqual([]);
         expect(sotPlayerPrimitives).not.toContain("status-badge-ready");
         expect(sotPlayerPrimitives).not.toContain("_is-");
         const speakerProfiles = readSource(

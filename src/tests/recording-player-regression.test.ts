@@ -57,6 +57,13 @@ describe("dashboard recording player regressions", () => {
 
         expect(source).toContain('data-sot-part="recording-player-no-audio"');
         expect(source).toContain("<Alert");
+        expect(source).toContain(
+            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+        );
+        expect(source).toContain("<SotPlayerNoAudioIcon");
+        expect(source).toContain(
+            'className="col-start-1 row-span-2 place-self-center"',
+        );
         expect(source).toContain("<AlertTitle");
         expect(source).toContain("<AlertDescription");
         expect(source).toContain('role="status"');
@@ -97,7 +104,7 @@ describe("dashboard recording player regressions", () => {
         expect(buttonSource).toContain('data-slot="button"');
         expect(buttonSource).toContain("buttonVariants");
         expect(source).toContain("<Button");
-        expect(source).toContain('variant="default"');
+        expect(source).toContain('variant="primary"');
         expect(source).toContain('variant="ghost"');
         expect(source).toContain('size="icon"');
         expect(source).toContain('size="icon-sm"');
@@ -123,6 +130,9 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"data-sot-control": "recording-player-seek"');
         expect(source).toContain(
             'data-sot-panel="recording-player-volume-popover"',
+        );
+        expect(source).toContain(
+            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(source).toContain(
             'data-sot-control="recording-player-volume-slider"',
@@ -204,15 +214,28 @@ describe("dashboard recording player regressions", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of [
-            '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
-            '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
-            '[data-sot-panel="dashboard-recording-player-controls"][data-slot="card-content"]',
-            '[data-sot-surface="recording-player"][data-slot="card"]',
-            '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
-            '[data-sot-panel="recording-player-controls"][data-slot="card-content"]',
+            '[data-sot-part="dashboard-recording-player-no-audio"][hidden]',
+            '[data-sot-panel="dashboard-player-volume-popover"]',
+            '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+            '[data-sot-part="recording-player-no-audio"][hidden]',
+            '[data-sot-panel="recording-player-volume-popover"]',
+            '[data-sot-panel="recording-player-volume-popover"][data-open="true"]',
             '[data-sot-panel="recording-detail-loading"]',
         ]) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of [
+            '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
+            '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
+            '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+            '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
+            '[data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"]',
+            '[data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"]',
+            '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+            '[data-sot-control="player-source-tag"][data-slot="badge"]',
+        ]) {
+            expect(globals).not.toContain(selector);
         }
     });
 });

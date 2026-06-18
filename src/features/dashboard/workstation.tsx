@@ -6012,6 +6012,7 @@ export function Workstation({
                             data-sot-surface="dashboard-recording-player"
                         >
                             <Alert
+                                className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"
                                 data-sot-part="dashboard-recording-player-no-audio"
                                 data-sot-state={
                                     playbackDisabled ? "visible" : "hidden"
@@ -6019,12 +6020,11 @@ export function Workstation({
                                 hidden={!playbackDisabled}
                                 role="status"
                             >
-                                <span
+                                <SotPlayerNoAudioIcon
+                                    className="col-start-1 row-span-2 place-self-center"
                                     data-icon="inline-start"
                                     data-sot-part="dashboard-recording-player-no-audio-icon"
-                                >
-                                    <SotPlayerNoAudioIcon />
-                                </span>
+                                />
                                 <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
                                     来源仅同步转写与报告
                                 </AlertTitle>
@@ -6263,6 +6263,7 @@ export function Workstation({
                                     </Button>
                                     <Card
                                         hasNoPadding
+                                        className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
                                         data-open={
                                             volumePopoverOpen ? "true" : "false"
                                         }

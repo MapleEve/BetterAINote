@@ -1044,62 +1044,8 @@ button {
 }
 /* Dashboard recording player — shadcn Card/Button/Slider surface scoped by data-sot. */
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"] {
-    grid-template-columns: 26px minmax(0, 1fr);
-    align-items: center;
-    gap: 1px 10px;
-    margin: 0 0 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: color-mix(
-        in srgb,
-        var(--signal-warning) 8%,
-        var(--bg-elevated)
-    );
-    border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-recording-player-no-audio"][hidden] {
     display: none;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio-icon"] {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    display: inline-grid;
-    width: 26px;
-    height: 26px;
-    place-items: center;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: var(--signal-warning);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio-icon"]
-    svg {
-    width: 14px;
-    height: 14px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"] {
-    grid-column: 2;
-    display: block;
-    overflow: visible;
-    min-height: 0;
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-    letter-spacing: 0;
-    -webkit-box-orient: initial;
-    -webkit-line-clamp: initial;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"] {
-    grid-column: 2;
-    display: block;
-    font: 500 11.5px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-    letter-spacing: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-recording-player-date"] {
@@ -1204,38 +1150,13 @@ button {
     display: inline-flex;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-panel="dashboard-player-volume-popover"][data-slot="card"] {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 8px);
-    z-index: var(--z-popover-inline);
-    min-width: 200px;
-    gap: 0;
-    overflow: visible;
-    padding: 8px 10px;
-    border-radius: 12px;
-    background: var(--bg-elevated);
-    border-color: var(--line-hairline);
-    box-shadow:
-        0 1px 2px rgb(15 23 42 / 0.04),
-        0 12px 32px -8px rgb(15 23 42 / 0.18),
-        0 24px 64px -12px rgb(15 23 42 / 0.22);
+    [data-sot-panel="dashboard-player-volume-popover"] {
     opacity: 0;
     transform: translateY(-4px) scale(0.99);
     transition:
         opacity 180ms var(--ease-out),
         transform 180ms var(--ease-out);
     pointer-events: none;
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-panel="dashboard-player-volume-popover"][data-slot="card"] {
-    background: var(--graphite-900);
-    border-color: var(--glass-border);
-    box-shadow:
-        0 1px 2px rgb(0 0 0 / 0.5),
-        0 12px 32px -8px rgb(0 0 0 / 0.55),
-        0 24px 64px -12px rgb(0 0 0 / 0.6);
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-panel="dashboard-player-volume-popover"][hidden] {
@@ -1314,56 +1235,8 @@ button {
 
 /* Recording detail player — shadcn Card owns primitive surface styling. */
 [data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio"][data-slot="alert"] {
-    grid-template-columns: 26px minmax(0, 1fr);
-    align-items: center;
-    gap: 1px 10px;
-    margin: 0 0 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: color-mix(
-        in srgb,
-        var(--signal-warning) 8%,
-        var(--bg-elevated)
-    );
-    border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
-    color: var(--fg-primary);
-}
-[data-sot-surface="recording-player"]
     [data-sot-part="recording-player-no-audio"][hidden] {
     display: none;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio-icon"] {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    display: inline-grid;
-    width: 26px;
-    height: 26px;
-    place-items: center;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: var(--signal-warning);
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio-icon"]
-    svg {
-    width: 14px;
-    height: 14px;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"] {
-    grid-column: 2;
-    min-height: 0;
-    font: 600 12.5px var(--font-sans);
-    color: var(--fg-primary);
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"] {
-    grid-column: 2;
-    display: block;
-    font: 500 11.5px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
 }
 [data-sot-surface="recording-player"] [data-sot-part="recording-player-meta"] {
     display: flex;
@@ -1467,19 +1340,7 @@ button {
     display: inline-flex;
 }
 [data-sot-surface="recording-player"]
-    [data-sot-panel="recording-player-volume-popover"][data-slot="card"] {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 8px);
-    z-index: var(--z-popover-inline);
-    min-width: 200px;
-    gap: 0;
-    overflow: visible;
-    padding: 8px 10px;
-    border-radius: 12px;
-    background: var(--bg-elevated);
-    border-color: var(--line-hairline);
-    box-shadow: var(--shadow-lg);
+    [data-sot-panel="recording-player-volume-popover"] {
     pointer-events: none;
 }
 [data-sot-surface="recording-player"]
@@ -2519,37 +2380,9 @@ body[data-time-style="abs"]
 }
 
 /* source tag with logo */
-[data-sot-control="player-source-tag"][data-slot="badge"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 22px;
-    padding: 0 8px 0 3px;
-    border-radius: 6px;
+[data-sot-control="player-source-tag"] [data-sot-part="source-icon"] {
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
-    font: 600 11.5px var(--font-sans);
-    color: var(--fg-secondary);
-    box-shadow: var(--shadow-xs);
-}
-[data-sot-control="player-source-tag"] [data-sot-part="source-icon"] {
-    width: 16px !important;
-    height: 16px !important;
-    border-radius: 4px;
-    flex: 0 0 16px !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    border: 1px solid var(--line-hairline);
-    overflow: hidden;
-}
-[data-sot-control="player-source-tag"] [data-sot-part="source-icon"] img {
-    width: 16px !important;
-    height: 16px !important;
-    max-width: none;
-    object-fit: contain;
-    display: block;
 }
 [data-sot-control="player-source-tag"]
     [data-sot-part="source-icon"][data-sot-cover="true"]
@@ -2561,11 +2394,6 @@ body[data-time-style="abs"]
     font: 700 9px var(--font-sans);
     color: var(--fg-secondary);
     background: var(--bg-recessed);
-}
-[data-theme="dark"] [data-sot-control="player-source-tag"] {
-    background: rgb(255 255 255 / 0.04);
-    border-color: var(--glass-border);
-    color: var(--fg-primary);
 }
 
 /* Mini source mark (used inline in row meta — icon-only, neutral) */

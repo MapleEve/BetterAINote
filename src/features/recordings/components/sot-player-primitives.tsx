@@ -1,8 +1,10 @@
 "use client";
 
+import type * as React from "react";
 import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { RecordingTagIconGlyph } from "./recording-tag-visuals";
 
@@ -82,17 +84,23 @@ export function SotPlayerSourceTag({
     return (
         <Badge
             variant="outline"
+            className="h-[22px] gap-1.5 py-0 pl-1 pr-2"
             data-sot-control="player-source-tag"
             data-sot-provider={provider}
         >
             <span
+                className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"
                 data-sot-cover={badge?.cover ? "true" : "false"}
                 data-sot-part="source-icon"
                 data-sot-source-icon={hasImage ? "image" : "letter"}
                 aria-hidden="true"
             >
                 {badge?.icon ? (
-                    <img src={badge.icon} alt="" />
+                    <img
+                        className="block size-4 max-w-none object-contain"
+                        src={badge.icon}
+                        alt=""
+                    />
                 ) : (
                     (badge?.letter ??
                     sourceFallbackLetter(provider, sourceLabel))
@@ -310,7 +318,9 @@ export function SotPlayerVolumeIcon({
     );
 }
 
-export function SotPlayerNoAudioIcon() {
+export function SotPlayerNoAudioIcon(
+    { className, ...props }: React.ComponentProps<"svg"> = {},
+) {
     return (
         <svg
             viewBox="0 0 24 24"
@@ -321,6 +331,8 @@ export function SotPlayerNoAudioIcon() {
             strokeLinejoin="round"
             aria-hidden="true"
             focusable="false"
+            className={cn("size-4", className)}
+            {...props}
         >
             <path d="M11 5 6 9H2v6h4l5 4V5z" />
             <line x1="23" y1="9" x2="17" y2="15" />
