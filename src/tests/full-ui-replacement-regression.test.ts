@@ -260,6 +260,26 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="system-banner-progress"][data-sot-state="indeterminate"]',
 ];
 
+const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:more-menu|more-menu-item|more-menu-sep|more-menu-label|more-menu-hint|more-anchor|more-head|more-action)(?![\w-])/;
+
+const MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-menu="recording-more-actions"]',
+    '[data-sot-menu="recording-more-actions"][data-open="true"]',
+    '[data-sot-menu="recording-more-actions"][data-state="open"]',
+    '[data-sot-menu="recording-more-actions"] svg',
+    "[data-sot-menu-item]",
+    "[data-sot-menu-item]:hover",
+    "[data-sot-menu-item]:focus-visible",
+    "[data-sot-menu-item]:active",
+    "[data-sot-menu-item] svg",
+    '[data-sot-menu-item][data-sot-tone="danger"]',
+    '[data-sot-menu-item][data-sot-tone="success"]',
+    "[data-sot-menu-item] [data-sot-menu-hint]",
+    "[data-sot-menu-separator]",
+    "[data-sot-menu-label]",
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -1069,6 +1089,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps more actions menus product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });

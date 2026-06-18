@@ -1226,6 +1226,59 @@ async function captureMoreMenuFixture(
             stage.style.padding = "20px";
             stage.style.width = `${fixtureFrame?.stage.width ?? 300}px`;
             stage.innerHTML = fixtureHtml;
+            const menu = stage.querySelector(".more-menu");
+            if (menu) {
+                menu.setAttribute("data-sot-menu", "recording-more-actions");
+                menu.setAttribute("data-state", "open");
+                if (!menu.hasAttribute("data-open")) {
+                    menu.setAttribute("data-open", "true");
+                }
+
+                stage
+                    .querySelectorAll(".more-menu-item")
+                    .forEach((item, index) => {
+                        const text = item.textContent?.trim() ?? "";
+                        const inferredItem =
+                            text.includes("AI 重命名")
+                                ? "ai-rename"
+                                : text.includes("重新转写")
+                                  ? "retranscribe"
+                                  : text.includes("删除本地副本")
+                                    ? "delete-local"
+                                    : "rename";
+                        item.setAttribute("data-sot-menu-item", inferredItem);
+                        if (item.classList.contains("is-danger")) {
+                            item.setAttribute("data-sot-tone", "danger");
+                        }
+                        if (item.classList.contains("is-success")) {
+                            item.setAttribute("data-sot-tone", "success");
+                        }
+                        if (!item.hasAttribute("role")) {
+                            item.setAttribute("role", "menuitem");
+                        }
+                        if (index === 0 && !item.hasAttribute("type")) {
+                            item.setAttribute("type", "button");
+                        }
+                    });
+                stage
+                    .querySelectorAll(".more-menu-sep")
+                    .forEach((separator) => {
+                        separator.setAttribute(
+                            "data-sot-menu-separator",
+                            "delete",
+                        );
+                    });
+                stage
+                    .querySelectorAll(".more-menu-hint")
+                    .forEach((hint) => {
+                        hint.setAttribute("data-sot-menu-hint", "");
+                    });
+                stage
+                    .querySelectorAll(".more-menu-label")
+                    .forEach((label) => {
+                        label.setAttribute("data-sot-menu-label", "");
+                    });
+            }
 
             host.appendChild(stage);
             document.body.appendChild(host);
