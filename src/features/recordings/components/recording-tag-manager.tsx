@@ -398,6 +398,7 @@ export function RecordingTagManager({
             type="button"
             variant={selected ? "secondary" : "outline"}
             size="xs"
+            className="h-6"
             onClick={interactive ? () => void handleToggleTag(tag) : undefined}
             disabled={interactive ? busy : undefined}
             aria-pressed={selected}
@@ -454,10 +455,11 @@ export function RecordingTagManager({
             <FieldLabel htmlFor={tagNameInputId} className="sr-only">
                 标签名
             </FieldLabel>
-            <InputGroup data-sot-part="create-row">
+            <InputGroup className="h-8" data-sot-part="create-row">
                 <InputGroupInput
                     id={tagNameInputId}
                     type="text"
+                    className="h-8 min-w-0"
                     value={name}
                     maxLength={MAX_RECORDING_TAG_NAME_LENGTH}
                     data-sot-control="recording-tag-name"
@@ -483,6 +485,8 @@ export function RecordingTagManager({
                             size="icon-sm"
                             data-sot-control="recording-tag-create"
                             data-sot-state="idle"
+                            disabled={!canCreate}
+                            onClick={() => void handleCreateTag()}
                         >
                             <Plus aria-hidden="true" />
                         </InputGroupButton>
@@ -805,7 +809,8 @@ export function RecordingTagManager({
                                     return (
                                         <Badge
                                             key={tag.id}
-                                            variant="outline"
+                                            variant="secondary"
+                                            className="max-w-full"
                                             data-sot-part="selected-chip"
                                             data-sot-tag-color={tag.color}
                                             data-sot-tag-icon={tag.icon}
@@ -920,14 +925,21 @@ export function RecordingTagManager({
                       : "idle"
             }
             data-sot-variant={variant}
+            className="w-80 max-w-[calc(100vw-2rem)] max-h-[460px] gap-0"
         >
-            <CardHeader data-sot-part="head">
-                <CardTitle data-sot-part="title">{title}</CardTitle>
+            <CardHeader
+                className="items-center border-b px-3 py-2.5"
+                data-sot-part="head"
+            >
+                <CardTitle className="text-sm" data-sot-part="title">
+                    {title}
+                </CardTitle>
                 {showCloseButton ? (
                     <CardAction data-sot-part="head-action">
                         <Button
                             variant="ghost"
                             size="icon-sm"
+                            className="shrink-0"
                             type="button"
                             aria-label="关闭"
                             data-sot-control="recording-tag-manager-close"
@@ -939,10 +951,20 @@ export function RecordingTagManager({
                     </CardAction>
                 ) : null}
             </CardHeader>
-            <CardContent data-sot-part="body">{panelContent}</CardContent>
+            <CardContent
+                className="flex flex-col gap-3.5 overflow-auto px-3.5 py-3.5"
+                data-sot-part="body"
+            >
+                {panelContent}
+            </CardContent>
             {panelAfterBody}
             {panelFooter ? (
-                <CardFooter data-sot-part="footer">{panelFooter}</CardFooter>
+                <CardFooter
+                    className="gap-2 border-t px-3 py-2.5"
+                    data-sot-part="footer"
+                >
+                    {panelFooter}
+                </CardFooter>
             ) : null}
         </Card>
     );

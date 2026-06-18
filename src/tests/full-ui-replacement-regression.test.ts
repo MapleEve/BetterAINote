@@ -72,6 +72,41 @@ function extractCssBlock(source: string, marker: string) {
     throw new Error(`Unclosed CSS block: ${marker}`);
 }
 
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: extractCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 function extractCssBlockRange(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -3182,6 +3217,18 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain('variant="primary"');
         expect(tagManager).toContain('size="icon-sm"');
+        expect(tagManager).toContain('variant="secondary"');
+        expect(tagManager).toContain('className="h-6"');
+        expect(tagManager).toContain(
+            'className="w-80 max-w-[calc(100vw-2rem)] max-h-[460px] gap-0"',
+        );
+        expect(tagManager).toContain(
+            '<InputGroup className="h-8" data-sot-part="create-row">',
+        );
+        expect(tagManager).toContain("disabled={!canCreate}");
+        expect(tagManager).toContain(
+            "onClick={() => void handleCreateTag()}",
+        );
         for (const rawClass of [
             "tagm-panel",
             "tagm-head",
@@ -3212,6 +3259,30 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
         expect(tagManager).not.toContain("cl-note");
+
+        const tagManagerRepaintSelectors = [
+            '[data-sot-panel="recording-tag-manager"][data-slot="card"]',
+            '[data-sot-part="selected-chip"][data-slot="badge"]',
+            '[data-sot-control="recording-tag-manager-close"][data-slot="button"]',
+            '[data-sot-control="recording-tag-delete-open"][data-slot="button"]',
+            '[data-sot-control="recording-tag-toggle"][data-slot="button"]',
+            '[data-sot-control="recording-tag-create"][data-slot="button"]',
+            '[data-sot-control="recording-tag-error-retry"][data-slot="button"]',
+            '[data-sot-part="footer"]\n    [data-slot="button"]',
+            '[data-sot-part="create-row"]\n    [data-slot="input-group-control"]',
+        ];
+        const forbiddenPrimitiveRepaintDeclaration =
+            /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|outline|padding|transition|width)\s*:|\b(?:linear-gradient|oklch)\(/m;
+
+        for (const selector of tagManagerRepaintSelectors) {
+            const blocks = collectCssRuleBlocks(globals, selector);
+            for (const block of blocks) {
+                expect(block.declarations).not.toMatch(
+                    forbiddenPrimitiveRepaintDeclaration,
+                );
+            }
+        }
+
         expect(sourceReport).toContain("SAFE_SOURCE_DETAIL_KEYS");
         expect(sourceReport).toContain(
             'data-sot-panel="recording-source-report"',
