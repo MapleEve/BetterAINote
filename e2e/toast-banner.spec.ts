@@ -406,6 +406,68 @@ async function readZIndex(page: Page, selector: string) {
 
 async function installToastAndBannerFixtures(page: Page) {
     await page.evaluate(() => {
+        let style = document.getElementById("toast-banner-fixture-style");
+        if (!style) {
+            style = document.createElement("style");
+            style.id = "toast-banner-fixture-style";
+            document.head.appendChild(style);
+        }
+        style.textContent = `
+            #toast-stack.toast-stack {
+                position: fixed;
+                left: 50%;
+                bottom: 32px;
+                z-index: var(--z-toast);
+                display: flex;
+                pointer-events: none;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                transform: translateX(-50%);
+            }
+            #toast-stack .toast {
+                display: inline-flex;
+                pointer-events: auto;
+                align-items: center;
+                gap: 8px;
+                height: 36px;
+                padding: 0 14px 0 10px;
+                border-radius: 999px;
+                background: var(--bg-elevated);
+                border: 1px solid var(--line-hairline);
+                box-shadow: var(--shadow-lg);
+                font: 600 12.5px var(--font-sans);
+                color: var(--fg-primary);
+                opacity: 0;
+                transform: translateY(6px);
+                transition:
+                    opacity 200ms var(--ease-out),
+                    transform 200ms var(--ease-out);
+            }
+            #toast-stack .toast[data-open="true"] {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            #toast-stack .toast-ico {
+                display: inline-grid;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+                color: var(--signal-success);
+                place-items: center;
+            }
+            #toast-stack .toast-ico svg {
+                width: 12px;
+                height: 12px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 2.4;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+        `;
+
         let stack = document.getElementById("toast-stack");
         if (!stack) {
             stack = document.createElement("div");
