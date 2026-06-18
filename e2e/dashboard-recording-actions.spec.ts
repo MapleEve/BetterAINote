@@ -1628,16 +1628,24 @@ async function captureConfirmDialogFixture(
                     border-top-color: var(--glass-border-soft);
                 }
                 ${scope} .retx-modal-list {
-                    list-style: disc;
-                    padding-left: 18px;
-                    margin: 4px 0 8px;
                     display: flex;
                     flex-direction: column;
                     gap: 4px;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
                 }
                 ${scope} .retx-modal-list li {
-                    font: 500 12.5px / 1.55 var(--font-sans);
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font: 500 12px var(--font-sans);
                     color: var(--fg-secondary);
+                }
+                ${scope} .retx-modal-list li::before {
+                    content: "·";
+                    color: var(--fg-tertiary);
+                    font-weight: 700;
                 }
                 ${scope} .btn {
                     display: inline-flex;

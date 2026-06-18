@@ -58,8 +58,243 @@ const SOT_PIXEL_DEV_OVERLAY_HIDDEN_CSS = `
     }
 `;
 const LIST_ROW_MIGRATION_FIXTURE_CSS = `
+    .real-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 4px;
+    }
+    .real-list .day {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 6px 4px;
+    }
+    .real-list .day .d {
+        font: 700 11px var(--font-sans);
+        color: var(--fg-tertiary);
+        letter-spacing: 0.04em;
+    }
+    .real-list .day .c {
+        font: 500 11px var(--font-mono);
+        color: var(--fg-disabled);
+    }
+    .real-list .day .line {
+        flex: 1;
+        height: 1px;
+        background: var(--line-hairline);
+        margin-left: 4px;
+    }
+    .real-list .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+        font: 13.3333px var(--font-sans);
+        transition:
+            background var(--duration-fast) var(--ease-out),
+            border-color var(--duration-fast) var(--ease-out);
+    }
+    .real-list .row:hover {
+        background: var(--bg-recessed);
+    }
+    .real-list .row.active {
+        background: var(--accent-soft);
+        border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+    }
+    .real-list .body {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .real-list .title {
+        font: 600 13.5px var(--font-sans);
+        color: var(--fg-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: -0.005em;
+    }
+    .real-list .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .real-list .meta .dur {
+        font: 500 11.5px var(--font-mono);
+        color: var(--fg-secondary);
+        letter-spacing: 0.02em;
+    }
+    .real-list .meta2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font: 500 11px var(--font-mono);
+        color: var(--fg-tertiary);
+    }
+    .real-list .meta2 .ts {
+        letter-spacing: 0.015em;
+    }
+    .real-list .ts-abs {
+        display: none;
+    }
+    .real-list .ts-rel {
+        display: inline;
+    }
+    body[data-time-style="abs"] .real-list .ts-abs {
+        display: inline;
+    }
+    body[data-time-style="abs"] .real-list .ts-rel {
+        display: none;
+    }
+    .real-list .right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .b {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font: 600 11px var(--font-sans);
+        border: 1px solid transparent;
+        letter-spacing: 0.005em;
+    }
+    .b .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+    }
     .b .dot.status-dot-muted {
         background: var(--fg-tertiary);
+    }
+    .b.ok {
+        background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+        color: var(--signal-success);
+        border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
+    }
+    .b.warn {
+        background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
+        color: oklch(0.55 0.16 70);
+        border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
+    }
+    .b.err {
+        background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+        color: var(--signal-danger);
+        border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
+    }
+    .b.info {
+        background: color-mix(in srgb, var(--signal-info) 14%, transparent);
+        color: var(--signal-info);
+        border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
+    }
+    .b.neu {
+        background: var(--bg-recessed);
+        color: var(--fg-secondary);
+        border-color: var(--line-hairline);
+    }
+    .b.warn .dot {
+        animation: bpulse 1.4s ease-in-out infinite;
+    }
+    [data-theme="dark"] .b.warn {
+        color: oklch(0.78 0.14 80);
+    }
+    .src-mini {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        flex: 0 0 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        opacity: 0.55;
+    }
+    .src-mini img {
+        width: 14px !important;
+        height: 14px !important;
+        object-fit: contain;
+        display: block;
+        filter: grayscale(1) contrast(0.85);
+    }
+    .src-mini.cover img {
+        object-fit: cover;
+    }
+    .src-mini.src-mini-letter {
+        font: 700 9px var(--font-sans);
+        color: var(--fg-tertiary);
+        background: var(--bg-recessed);
+        border: 1px solid var(--line-hairline);
+    }
+    [data-theme="dark"] .src-mini {
+        opacity: 0.6;
+    }
+    [data-theme="dark"] .src-mini img {
+        filter: grayscale(1) brightness(1.4) contrast(0.85);
+    }
+    [data-theme="dark"] .src-mini.src-mini-letter {
+        background: rgb(255 255 255 / 0.06);
+        border-color: var(--glass-border);
+    }
+    .utag {
+        --tag-c: var(--graphite-500);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 22px;
+        padding: 0 9px 0 7px;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--tag-c) 12%, var(--bg-elevated));
+        border: 1px solid color-mix(in srgb, var(--tag-c) 32%, transparent);
+        color: color-mix(in srgb, var(--tag-c) 72%, var(--fg-primary));
+        font: 600 11.5px var(--font-sans);
+        box-shadow: var(--shadow-xs);
+    }
+    .utag svg {
+        width: 11px;
+        height: 11px;
+        flex: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .utag.c-blue {
+        --tag-c: oklch(0.580 0.130 235);
+    }
+    .utag.c-violet {
+        --tag-c: oklch(0.560 0.150 285);
+    }
+    .utag.c-rose {
+        --tag-c: oklch(0.595 0.165 18);
+    }
+    .utag.c-amber {
+        --tag-c: oklch(0.620 0.140 70);
+    }
+    .utag.c-green {
+        --tag-c: oklch(0.560 0.130 158);
+    }
+    .utag.c-slate {
+        --tag-c: oklch(0.580 0.020 250);
+    }
+    [data-theme="dark"] .utag {
+        background: color-mix(in srgb, var(--tag-c) 18%, transparent);
+        color: color-mix(in srgb, var(--tag-c) 30%, var(--fg-primary));
+        border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
     }
 `;
 const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
@@ -1631,6 +1866,7 @@ async function captureTagFilterTriggerFixture(page: Page, triggerHtml: string) {
         .first();
     const trigger = page.locator(`#${fixtureId} .tag-filter-trigger`).first();
     await expect(trigger).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(250);
     const screenshot = await stage.screenshot({
         animations: "disabled",
@@ -1708,6 +1944,7 @@ async function captureOpenTagFilterFixture(page: Page, tagFilterHtml: string) {
         .locator(`#${fixtureId} > .tag-filter-open-pixel-stage`)
         .first();
     await expect(page.locator(`#${fixtureId} .tag-filter-list`)).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(250);
     const screenshot = await stage.screenshot({
         animations: "disabled",
@@ -1817,6 +2054,7 @@ async function captureListPanelFrameFixture(
     await page.evaluate(
         ({
             fixtureId: id,
+            migrationFixtureCss,
             panelHtml: html,
             sourceAssetDataUrls: assetDataUrls,
             stageWidth: width,
@@ -1844,6 +2082,7 @@ async function captureListPanelFrameFixture(
             const style = document.createElement("style");
             style.setAttribute("data-list-panel-frame-fixture", id);
             style.textContent = `
+                ${migrationFixtureCss}
                 #${CSS.escape(id)} [data-sot-surface="dashboard-recording-list"][data-slot="card"] {
                     display: flex;
                     flex-direction: column;
@@ -1880,6 +2119,7 @@ async function captureListPanelFrameFixture(
         },
         {
             fixtureId,
+            migrationFixtureCss: LIST_ROW_MIGRATION_FIXTURE_CSS,
             panelHtml,
             sourceAssetDataUrls,
             stageWidth,
@@ -2179,8 +2419,10 @@ async function expectOpenTagFilterPixelMatch(
     sotPage: Page,
     tagFilterHtml: string,
 ) {
-    const sotCapture = await captureOpenTagFilterFixture(sotPage, tagFilterHtml);
-    const productCapture = await captureOpenTagFilterFixture(page, tagFilterHtml);
+    const [sotCapture, productCapture] = await Promise.all([
+        captureOpenTagFilterFixture(sotPage, tagFilterHtml),
+        captureOpenTagFilterFixture(page, tagFilterHtml),
+    ]);
     const diff = await compareListRowPixels(
         page,
         sotCapture.dataUrl,

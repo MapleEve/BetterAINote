@@ -214,6 +214,22 @@ async function captureNormalizedDataUrl(
                 wrapper.style.width = "420px";
                 wrapper.appendChild(clone);
                 host.appendChild(wrapper);
+            } else if (clone.classList.contains("toast")) {
+                const stack = document.createElement("div");
+                stack.id = "toast-stack";
+                stack.className = "toast-stack";
+                stack.style.position = "static";
+                stack.style.left = "auto";
+                stack.style.bottom = "auto";
+                stack.style.zIndex = "auto";
+                stack.style.display = "inline-flex";
+                stack.style.transform = "none";
+                stack.style.pointerEvents = "none";
+                stack.style.flexDirection = "column";
+                stack.style.alignItems = "center";
+                stack.style.gap = "0";
+                stack.appendChild(clone);
+                host.appendChild(stack);
             } else {
                 host.appendChild(clone);
             }
@@ -225,9 +241,14 @@ async function captureNormalizedDataUrl(
             wrapperClassName: options.wrapperClassName,
         },
     );
+    const toastScopedTarget = page
+        .locator(`#${fixtureId} > #toast-stack.toast-stack > .toast`)
+        .first();
     const screenshotTarget = options.wrapperClassName
         ? page.locator(`#${fixtureId} .stack-strip > *`).first()
-        : page.locator(`#${fixtureId} > *`).first();
+        : (await toastScopedTarget.count()) > 0
+          ? toastScopedTarget
+          : page.locator(`#${fixtureId} > *`).first();
     await expect(screenshotTarget).toBeVisible();
     await page.waitForTimeout(250);
     const screenshot = await screenshotTarget.screenshot({

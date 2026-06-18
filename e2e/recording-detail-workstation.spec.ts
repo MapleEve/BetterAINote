@@ -2408,17 +2408,41 @@ function bridgeSpeakerUnlinkConfirmSotContract(html: string) {
 function bridgeSpeakerRowSotFixtureContract(html: string) {
     const scope = ".sot-pixel-stage";
     return `<style>
+${scope} .cl-stage{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;flex-wrap:wrap!important;min-height:56px!important;padding:10px 0 4px!important}
+${scope} .cl-stage.cl-stage-canvas{display:block!important;padding:0!important;border:1px dashed rgba(0,0,0,.1)!important;border-radius:10px!important;background:var(--canvas,#f6f4ef)!important;min-height:auto!important}
 ${scope} .avatar-sm._is-4{background:color-mix(in srgb,oklch(0.580 0.130 235) 26%,transparent)!important;color:oklch(0.580 0.130 235)!important}
 ${scope} .avatar-sm._is-5{background:color-mix(in srgb,oklch(0.560 0.150 285) 24%,transparent)!important;color:oklch(0.560 0.150 285)!important}
 ${scope} .avatar-sm._is-6{background:color-mix(in srgb,oklch(0.560 0.130 158) 24%,transparent)!important;color:oklch(0.560 0.130 158)!important}
 ${scope} .avatar-sm._is-7{background:color-mix(in srgb,var(--fg-tertiary) 22%,transparent)!important;color:var(--fg-secondary)!important}
 ${scope} .btn{display:inline-flex!important;align-items:center!important;gap:7px!important;height:32px!important;padding:0 12px!important;border-radius:9px!important;font:600 12.5px var(--font-sans)!important;color:var(--fg-primary)!important;background:var(--bg-elevated)!important;border:1px solid var(--line-hairline)!important;box-shadow:var(--shadow-xs)!important}
 ${scope} .btn.ghost{background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--fg-secondary)!important}
+${scope} .btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 92%,white 18%),var(--accent))!important;border-color:color-mix(in srgb,var(--accent) 60%,black 8%)!important;color:white!important;box-shadow:0 2px 6px color-mix(in srgb,var(--accent) 24%,transparent),inset 0 1px 0 rgb(255 255 255 / .22)!important}
+${scope} .btn.danger{background:linear-gradient(180deg,oklch(0.62 0.18 25),oklch(0.55 0.20 25))!important;border-color:oklch(0.50 0.20 25)!important;color:white!important;box-shadow:0 2px 6px color-mix(in srgb,var(--signal-danger) 24%,transparent),inset 0 1px 0 rgb(255 255 255 / .2)!important}
 ${scope} .btn.btn-sm{height:26px!important;padding:0 10px!important;font-size:12px!important;border-radius:7px!important}
-${scope} .sp-row[data-state="create"] .field-input{box-sizing:border-box;min-width:240px;height:30px;padding:0 10px;border:1px solid var(--line-hairline);border-radius:7px;appearance:none;outline:none;background:var(--bg-recessed);color:var(--fg-primary);font:500 12px var(--font-mono)}
+${scope} .btn[disabled]{opacity:.5!important;cursor:not-allowed!important;pointer-events:none!important}
+${scope} .btn-spinner{display:inline-block!important;width:12px!important;height:12px!important;border-radius:50%!important;border:2px solid currentColor!important;border-right-color:transparent!important}
+${scope} .sp-rows{display:flex!important;flex-direction:column!important;gap:6px!important;list-style:none!important;margin:0!important;padding:0!important}
+${scope} .sp-row{display:grid!important;grid-template-columns:36px minmax(0,1fr) auto auto auto!important;align-items:center!important;gap:10px!important;padding:10px 12px!important;border:1px solid var(--line-hairline)!important;border-radius:var(--radius-md)!important;background:var(--bg-elevated)!important;box-sizing:border-box!important}
+[data-theme="dark"] ${scope} .sp-row{background:color-mix(in srgb,var(--bg-elevated) 70%,transparent)!important;border-color:var(--glass-border-soft)!important}
+${scope} .sp-row[data-state="editing"],${scope} .sp-row[data-state="create"]{grid-template-columns:36px minmax(0,1fr) auto!important}
+${scope} .sp-row[data-state="no-match"] .sp-row-sub{color:var(--signal-warning)!important}
+${scope} .sp-row-meta{display:flex!important;flex-direction:column!important;gap:2px!important;min-width:0!important}
+${scope} .sp-row-name{margin:0!important;font:600 13px/1.35 var(--font-sans)!important;color:var(--fg-primary)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+${scope} .sp-row-sub{margin:0!important;font:500 11.5px/1.4 var(--font-mono)!important;color:var(--fg-tertiary)!important;letter-spacing:.02em!important}
+${scope} .sp-row-sub.is-danger{color:var(--signal-danger)!important}
+${scope} .sp-bar{position:relative!important;display:block!important;overflow:hidden!important;width:100px!important;height:4px!important;border-radius:999px!important;background:color-mix(in srgb,var(--fg-tertiary) 14%,transparent)!important}
+${scope} .sp-bar>span{display:block!important;height:100%!important;border-radius:inherit!important;background:var(--accent)!important}
 ${scope} .sp-bar>span._is-3{width:30%!important}
 ${scope} .sp-bar>span._is-7{width:70%!important}
 ${scope} .sp-bar>span._is-8{width:80%!important}
+${scope} .sp-suggest{display:inline-flex!important;align-items:center!important;gap:6px!important;padding:4px 6px!important;border-radius:var(--radius-sm)!important;background:color-mix(in srgb,var(--signal-warning) 10%,transparent)!important;border:1px solid color-mix(in srgb,var(--signal-warning) 28%,transparent)!important}
+${scope} .sp-suggest-label{font:600 10.5px/1 var(--font-mono)!important;text-transform:uppercase!important;letter-spacing:.06em!important;color:color-mix(in srgb,var(--signal-warning) 50%,var(--fg-primary))!important}
+${scope} .sp-suggest-name{font:600 12px/1 var(--font-sans)!important;color:var(--fg-primary)!important}
+${scope} .sp-edit-actions{display:inline-flex!important;gap:6px!important}
+${scope} .sp-empty{text-align:center!important;padding:22px 16px!important;background:var(--bg-recessed)!important;border:1px dashed var(--line-hairline)!important;border-radius:var(--radius-md)!important}
+${scope} .sp-empty-msg{font:600 13px/1.35 var(--font-sans)!important;color:var(--fg-primary)!important;margin:0 0 4px!important}
+${scope} .sp-empty-sub{font:500 12px/1.5 var(--font-sans)!important;color:var(--fg-tertiary)!important;margin:0!important}
+${scope} .field-input{box-sizing:border-box!important;width:100%!important;min-width:240px!important;height:30px!important;padding:0 10px!important;border:1px solid var(--line-hairline)!important;border-radius:7px!important;appearance:none!important;outline:none!important;background:var(--bg-recessed)!important;color:var(--fg-primary)!important;font:500 12px var(--font-mono)!important}
 </style>${html}`;
 }
 
@@ -8079,7 +8103,7 @@ test("speaker review inline rename row", async ({ page }, testInfo) => {
             testInfo,
             "speaker review inline rename component-library editing row",
             componentEditingStage,
-            (html) => html,
+            bridgeSpeakerRowSotFixtureContract,
             {
                 differingPixels: 120,
                 maxChannelDelta: 250,
