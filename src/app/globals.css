@@ -10490,7 +10490,6 @@ select::-ms-expand {
     }
 }
 @media (max-width: 640px) {
-    .topbar [data-sot-panel="library-search"],
     [data-sot-panel="library-search"] {
         position: fixed;
         top: 72px;

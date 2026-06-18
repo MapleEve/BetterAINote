@@ -358,8 +358,18 @@ const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
 const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:src-dot|dot-success|dot-warning|dot-info|dot-muted|dot|search|avatar)(?![\w-])/;
 
+const TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /(^|[,\s>])\.topbar(?![\w-])/m;
+
 const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail|rec-head|rec-h2|rec-h2-status|rec-h2-local|rec-h2-input|rh-edit|rh-norm|real-detail|ai-rename-anchor)(?![\w-])/;
+
+const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-topbar"]',
+    '[data-sot-panel="route-topbar"]',
+    '[data-sot-panel="workstation-topbar"]',
+    '[data-sot-panel="library-search"]',
+] as const;
 
 const DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"][data-slot="button"]',
@@ -1428,6 +1438,7 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard topbar source/status atoms on data-sot product CSS selectors", () => {
         const globals = readSource("app/globals.css");
+        const productCss = readProductCss(globals);
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -1438,6 +1449,10 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
+        expect(productCss).not.toMatch(TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE);
+        for (const selector of TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS) {
+            expect(productCss).toContain(selector);
+        }
         for (const selector of DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
