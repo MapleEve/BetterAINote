@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { DataSourceFieldControl } from "@/features/data-sources/data-source-field-control";
 import { useOnboardingDataSource } from "@/features/data-sources/use-onboarding-data-source";
 import type { SourceProvider } from "@/lib/data-sources/catalog";
@@ -37,7 +38,6 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
-import { cn } from "@/lib/utils";
 
 interface OnboardingFormProps {
     onConnected?: () => void;
@@ -488,12 +488,9 @@ function SourceStep({
 
                     return (
                         <Button
-                            variant="outline"
+                            variant={isActive ? "secondary" : "outline"}
                             size="lg"
-                            className={cn(
-                                "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left",
-                                isActive && "border-primary/50 bg-primary/10",
-                            )}
+                            className="grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -543,23 +540,56 @@ function SourceStep({
                     id="source-auth-mode"
                     label="登录方式"
                 >
-                    <Select
+                    <ToggleGroup
                         aria-label="登录方式"
                         data-sot-control="source-auth-mode"
+                        data-sot-list="source-auth-modes"
                         disabled={isSaving}
-                        id="source-auth-mode"
-                        onValueChange={setAuthMode}
-                        options={currentProviderCatalog.authModes.map(
-                            (mode) => ({
-                                label: getSourceAuthModeDisplayLabel(
-                                    mode,
-                                    language,
-                                ),
-                                value: mode,
-                            }),
-                        )}
+                        onValueChange={(mode) => {
+                            if (!mode) {
+                                return;
+                            }
+                            setAuthMode(mode);
+                        }}
+                        size="lg"
+                        spacing={2}
+                        type="single"
                         value={currentDraft.authMode}
-                    />
+                        variant="outline"
+                        className="grid w-full grid-cols-2 items-stretch"
+                    >
+                        {currentProviderCatalog.authModes.map((mode) => {
+                            const active = currentDraft.authMode === mode;
+
+                            return (
+                                <ToggleGroupItem
+                                    aria-pressed={active}
+                                    className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"
+                                    data-sot-auth-mode={mode}
+                                    data-sot-control="source-auth-mode"
+                                    data-sot-state={
+                                        active ? "selected" : "idle"
+                                    }
+                                    disabled={isSaving}
+                                    key={mode}
+                                    value={mode}
+                                >
+                                    <span data-sot-part="source-auth-mode-title">
+                                        {getSourceAuthModeDisplayLabel(
+                                            mode,
+                                            language,
+                                        )}
+                                    </span>
+                                    <span
+                                        className="text-left"
+                                        data-sot-part="source-auth-mode-description"
+                                    >
+                                        按来源支持的方式填写授权
+                                    </span>
+                                </ToggleGroupItem>
+                            );
+                        })}
+                    </ToggleGroup>
                 </OnboardingFieldRow>
             ) : (
                 <MatrixRow

@@ -192,9 +192,6 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
 ] as const;
 
-const FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION =
-    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
-
 const FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
@@ -356,6 +353,10 @@ describe("settings SOT interaction regressions", () => {
         expect(dialog).toContain("<aside");
         expect(dialog).toContain('data-sot-control="settings-nav"');
         expect(dialog).toContain('data-sot-control="settings-close"');
+        expect(dialog).toContain('className="shrink-0"');
+        expect(globals).not.toContain(
+            '[data-sot-control="settings-close"][data-slot="button"]',
+        );
         expect(dialog).toContain('data-sot-part="settings-user-summary"');
         expect(dialog).toContain('data-sot-part="settings-user-avatar"');
         expect(dialog).toContain('data-sot-part="settings-user-name"');
@@ -867,6 +868,14 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-list="source-auth-modes"');
         expect(content).toContain("<ToggleGroup");
         expect(content).toContain("<ToggleGroupItem");
+        expect(content).toContain('type="single"');
+        expect(content).toContain("value={selectedSource.authMode}");
+        expect(content).toContain(
+            'className="mb-4 grid w-full grid-cols-2 items-stretch"',
+        );
+        expect(content).toContain(
+            'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
+        );
         expect(content).toContain("data-sot-auth-mode={mode}");
         expect(content).toContain('data-sot-part="source-auth-mode-title"');
         expect(content).toContain(
@@ -1084,7 +1093,7 @@ describe("settings SOT interaction regressions", () => {
             "variant={getProviderStatusBadgeVariant(status.tone)}",
         );
         expect(providerTile).toContain(
-            "className={getProviderStatusBadgeClassName(status.tone)}",
+            "getProviderStatusBadgeClassName(status.tone)",
         );
         expect(detailRoot).toContain('data-sot-panel="source-provider-detail"');
         expect(detailRoot).toContain(
@@ -1112,27 +1121,31 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).toContain("getProviderTileVariant(isSelected)");
         expect(providerTile).toContain("getProviderStatusBadgeVariant");
         expect(providerTile).toContain("getProviderStatusBadgeClassName");
+        expect(providerTile).toContain(
+            'className="grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-2.5 whitespace-normal text-left"',
+        );
+        expect(providerTile).toContain(
+            'className="flex size-7 shrink-0 items-center justify-center overflow-hidden"',
+        );
+        expect(providerTile).toContain(
+            'className="flex min-w-0 flex-col gap-0.5"',
+        );
+        expect(providerTile).toContain('className="truncate"');
+        expect(providerTile).toContain('"justify-self-end"');
+        expect(providerTile).toContain('"animate-pulse"');
         expect(content).toContain('"text-primary"');
         expect(content).toContain('"text-muted-foreground"');
         expect(content).toContain('"destructive"');
         expect(content).toContain('"secondary"');
         expect(content).toContain('"outline"');
-        expect(providerTile).toContain(
-            'className="size-1.5 rounded-full bg-current"',
-        );
+        expect(providerTile).toContain('"size-1.5 rounded-full bg-current"');
+        expect(providerTile).toContain('"animate-pulse"');
 
         for (const selector of [
             '[data-sot-provider-card][data-slot="button"]',
             '[data-sot-provider-status][data-slot="badge"]',
         ]) {
-            const blocks = collectCssRuleBlocks(globals, selector);
-            expect(blocks.length).toBeGreaterThan(0);
-
-            for (const block of blocks) {
-                expect(block.declarations).not.toMatch(
-                    FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION,
-                );
-            }
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
 
         expect(globals).not.toContain(
@@ -1140,6 +1153,23 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(globals).not.toContain(
             '[data-sot-provider-card][data-slot="button"][data-state="selected"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-provider-status][data-sot-tone="syncing"]',
+        );
+        expect(globals).not.toContain("@keyframes ds-pulse");
+        expect(globals).not.toContain('[data-sot-list="source-auth-modes"]');
+        expect(globals).not.toContain(
+            '[data-sot-control="source-auth-mode"][data-sot-auth-mode]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-control="source-auth-mode"][data-sot-state="selected"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="source-auth-mode-title"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="source-auth-mode-description"]',
         );
     });
 

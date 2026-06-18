@@ -1042,9 +1042,10 @@ const SOURCE_AUTH_MODE_DATA_SOT_SOURCE_HOOKS = [
     'tone: "recommended"',
 ] as const;
 
-const SOURCE_AUTH_MODE_DATA_SOT_CSS_SELECTORS = [
+const SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS = [
     '[data-sot-list="source-auth-modes"]',
     '[data-sot-control="source-auth-mode"][data-sot-auth-mode]',
+    '[data-theme="dark"] [data-sot-control="source-auth-mode"][data-sot-auth-mode]',
     '[data-sot-control="source-auth-mode"][data-sot-state="selected"]',
     '[data-sot-part="source-auth-mode-title"]',
     '[data-sot-part="source-auth-mode-description"]',
@@ -2191,6 +2192,14 @@ describe("full UI replacement regression coverage", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(login).toContain("<Input");
+        expect(login).toMatch(
+            /import\s*\{[\s\S]*Field,[\s\S]*FieldDescription,[\s\S]*FieldError,[\s\S]*FieldGroup,[\s\S]*FieldLabel[\s\S]*\}\s*from "@\/components\/ui\/field";/,
+        );
+        expect(login).toContain("<FieldGroup");
+        expect(login).toContain("<Field");
+        expect(login).toContain("<FieldLabel");
+        expect(login).toContain("<FieldError");
+        expect(login).toContain("<FieldDescription");
         expect(login).toContain(
             'import { Button } from "@/components/ui/button";',
         );
@@ -2200,6 +2209,11 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
         expect(login).toContain('variant="link"');
+        expect(login).toContain("aria-invalid={invalid}");
+        expect(login).toContain("aria-busy={isLoading}");
+        expect(login).toContain("aria-busy={isLocalLoading}");
+        expect(login).toContain("disabled={!isMounted || isLoading}");
+        expect(login).toContain("disabled={!isMounted || isLocalLoading}");
         expect(login).toContain("data-sot-state={formState.kind}");
         expect(login).toContain("data-auth-form-state");
         expect(login).not.toContain('"inp"');
@@ -2217,9 +2231,17 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="auth-form-message"][data-sot-state="error"]',
             '[data-sot-part="auth-form-message"][data-sot-state="success"]',
             '[data-sot-part="auth-local-choice"]',
-            '[data-sot-control="local-only"][data-slot="button"]',
         ]) {
             expect(globals).toContain(authDataSotSelector);
+        }
+        for (const removedAuthPrimitiveRepaintSelector of [
+            '[data-sot-control="auth-email"][data-slot="input"]',
+            '[data-sot-control="send-login-link"][data-slot="button"]',
+            '[data-sot-control="local-only"][data-slot="button"]',
+        ]) {
+            expect(globals).not.toContain(
+                removedAuthPrimitiveRepaintSelector,
+            );
         }
         const authOnboardingLegacySelectorLines = globals
             .split("\n")
@@ -2301,8 +2323,9 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('variant="primary"');
         expect(onboarding).toContain('size="xs"');
         expect(onboarding).toContain('size="lg"');
-        expect(onboarding).toContain("className={cn(");
-        expect(onboarding).toContain("border-primary/50 bg-primary/10");
+        expect(onboarding).toContain(
+            'variant={isActive ? "secondary" : "outline"}',
+        );
         expect(onboarding).toContain(
             '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
         );
@@ -2313,7 +2336,26 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain("CardDescription,");
         expect(onboarding).toContain("CardHeader,");
         expect(onboarding).toContain("CardTitle,");
+        expect(onboarding).toContain(
+            'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
+        );
+        expect(onboarding).toContain("<ToggleGroup");
+        expect(onboarding).toContain("<ToggleGroupItem");
+        expect(onboarding).toContain('type="single"');
+        expect(onboarding).toContain("value={currentDraft.authMode}");
+        expect(onboarding).toContain("setAuthMode(mode)");
+        expect(onboarding).toContain('data-sot-list="source-auth-modes"');
         expect(onboarding).toContain('data-sot-control="source-auth-mode"');
+        expect(onboarding).toContain("data-sot-auth-mode={mode}");
+        expect(onboarding).toContain(
+            'data-sot-state={\n                                        active ? "selected" : "idle"\n                                    }',
+        );
+        expect(onboarding).toContain(
+            'data-sot-part="source-auth-mode-title"',
+        );
+        expect(onboarding).toContain(
+            'data-sot-part="source-auth-mode-description"',
+        );
         expect(onboarding).toContain('data-sot-control="save-enter"');
         expect(onboarding).not.toContain("src-item");
         expect(onboarding).not.toContain("sp-ico");
@@ -3522,8 +3564,6 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-provider-card][data-slot="button"]',
             '[data-sot-provider-status][data-slot="badge"]',
         ];
-        const forbiddenProviderPrimitiveRepaintDeclaration =
-            /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
         const settingsDataSourcePrimitiveRepaintTargets = [
             {
                 label: "provider detail field",
@@ -3559,13 +3599,7 @@ describe("full UI replacement regression coverage", () => {
         const forbiddenSettingsDataSourcePrimitiveRepaintDeclaration =
             /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
         for (const selector of providerPrimitiveRepaintSelectors) {
-            const blocks = collectCssRuleBlocks(globals, selector);
-            expect(blocks.length).toBeGreaterThan(0);
-            for (const block of blocks) {
-                expect(block.declarations).not.toMatch(
-                    forbiddenProviderPrimitiveRepaintDeclaration,
-                );
-            }
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const target of settingsDataSourcePrimitiveRepaintTargets) {
             const repaintBlocks = collectCssRuleBlocks(
@@ -3598,8 +3632,8 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceAuthModeLegacySelectorLines).toEqual([]);
-        for (const selector of SOURCE_AUTH_MODE_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
 
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');

@@ -109,11 +109,35 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain('variant="primary"');
         expect(source).toContain('size="xs"');
         expect(source).toContain('size="lg"');
-        expect(source).toContain("className={cn(");
-        expect(source).toContain("border-primary/50 bg-primary/10");
+        expect(source).toContain(
+            'variant={isActive ? "secondary" : "outline"}',
+        );
         expect(source).toContain(
             '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
         );
+        expect(source).not.toContain("className={cn(");
+        expect(source).toContain(
+            'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
+        );
+        expect(source).toContain("<ToggleGroup");
+        expect(source).toContain("<ToggleGroupItem");
+        expect(source).toContain('type="single"');
+        expect(source).toContain("value={currentDraft.authMode}");
+        expect(source).toContain("setAuthMode(mode)");
+        expect(source).toContain('data-sot-list="source-auth-modes"');
+        expect(source).toContain('data-sot-control="source-auth-mode"');
+        expect(source).toContain("data-sot-auth-mode={mode}");
+        expect(source).toContain('data-sot-part="source-auth-mode-title"');
+        expect(source).toContain(
+            'data-sot-part="source-auth-mode-description"',
+        );
+        const sourceAuthModeControl =
+            source.match(
+                /currentProviderCatalog\.authModes\.length > 1[\s\S]*?<MatrixRow/,
+            )?.[0] ?? "";
+        expect(sourceAuthModeControl).toContain("<ToggleGroup");
+        expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
+        expect(sourceAuthModeControl).not.toContain("<Select");
         expect(source).toContain(
             'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );
@@ -185,7 +209,7 @@ describe("onboarding UI replacement regression", () => {
         expect(globals).toContain(
             '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-part="provider-meta"][data-slot="card-header"]',
         );
         expect(

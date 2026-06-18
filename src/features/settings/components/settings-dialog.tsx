@@ -566,6 +566,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                 variant="ghost"
                                 size="icon-sm"
                                 aria-label={t("settingsDialog.close")}
+                                className="shrink-0"
                                 data-sot-control="settings-close"
                                 data-sot-state={
                                     isSettingsBusy ? "busy" : "idle"

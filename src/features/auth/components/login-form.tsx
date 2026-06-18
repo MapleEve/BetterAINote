@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+    Field,
+    FieldDescription,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 import {
@@ -123,66 +130,91 @@ export function LoginForm({
                         />{" "}
                         <div data-sot-part="auth-heading">{title}</div>
                         <div data-sot-part="auth-description">{subtitle}</div>
-                        <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            defaultValue=""
-                            required
-                            disabled={!isMounted || isLoading}
-                            autoComplete="email"
-                            aria-invalid={invalid}
-                            className="mx-auto mb-2 max-w-[280px]"
-                            data-sot-control="auth-email"
-                            data-sot-state={
-                                invalid
-                                    ? "error"
-                                    : isLoading || isLocalLoading
-                                      ? "saving"
-                                      : "ready"
-                            }
-                            placeholder="mei@example.com"
-                        />
-                        {formState ? (
-                            <div
-                                role={
-                                    formState.kind === "error"
-                                        ? "alert"
-                                        : "status"
+                        <FieldGroup className="mx-auto max-w-[280px] gap-3">
+                            <Field
+                                data-disabled={
+                                    !isMounted || isLoading
+                                        ? "true"
+                                        : undefined
                                 }
-                                data-sot-part="auth-form-message"
-                                data-sot-state={formState.kind}
-                                data-auth-form-state={formState.kind}
+                                data-invalid={invalid ? "true" : undefined}
                             >
-                                {formState.message}
-                            </div>
-                        ) : null}
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            disabled={!isMounted || isLoading}
-                            aria-busy={isLoading}
-                            data-sot-control="send-login-link"
-                        >
-                            {isLoading ? "发送中..." : "发送登录链接"}
-                        </Button>
-                        <div data-sot-part="auth-local-choice">
-                            或{" "}
-                            <Button
-                                type="button"
-                                variant="link"
-                                size="sm"
-                                disabled={!isMounted || isLocalLoading}
-                                aria-busy={isLocalLoading}
-                                data-sot-control="local-only"
-                                data-sot-state={
-                                    isLocalLoading ? "loading" : "ready"
-                                }
-                                onClick={() => void handleLocalUse()}
-                            >
-                                {isLocalLoading ? "启动中..." : "仅本地使用"}
-                            </Button>
-                        </div>
+                                <FieldLabel htmlFor="email" className="sr-only">
+                                    邮箱
+                                </FieldLabel>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    defaultValue=""
+                                    required
+                                    disabled={!isMounted || isLoading}
+                                    autoComplete="email"
+                                    aria-invalid={invalid}
+                                    className="w-full"
+                                    data-sot-control="auth-email"
+                                    data-sot-state={
+                                        invalid
+                                            ? "error"
+                                            : isLoading || isLocalLoading
+                                              ? "saving"
+                                              : "ready"
+                                    }
+                                    placeholder="mei@example.com"
+                                />
+                                {formState?.kind === "error" ? (
+                                    <FieldError
+                                        data-sot-part="auth-form-message"
+                                        data-sot-state={formState.kind}
+                                        data-auth-form-state={formState.kind}
+                                    >
+                                        {formState.message}
+                                    </FieldError>
+                                ) : null}
+                                {formState?.kind === "success" ? (
+                                    <FieldDescription
+                                        role="status"
+                                        data-sot-part="auth-form-message"
+                                        data-sot-state={formState.kind}
+                                        data-auth-form-state={formState.kind}
+                                    >
+                                        {formState.message}
+                                    </FieldDescription>
+                                ) : null}
+                            </Field>
+                            <Field>
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    disabled={!isMounted || isLoading}
+                                    aria-busy={isLoading}
+                                    className="w-full"
+                                    data-sot-control="send-login-link"
+                                >
+                                    {isLoading ? "发送中..." : "发送登录链接"}
+                                </Button>
+                                <FieldDescription data-sot-part="auth-local-choice">
+                                    或{" "}
+                                    <Button
+                                        type="button"
+                                        variant="link"
+                                        size="sm"
+                                        disabled={!isMounted || isLocalLoading}
+                                        aria-busy={isLocalLoading}
+                                        className="h-auto min-h-0 p-0 align-baseline"
+                                        data-sot-control="local-only"
+                                        data-sot-state={
+                                            isLocalLoading ? "loading" : "ready"
+                                        }
+                                        onClick={() => void handleLocalUse()}
+                                    >
+                                        {isLocalLoading
+                                            ? "启动中..."
+                                            : "仅本地使用"}
+                                    </Button>
+                                </FieldDescription>
+                            </Field>
+                        </FieldGroup>
                     </div>
                 </form>
             </Card>

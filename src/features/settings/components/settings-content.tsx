@@ -572,7 +572,7 @@ function DataSourceProviderTile({
             variant={getProviderTileVariant(isSelected)}
             size="default"
             aria-pressed={isSelected}
-            className="h-auto w-full justify-start whitespace-normal text-left"
+            className="grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-2.5 whitespace-normal text-left"
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -584,6 +584,7 @@ function DataSourceProviderTile({
             onClick={onSelect}
         >
             <span
+                className="flex size-7 shrink-0 items-center justify-center overflow-hidden"
                 data-sot-provider-icon=""
                 data-sot-cover={
                     source.provider === "feishu-minutes" ? "true" : undefined
@@ -594,24 +595,39 @@ function DataSourceProviderTile({
                     <span aria-hidden="true">讯</span>
                 ) : assetPath ? (
                     // biome-ignore lint/performance/noImgElement: SOT source cards render fixed local provider marks directly.
-                    <img src={assetPath} alt="" aria-hidden="true" />
+                    <img
+                        src={assetPath}
+                        alt=""
+                        aria-hidden="true"
+                        className={cn(
+                            "block size-full object-contain",
+                            source.provider === "feishu-minutes" &&
+                                "object-cover",
+                        )}
+                    />
                 ) : (
                     <Icon aria-hidden="true" />
                 )}
             </span>
             <span
+                className="flex min-w-0 flex-col gap-0.5"
                 data-sot-provider-meta=""
                 data-sot-part="source-provider-meta"
             >
-                <span data-sot-provider-name="">{displayName}</span>
-                <span data-sot-provider-hint="">
+                <span className="truncate" data-sot-provider-name="">
+                    {displayName}
+                </span>
+                <span className="truncate" data-sot-provider-hint="">
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
             </span>
             <Badge
                 variant={getProviderStatusBadgeVariant(status.tone)}
-                className={getProviderStatusBadgeClassName(status.tone)}
+                className={cn(
+                    "justify-self-end",
+                    getProviderStatusBadgeClassName(status.tone),
+                )}
                 data-sot-provider-status=""
                 data-sot-state={status.state}
                 data-sot-status={status.state}
@@ -619,7 +635,10 @@ function DataSourceProviderTile({
                 data-state={status.state}
             >
                 <span
-                    className="size-1.5 rounded-full bg-current"
+                    className={cn(
+                        "size-1.5 rounded-full bg-current",
+                        status.tone === "syncing" && "animate-pulse",
+                    )}
                     data-sot-provider-status-dot=""
                 />
                 {status.label}
@@ -1285,6 +1304,7 @@ function DataSourcesSettingsPanel({
                                 aria-label={
                                     isZh ? "选择登录方式" : "Select auth mode"
                                 }
+                                className="mb-4 grid w-full grid-cols-2 items-stretch"
                                 disabled={interactionDisabled}
                                 data-sot-list="source-auth-modes"
                                 onValueChange={(mode) => {
@@ -1317,6 +1337,7 @@ function DataSourcesSettingsPanel({
                                         <ToggleGroupItem
                                             key={mode}
                                             aria-pressed={active}
+                                            className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"
                                             data-sot-auth-mode={mode}
                                             data-sot-control="source-auth-mode"
                                             data-sot-state={
@@ -1325,7 +1346,10 @@ function DataSourcesSettingsPanel({
                                             disabled={interactionDisabled}
                                             value={mode}
                                         >
-                                            <span data-sot-part="source-auth-mode-title">
+                                            <span
+                                                className="flex items-center gap-2"
+                                                data-sot-part="source-auth-mode-title"
+                                            >
                                                 {getSourceAuthModeDisplayLabel(
                                                     mode,
                                                     language,
@@ -1348,7 +1372,10 @@ function DataSourcesSettingsPanel({
                                                     </Badge>
                                                 ) : null}
                                             </span>
-                                            <span data-sot-part="source-auth-mode-description">
+                                            <span
+                                                className="text-left"
+                                                data-sot-part="source-auth-mode-description"
+                                            >
                                                 {mode === "web-reverse"
                                                     ? isZh
                                                         ? "网页登录信息。"
