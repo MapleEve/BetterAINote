@@ -517,9 +517,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     const target = event.target;
                     if (
                         target instanceof HTMLElement &&
-                        target.closest(
-                            '[data-sot-panel="confirm-dialog"], .confirm-dialog',
-                        )
+                        target.closest('[data-sot-panel="confirm-dialog"]')
                     ) {
                         event.preventDefault();
                         return;

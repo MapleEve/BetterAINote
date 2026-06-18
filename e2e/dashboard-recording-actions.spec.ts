@@ -1572,6 +1572,113 @@ async function captureConfirmDialogFixture(
             stage.style.width = `${fixtureFrame?.stage.width ?? 560}px`;
             stage.innerHTML = fixtureHtml;
 
+            const scope = `#${CSS.escape(id)}`;
+            const style = document.createElement("style");
+            style.setAttribute("data-confirm-dialog-fixture", id);
+            style.textContent = `
+                ${scope} .confirm-dialog {
+                    font-family: var(--font-sans);
+                    width: 100%;
+                    max-width: 460px;
+                    margin: 12px auto;
+                    background: var(--bg-elevated);
+                    border: 1px solid var(--line-hairline);
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-md);
+                    overflow: hidden;
+                    display: block;
+                    padding: 0;
+                    gap: 0;
+                }
+                [data-theme="dark"] ${scope} .confirm-dialog {
+                    background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+                    border-color: var(--glass-border);
+                    box-shadow: 0 22px 56px rgb(0 0 0 / 0.5);
+                }
+                ${scope} .confirm-head {
+                    padding: 16px 20px 4px;
+                    display: block;
+                    text-align: left;
+                }
+                ${scope} .confirm-head h3 {
+                    font: 600 16px / 1.35 var(--font-display);
+                    letter-spacing: -0.012em;
+                    color: var(--fg-primary);
+                    margin: 0;
+                }
+                ${scope} .confirm-body {
+                    padding: 8px 20px 4px;
+                    font: 500 13px / 1.55 var(--font-sans);
+                    color: var(--fg-secondary);
+                }
+                ${scope} .confirm-body p {
+                    margin: 0 0 8px;
+                }
+                ${scope} .confirm-foot {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    gap: 8px;
+                    padding: 12px 16px 16px;
+                    background: var(--bg-recessed);
+                    border-top: 1px solid var(--line-hairline);
+                }
+                [data-theme="dark"] ${scope} .confirm-foot {
+                    background: color-mix(in srgb, white 3%, transparent);
+                    border-top-color: var(--glass-border-soft);
+                }
+                ${scope} .retx-modal-list {
+                    list-style: disc;
+                    padding-left: 18px;
+                    margin: 4px 0 8px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                ${scope} .retx-modal-list li {
+                    font: 500 12.5px / 1.55 var(--font-sans);
+                    color: var(--fg-secondary);
+                }
+                ${scope} .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    height: 32px;
+                    padding: 0 12px;
+                    border-radius: 9px;
+                    font: 600 12.5px var(--font-sans);
+                    color: var(--fg-primary);
+                    background: var(--bg-elevated);
+                    border: 1px solid var(--line-hairline);
+                    cursor: pointer;
+                    box-shadow: var(--shadow-xs);
+                    transition:
+                        background var(--duration-fast) var(--ease-out),
+                        transform var(--duration-fast) var(--ease-out);
+                }
+                ${scope} .btn.ghost {
+                    background: transparent;
+                    border-color: transparent;
+                    box-shadow: none;
+                    color: var(--fg-secondary);
+                }
+                ${scope} .btn.danger {
+                    background: linear-gradient(180deg, oklch(0.62 0.18 25), oklch(0.55 0.2 25));
+                    border-color: oklch(0.5 0.2 25);
+                    color: white;
+                    box-shadow:
+                        0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
+                        inset 0 1px 0 rgb(255 255 255 / 0.2);
+                }
+                ${scope} .btn.btn-sm {
+                    height: 26px;
+                    padding: 0 10px;
+                    font-size: 12px;
+                    border-radius: 7px;
+                }
+            `;
+
+            host.appendChild(style);
             host.appendChild(stage);
             document.body.appendChild(host);
         },
@@ -1953,7 +2060,7 @@ test("dashboard MoreActionsMenu states match SOT component-library pixels", asyn
     }
 });
 
-test.skip("dashboard ConfirmDialog states match SOT component-library pixels", async ({
+test("dashboard ConfirmDialog states match SOT component-library pixels", async ({
     page,
 }, testInfo) => {
     test.setTimeout(120_000);

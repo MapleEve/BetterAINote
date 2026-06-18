@@ -14036,8 +14036,7 @@ select::-ms-expand {
     }
 }
 
-/* ---- ConfirmDialog (uses .confirm-dialog inside docs canvas) ---- */
-.confirm-dialog,
+/* ---- ConfirmDialog ---- */
 [data-sot-content="confirm-dialog"] {
     font-family: var(--font-sans);
     width: 100%;
@@ -14052,13 +14051,11 @@ select::-ms-expand {
     padding: 0;
     gap: 0;
 }
-[data-theme="dark"] .confirm-dialog,
 [data-theme="dark"] [data-sot-content="confirm-dialog"] {
     background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
     border-color: var(--glass-border);
     box-shadow: 0 22px 56px rgb(0 0 0 / 0.5);
 }
-.confirm-head,
 [data-sot-part="confirm-head"] {
     padding: 16px 20px 4px;
     display: block;
@@ -14066,20 +14063,17 @@ select::-ms-expand {
     gap: normal;
     text-align: left;
 }
-.confirm-head h3,
 [data-sot-part="confirm-title"] {
     font: 600 16px / 1.35 var(--font-display);
     letter-spacing: -0.012em;
     color: var(--fg-primary);
     margin: 0;
 }
-.confirm-body,
 [data-sot-part="confirm-body"] {
     padding: 8px 20px 4px;
     font: 500 13px / 1.55 var(--font-sans);
     color: var(--fg-secondary);
 }
-.confirm-body p,
 [data-sot-part="confirm-description"] {
     margin: 0 0 8px;
 }
@@ -14088,7 +14082,6 @@ select::-ms-expand {
     flex-direction: column;
     gap: 12px;
 }
-.confirm-foot,
 [data-sot-part="confirm-foot"] {
     display: flex;
     flex-direction: row;
@@ -14098,7 +14091,6 @@ select::-ms-expand {
     background: var(--bg-recessed);
     border-top: 1px solid var(--line-hairline);
 }
-[data-theme="dark"] .confirm-foot,
 [data-theme="dark"] [data-sot-part="confirm-foot"] {
     background: color-mix(in srgb, white 3%, transparent);
     border-top-color: var(--glass-border-soft);
@@ -14130,7 +14122,6 @@ select::-ms-expand {
         0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.2);
 }
-.retx-modal-list,
 [data-sot-list="confirm-dialog-details"] {
     list-style: disc;
     padding-left: 18px;
@@ -14139,7 +14130,6 @@ select::-ms-expand {
     flex-direction: column;
     gap: 4px;
 }
-.retx-modal-list li,
 [data-sot-item="confirm-dialog-detail"] {
     display: flex;
     align-items: center;
