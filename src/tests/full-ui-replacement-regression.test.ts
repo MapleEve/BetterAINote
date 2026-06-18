@@ -637,6 +637,29 @@ const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="err"]',
 ];
 
+const SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:sr-state|sr-cards|sr-section(?:-(?:head|sub))?|sr-summary-body|sr-segments|sr-seg(?:-(?:ts|speaker|text))?|sr-meta(?:-row)?|sr-actions)(?![\w-])/;
+
+const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
+    "[data-sot-source-report-state]",
+    "[data-sot-source-report-state][hidden]",
+    "[data-sot-source-report-section]",
+    "[data-sot-source-report-section-header]",
+    "[data-sot-source-report-section-title]",
+    "[data-sot-source-report-description]",
+    "[data-sot-source-report-summary-body]",
+    "[data-sot-source-report-segments]",
+    "[data-sot-source-report-segment]",
+    "[data-sot-source-report-segment-time]",
+    "[data-sot-source-report-segment-speaker]",
+    "[data-sot-source-report-segment-text]",
+    "[data-sot-source-report-meta]",
+    "[data-sot-source-report-meta-row]",
+    "[data-sot-source-report-actions]",
+    '[data-sot-source-report-state][data-state="loaded"][data-sub-state="transcript-missing"]',
+    '[data-sot-source-report-section][data-sot-section="metadata"]::before',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -1901,6 +1924,18 @@ describe("full UI replacement regression coverage", () => {
 
         expect(sourceReportMetricLegacySelectorLines).toEqual([]);
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+
+        const sourceReportSectionLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(sourceReportSectionLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
 
