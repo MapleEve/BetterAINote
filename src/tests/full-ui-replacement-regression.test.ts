@@ -620,6 +620,23 @@ const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-source-report-empty-actions]\n    [data-slot="button"][data-variant="ghost"]',
 ];
 
+const SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:sr-card|sr-card-label|sr-card-value|sr-card-source|sr-card-source-fallback|sr-card-num|sr-pill)(?![\w-])/;
+
+const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-list="source-report-cards"]',
+    '[data-sot-card="source-report-metric"][data-sot-metric]',
+    '[data-sot-part="source-report-card-label"]',
+    '[data-sot-part="source-report-card-value"]',
+    '[data-sot-part="source-report-card-value"][data-sot-value="source"]',
+    '[data-sot-part="source-report-card-source-fallback"]',
+    '[data-sot-part="source-report-card-value"][data-sot-value="number"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone]',
+    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="ok"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="warn"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="err"]',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -1872,6 +1889,18 @@ describe("full UI replacement regression coverage", () => {
 
         expect(sourceReportEmptyLegacySelectorLines).toEqual([]);
         for (const selector of SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+
+        const sourceReportMetricLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(sourceReportMetricLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
 
