@@ -311,6 +311,16 @@ const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
 ];
 
+const COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:copy-ico|copy-ico-default|copy-ico-ok)(?![\w-])/;
+
+const COPY_ICON_DATA_SOT_CSS_SELECTORS = [
+    '[data-slot="button"][data-copy] [data-sot-part="source-report-copy-icon"]',
+    '[data-slot="button"][data-copy] [data-sot-part="dashboard-copy-icon"]',
+    '[data-slot="button"][data-copy][data-copy-state="ok"]',
+    '[data-slot="button"][data-copy][data-copy-state="err"]',
+];
+
 const DETAIL_EMPTY_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail-empty(?:-(?:ico|title|sub))?)(?![\w-])/;
 
@@ -588,6 +598,23 @@ const SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-medium"]',
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-wide"]',
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-short"]',
+];
+
+const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:sr-empty(?:-(?:ico|title|sub|actions))?)(?![\w-])/;
+
+const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
+    "[data-sot-source-report-empty]",
+    '[data-sot-source-report-empty][data-sot-tone="err"]',
+    "[data-sot-source-report-empty-icon]",
+    '[data-sot-source-report-empty][data-sot-tone="err"]\n    [data-sot-source-report-empty-icon]',
+    "[data-sot-source-report-empty-icon] svg",
+    "[data-sot-source-report-empty-title]",
+    "[data-sot-source-report-empty-description]",
+    "[data-sot-source-report-empty-actions]",
+    '[data-sot-source-report-empty-actions] [data-slot="button"]',
+    '[data-sot-source-report-empty-actions]\n    [data-slot="button"][data-variant="primary"]',
+    '[data-sot-source-report-empty-actions]\n    [data-slot="button"][data-variant="ghost"]',
 ];
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
@@ -1182,6 +1209,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps copy icon product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of COPY_ICON_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
@@ -1799,6 +1841,18 @@ describe("full UI replacement regression coverage", () => {
 
         expect(sourceReportSkeletonLegacySelectorLines).toEqual([]);
         for (const selector of SOURCE_REPORT_SKELETON_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+
+        const sourceReportEmptyLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(sourceReportEmptyLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
 

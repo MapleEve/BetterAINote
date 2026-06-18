@@ -5650,15 +5650,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 .sr-actions {
     display: flex;
 }
-.sr-empty {
-    display: flex;
-}
-.sr-empty-ico {
-    display: grid;
-}
-.sr-empty-actions {
-    display: flex;
-}
 [data-sot-panel="recording-tag-manager"] {
     position: fixed;
     z-index: var(--z-context-menu);
@@ -7699,7 +7690,6 @@ body[data-ds-todo="show"] .design-todo {
     pointer-events: none;
 }
 
-.sr-empty,
 [data-sot-source-report-empty] {
     display: flex;
     flex-direction: column;
@@ -7715,12 +7705,10 @@ body[data-ds-todo="show"] .design-todo {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
-.sr-empty.err,
 [data-sot-source-report-empty][data-sot-tone="err"] {
     background: color-mix(in srgb, var(--signal-danger) 6%, transparent);
     border-color: color-mix(in srgb, var(--signal-danger) 26%, transparent);
 }
-.sr-empty-ico,
 [data-sot-source-report-empty-icon] {
     width: 40px;
     height: 40px;
@@ -7731,14 +7719,12 @@ body[data-ds-todo="show"] .design-todo {
     border: 1px solid var(--line-hairline);
     color: var(--fg-tertiary);
 }
-.sr-empty.err .sr-empty-ico,
 [data-sot-source-report-empty][data-sot-tone="err"]
     [data-sot-source-report-empty-icon] {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
     border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
     color: var(--signal-danger);
 }
-.sr-empty-ico svg,
 [data-sot-source-report-empty-icon] svg {
     width: 18px;
     height: 18px;
@@ -7748,26 +7734,22 @@ body[data-ds-todo="show"] .design-todo {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.sr-empty-title,
 [data-sot-source-report-empty-title] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
 }
-.sr-empty-sub,
 [data-sot-source-report-empty-description] {
     font: 500 12px var(--font-sans);
     color: var(--fg-tertiary);
     max-width: 320px;
     line-height: 1.55;
 }
-.sr-empty-actions,
 [data-sot-source-report-empty-actions] {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 6px;
 }
-.sr-empty-actions [data-slot="button"],
 [data-sot-source-report-empty-actions] [data-slot="button"] {
     height: 26px;
     padding: 0 10px;
@@ -7775,7 +7757,6 @@ body[data-ds-todo="show"] .design-todo {
     font: 600 12px var(--font-sans);
     gap: 7px;
 }
-.sr-empty-actions [data-slot="button"][data-variant="primary"],
 [data-sot-source-report-empty-actions]
     [data-slot="button"][data-variant="primary"] {
     background: linear-gradient(
@@ -7789,7 +7770,6 @@ body[data-ds-todo="show"] .design-todo {
         0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.22);
 }
-.sr-empty-actions [data-slot="button"][data-variant="primary"]:hover,
 [data-sot-source-report-empty-actions]
     [data-slot="button"][data-variant="primary"]:hover {
     background: linear-gradient(
@@ -7798,7 +7778,6 @@ body[data-ds-todo="show"] .design-todo {
         var(--accent)
     );
 }
-.sr-empty-actions [data-slot="button"][data-variant="ghost"],
 [data-sot-source-report-empty-actions]
     [data-slot="button"][data-variant="ghost"] {
     background: transparent;
@@ -7806,7 +7785,6 @@ body[data-ds-todo="show"] .design-todo {
     box-shadow: none;
     color: var(--fg-secondary);
 }
-.sr-empty-actions [data-slot="button"][data-variant="ghost"]:hover,
 [data-sot-source-report-empty-actions]
     [data-slot="button"][data-variant="ghost"]:hover {
     background: var(--bg-recessed);
@@ -12439,7 +12417,6 @@ select::-ms-expand {
 }
 
 /* ---- Source detail empty (sr-empty) DS look ---- */
-.sr-empty,
 [data-sot-source-report-empty] {
     display: flex;
     flex-direction: column;
@@ -12448,14 +12425,12 @@ select::-ms-expand {
     padding: 28px 18px;
     gap: 4px;
 }
-.sr-empty.err .sr-empty-ico,
 [data-sot-source-report-empty][data-sot-tone="err"]
     [data-sot-source-report-empty-icon] {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
     color: var(--signal-danger);
     border-color: color-mix(in srgb, var(--signal-danger) 28%, transparent);
 }
-.sr-empty-ico,
 [data-sot-source-report-empty-icon] {
     width: 40px;
     height: 40px;
@@ -12467,7 +12442,6 @@ select::-ms-expand {
     place-items: center;
     margin-bottom: 4px;
 }
-.sr-empty-ico svg,
 [data-sot-source-report-empty-icon] svg {
     width: 16px;
     height: 16px;
@@ -12477,7 +12451,6 @@ select::-ms-expand {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.sr-empty-title,
 [data-sot-source-report-empty-title] {
     display: block;
     min-height: 0;
@@ -12488,7 +12461,6 @@ select::-ms-expand {
     -webkit-box-orient: unset;
     -webkit-line-clamp: unset;
 }
-.sr-empty-sub,
 [data-sot-source-report-empty-description] {
     display: block;
     justify-items: normal;
@@ -12497,7 +12469,6 @@ select::-ms-expand {
     color: var(--fg-tertiary);
     max-width: 360px;
 }
-.sr-empty-actions,
 [data-sot-source-report-empty-actions] {
     display: flex;
     gap: 6px;
@@ -13282,39 +13253,9 @@ select::-ms-expand {
     height: 14px;
     flex: none;
     stroke: currentColor;
-}
-[data-slot="button"][data-copy] .copy-ico {
-    width: 14px;
-    height: 14px;
-    display: inline-grid;
-    place-items: center;
-    position: relative;
-}
-[data-slot="button"][data-copy] .copy-ico svg {
-    width: 14px;
-    height: 14px;
-    position: absolute;
-    inset: 0;
     transition:
         opacity 180ms var(--ease-out),
         transform 180ms var(--ease-out);
-}
-[data-slot="button"][data-copy] .copy-ico-default {
-    opacity: 1;
-    transform: scale(1);
-}
-[data-slot="button"][data-copy] .copy-ico-ok {
-    opacity: 0;
-    transform: scale(0.7);
-}
-[data-slot="button"][data-copy][data-copy-state="ok"] .copy-ico-default {
-    opacity: 0;
-    transform: scale(0.7);
-}
-[data-slot="button"][data-copy][data-copy-state="ok"] .copy-ico-ok {
-    opacity: 1;
-    transform: scale(1);
-    color: var(--signal-success);
 }
 [data-slot="button"][data-copy][data-copy-state="ok"] {
     color: var(--signal-success);
