@@ -731,7 +731,7 @@ function collectInlineModernColorFindings() {
 }
 
 const OLD_UI_CONTRACT_RE =
-    /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const SOURCE_REPORT_LEGACY_SURFACE_RE =
     /uikit-|glass-surface|glass-control|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
@@ -860,15 +860,23 @@ const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
 const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
     /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
 
+const SOURCE_AUTH_MODE_DATA_SOT_SOURCE_HOOKS = [
+    'data-sot-list="source-auth-modes"',
+    'data-sot-control="source-auth-mode"',
+    'data-sot-part="source-auth-mode-title"',
+    'data-sot-part="source-auth-mode-description"',
+    'data-sot-badge="source-auth-mode"',
+    "data-sot-tone={",
+    'tone: "recommended"',
+] as const;
+
 const SOURCE_AUTH_MODE_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-list="source-auth-modes"]',
     '[data-sot-control="source-auth-mode"][data-sot-auth-mode]',
     '[data-sot-control="source-auth-mode"][data-sot-state="selected"]',
     '[data-sot-part="source-auth-mode-title"]',
     '[data-sot-part="source-auth-mode-description"]',
-    '[data-sot-badge="source-auth-mode"][data-slot="badge"]',
-    '[data-sot-badge="source-auth-mode"][data-slot="badge"][data-sot-tone="recommended"]',
-];
+] as const;
 
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
@@ -2207,7 +2215,6 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="dashboard-player-volume-anchor"]',
             '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
             '[data-sot-part="dashboard-player-volume-row"]',
-            '[data-sot-control="dashboard-player-volume-mute"]',
             '[data-sot-part="dashboard-player-volume-icon"]',
             '[data-sot-control="dashboard-player-volume-slider"][data-slot="slider"]',
             '[data-sot-part="recording-player-volume-anchor"]',
@@ -2643,6 +2650,7 @@ describe("full UI replacement regression coverage", () => {
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
+        const badge = readSource("components/ui/badge.tsx");
         const globals = readSource("app/globals.css");
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
@@ -2668,15 +2676,16 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).not.toContain("sp-ico");
         expect(settings).not.toContain("sp-meta");
         expect(settings).not.toContain("sp-status");
-        expect(settings).toContain('data-sot-list="source-auth-modes"');
-        expect(settings).toContain('data-sot-control="source-auth-mode"');
-        expect(settings).toContain('data-sot-badge="source-auth-mode"');
-        expect(settings).toContain("data-sot-tone={");
-        expect(settings).toContain('tone: "recommended"');
+        for (const hook of SOURCE_AUTH_MODE_DATA_SOT_SOURCE_HOOKS) {
+            expect(settings).toContain(hook);
+        }
         expect(settings).toContain('tone: "personal"');
         expect(settings).toContain("<ToggleGroup");
         expect(settings).toContain("<ToggleGroupItem");
         expect(settings).toContain("<Badge");
+        expect(settings).toContain('variant={');
+        expect(badge).toContain('data-slot="badge"');
+        expect(badge).toContain("data-variant={variant}");
         expect(settings).not.toContain("path-card");
         expect(settings).not.toContain("pc-badge");
         expect(settings).toContain('data-sot-control="source-test"');

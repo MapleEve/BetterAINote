@@ -1438,96 +1438,6 @@ button {
     padding: 0;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"],
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"] {
-    flex-shrink: 1;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    font-size: 13.3333px;
-    line-height: var(--lh-body);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"]:hover,
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"]:hover {
-    background: white;
-    color: var(--fg-primary);
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"]:hover,
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"]:hover {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"]:active,
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"]:active {
-    transform: scale(0.96);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-play"] {
-    flex-shrink: 1;
-    width: 44px;
-    height: 44px;
-    padding: 1px 6px;
-    border-radius: 50%;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
-    box-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-    color: white;
-    font: 400 13.3333px var(--font-sans);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-speed"] {
-    height: 32px;
-    min-width: 50px;
-    padding: 0 12px;
-    border-radius: 9px;
-    background: transparent;
-    border: 1px solid transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-    font: 600 12.5px var(--font-mono);
-    justify-content: center;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-speed"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-volume"] {
-    flex-shrink: 1;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-secondary);
-    gap: 0;
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-control-icon"] {
     display: inline-flex;
     align-items: center;
@@ -1536,22 +1446,11 @@ button {
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-control-icon"]
     svg {
-    width: 16px;
-    height: 16px;
     stroke: currentColor;
     stroke-width: 1.8;
     fill: currentColor;
     stroke-linecap: round;
     stroke-linejoin: round;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-play"]
-    [data-sot-part="dashboard-player-control-icon"]
-    svg {
-    width: 18px;
-    height: 18px;
-    fill: white;
-    stroke: white;
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-current-time"],
@@ -1685,27 +1584,12 @@ button {
     gap: 8px;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-volume-mute"] {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border-radius: 6px;
-    color: var(--fg-secondary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-volume-mute"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-volume-icon"] {
     display: inline-flex;
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-volume-icon"]
     svg {
-    width: 13px;
-    height: 13px;
     stroke: currentColor;
     stroke-width: 1.8;
     fill: none;

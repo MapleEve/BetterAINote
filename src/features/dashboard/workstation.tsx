@@ -5930,9 +5930,9 @@ export function Workstation({
                                 data-sot-state={playerControlsState}
                             >
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="icon"
-                                    className="rounded-full"
+                                    className="shrink rounded-full"
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -5950,9 +5950,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
+                                    variant="primary"
                                     size="icon-lg"
-                                    className="rounded-full"
+                                    className="shrink rounded-full shadow-sm"
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -5979,9 +5979,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="icon"
-                                    className="rounded-full"
+                                    className="shrink rounded-full"
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6039,7 +6039,7 @@ export function Workstation({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="min-w-12 font-mono tabular-nums"
+                                    className="min-w-12 justify-center font-mono tabular-nums"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -6050,9 +6050,9 @@ export function Workstation({
                                 </Button>
                                 <div data-sot-part="dashboard-player-volume-anchor">
                                     <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="icon-sm"
-                                        className="rounded-full"
+                                        className="shrink rounded-full"
                                         type="button"
                                         aria-label={`音量 ${volume}`}
                                         aria-expanded={volumePopoverOpen}
@@ -6108,7 +6108,7 @@ export function Workstation({
                                         <div data-sot-part="dashboard-player-volume-row">
                                             <Button
                                                 variant="ghost"
-                                                size="icon-sm"
+                                                size="icon-xs"
                                                 type="button"
                                                 aria-label="静音切换"
                                                 data-sot-control="dashboard-player-volume-mute"
