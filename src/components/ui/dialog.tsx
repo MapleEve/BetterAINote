@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 type DialogPortalWrapperProps = React.ComponentProps<"div"> & {
     [key: `data-${string}`]: string | undefined;
 };
+type DialogOverlayProps = React.ComponentProps<
+    typeof DialogPrimitive.Overlay
+> & {
+    [key: `data-${string}`]: string | undefined;
+};
 
 function Dialog({
     ...props
@@ -37,7 +42,7 @@ function DialogClose({
 function DialogOverlay({
     className,
     ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+}: DialogOverlayProps) {
     return (
         <DialogPrimitive.Overlay
             data-slot="dialog-overlay"
@@ -60,7 +65,7 @@ function DialogContent({
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
     overlayClassName?: string;
-    overlayProps?: React.ComponentProps<typeof DialogPrimitive.Overlay>;
+    overlayProps?: DialogOverlayProps;
     portalWrapperProps?: DialogPortalWrapperProps;
     showCloseButton?: boolean;
 }) {

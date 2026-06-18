@@ -101,9 +101,9 @@ describe("React surface SSR coverage", () => {
             React.createElement(
                 "main",
                 null,
-                React.createElement(Panel, { variant: "glass" }, "Panel"),
+                React.createElement(Panel, null, "Panel"),
                 React.createElement(Button, { variant: "primary" }, "Sync"),
-                React.createElement(Button, { variant: "glass" }, "Preview"),
+                React.createElement(Button, { variant: "outline" }, "Preview"),
                 React.createElement(Input, { defaultValue: "input" }),
                 React.createElement(Label, null, "Label"),
                 React.createElement(Textarea, { defaultValue: "note" }),
@@ -126,11 +126,11 @@ describe("React surface SSR coverage", () => {
         );
 
         expect(html).toContain('data-slot="card"');
-        expect(html).toContain('data-variant="glass"');
+        expect(html).toContain('data-variant="default"');
         expect(html).not.toContain('class="panel');
         expect(html).toContain('data-slot="button"');
         expect(html).toContain('data-variant="primary"');
-        expect(html).toContain('data-variant="glass"');
+        expect(html).toContain('data-variant="outline"');
         expect(html).toContain('data-slot="input"');
         expect(html).toContain('data-slot="label"');
         expect(html).toContain('data-slot="textarea"');

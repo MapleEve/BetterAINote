@@ -511,6 +511,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 data-sot-surface="settings-shell"
                 aria-label={t("settingsDialog.title")}
                 aria-busy={isSettingsBusy}
+                overlayProps={{ "data-sot-overlay": "settings-shell" }}
                 onCloseAutoFocus={handleCloseAutoFocus}
                 onEscapeKeyDown={handleEscapeKeyDown}
                 onInteractOutside={(event) => {

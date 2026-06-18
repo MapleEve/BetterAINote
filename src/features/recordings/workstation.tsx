@@ -951,7 +951,7 @@ export function RecordingWorkstation({
                                 data-sot-mode="normal"
                             >
                                 <Button
-                                    variant="glass"
+                                    variant="outline"
                                     onClick={handleAutoRename}
                                     disabled={
                                         isAutoRenaming || isApplyingAutoRename

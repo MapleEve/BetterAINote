@@ -171,18 +171,20 @@ const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
     /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
-    '[data-slot="dialog-overlay"]',
-    '[data-slot="dialog-overlay"][data-state="open"]',
-    '[data-slot="dialog-overlay"][data-state="closed"]',
-    '[data-slot="dialog-content"]',
-    '[data-slot="dialog-content"][data-state="closed"]',
-    '[data-sot-surface="settings-shell"][data-state="closed"]',
-    '[data-slot="dialog-header"]',
-    '[data-sot-part="dialog-icon"]',
-    '[data-slot="dialog-title"]',
-    '[data-slot="dialog-description"]',
-    '[data-slot="dialog-footer"]',
+    '[data-sot-overlay="settings-shell"]',
+    '[data-sot-overlay="confirm-dialog"]',
+    '[data-sot-overlay="settings-shell"][data-state="open"]',
+    '[data-sot-overlay="confirm-dialog"][data-state="closed"]',
+    '[data-sot-surface="settings-shell"],',
     '[data-sot-content="confirm-dialog"]',
+    '[data-sot-surface="settings-shell"][data-state="closed"]',
+    '[data-sot-content="confirm-dialog"][data-state="closed"]',
+    '[data-sot-surface="settings-shell"] [data-slot="dialog-header"]',
+    '[data-sot-content="confirm-dialog"] [data-slot="dialog-header"]',
+    '[data-sot-part="dialog-icon"]',
+    '[data-sot-surface="settings-shell"] [data-slot="dialog-title"]',
+    '[data-sot-content="confirm-dialog"] [data-slot="dialog-description"]',
+    '[data-sot-surface="settings-shell"] [data-slot="dialog-footer"]',
     '[data-sot-part="confirm-head"]',
     '[data-sot-part="confirm-body"]',
     '[data-sot-part="confirm-foot"]',
@@ -1149,10 +1151,10 @@ describe("full UI replacement regression coverage", () => {
             "link",
             "primary",
             "danger",
-            "glass",
         ]) {
             expect(button).toContain(`${variant}:`);
         }
+        expect(button).not.toContain("glass:");
         expect(button).toContain(
             "export { Button, IconButton, buttonVariants };",
         );

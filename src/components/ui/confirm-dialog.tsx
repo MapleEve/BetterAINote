@@ -115,6 +115,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             >
                 <DialogContent
                     data-sot-content="confirm-dialog"
+                    overlayProps={{ "data-sot-overlay": "confirm-dialog" }}
                     portalWrapperProps={confirmDialogPortalWrapperProps}
                     className="sm:max-w-md"
                     showCloseButton={false}

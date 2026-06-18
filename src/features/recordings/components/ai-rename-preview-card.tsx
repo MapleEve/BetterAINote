@@ -223,7 +223,7 @@ export function AiRenamePreviewCard({
                     {showApply ? (
                         <Button
                             type="button"
-                            variant="glass"
+                            variant="outline"
                             size="sm"
                             onClick={onApply}
                             disabled={isBusy || !canAct}

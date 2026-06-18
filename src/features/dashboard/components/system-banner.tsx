@@ -463,6 +463,7 @@ function SystemBannerItem({
             data-sot-panel="system-banner"
             data-slot="system-banner"
             data-kind={banner.state}
+            data-layout={isStacked ? "stacked" : "single"}
             data-pct={progress ?? undefined}
         >
             <span data-sot-part="system-banner-icon" aria-hidden="true">
@@ -509,9 +510,10 @@ function SystemBannerItem({
                         }
                         onClick={() => handleAction(primaryRole)}
                         size="sm"
+                        data-sot-control="system-banner-primary-action"
                         variant={
                             banner.state === "update-available" && !isStacked
-                                ? "glass"
+                                ? "outline"
                                 : "ghost"
                         }
                         type="button"
@@ -523,6 +525,7 @@ function SystemBannerItem({
                     <Button
                         onClick={() => handleAction("secondary")}
                         size="sm"
+                        data-sot-control="system-banner-secondary-action"
                         variant="ghost"
                         type="button"
                     >
@@ -534,6 +537,7 @@ function SystemBannerItem({
                         aria-label={dismissLabel}
                         onClick={() => onDismiss(banner)}
                         size="icon-sm"
+                        data-sot-control="system-banner-dismiss-action"
                         variant="ghost"
                         type="button"
                     >

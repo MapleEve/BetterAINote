@@ -22,7 +22,6 @@ const buttonVariants = cva(
                 primary:
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                 danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
-                glass: "border border-border bg-background/80 text-foreground shadow-xs backdrop-blur-sm hover:bg-accent hover:text-accent-foreground",
             },
             size: {
                 default: "h-9 px-4 py-2 has-[>svg]:px-3",

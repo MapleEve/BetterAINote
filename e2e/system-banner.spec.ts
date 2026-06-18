@@ -1015,7 +1015,7 @@ test("dashboard system banner primitives match SOT component library styles", as
                     '[data-sot-panel="system-banner"][data-kind="update-available"] [data-sot-part="system-banner-actions"] [data-slot="button"]',
                 )
                 .first(),
-        ).toHaveAttribute("data-variant", "glass");
+        ).toHaveAttribute("data-variant", "outline");
         await expect(
             page
                 .locator(

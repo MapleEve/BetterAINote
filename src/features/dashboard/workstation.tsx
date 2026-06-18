@@ -5549,7 +5549,7 @@ export function Workstation({
                                 data-sot-mode="normal"
                             >
                                 <Button
-                                    variant="glass"
+                                    variant="outline"
                                     type="button"
                                     aria-haspopup="dialog"
                                     aria-expanded={aiOpen}

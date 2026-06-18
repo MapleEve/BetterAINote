@@ -2918,7 +2918,8 @@ button {
 }
 
 /* ======== Dialog overlay + shadcn modal slots ======== */
-[data-slot="dialog-overlay"] {
+[data-sot-overlay="settings-shell"],
+[data-sot-overlay="confirm-dialog"] {
     position: fixed;
     inset: 0;
     width: auto;
@@ -2935,15 +2936,18 @@ button {
     transition: opacity 220ms var(--ease-out);
     z-index: var(--z-modal);
 }
-[data-slot="dialog-overlay"][data-state="open"] {
+[data-sot-overlay="settings-shell"][data-state="open"],
+[data-sot-overlay="confirm-dialog"][data-state="open"] {
     opacity: 1;
     pointer-events: auto;
 }
-[data-slot="dialog-overlay"][data-state="closed"] {
+[data-sot-overlay="settings-shell"][data-state="closed"],
+[data-sot-overlay="confirm-dialog"][data-state="closed"] {
     opacity: 0;
     pointer-events: none;
 }
-[data-slot="dialog-content"] {
+[data-sot-surface="settings-shell"],
+[data-sot-content="confirm-dialog"] {
     color: var(--fg-primary);
     font-family: var(--font-sans);
     z-index: calc(var(--z-modal) + 1);
@@ -2951,10 +2955,12 @@ button {
         transform 280ms var(--ease-out),
         opacity 220ms var(--ease-out);
 }
-[data-slot="dialog-content"][data-state="closed"] {
+[data-sot-surface="settings-shell"][data-state="closed"],
+[data-sot-content="confirm-dialog"][data-state="closed"] {
     opacity: 0;
 }
-[data-slot="dialog-header"] {
+[data-sot-surface="settings-shell"] [data-slot="dialog-header"],
+[data-sot-content="confirm-dialog"] [data-slot="dialog-header"] {
     gap: 8px;
 }
 [data-sot-part="dialog-icon"] {
@@ -2977,18 +2983,21 @@ button {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-[data-slot="dialog-title"] {
+[data-sot-surface="settings-shell"] [data-slot="dialog-title"],
+[data-sot-content="confirm-dialog"] [data-slot="dialog-title"] {
     font: 600 16px var(--font-display);
     letter-spacing: -0.012em;
     color: var(--fg-primary);
     margin: 0 0 4px;
 }
-[data-slot="dialog-description"] {
+[data-sot-surface="settings-shell"] [data-slot="dialog-description"],
+[data-sot-content="confirm-dialog"] [data-slot="dialog-description"] {
     font: 13px / 1.55 var(--font-sans);
     color: var(--fg-secondary);
     margin: 0;
 }
-[data-slot="dialog-footer"] {
+[data-sot-surface="settings-shell"] [data-slot="dialog-footer"],
+[data-sot-content="confirm-dialog"] [data-slot="dialog-footer"] {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
@@ -5985,13 +5994,12 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     color: var(--fg-secondary);
 }
 [data-sot-panel="dashboard-detail-header"]
-    [data-slot="button"][data-variant="glass"] {
+    [data-sot-control="ai-rename"][data-slot="button"] {
     background: var(--glass-tint-base);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
-[data-theme="dark"]
-    [data-sot-panel="dashboard-detail-header"]
+[data-sot-panel="dashboard-detail-header"]
     [data-slot="button"]:hover {
     background: rgb(255 255 255 / 0.06);
 }
@@ -8608,7 +8616,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-sot-panel="ai-rename-preview"]
     [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"][data-variant="glass"] {
+    [data-sot-control="ai-rename-apply"][data-slot="button"] {
     background: var(--glass-tint-base);
     border: 1px solid var(--line-hairline);
     box-shadow: var(--shadow-xs);
@@ -9129,9 +9137,9 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--bg-recessed);
     color: var(--fg-primary);
 }
-[data-sot-panel="system-banner"]
+[data-sot-panel="system-banner"][data-kind="update-available"][data-layout="single"]
     [data-sot-part="system-banner-actions"]
-    [data-slot="button"][data-variant="glass"] {
+    [data-slot="button"]:first-child {
     background: var(--glass-tint-base);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
@@ -10356,13 +10364,12 @@ select::-ms-expand {
         [data-sot-panel="dashboard-detail-header"],
         [data-sot-panel="recording-detail-header"]
     )
-    [data-slot="button"][data-variant="glass"] {
+    [data-sot-control="ai-rename"][data-slot="button"] {
     background: var(--glass-tint-base);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
-[data-theme="dark"]
-    :is(
+:is(
         [data-sot-panel="dashboard-detail-header"],
         [data-sot-panel="recording-detail-header"]
     )
