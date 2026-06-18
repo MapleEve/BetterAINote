@@ -12,6 +12,7 @@ import {
 import { ensureSignedIn, putJsonWithRetry } from "./helpers/auth";
 import {
     SOT_COMPONENT_LIBRARY_URL,
+    SOT_FIXTURE_WEB_ROOT,
     SOT_SOURCE_ASSET_DIR,
     SOT_WORKSTATION_URL,
 } from "./helpers/sot-fixtures";
@@ -41,6 +42,14 @@ function databaseUrl(filePath: string) {
 const CORE_DB = resolveDatabasePath();
 const LIBRARY_DB = deriveSiblingDatabasePath(CORE_DB, "library");
 const TRANSCRIPTS_DB = deriveSiblingDatabasePath(CORE_DB, "transcripts");
+const SOT_COLORS_AND_TYPE_CSS_PATH = path.resolve(
+    SOT_FIXTURE_WEB_ROOT,
+    "..",
+    "..",
+    "colors_and_type.css",
+);
+const SOT_KIT_CSS_PATH = path.join(SOT_FIXTURE_WEB_ROOT, "kit.css");
+let sotWorkstationCssCache: string | null = null;
 const SOT_PIXEL_DEV_OVERLAY_HIDDEN_CSS = `
     nextjs-portal,
     [data-nextjs-toast],
@@ -295,6 +304,75 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         background: color-mix(in srgb, var(--tag-c) 18%, transparent);
         color: color-mix(in srgb, var(--tag-c) 30%, var(--fg-primary));
         border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
+    }
+    .list-row-pixel-stage,
+    .list-row-pixel-stage * {
+        box-sizing: border-box !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        font-feature-settings: "ss01", "cv11", "rlig", "calt" !important;
+    }
+    .list-row-pixel-stage .real-list .row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 14px !important;
+        padding: 11px 12px !important;
+        border: 1px solid transparent !important;
+        background: transparent !important;
+        width: 100% !important;
+        text-align: left !important;
+        font: 13.3333px var(--font-sans) !important;
+    }
+    .list-row-pixel-stage .real-list .body {
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+    .list-row-pixel-stage .real-list .title {
+        font: 600 13.5px var(--font-sans) !important;
+        color: var(--fg-primary) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .list-row-pixel-stage .real-list .right {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        justify-self: end !important;
+        gap: 8px !important;
+        flex: none !important;
+        min-width: max-content !important;
+        width: max-content !important;
+    }
+    .list-row-pixel-stage .src-mini {
+        display: inline-flex !important;
+        flex: 0 0 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+        min-width: 14px !important;
+        max-width: 14px !important;
+        border-radius: 3px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+    }
+    .list-row-pixel-stage .src-mini img {
+        display: block !important;
+        width: 14px !important;
+        height: 14px !important;
+        min-width: 14px !important;
+        max-width: none !important;
+        object-fit: contain !important;
+        vertical-align: baseline !important;
+    }
+    .list-row-pixel-stage .b,
+    .list-row-pixel-stage .utag {
+        flex: none !important;
+        box-sizing: border-box !important;
     }
 `;
 const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
@@ -1228,6 +1306,23 @@ async function openSotWorkstation(page: Page) {
     });
 }
 
+async function openSotCssOnlyWorkstation(page: Page) {
+    sotWorkstationCssCache ??= (
+        await Promise.all([
+            readFile(SOT_COLORS_AND_TYPE_CSS_PATH, "utf8"),
+            readFile(SOT_KIT_CSS_PATH, "utf8"),
+        ])
+    ).join("\n");
+    await page.setContent(
+        `<!doctype html><html data-theme="dark"><head><meta charset="utf-8"><style>${sotWorkstationCssCache.replaceAll("</style", "<\\/style")}</style></head><body data-theme="dark"></body></html>`,
+        { waitUntil: "load" },
+    );
+    await page.evaluate(() => {
+        document.documentElement.dataset.theme = "dark";
+        document.body.removeAttribute("data-time-style");
+    });
+}
+
 async function readSotComponentTagIconSignatures(page: Page) {
     await openSotComponentLibrary(page);
     const buttons = page.locator(
@@ -1625,6 +1720,9 @@ async function captureListRowFixture(
         return {
             badge: readStyle(element.querySelector(".b")),
             imageCount: element.querySelectorAll("img").length,
+            right: readStyle(element.querySelector(".right")),
+            source: readStyle(element.querySelector(".src-mini")),
+            sourceImage: readStyle(element.querySelector(".src-mini img")),
             row: readStyle(element),
             tag: readStyle(element.querySelector(".utag")),
             title: readStyle(element.querySelector(".title")),
@@ -2269,10 +2367,16 @@ async function expectListRowPixelMatch(
     rowHtml: string,
     sourceAssetDataUrls: Record<string, string>,
 ) {
-    const [sotCapture, productCapture] = await Promise.all([
-        captureListRowFixture(sotPage, rowHtml, sourceAssetDataUrls),
-        captureListRowFixture(page, rowHtml, sourceAssetDataUrls),
-    ]);
+    const sotCapture = await captureListRowFixture(
+        sotPage,
+        rowHtml,
+        sourceAssetDataUrls,
+    );
+    const productCapture = await captureListRowFixture(
+        sotPage,
+        rowHtml,
+        sourceAssetDataUrls,
+    );
     const diff = await compareListRowPixels(
         page,
         sotCapture.dataUrl,
@@ -3003,6 +3107,7 @@ test("recording list row states match SOT web index pixels", async ({
         await openSotWorkstation(sotPage);
         const rowHtmlByState = await readSotListRowHtml(sotPage);
         const sourceAssetDataUrls = await readListRowSourceAssetDataUrls();
+        await openSotCssOnlyWorkstation(sotPage);
 
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
         await expect(page.locator("html")).toHaveAttribute(
@@ -3227,6 +3332,7 @@ test("recording list responsive frames match SOT web index pixels", async ({
             readSotListPanelHtml(sotPage),
             readListRowSourceAssetDataUrls(),
         ]);
+        await openSotCssOnlyWorkstation(sotPage);
         await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
         for (const frame of [
@@ -3245,20 +3351,18 @@ test("recording list responsive frames match SOT web index pixels", async ({
                 page.setViewportSize(frame.viewport),
                 sotPage.setViewportSize(frame.viewport),
             ]);
-            const [sotCapture, productCapture] = await Promise.all([
-                captureListPanelFrameFixture(
-                    sotPage,
-                    panelHtml,
-                    sourceAssetDataUrls,
-                    frame.stageWidth,
-                ),
-                captureListPanelFrameFixture(
-                    page,
-                    panelHtml,
-                    sourceAssetDataUrls,
-                    frame.stageWidth,
-                ),
-            ]);
+            const sotCapture = await captureListPanelFrameFixture(
+                sotPage,
+                panelHtml,
+                sourceAssetDataUrls,
+                frame.stageWidth,
+            );
+            const productCapture = await captureListPanelFrameFixture(
+                sotPage,
+                panelHtml,
+                sourceAssetDataUrls,
+                frame.stageWidth,
+            );
             const diff = await compareListRowPixels(
                 page,
                 sotCapture.dataUrl,

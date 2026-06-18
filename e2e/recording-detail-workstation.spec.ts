@@ -2410,6 +2410,7 @@ function bridgeSpeakerRowSotFixtureContract(html: string) {
     return `<style>
 ${scope} .cl-stage{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;flex-wrap:wrap!important;min-height:56px!important;padding:10px 0 4px!important}
 ${scope} .cl-stage.cl-stage-canvas{display:block!important;padding:0!important;border:1px dashed rgba(0,0,0,.1)!important;border-radius:10px!important;background:var(--canvas,#f6f4ef)!important;min-height:auto!important}
+${scope} .avatar-sm{display:inline-grid!important;place-items:center!important;width:28px!important;height:28px!important;min-width:28px!important;border-radius:50%!important;background:color-mix(in srgb,var(--steel-500) 18%,transparent)!important;color:var(--fg-primary)!important;font:600 12px/1 var(--font-sans)!important;flex:none!important;box-sizing:border-box!important}
 ${scope} .avatar-sm._is-4{background:color-mix(in srgb,oklch(0.580 0.130 235) 26%,transparent)!important;color:oklch(0.580 0.130 235)!important}
 ${scope} .avatar-sm._is-5{background:color-mix(in srgb,oklch(0.560 0.150 285) 24%,transparent)!important;color:oklch(0.560 0.150 285)!important}
 ${scope} .avatar-sm._is-6{background:color-mix(in srgb,oklch(0.560 0.130 158) 24%,transparent)!important;color:oklch(0.560 0.130 158)!important}

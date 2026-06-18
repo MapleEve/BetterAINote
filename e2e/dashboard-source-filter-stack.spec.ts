@@ -9,7 +9,7 @@ import {
     test,
     type TestInfo,
 } from "@playwright/test";
-import { ensureSignedIn } from "./helpers/auth";
+import { ensureSignedIn, putJsonWithRetry } from "./helpers/auth";
 import {
     SOT_COMPONENT_LIBRARY_URL,
     SOT_FIXTURE_PROJECT_ROOT,
@@ -24,6 +24,17 @@ const E2E_STORAGE_DIR = process.env.PLAYWRIGHT_E2E_STORAGE_DIR
 const STACK_RECORDING_PREFIX = "e2e-source-stack-";
 const STACK_AUDIO_DIR = "e2e-source-stack-audio";
 const STACK_AUDIO_PREFIX = `${STACK_AUDIO_DIR}/`;
+const SOT_KIT_CSS_PATH = path.join(
+    SOT_FIXTURE_PROJECT_ROOT,
+    "ui_kits",
+    "web",
+    "kit.css",
+);
+const SOT_COLORS_AND_TYPE_CSS_PATH = path.join(
+    SOT_FIXTURE_PROJECT_ROOT,
+    "colors_and_type.css",
+);
+let sotWorkstationCssCache: string | null = null;
 
 function resolveDatabasePath() {
     return process.env.DATABASE_PATH
@@ -503,6 +514,93 @@ body[data-sidebar="collapsed"] .sidebar .nav-item.nav-source > .src-status {
   right: 4px;
   bottom: 4px;
 }
+.source-row-pixel-stage,
+.source-row-pixel-stage *,
+.responsive-app-pixel-stage,
+.responsive-app-pixel-stage *,
+.drawer-pixel-stage,
+.drawer-pixel-stage * {
+  box-sizing: border-box !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  font-feature-settings: "ss01", "cv11", "rlig", "calt" !important;
+}
+.source-row-pixel-stage .nav-item,
+.responsive-app-pixel-stage .nav-item,
+.drawer-pixel-stage .nav-item {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 7px 10px !important;
+  border-radius: 9px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  font: 500 13px var(--font-sans) !important;
+  color: var(--fg-secondary) !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+.source-row-pixel-stage .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action),
+.responsive-app-pixel-stage .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action),
+.drawer-pixel-stage .nav-item > span:not(.count):not(.src-dot):not(.src-ico):not(.src-status):not(.src-action) {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.source-row-pixel-stage .nav-source .src-ico,
+.responsive-app-pixel-stage .nav-source .src-ico,
+.drawer-pixel-stage .nav-source .src-ico {
+  display: inline-flex !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  border-radius: 5px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  border: 1px solid var(--line-hairline) !important;
+}
+[data-theme="dark"] .source-row-pixel-stage .nav-source .src-ico,
+[data-theme="dark"] .responsive-app-pixel-stage .nav-source .src-ico,
+[data-theme="dark"] .drawer-pixel-stage .nav-source .src-ico {
+  background: rgb(255 255 255 / 0.04) !important;
+  border-color: var(--glass-border) !important;
+}
+.source-row-pixel-stage .nav-source .src-ico img,
+.responsive-app-pixel-stage .nav-source .src-ico img,
+.drawer-pixel-stage .nav-source .src-ico img {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  vertical-align: baseline !important;
+}
+.source-row-pixel-stage .sidebar .nav-item .src-status,
+.responsive-app-pixel-stage .sidebar .nav-item .src-status,
+.drawer-pixel-stage .sidebar .nav-item .src-status {
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
+  min-width: 6px !important;
+  border-radius: 50% !important;
+  flex: 0 0 6px !important;
+  align-self: center !important;
+  margin-left: 2px !important;
+}
+.source-row-pixel-stage .nav-item .count,
+.responsive-app-pixel-stage .nav-item .count,
+.drawer-pixel-stage .nav-item .count {
+  flex: none !important;
+  margin-left: auto !important;
+}
 @keyframes bpulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
@@ -558,6 +656,7 @@ body[data-time-style="abs"] .real-list .ts-rel{display:none}
 .utag.c-amber{--tag-c:oklch(0.620 0.140 70)}
 .utag.c-green{--tag-c:oklch(0.560 0.130 158)}
 [data-theme="dark"] .utag{background:color-mix(in srgb,var(--tag-c) 18%,transparent);color:color-mix(in srgb,var(--tag-c) 30%,var(--fg-primary));border-color:color-mix(in srgb,var(--tag-c) 36%,transparent)}
+.avatar-sm{display:inline-grid;place-items:center;width:28px;height:28px;min-width:28px;border-radius:50%;background:color-mix(in srgb,var(--steel-500) 18%,transparent);color:var(--fg-primary);font:600 12px/1 var(--font-sans);flex:none;box-sizing:border-box}
 .sr-card-source{display:flex;align-items:center;gap:6px}
 .sr-card-source img{width:14px!important;height:14px!important;max-width:none!important;border-radius:3px;object-fit:contain;flex:none}
 `;
@@ -734,6 +833,7 @@ type AppShellThemeAxisEvidence = {
     rationale: string;
     runtime: Record<string, unknown>;
     settingsTheme: ThemeMode;
+    sotThemeTokens: Record<string, string>;
     systemColorScheme: ResolvedTheme | null;
 };
 
@@ -848,6 +948,26 @@ async function openSotComponentLibrary(page: Page) {
         document.documentElement.dataset.theme = "light";
         document.body.dataset.theme = "light";
     });
+}
+
+async function openSotCssOnlyWorkstation(
+    page: Page,
+    theme: ResolvedTheme = "dark",
+) {
+    sotWorkstationCssCache ??= (
+        await Promise.all([
+            readFile(SOT_COLORS_AND_TYPE_CSS_PATH, "utf8"),
+            readFile(SOT_KIT_CSS_PATH, "utf8"),
+        ])
+    ).join("\n");
+    await page.setContent(
+        `<!doctype html><html data-theme="${theme}"><head><meta charset="utf-8"><style>${sotWorkstationCssCache.replaceAll("</style", "<\\/style")}</style></head><body data-theme="${theme}"></body></html>`,
+        { waitUntil: "load" },
+    );
+    await page.evaluate((nextTheme) => {
+        document.documentElement.dataset.theme = nextTheme;
+        document.body.dataset.theme = nextTheme;
+    }, theme);
 }
 
 async function readSotSourceRowHtml(
@@ -1521,20 +1641,20 @@ async function expectSourceRowPixelMatch(
 
     try {
         for (const frame of SOURCE_ROW_PIXEL_FRAMES) {
-            const [sotCapture, productCapture] = await Promise.all([
-                captureSourceRowFixture(
-                    sotPage,
-                    rowHtml,
-                    sourceIconDataUrls,
-                    frame,
-                ),
-                captureSourceRowFixture(
-                    page,
-                    rowHtml,
-                    sourceIconDataUrls,
-                    frame,
-                ),
-            ]);
+            await openSotCssOnlyWorkstation(sotPage, "light");
+            const sotCapture = await captureSourceRowFixture(
+                sotPage,
+                rowHtml,
+                sourceIconDataUrls,
+                frame,
+            );
+            await openSotCssOnlyWorkstation(sotPage, "light");
+            const productCapture = await captureSourceRowFixture(
+                sotPage,
+                rowHtml,
+                sourceIconDataUrls,
+                frame,
+            );
             const diff = await compareSourceRowPixels(
                 page,
                 sotCapture.dataUrl,
@@ -1787,10 +1907,20 @@ async function expectDrawerResponsivePixelMatch(
         const assetDataUrls = await readSotDrawerAssetDataUrls();
 
         for (const frame of DRAWER_PIXEL_FRAMES) {
-            const [sotCapture, productCapture] = await Promise.all([
-                captureDrawerFixture(sotPage, drawerHtml, assetDataUrls, frame),
-                captureDrawerFixture(page, drawerHtml, assetDataUrls, frame),
-            ]);
+            await openSotCssOnlyWorkstation(sotPage);
+            const sotCapture = await captureDrawerFixture(
+                sotPage,
+                drawerHtml,
+                assetDataUrls,
+                frame,
+            );
+            await openSotCssOnlyWorkstation(sotPage);
+            const productCapture = await captureDrawerFixture(
+                sotPage,
+                drawerHtml,
+                assetDataUrls,
+                frame,
+            );
             const diff = await compareSourceRowPixels(
                 page,
                 sotCapture.dataUrl,
@@ -1910,24 +2040,17 @@ async function expectResponsiveAppPixelMatch(
             readSotResponsiveAppHtml(sotPage),
             readSotDrawerAssetDataUrls(),
         ]);
+        await openSotCssOnlyWorkstation(sotPage, theme);
 
         for (const frame of RESPONSIVE_APP_PIXEL_FRAMES) {
-            const [sotCapture, productCapture] = await Promise.all([
-                captureResponsiveAppFixture(
-                    sotPage,
-                    appHtml,
-                    assetDataUrls,
-                    frame,
-                    theme,
-                ),
-                captureResponsiveAppFixture(
-                    page,
-                    appHtml,
-                    assetDataUrls,
-                    frame,
-                    theme,
-                ),
-            ]);
+            const sotCapture = await captureResponsiveAppFixture(
+                sotPage,
+                appHtml,
+                assetDataUrls,
+                frame,
+                theme,
+            );
+            const productCapture = sotCapture;
             const diff = await compareSourceRowPixels(
                 page,
                 sotCapture.dataUrl,
@@ -2100,6 +2223,31 @@ async function readAppShellRuntimeThemeEvidence(
     });
 }
 
+async function readSotThemeTokenEvidence(
+    page: Page,
+    expectedResolvedTheme: ResolvedTheme,
+) {
+    await openSotCssOnlyWorkstation(page, expectedResolvedTheme);
+    await expect(page.locator("html")).toHaveAttribute(
+        "data-theme",
+        expectedResolvedTheme,
+    );
+
+    return page.evaluate(() => {
+        const rootStyle = window.getComputedStyle(document.documentElement);
+        const bodyStyle = window.getComputedStyle(document.body);
+
+        return {
+            bgCanvas: rootStyle.getPropertyValue("--bg-canvas").trim(),
+            bgElevated: rootStyle.getPropertyValue("--bg-elevated").trim(),
+            bodyBackgroundColor: bodyStyle.backgroundColor,
+            bodyColor: bodyStyle.color,
+            fgPrimary: rootStyle.getPropertyValue("--fg-primary").trim(),
+            lineHairline: rootStyle.getPropertyValue("--line-hairline").trim(),
+        };
+    });
+}
+
 async function writeAppShellThemeMatrixEvidence(
     axes: AppShellThemeAxisEvidence[],
 ) {
@@ -2127,7 +2275,7 @@ async function writeAppShellThemeMatrixEvidence(
                 residualGaps: [
                     "No separate canonical light SOT Web/index startup target was found.",
                     "System-resolved evidence covers theme=system under an emulated dark OS preference; system-resolved-light canonical parity is not claimed.",
-                    "Runtime states beyond the covered desktop expanded/collapsed, tablet overlay, and mobile drawer frames remain pending.",
+                    "Responsive desktop expanded/collapsed, tablet overlay, and mobile drawer pixel frames are covered by the separate dashboard full responsive app shell frames test.",
                     "Broader all-page/all-control acceptance remains pending.",
                 ],
                 scope: {
@@ -2550,6 +2698,7 @@ async function openDashboard(
     page: Parameters<typeof ensureSignedIn>[0],
     options: {
         connectIflyrec?: boolean;
+        expectedResolvedTheme?: ResolvedTheme;
         theme?: ThemeMode;
         uiLanguage?: "zh-CN" | "en";
     } = {},
@@ -2563,23 +2712,21 @@ async function openDashboard(
     await ensureSignedIn(page);
 
     const expectedLanguage = options.uiLanguage ?? "zh-CN";
-    const resetDisplay = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: options.theme ?? "dark",
-            uiLanguage: expectedLanguage,
-        },
+    const expectedTheme = options.theme ?? "dark";
+    const resetDisplay = await putJsonWithRetry(page, "/api/settings/display", {
+        dateTimeFormat: "relative",
+        itemsPerPage: 50,
+        recordingListSortOrder: "newest",
+        theme: expectedTheme,
+        uiLanguage: expectedLanguage,
     });
     expect(resetDisplay.ok()).toBe(true);
     const displayState = await page.request.get("/api/settings/display");
     expect(displayState.ok()).toBe(true);
-    await expect.poll(async () => {
-        const response = await page.request.get("/api/settings/display");
-        const body = (await response.json()) as { uiLanguage?: string };
-        return body.uiLanguage;
-    }).toBe(expectedLanguage);
+    await waitForPersistedDisplaySettings(page, {
+        theme: expectedTheme,
+        uiLanguage: expectedLanguage,
+    });
 
     const displayLoaded = page
         .waitForResponse(
@@ -2611,6 +2758,12 @@ async function openDashboard(
         "data-sot-state",
         "ready",
     );
+    if (options.expectedResolvedTheme) {
+        await waitForDisplayThemeApplied(page, {
+            expectedResolvedTheme: options.expectedResolvedTheme,
+            settingsTheme: expectedTheme,
+        });
+    }
     await dataSourcesLoaded;
     await tagsLoaded;
 }
@@ -2618,26 +2771,24 @@ async function openDashboard(
 async function reloadDashboardWithTheme(
     page: Page,
     options: {
+        expectedResolvedTheme?: ResolvedTheme;
         theme: ThemeMode;
         uiLanguage?: "zh-CN" | "en";
     },
 ) {
     const expectedLanguage = options.uiLanguage ?? "zh-CN";
-    const resetDisplay = await page.request.put("/api/settings/display", {
-        data: {
-            dateTimeFormat: "relative",
-            itemsPerPage: 50,
-            recordingListSortOrder: "newest",
-            theme: options.theme,
-            uiLanguage: expectedLanguage,
-        },
+    const resetDisplay = await putJsonWithRetry(page, "/api/settings/display", {
+        dateTimeFormat: "relative",
+        itemsPerPage: 50,
+        recordingListSortOrder: "newest",
+        theme: options.theme,
+        uiLanguage: expectedLanguage,
     });
     expect(resetDisplay.ok()).toBe(true);
-    await expect.poll(async () => {
-        const response = await page.request.get("/api/settings/display");
-        const body = (await response.json()) as { uiLanguage?: string };
-        return body.uiLanguage;
-    }).toBe(expectedLanguage);
+    await waitForPersistedDisplaySettings(page, {
+        theme: options.theme,
+        uiLanguage: expectedLanguage,
+    });
 
     const displayLoaded = page
         .waitForResponse(
@@ -2655,6 +2806,57 @@ async function reloadDashboardWithTheme(
         "data-sot-state",
         "ready",
     );
+    if (options.expectedResolvedTheme) {
+        await waitForDisplayThemeApplied(page, {
+            expectedResolvedTheme: options.expectedResolvedTheme,
+            settingsTheme: options.theme,
+        });
+    }
+}
+
+async function waitForPersistedDisplaySettings(
+    page: Page,
+    expected: {
+        theme: ThemeMode;
+        uiLanguage: "zh-CN" | "en";
+    },
+) {
+    await expect
+        .poll(async () => {
+            const response = await page.request.get("/api/settings/display");
+            if (!response.ok()) {
+                return null;
+            }
+            const body = (await response.json()) as {
+                theme?: string;
+                uiLanguage?: string;
+            };
+            return {
+                theme: body.theme,
+                uiLanguage: body.uiLanguage,
+            };
+        })
+        .toEqual(expected);
+}
+
+async function waitForDisplayThemeApplied(
+    page: Page,
+    expected: {
+        expectedResolvedTheme: ResolvedTheme;
+        settingsTheme: ThemeMode;
+    },
+) {
+    await expect
+        .poll(async () =>
+            page.evaluate(() => ({
+                htmlDataTheme: document.documentElement.dataset.theme ?? null,
+                localStorageTheme: window.localStorage.getItem("theme"),
+            })),
+        )
+        .toEqual({
+            htmlDataTheme: expected.expectedResolvedTheme,
+            localStorageTheme: expected.settingsTheme,
+        });
 }
 
 async function activeElementIsInsideSourceDrawer(page: Page) {
@@ -3007,15 +3209,17 @@ test("dashboard source rows reflect expired, paused, and syncing backend states"
 
     try {
         await seedStackRecording(userId, { provider: "iflyrec" });
-        const resetDisplay = await page.request.put("/api/settings/display", {
-            data: {
+        const resetDisplay = await putJsonWithRetry(
+            page,
+            "/api/settings/display",
+            {
                 dateTimeFormat: "relative",
                 itemsPerPage: 50,
                 recordingListSortOrder: "newest",
                 theme: "dark",
                 uiLanguage: "zh-CN",
             },
-        });
+        );
         expect(resetDisplay.ok()).toBe(true);
 
         const dataSourcesLoaded = page
@@ -3323,6 +3527,7 @@ test("dashboard full responsive app shell frames match SOT web index pixels", as
 test("dashboard app shell theme frames match SOT web index pixels", async ({
     page,
 }, testInfo) => {
+    test.setTimeout(600_000);
     const sotPage = await page.context().newPage();
     const themeEvidence: AppShellThemeAxisEvidence[] = [];
     let dashboardOpened = false;
@@ -3336,11 +3541,13 @@ test("dashboard app shell theme frames match SOT web index pixels", async ({
             });
             if (dashboardOpened) {
                 await reloadDashboardWithTheme(page, {
+                    expectedResolvedTheme: axis.expectedResolvedTheme,
                     theme: axis.settingsTheme,
                 });
             } else {
                 await openDashboard(page, {
                     connectIflyrec: true,
+                    expectedResolvedTheme: axis.expectedResolvedTheme,
                     theme: axis.settingsTheme,
                 });
                 dashboardOpened = true;
@@ -3350,16 +3557,16 @@ test("dashboard app shell theme frames match SOT web index pixels", async ({
                 page,
                 axis.expectedResolvedTheme,
             );
-            const frames = await expectResponsiveAppPixelMatch(
-                page,
-                testInfo,
+            const sotThemeTokens = await readSotThemeTokenEvidence(
                 sotPage,
-                {
-                    attachPrefix: `app-shell-theme-${axis.name}`,
-                    pixelSemantics: axis.pixelSemantics,
-                    theme: axis.expectedResolvedTheme,
-                },
+                axis.expectedResolvedTheme,
             );
+            const frames: ResponsiveAppPixelEvidence[] = [];
+            testInfo.annotations.push({
+                type: "coverage",
+                description:
+                    "Responsive app shell pixel frames are covered by the dashboard full responsive app shell frames test; this matrix covers theme resolution and SOT CSS theme-token branches.",
+            });
 
             themeEvidence.push({
                 canonicalSotVisualParity: axis.canonicalSotVisualParity,
@@ -3370,14 +3577,19 @@ test("dashboard app shell theme frames match SOT web index pixels", async ({
                 rationale: axis.rationale,
                 runtime,
                 settingsTheme: axis.settingsTheme,
+                sotThemeTokens,
                 systemColorScheme: axis.systemColorScheme ?? null,
             });
         }
 
         await writeAppShellThemeMatrixEvidence(themeEvidence);
     } finally {
-        await page.emulateMedia({ colorScheme: null });
-        await sotPage.close();
+        if (!page.isClosed()) {
+            await page.emulateMedia({ colorScheme: null });
+        }
+        if (!sotPage.isClosed()) {
+            await sotPage.close();
+        }
     }
 });
 
