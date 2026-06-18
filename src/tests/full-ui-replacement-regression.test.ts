@@ -1186,6 +1186,19 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
+const AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS = [
+    '[data-sot-panel="ai-rename-preview"]',
+    '[data-sot-panel="ai-rename-preview"][data-open="true"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden]',
+    '.cl-pop-host > [data-sot-panel="ai-rename-preview"]',
+] as const;
+
+const AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE =
+    /\[data-slot="(?:alert|alert-description|alert-title|badge|button|card|card-content|card-description|card-footer|card-header|card-title)"\]/;
+
+const AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE =
+    /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|margin|padding|text-decoration(?:-[\w-]+)?|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -2066,6 +2079,38 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacyAiRenameSelectorLines).toEqual([]);
+
+        for (const selector of AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS) {
+            const retainedBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ prelude }) =>
+                    stripCssComments(prelude)
+                        .split(",")
+                        .map((selectorPart) => selectorPart.trim())
+                        .includes(selector),
+            );
+
+            expect(retainedBlocks).toHaveLength(1);
+        }
+
+        const aiRenameBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="ai-rename-preview"]',
+        );
+        expect(aiRenameBlocks).toHaveLength(
+            AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS.length,
+        );
+
+        const primitiveOrRepaintBlocks = aiRenameBlocks.filter(
+            ({ declarations, prelude }) =>
+                AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE.test(
+                    stripCssComments(prelude),
+                ) ||
+                AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
+        );
+
+        expect(primitiveOrRepaintBlocks).toEqual([]);
     });
 
     it("keeps AI rename legacy tokens out of product source", () => {
@@ -3284,6 +3329,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(aiRenamePreview).toContain('from "@/components/ui/card";');
+        expect(aiRenamePreview).toContain('import { cn } from "@/lib/utils";');
         expect(aiRenamePreview).toContain("<Card");
         expect(aiRenamePreview).toContain("<CardHeader");
         expect(aiRenamePreview).toContain("<CardContent");
@@ -3297,6 +3343,24 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-sot-part="review-row"');
         expect(aiRenamePreview).toContain('data-sot-part="review-old"');
         expect(aiRenamePreview).toContain('data-sot-part="review-new"');
+        expect(aiRenamePreview).toContain(
+            '"w-[min(360px,calc(100vw-32px))] gap-0"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="flex min-h-20 flex-col px-3.5 py-3.5"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="size-4 animate-spin self-center"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="flex flex-col gap-1.5"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="min-w-0 break-words"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="flex items-center gap-1.5 px-3.5 py-2"',
+        );
         for (const rawClass of [
             "ai-rename-panel",
             "airp-head",

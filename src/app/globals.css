@@ -3150,34 +3150,15 @@ body[data-time-style="abs"]
 [data-sot-panel="ai-rename-preview"] {
     position: absolute;
     top: calc(100% + 8px);
-    right: 0;
+    right: 2px;
     z-index: var(--z-popover-inline);
-    display: flex;
     pointer-events: none;
 }
 [data-sot-panel="ai-rename-preview"][data-open="true"] {
     pointer-events: auto;
 }
-[data-sot-panel="ai-rename-preview"] [data-sot-part="head"] {
-    display: flex;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="head-copy"] {
-    display: flex;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="body"] {
-    display: flex;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="state"] {
-    display: flex;
-}
 [data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden] {
     display: none !important;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] {
-    display: inline-flex;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="actions"] {
-    display: flex;
 }
 [data-sot-part="dashboard-activity-anchor"] {
     position: relative;
@@ -3764,9 +3745,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    misc (toast, empty, list-state-block).
    ============================================================ */
 
-/* ---------- Generic popover surface (reused by topbar, activity, airp, tag manager, more, vol-pop) ---------- */
+/* ---------- Generic popover surface (reused by topbar, activity, tag manager, more, vol-pop) ---------- */
 [data-sot-panel="dashboard-activity"],
-[data-sot-panel="ai-rename-preview"],
 [data-sot-panel="recording-tag-manager"],
 [data-sot-menu="recording-more-actions"] {
     /* SOLID surface — no transparency, no color-mix alpha, no backdrop-filter
@@ -3786,7 +3766,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         transform 180ms var(--ease-out);
 }
 [data-theme="dark"] [data-sot-panel="dashboard-activity"],
-[data-theme="dark"] [data-sot-panel="ai-rename-preview"],
 [data-theme="dark"] [data-sot-panel="recording-tag-manager"],
 [data-theme="dark"] [data-sot-menu="recording-more-actions"] {
     /* Dark theme: fully opaque graphite. Previous 92% color-mix produced
@@ -3800,7 +3779,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         0 24px 64px -12px rgb(0 0 0 / 0.6);
 }
 [data-sot-panel="dashboard-activity"][data-open="true"],
-[data-sot-panel="ai-rename-preview"][data-open="true"],
 [data-sot-panel="recording-tag-manager"][data-open="true"],
 [data-sot-menu="recording-more-actions"][data-open="true"],
 [data-sot-menu="recording-more-actions"][data-state="open"] {
@@ -4299,133 +4277,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--signal-danger);
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-danger) 22%, transparent);
-}
-
-/* ---------- AI Rename popover ---------- */
-[data-sot-panel="ai-rename-preview"] {
-    width: 320px;
-    max-width: calc(100vw - 32px);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="head"][data-slot="card-header"] {
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px 8px;
-    border-bottom: 1px solid var(--line-hairline);
-}
-[data-theme="dark"]
-    [data-sot-panel="ai-rename-preview"]
-    [data-sot-part="head"][data-slot="card-header"] {
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="head-copy"] {
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="eyebrow"][data-slot="card-title"] {
-    font: 600 11px var(--font-sans);
-    color: var(--fg-secondary);
-    letter-spacing: 0.02em;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="subtitle"][data-slot="card-description"] {
-    font: 500 11px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-control="ai-rename-close"][data-slot="button"] {
-    width: 24px;
-    height: 24px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"] svg {
-    width: 11px;
-    height: 11px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="body"][data-slot="card-content"] {
-    flex-direction: column;
-    padding: 14px;
-    min-height: 80px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="state"] {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="loading-spinner"] {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1.6px solid var(--fg-tertiary);
-    border-top-color: transparent;
-    animation: spin 700ms linear infinite;
-    margin-bottom: 2px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="message"] {
-    margin: 0;
-    font: 500 12.5px / 1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="label"] {
-    font: 600 10.5px var(--font-sans);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="title"] {
-    font: 600 14.5px var(--font-display);
-    color: var(--fg-primary);
-    letter-spacing: -0.012em;
-    padding: 8px 10px;
-    background: var(--bg-recessed);
-    border-radius: 8px;
-    border: 1px solid var(--line-hairline);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="hint"] {
-    margin: 0;
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-    align-items: center;
-    justify-content: center;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"] {
-    align-items: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border-top: 1px solid var(--line-hairline);
-    background: var(--bg-recessed);
-}
-[data-theme="dark"]
-    [data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"] {
-    background: rgb(255 255 255 / 0.03);
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="actions-spacer"] {
-    flex: 1;
 }
 
 [data-sot-part="detail-header-title-status"] {
@@ -5610,144 +5461,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     }
 }
 
-/* ---------- AI rename popover fix: column layout + width + wrapping ----------
-   Functional rule sets `[data-sot-panel="ai-rename-preview"] { display: flex }` (row by default),
-   so header / body / footer were stacking SIDE-BY-SIDE, forcing each text
-   container to ~100px and triggering per-character wrapping. Force column. */
-[data-sot-panel="ai-rename-preview"] {
-    flex-direction: column !important;
-    width: 360px;
-    max-width: min(360px, calc(100vw - 32px));
-    gap: 0;
-    /* Push the panel inward when anchor is at the far right of the rec-head */
-    right: 2px;
-    left: auto;
-    /* Prevent any descendant from inheriting an oblique writing-mode */
-    writing-mode: horizontal-tb;
-}
-[data-sot-panel="ai-rename-preview"] * {
-    writing-mode: horizontal-tb;
-}
-
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="head"][data-slot="card-header"] {
-    flex: none;
-    align-items: flex-start;
-    justify-content: space-between;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="head-copy"] {
-    flex: 1;
-    min-width: 0;
-    white-space: normal;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="eyebrow"],
-[data-sot-panel="ai-rename-preview"] [data-sot-part="subtitle"] {
-    display: block;
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: anywhere;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-control="ai-rename-close"][data-slot="button"] {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-}
-
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="body"][data-slot="card-content"] {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-direction: column;
-    padding: 14px;
-    min-height: 80px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="state"] {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    white-space: normal;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="message"],
-[data-sot-panel="ai-rename-preview"] [data-sot-part="hint"] {
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: anywhere;
-    text-wrap: pretty;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="title"] {
-    white-space: normal;
-    word-break: normal;
-    overflow-wrap: anywhere;
-    text-wrap: pretty;
-    line-height: 1.4;
-}
-
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"] {
-    flex: none;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: nowrap;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"] {
-    flex: none;
-    width: auto;
-    height: 26px;
-    min-width: auto;
-    gap: 7px;
-    padding: 0 10px;
-    border-radius: 7px;
-    font: 600 12px var(--font-sans);
-    white-space: nowrap;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"][data-variant="ghost"] {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-sot-control="ai-rename-apply"][data-slot="button"] {
-    background: var(--glass-tint-base);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-primary);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"]:disabled,
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"][aria-disabled="true"] {
-    opacity: 0.55;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"]
-    [data-slot="button"]
-    svg {
-    width: 11px;
-    height: 11px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="actions-spacer"] {
-    flex: 1 1 auto;
-}
-
 /* ---------- Settings rail group fix ----------
    The nav group is flex-based, so the group label and each settings nav
    button need an explicit column flow inside the 200px rail.
@@ -5811,8 +5524,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-provider-card]:focus-visible,
 [data-sot-part="source-provider-action"]:focus-visible,
 [data-sot-part="source-filter-action"]:focus-visible,
-[data-sot-control="dashboard-activity-dismiss"]:focus-visible,
-[data-sot-control="ai-rename-close"]:focus-visible {
+[data-sot-control="dashboard-activity-dismiss"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
     outline-offset: 2px;
 }
@@ -6544,90 +6256,6 @@ select::-ms-expand {
     font: 500 12px var(--font-mono);
 }
 
-/* ---- AI Rename popover surface fix — solid DS chrome ---- */
-[data-sot-panel="ai-rename-preview"][data-slot="card"] {
-    font-family: var(--font-sans);
-    background: var(--bg-elevated);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: 1px solid var(--line-hairline);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-}
-[data-theme="dark"] [data-sot-panel="ai-rename-preview"][data-slot="card"] {
-    background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
-    border-color: var(--glass-border);
-    box-shadow: 0 18px 44px rgb(0 0 0 / 0.4);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="actions"][data-slot="card-footer"] {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="message"] {
-    font: 500 12.5px / 1.5 var(--font-sans);
-    color: var(--fg-secondary);
-    margin: 0;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="label"] {
-    font: 600 10.5px / 1 var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="title"] {
-    font: 600 15px / 1.4 var(--font-display);
-    color: var(--fg-primary);
-    letter-spacing: -0.008em;
-    margin: 4px 0 6px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="hint"] {
-    font: 500 11.5px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-    margin: 0;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-    display: inline-grid;
-    place-items: center;
-    margin: 0 auto 6px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="loading-spinner"] {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid color-mix(in srgb, var(--accent) 36%, transparent);
-    border-top-color: var(--accent);
-    animation: spin 700ms linear infinite;
-    display: inline-block;
-    margin: 0 auto 6px;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="loading-spinner"] * {
-    display: none;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="state"][data-slot="alert"] {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="state-description"] {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-}
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -7089,76 +6717,11 @@ select::-ms-expand {
    7) State-matrix extensions
    ----
    No-audio player, transcription job banner + list-row chips,
-   AI rename review/unavailable, speaker tab state-block overlays,
+   speaker tab state-block overlays,
    source detail loaded sub-states. All driven by Tweaks-only
    toggles plus product-natural transitions. The product UI shows
    exactly one variant at a time — no audit panels, no checklists.
    ============================================================ */
-
-/* ---- AI rename: review & unavailable states ---- */
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-row"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 6px 0;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-line"] {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="review-tag"][data-slot="badge"] {
-    font: 600 10.5px var(--font-sans);
-    justify-content: flex-start;
-    height: auto;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--fg-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    flex: none;
-    min-width: 56px;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="review-tag"][data-sot-review-field="new"] {
-    color: var(--accent);
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-old"],
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-new"] {
-    font: 600 13px / 1.4 var(--font-sans);
-    color: var(--fg-primary);
-    word-break: break-word;
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-old"] {
-    color: var(--fg-secondary);
-    text-decoration: line-through;
-    text-decoration-color: color-mix(
-        in srgb,
-        var(--fg-tertiary) 50%,
-        transparent
-    );
-}
-[data-sot-panel="ai-rename-preview"] [data-sot-part="review-new"] {
-    color: var(--fg-primary);
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="state"][data-sot-state="unavailable"] {
-    text-align: center;
-    padding: 8px 4px;
-}
-[data-sot-panel="ai-rename-preview"]
-    [data-sot-part="state"][data-sot-state="unavailable"]
-    [data-sot-part="error-icon"] {
-    color: var(--signal-warning);
-    background: color-mix(in srgb, var(--signal-warning) 14%, transparent);
-}
 
 /* ---- Speaker pane state blocks (overlay for non-default states) ---- */
 
