@@ -1309,9 +1309,7 @@ button {
 [data-sot-list="dashboard-recording-list-scroll"],
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"],
 [data-sot-part="recording-transcription-body"],
-.tx-body,
-[data-sot-panel="settings-body"],
-.shortcuts-list {
+[data-sot-panel="settings-body"] {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--fg-tertiary) 40%, transparent)
         transparent;
@@ -1319,26 +1317,20 @@ button {
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar,
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar,
-.tx-body::-webkit-scrollbar,
-[data-sot-panel="settings-body"]::-webkit-scrollbar,
-.shortcuts-list::-webkit-scrollbar {
+[data-sot-panel="settings-body"]::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track,
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-track,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-track,
-.tx-body::-webkit-scrollbar-track,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-track,
-.shortcuts-list::-webkit-scrollbar-track {
+[data-sot-panel="settings-body"]::-webkit-scrollbar-track {
     background: transparent;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb,
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-thumb,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb,
-.tx-body::-webkit-scrollbar-thumb,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb,
-.shortcuts-list::-webkit-scrollbar-thumb {
+[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--fg-tertiary) 35%, transparent);
     border-radius: 999px;
     border: 2px solid transparent;
@@ -1347,9 +1339,7 @@ button {
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover,
 [data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar-thumb:hover,
 [data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb:hover,
-.tx-body::-webkit-scrollbar-thumb:hover,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover,
-.shortcuts-list::-webkit-scrollbar-thumb:hover {
+[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
 }

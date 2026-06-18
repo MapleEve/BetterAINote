@@ -261,7 +261,7 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
 ];
 
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
-    /\.(?:more-menu|more-menu-item|more-menu-sep|more-menu-label|more-menu-hint|more-anchor|more-head|more-action)(?![\w-])/;
+    /\.(?:more-anchor|more-head|more-action(?:-[\w-]+)?|more-menu(?:-(?:item(?:-shortcut)?|sep|label|hint))?)(?![\w-])/;
 
 const MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-menu="recording-more-actions"]',
@@ -278,6 +278,22 @@ const MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-menu-item] [data-sot-menu-hint]",
     "[data-sot-menu-separator]",
     "[data-sot-menu-label]",
+];
+
+const SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:tx-body|shortcuts-list)(?![\w-])/;
+
+const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-list="dashboard-recording-list-scroll"]',
+    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-part="recording-transcription-body"]',
+    '[data-sot-panel="settings-body"]',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
+    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar',
+    '[data-sot-part="recording-transcription-body"]::-webkit-scrollbar',
+    '[data-sot-panel="settings-body"]::-webkit-scrollbar',
+    '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
+    '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
 ];
 
 function splitVarArguments(content: string) {
@@ -1104,6 +1120,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps shared scrollbars product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
