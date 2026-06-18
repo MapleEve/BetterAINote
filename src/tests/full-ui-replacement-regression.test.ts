@@ -1100,6 +1100,29 @@ const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
 const RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
+const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
+    '[data-sot-panel="recording-detail-list"][data-slot="card"]',
+    '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
+    '[data-sot-panel="recording-source-record"][data-slot="card"]',
+    '[data-sot-panel="recording-transcription-skeleton"][data-slot="card"]',
+    '[data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
+    '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
+    '[data-sot-part="recording-detail-metadata-header"]',
+    '[data-sot-part="recording-source-record-header"]',
+    '[data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
+    '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
+    '[data-sot-part="recording-detail-metadata-body"]',
+    '[data-sot-part="recording-source-record-body"]',
+    '[data-sot-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
+    '[data-sot-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
+] as const;
+
+const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -3552,6 +3575,24 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sourceRecordPanel).toContain(`data-sot-part="${part}"`);
         }
+        for (const marker of [
+            "handleCopyLocalTranscript",
+            "handleCopyRawTranscript",
+        ]) {
+            const markerIndex = sourceRecordPanel.indexOf(marker);
+            expect(markerIndex).toBeGreaterThanOrEqual(0);
+            const copyButtonSource = sourceRecordPanel.slice(
+                Math.max(0, markerIndex - 320),
+                markerIndex + 1200,
+            );
+
+            expect(copyButtonSource).toContain("<Button");
+            expect(copyButtonSource).toContain('variant="outline"');
+            expect(copyButtonSource).toContain('size="sm"');
+            expect(copyButtonSource).toContain(
+                '<Copy data-icon="inline-start" />',
+            );
+        }
         expect(detail).toContain(
             'data-sot-panel="recording-source-record-empty"',
         );
@@ -3567,19 +3608,20 @@ describe("full UI replacement regression coverage", () => {
             expect(sourceRecordPanel).not.toContain(legacyClass);
         }
         expect(detail).not.toContain('className="detail-empty"');
+        for (const selector of RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
+        }
         for (const selector of [
-            '[data-sot-panel="recording-detail-list"][data-slot="card"]',
-            '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
-            '[data-sot-panel="recording-source-record"][data-slot="card"]',
-            '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
-            '[data-sot-part="recording-detail-metadata-header"]',
-            '[data-sot-part="recording-source-record-header"]',
-            '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
-            '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
-            '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
-            '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
-            '[data-sot-part="recording-detail-metadata-body"]',
-            '[data-sot-part="recording-source-record-body"]',
+            '[data-sot-list="recording-detail-list-rows"]',
             '[data-sot-part="recording-source-record-actions"]',
             '[data-sot-part="recording-source-record-tabs"]',
             '[data-sot-part="recording-source-record-hint"]',

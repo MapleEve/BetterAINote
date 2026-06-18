@@ -814,16 +814,26 @@ export function RecordingWorkstation({
                 <div data-sot-panel="workstation-workspace">
                     <Card
                         hasNoPadding
+                        className="min-h-0 gap-0"
                         data-sot-panel="recording-detail-list"
                         aria-label="当前录音"
                         role="region"
                     >
-                        <CardHeader data-sot-part="recording-detail-list-header">
-                            <CardTitle data-sot-part="recording-detail-list-title">
+                        <CardHeader
+                            className="gap-0 border-b px-3 py-3"
+                            data-sot-part="recording-detail-list-header"
+                        >
+                            <CardTitle
+                                className="text-sm"
+                                data-sot-part="recording-detail-list-title"
+                            >
                                 当前录音
                             </CardTitle>
                         </CardHeader>
-                        <CardContent data-sot-part="recording-detail-list-content">
+                        <CardContent
+                            className="flex min-h-0 flex-col px-0"
+                            data-sot-part="recording-detail-list-content"
+                        >
                             <div data-sot-list="recording-detail-list-rows">
                                 <div
                                     data-sot-item="recording-detail-list-row"
@@ -1190,10 +1200,15 @@ export function RecordingWorkstation({
 
                                 <Card
                                     hasNoPadding
+                                    className="min-h-0 gap-0"
                                     data-sot-panel="recording-detail-metadata"
                                 >
-                                    <CardHeader data-sot-part="recording-detail-metadata-header">
+                                    <CardHeader
+                                        className="flex items-center gap-3 border-b px-4 py-3"
+                                        data-sot-part="recording-detail-metadata-header"
+                                    >
                                         <CardTitle
+                                            className="min-w-0 flex-1 truncate text-xl"
                                             data-sot-part="recording-detail-metadata-title"
                                             role="heading"
                                             aria-level={2}
@@ -1201,7 +1216,10 @@ export function RecordingWorkstation({
                                             {t("recording.details")}
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent data-sot-part="recording-detail-metadata-body">
+                                    <CardContent
+                                        className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6"
+                                        data-sot-part="recording-detail-metadata-body"
+                                    >
                                         <Field>
                                             <FieldContent>
                                                 <FieldTitle>
@@ -1262,10 +1280,15 @@ export function RecordingWorkstation({
                             >
                                 <Card
                                     hasNoPadding
+                                    className="min-h-0 gap-0"
                                     data-sot-panel="recording-source-record"
                                 >
-                                    <CardHeader data-sot-part="recording-source-record-header">
+                                    <CardHeader
+                                        className="flex items-center gap-3 border-b px-4 py-3"
+                                        data-sot-part="recording-source-record-header"
+                                    >
                                         <CardTitle
+                                            className="min-w-0 flex-1 truncate text-xl"
                                             data-sot-part="recording-source-record-title"
                                             role="heading"
                                             aria-level={2}
@@ -1275,6 +1298,7 @@ export function RecordingWorkstation({
                                         <div data-sot-part="recording-source-record-actions">
                                             <Button
                                                 type="button"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={
                                                     handleCopyLocalTranscript
@@ -1287,7 +1311,7 @@ export function RecordingWorkstation({
                                                     copyingAction === "local"
                                                 }
                                             >
-                                                <Copy />
+                                                <Copy data-icon="inline-start" />
                                                 {copyingAction === "local"
                                                     ? t("common.copying")
                                                     : t(
@@ -1296,6 +1320,7 @@ export function RecordingWorkstation({
                                             </Button>
                                             <Button
                                                 type="button"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={
                                                     handleCopyRawTranscript
@@ -1310,7 +1335,7 @@ export function RecordingWorkstation({
                                                     "raw-transcript"
                                                 }
                                             >
-                                                <Copy />
+                                                <Copy data-icon="inline-start" />
                                                 {copyingAction ===
                                                 "raw-transcript"
                                                     ? t("common.copying")
@@ -1320,7 +1345,10 @@ export function RecordingWorkstation({
                                             </Button>
                                         </div>
                                     </CardHeader>
-                                    <CardContent data-sot-part="recording-source-record-body">
+                                    <CardContent
+                                        className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-4 pb-6"
+                                        data-sot-part="recording-source-record-body"
+                                    >
                                         <Field>
                                             <FieldContent>
                                                 <FieldTitle>

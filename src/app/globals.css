@@ -883,44 +883,6 @@ button {
 [data-theme="dark"] [data-sot-panel="recording-route-empty-detail"] {
     border-color: var(--glass-border);
 }
-[data-sot-panel="recording-detail-list"][data-slot="card"] {
-    min-height: 0;
-    gap: 0;
-    border-radius: 16px;
-    border-color: var(--line-hairline);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
-}
-[data-theme="dark"] [data-sot-panel="recording-detail-list"][data-slot="card"] {
-    border-color: var(--glass-border);
-}
-[data-sot-panel="recording-detail-list"]
-    [data-sot-part="recording-detail-list-header"][data-slot="card-header"] {
-    gap: 0;
-    padding: 12px 12px 10px;
-    border-bottom: 1px solid var(--line-hairline);
-    background: transparent;
-}
-[data-theme="dark"]
-    [data-sot-panel="recording-detail-list"]
-    [data-sot-part="recording-detail-list-header"][data-slot="card-header"] {
-    background: transparent;
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-panel="recording-detail-list"]
-    [data-sot-part="recording-detail-list-title"][data-slot="card-title"] {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-    margin: 0;
-}
-[data-sot-panel="recording-detail-list"]
-    [data-sot-part="recording-detail-list-content"][data-slot="card-content"] {
-    display: flex;
-    min-height: 0;
-    flex-direction: column;
-    padding: 0;
-}
-
 /* List panel */
 [data-sot-part="dashboard-recording-list-header"] {
     padding: 12px 12px 10px;
@@ -1578,58 +1540,6 @@ button {
     gap: 16px;
     min-height: 0;
 }
-[data-sot-panel="recording-detail-metadata"][data-slot="card"],
-[data-sot-panel="recording-source-record"][data-slot="card"] {
-    min-height: 0;
-    gap: 0;
-    border-radius: 16px;
-    background: var(--bg-elevated);
-    border-color: color-mix(in srgb, var(--graphite-300) 70%, transparent);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: none;
-}
-[data-theme="dark"]
-    [data-sot-panel="recording-detail-metadata"][data-slot="card"],
-[data-theme="dark"]
-    [data-sot-panel="recording-source-record"][data-slot="card"] {
-    background: color-mix(in srgb, var(--fg-primary) 2.5%, transparent);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
-}
-[data-sot-part="recording-detail-metadata-header"],
-[data-sot-part="recording-source-record-header"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-part="recording-detail-metadata-header"],
-[data-theme="dark"] [data-sot-part="recording-source-record-header"] {
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"],
-[data-sot-part="recording-source-record-title"][data-slot="card-title"] {
-    margin: 0;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    color: var(--fg-primary);
-    font: 600 22px var(--font-display);
-    letter-spacing: 0;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-[data-sot-part="recording-detail-metadata-body"],
-[data-sot-part="recording-source-record-body"] {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-    flex-direction: column;
-    gap: 14px;
-    overflow-y: auto;
-    padding: 16px 20px 22px;
-}
 [data-sot-part="recording-source-record-actions"] {
     margin-left: auto;
     display: flex;
@@ -1772,32 +1682,12 @@ button {
     flex: 1;
     min-height: 0;
     gap: 0;
-    padding: 0;
-    border-radius: 16px;
-    background: var(--bg-elevated);
-    border-color: color-mix(in srgb, var(--graphite-300) 70%, transparent);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: none;
-}
-[data-theme="dark"]
-    [data-sot-panel="recording-transcription-skeleton"][data-slot="card"],
-[data-theme="dark"]
-    [data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"] {
-    background: color-mix(in srgb, var(--fg-primary) 2.5%, transparent);
-    border-color: var(--glass-border-soft);
-    box-shadow: none;
 }
 [data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 12px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--line-hairline);
-}
-[data-theme="dark"]
-    [data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"] {
-    border-bottom-color: var(--glass-border-soft);
 }
 [data-sot-part="recording-transcription-skeleton-heading"] {
     display: flex;
@@ -1816,7 +1706,6 @@ button {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 16px 20px 22px;
 }
 [data-sot-panel="recording-transcription-review-skeleton"] {
     display: flex;
@@ -3764,7 +3653,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     [data-sot-panel="dashboard-topbar"],
     [data-sot-panel="workstation-topbar"],
     [data-sot-surface="dashboard-recording-list"],
-    [data-sot-panel="recording-detail-list"][data-slot="card"],
+    [data-sot-panel="recording-detail-list"],
     [data-sot-panel="recording-workstation-detail"] {
         min-width: 0;
         max-width: 100%;

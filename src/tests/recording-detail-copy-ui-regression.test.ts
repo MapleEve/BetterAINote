@@ -31,11 +31,91 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractCssBlock(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
+
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return source.slice(openBraceIndex + 1, index);
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: extractCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
+
+const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
+    '[data-sot-panel="recording-detail-list"][data-slot="card"]',
+    '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
+    '[data-sot-panel="recording-source-record"][data-slot="card"]',
+    '[data-sot-panel="recording-transcription-skeleton"][data-slot="card"]',
+    '[data-sot-panel="recording-transcription-speaker-review-skeleton"][data-slot="card"]',
+    '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
+    '[data-sot-part="recording-detail-metadata-header"]',
+    '[data-sot-part="recording-source-record-header"]',
+    '[data-sot-part="recording-transcription-skeleton-header"][data-slot="card-header"]',
+    '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-detail-metadata-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-source-record-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
+    '[data-sot-part="recording-detail-metadata-body"]',
+    '[data-sot-part="recording-source-record-body"]',
+    '[data-sot-part="recording-transcription-skeleton-body"][data-slot="card-content"]',
+    '[data-sot-list="recording-transcription-speaker-cards"][data-slot="card-content"]',
+] as const;
+
+const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 describe("recording detail copy and title action UI regressions", () => {
     it("redacts failed transcription job errors before they reach recording detail UI", () => {
@@ -154,9 +234,6 @@ describe("recording detail copy and title action UI regressions", () => {
         ]) {
             expect(globals).not.toContain(removedSelector);
         }
-        expect(globals).toContain(
-            '[data-sot-banner]:not([data-sot-banner="transcription-job"])',
-        );
         expect(globals).not.toContain("\n[data-sot-banner] {\n");
         expect(globals).not.toContain("\n[data-sot-banner-icon] {\n");
         for (const legacyClass of [
@@ -512,14 +589,21 @@ describe("recording detail copy and title action UI regressions", () => {
         ]) {
             expect(listPanel).not.toContain(legacyClass);
         }
-        for (const selector of [
-            '[data-sot-panel="recording-detail-list"][data-slot="card"]',
-            '[data-sot-part="recording-detail-list-header"][data-slot="card-header"]',
-            '[data-sot-part="recording-detail-list-title"][data-slot="card-title"]',
-            '[data-sot-part="recording-detail-list-content"][data-slot="card-content"]',
-        ]) {
-            expect(globals).toContain(selector);
+        for (const selector of RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
         }
+        expect(globals).toContain(
+            '[data-sot-list="recording-detail-list-rows"]',
+        );
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);
@@ -643,6 +727,24 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-part="recording-source-record-actions"',
         );
         expect(detailWorkstation).not.toContain('className="t-actions"');
+        for (const marker of [
+            "handleCopyLocalTranscript",
+            "handleCopyRawTranscript",
+        ]) {
+            const markerIndex = sourceRecordPanel.indexOf(marker);
+            expect(markerIndex).toBeGreaterThanOrEqual(0);
+            const copyButtonSource = sourceRecordPanel.slice(
+                Math.max(0, markerIndex - 320),
+                markerIndex + 1200,
+            );
+
+            expect(copyButtonSource).toContain("<Button");
+            expect(copyButtonSource).toContain('variant="outline"');
+            expect(copyButtonSource).toContain('size="sm"');
+            expect(copyButtonSource).toContain(
+                '<Copy data-icon="inline-start" />',
+            );
+        }
         expect(detailWorkstation).toMatch(
             /aria-busy=\{\s*copyingAction ===\s*"local"\s*\}/,
         );
