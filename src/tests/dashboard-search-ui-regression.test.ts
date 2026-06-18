@@ -27,12 +27,33 @@ const LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
 ];
 
 const DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="library-search-anchor"]',
+    '[data-sot-panel="library-search"]',
+    '[data-sot-panel="library-search"][data-open="true"]',
+    '[data-sot-panel="library-search"] kbd',
+    '[data-sot-region="library-search-scroll"]',
+    '[data-sot-part="library-search-indexing"]',
+    '[data-sot-part="library-search-loading"]',
+    '[data-sot-part="library-search-empty"]',
+    '[data-sot-list="library-search-results"]',
+    '[data-sot-group="library-search-results"]',
+    '[data-sot-part="library-search-group-label"]',
+    '[data-sot-control="library-search-result"] mark',
+];
+
+const DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-search"][data-slot="button"]',
     '[data-sot-control="dashboard-search"][data-slot="button"] svg',
-    '[data-sot-part="library-search-input-row"]',
+    '[data-sot-part="library-search-input-row"] [data-slot="input-group-addon"]',
     '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
-    '[data-sot-part="library-search-input-row"] [data-slot="input-group-addon"] svg',
-    '[data-sot-panel="library-search"] kbd',
+    '[data-sot-control="library-search-clear"]',
+    '[data-sot-control="library-search-scope"]',
+    '[data-sot-part="library-search-error"] [data-slot="alert-title"]',
+    '[data-sot-part="library-search-error"] [data-slot="button"]',
+    '[data-sot-control="library-search-result"] {',
+    '[data-sot-control="library-search-result"]:hover',
+    '[data-sot-control="library-search-result"]:focus-visible',
+    '[data-sot-part="library-search-tag-chip"] {',
 ];
 
 describe("dashboard SOT search and activity interactions", () => {
@@ -70,6 +91,20 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("<InputGroupButton");
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");
+        expect(workstation).toContain(
+            'className="border border-transparent text-muted-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground"',
+        );
+        expect(workstation).toContain('variant="outline"');
+        expect(workstation).toContain('size="xs"');
+        expect(workstation).toContain(
+            'className="h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0"',
+        );
+        expect(workstation).toContain(
+            'className="w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2"',
+        );
+        expect(workstation).toContain(
+            'className="h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 whitespace-normal rounded-sm px-2.5 py-2 text-left data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"',
+        );
         expect(workstation).toContain('data-sot-panel="library-search"');
         expect(workstation).toContain(
             'data-sot-part="library-search-input-row"',
@@ -138,12 +173,9 @@ describe("dashboard SOT search and activity interactions", () => {
         for (const selector of [
             '[data-sot-part="library-search-anchor"]',
             '[data-sot-panel="library-search"]',
-            '[data-sot-part="library-search-input-row"]',
-            '[data-sot-part="library-search-scope"]',
-            '[data-sot-control="library-search-scope"]',
             '[data-sot-region="library-search-scroll"]',
             '[data-sot-list="library-search-results"]',
-            '[data-sot-control="library-search-result"]',
+            '[data-sot-control="library-search-result"] mark',
         ]) {
             expect(globals).toContain(selector);
         }
@@ -159,6 +191,9 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
     });
 

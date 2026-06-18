@@ -390,19 +390,33 @@ const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE = new RegExp(
 const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-anchor"]',
     '[data-sot-panel="library-search"]',
-    '[data-sot-part="library-search-input-row"]',
-    '[data-sot-control="library-search-clear"]',
-    '[data-sot-part="library-search-scope"]',
-    '[data-sot-control="library-search-scope"]',
+    '[data-sot-panel="library-search"][data-open="true"]',
+    '[data-sot-panel="library-search"] kbd',
     '[data-sot-region="library-search-scroll"]',
     '[data-sot-part="library-search-indexing"]',
+    '[data-sot-part="library-search-loading"]',
+    '[data-sot-part="library-search-empty"]',
+    '[data-sot-part="library-search-state-skeleton"]',
+    '[data-sot-part="library-search-state-copy"]',
     '[data-sot-list="library-search-results"]',
     '[data-sot-group="library-search-results"]',
     '[data-sot-part="library-search-group-label"]',
-    '[data-sot-control="library-search-result"]',
-    '[data-sot-part="library-search-result-title"]',
-    '[data-sot-part="library-search-result-meta"]',
-    '[data-sot-part="library-search-tag-chip"]',
+    '[data-sot-control="library-search-result"] mark',
+];
+
+const LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
+    '[data-sot-control="dashboard-search"][data-slot="button"]',
+    '[data-sot-control="dashboard-search"][data-slot="button"] svg',
+    '[data-sot-part="library-search-input-row"] [data-slot="input-group-addon"]',
+    '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
+    '[data-sot-control="library-search-clear"]',
+    '[data-sot-control="library-search-scope"]',
+    '[data-sot-part="library-search-error"] [data-slot="alert-title"]',
+    '[data-sot-part="library-search-error"] [data-slot="button"]',
+    '[data-sot-control="library-search-result"] {',
+    '[data-sot-control="library-search-result"]:hover',
+    '[data-sot-control="library-search-result"]:focus-visible',
+    '[data-sot-part="library-search-tag-chip"] {',
 ];
 
 const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -427,10 +441,6 @@ const DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="source-provider-status"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
-    '[data-sot-control="dashboard-search"][data-slot="button"]',
-    '[data-sot-control="dashboard-search"][data-slot="button"] svg',
-    '[data-sot-control="library-search-input"][data-slot="input-group-control"]',
-    '[data-sot-panel="library-search"] kbd',
     '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
 ];
 
@@ -1565,6 +1575,9 @@ describe("full UI replacement regression coverage", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
     });
 

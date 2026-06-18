@@ -3984,6 +3984,7 @@ export function Workstation({
                                 ref={searchTriggerRef}
                                 variant="ghost"
                                 size="icon-sm"
+                                className="border border-transparent text-muted-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground"
                                 type="button"
                                 aria-label={t("librarySearch.openSearch")}
                                 aria-expanded={searchOpen}
@@ -4002,6 +4003,7 @@ export function Workstation({
                             {searchOpen ? (
                                 <Card
                                     hasNoPadding
+                                    className="rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none"
                                     data-open="true"
                                     data-state={searchPanelState}
                                     data-sot-panel="library-search"
@@ -4014,16 +4016,21 @@ export function Workstation({
                                     onKeyDown={handleLibrarySearchKeyDown}
                                 >
                                     <InputGroup
+                                        className="h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0"
                                         data-sot-part="library-search-input-row"
                                         data-state={searchPanelState}
                                         data-disabled={String(
                                             searchPanelState === "indexing",
                                         )}
                                     >
-                                        <InputGroupAddon align="inline-start">
+                                        <InputGroupAddon
+                                            align="inline-start"
+                                            className="p-0 text-muted-foreground"
+                                        >
                                             <Search data-icon="inline-start" />
                                         </InputGroupAddon>
                                         <InputGroupInput
+                                            className="h-8 px-1 text-sm font-medium"
                                             ref={searchInputRef}
                                             value={query}
                                             aria-disabled={
@@ -4053,6 +4060,7 @@ export function Workstation({
                                         searchPanelState !== "error" ? (
                                             <InputGroupButton
                                                 size="icon-xs"
+                                                className="text-muted-foreground hover:text-foreground"
                                                 aria-label={t(
                                                     "librarySearch.clearSearch",
                                                 )}
@@ -4072,14 +4080,17 @@ export function Workstation({
                                                     }, 0);
                                                 }}
                                             >
-                                                <X />
+                                                <X data-icon="inline-start" />
                                             </InputGroupButton>
                                         ) : null}
                                     </InputGroup>
                                     <ToggleGroup
                                         type="single"
+                                        variant="outline"
+                                        size="sm"
                                         value={searchScope}
                                         spacing={1.5}
+                                        className="w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2"
                                         aria-label={t(
                                             "librarySearch.scopeLegend",
                                         )}
@@ -4105,6 +4116,7 @@ export function Workstation({
                                             <ToggleGroupItem
                                                 key={item.value}
                                                 value={item.value}
+                                                className="h-6 rounded-full px-2.5 text-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
                                                 aria-pressed={
                                                     item.value === searchScope
                                                 }
@@ -4166,15 +4178,21 @@ export function Workstation({
                                             </div>
                                         ) : searchError ? (
                                             <Alert
+                                                variant="destructive"
+                                                className="flex flex-col items-center gap-2 border-0 bg-transparent px-4 py-4 text-center shadow-none"
                                                 data-sot-part="library-search-error"
                                                 data-sot-state="error"
                                             >
-                                                <AlertTitle data-sot-part="library-search-state-title">
+                                                <AlertTitle
+                                                    className="line-clamp-none min-h-0 text-center text-sm font-medium"
+                                                    data-sot-part="library-search-state-title"
+                                                >
                                                     {t("librarySearch.error")}
                                                 </AlertTitle>
                                                 <Button
-                                                    variant="ghost"
-                                                    size="sm"
+                                                    variant="outline"
+                                                    size="xs"
+                                                    className="self-center"
                                                     type="button"
                                                     data-sot-control="library-search-retry"
                                                     onClick={() => {
@@ -4239,6 +4257,7 @@ export function Workstation({
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="sm"
+                                                                            className="h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 whitespace-normal rounded-sm px-2.5 py-2 text-left data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                                                                             type="button"
                                                                             key={`${result.entityType}:${result.entityId}`}
                                                                             data-active={
@@ -4276,6 +4295,7 @@ export function Workstation({
                                                                             "tag" ? (
                                                                                 <Badge
                                                                                     variant="secondary"
+                                                                                    className="w-fit gap-1.5 border-primary/25 bg-primary/10 text-primary"
                                                                                     data-sot-part="library-search-tag-chip"
                                                                                 >
                                                                                     <Tags data-icon="inline-start" />
@@ -4285,14 +4305,20 @@ export function Workstation({
                                                                                     )}
                                                                                 </Badge>
                                                                             ) : (
-                                                                                <span data-sot-part="library-search-result-title">
+                                                                                <span
+                                                                                    className="text-sm font-semibold leading-snug text-foreground"
+                                                                                    data-sot-part="library-search-result-title"
+                                                                                >
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
                                                                                     )}
                                                                                 </span>
                                                                             )}
-                                                                            <span data-sot-part="library-search-result-meta">
+                                                                            <span
+                                                                                className="font-mono text-[11.5px] font-medium leading-snug tracking-[0.02em] text-muted-foreground"
+                                                                                data-sot-part="library-search-result-meta"
+                                                                            >
                                                                                 {
                                                                                     meta
                                                                                 }
