@@ -2511,6 +2511,9 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain(
             'data-sot-panel="recording-transcription"',
         );
+        expect(transcriptionSection).toContain(
+            'data-sot-banner="transcription-job"',
+        );
         expect(transcriptionSection).toContain('from "@/components/ui/card";');
         expect(transcriptionSection).toContain("<Card");
         expect(transcriptionSection).toContain("<CardHeader");
@@ -2536,6 +2539,16 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain(
             'data-sot-control="start-local-transcription"',
         );
+        const transcriptionJobLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                /(^|\n|,)\s*\.tx-(?:banner|banner-ico|banner-text|banner-title|banner-detail|spin|row-chip|row-chip-ico)\b/.test(
+                    text,
+                ),
+            );
+
+        expect(transcriptionJobLegacySelectorLines).toEqual([]);
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',
