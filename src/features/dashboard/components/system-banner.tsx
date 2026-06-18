@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
+import { cn } from "@/lib/utils";
 
 type SystemBannerState =
     | "offline"
@@ -140,7 +142,10 @@ function getPriority(state: SystemBannerState) {
     }
 }
 
-function getBannerA11y(state: SystemBannerState) {
+function getBannerA11y(state: SystemBannerState): {
+    "aria-live"?: "polite";
+    role?: "alert" | "status";
+} {
     if (state === "offline") {
         return { "aria-live": "polite" as const, role: "status" as const };
     }
@@ -457,11 +462,11 @@ function SystemBannerItem({
     };
 
     return (
-        <section
-            {...bannerA11y}
-            className={className}
+        <Alert
+            aria-live={bannerA11y["aria-live"]}
+            role={bannerA11y.role}
+            className={cn("flex items-center gap-3 px-3.5 py-2.5", className)}
             data-sot-panel="system-banner"
-            data-slot="system-banner"
             data-kind={banner.state}
             data-layout={isStacked ? "stacked" : "single"}
             data-pct={progress ?? undefined}
@@ -474,15 +479,15 @@ function SystemBannerItem({
                 />
             </span>
             <div data-sot-part="system-banner-body">
-                <div data-sot-part="system-banner-title">
+                <AlertTitle data-sot-part="system-banner-title">
                     {banner.title ?? defaultCopy.title}
-                </div>
-                <div
+                </AlertTitle>
+                <AlertDescription
                     data-sot-part="system-banner-description"
                     data-sot-format={hasProgress ? "mono" : undefined}
                 >
                     {banner.message ?? defaultCopy.message}
-                </div>
+                </AlertDescription>
                 {hasProgress ? (
                     <div
                         aria-hidden="true"
@@ -545,7 +550,7 @@ function SystemBannerItem({
                     </Button>
                 ) : null}
             </div>
-        </section>
+        </Alert>
     );
 }
 

@@ -911,8 +911,16 @@ describe("dashboard SOT foundation", () => {
         expect(segmentedTabs).not.toContain('className={cn("lt-tab"');
         expect(segmentedTabs).not.toContain('className="lt-tab"');
 
+        expect(banner).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(banner).toMatch(/<Alert\s/);
+        expect(banner).toContain("<AlertTitle");
+        expect(banner).toContain("<AlertDescription");
+        expect(banner).toContain("</Alert>");
+        expect(banner).not.toMatch(/<section[\s>]/);
         expect(banner).toContain('data-sot-panel="system-banner"');
-        expect(banner).toContain('data-slot="system-banner"');
+        expect(banner).not.toContain('data-slot="system-banner"');
         expect(banner).toContain('data-sot-part="system-banner-icon"');
         expect(banner).toContain('data-sot-part="system-banner-body"');
         expect(banner).toContain('data-sot-part="system-banner-title"');

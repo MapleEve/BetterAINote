@@ -7,6 +7,7 @@
 - `library-search.tsx`
 - `recording-list.tsx`
 - `sync-status.tsx`
+- `system-banner.tsx`
 - `transcription-panel.tsx`
 
 ## 下级入口

@@ -505,9 +505,6 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
     '[data-sot-part="system-banner-icon"]',
     '[data-sot-part="system-banner-body"]',
-    '[data-sot-part="system-banner-title"]',
-    '[data-sot-part="system-banner-description"]',
-    '[data-sot-part="system-banner-description"][data-sot-format="mono"]',
     '[data-sot-part="system-banner-actions"]',
     '[data-sot-panel="system-banner"][data-kind="offline"]',
     '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
@@ -1758,6 +1755,29 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(selector);
         }
         expect(globals).toMatch(/\[data-sot-part="system-banner-icon"\]\s+svg/);
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-panel="system-banner"]')
+                .filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
+        ).toEqual([]);
+        expect(globals).not.toContain(
+            '[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"]',
+        );
+    });
+
+    it("composes system banners with the shadcn Alert primitive", () => {
+        const banner = readSource(
+            "features/dashboard/components/system-banner.tsx",
+        );
+
+        expect(banner).toContain(
+            'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
+        );
+        expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
+        expect(banner).toContain("<AlertTitle");
+        expect(banner).toContain("<AlertDescription");
+        expect(banner).toContain("</Alert>");
+        expect(banner).not.toMatch(/<section[\s>]/);
+        expect(banner).not.toContain('data-slot="system-banner"');
     });
 
     it("keeps more actions menus product CSS on data-sot selectors", () => {
