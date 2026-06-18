@@ -223,6 +223,9 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="recording-list-page-number"]',
 ];
 
+const AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:field-help|auth-sot-canvas|onboarding-sot-canvas|auth-mark|auth-title|auth-sub|auth-local-row|auth-local-link|onboarding-progress|onboarding-progress-segment|onboarding-actions)(?![\w-])/;
+
 const LIQUID_TABS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:liquid-tabs|lt-ind|lt-tab)(?![\w-])/;
 
@@ -1351,6 +1354,7 @@ describe("full UI replacement regression coverage", () => {
         expect(login).not.toContain('className="panel"');
         expect(login).not.toContain('className="modal-foot"');
         for (const authDataSotSelector of [
+            '[data-sot-layout="auth-workstation"]',
             '[data-sot-part="auth-logo-mark"]',
             '[data-sot-part="auth-heading"]',
             '[data-sot-part="auth-description"]',
@@ -1362,6 +1366,14 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(globals).toContain(authDataSotSelector);
         }
+        const authOnboardingLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                AUTH_ONBOARDING_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(authOnboardingLegacySelectorLines).toEqual([]);
         expect(register).toContain("<LoginForm");
         expect(register).toContain('intent="setup"');
         for (const source of [login, register]) {
@@ -1444,6 +1456,13 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-actions"');
         expect(onboarding).not.toContain('className="sr-meta-row"');
         expect(onboarding).not.toContain('className="sm"');
+        expect(globals).toContain('[data-sot-layout="onboarding-workstation"]');
+        expect(globals).toContain('[data-sot-panel="onboarding-steps"]');
+        expect(globals).toContain('[data-sot-control="onboarding-step"]');
+        expect(globals).toContain(
+            '[data-sot-control="onboarding-step"][data-sot-state="active"]',
+        );
+        expect(globals).toContain('[data-sot-part="onboarding-actions"]');
         expect(globals).toContain(
             '[data-sot-list="onboarding-default-sources"]',
         );
