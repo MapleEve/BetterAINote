@@ -6,8 +6,10 @@ const PLAYWRIGHT_ACCOUNT = {
     password: "PlaywrightPassword123!",
 };
 
-const AUTH_REQUEST_RETRY_DELAYS_MS = [250, 500, 1_000, 1_500];
-const E2E_REQUEST_RETRY_DELAYS_MS = [250, 500, 1_000];
+const E2E_REQUEST_RETRY_DELAYS_MS = [
+    250, 500, 1_000, 1_500, 2_500, 5_000, 7_500, 10_000,
+];
+const AUTH_REQUEST_RETRY_DELAYS_MS = E2E_REQUEST_RETRY_DELAYS_MS;
 
 function isRetryableRequestError(error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

@@ -375,6 +375,95 @@ const LIST_ROW_MIGRATION_FIXTURE_CSS = `
         box-sizing: border-box !important;
     }
 `;
+const LIST_SKELETON_MIGRATION_FIXTURE_CSS = `
+    @keyframes list-sot-skshimmer {
+        0% { background-position: 200% 50%; }
+        100% { background-position: -100% 50%; }
+    }
+    .list-skeleton-pixel-stage .sk {
+        display: inline-block;
+        vertical-align: middle;
+        background: linear-gradient(
+            90deg,
+            rgb(255 255 255 / 0.05) 0%,
+            rgb(255 255 255 / 0.12) 50%,
+            rgb(255 255 255 / 0.05) 100%
+        );
+        background-size: 220% 100%;
+        animation: list-sot-skshimmer 1.6s ease-in-out infinite;
+        border-radius: 6px;
+        height: 12px;
+    }
+    .list-skeleton-pixel-stage .sk-w-100 { width: 100%; }
+    .list-skeleton-pixel-stage .sk-w-90 { width: 90%; }
+    .list-skeleton-pixel-stage .sk-w-85 { width: 85%; }
+    .list-skeleton-pixel-stage .sk-w-80 { width: 80%; }
+    .list-skeleton-pixel-stage .sk-w-70 { width: 70%; }
+    .list-skeleton-pixel-stage .sk-w-60 { width: 60%; }
+    .list-skeleton-pixel-stage .sk-w-40 { width: 40%; }
+    .list-skeleton-pixel-stage .skel-list {
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .list-skeleton-pixel-stage .skel-list .skel-day {
+        padding: 14px 10px 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-day-l {
+        width: 100px;
+        height: 11px;
+    }
+    .list-skeleton-pixel-stage .skel-list .skel-day .line {
+        flex: 1;
+        height: 1px;
+        background: var(--line-hairline);
+    }
+    .list-skeleton-pixel-stage .skel-list .skel-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 12px;
+    }
+    .list-skeleton-pixel-stage .skel-list .skel-row .body {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+    .list-skeleton-pixel-stage .skel-list .skel-row .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-title {
+        width: 100%;
+        height: 13px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-meta-t {
+        width: 80px;
+        height: 11px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-meta-tag {
+        width: 64px;
+        height: 18px;
+        border-radius: 6px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-meta-pill {
+        width: 64px;
+        height: 18px;
+        border-radius: 999px;
+    }
+    .list-skeleton-pixel-stage .skel-list .sk-utag {
+        width: 80px;
+        height: 22px;
+        border-radius: 6px;
+    }
+`;
 const LIST_STATE_BLOCK_MIGRATION_FIXTURE_CSS = `
     .list-state-block .btn {
         display: inline-flex;
@@ -1755,9 +1844,16 @@ async function captureListSkeletonFixture(page: Page, skeletonHtml: string) {
     await installSotPixelDevOverlaySuppression(page, fixtureId);
     try {
         await page.evaluate(
-            ({ fixtureId: id, skeletonHtml: html }) => {
+            ({ fixtureCss, fixtureId: id, skeletonHtml: html }) => {
                 document.getElementById(id)?.remove();
                 document.documentElement.dataset.theme = "dark";
+                document
+                    .querySelector(`style[data-list-skeleton-fixture="${id}"]`)
+                    ?.remove();
+                const fixtureStyle = document.createElement("style");
+                fixtureStyle.dataset.listSkeletonFixture = id;
+                fixtureStyle.textContent = fixtureCss;
+                document.head.appendChild(fixtureStyle);
 
                 const host = document.createElement("div");
                 host.id = id;
@@ -1780,7 +1876,11 @@ async function captureListSkeletonFixture(page: Page, skeletonHtml: string) {
                 host.appendChild(stage);
                 document.body.appendChild(host);
             },
-            { fixtureId, skeletonHtml },
+            {
+                fixtureCss: LIST_SKELETON_MIGRATION_FIXTURE_CSS,
+                fixtureId,
+                skeletonHtml,
+            },
         );
 
         const stage = page
@@ -1803,6 +1903,9 @@ async function captureListSkeletonFixture(page: Page, skeletonHtml: string) {
         try {
             await page.evaluate((id) => {
                 document.getElementById(id)?.remove();
+                document
+                    .querySelector(`style[data-list-skeleton-fixture="${id}"]`)
+                    ?.remove();
             }, fixtureId);
         } finally {
             await removeSotPixelDevOverlaySuppression(page, fixtureId);
