@@ -12,6 +12,16 @@ function readSource(relativePath: string) {
 const OLD_UI_RE =
     /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
 
+const LIBRARY_SEARCH_INDEXING_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:inline-progress|ls-state-indexing)(?![\w-])/;
+
+const LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="library-search-indexing"]',
+    '[data-sot-part="library-search-state-skeleton"]',
+    '[data-sot-part="library-search-state-skeleton"]::after',
+    '[data-sot-part="library-search-state-copy"]',
+];
+
 describe("dashboard SOT search and activity interactions", () => {
     it("keeps search inline in the SOT topbar with all query states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
@@ -85,6 +95,21 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).not.toContain("ls-state ls-state-");
         expect(workstation).not.toContain('className="ls-scope"');
         expect(workstation).not.toContain("data-ls-retry");
+    });
+
+    it("keeps search indexing progress CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                LIBRARY_SEARCH_INDEXING_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
     });
 
     it("keeps search scoped to backend search and applies result navigation", () => {

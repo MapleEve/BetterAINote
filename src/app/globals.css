@@ -10857,81 +10857,6 @@ body[data-ds-todo="show"] .design-todo {
     }
 }
 
-/* Compact inline progress used in popovers (activity queued / partial-failed). */
-.inline-progress {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font: 500 11px / 1 var(--font-mono);
-    color: var(--fg-tertiary);
-}
-.inline-progress [data-sot-part="inline-progress-track"] {
-    position: relative;
-    height: 4px;
-    width: 80px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--fg-tertiary) 18%, transparent);
-    overflow: hidden;
-}
-.inline-progress [data-sot-part="inline-progress-bar"] {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: var(--signal-info);
-    border-radius: inherit;
-    width: 0%;
-}
-.inline-progress[data-pct="0"] [data-sot-part="inline-progress-bar"] {
-    width: 0%;
-}
-.inline-progress[data-pct="25"] [data-sot-part="inline-progress-bar"] {
-    width: 25%;
-}
-.inline-progress[data-pct="40"] [data-sot-part="inline-progress-bar"] {
-    width: 40%;
-}
-.inline-progress[data-pct="60"] [data-sot-part="inline-progress-bar"] {
-    width: 60%;
-}
-.inline-progress[data-pct="75"] [data-sot-part="inline-progress-bar"] {
-    width: 75%;
-}
-.inline-progress[data-pct="90"] [data-sot-part="inline-progress-bar"] {
-    width: 90%;
-}
-.inline-progress[data-pct="100"] [data-sot-part="inline-progress-bar"] {
-    width: 100%;
-}
-.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
-    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
-}
-.inline-progress.indeterminate [data-sot-part="inline-progress-bar"] {
-    width: 36%;
-    animation: sbn-sweep 1.4s linear infinite;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        var(--signal-info) 50%,
-        transparent
-    );
-}
-
-/* Search · indexing state — reuses .ls-state pattern */
-.ls-state-indexing {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 16px;
-    color: var(--fg-secondary);
-    font-size: var(--text-body-sm);
-}
-.ls-state-indexing .inline-progress {
-    flex: 1;
-    min-width: 0;
-}
-.ls-state-indexing .inline-progress [data-sot-part="inline-progress-track"] {
-    width: 100%;
-}
-
 /* Speaker · no-match + create + unlink-confirm */
 [data-sot-confirm="speaker-unlink"] {
     display: flex;
@@ -12478,13 +12403,6 @@ select::-ms-expand {
 /* ---- Mono helper inline ---- */
 .mono {
     font-family: var(--font-mono);
-}
-
-/* ============================================================
-   4) Make the inline progress sweep visible against light bg
-   ============================================================ */
-.inline-progress.indeterminate [data-sot-part="inline-progress-track"] {
-    background: color-mix(in srgb, var(--signal-info) 16%, transparent);
 }
 
 /* ============================================================
