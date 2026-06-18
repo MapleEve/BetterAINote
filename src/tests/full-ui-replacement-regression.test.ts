@@ -46,6 +46,10 @@ function readProductCss(source: string) {
     return source.slice(0, componentLibraryIndex);
 }
 
+function stripCssComments(source: string) {
+    return source.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -162,6 +166,9 @@ const LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE = /(^|[,\s>{])\.mono(?![\w-])/m;
 
 const LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE =
     /#tweaks-(?:panel|close)|--(?:ds-only-accent|todo-marker-bg|z-tweaks)\b|(^|[,\s>{])\.(?:design-todo|ds-only-(?:badge|mark|note)|ds-trigger-chip|tw-[\w-]+|src-item|src-hint(?:-email)?|cl-tweaks-mock|cl-tm-[\w-]+)(?![\w-])/m;
+
+const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
+    /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-slot="dialog-overlay"]',
@@ -985,6 +992,9 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
         expect(productCss).not.toMatch(
             LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE,
+        );
+        expect(stripCssComments(productCss)).not.toMatch(
+            UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE,
         );
         expect(productCss).toContain(
             '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',

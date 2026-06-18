@@ -9355,16 +9355,6 @@ select::-ms-expand {
     display: none;
 }
 
-/* 2) Heading-tag normalization inside docs cards so <h1>/<h2>
-      that bleed into kit space don't pick up the canvas h1/h2
-      sizing. */
-.cl-card h1,
-.cl-card h2,
-.cl-card h3,
-.cl-card h4 {
-    font-family: inherit;
-}
-
 /* ============================================================
    3) Missing visual classes used in the component library
    ============================================================ */
@@ -10559,22 +10549,6 @@ select::-ms-expand {
 }
 
 /* ============================================================
-   6) Component-library docs — additional chrome resets for the
-   showcase cards (mirrors .app rule above)
-   ============================================================ */
-.cl-shell [data-slot="button"]:focus-visible,
-.cl-shell [data-sot-menu-item]:focus-visible,
-.cl-shell [data-sot-control="library-search-result"]:focus-visible,
-.cl-shell [data-sot-control="recording-tag-toggle"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
-}
-
-/* The cl-stage-canvas container blocks the global scrim z-index.
-   Inside the showcase, confirm dialogs render inline (no fixed
-   position) — already covered by .cl-stage-canvas rule. */
-
-/* ============================================================
    7) State-matrix extensions
    ----
    No-audio player, transcription job banner + list-row chips,
@@ -11140,6 +11114,22 @@ select::-ms-expand {
    (Layout-only CSS for the docs page. All component visuals
     inherit from kit.css. Never duplicate tokens here.)
    ============================================================ */
+
+/* Docs cards/chrome normalization. */
+.cl-card h1,
+.cl-card h2,
+.cl-card h3,
+.cl-card h4 {
+    font-family: inherit;
+}
+
+.cl-shell [data-slot="button"]:focus-visible,
+.cl-shell [data-sot-menu-item]:focus-visible,
+.cl-shell [data-sot-control="library-search-result"]:focus-visible,
+.cl-shell [data-sot-control="recording-tag-toggle"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+}
 
 .cl-shell {
     display: grid;
