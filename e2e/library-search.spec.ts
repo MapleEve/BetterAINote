@@ -199,15 +199,29 @@ async function resetDisplaySettings(
     page: Page,
     overrides: Record<string, unknown> = {},
 ) {
-    const resetResponse = await putJsonWithRetry(page, "/api/settings/display", {
+    const nextSettings = {
         dateTimeFormat: "relative",
         itemsPerPage: 50,
         recordingListSortOrder: "newest",
         theme: "dark",
         uiLanguage: "zh-CN",
         ...overrides,
+    };
+    const resetResponse = await putJsonWithRetry(page, "/api/settings/display", {
+        ...nextSettings,
     });
     expect(resetResponse.ok()).toBe(true);
+    await expect
+        .poll(async () => {
+            const response = await page.request.get("/api/settings/display");
+            if (!response.ok()) {
+                return null;
+            }
+
+            const payload = (await response.json()) as Record<string, unknown>;
+            return payload.uiLanguage;
+        })
+        .toBe(nextSettings.uiLanguage);
 }
 
 async function openSotComponentLibrary(page: Page) {
@@ -263,19 +277,10 @@ async function prepareSearchDashboard(
     if (routeHandler) {
         await page.route("**/api/search?**", routeHandler);
     }
-    const dashboardHydrated = page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/recording-tags") &&
-                response.ok(),
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
     if (new URL(page.url()).pathname.endsWith("/login")) {
         await ensureSignedIn(page);
     }
-    await dashboardHydrated;
 
     return openLibrarySearch(page);
 }
@@ -597,7 +602,13 @@ async function selectDashboardRecordingForTagManager(
     await expect(recordingRow).toBeVisible();
     await recordingRow.click();
     await expect(recordingRow).toHaveAttribute("data-sot-state", "selected");
-    await expect(sotControl(page, "recording-tag-manager")).toBeVisible();
+    await expect(dashboardPlayerTagManagerTrigger(page)).toBeVisible();
+}
+
+function dashboardPlayerTagManagerTrigger(page: Page) {
+    return page
+        .locator('[data-sot-surface="dashboard-recording-player"]')
+        .locator('[data-sot-control="recording-tag-manager"]');
 }
 
 async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
@@ -1029,16 +1040,7 @@ test("library search keeps error retry and keyboard focus paths live", async ({
     });
 
     await ensureSignedIn(page);
-    const dashboardHydrated = page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/recording-tags") &&
-                response.ok(),
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await dashboardHydrated;
 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
@@ -1082,16 +1084,7 @@ test("library search restores the SOT indexing state while the local index rebui
     });
 
     await ensureSignedIn(page);
-    const dashboardHydrated = page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/recording-tags") &&
-                response.ok(),
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await dashboardHydrated;
 
     const panel = await openLibrarySearch(page);
     const input = panel.locator('[data-sot-control="library-search-input"]');
@@ -1193,16 +1186,7 @@ test("library search groups highlights and applies global speaker tag filters", 
     await ensureSignedIn(page);
     await resetDisplaySettings(page);
 
-    const dashboardHydrated = page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/recording-tags") &&
-                response.ok(),
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await dashboardHydrated;
 
     const panel = await openLibrarySearch(page);
     await expect(panel).toBeVisible();
@@ -1515,16 +1499,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     await resetDisplaySettings(page);
     const userId = await getPlaywrightUserId();
     await seedLibrarySearchRecording(userId);
-    const dashboardHydrated = page
-        .waitForResponse(
-            (response) =>
-                response.url().includes("/api/recording-tags") &&
-                response.ok(),
-            { timeout: 15_000 },
-        )
-        .catch(() => null);
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-    await dashboardHydrated;
     await selectDashboardRecordingForTagManager(
         page,
         SEARCH_OTHER_RECORDING_ID,
@@ -1536,7 +1511,7 @@ test("topbar overlays stay layered, mutually exclusive, and close across outside
     const activityPanel = sotPanel(page, "dashboard-activity");
     const settingsTrigger = sotControl(page, "dashboard-settings");
     const moreMenu = page.getByRole("menu", { name: "更多操作" });
-    const tagManagerTrigger = sotControl(page, "recording-tag-manager");
+    const tagManagerTrigger = dashboardPlayerTagManagerTrigger(page);
     const tagManager = sotPanel(page, "recording-tag-manager");
 
     await openDashboardMoreMenu(page);
