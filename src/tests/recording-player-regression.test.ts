@@ -26,6 +26,63 @@ const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
     'className="vol-num mono"',
 ];
 
+function extractCssBlock(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
+
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return source.slice(openBraceIndex + 1, index);
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: extractCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 describe("dashboard recording player regressions", () => {
     it("does not pass an empty audio source to the hidden audio element", () => {
         const source = readFileSync(
@@ -91,6 +148,10 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/components/ui/button.tsx"),
             "utf8",
         );
+        const globals = readFileSync(
+            path.join(process.cwd(), "src/app/globals.css"),
+            "utf8",
+        );
 
         expect(source).toContain("import { Card, CardContent, CardHeader }");
         expect(source).toContain("<Card");
@@ -128,6 +189,21 @@ describe("dashboard recording player regressions", () => {
         expect(sliderSource).not.toContain("track-fill");
         expect(sliderSource).not.toContain("track-thumb");
         expect(source).toContain('"data-sot-control": "recording-player-seek"');
+        const recordingSliderPrimitiveBlocks = [
+            "recording-player-seek",
+            "recording-player-volume-slider",
+        ].flatMap((control) =>
+            ["slider", "slider-track", "slider-range", "slider-thumb"].flatMap(
+                (slot) =>
+                    collectCssRuleBlocks(
+                        globals,
+                        `[data-slot="${slot}"]`,
+                    ).filter(({ prelude }) =>
+                        prelude.includes(`[data-sot-control="${control}"]`),
+                    ),
+            ),
+        );
+        expect(recordingSliderPrimitiveBlocks).toEqual([]);
         expect(source).toContain(
             'data-sot-panel="recording-player-volume-popover"',
         );

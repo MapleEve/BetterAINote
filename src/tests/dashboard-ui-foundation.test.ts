@@ -489,9 +489,24 @@ describe("dashboard SOT foundation", () => {
         expect(globals).toContain(
             '[data-sot-part="dashboard-player-seek-shell"]',
         );
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-player-seek"][data-slot="slider"]',
+        expect(player).not.toContain(
+            'data-sot-part="dashboard-player-seek-thumb"',
         );
+        const dashboardPlayerSliderPrimitiveBlocks = [
+            "dashboard-player-seek",
+            "dashboard-player-volume-slider",
+        ].flatMap((control) =>
+            ["slider", "slider-track", "slider-range", "slider-thumb"].flatMap(
+                (slot) =>
+                    collectCssRuleBlocks(
+                        globals,
+                        `[data-slot="${slot}"]`,
+                    ).filter(({ prelude }) =>
+                        prelude.includes(`[data-sot-control="${control}"]`),
+                    ),
+            ),
+        );
+        expect(dashboardPlayerSliderPrimitiveBlocks).toEqual([]);
         expect(globals).toContain(
             '[data-sot-panel="dashboard-player-volume-popover"]',
         );

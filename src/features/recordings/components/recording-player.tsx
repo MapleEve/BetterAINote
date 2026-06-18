@@ -39,6 +39,27 @@ const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
 };
 
+type SotPlayerSliderTrackStyle = CSSProperties & {
+    "--sot-player-track": string;
+};
+
+const SOT_PLAYER_SEEK_SLIDER_CLASS =
+    "h-3.5 min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]";
+const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
+const SOT_PLAYER_SEEK_THUMB_CLASS =
+    "size-3.5 border-0 bg-white p-0 shadow-none";
+const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
+const recordingSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
+    "--sot-player-track": "rgb(224 227 230)",
+};
+const sotPlayerSeekRangeStyle: CSSProperties = {
+    background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
+};
+const sotPlayerSeekThumbStyle: CSSProperties = {
+    boxShadow:
+        "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
+};
+
 export function RecordingPlayer({
     recording,
     tags = [],
@@ -251,12 +272,17 @@ export function RecordingPlayer({
                 </span>
 
                 <Slider
+                    className={SOT_PLAYER_SEEK_SLIDER_CLASS}
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
                     onValueChange={seekToSliderValue}
                     onValueCommit={seekToSliderValue}
-                    rangeProps={{ "data-pct": playerProgressPct }}
+                    rangeProps={{
+                        className: SOT_PLAYER_SEEK_RANGE_CLASS,
+                        "data-pct": playerProgressPct,
+                        style: sotPlayerSeekRangeStyle,
+                    }}
                     rootProps={{
                         "aria-disabled": playbackDisabled ? "true" : undefined,
                         "aria-label":
@@ -269,6 +295,7 @@ export function RecordingPlayer({
                         "data-pct": playerProgressPct,
                         "data-sot-control": "recording-player-seek",
                         "data-sot-state": controlState,
+                        style: recordingSeekSliderRootStyle,
                         onClick: (event) => {
                             const rect =
                                 event.currentTarget.getBoundingClientRect();
@@ -298,7 +325,11 @@ export function RecordingPlayer({
                         tabIndex: playbackDisabled ? -1 : 0,
                     }}
                     step={1}
-                    thumbProps={{ "data-pct": playerProgressPct }}
+                    thumbProps={{
+                        className: SOT_PLAYER_SEEK_THUMB_CLASS,
+                        "data-pct": playerProgressPct,
+                        style: sotPlayerSeekThumbStyle,
+                    }}
                     value={[progress]}
                 />
 
@@ -400,6 +431,7 @@ export function RecordingPlayer({
                                 </span>
                             </Button>
                             <Slider
+                                className={SOT_PLAYER_VOLUME_SLIDER_CLASS}
                                 min={0}
                                 max={100}
                                 step={1}

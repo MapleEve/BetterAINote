@@ -1017,6 +1017,20 @@ const PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS = [
     '[data-sot-control="player-source-tag"][data-slot="badge"]',
 ] as const;
 
+const PLAYER_SLIDER_CONTROL_HOOKS = [
+    "dashboard-player-seek",
+    "dashboard-player-volume-slider",
+    "recording-player-seek",
+    "recording-player-volume-slider",
+] as const;
+
+const PLAYER_SLIDER_PRIMITIVE_SLOTS = [
+    "slider",
+    "slider-track",
+    "slider-range",
+    "slider-thumb",
+] as const;
+
 const RECORDING_PLAYER_BUTTON_CONTROL_HOOKS = [
     "recording-player-back",
     "recording-player-forward",
@@ -2851,15 +2865,25 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-panel="dashboard-player-volume-popover"]',
             '[data-sot-part="dashboard-player-volume-row"]',
             '[data-sot-part="dashboard-player-volume-icon"]',
-            '[data-sot-control="dashboard-player-volume-slider"][data-slot="slider"]',
             '[data-sot-part="recording-player-volume-anchor"]',
             '[data-sot-panel="recording-player-volume-popover"]',
             '[data-sot-part="recording-player-volume-row"]',
             '[data-sot-part="recording-player-volume-icon"]',
-            '[data-sot-control="recording-player-volume-slider"][data-slot="slider"]',
         ]) {
             expect(globals).toContain(selector);
         }
+        const playerSliderPrimitiveBlocks = PLAYER_SLIDER_CONTROL_HOOKS.flatMap(
+            (control) =>
+                PLAYER_SLIDER_PRIMITIVE_SLOTS.flatMap((slot) =>
+                    collectCssRuleBlocks(
+                        globals,
+                        `[data-slot="${slot}"]`,
+                    ).filter(({ prelude }) =>
+                        prelude.includes(`[data-sot-control="${control}"]`),
+                    ),
+                ),
+        );
+        expect(playerSliderPrimitiveBlocks).toEqual([]);
         for (const legacyPlayerHook of [
             'className="player"',
             'className="play rounded-full"',

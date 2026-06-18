@@ -288,6 +288,29 @@ const DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS = cn(
     "hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
 );
 
+type SotPlayerSliderTrackStyle = CSSProperties & {
+    "--sot-player-track": string;
+};
+
+const SOT_PLAYER_SEEK_SLIDER_CLASS = cn(
+    "h-3.5 min-w-0 cursor-pointer data-[disabled]:cursor-default",
+    "[&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
+);
+const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
+const SOT_PLAYER_SEEK_THUMB_CLASS =
+    "size-3.5 border-0 bg-white p-0 shadow-none";
+const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
+const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
+    "--sot-player-track": "var(--graphite-200)",
+};
+const sotPlayerSeekRangeStyle: CSSProperties = {
+    background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
+};
+const sotPlayerSeekThumbStyle: CSSProperties = {
+    boxShadow:
+        "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
+};
+
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
     id: string;
@@ -6233,14 +6256,7 @@ export function Workstation({
                                 <span data-sot-part="dashboard-player-current-time">
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
-                                <span
-                                    data-sot-part="dashboard-player-seek-shell"
-                                    style={
-                                        {
-                                            "--dashboard-player-progress": `${playerProgressPct}%`,
-                                        } as CSSProperties
-                                    }
-                                >
+                                <span data-sot-part="dashboard-player-seek-shell">
                                     <Slider
                                         aria-disabled={
                                             playbackDisabled
@@ -6248,13 +6264,32 @@ export function Workstation({
                                                 : undefined
                                         }
                                         aria-label="播放进度"
+                                        className={cn(
+                                            SOT_PLAYER_SEEK_SLIDER_CLASS,
+                                            "flex-none",
+                                        )}
                                         data-sot-control="dashboard-player-seek"
                                         data-sot-state={playerControlState}
                                         data-pct={playerProgressPct}
                                         disabled={playbackDisabled}
                                         max={100}
                                         min={0}
+                                        rangeProps={{
+                                            className:
+                                                SOT_PLAYER_SEEK_RANGE_CLASS,
+                                            "data-pct": playerProgressPct,
+                                            style: sotPlayerSeekRangeStyle,
+                                        }}
+                                        rootProps={{
+                                            style: dashboardSeekSliderRootStyle,
+                                        }}
                                         step={1}
+                                        thumbProps={{
+                                            className:
+                                                SOT_PLAYER_SEEK_THUMB_CLASS,
+                                            "data-pct": playerProgressPct,
+                                            style: sotPlayerSeekThumbStyle,
+                                        }}
                                         value={[progress]}
                                         onValueChange={(values) =>
                                             seekDashboardPlayerToPercent(
@@ -6262,7 +6297,6 @@ export function Workstation({
                                             )
                                         }
                                     />
-                                    <span data-sot-part="dashboard-player-seek-thumb" />
                                 </span>
                                 <span data-sot-part="dashboard-player-duration">
                                     {formatSotPlayerTime(playerDurationValue)}
@@ -6367,6 +6401,9 @@ export function Workstation({
                                                 </span>
                                             </Button>
                                             <Slider
+                                                className={
+                                                    SOT_PLAYER_VOLUME_SLIDER_CLASS
+                                                }
                                                 min={0}
                                                 max={100}
                                                 step={1}
