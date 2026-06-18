@@ -2996,7 +2996,14 @@ function bridgePlayerNoAudioBannerToSotClassHtml(html: string) {
         '$1<div class="no-audio-text">$3$5</div>',
     );
 
-    return `<style>.sot-pixel-stage .no-audio-banner{display:flex!important}</style>${nextHtml}`;
+    return `<style>
+.sot-pixel-stage .no-audio-banner{display:flex!important;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--signal-warning) 8%,var(--bg-elevated));border:1px solid color-mix(in srgb,var(--signal-warning) 28%,transparent);color:var(--fg-primary)}
+.sot-pixel-stage .no-audio-ico{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--signal-warning) 18%,transparent);color:var(--signal-warning);display:inline-grid;place-items:center;flex:none}
+.sot-pixel-stage .no-audio-ico svg{width:14px;height:14px}
+.sot-pixel-stage .no-audio-text{display:flex;flex-direction:column;gap:1px}
+.sot-pixel-stage .no-audio-title{font:600 12.5px var(--font-sans);color:var(--fg-primary)}
+.sot-pixel-stage .no-audio-sub{font:500 11.5px / 1.5 var(--font-sans);color:var(--fg-tertiary)}
+</style>${nextHtml}`;
 }
 
 async function capturePlayerResponsiveFrame(
