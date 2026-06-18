@@ -1897,6 +1897,18 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(onboarding).toContain('variant="outline"');
+        expect(onboarding).toContain('variant="primary"');
+        expect(onboarding).toContain('size="xs"');
+        expect(onboarding).toContain('size="lg"');
+        expect(onboarding).toContain("className={cn(");
+        expect(onboarding).toContain("border-primary/50 bg-primary/10");
+        expect(onboarding).toContain(
+            '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
+        );
+        expect(onboarding).toContain(
+            'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
+        );
         expect(onboarding).toContain("CardContent,");
         expect(onboarding).toContain("CardDescription,");
         expect(onboarding).toContain("CardHeader,");
@@ -1943,6 +1955,24 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-part="provider-meta"][data-slot="card-header"]',
         );
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="onboarding-actions"] [data-slot="button"]',
+            ),
+        ).toEqual([]);
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-control="provider-card"][data-slot="button"]',
+            ),
+        ).toEqual([]);
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-control="speaker-profile-draft"][data-slot="card"]',
+            ),
+        ).toEqual([]);
         expect(globals).toContain(
             '[data-sot-list="onboarding-default-sources"]',
         );

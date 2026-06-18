@@ -9,8 +9,68 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractCssBlock(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
+
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return source.slice(openBraceIndex + 1, index);
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: extractCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+
+const ONBOARDING_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
 describe("onboarding UI replacement regression", () => {
     it("keeps onboarding as a four-step SOT workstation surface", () => {
@@ -44,6 +104,18 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("保存并进入工作台");
         expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
+        );
+        expect(source).toContain('variant="outline"');
+        expect(source).toContain('variant="primary"');
+        expect(source).toContain('size="xs"');
+        expect(source).toContain('size="lg"');
+        expect(source).toContain("className={cn(");
+        expect(source).toContain("border-primary/50 bg-primary/10");
+        expect(source).toContain(
+            '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
+        );
+        expect(source).toContain(
+            'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );
         expect(source).toContain(
             'CardContent,',
@@ -116,6 +188,31 @@ describe("onboarding UI replacement regression", () => {
         expect(globals).toContain(
             '[data-sot-part="provider-meta"][data-slot="card-header"]',
         );
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="onboarding-actions"] [data-slot="button"]',
+            ),
+        ).toEqual([]);
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-control="provider-card"][data-slot="button"]',
+            ),
+        ).toEqual([]);
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-control="speaker-profile-draft"][data-slot="card"]',
+            ),
+        ).toEqual([]);
+        for (const selector of ['[data-sot-part="onboarding-actions"]']) {
+            for (const block of collectCssRuleBlocks(globals, selector)) {
+                expect(block.declarations).not.toMatch(
+                    ONBOARDING_PRIMITIVE_REPAINT_DECLARATION_RE,
+                );
+            }
+        }
         expect(globals).not.toMatch(
             /\.onboarding-step-(head|title|sub|body)\b/,
         );

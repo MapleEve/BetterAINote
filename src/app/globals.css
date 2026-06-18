@@ -2741,25 +2741,6 @@ button {
     justify-content: flex-end;
     margin-top: 14px;
 }
-[data-sot-part="onboarding-actions"] [data-slot="button"] {
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 8px;
-    font: 600 11px var(--font-sans);
-    box-shadow: none;
-}
-[data-sot-part="onboarding-actions"]
-    [data-slot="button"][data-variant="ghost"] {
-    border: 1px solid var(--line-hairline);
-    background: transparent;
-    color: var(--fg-secondary);
-}
-[data-sot-part="onboarding-actions"]
-    [data-slot="button"][data-variant="primary"] {
-    border: 1px solid transparent;
-    background: var(--accent);
-    color: white;
-}
 
 /* ======== Dialog overlay + shadcn modal slots ======== */
 [data-sot-overlay="settings-shell"],
@@ -4072,37 +4053,10 @@ body[data-time-style="abs"]
     gap: 8px;
     margin-bottom: 18px;
 }
-[data-sot-control="provider-card"][data-slot="button"],
-[data-sot-control="speaker-profile-draft"][data-slot="card"] {
-    display: grid;
-    grid-template-columns: 36px 1fr auto auto;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-primary);
-    text-align: left;
-    width: 100%;
-}
 [data-sot-control="speaker-profile-draft"]
     [data-sot-part="provider-meta"][data-slot="card-header"] {
     padding: 0;
     gap: 0;
-}
-[data-sot-control="provider-card"][data-sot-state="selected"],
-[data-sot-control="speaker-profile-draft"] {
-    border-color: color-mix(in srgb, var(--accent) 48%, transparent);
-    background: color-mix(in srgb, var(--accent) 9%, var(--bg-elevated));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
-}
-[data-theme="dark"] [data-sot-control="provider-card"],
-[data-theme="dark"] [data-sot-control="speaker-profile-draft"] {
-    background: rgb(255 255 255 / 0.04);
-    border-color: var(--glass-border);
-    box-shadow: none;
 }
 [data-sot-part="provider-icon"] {
     width: 36px;

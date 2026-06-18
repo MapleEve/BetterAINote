@@ -37,6 +37,7 @@ import {
     navigateAndRefreshBrowserRoute,
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
+import { cn } from "@/lib/utils";
 
 interface OnboardingFormProps {
     onConnected?: () => void;
@@ -487,7 +488,12 @@ function SourceStep({
 
                     return (
                         <Button
-                            variant="ghost"
+                            variant="outline"
+                            size="lg"
+                            className={cn(
+                                "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left",
+                                isActive && "border-primary/50 bg-primary/10",
+                            )}
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -693,9 +699,9 @@ function TranscriptionStep({
                     data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="sm"
+                    size="xs"
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                 >
                     跳过
                 </Button>
@@ -703,7 +709,7 @@ function TranscriptionStep({
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="sm"
+                    size="xs"
                     type="button"
                     variant="primary"
                 >
@@ -738,6 +744,7 @@ function SpeakersStep({
             <div data-sot-list="speaker-profiles">
                 <Card
                     hasNoPadding
+                    className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"
                     data-sot-control="speaker-profile-draft"
                     data-sot-state={speakerState}
                 >
@@ -864,8 +871,8 @@ function FinishStep({
             <div data-sot-part="onboarding-actions">
                 <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
+                    size="xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -874,7 +881,7 @@ function FinishStep({
                 <Button
                     type="button"
                     variant="primary"
-                    size="sm"
+                    size="xs"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
                     data-sot-control="save-enter"
@@ -923,8 +930,8 @@ function WizardActions({
             {onBack ? (
                 <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
+                    size="xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -934,7 +941,7 @@ function WizardActions({
             <Button
                 type="button"
                 variant="primary"
-                size="sm"
+                size="xs"
                 disabled={isSaving}
                 data-sot-control="onboarding-next"
                 onClick={onNext}
