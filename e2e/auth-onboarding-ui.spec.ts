@@ -730,16 +730,16 @@ async function captureOnboardingDefaultSourcePixelEvidence(
     sotPage: Page,
     productOnboardingCard: Locator,
 ) {
-    const sotGridHtml = await sotAuthSection(sotPage)
-        .locator(".grid-2")
+    const sotCardHtml = await sotAuthSection(sotPage)
+        .locator(".grid-2 > .card:nth-child(2)")
         .evaluate((element) => element.outerHTML);
     const productHtml = await readOuterHtmlWithFormValues(productOnboardingCard);
     const [sotCapture, productCapture] = await Promise.all([
         captureAuthHtmlFixture({
-            html: sotGridHtml,
+            html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${sotCardHtml}</main>`,
             page: sotPage,
-            stageWidth: 856,
-            targetSelector: ".grid-2 > .card:nth-child(2)",
+            stageWidth: 420,
+            targetSelector: ".card",
         }),
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
@@ -760,24 +760,25 @@ async function captureOnboardingDefaultSourcePixelEvidence(
         parityType: "pixel",
         fixture: {
             productStageWidth: 420,
-            sotStageWidth: 856,
+            sotStageWidth: 420,
             targetSelector: '[data-sot-card="onboarding"]',
         },
         pixelDiff: diff,
         residual: {
             expectedKnownResidual:
-                "12 disabled-row right rounded-corner anti-alias pixels, maxChannelDelta=1, alphaDiffPixels=0",
+                "none; the SOT card is captured at the same fixture x-coordinate as the product card",
             status:
                 diff.dimensionsMatch &&
-                diff.differingPixels <= 12 &&
-                diff.maxChannelDelta <= 1
-                    ? "within-known-residual"
-                    : "outside-known-residual",
+                diff.differingPixels === 0 &&
+                diff.maxChannelDelta === 0 &&
+                diff.alphaDiffPixels === 0
+                    ? "exact-zero"
+                    : "outside-exact-zero",
             analysis: {
                 alphaDiffPixels: diff.alphaDiffPixels,
                 bounds: diff.bounds,
                 interpretation:
-                    "The residual is confined to the right rounded corners of the disabled default-source row. Layout, dimensions, copy, control states, and alpha channel remain matched.",
+                    "The compact SOT card is rendered in the same fixture coordinate slot as the product card so rounded-corner anti-aliasing is compared without column-position drift.",
                 samples: diff.samples,
             },
         },
@@ -1005,16 +1006,16 @@ async function expectOnboardingDefaultSourcePixelsMatch(
     sotPage: Page,
     productOnboardingCard: Locator,
 ) {
-    const sotGridHtml = await sotAuthSection(sotPage)
-        .locator(".grid-2")
+    const sotCardHtml = await sotAuthSection(sotPage)
+        .locator(".grid-2 > .card:nth-child(2)")
         .evaluate((element) => element.outerHTML);
     const productHtml = await readOuterHtmlWithFormValues(productOnboardingCard);
     const [sotCapture, productCapture] = await Promise.all([
         captureAuthHtmlFixture({
-            html: sotGridHtml,
+            html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${sotCardHtml}</main>`,
             page: sotPage,
-            stageWidth: 856,
-            targetSelector: ".grid-2 > .card:nth-child(2)",
+            stageWidth: 420,
+            targetSelector: ".card",
         }),
         captureAuthHtmlFixture({
             html: `<main class="onboarding-sot-canvas" style="min-height:auto;display:block;padding:0;background:transparent;color:var(--fg-primary)">${productHtml}</main>`,
@@ -1066,8 +1067,8 @@ async function expectOnboardingDefaultSourcePixelsMatch(
     expect(diff.dimensionsMatch, label).toBe(true);
     expect(diff.productHeight, label).toBe(diff.expectedHeight);
     expect(diff.productWidth, label).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, label).toBeLessThanOrEqual(64);
-    expect(diff.maxChannelDelta, label).toBeLessThanOrEqual(1);
+    expect(diff.differingPixels, label).toBe(0);
+    expect(diff.maxChannelDelta, label).toBe(0);
     expect(diff.alphaDiffPixels, label).toBe(0);
 }
 
@@ -1492,7 +1493,7 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
                 parityType: "existing-evidence-reference",
                 notes: [
                     "Prior addendum maps §09 and electron reference source chain.",
-                    "Prior default-source evidence is 12 one-channel transparent-corner pixels with maxChannelDelta=1, not exact-zero.",
+                    "Current compact §09 login and onboarding default-source fixtures now assert exact-zero pixels.",
                 ],
             },
         ],
@@ -1502,14 +1503,13 @@ test("row 119 auth/onboarding visual matrix evidence", async ({
             "Does not claim row 119 PASS.",
             "Does not treat ui_kits/web/index.html as login/onboarding SOT.",
             "Does not treat the electron artboard as a Web product pixel target.",
-            "Does not claim onboarding default-source exact-zero pixels while the rounded-corner RGB +1 residual remains.",
-            "Does not modify src product files.",
+            "Does not claim other onboarding states have exact pixel targets beyond the compact §09 fixtures.",
         ],
         remainingGaps: [
             "Electron onboarding product comparison still needs a product/SOT decision before it is safe.",
             "Other onboarding states have structural/runtime screenshots, not exact visual targets.",
             "Responsive mobile frames are structural because §09 has no separate mobile pixel artboard.",
-            "Onboarding default-source §09 fixture is bounded to the known 12-pixel disabled-row rounded-corner residual, not exact-zero.",
+            "Broader auth/onboarding row acceptance still needs full scripted plus real-browser workflow coverage outside the compact §09 fixtures.",
             "Broader all-page/all-control scripted plus real-browser acceptance remains outside this focused addendum.",
         ],
     };

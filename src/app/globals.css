@@ -2688,8 +2688,11 @@ button {
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
     border-radius: 14px;
+    overflow: visible;
     padding: 18px;
     box-shadow: var(--shadow-xs);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 [data-sot-card] + [data-sot-card] {
     margin-top: 14px;
