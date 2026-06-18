@@ -204,6 +204,11 @@ describe("frontend data-source routing regression", () => {
         expect(fieldControl).toContain('field.target === "secret"');
         expect(fieldControl).toContain("password");
         expect(fieldControl).toContain("sensitive: sensitiveTextField");
+        expect(fieldControl).toContain("masked: readOnlyMaskedDisplay");
+        expect(fieldControl).toContain("data-sot-mask={");
+        expect(fieldControl).not.toContain('"mask"');
+        expect(settingFieldControl).toContain("masked?: boolean");
+        expect(settingFieldControl).toContain("data-sot-mask={field.masked");
         expect(settingFieldControl).toContain("onPaste");
         expect(settingFieldControl).toContain("clipboardData.getData");
         expect(settingFieldControl).toContain('"text"');
@@ -270,7 +275,8 @@ describe("frontend data-source routing regression", () => {
             ['t("sourceReport.detail', 'Payload")'].join(""),
         );
         expect(sourceReportPanel).not.toContain("JSON.stringify(data.detail");
-        expect(sourceReportPanel).toContain("<h4>来源信息</h4>");
+        expect(sourceReportPanel).toContain('section="metadata"');
+        expect(sourceReportPanel).toContain('title="来源信息"');
         expect(sourceReportPanel).toContain("formatTranscriptTimeRange");
         expect(sourceReportPanel).toContain("sourceReportDisplaySegments");
         expect(sourceReportPanel).toContain("segment.startMs");

@@ -48,12 +48,9 @@ export function DataSourceFieldControl({
         typeof field.value === "string" &&
         field.value.includes("•");
     const sensitiveTextField = !field.readOnly && isSensitiveTextField(field);
-    const className = readOnlyMaskedDisplay
-        ? [field.className, "mask"].filter(Boolean).join(" ")
-        : field.className;
     const renderedField = {
         ...field,
-        className,
+        masked: readOnlyMaskedDisplay,
         sensitive: sensitiveTextField,
     };
 
@@ -121,6 +118,9 @@ export function DataSourceFieldControl({
                         placeholder={field.placeholder}
                         disabled={disabled}
                         readOnly={field.readOnly}
+                        data-sot-mask={
+                            renderedField.masked ? "true" : undefined
+                        }
                     />
                 ) : (
                     <Input
@@ -149,6 +149,9 @@ export function DataSourceFieldControl({
                         readOnly={field.readOnly}
                         spellCheck={field.spellCheck}
                         className={renderedField.className}
+                        data-sot-mask={
+                            renderedField.masked ? "true" : undefined
+                        }
                     />
                 )}
             </div>

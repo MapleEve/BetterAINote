@@ -32,6 +32,7 @@ export interface SettingFieldDefinition {
     inputType?: "text" | "password" | "number";
     sensitive?: boolean;
     readOnly?: boolean;
+    masked?: boolean;
 }
 
 interface SettingFieldControlProps {
@@ -120,6 +121,7 @@ export function SettingFieldControl({
                             placeholder={field.placeholder}
                             disabled={disabled}
                             readOnly={field.readOnly}
+                            data-sot-mask={field.masked ? "true" : undefined}
                         />
                     ) : (
                         <Input
@@ -154,6 +156,7 @@ export function SettingFieldControl({
                             readOnly={field.readOnly}
                             spellCheck={field.spellCheck}
                             className={inputClassName}
+                            data-sot-mask={field.masked ? "true" : undefined}
                         />
                     )}
                 </div>

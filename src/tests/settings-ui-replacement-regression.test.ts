@@ -705,6 +705,8 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("<FieldDescription>");
         expect(settingFieldControl).toContain("readOnly?: boolean");
         expect(settingFieldControl).toContain("readOnly={field.readOnly}");
+        expect(settingFieldControl).toContain("masked?: boolean");
+        expect(settingFieldControl).toContain("data-sot-mask={field.masked");
         expect(settingFieldControl).toContain("<FieldGroup");
         expect(settingFieldControl).toContain("<Field");
         expect(settingFieldControl).toContain("<FieldContent");
@@ -717,6 +719,11 @@ describe("settings SOT interaction regressions", () => {
         expect(dataSourceFieldControl).toContain("<FieldContent>");
         expect(dataSourceFieldControl).toContain("<FieldLabel");
         expect(dataSourceFieldControl).toContain("<FieldDescription>");
+        expect(dataSourceFieldControl).toContain(
+            "masked: readOnlyMaskedDisplay",
+        );
+        expect(dataSourceFieldControl).toContain("data-sot-mask={");
+        expect(dataSourceFieldControl).not.toContain('"mask"');
         expect(inputPrimitive).toContain('data-slot="input"');
         for (const className of [
             "border-input",
