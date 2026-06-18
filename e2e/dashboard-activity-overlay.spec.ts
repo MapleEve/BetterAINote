@@ -99,6 +99,474 @@ const ACTIVITY_PANEL_CARD_LABELS: Record<ActivityPanelSotState, string> = {
     "partial-failed": "Partial-failed sync",
 };
 
+const ACTIVITY_FIXTURE_CSS = String.raw`
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-trigger {
+    position: relative;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .icon-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .icon-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--line-hairline);
+    border-radius: 9px;
+    background: var(--bg-elevated);
+    color: var(--fg-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    font: 600 12.5px var(--font-sans);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn.ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--fg-secondary);
+    box-shadow: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn.btn-sm {
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn[disabled],
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn[aria-busy="true"] {
+    pointer-events: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-close {
+    width: 26px;
+    height: 26px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-close svg {
+    width: 12px;
+    height: 12px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: inline-flex;
+    pointer-events: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-trigger[data-unread="0"] .notif-badge {
+    display: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: var(--z-dropdown);
+    overflow: hidden;
+    pointer-events: none;
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel[data-open="true"] {
+    pointer-events: auto;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-head {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-head-l {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status-text {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-list {
+    overflow-y: auto;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-list:empty {
+    display: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item {
+    display: grid;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-ico {
+    display: inline-flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-body {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-actions {
+    display: flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-dismiss {
+    display: inline-flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-ico {
+    display: inline-flex;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-hairline);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04),
+        0 12px 32px -8px rgb(15 23 42 / 0.18),
+        0 24px 64px -12px rgb(15 23 42 / 0.22);
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+    transition: opacity 180ms var(--ease-out),
+        transform 180ms var(--ease-out);
+}
+[data-theme="dark"] __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel {
+    background: var(--graphite-900);
+    border-color: var(--glass-border);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.5),
+        0 12px 32px -8px rgb(0 0 0 / 0.55),
+        0 24px 64px -12px rgb(0 0 0 / 0.6);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel[data-open="true"] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    max-height: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-trigger .notif-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--signal-danger);
+    color: white;
+    font: 700 9.5px var(--font-sans);
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 1.5px var(--bg-elevated);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-head {
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line-hairline);
+}
+[data-theme="dark"] __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-head {
+    border-bottom-color: var(--glass-border-soft);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-head-l {
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-title {
+    font: 600 13px var(--font-sans);
+    color: var(--fg-primary);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-count {
+    font: 500 11px var(--font-mono);
+    color: var(--fg-tertiary);
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status {
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-recessed);
+    border-bottom: 1px solid var(--line-hairline);
+}
+[data-theme="dark"] __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status {
+    background: rgb(255 255 255 / 0.03);
+    border-bottom-color: var(--glass-border-soft);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status-ico {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--signal-success);
+    flex: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status[data-state="syncing"] .notif-status-ico {
+    background: var(--signal-info);
+    animation: bpulse 1.4s ease-in-out infinite;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status[data-state="error"] .notif-status-ico {
+    background: var(--signal-danger);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status-text {
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status-line {
+    font: 600 12px var(--font-sans);
+    color: var(--fg-primary);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-status-sub {
+    font: 500 11px var(--font-mono);
+    color: var(--fg-tertiary);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-list {
+    flex: 1;
+    padding: 4px;
+    margin: 0;
+    list-style: none;
+    max-height: 340px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item {
+    grid-template-columns: 26px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border-radius: 8px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item + .notif-item {
+    border-top: 1px solid var(--line-hairline);
+    border-radius: 0;
+}
+[data-theme="dark"] __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item + .notif-item {
+    border-top-color: var(--glass-border-soft);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item.is-unread {
+    background: var(--accent-soft);
+    border-radius: 8px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item.is-unread + .notif-item {
+    border-top: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-ico {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-recessed);
+    border: 1px solid var(--line-hairline);
+    color: var(--fg-tertiary);
+    flex: none;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-ico svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="success"] .notif-ico {
+    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+    border-color: color-mix(in srgb, var(--signal-success) 30%, transparent);
+    color: var(--signal-success);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="error"] .notif-ico {
+    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
+    color: var(--signal-danger);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="warn"] .notif-ico {
+    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
+    border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
+    color: var(--signal-warning-strong);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="info"] .notif-ico {
+    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
+    border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
+    color: var(--signal-info);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="queued"] .notif-ico {
+    background: color-mix(in srgb, var(--fg-tertiary) 16%, transparent);
+    color: var(--fg-tertiary);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item[data-kind="partial-failed"] .notif-ico {
+    background: color-mix(in srgb, var(--signal-warning) 16%, transparent);
+    color: var(--signal-warning);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-body {
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-msg,
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item-title {
+    font: 600 12.5px / 1.35 var(--font-sans);
+    color: var(--fg-primary);
+    margin: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-sub,
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item-body {
+    font: 500 12px / 1.5 var(--font-sans);
+    color: var(--fg-secondary);
+    margin: 2px 0 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-time,
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item-meta {
+    font: 500 11px / 1.4 var(--font-mono);
+    color: var(--fg-tertiary);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-actions {
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-dismiss {
+    width: 22px;
+    height: 22px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--fg-tertiary);
+    align-items: center;
+    justify-content: center;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-dismiss:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-dismiss:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: 2px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-dismiss svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty {
+    padding: 28px 18px;
+    text-align: center;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+    color: var(--signal-success);
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-ico svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-msg {
+    font: 600 13px var(--font-sans);
+    color: var(--fg-primary);
+    margin: 0 0 4px;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-sub {
+    font: 500 12px var(--font-sans);
+    color: var(--fg-tertiary);
+    margin: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress .inp-track {
+    position: relative;
+    height: 4px;
+    width: 80px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fg-tertiary) 18%, transparent);
+    overflow: hidden;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress .inp-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--signal-info);
+    border-radius: inherit;
+    width: 0%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="25"] .inp-bar {
+    width: 25%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="40"] .inp-bar {
+    width: 40%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="60"] .inp-bar {
+    width: 60%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="75"] .inp-bar {
+    width: 75%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="90"] .inp-bar {
+    width: 90%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress[data-pct="100"] .inp-bar {
+    width: 100%;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress.indeterminate .inp-track {
+    background: color-mix(in srgb, var(--signal-info) 16%, transparent);
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress.indeterminate .inp-bar {
+    width: 36%;
+    animation: sbn-sweep 1.4s linear infinite;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--signal-info) 50%,
+        transparent
+    );
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .notif-item .notif-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+`;
+
+function activityFixtureCss(fixtureId: string) {
+    return ACTIVITY_FIXTURE_CSS.split("__ACTIVITY_SCOPE__").join(
+        `#${fixtureId}`,
+    );
+}
+
 type ActivityPixelDiff = {
     bounds: {
         maxX: number;
@@ -189,12 +657,26 @@ async function captureActivityFixture(
     const fixtureId = `sot-activity-${kind}-${Date.now()}-${Math.random()
         .toString(16)
         .slice(2)}`;
+    const fixtureCss = activityFixtureCss(fixtureId);
 
     await page.evaluate(
-        ({ fixtureId: id, html: fixtureHtml, kind: fixtureKind }) => {
+        ({
+            fixtureCss: css,
+            fixtureId: id,
+            html: fixtureHtml,
+            kind: fixtureKind,
+        }) => {
+            document
+                .querySelector(`style[data-activity-fixture="${id}"]`)
+                ?.remove();
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "light";
             document.body.dataset.theme = "light";
+
+            const fixtureStyle = document.createElement("style");
+            fixtureStyle.dataset.activityFixture = id;
+            fixtureStyle.textContent = css;
+            document.head.appendChild(fixtureStyle);
 
             const host = document.createElement("div");
             host.id = id;
@@ -227,7 +709,7 @@ async function captureActivityFixture(
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureId, html, kind },
+        { fixtureCss, fixtureId, html, kind },
     );
 
     const stage = page.locator(`#${fixtureId} > .activity-pixel-stage`).first();
@@ -279,6 +761,7 @@ async function captureActivityFixture(
         scale: "css",
     });
     await page.evaluate((id) => {
+        document.querySelector(`style[data-activity-fixture="${id}"]`)?.remove();
         document.getElementById(id)?.remove();
     }, fixtureId);
 

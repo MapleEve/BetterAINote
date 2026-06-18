@@ -495,6 +495,24 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
     "retx-ico-ok",
 ];
 
+const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
+    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
+
+const DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
+    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
+    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-item="dashboard-transcript-turn"]',
+    '[data-sot-part="dashboard-transcript-speaker-row"]',
+    '[data-sot-part="dashboard-transcript-speaker-name"]',
+    '[data-sot-part="dashboard-transcript-speaker-time"]',
+    '[data-sot-panel="dashboard-retranscription"]',
+    '[data-sot-part="dashboard-retranscription-icon"]',
+    '[data-sot-part="dashboard-retranscription-spinner"]',
+    '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+    '[data-sot-panel="recording-detail-loading"]',
+];
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -886,6 +904,22 @@ describe("full UI replacement regression coverage", () => {
         // `.tag-filter-option .tg-ico` predates this batch; this guard only blocks
         // recording tag manager selectors reintroduced by the current cleanup.
         expect(legacyTagManagerSelectorLines).toEqual([]);
+    });
+
+    it("keeps dashboard transcript, retx, and activity legacy selectors out of product CSS", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .filter((line) =>
+                DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
+                    line,
+                ),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of DASHBOARD_TRANSCRIPT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
     });
 
     it("keeps dashboard recording-list replacement hooks out of legacy JSX className selectors", () => {
@@ -1936,7 +1970,9 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             'data-sot-part="recording-transcription-skeleton-line"',
         );
-        expect(transcriptionSkeletons).not.toContain("sanitizeSkeletonClassName");
+        expect(transcriptionSkeletons).not.toContain(
+            "sanitizeSkeletonClassName",
+        );
         expect(transcriptionSkeletons).not.toContain(
             "LEGACY_SKELETON_CLASS_NAMES",
         );

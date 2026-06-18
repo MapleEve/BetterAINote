@@ -3577,7 +3577,7 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             sotPage,
             page,
             sotSkeletonHtml,
-            `<div class="transcript-body">${productSkeletonTurnsHtml}</div>`,
+            `<div data-sot-part="dashboard-transcript-body" data-slot="card-content">${productSkeletonTurnsHtml}</div>`,
             "var(--bg-canvas)",
             LOCAL_TRANSCRIPT_PIXEL_FRAMES,
         );
