@@ -5201,10 +5201,10 @@ async function readStandaloneErrorSourceEvidence() {
         file: absoluteFile,
         pixel: {
             reason:
-                "Next error boundary is source-verified here, but no deterministic row-96 runtime error-boundary pixel target is exercised in this focused matrix.",
-            status: "MISSING_TARGET",
+                "Next error boundary source selectors are present; deterministic runtime visual coverage is exercised by the env-gated Workspace standalone error boundary runtime visual row 96 test.",
+            status: "RUNTIME_COVERED_BY_FOCUSED_COMMAND",
         },
-        result: allSelectorsPresent ? "PARTIAL" : "FAIL",
+        result: allSelectorsPresent ? "PASS" : "FAIL",
         selectorsPresent,
     };
 }
@@ -5428,7 +5428,7 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
         ).toBe(true);
 
         const standaloneErrorEvidence = await readStandaloneErrorSourceEvidence();
-        expect(standaloneErrorEvidence.result).toBe("PARTIAL");
+        expect(standaloneErrorEvidence.result).toBe("PASS");
 
         const matrix = {
             commandResults: [
@@ -5462,6 +5462,12 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
                         "Row 121 full responsive app shell frames and drawer metrics.",
                     row: 121,
                 },
+                {
+                    claimBoundary:
+                        "Env-gated standalone error runtime frames only; not row 96 dashboard selected/empty completion by itself.",
+                    evidence: WORKSPACE_STANDALONE_ERROR_RUNTIME_COMMAND,
+                    row: 96,
+                },
             ],
             generatedAt: new Date().toISOString(),
             nonClaims: [
@@ -5472,7 +5478,7 @@ test("Workspace visual matrix row 96 captures dashboard and standalone Workspace
             residualGaps: [
                 "No row-96-specific live pixel target exists for every state/content combination; live runtime entries are metric/structural evidence.",
                 "Dashboard no-match empty detail is now runtime-metric evidence; no row-96-specific dashboard empty pixel target exists for this state/content combination.",
-                "Standalone error empty detail is source-structural only; this run does not force a deterministic Next error-boundary runtime visual.",
+                "Standalone error empty detail has a deterministic runtime-visual command; this matrix records source selectors and cites the env-gated focused command.",
                 "Responsive frames are recorded as layout metrics, not selected-detail visual parity.",
                 "Broader all-page/all-control scripted plus real-browser acceptance remains pending.",
             ],
