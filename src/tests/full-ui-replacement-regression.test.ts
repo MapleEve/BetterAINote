@@ -3642,6 +3642,25 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain("<ToggleGroup");
         expect(speakerReview).toContain("<Badge");
         expect(speakerReview).toContain("<Alert");
+        expect(speakerReview).toContain('from "@/components/ui/input-group";');
+        expect(speakerReview).toContain('from "@/components/ui/empty";');
+        expect(speakerReview).toContain('from "@/components/ui/field";');
+        for (const primitive of [
+            "InputGroup,",
+            "InputGroupAddon,",
+            "InputGroupButton,",
+            "InputGroupInput,",
+            "Empty,",
+            "EmptyDescription,",
+            "EmptyHeader,",
+            "EmptyMedia,",
+            "EmptyTitle,",
+            "<Field",
+            "<FieldContent>",
+            "<FieldLabel",
+        ]) {
+            expect(speakerReview).toContain(primitive);
+        }
         expect(speakerReview).toContain('data-sot-list="speaker-review-rows"');
         expect(speakerReview).toContain('data-sot-item="speaker-review-row"');
         expect(speakerReview).toContain('data-sot-list="speaker-review-meta"');
@@ -3657,6 +3676,89 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain("<section");
         expect(speakerReview).toContain(
             "data-sot-speaker-label={speaker.rawLabel}",
+        );
+        const speakerReviewMappingInputIndex = speakerReview.indexOf(
+            'data-sot-control="speaker-review-mapping-input"',
+        );
+        expect(speakerReviewMappingInputIndex).toBeGreaterThan(-1);
+        const speakerReviewMappingInput = speakerReview.slice(
+            speakerReviewMappingInputIndex - 520,
+            speakerReviewMappingInputIndex + 7_000,
+        );
+        expect(speakerReviewMappingInput).toContain("<InputGroup");
+        expect(speakerReviewMappingInput).toContain("<InputGroupInput");
+        expect(speakerReviewMappingInput).toContain("<InputGroupAddon");
+        expect(speakerReviewMappingInput).toContain("<InputGroupButton");
+        expect(speakerReviewMappingInput).toContain(
+            'data-sot-control="speaker-review-mapping-clear"',
+        );
+        expect(speakerReviewMappingInput).toContain("aria-busy={");
+        expect(speakerReviewMappingInput).toContain("onFocus={() =>");
+        expect(speakerReviewMappingInput).toContain("onBlur={() =>");
+        expect(speakerReviewMappingInput).toContain("onChange={(event) =>");
+        const speakerReviewInlineRenameInput = speakerReview.slice(
+            speakerReview.indexOf(
+                'data-sot-control="speaker-review-inline-name"',
+            ) - 1_200,
+            speakerReview.indexOf(
+                'data-sot-control="speaker-review-inline-name"',
+            ) + 3_200,
+        );
+        expect(speakerReviewInlineRenameInput).toContain("<Field");
+        expect(speakerReviewInlineRenameInput).toContain("<FieldContent>");
+        expect(speakerReviewInlineRenameInput).toContain("<Input");
+        expect(speakerReviewInlineRenameInput).toContain("data-spk-input");
+        expect(speakerReviewInlineRenameInput).toContain("autoFocus");
+        expect(speakerReviewInlineRenameInput).toContain("aria-busy={");
+        const speakerReviewMergeEmpty = extractElementSlice(
+            speakerReview,
+            'data-sot-part="speaker-review-merge-empty"',
+            "Empty",
+        );
+        expect(speakerReviewMergeEmpty).toContain("<EmptyHeader>");
+        expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
+        expect(speakerReviewMergeEmpty).toContain('variant="icon"');
+        expect(speakerReviewMergeEmpty).toContain("<CheckCircle2");
+        expect(speakerReviewMergeEmpty).toContain(
+            '<EmptyTitle data-sot-part="speaker-review-merge-empty-title">',
+        );
+        expect(speakerReviewMergeEmpty).toContain(
+            '<EmptyDescription data-sot-part="speaker-review-merge-empty-description">',
+        );
+        const speakerReviewNoSamplesEmpty = extractElementSlice(
+            speakerReview,
+            'data-sot-state="no-samples"',
+            "Empty",
+        );
+        expect(speakerReviewNoSamplesEmpty).toContain(
+            'data-sot-part="speaker-review-empty"',
+        );
+        expect(speakerReviewNoSamplesEmpty).toContain("<EmptyHeader>");
+        expect(speakerReviewNoSamplesEmpty).toContain("<EmptyTitle>");
+        for (const selector of [
+            '[data-sot-control="speaker-review-inline-name"][data-slot="input"]',
+            '[data-sot-control="speaker-review-mapping-input"][data-slot="input"]',
+            '[data-sot-panel="speaker-review"] [data-slot="card"]',
+            '[data-sot-control="speaker-review-mode"]',
+            '[data-sot-control="speaker-review-mode-option"]',
+            '[data-sot-panel="speaker-review-merge"][data-slot="card"]',
+            '[data-sot-part="speaker-review-merge-empty"]',
+            '[data-sot-part="speaker-review-merge-empty-icon"]',
+            '[data-sot-part="speaker-review-merge-empty-title"]',
+            '[data-sot-part="speaker-review-merge-empty-description"]',
+            '[data-sot-control="speaker-review-suggestion"]',
+            '[data-sot-part="speaker-review-empty"]',
+            '[data-sot-part="speaker-review-voiceprint-pill"]',
+        ]) {
+            expect(globals).not.toContain(selector);
+        }
+        expect(speakerReview).toContain(
+            'data-sot-control="speaker-review-suggestion"',
+        );
+        expect(speakerReview).toContain('variant="outline"');
+        expect(speakerReview).toContain("hidden={!isMergePopoverOpen}");
+        expect(speakerReview).toContain(
+            "data-open={String(isMergePopoverOpen)}",
         );
         expect(speakerReview).not.toContain('className="sp-head"');
         expect(speakerReview).not.toContain(

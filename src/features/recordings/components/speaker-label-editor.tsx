@@ -1,6 +1,14 @@
 "use client";
 
-import { Copy, FileText, Play, RefreshCw, Volume2, X } from "lucide-react";
+import {
+    CheckCircle2,
+    Copy,
+    FileText,
+    Play,
+    RefreshCw,
+    Volume2,
+    X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -15,8 +23,21 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
     SpeakerReviewSkeleton,
@@ -695,11 +716,24 @@ export function SpeakerLabelEditor({
                         : "empty"
             }
         >
-            <Card hasNoPadding data-sot-part="speaker-review-transcript-card">
-                <CardHeader data-sot-part="speaker-review-header">
-                    <div data-sot-part="speaker-review-header-copy">
-                        <FileText aria-hidden="true" />
-                        <div>
+            <Card
+                hasNoPadding
+                className="gap-0"
+                data-sot-part="speaker-review-transcript-card"
+            >
+                <CardHeader
+                    className="flex items-center justify-between gap-2 px-4 py-3 max-[860px]:flex-col max-[860px]:items-stretch"
+                    data-sot-part="speaker-review-header"
+                >
+                    <div
+                        className="flex min-w-0 items-center gap-2.5"
+                        data-sot-part="speaker-review-header-copy"
+                    >
+                        <FileText
+                            className="size-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <div className="min-w-0">
                             <CardTitle data-sot-part="speaker-review-title">
                                 {t("speakerReview.transcriptReviewTitle")}
                             </CardTitle>
@@ -708,12 +742,16 @@ export function SpeakerLabelEditor({
                             </CardDescription>
                         </div>
                     </div>
-                    <CardAction data-sot-part="speaker-review-actions">
+                    <CardAction
+                        className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                        data-sot-part="speaker-review-actions"
+                    >
                         <ToggleGroup
                             type="single"
                             value={reviewMode}
                             size="sm"
                             spacing={1}
+                            className="flex-nowrap"
                             aria-label={t("speakerReview.title")}
                             data-sot-control="speaker-review-mode"
                             onValueChange={(value) => {
@@ -724,12 +762,14 @@ export function SpeakerLabelEditor({
                         >
                             <ToggleGroupItem
                                 value="speaker"
+                                className="px-2.5"
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.speakerNamesMode")}
                             </ToggleGroupItem>
                             <ToggleGroupItem
                                 value="raw"
+                                className="px-2.5"
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.rawLabelsMode")}
@@ -764,6 +804,7 @@ export function SpeakerLabelEditor({
                             {t("speakerReview.refresh")}
                         </Button>
                         <div
+                            className="relative inline-flex"
                             data-sot-part="speaker-review-merge-anchor"
                             ref={mergeAnchorRef}
                         >
@@ -784,6 +825,7 @@ export function SpeakerLabelEditor({
                             </Button>
                             <Card
                                 hasNoPadding
+                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-80 min-w-72 gap-0 overflow-hidden p-0"
                                 id={mergePopoverId}
                                 data-sot-panel="speaker-review-merge"
                                 data-spk-merge-pop
@@ -792,7 +834,10 @@ export function SpeakerLabelEditor({
                                 role="dialog"
                                 aria-label="合并相似说话人"
                             >
-                                <CardHeader data-sot-part="speaker-review-merge-header">
+                                <CardHeader
+                                    className="flex items-center justify-between gap-2 px-3 py-3"
+                                    data-sot-part="speaker-review-merge-header"
+                                >
                                     <CardTitle data-sot-part="speaker-review-merge-title">
                                         合并相似说话人
                                     </CardTitle>
@@ -815,25 +860,26 @@ export function SpeakerLabelEditor({
                                         </Button>
                                     </CardAction>
                                 </CardHeader>
-                                <CardContent data-sot-part="speaker-review-merge-empty">
-                                    <div
-                                        data-sot-part="speaker-review-merge-empty-icon"
-                                        aria-hidden="true"
+                                <CardContent className="p-0">
+                                    <Empty
+                                        className="p-4 md:p-6"
+                                        data-sot-part="speaker-review-merge-empty"
                                     >
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            aria-hidden="true"
-                                            focusable="false"
-                                        >
-                                            <path d="M20 6 9 17l-5-5" />
-                                        </svg>
-                                    </div>
-                                    <p data-sot-part="speaker-review-merge-empty-title">
-                                        当前没有可合并的相似说话人
-                                    </p>
-                                    <p data-sot-part="speaker-review-merge-empty-description">
-                                        如果两位说话人声纹接近，会出现在这里供你确认。
-                                    </p>
+                                        <EmptyHeader>
+                                            <EmptyMedia
+                                                variant="icon"
+                                                data-sot-part="speaker-review-merge-empty-icon"
+                                            >
+                                                <CheckCircle2 />
+                                            </EmptyMedia>
+                                            <EmptyTitle data-sot-part="speaker-review-merge-empty-title">
+                                                当前没有可合并的相似说话人
+                                            </EmptyTitle>
+                                            <EmptyDescription data-sot-part="speaker-review-merge-empty-description">
+                                                如果两位说话人声纹接近，会出现在这里供你确认。
+                                            </EmptyDescription>
+                                        </EmptyHeader>
+                                    </Empty>
                                 </CardContent>
                             </Card>
                         </div>
@@ -851,8 +897,14 @@ export function SpeakerLabelEditor({
                         <AlertTitle>{reviewError}</AlertTitle>
                     </Alert>
                 ) : activeReview ? (
-                    <CardContent data-sot-part="speaker-review-transcript-content">
-                        <div data-sot-list="speaker-review-meta">
+                    <CardContent
+                        className="px-4 pb-4"
+                        data-sot-part="speaker-review-transcript-content"
+                    >
+                        <div
+                            className="my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[640px]:grid-cols-1"
+                            data-sot-list="speaker-review-meta"
+                        >
                             {activeReview.detectedLanguage ? (
                                 <span>
                                     {t("speakerReview.languageLabel")}:{" "}
@@ -910,7 +962,10 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div data-sot-part="speaker-review-transcript-section">
+                        <div
+                            className="flex flex-col gap-2 border-t pt-2"
+                            data-sot-part="speaker-review-transcript-section"
+                        >
                             <p data-sot-part="speaker-review-segment-text">
                                 {activeReview.text}
                             </p>
@@ -940,11 +995,20 @@ export function SpeakerLabelEditor({
                     </AlertDescription>
                 </Alert>
             ) : speakers.length === 0 ? (
-                <Card hasNoPadding data-sot-part="speaker-review-empty">
-                    {t("speakerReview.noDetectedSpeakers")}
-                </Card>
+                <Empty
+                    className="py-6"
+                    data-sot-part="speaker-review-empty"
+                    data-sot-state="no-detected-speakers"
+                >
+                    <EmptyHeader>
+                        <EmptyTitle>
+                            {t("speakerReview.noDetectedSpeakers")}
+                        </EmptyTitle>
+                    </EmptyHeader>
+                </Empty>
             ) : (
                 <div
+                    className="flex flex-col gap-1.5"
                     data-sot-list="speaker-review-rows"
                     data-sot-variant="review"
                 >
@@ -952,6 +1016,7 @@ export function SpeakerLabelEditor({
                         <Card
                             key={speaker.rawLabel}
                             hasNoPadding
+                            className="grid items-center gap-2.5 overflow-visible p-3"
                             data-sot-item="speaker-review-row"
                             data-sot-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
@@ -1017,62 +1082,94 @@ export function SpeakerLabelEditor({
                                     recordingId,
                                     speaker.rawLabel,
                                 );
+                                const inlineRenameInputId = `${mappingInputId}-inline-name`;
 
                                 if (isInlineEditing) {
                                     return (
                                         <>
-                                            <div data-sot-part="speaker-review-row-meta">
-                                                <Input
-                                                    value={inlineRenameDraft}
-                                                    data-spk-input
-                                                    data-sot-control="speaker-review-inline-name"
-                                                    autoComplete="off"
-                                                    autoFocus
-                                                    aria-label={`${speaker.rawLabel} 重命名`}
-                                                    disabled={isSpeakerSaving}
-                                                    onChange={(event) => {
-                                                        const value =
-                                                            event.target.value;
-                                                        setSpeakerNameDrafts(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                [speaker.rawLabel]:
-                                                                    value,
-                                                            }),
-                                                        );
-                                                    }}
-                                                    onKeyDown={(event) => {
-                                                        if (
-                                                            event.key ===
-                                                            "Escape"
-                                                        ) {
-                                                            event.preventDefault();
-                                                            closeInlineRename(
-                                                                speaker.rawLabel,
-                                                            );
-                                                            return;
+                                            <Field
+                                                className="min-w-0"
+                                                data-sot-part="speaker-review-row-meta"
+                                                data-disabled={
+                                                    isSpeakerSaving
+                                                        ? true
+                                                        : undefined
+                                                }
+                                            >
+                                                <FieldLabel
+                                                    className="sr-only"
+                                                    htmlFor={
+                                                        inlineRenameInputId
+                                                    }
+                                                >
+                                                    {`${speaker.rawLabel} 重命名`}
+                                                </FieldLabel>
+                                                <FieldContent>
+                                                    <Input
+                                                        id={inlineRenameInputId}
+                                                        className="h-8 min-w-60"
+                                                        value={
+                                                            inlineRenameDraft
                                                         }
-
-                                                        if (
-                                                            event.key ===
-                                                            "Enter"
-                                                        ) {
-                                                            event.preventDefault();
+                                                        data-spk-input
+                                                        data-sot-control="speaker-review-inline-name"
+                                                        autoComplete="off"
+                                                        autoFocus
+                                                        aria-label={`${speaker.rawLabel} 重命名`}
+                                                        aria-busy={
+                                                            isSpeakerSaving
+                                                        }
+                                                        disabled={
+                                                            isSpeakerSaving
+                                                        }
+                                                        onChange={(event) => {
+                                                            const value =
+                                                                event.target
+                                                                    .value;
+                                                            setSpeakerNameDrafts(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [speaker.rawLabel]:
+                                                                        value,
+                                                                }),
+                                                            );
+                                                        }}
+                                                        onKeyDown={(event) => {
                                                             if (
-                                                                !inlineRenameDraft.trim() ||
-                                                                isSpeakerSaving
+                                                                event.key ===
+                                                                "Escape"
                                                             ) {
+                                                                event.preventDefault();
+                                                                closeInlineRename(
+                                                                    speaker.rawLabel,
+                                                                );
                                                                 return;
                                                             }
 
-                                                            void handleSaveInlineRename(
-                                                                speaker,
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                            <div data-sot-part="speaker-review-actions">
+                                                            if (
+                                                                event.key ===
+                                                                "Enter"
+                                                            ) {
+                                                                event.preventDefault();
+                                                                if (
+                                                                    !inlineRenameDraft.trim() ||
+                                                                    isSpeakerSaving
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                void handleSaveInlineRename(
+                                                                    speaker,
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                </FieldContent>
+                                            </Field>
+                                            <div
+                                                className="inline-flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                                                data-sot-part="speaker-review-actions"
+                                            >
                                                 <Button
                                                     type="button"
                                                     size="sm"
@@ -1116,7 +1213,10 @@ export function SpeakerLabelEditor({
 
                                 return (
                                     <>
-                                        <div data-sot-part="speaker-review-row-meta">
+                                        <div
+                                            className="flex min-w-0 flex-col gap-0.5"
+                                            data-sot-part="speaker-review-row-meta"
+                                        >
                                             <div>
                                                 <p data-sot-part="speaker-review-row-name">
                                                     {speaker.rawLabel}
@@ -1195,7 +1295,10 @@ export function SpeakerLabelEditor({
                                                     {t("common.retry")}
                                                 </Button>
                                             ) : (
-                                                <div data-sot-part="speaker-review-actions">
+                                                <div
+                                                    className="inline-flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                                                    data-sot-part="speaker-review-actions"
+                                                >
                                                     <Button
                                                         type="button"
                                                         size="sm"
@@ -1230,8 +1333,14 @@ export function SpeakerLabelEditor({
                                             )}
                                         </div>
 
-                                        <div data-sot-part="speaker-review-samples">
-                                            <div data-sot-part="speaker-review-section-head">
+                                        <div
+                                            className="flex flex-col gap-2 border-t pt-2"
+                                            data-sot-part="speaker-review-samples"
+                                        >
+                                            <div
+                                                className="flex items-baseline gap-2.5"
+                                                data-sot-part="speaker-review-section-head"
+                                            >
                                                 <p data-sot-part="speaker-review-section-title">
                                                     {t(
                                                         "speakerReview.samplesTitle",
@@ -1244,14 +1353,21 @@ export function SpeakerLabelEditor({
                                                 </p>
                                             </div>
                                             {speaker.sampleCount > 0 ? (
-                                                <div data-sot-list="speaker-review-sample-segments">
+                                                <div
+                                                    className="flex flex-col gap-0.5"
+                                                    data-sot-list="speaker-review-sample-segments"
+                                                >
                                                     {speaker.sampleSegments.map(
                                                         (segment, index) => (
                                                             <div
                                                                 key={`${speaker.rawLabel}-preview-${segment.startMs ?? index}`}
+                                                                className="grid grid-cols-[96px_56px_minmax(0,1fr)] items-start gap-2.5 rounded-md p-2.5 max-[860px]:grid-cols-1"
                                                                 data-sot-item="speaker-review-sample-segment"
                                                             >
-                                                                <div data-sot-part="speaker-review-segment-meta">
+                                                                <div
+                                                                    className="flex min-w-0 flex-col gap-0.5"
+                                                                    data-sot-part="speaker-review-segment-meta"
+                                                                >
                                                                     <p data-sot-part="speaker-review-segment-title">
                                                                         {t(
                                                                             "speakerReview.sample",
@@ -1304,19 +1420,24 @@ export function SpeakerLabelEditor({
                                                     )}
                                                 </div>
                                             ) : (
-                                                <Card
-                                                    hasNoPadding
+                                                <Empty
+                                                    className="py-4 md:p-4"
                                                     data-sot-part="speaker-review-empty"
                                                     data-sot-state="no-samples"
                                                 >
-                                                    {t(
-                                                        "speakerReview.noTimedSamples",
-                                                    )}
-                                                </Card>
+                                                    <EmptyHeader>
+                                                        <EmptyTitle>
+                                                            {t(
+                                                                "speakerReview.noTimedSamples",
+                                                            )}
+                                                        </EmptyTitle>
+                                                    </EmptyHeader>
+                                                </Empty>
                                             )}
                                         </div>
 
                                         <Field
+                                            className="gap-2"
                                             data-sot-part="speaker-review-mapping-field"
                                             data-disabled={
                                                 isSpeakerSaving
@@ -1332,11 +1453,21 @@ export function SpeakerLabelEditor({
                                                 )}
                                             </FieldLabel>
                                             <FieldContent>
-                                                <div className="flex items-center gap-2">
-                                                    <Input
+                                                <InputGroup
+                                                    className="h-9 min-w-0"
+                                                    data-disabled={
+                                                        isSpeakerSaving
+                                                            ? true
+                                                            : undefined
+                                                    }
+                                                >
+                                                    <InputGroupInput
                                                         id={mappingInputId}
                                                         value={searchQuery}
                                                         data-sot-control="speaker-review-mapping-input"
+                                                        aria-busy={
+                                                            isSpeakerSaving
+                                                        }
                                                         onFocus={() => {
                                                             if (
                                                                 isSpeakerSaving ||
@@ -1406,51 +1537,55 @@ export function SpeakerLabelEditor({
                                                         }
                                                     />
                                                     {searchQuery.trim() ? (
-                                                        <Button
-                                                            type="button"
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            aria-label={t(
-                                                                "speakerReview.clearSelectedSpeaker",
-                                                            )}
-                                                            disabled={
-                                                                isSpeakerSaving
-                                                            }
-                                                            data-sot-control="speaker-review-mapping-clear"
-                                                            onMouseDown={(
-                                                                event,
-                                                            ) =>
-                                                                event.preventDefault()
-                                                            }
-                                                            onClick={() => {
-                                                                if (
+                                                        <InputGroupAddon align="inline-end">
+                                                            <InputGroupButton
+                                                                type="button"
+                                                                size="icon-xs"
+                                                                variant="ghost"
+                                                                aria-label={t(
+                                                                    "speakerReview.clearSelectedSpeaker",
+                                                                )}
+                                                                disabled={
                                                                     isSpeakerSaving
-                                                                ) {
-                                                                    return;
                                                                 }
+                                                                data-sot-control="speaker-review-mapping-clear"
+                                                                onMouseDown={(
+                                                                    event,
+                                                                ) =>
+                                                                    event.preventDefault()
+                                                                }
+                                                                onClick={() => {
+                                                                    if (
+                                                                        isSpeakerSaving
+                                                                    ) {
+                                                                        return;
+                                                                    }
 
-                                                                setSearchQueries(
-                                                                    (prev) => ({
-                                                                        ...prev,
-                                                                        [speaker.rawLabel]:
-                                                                            "",
-                                                                    }),
-                                                                );
-                                                                setConfirmUnlinkFor(
-                                                                    null,
-                                                                );
-                                                                clearSpeakerSaveError(
-                                                                    speaker.rawLabel,
-                                                                );
-                                                                setOpenPickerFor(
-                                                                    speaker.rawLabel,
-                                                                );
-                                                            }}
-                                                        >
-                                                            <X data-icon="inline-start" />
-                                                        </Button>
+                                                                    setSearchQueries(
+                                                                        (
+                                                                            prev,
+                                                                        ) => ({
+                                                                            ...prev,
+                                                                            [speaker.rawLabel]:
+                                                                                "",
+                                                                        }),
+                                                                    );
+                                                                    setConfirmUnlinkFor(
+                                                                        null,
+                                                                    );
+                                                                    clearSpeakerSaveError(
+                                                                        speaker.rawLabel,
+                                                                    );
+                                                                    setOpenPickerFor(
+                                                                        speaker.rawLabel,
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <X data-icon="inline-start" />
+                                                            </InputGroupButton>
+                                                        </InputGroupAddon>
                                                     ) : null}
-                                                </div>
+                                                </InputGroup>
                                             </FieldContent>
                                             {speaker.matchedProfileId ? (
                                                 isConfirmingUnlink ? (
@@ -1518,7 +1653,10 @@ export function SpeakerLabelEditor({
                                                         </Button>
                                                     </Card>
                                                 ) : (
-                                                    <div data-sot-part="speaker-review-actions">
+                                                    <div
+                                                        className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
+                                                        data-sot-part="speaker-review-actions"
+                                                    >
                                                         <Button
                                                             type="button"
                                                             size="sm"
@@ -1562,17 +1700,24 @@ export function SpeakerLabelEditor({
                                             {isPickerOpen ? (
                                                 profiles.length === 0 &&
                                                 !normalizedQuery ? (
-                                                    <Card
-                                                        hasNoPadding
+                                                    <Empty
+                                                        className="py-4 md:p-4"
                                                         data-sot-part="speaker-review-empty"
                                                         data-sot-state="no-saved-speakers"
                                                     >
-                                                        {t(
-                                                            "speakerReview.noSavedSpeakers",
-                                                        )}
-                                                    </Card>
+                                                        <EmptyHeader>
+                                                            <EmptyTitle>
+                                                                {t(
+                                                                    "speakerReview.noSavedSpeakers",
+                                                                )}
+                                                            </EmptyTitle>
+                                                        </EmptyHeader>
+                                                    </Empty>
                                                 ) : (
-                                                    <div data-sot-list="speaker-review-suggestions">
+                                                    <div
+                                                        className="flex flex-col gap-1.5"
+                                                        data-sot-list="speaker-review-suggestions"
+                                                    >
                                                         {filteredProfiles.map(
                                                             (profile) => (
                                                                 <Button
@@ -1580,8 +1725,9 @@ export function SpeakerLabelEditor({
                                                                         profile.id
                                                                     }
                                                                     type="button"
-                                                                    variant="ghost"
+                                                                    variant="outline"
                                                                     size="sm"
+                                                                    className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"
                                                                     data-sot-control="speaker-review-suggestion"
                                                                     disabled={
                                                                         isSpeakerSaving ||
@@ -1617,7 +1763,7 @@ export function SpeakerLabelEditor({
                                                                         );
                                                                     }}
                                                                 >
-                                                                    <span>
+                                                                    <span className="truncate text-left">
                                                                         {
                                                                             profile.displayName
                                                                         }
@@ -1646,8 +1792,9 @@ export function SpeakerLabelEditor({
                                                         !hasExactMatch ? (
                                                             <Button
                                                                 type="button"
-                                                                variant="ghost"
+                                                                variant="outline"
                                                                 size="sm"
+                                                                className="h-auto min-h-8 w-full justify-start px-2 py-1.5"
                                                                 data-sot-control="speaker-review-suggestion"
                                                                 data-sot-state="create"
                                                                 disabled={
@@ -1681,7 +1828,7 @@ export function SpeakerLabelEditor({
                                                                     );
                                                                 }}
                                                             >
-                                                                <span>
+                                                                <span className="truncate text-left">
                                                                     {t(
                                                                         "speakerReview.createSpeakerOption",
                                                                         {
@@ -1694,29 +1841,37 @@ export function SpeakerLabelEditor({
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         !normalizedQuery ? (
-                                                            <Card
-                                                                hasNoPadding
+                                                            <Empty
+                                                                className="py-4 md:p-4"
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-saved-speakers"
                                                             >
-                                                                {t(
-                                                                    "speakerReview.noSavedSpeakers",
-                                                                )}
-                                                            </Card>
+                                                                <EmptyHeader>
+                                                                    <EmptyTitle>
+                                                                        {t(
+                                                                            "speakerReview.noSavedSpeakers",
+                                                                        )}
+                                                                    </EmptyTitle>
+                                                                </EmptyHeader>
+                                                            </Empty>
                                                         ) : null}
                                                         {filteredProfiles.length ===
                                                             0 &&
                                                         normalizedQuery &&
                                                         hasLiveNoMatch ? (
-                                                            <Card
-                                                                hasNoPadding
+                                                            <Empty
+                                                                className="py-4 md:p-4"
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-matching-speakers"
                                                             >
-                                                                {t(
-                                                                    "speakerReview.noMatchingSpeakers",
-                                                                )}
-                                                            </Card>
+                                                                <EmptyHeader>
+                                                                    <EmptyTitle>
+                                                                        {t(
+                                                                            "speakerReview.noMatchingSpeakers",
+                                                                        )}
+                                                                    </EmptyTitle>
+                                                                </EmptyHeader>
+                                                            </Empty>
                                                         ) : null}
                                                     </div>
                                                 )

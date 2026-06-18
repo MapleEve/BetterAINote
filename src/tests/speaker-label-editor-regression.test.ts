@@ -13,10 +13,24 @@ describe("dashboard speaker label editor regressions", () => {
         ),
         "utf8",
     );
+    const globalsSource = readFileSync(
+        path.join(process.cwd(), "src/app/globals.css"),
+        "utf8",
+    );
     const i18nSource = readFileSync(
         path.join(process.cwd(), "src/lib/i18n.ts"),
         "utf8",
     );
+
+    function extractElementSlice(marker: string, tagName: string) {
+        const markerIndex = source.indexOf(marker);
+        expect(markerIndex).toBeGreaterThanOrEqual(0);
+        const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+        const end = source.indexOf(`</${tagName}>`, markerIndex);
+        expect(start).toBeGreaterThanOrEqual(0);
+        expect(end).toBeGreaterThan(start);
+        return source.slice(start, end + tagName.length + 3);
+    }
 
     it("keeps transcript review visible when there are no saved speaker mappings", () => {
         expect(source).not.toContain(
@@ -204,13 +218,174 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toMatch(/event\.key ===\s*"Escape"/);
         expect(source).toMatch(/event\.key ===\s*"Enter"/);
         expect(source).toMatch(
-            /<div data-sot-part="speaker-review-row-meta">[\s\S]*?<Input[\s\S]*?data-spk-input[\s\S]*?<\/div>\s*<div data-sot-part="speaker-review-actions">[\s\S]*?data-spk-cancel[\s\S]*?data-spk-save/,
+            /<Field[\s\S]*?data-sot-part="speaker-review-row-meta"[\s\S]*?<FieldContent>[\s\S]*?<Input[\s\S]*?data-spk-input[\s\S]*?<\/FieldContent>\s*<\/Field>\s*<div[\s\S]*?data-sot-part="speaker-review-actions"[\s\S]*?data-spk-cancel[\s\S]*?data-spk-save/,
         );
         expect(source).toMatch(
             /handleAssignProfile\(\s*speaker\.rawLabel,\s*nextProfileId,\s*nextName,\s*\)/,
         );
         expect(source).toMatch(
             /setEditingSpeakerFor\(\(current\) =>\s*current === rawLabel \? null : current,\s*\)/,
+        );
+    });
+
+    it("uses shadcn speaker review composition instead of globals repaint", () => {
+        expect(source).toContain('from "@/components/ui/button";');
+        expect(source).toContain('from "@/components/ui/badge";');
+        expect(source).toContain('from "@/components/ui/card";');
+        expect(source).toContain('from "@/components/ui/alert";');
+        expect(source).toContain('from "@/components/ui/toggle-group";');
+        expect(source).toContain('from "@/components/ui/field";');
+        expect(source).toContain('from "@/components/ui/input-group";');
+        expect(source).toContain('from "@/components/ui/empty";');
+        for (const primitive of [
+            "<Button",
+            "<Badge",
+            "<Card",
+            "<Alert",
+            "<ToggleGroup",
+            "<Field",
+            "<InputGroup",
+            "<InputGroupInput",
+            "<InputGroupAddon",
+            "<InputGroupButton",
+            "<Empty",
+            "<EmptyHeader",
+            "<EmptyMedia",
+            "<EmptyTitle",
+            "<EmptyDescription",
+        ]) {
+            expect(source).toContain(primitive);
+        }
+
+        for (const selector of [
+            '[data-sot-control="speaker-review-inline-name"][data-slot="input"]',
+            '[data-sot-control="speaker-review-mapping-input"][data-slot="input"]',
+            '[data-sot-panel="speaker-review"] [data-slot="card"]',
+            '[data-sot-control="speaker-review-mode"]',
+            '[data-sot-control="speaker-review-mode-option"]',
+            '[data-sot-panel="speaker-review-merge"][data-slot="card"]',
+            '[data-sot-part="speaker-review-merge-empty"]',
+            '[data-sot-part="speaker-review-merge-empty-icon"]',
+            '[data-sot-part="speaker-review-merge-empty-title"]',
+            '[data-sot-part="speaker-review-merge-empty-description"]',
+            '[data-sot-control="speaker-review-suggestion"]',
+            '[data-sot-part="speaker-review-empty"]',
+            '[data-sot-part="speaker-review-voiceprint-pill"]',
+        ]) {
+            expect(globalsSource).not.toContain(selector);
+        }
+    });
+
+    it("keeps inline rename and mapping controls wired through shadcn fields", () => {
+        const inlineInputIndex = source.indexOf(
+            'data-sot-control="speaker-review-inline-name"',
+        );
+        const mappingInputIndex = source.indexOf(
+            'data-sot-control="speaker-review-mapping-input"',
+        );
+        expect(inlineInputIndex).toBeGreaterThan(-1);
+        expect(mappingInputIndex).toBeGreaterThan(-1);
+
+        const inlineSlice = source.slice(
+            inlineInputIndex - 1_200,
+            inlineInputIndex + 3_200,
+        );
+        expect(inlineSlice).toContain("<Field");
+        expect(inlineSlice).toContain("<FieldLabel");
+        expect(inlineSlice).toContain("<FieldContent>");
+        expect(inlineSlice).toContain("<Input");
+        expect(inlineSlice).toContain("data-spk-input");
+        expect(inlineSlice).toContain("autoFocus");
+        expect(inlineSlice).toContain("aria-busy={");
+        expect(inlineSlice).toMatch(/disabled=\{\s*isSpeakerSaving\s*\}/);
+        expect(inlineSlice).toMatch(/event\.key ===\s*"Escape"/);
+        expect(inlineSlice).toMatch(/event\.key ===\s*"Enter"/);
+
+        const mappingSlice = source.slice(
+            mappingInputIndex - 500,
+            mappingInputIndex + 7_000,
+        );
+        expect(mappingSlice).toContain("<InputGroup");
+        expect(mappingSlice).toContain("<InputGroupInput");
+        expect(mappingSlice).toContain("<InputGroupAddon");
+        expect(mappingSlice).toContain("<InputGroupButton");
+        expect(mappingSlice).toContain(
+            'data-sot-control="speaker-review-mapping-clear"',
+        );
+        expect(mappingSlice).toContain("aria-busy={");
+        expect(mappingSlice).toContain("disabled={");
+        expect(mappingSlice).toContain("onFocus={() =>");
+        expect(mappingSlice).toContain("onBlur={() =>");
+        expect(mappingSlice).toContain("onChange={(event) =>");
+        expect(mappingSlice).not.toContain('data-slot="input"');
+    });
+
+    it("uses shadcn Empty for speaker review empty states while keeping SOT anchors", () => {
+        const mergeEmpty = extractElementSlice(
+            'data-sot-part="speaker-review-merge-empty"',
+            "Empty",
+        );
+        expect(mergeEmpty).toContain("<EmptyHeader>");
+        expect(mergeEmpty).toContain("<EmptyMedia");
+        expect(mergeEmpty).toContain('variant="icon"');
+        expect(mergeEmpty).toContain("<CheckCircle2");
+        expect(mergeEmpty).toContain(
+            'data-sot-part="speaker-review-merge-empty-icon"',
+        );
+        expect(mergeEmpty).toContain(
+            '<EmptyTitle data-sot-part="speaker-review-merge-empty-title">',
+        );
+        expect(mergeEmpty).toContain(
+            '<EmptyDescription data-sot-part="speaker-review-merge-empty-description">',
+        );
+        expect(mergeEmpty).not.toContain("<svg");
+        expect(mergeEmpty).not.toContain("<p");
+
+        for (const state of [
+            "no-detected-speakers",
+            "no-samples",
+            "no-saved-speakers",
+            "no-matching-speakers",
+        ]) {
+            const emptySlice = extractElementSlice(
+                `data-sot-state="${state}"`,
+                "Empty",
+            );
+            expect(emptySlice).toContain(
+                'data-sot-part="speaker-review-empty"',
+            );
+            expect(emptySlice).toContain("<EmptyHeader>");
+            expect(emptySlice).toContain("<EmptyTitle>");
+            expect(emptySlice).not.toContain("<Card");
+        }
+    });
+
+    it("keeps speaker review controls and row states after shadcn migration", () => {
+        for (const anchor of [
+            'data-sot-state="loading"',
+            'data-sot-state="error"',
+            '? "empty"',
+            ': "ready"',
+            "data-state={getSpeakerRowState(speaker)}",
+            '"confirm-unlink"',
+            'data-sot-confirm="speaker-unlink"',
+            'data-sot-control="speaker-review-copy-raw"',
+            'data-sot-control="speaker-review-refresh"',
+            'data-sot-control="speaker-review-play-sample"',
+            'data-sot-control="speaker-review-unlink"',
+            'data-sot-control="speaker-review-inline-cancel"',
+            'data-sot-control="speaker-review-inline-save"',
+            'data-sot-control="speaker-review-save-retry"',
+            'data-sot-control="speaker-review-suggestion"',
+            'data-sot-state="create"',
+            'return hasLiveNoMatch ? "no-match" : undefined;',
+            "data-open={String(isMergePopoverOpen)}",
+            "hidden={!isMergePopoverOpen}",
+        ]) {
+            expect(source).toContain(anchor);
+        }
+        expect(source).toMatch(
+            /disabled=\{\s*isSpeakerSaving\s*\|\|\s*speaker\.matchedProfileId ===\s*profile\.id\s*\}/,
         );
     });
 
