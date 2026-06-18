@@ -18,6 +18,12 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+    Empty,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import {
     Field,
     FieldContent,
     FieldDescription,
@@ -1160,20 +1166,23 @@ function DataSourcesSettingsPanel({
                 ) : null}
 
                 {isLoading && orderedSources.length === 0 ? (
-                    <div
+                    <Empty
+                        className="mt-4 flex-none"
                         data-sot-panel="settings-empty-hint"
                         data-sot-section="data-sources"
                         data-sot-state="loading"
                     >
-                        <div data-sot-part="settings-empty-title">
-                            {isZh ? "正在读取来源" : "Loading sources"}
-                        </div>
-                        <div data-sot-part="settings-empty-description">
-                            {isZh
-                                ? "请稍候，正在读取已保存的数据源状态。"
-                                : "Reading saved data source status."}
-                        </div>
-                    </div>
+                        <EmptyHeader>
+                            <EmptyTitle data-sot-part="settings-empty-title">
+                                {isZh ? "正在读取来源" : "Loading sources"}
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-part="settings-empty-description">
+                                {isZh
+                                    ? "请稍候，正在读取已保存的数据源状态。"
+                                    : "Reading saved data source status."}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
                 ) : null}
 
                 {orderedSources.map((source) => {
@@ -1472,22 +1481,25 @@ function DataSourcesSettingsPanel({
 
                             {advancedFields.length > 0 ? (
                                 <>
-                                    <div
+                                    <Empty
+                                        className="mt-4 flex-none"
                                         data-sot-panel="settings-empty-hint"
                                         data-sot-section="data-sources"
                                         data-sot-state="advanced"
                                     >
-                                        <div data-sot-part="settings-empty-title">
-                                            {isZh
-                                                ? "高级选项（可选）"
-                                                : "Advanced options"}
-                                        </div>
-                                        <div data-sot-part="settings-empty-description">
-                                            {isZh
-                                                ? "仅在来源要求额外组织信息时填写。"
-                                                : "Fill these only when the source requires extra workspace details."}
-                                        </div>
-                                    </div>
+                                        <EmptyHeader>
+                                            <EmptyTitle data-sot-part="settings-empty-title">
+                                                {isZh
+                                                    ? "高级选项（可选）"
+                                                    : "Advanced options"}
+                                            </EmptyTitle>
+                                            <EmptyDescription data-sot-part="settings-empty-description">
+                                                {isZh
+                                                    ? "仅在来源要求额外组织信息时填写。"
+                                                    : "Fill these only when the source requires extra workspace details."}
+                                            </EmptyDescription>
+                                        </EmptyHeader>
+                                    </Empty>
                                     {advancedFields.map((field) => (
                                         <DataSourceFieldControl
                                             disabled={interactionDisabled}
@@ -1870,20 +1882,23 @@ function DataSourcesSettingsPanel({
                         </Field>
                     </>
                 ) : (
-                    <div
+                    <Empty
+                        className="mt-4 flex-none"
                         data-sot-panel="settings-empty-hint"
                         data-sot-section="data-sources"
                         data-sot-state="empty"
                     >
-                        <div data-sot-part="settings-empty-title">
-                            {isZh ? "没有可用数据源" : "No data sources"}
-                        </div>
-                        <div data-sot-part="settings-empty-description">
-                            {isZh
-                                ? "请稍后重试，或检查服务端数据源接口。"
-                                : "Try again later or check the data source API."}
-                        </div>
-                    </div>
+                        <EmptyHeader>
+                            <EmptyTitle data-sot-part="settings-empty-title">
+                                {isZh ? "没有可用数据源" : "No data sources"}
+                            </EmptyTitle>
+                            <EmptyDescription data-sot-part="settings-empty-description">
+                                {isZh
+                                    ? "请稍后重试，或检查服务端数据源接口。"
+                                    : "Try again later or check the data source API."}
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
                 )}
             </section>
         </div>

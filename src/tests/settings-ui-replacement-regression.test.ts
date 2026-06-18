@@ -109,6 +109,30 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectElementSlices(source: string, marker: string, tagName: string) {
+    const slices: string[] = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const markerIndex = source.indexOf(marker, searchFrom);
+        if (markerIndex < 0) {
+            break;
+        }
+
+        const startIndex = source.lastIndexOf(`<${tagName}`, markerIndex);
+        expect(startIndex).toBeGreaterThanOrEqual(0);
+
+        const endMarker = `</${tagName}>`;
+        const endIndex = source.indexOf(endMarker, markerIndex);
+        expect(endIndex).toBeGreaterThanOrEqual(0);
+
+        slices.push(source.slice(startIndex, endIndex + endMarker.length));
+        searchFrom = endIndex + endMarker.length;
+    }
+
+    return slices;
+}
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|CardContent|from "@\/components\/ui\/card"|bg-muted/;
 
@@ -738,6 +762,9 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("data-sot-load-state");
         expect(content).toContain('data-sot-surface="settings-data-sources"');
         expect(content).toContain('data-sot-layout="three-pane"');
+        expect(content).toContain(
+            'import {\n    Empty,\n    EmptyDescription,\n    EmptyHeader,\n    EmptyTitle,\n} from "@/components/ui/empty";',
+        );
         expect(content).toContain('data-sot-panel="settings-empty-hint"');
         expect(content).toContain('data-sot-section="data-sources"');
         expect(content).toContain('data-sot-state="loading"');
@@ -745,12 +772,66 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-state="empty"');
         expect(content).toContain('data-sot-part="settings-empty-title"');
         expect(content).toContain('data-sot-part="settings-empty-description"');
+        const settingsEmptyHints = collectElementSlices(
+            content,
+            'data-sot-panel="settings-empty-hint"',
+            "Empty",
+        );
+        expect(settingsEmptyHints).toHaveLength(3);
+        for (const state of ["loading", "advanced", "empty"]) {
+            const emptyHint = settingsEmptyHints.find((slice) =>
+                slice.includes(`data-sot-state="${state}"`),
+            );
+            expect(emptyHint).toBeDefined();
+            const emptyHintSlice = emptyHint ?? "";
+            expect(emptyHintSlice).toContain("<Empty");
+            expect(emptyHintSlice).toContain('className="mt-4 flex-none"');
+            expect(emptyHintSlice).toContain(
+                'data-sot-panel="settings-empty-hint"',
+            );
+            expect(emptyHintSlice).toContain('data-sot-section="data-sources"');
+            expect(emptyHintSlice).toContain("<EmptyHeader>");
+            expect(emptyHintSlice).toContain(
+                '<EmptyTitle data-sot-part="settings-empty-title">',
+            );
+            expect(emptyHintSlice).toContain(
+                '<EmptyDescription data-sot-part="settings-empty-description">',
+            );
+            expect(emptyHintSlice).not.toContain("<div");
+        }
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '{isZh ? "正在读取来源" : "Loading sources"}',
+        );
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '? "请稍候，正在读取已保存的数据源状态。"',
+        );
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '? "高级选项（可选）"',
+        );
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '? "仅在来源要求额外组织信息时填写。"',
+        );
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '{isZh ? "没有可用数据源" : "No data sources"}',
+        );
+        expect(settingsEmptyHints.join("\n")).toContain(
+            '? "请稍后重试，或检查服务端数据源接口。"',
+        );
         expect(content).toContain('data-sot-list="source-fields"');
         expect(content).toContain('data-sot-panel="source-provider-fields"');
         expect(globals).toContain(
             '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
         );
         expect(globals).not.toMatch(/(^|\n|,)\s*\.field-empty\b/);
+        expect(
+            collectCssRuleBlocks(globals, 'settings-empty-hint'),
+        ).toHaveLength(0);
+        expect(
+            collectCssRuleBlocks(globals, 'settings-empty-title'),
+        ).toHaveLength(0);
+        expect(
+            collectCssRuleBlocks(globals, 'settings-empty-description'),
+        ).toHaveLength(0);
         expect(content).not.toContain('className="settings-main three-pane"');
         expect(content).not.toContain('className="empty-hint"');
         expect(content).not.toContain('className="eh-t"');
