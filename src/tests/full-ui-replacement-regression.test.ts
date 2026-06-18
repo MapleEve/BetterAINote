@@ -236,6 +236,30 @@ const LIQUID_TABS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-control="liquid-tabs"][data-idx="2"]',
 ];
 
+const SYSTEM_BANNER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
+    /\.(?:sys-banner|sbn-(?:ico|body|title|sub|actions|progress|bar))(?![\w-])/;
+
+const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="system-banner"]',
+    '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
+    '[data-sot-part="system-banner-icon"]',
+    '[data-sot-part="system-banner-icon"]\n    svg',
+    '[data-sot-part="system-banner-body"]',
+    '[data-sot-part="system-banner-title"]',
+    '[data-sot-part="system-banner-description"]',
+    '[data-sot-part="system-banner-description"][data-sot-format="mono"]',
+    '[data-sot-part="system-banner-actions"]',
+    '[data-sot-panel="system-banner"][data-kind="offline"]',
+    '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
+    '[data-sot-panel="system-banner"][data-kind="db-locked"]',
+    '[data-sot-panel="system-banner"][data-kind="update-available"]',
+    '[data-sot-panel="system-banner"][data-kind="import-progress"]',
+    '[data-sot-panel="system-banner"][data-kind="export-progress"]',
+    '[data-sot-part="system-banner-progress"]',
+    '[data-sot-part="system-banner-progress-bar"]',
+    '[data-sot-part="system-banner-progress"][data-sot-state="indeterminate"]',
+];
+
 function splitVarArguments(content: string) {
     let depth = 0;
     for (let index = 0; index < content.length; index += 1) {
@@ -1030,6 +1054,21 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of LIQUID_TABS_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+    });
+
+    it("keeps system banners product CSS on data-sot selectors", () => {
+        const globals = readSource("app/globals.css");
+        const legacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SYSTEM_BANNER_LEGACY_PRODUCT_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(legacySelectorLines).toEqual([]);
+        for (const selector of SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
     });
