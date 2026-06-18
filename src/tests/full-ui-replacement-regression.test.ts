@@ -1173,7 +1173,7 @@ describe("full UI replacement regression coverage", () => {
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
-                /^\s*\.tagm-|,\s*\.tagm-|^\s*\.tg-pick|,\s*\.tg-pick/.test(
+                /^\s*\.(?:tagm-|tag-chip-)|,\s*\.(?:tagm-|tag-chip-)|^\s*\.tg-pick|,\s*\.tg-pick/.test(
                     text,
                 ),
             );

@@ -7766,11 +7766,6 @@ body[data-ds-todo="show"] .design-todo {
     border: 1px solid var(--line-hairline);
 }
 
-.tag-chip-action,
-.tag-chip-trigger,
-.tag-chip-inline {
-    height: 24px;
-}
 [data-recording-tag-chip][data-sot-control="recording-tag-manager"] {
     height: 24px;
     cursor: pointer;
