@@ -846,9 +846,8 @@ const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-source-report-empty-title]",
     "[data-sot-source-report-empty-description]",
     "[data-sot-source-report-empty-actions]",
-    '[data-sot-source-report-empty-actions] [data-slot="button"]',
-    '[data-sot-source-report-empty-actions]\n    [data-slot="button"][data-variant="primary"]',
-    '[data-sot-source-report-empty-actions]\n    [data-slot="button"][data-variant="ghost"]',
+    '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"][data-sot-state="loading"]',
+    '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"]:disabled',
 ];
 
 const SOURCE_REPORT_METRIC_LEGACY_CSS_SELECTOR_RE =
@@ -1929,6 +1928,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const sourceReportPanel = readSource(
+            "features/recordings/components/source-report-panel.tsx",
+        );
         const globals = readSource("app/globals.css");
 
         expect(workstation).toContain(
@@ -2372,6 +2374,57 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        const sourceReportActionButtonCssBlocks = [
+            ...collectCssRuleBlocks(globals, "[data-sot-source-report-actions]"),
+            ...collectCssRuleBlocks(
+                globals,
+                "[data-sot-source-report-empty-actions]",
+            ),
+        ].filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+
+        expect(sourceReportActionButtonCssBlocks).toEqual([]);
+        const sourceReportActions = extractBoundedSlice(
+            sourceReportPanel,
+            "const sourceActionControls = data ? (",
+            ") : null;",
+        );
+        expect(sourceReportActions).toContain(
+            "<div data-sot-source-report-actions>",
+        );
+        expect(sourceReportActions).toContain('variant="outline"');
+        expect(sourceReportActions).toContain('variant="ghost"');
+        expect(sourceReportActions).toContain('size="xs"');
+        expect(sourceReportActions).toContain(
+            'data-sot-control="open-source-record"',
+        );
+        expect(sourceReportActions).toContain(
+            "data-sot-state={openSourceControlState}",
+        );
+        expect(sourceReportActions).toContain(
+            'data-sot-control="repull-source"',
+        );
+        expect(sourceReportActions).toContain(
+            "data-sot-state={repullControlState}",
+        );
+        expect(sourceReportActions).toContain(
+            'aria-busy={repullState === "loading"}',
+        );
+        const sourceReportEmptyActions = extractBoundedSlice(
+            sourceReportPanel,
+            "<div data-sot-source-report-empty-actions>",
+            "</div>\n                    </Alert>",
+        );
+        expect(sourceReportEmptyActions).toContain(
+            "<div data-sot-source-report-empty-actions>",
+        );
+        expect(sourceReportEmptyActions).toContain('variant="primary"');
+        expect(sourceReportEmptyActions).toContain('variant="ghost"');
+        expect(sourceReportEmptyActions).toContain('size="xs"');
+        expect(sourceReportEmptyActions).toContain(
+            'data-sot-control="refresh-source-report"',
+        );
+        expect(sourceReportEmptyActions).toContain('data-sot-state="error"');
+        expect(sourceReportEmptyActions).toContain("disabled={isLoading}");
 
         const dashboardSourceReportLoaded = extractBoundedSlice(
             workstation,

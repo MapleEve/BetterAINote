@@ -6268,66 +6268,31 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-source-report-actions] {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 4px;
 }
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"],
+    [data-sot-control="open-source-record"][data-sot-state="loading"],
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-shrink: 1;
-    height: 26px;
-    padding: 0 10px;
-    border: 1px solid transparent;
-    border-radius: 7px;
-    background: transparent;
-    color: var(--fg-secondary);
-    box-shadow: none;
-    font: 600 12px var(--font-sans);
-    letter-spacing: 0;
-    white-space: normal;
-    gap: 7px;
-    overflow: visible;
-    transition: none;
+    [data-sot-control="repull-source"][data-sot-state="loading"],
+[data-sot-source-report-actions]
+    [data-sot-control="repull-source"][aria-busy="true"] {
+    cursor: progress;
 }
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"]:hover,
+    [data-sot-control="open-source-record"][data-sot-state="unavailable"],
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
+    [data-sot-control="repull-source"][data-sot-state="unavailable"],
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"]:active,
+    [data-sot-control="open-source-record"]:disabled,
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"]:active {
-    transform: translateY(0.5px);
-}
+    [data-sot-control="repull-source"]:disabled,
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"]:focus-visible,
+    [data-sot-control="open-source-record"][aria-disabled="true"],
 [data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"]:focus-visible {
-    border-color: transparent;
-    box-shadow: none;
-    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-    outline-offset: 2px;
-    --tw-ring-shadow: 0 0 #0000;
-    --tw-ring-offset-shadow: 0 0 #0000;
-}
-[data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"]:disabled,
-[data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"]:disabled,
-[data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="open-source-record"][aria-disabled="true"],
-[data-sot-source-report-actions]
-    [data-slot="button"][data-sot-control="repull-source"][aria-disabled="true"] {
-    opacity: 0.5;
+    [data-sot-control="repull-source"][aria-disabled="true"] {
     cursor: not-allowed;
-    pointer-events: none;
 }
 
 [data-sot-source-report-empty] {
@@ -6387,48 +6352,21 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-source-report-empty-actions] {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 6px;
 }
-[data-sot-source-report-empty-actions] [data-slot="button"] {
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 7px;
-    font: 600 12px var(--font-sans);
-    gap: 7px;
+[data-sot-source-report-empty-actions]
+    [data-sot-control="refresh-source-report"][data-sot-state="loading"],
+[data-sot-source-report-empty-actions]
+    [data-sot-control="refresh-source-report"][aria-busy="true"] {
+    cursor: progress;
 }
 [data-sot-source-report-empty-actions]
-    [data-slot="button"][data-variant="primary"] {
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
-    color: white;
-    box-shadow:
-        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
-}
+    [data-sot-control="refresh-source-report"]:disabled,
 [data-sot-source-report-empty-actions]
-    [data-slot="button"][data-variant="primary"]:hover {
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 96%, white 8%),
-        var(--accent)
-    );
-}
-[data-sot-source-report-empty-actions]
-    [data-slot="button"][data-variant="ghost"] {
-    background: transparent;
-    border: 1px solid transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-}
-[data-sot-source-report-empty-actions]
-    [data-slot="button"][data-variant="ghost"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
+    [data-sot-control="refresh-source-report"][aria-disabled="true"] {
+    cursor: not-allowed;
 }
 
 /* ---------- Speakers pane: row + bar + edit + merge popover ---------- */
