@@ -1085,6 +1085,23 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
+const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
+    '[data-sot-panel="recording-transcription"][data-slot="card"]',
+    '[data-sot-part="recording-transcription-header"][data-slot="card-header"]',
+    '[data-sot-part="recording-transcription-title"][data-slot="card-title"]',
+    '[data-sot-part="recording-transcription-description"][data-slot="card-description"]',
+    '[data-sot-part="recording-transcription-unavailable"][data-slot="field-description"]',
+    '[data-sot-part="recording-transcription-body"][data-slot="card-content"]',
+    '[data-sot-banner="transcription-job"][data-slot="alert"]',
+    '[data-sot-banner-title][data-slot="alert-title"]',
+    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
+    '[data-sot-control="retranscribe-local"][data-slot="button"]',
+    '[data-sot-control="start-local-transcription"][data-slot="button"]',
+] as const;
+
+const RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
         const globals = readSource("app/globals.css");
@@ -3218,6 +3235,40 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(transcriptionJobLegacySelectorLines).toEqual([]);
+        for (const selector of RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ declarations }) =>
+                    RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
+        }
+        for (const selector of [
+            "[data-sot-banner]",
+            "[data-sot-banner-icon]",
+            "[data-sot-banner-title]",
+            "[data-sot-banner-spinner]",
+            "[data-sot-banner-body]",
+        ]) {
+            const unscopedBannerRepaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(
+                ({ prelude, declarations }) =>
+                    !prelude.includes(
+                        ':not([data-sot-banner="transcription-job"])',
+                    ) &&
+                    !prelude.includes('[data-sot-banner="source-state"]') &&
+                    RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(unscopedBannerRepaintBlocks).toEqual([]);
+        }
+        expect(transcriptionSection).toContain("<Badge");
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',

@@ -70,6 +70,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const dashboardTranscript = readSource(
             "features/dashboard/workstation.tsx",
         );
+        const globals = readSource("app/globals.css");
 
         expect(detailTranscript).toContain("handleCopyTranscript");
         expect(detailTranscript).toContain(
@@ -94,6 +95,70 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-control="start-local-transcription"',
         );
         expect(detailTranscript).toContain('data-icon="inline-start"');
+        expect(detailTranscript).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(detailTranscript).toContain("<Badge");
+        for (const metaHook of [
+            'data-sot-meta="language"',
+            'data-sot-meta="source"',
+            'data-sot-meta="words"',
+            'data-sot-meta="characters"',
+        ]) {
+            expect(detailTranscript).toContain(metaHook);
+        }
+        const copyControlIndex = detailTranscript.indexOf(
+            'data-sot-control="copy-local-transcript"',
+        );
+        const retranscribeControlIndex = detailTranscript.indexOf(
+            'data-sot-control="retranscribe-local"',
+        );
+        const startControlIndex = detailTranscript.indexOf(
+            'data-sot-control="start-local-transcription"',
+        );
+        expect(copyControlIndex).toBeGreaterThanOrEqual(0);
+        expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
+        expect(startControlIndex).toBeGreaterThanOrEqual(0);
+        const copyControl = detailTranscript.slice(
+            Math.max(0, copyControlIndex - 280),
+            copyControlIndex + 320,
+        );
+        const retranscribeControl = detailTranscript.slice(
+            Math.max(0, retranscribeControlIndex - 280),
+            retranscribeControlIndex + 320,
+        );
+        const startControl = detailTranscript.slice(
+            Math.max(0, startControlIndex - 280),
+            startControlIndex + 320,
+        );
+        expect(copyControl).toContain("<Button");
+        expect(copyControl).toContain('variant="outline"');
+        expect(copyControl).toContain('size="sm"');
+        expect(copyControl).toContain("isCopyingTranscript");
+        expect(copyControl).toContain("!displayText.trim()");
+        expect(retranscribeControl).toContain("<Button");
+        expect(retranscribeControl).toContain('variant="danger"');
+        expect(retranscribeControl).toContain('size="sm"');
+        expect(startControl).toContain("<Button");
+        expect(startControl).toContain('variant="primary"');
+        expect(startControl).toContain('size="sm"');
+        for (const removedSelector of [
+            '[data-sot-panel="recording-transcription"][data-slot="card"]',
+            '[data-sot-part="recording-transcription-header"] {',
+            '[data-sot-part="recording-transcription-title"] h2',
+            '[data-sot-part="recording-transcription-description"],',
+            '[data-sot-part="recording-transcription-unavailable"] {',
+            '[data-sot-part="recording-transcription-body"] [data-sot-banner-title]',
+            '[data-sot-list="recording-transcription-meta"] > span',
+            '[data-sot-part="recording-transcription-meta-icon"]',
+        ]) {
+            expect(globals).not.toContain(removedSelector);
+        }
+        expect(globals).toContain(
+            '[data-sot-banner]:not([data-sot-banner="transcription-job"])',
+        );
+        expect(globals).not.toContain("\n[data-sot-banner] {\n");
+        expect(globals).not.toContain("\n[data-sot-banner-icon] {\n");
         for (const legacyClass of [
             'className="transcript t-pane"',
             'className="transcript-head"',
