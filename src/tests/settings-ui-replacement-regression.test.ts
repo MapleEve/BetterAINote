@@ -74,6 +74,41 @@ function readCssBlocks(source: string, marker: string) {
     return blocks;
 }
 
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: readCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|CardContent|from "@\/components\/ui\/card"|bg-muted/;
 
@@ -135,6 +170,9 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.sr-group\b/, ".sr-group"],
     [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
 ] as const;
+
+const FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
 const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
@@ -862,6 +900,11 @@ describe("settings SOT interaction regressions", () => {
             /data-provider=|data-selected=|data-dimmed=|data-provider-detail=|data-ds-state=/,
         );
         expect(providerTile).toContain('data-sot-control="source-provider"');
+        expect(providerTile).toContain(
+            "variant={getProviderTileVariant(isSelected)}",
+        );
+        expect(providerTile).toContain('size="default"');
+        expect(providerTile).toContain("aria-pressed={isSelected}");
         expect(providerTile).toContain("data-sot-provider={source.provider}");
         expect(providerTile).toContain(
             'data-sot-state={isSelected ? "selected" : "idle"}',
@@ -869,6 +912,12 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).toContain("data-sot-status={status.state}");
         expect(providerTile).toContain(
             'data-sot-dimmed={isDimmed ? "true" : "false"}',
+        );
+        expect(providerTile).toContain(
+            "variant={getProviderStatusBadgeVariant(status.tone)}",
+        );
+        expect(providerTile).toContain(
+            "className={getProviderStatusBadgeClassName(status.tone)}",
         );
         expect(detailRoot).toContain('data-sot-panel="source-provider-detail"');
         expect(detailRoot).toContain(
@@ -881,6 +930,50 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-part="source-provider-header"',
         );
         expect(detailHeader).toContain("data-sot-state={status.state}");
+    });
+
+    it("keeps provider Button and Badge primitive skin in shadcn variants", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const globals = readSource("app/globals.css");
+        const providerTile =
+            content.match(
+                /function DataSourceProviderTile[\s\S]*?function ProviderStateBanner/,
+            )?.[0] ?? "";
+
+        expect(providerTile).toContain("getProviderTileVariant(isSelected)");
+        expect(providerTile).toContain("getProviderStatusBadgeVariant");
+        expect(providerTile).toContain("getProviderStatusBadgeClassName");
+        expect(content).toContain('"text-primary"');
+        expect(content).toContain('"text-muted-foreground"');
+        expect(content).toContain('"destructive"');
+        expect(content).toContain('"secondary"');
+        expect(content).toContain('"outline"');
+        expect(providerTile).toContain(
+            'className="size-1.5 rounded-full bg-current"',
+        );
+
+        for (const selector of [
+            '[data-sot-provider-card][data-slot="button"]',
+            '[data-sot-provider-status][data-slot="badge"]',
+        ]) {
+            const blocks = collectCssRuleBlocks(globals, selector);
+            expect(blocks.length).toBeGreaterThan(0);
+
+            for (const block of blocks) {
+                expect(block.declarations).not.toMatch(
+                    FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION,
+                );
+            }
+        }
+
+        expect(globals).not.toContain(
+            '[data-sot-provider-status][data-slot="badge"][data-sot-tone=',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-provider-card][data-slot="button"][data-state="selected"]',
+        );
     });
 
     it("keeps data-source P0 detail rows explicit, safe, and wired to real actions", () => {

@@ -2820,6 +2820,21 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain('variant={');
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
+        const providerPrimitiveRepaintSelectors = [
+            '[data-sot-provider-card][data-slot="button"]',
+            '[data-sot-provider-status][data-slot="badge"]',
+        ];
+        const forbiddenProviderPrimitiveRepaintDeclaration =
+            /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
+        for (const selector of providerPrimitiveRepaintSelectors) {
+            const blocks = collectCssRuleBlocks(globals, selector);
+            expect(blocks.length).toBeGreaterThan(0);
+            for (const block of blocks) {
+                expect(block.declarations).not.toMatch(
+                    forbiddenProviderPrimitiveRepaintDeclaration,
+                );
+            }
+        }
         expect(settings).not.toContain("path-card");
         expect(settings).not.toContain("pc-badge");
         expect(settings).toContain('data-sot-control="source-test"');

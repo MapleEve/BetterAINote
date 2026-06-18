@@ -3837,47 +3837,15 @@ body[data-time-style="abs"]
     grid-template-columns: 28px 1fr auto;
     align-items: center;
     gap: 10px;
-    padding: 10px 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: transparent;
-    text-align: left;
     width: 100%;
-    font-size: revert;
-    line-height: normal;
-    letter-spacing: normal;
-    font-feature-settings: normal;
-    height: auto;
-    justify-content: normal;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out);
-}
-[data-sot-provider-card][data-slot="button"]:not(:disabled):hover {
-    background: color-mix(in srgb, var(--fg-primary) 5%, transparent);
-}
-[data-sot-provider-card][data-slot="button"][data-state="selected"] {
-    background: var(--bg-elevated);
-    border-color: var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-}
-[data-theme="dark"]
-    [data-sot-provider-card][data-slot="button"][data-state="selected"] {
-    background: rgb(255 255 255 / 0.06);
-    border-color: var(--glass-border);
-    box-shadow: none;
 }
 [data-sot-provider-icon] {
     width: 28px;
     height: 28px;
-    border-radius: 7px;
     flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    border: 1px solid var(--line-hairline);
     overflow: hidden;
 }
 [data-sot-provider-icon] img {
@@ -3908,47 +3876,7 @@ body[data-time-style="abs"]
 }
 [data-sot-provider-status][data-slot="badge"] {
     flex: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 18px;
-    padding: 0 7px;
-    border-radius: 999px;
-    font: 600 10.5px var(--font-sans);
-    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
-    color: var(--signal-success);
-    border: 1px solid color-mix(in srgb, var(--signal-success) 30%, transparent);
-}
-[data-sot-provider-status][data-slot="badge"][data-sot-tone="muted"] {
-    background: var(--bg-recessed);
-    color: var(--fg-tertiary);
-    border-color: var(--line-hairline);
-}
-[data-sot-provider-status-dot] {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: currentColor;
-}
-[data-sot-provider-status][data-slot="badge"][data-sot-tone="warn"] {
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: oklch(0.55 0.16 70);
-    border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
-}
-[data-sot-provider-status][data-slot="badge"][data-sot-tone="err"] {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
-}
-[data-sot-provider-status][data-slot="badge"][data-sot-tone="info"] {
-    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
-    color: var(--signal-info);
-    border-color: color-mix(in srgb, var(--signal-info) 30%, transparent);
-}
-[data-sot-provider-status][data-slot="badge"][data-sot-tone="neu"] {
-    background: var(--bg-recessed);
-    color: var(--fg-secondary);
-    border-color: var(--line-hairline);
+    justify-self: end;
 }
 [data-sot-provider-status][data-sot-tone="syncing"]
     [data-sot-provider-status-dot],
@@ -3966,14 +3894,6 @@ body[data-time-style="abs"]
         opacity: 0.35;
         transform: scale(0.7);
     }
-}
-[data-sot-provider-card][data-sot-dimmed="true"] {
-    opacity: 0.55;
-}
-[data-sot-provider-card][data-sot-dimmed="true"] [data-sot-provider-status] {
-    background: var(--bg-recessed);
-    color: var(--fg-tertiary);
-    border-color: var(--line-hairline);
 }
 
 /* Login-path picker (Open Platform vs Web session) */

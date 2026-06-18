@@ -438,6 +438,25 @@ function getSourceActionStatusDotClassName(state: string) {
     );
 }
 
+function getProviderTileVariant(isSelected: boolean) {
+    return isSelected ? "secondary" : "ghost";
+}
+
+function getProviderStatusBadgeVariant(tone: ProviderTone) {
+    if (tone === "err") return "destructive";
+    if (tone === "neu") return "secondary";
+    return "outline";
+}
+
+function getProviderStatusBadgeClassName(tone: ProviderTone) {
+    return cn(
+        "gap-1.5",
+        (tone === "ok" || tone === "info" || tone === "syncing") &&
+            "text-primary",
+        tone === "warn" && "text-muted-foreground",
+    );
+}
+
 function getSourceProviderDetailSubtitle(
     source: DataSourceDisplayState,
     isZh: boolean,
@@ -514,8 +533,10 @@ function DataSourceProviderTile({
     return (
         <Button
             type="button"
-            variant="ghost"
+            variant={getProviderTileVariant(isSelected)}
+            size="default"
             aria-pressed={isSelected}
+            className="h-auto w-full justify-start whitespace-normal text-left"
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -553,14 +574,18 @@ function DataSourceProviderTile({
                 </span>
             </span>
             <Badge
-                variant="outline"
+                variant={getProviderStatusBadgeVariant(status.tone)}
+                className={getProviderStatusBadgeClassName(status.tone)}
                 data-sot-provider-status=""
                 data-sot-state={status.state}
                 data-sot-status={status.state}
                 data-sot-tone={status.tone}
                 data-state={status.state}
             >
-                <span data-sot-provider-status-dot="" />
+                <span
+                    className="size-1.5 rounded-full bg-current"
+                    data-sot-provider-status-dot=""
+                />
                 {status.label}
             </Badge>
         </Button>
