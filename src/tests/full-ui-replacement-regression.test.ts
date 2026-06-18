@@ -858,7 +858,7 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
-    /(^|[^\w-])\.(?:activity-pixel-stage|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
+    /(^|[^\w-])\.(?:activity-pixel-stage|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -877,6 +877,7 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-spinner"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
+    '[data-sot-part="dashboard-activity-empty"]',
     '[data-sot-panel="recording-detail-loading"]',
 ];
 
@@ -1286,6 +1287,7 @@ describe("full UI replacement regression coverage", () => {
         const legacySelectorLines = globals
             .split("\n")
             .filter((line) =>
+                !line.includes(".cl-pop-host .notif-empty") &&
                 DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
                     line,
                 ),

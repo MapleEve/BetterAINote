@@ -8828,7 +8828,7 @@ body[data-ds-todo="show"] .design-todo {
 [data-detail-empty][hidden] {
     display: none !important;
 }
-.notif-empty[hidden] {
+[data-sot-part="dashboard-activity-empty"][hidden] {
     display: none !important;
 }
 
