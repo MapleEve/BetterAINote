@@ -3167,7 +3167,6 @@ button {
 }
 
 /* ======== System reference cards / auth / onboarding ======== */
-.card,
 [data-sot-card] {
     display: block;
     background: var(--bg-elevated);
@@ -3176,23 +3175,19 @@ button {
     padding: 18px;
     box-shadow: var(--shadow-xs);
 }
-.card + .card,
 [data-sot-card] + [data-sot-card] {
     margin-top: 14px;
 }
-.card-h,
 [data-sot-part="card-heading"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
     margin: 0 0 4px;
 }
-.card-h + .card-sub,
 [data-sot-part="card-heading"] + [data-sot-part="card-sub"] {
     font: 12px / 1.5 var(--font-sans);
     color: var(--fg-tertiary);
     margin: 0 0 14px;
 }
-.frame,
 [data-sot-frame] {
     background: var(--bg-canvas);
     border: 1px solid var(--line-hairline);
@@ -3225,7 +3220,6 @@ button {
     background: var(--bg-canvas);
     color: var(--fg-primary);
 }
-.auth-sot-canvas > .card,
 [data-sot-card="auth"] {
     width: min(420px, 100%);
     min-height: 389px;
@@ -3314,11 +3308,9 @@ button {
     color: var(--fg-disabled);
     cursor: not-allowed;
 }
-.onboarding-sot-canvas > .card,
 [data-sot-card="onboarding"] {
     width: min(420px, 100%);
 }
-.onboarding-sot-canvas .frame,
 [data-sot-frame="onboarding"] {
     padding: 18px;
 }

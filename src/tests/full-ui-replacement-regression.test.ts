@@ -196,10 +196,18 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
 ];
 
 const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
-    /\.(?:sidebar-footer|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
+    /\.(?:sidebar-footer|card|card-h|card-sub|frame|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
 
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-sidebar-footer"]',
+    "[data-sot-card]",
+    '[data-sot-card="auth"]',
+    '[data-sot-card="onboarding"]',
+    "[data-sot-frame]",
+    '[data-sot-frame="auth"]',
+    '[data-sot-frame="onboarding"]',
+    '[data-sot-part="card-heading"]',
+    '[data-sot-part="card-sub"]',
     '[data-sot-part="recording-list-state"]',
     '[data-sot-panel="recording-list-pagination"]',
     '[data-sot-part="recording-list-state-icon"]',
