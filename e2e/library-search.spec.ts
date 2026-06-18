@@ -603,7 +603,7 @@ async function selectDashboardRecordingForTagManager(
 async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
     const outsideChromeTarget = page
         .locator(
-            '[data-sot-surface="dashboard-workstation"] main .crumb-current',
+            '[data-sot-surface="dashboard-workstation"] main [data-sot-part="dashboard-crumb-current"]',
         )
         .first();
 
@@ -623,7 +623,6 @@ async function clickDashboardChromeOutsideTopbarOverlays(page: Page) {
                 "nav",
                 '[role="button"]',
                 '[data-sot-control]',
-                '[data-sot-panel]',
             ].join(","),
         );
 

@@ -1063,7 +1063,7 @@ test("uses the SOT dashboard queue with a local VoScript-compatible backend", as
         ).toContainText("转写任务已加入队列");
         await expect(
             page
-                .locator("#toast-stack .toast")
+                .locator("[data-sonner-toast]")
                 .filter({ hasText: "转写任务已加入队列" }),
         ).toBeVisible();
 

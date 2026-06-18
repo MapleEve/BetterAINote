@@ -372,13 +372,10 @@ test("manual dashboard sync posts, refreshes dashboard data, and prepends the ne
             dashboardSyncButton(page).click(),
         ]);
 
-        await expect(page.locator("[data-sonner-toaster]")).toHaveCount(0);
         const successToast = page
-            .locator('.toast.toast-ok')
+            .locator("[data-sonner-toast]")
             .filter({ hasText: "同步完成" });
         await expect(successToast).toBeVisible();
-        await expect(successToast).toHaveAttribute("data-open", "true");
-        await expect(successToast.locator(".toast-ico svg")).toHaveCount(1);
 
         await expectNewRecordingBeforeOld(page);
         expect(getPostCount()).toBe(1);

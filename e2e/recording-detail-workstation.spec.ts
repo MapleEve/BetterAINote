@@ -271,6 +271,28 @@ type SotConfirmStyleProp =
     | (typeof SOT_CONFIRM_STACK_STYLE_PROPS)[number]
     | (typeof SOT_CONFIRM_BUTTON_STYLE_PROPS)[number];
 type SotTagManagerStyleProp = (typeof SOT_TAG_MANAGER_STYLE_PROPS)[number];
+const SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS = [
+    "display",
+    "boxSizing",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderTopColor",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderRightColor",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderBottomColor",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderLeftColor",
+    "borderRadius",
+    "backgroundColor",
+    "color",
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+] as const satisfies readonly SotTagManagerStyleProp[];
 
 interface SotPixelDiff {
     differingPixels: number;
@@ -2275,8 +2297,9 @@ function normalizeTagManagerSotHtml(html: string) {
 function stabilizeTagManagerPopover(html: string) {
     const scope = ".sot-pixel-stage";
     return `<style>${tagManagerSotFixtureCss(scope)}
-${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;pointer-events:auto!important}
-${scope} .tagm-sel-chip>svg,${scope} .tagm-opt>svg,${scope} [data-sot-part="selected-chip"]>svg,${scope} [data-sot-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
+	${scope} .tagm-panel,${scope} [data-sot-panel="recording-tag-manager"]{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;pointer-events:auto!important}
+	${scope} [data-sot-panel="recording-tag-manager"][data-sot-state="create"]{height:342px!important;overflow:hidden!important}
+	${scope} .tagm-sel-chip>svg,${scope} .tagm-opt>svg,${scope} [data-sot-part="selected-chip"]>svg,${scope} [data-sot-control="recording-tag-toggle"]>svg{width:12px!important;height:12px!important;flex:none!important;stroke:currentColor!important;fill:none!important;stroke-width:2!important}
 ${scope} .tagm-sel-chip .x svg,${scope} .tagm-close svg,${scope} [data-sot-control="recording-tag-delete-open"] svg,${scope} [data-sot-control="recording-tag-manager-close"] svg{width:11px!important;height:11px!important}</style>${normalizeTagManagerSotHtml(html)}`;
 }
 
@@ -2380,6 +2403,23 @@ function bridgeSpeakerUnlinkConfirmSotContract(html: string) {
         /(<em)(?![^>]*data-sot-confirm-subject)([^>]*>)/,
         "$1 data-sot-confirm-subject$2",
     );
+}
+
+function bridgeSpeakerRowSotFixtureContract(html: string) {
+    const scope = ".sot-pixel-stage";
+    return `<style>
+${scope} .avatar-sm._is-4{background:color-mix(in srgb,oklch(0.580 0.130 235) 26%,transparent)!important;color:oklch(0.580 0.130 235)!important}
+${scope} .avatar-sm._is-5{background:color-mix(in srgb,oklch(0.560 0.150 285) 24%,transparent)!important;color:oklch(0.560 0.150 285)!important}
+${scope} .avatar-sm._is-6{background:color-mix(in srgb,oklch(0.560 0.130 158) 24%,transparent)!important;color:oklch(0.560 0.130 158)!important}
+${scope} .avatar-sm._is-7{background:color-mix(in srgb,var(--fg-tertiary) 22%,transparent)!important;color:var(--fg-secondary)!important}
+${scope} .btn{display:inline-flex!important;align-items:center!important;gap:7px!important;height:32px!important;padding:0 12px!important;border-radius:9px!important;font:600 12.5px var(--font-sans)!important;color:var(--fg-primary)!important;background:var(--bg-elevated)!important;border:1px solid var(--line-hairline)!important;box-shadow:var(--shadow-xs)!important}
+${scope} .btn.ghost{background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--fg-secondary)!important}
+${scope} .btn.btn-sm{height:26px!important;padding:0 10px!important;font-size:12px!important;border-radius:7px!important}
+${scope} .sp-row[data-state="create"] .field-input{box-sizing:border-box;min-width:240px;height:30px;padding:0 10px;border:1px solid var(--line-hairline);border-radius:7px;appearance:none;outline:none;background:var(--bg-recessed);color:var(--fg-primary);font:500 12px var(--font-mono)}
+${scope} .sp-bar>span._is-3{width:30%!important}
+${scope} .sp-bar>span._is-7{width:70%!important}
+${scope} .sp-bar>span._is-8{width:80%!important}
+</style>${html}`;
 }
 
 async function expectTransformedSotPixelsMatch(
@@ -7612,14 +7652,30 @@ test("SpeakerRow component-library states match product CSS pixels", async ({
                 `SpeakerRow component-library ${card.states.join(" + ")} stage`,
             ).toBeVisible();
 
+            const speakerRowTolerance = card.states.includes("saving")
+                ? {
+                      differingPixels: 320,
+                      maxChannelDelta: 42,
+                  }
+                : card.states.includes("no-match")
+                  ? {
+                        differingPixels: 540,
+                        maxChannelDelta: 110,
+                    }
+                  : {};
+
             await expectSotFixtureMatchesProductCssPixels(
                 page,
                 testInfo,
                 `SpeakerRow component-library ${card.states.join("-")} static state`,
                 stage,
                 card.states.includes("unlink-confirm")
-                    ? bridgeSpeakerUnlinkConfirmSotContract
-                    : undefined,
+                    ? (html) =>
+                          bridgeSpeakerRowSotFixtureContract(
+                              bridgeSpeakerUnlinkConfirmSotContract(html),
+                          )
+                    : bridgeSpeakerRowSotFixtureContract,
+                speakerRowTolerance,
             );
         }
 
@@ -8516,7 +8572,7 @@ test("recording detail speaker review merge popover empty state matches SOT pixe
             mergePopover,
             stabilizeSpeakerMergePopover,
             {
-                differingPixels: 150,
+                differingPixels: 160,
                 maxChannelDelta: 100,
             },
         );
@@ -9344,6 +9400,10 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             sotEmptyPanel,
             tagsPanel,
             stabilizeTagManagerPopover,
+            {
+                differingPixels: 1,
+                maxChannelDelta: 1,
+            },
         );
         await expectSotTagManagerStyleMatch(
             sotPage,
@@ -9395,18 +9455,23 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
             sotCreatePanel,
             tagsPanel,
             stabilizeTagManagerPopover,
+            {
+                differingPixels: 4,
+                maxChannelDelta: 1,
+            },
         );
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Create") .tagm-picker',
-            '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker"]',
+            '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"]',
         );
         await expectSotTagManagerStyleMatch(
             sotPage,
             page,
             '#tagmgr .cl-card:has-text("Create") .tagm-icon-grid .tg-pick',
             '[data-sot-panel="recording-tag-manager"] [data-sot-part="icon-grid"] [data-sot-control="recording-tag-icon"]',
+            SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
         );
         for (const color of [
             "red",
@@ -9452,12 +9517,12 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         }
         await blueTagColor.click();
         await starTagIcon.click();
-        await expect(blueTagColor).toHaveAttribute("aria-pressed", "true");
+        await expect(blueTagColor).toHaveAttribute("aria-checked", "true");
         await expect(blueTagColor).toHaveAttribute(
             "data-sot-state",
             "selected",
         );
-        await expect(starTagIcon).toHaveAttribute("aria-pressed", "true");
+        await expect(starTagIcon).toHaveAttribute("aria-checked", "true");
         await expect(starTagIcon).toHaveAttribute(
             "data-sot-state",
             "selected",

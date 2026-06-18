@@ -1633,9 +1633,17 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
             stage.innerHTML = html;
             const style = document.createElement("style");
             style.textContent = fixtureCss;
-            stage
-                .querySelector<HTMLElement>(".list-state-block")
-                ?.removeAttribute("hidden");
+            const stateBlock =
+                stage.querySelector<HTMLElement>(".list-state-block") ??
+                stage.querySelector<HTMLElement>("[data-list-state-block]");
+            stateBlock?.removeAttribute("hidden");
+            stateBlock?.classList.add("list-state-block");
+            if (
+                stateBlock?.getAttribute("data-sot-panel") ===
+                "recording-list-pagination"
+            ) {
+                stateBlock.classList.add("list-state-pagination");
+            }
             for (const button of stage.querySelectorAll<HTMLElement>(
                 '[data-slot="button"][data-variant="ghost"][data-size="sm"]',
             )) {

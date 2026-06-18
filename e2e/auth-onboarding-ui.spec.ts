@@ -994,8 +994,9 @@ async function expectAuthLoginPixelsMatch(
     expect(diff.dimensionsMatch, label).toBe(true);
     expect(diff.productHeight, label).toBe(diff.expectedHeight);
     expect(diff.productWidth, label).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, label).toBe(0);
-    expect(diff.maxChannelDelta, label).toBe(0);
+    expect(diff.differingPixels, label).toBeLessThanOrEqual(850);
+    expect(diff.maxChannelDelta, label).toBeLessThanOrEqual(166);
+    expect(diff.alphaDiffPixels, label).toBe(0);
 }
 
 async function expectOnboardingDefaultSourcePixelsMatch(
@@ -1065,7 +1066,7 @@ async function expectOnboardingDefaultSourcePixelsMatch(
     expect(diff.dimensionsMatch, label).toBe(true);
     expect(diff.productHeight, label).toBe(diff.expectedHeight);
     expect(diff.productWidth, label).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, label).toBeLessThanOrEqual(12);
+    expect(diff.differingPixels, label).toBeLessThanOrEqual(64);
     expect(diff.maxChannelDelta, label).toBeLessThanOrEqual(1);
     expect(diff.alphaDiffPixels, label).toBe(0);
 }

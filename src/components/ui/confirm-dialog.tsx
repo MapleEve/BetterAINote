@@ -90,6 +90,8 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             if (event.key !== "Escape") return;
 
             event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
             close(false);
         };
 
