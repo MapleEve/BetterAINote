@@ -1963,7 +1963,7 @@ async function captureListRowFixture(
             const stage = document.createElement("div");
             stage.className = "list-row-pixel-stage";
             stage.style.boxSizing = "border-box";
-            stage.style.background = "var(--bg-canvas)";
+            stage.style.background = "rgb(24, 29, 35)";
             stage.style.padding = "16px";
             stage.style.width = "420px";
 
@@ -2089,7 +2089,7 @@ async function captureListSkeletonFixture(page: Page, skeletonHtml: string) {
                 const stage = document.createElement("div");
                 stage.className = "list-skeleton-pixel-stage";
                 stage.style.boxSizing = "border-box";
-                stage.style.background = "var(--bg-canvas)";
+                stage.style.background = "rgb(24, 29, 35)";
                 stage.style.padding = "16px";
                 stage.style.width = "420px";
                 stage.innerHTML = html;
@@ -2406,7 +2406,7 @@ async function captureListStateBlockFixture(page: Page, blockHtml: string) {
             const stage = document.createElement("div");
             stage.className = "list-state-block-pixel-stage";
             stage.style.boxSizing = "border-box";
-            stage.style.background = "var(--bg-canvas)";
+            stage.style.background = "rgb(24, 29, 35)";
             stage.style.padding = "16px";
             stage.style.width = "420px";
             stage.innerHTML = html;
