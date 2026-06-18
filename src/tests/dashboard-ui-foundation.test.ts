@@ -173,6 +173,24 @@ const DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS = [
     'data-sot-part="recording-list-page-number"',
 ];
 
+const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
+    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
+    '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
+    '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"]',
+    '[data-sot-control="source-filter-clear"][data-slot="button"]',
+    '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
+    '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
+    '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
+    '[data-sot-control="recording-list-tag-filter"][data-slot="button"]',
+    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
+    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-panel="dashboard-recording-time-filter"\]\[data-slot="toggle-group"\]|\[data-sot-control="dashboard-recording-time-filter"\]\[data-slot="toggle-group-item"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
@@ -512,15 +530,29 @@ describe("dashboard SOT foundation", () => {
         }
 
         expect(workstation).not.toContain('className="panel list-panel"');
-        expect(workstation).toMatch(
-            /<Card\s+hasNoPadding[\s\S]*data-sot-surface="dashboard-recording-list"[\s\S]*<CardContent\s+data-sot-part="dashboard-recording-list-content">/,
+        const recordingListCard = extractBoundedSlice(
+            workstation,
+            "<Card\n                        hasNoPadding",
+            'data-sot-part="dashboard-recording-list-header"',
         );
-        expect(globals).toContain(
-            '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+        expect(recordingListCard).toContain(
+            'className="min-h-0 gap-0 rounded-2xl"',
         );
-        expect(globals).toMatch(
-            /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
+        expect(recordingListCard).toContain(
+            'data-sot-surface="dashboard-recording-list"',
         );
+        expect(recordingListCard).toContain(
+            'className="flex min-h-0 flex-col p-0"',
+        );
+        expect(recordingListCard).toContain(
+            'data-sot-part="dashboard-recording-list-content"',
+        );
+        expect(globals).not.toMatch(
+            DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
+        );
+        for (const selector of DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
@@ -566,7 +598,9 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("data-tag-filter-list");
         expect(workstation).toContain('role="listbox"');
         expect(workstation).toContain('role="option"');
-        expect(workstation).toContain("data-tag-value={option.value}");
+        expect(workstation).toMatch(
+            /data-tag-value=\{\s*option\.value\s*\}/,
+        );
         for (const hook of DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }

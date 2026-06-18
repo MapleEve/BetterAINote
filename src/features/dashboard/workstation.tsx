@@ -4812,6 +4812,7 @@ export function Workstation({
                 <div data-sot-panel="dashboard-workspace">
                     <Card
                         hasNoPadding
+                        className="min-h-0 gap-0 rounded-2xl"
                         data-current-page={String(currentListPage)}
                         data-list-state={listState}
                         data-sot-list-mode={listMode}
@@ -4820,7 +4821,10 @@ export function Workstation({
                         data-total-pages={String(listTotalPages)}
                         data-visible-count={String(pagedListEntries.length)}
                     >
-                        <CardContent data-sot-part="dashboard-recording-list-content">
+                        <CardContent
+                            className="flex min-h-0 flex-col p-0"
+                            data-sot-part="dashboard-recording-list-content"
+                        >
                             <div data-sot-part="dashboard-recording-list-header">
                                 <div data-sot-part="dashboard-recording-list-titlebar">
                                     <h2 data-sot-part="dashboard-recording-list-title">
@@ -4866,7 +4870,8 @@ export function Workstation({
                                             </span>
                                             <Button
                                                 variant="ghost"
-                                                size="icon-sm"
+                                                size="icon-xs"
+                                                className="size-4 rounded-full p-0"
                                                 type="button"
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
@@ -4959,8 +4964,9 @@ export function Workstation({
                                             </Button>
                                         ) : null}
                                         <Button
-                                            variant="ghost"
+                                            variant="link"
                                             size="sm"
+                                            className="h-6 px-2"
                                             type="button"
                                             data-sot-control="source-filter-clear-all"
                                             onClick={() => setSource("all")}
@@ -4991,7 +4997,8 @@ export function Workstation({
                                             {librarySearchFilter.label}
                                             <Button
                                                 variant="ghost"
-                                                size="icon-sm"
+                                                size="icon-xs"
+                                                className="size-4 rounded-full p-0"
                                                 type="button"
                                                 aria-label={t(
                                                     "dashboardChrome.clear",
@@ -5048,6 +5055,7 @@ export function Workstation({
                                     spacing={1}
                                     variant="outline"
                                     size="sm"
+                                    className="mt-2.5 flex-wrap"
                                     aria-label={t(
                                         "recordingList.timelineTitle",
                                     )}
@@ -5099,8 +5107,9 @@ export function Workstation({
                                     ref={tagFilterRef}
                                 >
                                     <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
+                                        className="w-full justify-start"
                                         type="button"
                                         aria-haspopup="listbox"
                                         aria-expanded={tagFilterOpen}
@@ -5134,41 +5143,51 @@ export function Workstation({
                                         data-sot-list="recording-list-tag-filter-list"
                                         hidden={!tagFilterOpen}
                                     >
-                                        {tagFilterOptions.map((option) => (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                type="button"
-                                                role="option"
-                                                data-tag-value={option.value}
-                                                aria-selected={
-                                                    option.value ===
-                                                    selectedTagFilter
-                                                }
-                                                data-sot-control="recording-list-tag-filter"
-                                                data-sot-filter={option.value}
-                                                data-sot-state={
-                                                    option.value ===
-                                                    selectedTagFilter
-                                                        ? "selected"
-                                                        : "idle"
-                                                }
-                                                key={option.value}
-                                                onClick={() => {
-                                                    setSelectedTagFilter(
-                                                        option.value,
-                                                    );
-                                                    setTagFilterOpen(false);
-                                                }}
-                                            >
-                                                <span data-sot-part="recording-list-tag-filter-option-label">
-                                                    {option.label}
-                                                </span>
-                                                <span data-sot-part="recording-list-tag-filter-option-count">
-                                                    {option.count}
-                                                </span>
-                                            </Button>
-                                        ))}
+                                        {tagFilterOptions.map((option) => {
+                                            const active =
+                                                option.value ===
+                                                selectedTagFilter;
+                                            return (
+                                                <Button
+                                                    variant={
+                                                        active
+                                                            ? "secondary"
+                                                            : "ghost"
+                                                    }
+                                                    size="sm"
+                                                    className="w-full justify-start"
+                                                    type="button"
+                                                    role="option"
+                                                    data-tag-value={
+                                                        option.value
+                                                    }
+                                                    aria-selected={active}
+                                                    data-sot-control="recording-list-tag-filter"
+                                                    data-sot-filter={
+                                                        option.value
+                                                    }
+                                                    data-sot-state={
+                                                        active
+                                                            ? "selected"
+                                                            : "idle"
+                                                    }
+                                                    key={option.value}
+                                                    onClick={() => {
+                                                        setSelectedTagFilter(
+                                                            option.value,
+                                                        );
+                                                        setTagFilterOpen(false);
+                                                    }}
+                                                >
+                                                    <span data-sot-part="recording-list-tag-filter-option-label">
+                                                        {option.label}
+                                                    </span>
+                                                    <span data-sot-part="recording-list-tag-filter-option-count">
+                                                        {option.count}
+                                                    </span>
+                                                </Button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -5480,7 +5499,7 @@ export function Workstation({
                                         </div>
                                         <div data-sot-part="recording-list-page-nav">
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 type="button"
                                                 data-page-prev=""
@@ -5504,7 +5523,7 @@ export function Workstation({
                                                 {listTotalPages}
                                             </span>
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 type="button"
                                                 data-page-next=""
@@ -5533,7 +5552,7 @@ export function Workstation({
                                         </div>
                                         {listPaginationState === "paginated" ? (
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 type="button"
                                                 data-sot-control="recording-list-load-more"

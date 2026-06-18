@@ -309,9 +309,7 @@ const DASHBOARD_RECORDING_LIST_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:day-label|rec-row|rec-thumb|rec-body|rec-title|rec-meta|tag|sidebar-footer|card|card-h|card-sub|frame|list-state-block|lsb-ico|lsb-t|lsb-h|lsb-page-divider|lsb-page-nav|lsb-page-num)(?![\w-])/;
 
 const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
     '[data-sot-surface="dashboard-recording-list"]',
-    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
     '[data-sot-part="dashboard-recording-list-header"]',
     '[data-sot-part="dashboard-recording-list-titlebar"]',
     '[data-sot-part="dashboard-recording-list-title"]',
@@ -349,11 +347,23 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="recording-list-page-divider"]',
     '[data-sot-part="recording-list-page-status"]',
     '[data-sot-part="recording-list-page-nav"]',
-    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
-    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]:disabled',
-    '[data-slot="button"][aria-disabled="true"]',
     '[data-sot-part="recording-list-page-number"]',
 ];
+
+const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
+    '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+    '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
+    '[data-sot-control="source-filter-clear"][data-slot="button"]',
+    '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
+    '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
+    '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
+    '[data-sot-control="recording-list-tag-filter"][data-slot="button"]',
+    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]',
+    '[data-sot-panel="recording-list-pagination"] [data-slot="button"]:disabled',
+] as const;
+
+const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
+    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
 
 const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES = [
     "ls-anchor",
@@ -550,16 +560,19 @@ const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:filter-row|chip|chip-f|chip-c)(?![\w-])/;
 
 const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
     '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+    '[data-sot-part="dashboard-recording-time-filter-count"]',
+    '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
+];
+
+const DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS = [
+    '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
     '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]',
     '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
     '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"]',
     '[data-sot-control="dashboard-recording-time-filter"]:focus-visible',
     '[data-sot-control="dashboard-recording-time-filter"][disabled]',
-    '[data-sot-part="dashboard-recording-time-filter-count"]',
-    '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
-];
+] as const;
 
 const COPY_ICON_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:copy-ico|copy-ico-default|copy-ico-ok)(?![\w-])/;
@@ -1580,6 +1593,12 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(globals).not.toMatch(
+            DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
+        );
+        for (const selector of DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
     });
 
     it("keeps library search product CSS on data-sot selectors", () => {
@@ -1709,6 +1728,9 @@ describe("full UI replacement regression coverage", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
     });
 
@@ -2235,14 +2257,25 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).not.toContain('className="panel list-panel"');
         expect(workstation).not.toContain('className="real-list"');
-        expect(workstation).toMatch(
-            /<Card\s+hasNoPadding[\s\S]*data-sot-surface="dashboard-recording-list"[\s\S]*<CardContent\s+data-sot-part="dashboard-recording-list-content">/,
+        const recordingListCard = extractBoundedSlice(
+            workstation,
+            "<Card\n                        hasNoPadding",
+            'data-sot-part="dashboard-recording-list-header"',
         );
-        expect(globals).toContain(
-            '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
+        expect(recordingListCard).toContain(
+            'className="min-h-0 gap-0 rounded-2xl"',
         );
-        expect(globals).toMatch(
-            /\[data-sot-surface="dashboard-recording-list"\]\s+\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]/,
+        expect(recordingListCard).toContain(
+            'data-sot-surface="dashboard-recording-list"',
+        );
+        expect(recordingListCard).toContain(
+            'className="flex min-h-0 flex-col p-0"',
+        );
+        expect(recordingListCard).toContain(
+            'data-sot-part="dashboard-recording-list-content"',
+        );
+        expect(globals).not.toMatch(
+            DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
         );
         expect(workstation).toContain(
             'data-sot-list="dashboard-recording-rows"',
