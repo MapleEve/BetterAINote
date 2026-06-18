@@ -160,6 +160,9 @@ const LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE =
 
 const LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE = /(^|[,\s>{])\.mono(?![\w-])/m;
 
+const LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE =
+    /#tweaks-(?:panel|close)|--(?:ds-only-accent|todo-marker-bg|z-tweaks)\b|(^|[,\s>{])\.(?:design-todo|ds-only-(?:badge|mark|note)|ds-trigger-chip|tw-[\w-]+|src-item|src-hint(?:-email)?|cl-tweaks-mock|cl-tm-[\w-]+)(?![\w-])/m;
+
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-slot="dialog-overlay"]',
     '[data-slot="dialog-overlay"][data-state="open"]',
@@ -980,6 +983,9 @@ describe("full UI replacement regression coverage", () => {
         }
         const productCss = readProductCss(globals);
         expect(productCss).not.toMatch(LEGACY_MONO_PRODUCT_CSS_SELECTOR_RE);
+        expect(productCss).not.toMatch(
+            LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE,
+        );
         expect(productCss).toContain(
             '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
         );

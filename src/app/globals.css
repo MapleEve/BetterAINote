@@ -88,12 +88,6 @@
     --tag-green: oklch(0.56 0.13 158);
     --tag-slate: rgb(126 135 143);
     --tag-slate: oklch(0.58 0.02 250);
-    --ds-only-accent: rgb(132 90 192);
-    --ds-only-accent: oklch(0.62 0.16 280);
-    --ds-only-accent-hover: rgb(148 96 210);
-    --ds-only-accent-hover: oklch(0.66 0.17 280);
-    --todo-marker-bg: rgb(208 137 35);
-    --todo-marker-bg: oklch(0.65 0.18 60);
 
     /* -----------------------------------------------------------
        SEMANTIC TOKENS — Light mode (default, "Pro" graphite)
@@ -885,9 +879,8 @@ button {
    any future popover can opt in without rediscovering the order. */
 :root {
     --z-workspace: 1; /* sidebar, list, detail, player, transcript */
-    --z-tweaks: 120; /* DS Tweaks panel (bottom-right utility) */
     --z-popover-inline: 60; /* in-row anchored popovers (AI rename, vol, tag-filter) */
-    --z-topbar: 200; /* the topbar bar itself (above tweaks panel) */
+    --z-topbar: 200; /* the topbar bar itself */
     --z-dropdown: 220; /* topbar dropdowns (search, notifications) */
     --z-context-menu: 240; /* contextual menus (more, tagm) */
     --z-drawer-scrim: 300; /* mobile drawer scrim */
@@ -4684,12 +4677,6 @@ body[data-time-style="abs"]
     [data-sot-part="source-provider-count"] {
     display: none;
 }
-.design-todo {
-    position: absolute;
-    right: 6px;
-    top: -4px;
-    pointer-events: none;
-}
 [data-sot-part="dashboard-recording-list-titlebar"] {
     display: flex;
 }
@@ -4698,12 +4685,6 @@ body[data-time-style="abs"]
 }
 [data-sot-part="library-search-filter-label"] {
     overflow: hidden;
-}
-#tweaks-panel .ds-only-badge {
-    display: inline-block;
-}
-#tweaks-panel .ds-only-mark {
-    display: inline-flex;
 }
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
@@ -4880,9 +4861,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-tenant="single"]
     [data-sot-control="settings-nav"][data-sot-section="account"] {
-    display: none;
-}
-[data-tenant="single"] .src-item .src-hint .src-hint-email {
     display: none;
 }
 [data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
@@ -5232,7 +5210,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    new color or spacing system. Ordered: popovers → sidebar
    source states → list filter strips → source-report tab →
    retx / more / tag manager → settings save/banner/voscript →
-   misc (toast, empty, list-state-block, design-todo, tweaks).
+   misc (toast, empty, list-state-block).
    ============================================================ */
 
 /* ---------- Generic popover surface (reused by topbar, activity, airp, tag manager, more, vol-pop) ---------- */
@@ -5844,21 +5822,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: var(--signal-danger);
     box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--signal-danger) 22%, transparent);
-}
-
-/* design-todo absolute marker — DS-only, hide outside design system surface */
-.design-todo {
-    font: 700 8px var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 1px 4px;
-    border-radius: 3px;
-    background: var(--todo-marker-bg);
-    color: white;
-    display: none; /* DS-only marker — surfaces only when Tweaks DS-only mode toggles */
-}
-body[data-ds-todo="show"] .design-todo {
-    display: inline-block;
 }
 
 /* ---------- AI Rename popover ---------- */
@@ -8488,295 +8451,6 @@ body[data-ds-todo="show"] .design-todo {
     font-weight: 700;
 }
 
-/* ---------- Tweaks (DS-only) panel — moved out of index.html ---------- */
-#tweaks-panel[hidden] {
-    display: none !important;
-}
-#tweaks-panel {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    width: 264px;
-    max-height: calc(100vh - 36px);
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    border: 1px solid var(--line-hairline);
-    border-radius: 14px;
-    box-shadow: var(--shadow-lg);
-    /* Sit below the topbar (z-topbar=200) so product dropdowns always win.
-     Tweaks is a design-time surface; the product layer is canonical. */
-    z-index: var(--z-tweaks);
-    font-family: var(--font-sans);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-#tweaks-panel > header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    padding: 10px 10px 8px;
-    font: 600 12px var(--font-sans);
-    color: var(--fg-primary);
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--line-hairline);
-    gap: 8px;
-}
-#tweaks-panel > header > span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-}
-#tweaks-panel > .tw-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 6px 0 8px;
-}
-#tweaks-panel > .tw-scroll::-webkit-scrollbar {
-    width: 6px;
-}
-#tweaks-panel > .tw-scroll::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--fg-primary) 18%, transparent);
-    border-radius: 3px;
-}
-#tweaks-panel > .tw-scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-#tweaks-close {
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    color: var(--fg-tertiary);
-    font-size: 18px;
-    line-height: 1;
-    padding: 0 4px;
-}
-#tweaks-close:hover {
-    color: var(--fg-primary);
-}
-#tweaks-panel section {
-    padding: 8px 10px;
-}
-#tweaks-panel label {
-    display: flex;
-    justify-content: space-between;
-    font: 600 11px var(--font-sans);
-    color: var(--fg-secondary);
-    margin-bottom: 6px;
-}
-
-#tweaks-panel .ds-only-mark {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--ds-only-accent);
-    color: white;
-    font: 700 9px var(--font-mono);
-    letter-spacing: 0.04em;
-}
-#tweaks-panel .ds-only-badge {
-    font: 700 9px var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: var(--ds-only-accent);
-    color: white;
-    margin-left: 4px;
-}
-.ds-only-note {
-    margin: 8px 10px 0;
-    padding: 8px 10px;
-    background: var(--bg-recessed);
-    border: 1px dashed var(--line-hairline);
-    border-radius: 8px;
-    font: 500 11px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-}
-
-.tw-num {
-    font-family: var(--font-mono);
-    color: var(--fg-tertiary);
-    font-weight: 500;
-}
-.tw-seg {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    padding: 3px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    border-radius: 8px;
-}
-.tw-seg button {
-    padding: 5px 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    font: 600 12px var(--font-sans);
-    color: var(--fg-secondary);
-    border-radius: 6px;
-    transition:
-        background 200ms var(--ease-out),
-        color 200ms var(--ease-out);
-}
-.tw-seg button.active {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    box-shadow: var(--shadow-xs);
-}
-.tw-btn {
-    width: 100%;
-    height: 30px;
-    border-radius: 8px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    font: 600 12px var(--font-sans);
-    color: var(--fg-primary);
-    cursor: pointer;
-}
-.tw-btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-on);
-}
-.tw-hint {
-    font: 500 10.5px var(--font-sans);
-    color: var(--fg-tertiary);
-    margin-top: 6px;
-}
-.tw-retx-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-}
-.tw-retx-grid button,
-.tw-ds-grid button,
-.tw-fav-grid button,
-.tw-srcrow-grid button,
-.tw-ls-grid button,
-.tw-list-grid button,
-.tw-vs-grid button,
-.tw-notif-grid button,
-.tw-audio-grid button,
-.tw-tx-grid button,
-.tw-ai-grid button,
-.tw-spk-grid button,
-.tw-sr-sub-grid button {
-    padding: 6px 8px;
-    border-radius: 7px;
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-    font: 600 11px var(--font-sans);
-    color: var(--fg-primary);
-    cursor: pointer;
-    text-align: center;
-}
-.tw-retx-grid button:hover,
-.tw-ds-grid button:hover,
-.tw-fav-grid button:hover,
-.tw-srcrow-grid button:hover,
-.tw-ls-grid button:hover,
-.tw-list-grid button:hover,
-.tw-vs-grid button:hover,
-.tw-notif-grid button:hover,
-.tw-audio-grid button:hover,
-.tw-tx-grid button:hover,
-.tw-ai-grid button:hover,
-.tw-spk-grid button:hover,
-.tw-sr-sub-grid button:hover {
-    background: var(--bg-elevated);
-}
-.tw-retx-grid button.active,
-.tw-ds-grid button.active,
-.tw-fav-grid button.active,
-.tw-srcrow-grid button.active,
-.tw-ls-grid button.active,
-.tw-list-grid button.active,
-.tw-vs-grid button.active,
-.tw-notif-grid button.active,
-.tw-audio-grid button.active,
-.tw-tx-grid button.active,
-.tw-ai-grid button.active,
-.tw-spk-grid button.active,
-.tw-sr-sub-grid button.active {
-    background: color-mix(in srgb, var(--accent) 18%, var(--bg-elevated));
-    border-color: color-mix(in srgb, var(--accent) 55%, var(--line-hairline));
-    color: var(--fg-primary);
-}
-.tw-retx-grid .span-2,
-.tw-ds-grid .span-2,
-.tw-fav-grid .span-2,
-.tw-srcrow-grid .span-2,
-.tw-ls-grid .span-2,
-.tw-list-grid .span-2,
-.tw-vs-grid .span-2,
-.tw-notif-grid .span-2,
-.tw-audio-grid .span-2,
-.tw-tx-grid .span-2,
-.tw-ai-grid .span-2,
-.tw-spk-grid .span-2,
-.tw-sr-sub-grid .span-2 {
-    grid-column: span 2;
-}
-.tw-ds-grid,
-.tw-fav-grid,
-.tw-srcrow-grid,
-.tw-ls-grid,
-.tw-list-grid,
-.tw-vs-grid,
-.tw-notif-grid,
-.tw-audio-grid,
-.tw-tx-grid,
-.tw-ai-grid,
-.tw-spk-grid,
-.tw-sr-sub-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    margin-top: 6px;
-}
-.tw-select {
-    width: 100%;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-    border: 1px solid var(--line-hairline);
-    padding: 0 8px;
-    font: 600 11.5px var(--font-sans);
-    cursor: pointer;
-}
-
-/* DS-only trigger chip in topbar (when present) */
-.ds-trigger-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 999px;
-    background: var(--ds-only-accent);
-    color: white;
-    font: 700 10px var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: 0;
-}
-.ds-trigger-chip:hover {
-    background: var(--ds-only-accent-hover);
-}
-
 /* ---------- Sidebar source-state dot/action stretch fix ---------- */
 [data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-status"],
 [data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-action"],
@@ -9029,24 +8703,7 @@ body[data-ds-todo="show"] .design-todo {
 [data-sot-part="source-filter-action"]:focus-visible,
 [data-sot-control="library-search-scope"]:focus-visible,
 [data-sot-control="dashboard-activity-dismiss"]:focus-visible,
-[data-sot-control="ai-rename-close"]:focus-visible,
-#tweaks-close:focus-visible,
-.tw-btn:focus-visible,
-.tw-seg button:focus-visible,
-.tw-retx-grid button:focus-visible,
-.tw-ds-grid button:focus-visible,
-.tw-fav-grid button:focus-visible,
-.tw-srcrow-grid button:focus-visible,
-.tw-ls-grid button:focus-visible,
-.tw-list-grid button:focus-visible,
-.tw-vs-grid button:focus-visible,
-.tw-notif-grid button:focus-visible,
-.tw-audio-grid button:focus-visible,
-.tw-tx-grid button:focus-visible,
-.tw-ai-grid button:focus-visible,
-.tw-spk-grid button:focus-visible,
-.tw-sr-sub-grid button:focus-visible,
-.tw-select:focus-visible {
+[data-sot-control="ai-rename-close"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
     outline-offset: 2px;
 }
@@ -9056,8 +8713,7 @@ body[data-ds-todo="show"] .design-todo {
    `[disabled]` styles take precedence where they exist. */
 [data-sot-control="dashboard-recording-time-filter"][disabled],
 [data-sot-part="source-provider-action"][disabled],
-[data-sot-part="source-filter-action"][disabled],
-.tw-btn[disabled] {
+[data-sot-part="source-filter-action"][disabled] {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
@@ -9647,60 +9303,6 @@ body[data-ds-todo="show"] .design-todo {
     [data-sot-part="dashboard-activity-item-icon"] {
     background: color-mix(in srgb, var(--signal-warning) 16%, transparent);
     color: var(--signal-warning);
-}
-
-/* TweaksPanel · DS-only mock surface used in component library */
-.cl-tweaks-mock {
-    width: 320px;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--line-hairline);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-}
-.cl-tweaks-mock .cl-tm-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--line-hairline);
-    background: var(--bg-recessed);
-}
-.cl-tweaks-mock .cl-tm-head-title {
-    font: 600 12px var(--font-sans);
-    color: var(--fg-primary);
-}
-.cl-tweaks-mock .cl-tm-head-sub {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-}
-.cl-tweaks-mock .cl-tm-body {
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-.cl-tweaks-mock .cl-tm-sec {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.cl-tweaks-mock .cl-tm-sec-label {
-    font: 600 10px / 1 var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-tertiary);
-}
-.cl-tweaks-mock .cl-tm-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 12px;
-    color: var(--fg-secondary);
-}
-.cl-tweaks-mock .cl-tm-row > span:first-child {
-    color: var(--fg-primary);
 }
 
 /* ============================================================
@@ -10526,13 +10128,6 @@ select::-ms-expand {
 [data-theme="dark"]
     [data-sot-panel="system-banner"][data-kind="update-available"] {
     background: color-mix(in srgb, var(--signal-info) 11%, var(--bg-elevated));
-}
-
-/* ---- TweaksPanel default state — keep DS-only, hidden until host
-        sends __activate_edit_mode. The product surface (index.html)
-        already does this; reinforce here. ---- */
-#tweaks-panel {
-    font-family: var(--font-sans);
 }
 
 [data-sot-panel="dashboard-detail-header"]
