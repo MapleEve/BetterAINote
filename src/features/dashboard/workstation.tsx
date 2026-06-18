@@ -1129,6 +1129,7 @@ function RetxOkIcon() {
 function RetxCloseIcon() {
     return (
         <svg
+            data-icon="inline-start"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -6285,11 +6286,16 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
+                            className="min-h-0 flex-1 gap-0 rounded-2xl"
                             data-sot-panel="dashboard-transcript-shell"
                         >
-                            <CardHeader data-sot-part="dashboard-transcript-header">
+                            <CardHeader
+                                className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"
+                                data-sot-part="dashboard-transcript-header"
+                            >
                                 <SegmentedTabs
                                     aria-label="详情标签"
+                                    className="shrink-0"
                                     items={[
                                         { value: "transcript", label: "转写" },
                                         { value: "speakers", label: "说话人" },
@@ -6314,9 +6320,10 @@ export function Workstation({
                                     selectedTranscription?.language ? (
                                         <Badge
                                             variant="outline"
+                                            className="gap-1.5"
                                             data-sot-part="dashboard-transcript-language"
                                         >
-                                            <Globe2 />
+                                            <Globe2 data-icon="inline-start" />
                                             {transcriptLanguageLabel(
                                                 selectedTranscription.language,
                                                 language,
@@ -6535,7 +6542,7 @@ export function Workstation({
                                                 void loadSourceReport()
                                             }
                                         >
-                                            <CloudDownload />
+                                            <CloudDownload data-icon="inline-start" />
                                             {sourceReportState === "loading"
                                                 ? t(
                                                       "sourceReport.loadingDetail",
@@ -6580,7 +6587,10 @@ export function Workstation({
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent data-sot-part="dashboard-transcript-body">
+                            <CardContent
+                                className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"
+                                data-sot-part="dashboard-transcript-body"
+                            >
                                 <div
                                     data-sot-panel="dashboard-retranscription"
                                     data-sot-state={dashboardRetxState}
@@ -6620,7 +6630,7 @@ export function Workstation({
                                     {dashboardRetxState === "failed" ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 type="button"
                                                 data-retx-retry=""
@@ -6633,7 +6643,7 @@ export function Workstation({
                                             </Button>
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6650,7 +6660,7 @@ export function Workstation({
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
+                                                size="icon-sm"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""

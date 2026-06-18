@@ -351,6 +351,12 @@ describe("recording detail copy and title action UI regressions", () => {
             '[data-sot-panel="recording-workstation-detail"]',
         );
         expect(globals).toContain(
+            '[data-sot-control="recording-detail-back"] svg',
+        );
+        expect(globals).toContain(
+            '[data-sot-control="recording-detail-back"] > span',
+        );
+        expect(globals).not.toContain(
             '[data-sot-control="recording-detail-back"][data-slot="button"]',
         );
         expect(detailWorkstation).not.toContain('className="app"');
@@ -856,7 +862,7 @@ describe("recording detail copy and title action UI regressions", () => {
             'hidden={detailTab !== "transcript"}',
         );
         expect(dashboardTranscript).not.toContain("<Copy />");
-        expect(dashboardTranscript).not.toMatch(
+        expect(dashboardTranscriptShell).not.toMatch(
             /\bbg-(background|card|muted)\b/,
         );
         expect(dashboardTranscript).not.toMatch(
@@ -1058,6 +1064,10 @@ describe("recording detail copy and title action UI regressions", () => {
         const dashboardTranscript = readSource(
             "features/dashboard/workstation.tsx",
         );
+        const dashboardTranscriptShell = extractCardSlice(
+            dashboardTranscript,
+            'data-sot-panel="dashboard-transcript-shell"',
+        );
 
         expect(dashboardTranscript).toContain(
             'data-sot-panel="dashboard-retranscription"',
@@ -1076,7 +1086,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "新任务会保持当前转写可见，完成后替换结果。",
         );
-        expect(dashboardTranscript).not.toMatch(
+        expect(dashboardTranscriptShell).not.toMatch(
             /\bbg-(background|card|muted)\b/,
         );
         expect(dashboardTranscript).not.toMatch(

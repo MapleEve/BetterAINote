@@ -21,6 +21,63 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractCssBlock(source: string, marker: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const openBraceIndex = source.indexOf("{", markerIndex);
+    expect(openBraceIndex).toBeGreaterThan(markerIndex);
+
+    let depth = 0;
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        if (character === "{") {
+            depth += 1;
+        } else if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return source.slice(openBraceIndex + 1, index);
+            }
+        }
+    }
+
+    throw new Error(`Unclosed CSS block: ${marker}`);
+}
+
+function collectCssRuleBlocks(source: string, selectorFragment: string) {
+    const blocks: Array<{ prelude: string; declarations: string }> = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const selectorIndex = source.indexOf(selectorFragment, searchFrom);
+        if (selectorIndex < 0) break;
+
+        const openBraceIndex = source.indexOf("{", selectorIndex);
+        if (openBraceIndex < 0) break;
+
+        const previousCloseBraceIndex = source.lastIndexOf("}", selectorIndex);
+        const previousOpenBraceIndex = source.lastIndexOf("{", selectorIndex);
+        const preludeStart =
+            previousOpenBraceIndex > previousCloseBraceIndex
+                ? previousOpenBraceIndex + 1
+                : previousCloseBraceIndex + 1;
+        const prelude = source.slice(preludeStart, openBraceIndex);
+
+        if (prelude.includes(selectorFragment)) {
+            blocks.push({
+                prelude,
+                declarations: extractCssBlock(
+                    source.slice(selectorIndex),
+                    selectorFragment,
+                ),
+            });
+        }
+
+        searchFrom = openBraceIndex + 1;
+    }
+
+    return blocks;
+}
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -190,6 +247,24 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
     /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-panel="dashboard-recording-time-filter"\]\[data-slot="toggle-group"\]|\[data-sot-control="dashboard-recording-time-filter"\]\[data-slot="toggle-group-item"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+
+const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
+    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
+    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
+    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
+    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
+    '[data-sot-control="copy-source-transcript"][data-slot="button"]',
+    '[data-sot-control="copy-source-report"][data-slot="button"]',
+    '[data-sot-control="refresh-source-report"][data-slot="button"]',
+    '[data-sot-control="retranscribe-recording"][data-slot="button"]',
+    '[data-sot-control="retry-retranscription"][data-slot="button"]',
+    '[data-sot-control="dismiss-retranscription-failed"][data-slot="button"]',
+    '[data-sot-control="dismiss-retranscription-complete"][data-slot="button"]',
+] as const;
+
+const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
@@ -705,6 +780,15 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('value: "speakers"');
         expect(workstation).toContain('label: "说话人"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
+        expect(workstation).toContain(
+            'className="min-h-0 flex-1 gap-0 rounded-2xl"',
+        );
+        expect(workstation).toContain(
+            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
+        );
+        expect(workstation).toContain(
+            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+        );
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
@@ -716,6 +800,16 @@ describe("dashboard SOT foundation", () => {
         }
         for (const legacyClassName of DASHBOARD_TRANSCRIPT_TURN_EMPTY_LEGACY_CLASS_NAMES) {
             expect(workstation).not.toContain(legacyClassName);
+        }
+        for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ declarations }) =>
+                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
         }
         const sourceReportLoaded = extractBoundedSlice(
             workstation,

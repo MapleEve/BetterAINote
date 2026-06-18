@@ -538,11 +538,11 @@ const SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-list="dashboard-recording-list-scroll"]',
-    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-part="dashboard-transcript-body"]',
     '[data-sot-part="recording-transcription-body"]',
     '[data-sot-panel="settings-body"]',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
-    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]::-webkit-scrollbar',
+    '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
     '[data-sot-part="recording-transcription-body"]::-webkit-scrollbar',
     '[data-sot-panel="settings-body"]::-webkit-scrollbar',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
@@ -598,13 +598,13 @@ const DASHBOARD_TRANSCRIPT_ACTIONS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-actions"]',
-    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
     '[data-sot-part="dashboard-copy-label"]',
     '[data-sot-part="dashboard-copy-icon"]',
 ];
 
 const DASHBOARD_TRANSCRIPT_ACTIONS_DATA_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-actions"',
+    'data-sot-part="dashboard-transcript-language"',
     'data-sot-part="dashboard-copy-label"',
     'data-sot-part="dashboard-copy-icon"',
 ];
@@ -1049,9 +1049,7 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
     /(^|[^\w-])\.(?:activity-pixel-stage|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
-    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
-    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-part="dashboard-transcript-body"]',
     '[data-sot-item="dashboard-transcript-turn"]',
     '[data-sot-part="dashboard-transcript-speaker-row"]',
     '[data-sot-part="dashboard-transcript-speaker-name"]',
@@ -1068,6 +1066,24 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-activity-empty"]',
     '[data-sot-panel="recording-detail-loading"]',
 ];
+
+const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
+    '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
+    '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
+    '[data-sot-part="dashboard-transcript-language"][data-slot="badge"]',
+    '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
+    '[data-sot-control="copy-local-transcript"][data-slot="button"]',
+    '[data-sot-control="copy-source-transcript"][data-slot="button"]',
+    '[data-sot-control="copy-source-report"][data-slot="button"]',
+    '[data-sot-control="refresh-source-report"][data-slot="button"]',
+    '[data-sot-control="retranscribe-recording"][data-slot="button"]',
+    '[data-sot-control="retry-retranscription"][data-slot="button"]',
+    '[data-sot-control="dismiss-retranscription-failed"][data-slot="button"]',
+    '[data-sot-control="dismiss-retranscription-complete"][data-slot="button"]',
+] as const;
+
+const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
@@ -1556,6 +1572,16 @@ describe("full UI replacement regression coverage", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ declarations }) =>
+                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
         }
     });
 
@@ -2835,10 +2861,19 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptShell).toContain("<Card");
         expect(dashboardTranscriptShell).toContain("hasNoPadding");
         expect(dashboardTranscriptShell).toContain(
+            'className="min-h-0 flex-1 gap-0 rounded-2xl"',
+        );
+        expect(dashboardTranscriptShell).toContain(
             'data-sot-panel="dashboard-transcript-shell"',
         );
         expect(dashboardTranscriptShell).toContain("<CardHeader");
+        expect(dashboardTranscriptShell).toContain(
+            'className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3.5 py-3"',
+        );
         expect(dashboardTranscriptShell).toContain("<CardContent");
+        expect(dashboardTranscriptShell).toContain(
+            'className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-5"',
+        );
         expect(dashboardTranscriptShell).toContain(
             'data-sot-part="dashboard-transcript-header"',
         );
@@ -2866,6 +2901,16 @@ describe("full UI replacement regression coverage", () => {
             'className="transcript-body"',
         ]) {
             expect(dashboardTranscriptShell).not.toContain(legacyClass);
+        }
+        for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ declarations }) =>
+                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
         }
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-part="dashboard-transcript-speaker-row"',
@@ -3415,9 +3460,6 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(detail).not.toContain('className="detail-empty"');
         for (const selector of [
-            '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
-            '[data-sot-part="dashboard-transcript-header"][data-slot="card-header"]',
-            '[data-sot-part="dashboard-transcript-body"][data-slot="card-content"]',
             '[data-sot-panel="recording-detail-list"][data-slot="card"]',
             '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
             '[data-sot-panel="recording-source-record"][data-slot="card"]',
