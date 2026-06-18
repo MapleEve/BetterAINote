@@ -11,36 +11,6 @@ import {
 import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const LEGACY_SKELETON_CLASS_NAMES = new Set([
-    "empty-hint",
-    "eh-h",
-    "eh-t",
-    "speaker",
-    "sp-row",
-    "sp-row-meta",
-    "sp-rows",
-    "sr-section",
-    "sr-section-head",
-    "sr-section-sub",
-    "sr-segments",
-    "transcript",
-    "transcript-body",
-    "transcript-head",
-    "t-pane",
-    "turn",
-    "ts",
-]);
-
-function sanitizeSkeletonClassName(className?: string) {
-    const filteredClassName = className
-        ?.split(/\s+/)
-        .filter(Boolean)
-        .filter((item) => !LEGACY_SKELETON_CLASS_NAMES.has(item))
-        .join(" ");
-
-    return filteredClassName || undefined;
-}
-
 function SkeletonLine({
     size = "line-medium",
 }: {
@@ -55,17 +25,12 @@ function SkeletonLine({
 }
 
 function SkeletonLineGroup({
-    className,
     lines = 3,
 }: {
-    className?: string;
     lines?: number;
 }) {
     return (
-        <div
-            className={sanitizeSkeletonClassName(className)}
-            data-sot-list="recording-transcription-skeleton-lines"
-        >
+        <div data-sot-list="recording-transcription-skeleton-lines">
             {Array.from({ length: lines }, (_, index) => `line-${index}`).map(
                 (lineId, index) => (
                     <SkeletonLine
@@ -84,12 +49,9 @@ function SkeletonLineGroup({
     );
 }
 
-function TranscriptTurnSkeleton({ className }: { className?: string }) {
+function TranscriptTurnSkeleton() {
     return (
-        <section
-            className={sanitizeSkeletonClassName(className)}
-            data-sot-item="recording-transcription-skeleton-turn"
-        >
+        <section data-sot-item="recording-transcription-skeleton-turn">
             <div data-sot-list="recording-transcription-skeleton-meta">
                 <SkeletonLine size="speaker" />
                 <SkeletonLine size="time" />
@@ -99,14 +61,9 @@ function TranscriptTurnSkeleton({ className }: { className?: string }) {
     );
 }
 
-export function TranscriptOutputSkeleton({
-    className,
-}: {
-    className?: string;
-}) {
+export function TranscriptOutputSkeleton() {
     return (
         <Card
-            className={sanitizeSkeletonClassName(className)}
             data-sot-panel="recording-transcription-skeleton"
             data-sot-section="recording-transcription-output-skeleton"
             hasNoPadding
@@ -133,14 +90,9 @@ export function TranscriptOutputSkeleton({
     );
 }
 
-export function TranscriptReviewSkeleton({
-    className,
-}: {
-    className?: string;
-}) {
+export function TranscriptReviewSkeleton() {
     return (
         <section
-            className={sanitizeSkeletonClassName(className)}
             data-sot-panel="recording-transcription-review-skeleton"
         >
             <div data-sot-list="recording-transcription-skeleton-meta">
@@ -179,10 +131,9 @@ function SpeakerCardSkeleton() {
     );
 }
 
-export function SpeakerReviewSkeleton({ className }: { className?: string }) {
+export function SpeakerReviewSkeleton() {
     return (
         <Card
-            className={sanitizeSkeletonClassName(className)}
             data-sot-panel="recording-transcription-speaker-review-skeleton"
             hasNoPadding
         >

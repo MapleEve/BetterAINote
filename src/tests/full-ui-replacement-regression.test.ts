@@ -1936,7 +1936,10 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             'data-sot-part="recording-transcription-skeleton-line"',
         );
-        expect(transcriptionSkeletons).toContain("sanitizeSkeletonClassName");
+        expect(transcriptionSkeletons).not.toContain("sanitizeSkeletonClassName");
+        expect(transcriptionSkeletons).not.toContain(
+            "LEGACY_SKELETON_CLASS_NAMES",
+        );
         expect(transcriptionSkeletons).not.toContain("mergeSkeletonClassName");
         for (const legacyClass of [
             'className="transcript t-pane"',

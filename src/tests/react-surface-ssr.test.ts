@@ -267,15 +267,9 @@ describe("React surface SSR coverage", () => {
                     sourceProvider: "ticnote",
                     autoLoad: false,
                 }),
-                React.createElement(TranscriptOutputSkeleton, {
-                    className: "layout-preserved sr-section sp-row",
-                }),
-                React.createElement(SpeakerReviewSkeleton, {
-                    className: "review-layout sr-segments sp-rows",
-                }),
-                React.createElement(TranscriptReviewSkeleton, {
-                    className: "inline-layout turn speaker",
-                }),
+                React.createElement(TranscriptOutputSkeleton),
+                React.createElement(SpeakerReviewSkeleton),
+                React.createElement(TranscriptReviewSkeleton),
             ),
         );
         const classTokens = extractClassTokens(html);
@@ -294,9 +288,6 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain(
             'data-sot-part="recording-transcription-skeleton-line"',
         );
-        expect(classTokens).toContain("layout-preserved");
-        expect(classTokens).toContain("review-layout");
-        expect(classTokens).toContain("inline-layout");
         for (const legacyClass of [
             "empty-hint",
             "eh-h",
