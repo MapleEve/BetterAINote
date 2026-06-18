@@ -4048,6 +4048,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManager).toContain('from "@/components/ui/alert";');
         expect(tagManager).toContain('from "@/components/ui/card";');
+        expect(tagManager).toContain('from "@/components/ui/empty";');
         expect(tagManager).toContain('from "@/components/ui/field";');
         expect(tagManager).toContain('from "@/components/ui/input-group";');
         expect(tagManager).toContain('from "@/components/ui/toggle-group";');
@@ -4056,6 +4057,10 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<CardContent");
         expect(tagManager).toContain("<CardFooter");
         expect(tagManager).toContain("<Alert");
+        expect(tagManager).toContain("<Empty");
+        expect(tagManager).toContain("<EmptyHeader");
+        expect(tagManager).toContain("<EmptyTitle");
+        expect(tagManager).toContain("<EmptyDescription");
         expect(tagManager).toContain("<Badge");
         expect(tagManager).toContain("<Button");
         expect(tagManager).toContain("<Field");
@@ -4068,7 +4073,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('variant="primary"');
         expect(tagManager).toContain('size="icon-sm"');
         expect(tagManager).toContain('variant="secondary"');
-        expect(tagManager).toContain('className="h-6"');
+        expect(tagManager).toContain('className="h-6 whitespace-nowrap"');
         expect(tagManager).toContain(
             'className="w-80 max-w-[calc(100vw-2rem)] max-h-[460px] gap-0"',
         );
@@ -4107,6 +4112,56 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
         expect(tagManager).not.toContain("cl-note");
+
+        const tagManagerEmpty = extractElementSlice(
+            tagManager,
+            'data-sot-panel="recording-tag-empty"',
+            "Empty",
+        );
+        expect(tagManagerEmpty).toContain("<Empty");
+        expect(tagManagerEmpty).toContain(
+            'data-sot-panel="recording-tag-empty"',
+        );
+        expect(tagManagerEmpty).toContain('data-sot-part="empty"');
+        expect(tagManagerEmpty).toContain('data-sot-state="empty"');
+        expect(tagManagerEmpty).toContain("<EmptyHeader>");
+        expect(tagManagerEmpty).toContain(
+            '<EmptyTitle data-sot-part="empty-message">',
+        );
+        expect(tagManagerEmpty).toContain("还没有任何标签");
+        expect(tagManagerEmpty).toContain(
+            '<EmptyDescription data-sot-part="empty-description">',
+        );
+        expect(tagManagerEmpty).toContain(
+            "在下方为这条录音创建第一个标签。",
+        );
+        expect(tagManagerEmpty).not.toContain(
+            '<div data-sot-part="empty-message">',
+        );
+        expect(tagManagerEmpty).not.toContain(
+            '<div data-sot-part="empty-description">',
+        );
+
+        const removedTagManagerPrimitiveSelectors = [
+            '[data-sot-control="recording-tag-icon"][data-slot="toggle-group-item"]',
+            '[data-sot-control="recording-tag-icon"][data-sot-state="selected"]',
+            '[data-sot-panel="recording-tag-error"][data-slot="alert"]',
+            '[data-sot-panel="recording-tag-delete-confirm"][data-slot="alert"]',
+            '[data-sot-panel="recording-tag-empty"] [data-sot-part="empty-message"]',
+            '[data-sot-panel="recording-tag-empty"] [data-sot-part="empty-description"]',
+            '[data-sot-control="recording-tag-error-retry"][data-slot="button"]',
+            '[data-sot-part="footer"]\n    [data-slot="button"]',
+        ];
+
+        for (const selector of removedTagManagerPrimitiveSelectors) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+
+        const tagManagerPrimitiveButtonBlocks = collectCssRuleBlocks(
+            globals,
+            '[data-sot-panel="recording-tag-manager"]',
+        ).filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+        expect(tagManagerPrimitiveButtonBlocks).toEqual([]);
 
         const tagManagerRepaintSelectors = [
             '[data-sot-panel="recording-tag-manager"][data-slot="card"]',
