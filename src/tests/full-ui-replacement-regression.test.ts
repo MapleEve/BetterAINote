@@ -296,7 +296,7 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
     'data-sot-part="dashboard-recording-row-body"',
     'data-sot-part="dashboard-recording-row-title"',
     'data-sot-part="dashboard-recording-row-meta"',
-    'data-recording-tag-chip',
+    "data-recording-tag-chip",
     'data-sot-part="recording-list-state-icon"',
     'data-sot-part="recording-list-state-title"',
     'data-sot-part="recording-list-state-description"',
@@ -432,8 +432,7 @@ const LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 const DASHBOARD_TOPBAR_SOURCE_STATUS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:src-dot|dot-success|dot-warning|dot-info|dot-muted|dot|search|avatar)(?![\w-])/;
 
-const TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
-    /(^|[,\s>])\.topbar(?![\w-])/m;
+const TOPBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE = /(^|[,\s>])\.topbar(?![\w-])/m;
 
 const DASHBOARD_DETAIL_HEADER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:detail|rec-head|rec-h2|rec-h2-status|rec-h2-local|rec-h2-input|rh-edit|rh-norm|real-detail|ai-rename-anchor)(?![\w-])/;
@@ -496,7 +495,6 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="system-banner"]',
     '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
     '[data-sot-part="system-banner-icon"]',
-    '[data-sot-part="system-banner-icon"]\n    svg',
     '[data-sot-part="system-banner-body"]',
     '[data-sot-part="system-banner-title"]',
     '[data-sot-part="system-banner-description"]',
@@ -1579,11 +1577,12 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
-            .filter((line) =>
-                !line.includes(".cl-pop-host .notif-empty") &&
-                DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
-                    line,
-                ),
+            .filter(
+                (line) =>
+                    !line.includes(".cl-pop-host .notif-empty") &&
+                    DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
+                        line,
+                    ),
             );
 
         expect(legacySelectorLines).toEqual([]);
@@ -1591,11 +1590,13 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(selector);
         }
         for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ declarations }) =>
-                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
             );
 
             expect(repaintBlocks).toEqual([]);
@@ -1712,6 +1713,7 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(globals).toMatch(/\[data-sot-part="system-banner-icon"\]\s+svg/);
     });
 
     it("keeps more actions menus product CSS on data-sot selectors", () => {
@@ -1796,9 +1798,7 @@ describe("full UI replacement regression coverage", () => {
             '[data-slot="button"][data-copy]',
         ).filter(({ declarations }) =>
             COPY_BUTTON_GLOBAL_APPEARANCE_PROPERTIES.some((property) =>
-                new RegExp(`(^|;)\\s*${property}\\s*:`, "m").test(
-                    declarations,
-                ),
+                new RegExp(`(^|;)\\s*${property}\\s*:`, "m").test(declarations),
             ),
         );
 
@@ -2093,7 +2093,8 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
         );
-        expect(globals).toContain(
+        expect(globals).toContain('[data-sot-part="provider-meta"]');
+        expect(globals).not.toContain(
             '[data-sot-part="provider-meta"][data-slot="card-header"]',
         );
         expect(
@@ -2165,9 +2166,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS",
         );
-        expect(workstation).toContain(
-            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
-        );
+        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
@@ -2286,9 +2285,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toContain(
-            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
-        );
+        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
         expect(workstation).toMatch(
             /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
@@ -2480,9 +2477,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Badge");
         expect(dashboardPlayer).toContain('variant="outline"');
         expect(dashboardPlayer).toContain('className="ml-auto"');
-        expect(dashboardPlayer).toContain(
-            'data-sot-control="player-status"',
-        );
+        expect(dashboardPlayer).toContain('data-sot-control="player-status"');
         expect(dashboardPlayer).toContain(
             "data-sot-tone={selectedPlayerStatus.tone}",
         );
@@ -2641,11 +2636,13 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(selector);
         }
         for (const selector of SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ declarations }) =>
-                    SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
             );
 
             expect(repaintBlocks).toEqual([]);
@@ -2661,7 +2658,10 @@ describe("full UI replacement regression coverage", () => {
             'className="inline-flex min-w-0 items-center gap-1.5"',
         );
         const sourceReportActionButtonCssBlocks = [
-            ...collectCssRuleBlocks(globals, "[data-sot-source-report-actions]"),
+            ...collectCssRuleBlocks(
+                globals,
+                "[data-sot-source-report-actions]",
+            ),
             ...collectCssRuleBlocks(
                 globals,
                 "[data-sot-source-report-empty-actions]",
@@ -2790,8 +2790,8 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(badge).toContain('data-slot="badge"');
         expect(button).toContain('data-slot="button"');
-        expect(button).toContain('data-variant={variant}');
-        expect(button).toContain('data-size={size}');
+        expect(button).toContain("data-variant={variant}");
+        expect(button).toContain("data-size={size}");
         expect(card).toContain('data-slot="card-header"');
         expect(input).toContain('data-slot="input"');
         expect(dashboardDetailHeader).toContain("<CardHeader");
@@ -2920,11 +2920,13 @@ describe("full UI replacement regression coverage", () => {
             expect(dashboardTranscriptShell).not.toContain(legacyClass);
         }
         for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ declarations }) =>
-                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
             );
 
             expect(repaintBlocks).toEqual([]);
@@ -3122,7 +3124,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("<ToggleGroup");
         expect(settings).toContain("<ToggleGroupItem");
         expect(settings).toContain("<Badge");
-        expect(settings).toContain('variant={');
+        expect(settings).toContain("variant={");
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
         const providerPrimitiveRepaintSelectors = [
@@ -3131,6 +3133,40 @@ describe("full UI replacement regression coverage", () => {
         ];
         const forbiddenProviderPrimitiveRepaintDeclaration =
             /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
+        const settingsDataSourcePrimitiveRepaintTargets = [
+            {
+                label: "provider detail field",
+                preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
+                selectorFragment: '[data-slot="field"]',
+            },
+            {
+                label: "provider detail input",
+                preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
+                selectorFragment: '[data-slot="input"]',
+            },
+            {
+                label: "settings field",
+                preludeIncludes: ['[data-sot-panel="settings-scroll-body"]'],
+                selectorFragment: '[data-slot="field"]',
+            },
+            {
+                label: "settings save button",
+                preludeIncludes: ['[data-sot-panel="settings-save-actions"]'],
+                selectorFragment: '[data-slot="button"]',
+            },
+            {
+                label: "source action button",
+                preludeIncludes: ['[data-sot-panel="source-actions"]'],
+                selectorFragment: '[data-slot="button"]',
+            },
+            {
+                label: "provider meta card header",
+                preludeIncludes: ['[data-sot-part="provider-meta"]'],
+                selectorFragment: '[data-slot="card-header"]',
+            },
+        ];
+        const forbiddenSettingsDataSourcePrimitiveRepaintDeclaration =
+            /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
         for (const selector of providerPrimitiveRepaintSelectors) {
             const blocks = collectCssRuleBlocks(globals, selector);
             expect(blocks.length).toBeGreaterThan(0);
@@ -3139,6 +3175,25 @@ describe("full UI replacement regression coverage", () => {
                     forbiddenProviderPrimitiveRepaintDeclaration,
                 );
             }
+        }
+        for (const target of settingsDataSourcePrimitiveRepaintTargets) {
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                target.selectorFragment,
+            ).filter(
+                ({ prelude, declarations }) =>
+                    target.preludeIncludes.every((fragment) =>
+                        prelude.includes(fragment),
+                    ) &&
+                    forbiddenSettingsDataSourcePrimitiveRepaintDeclaration.test(
+                        declarations,
+                    ),
+            );
+
+            expect(
+                repaintBlocks,
+                `${target.label} should not repaint shadcn primitives from globals.css`,
+            ).toEqual([]);
         }
         expect(settings).not.toContain("path-card");
         expect(settings).not.toContain("pc-badge");
@@ -3236,11 +3291,13 @@ describe("full UI replacement regression coverage", () => {
 
         expect(transcriptionJobLegacySelectorLines).toEqual([]);
         for (const selector of RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ declarations }) =>
-                    RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                RECORDING_TRANSCRIPTION_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
             );
 
             expect(repaintBlocks).toEqual([]);
@@ -3689,9 +3746,7 @@ describe("full UI replacement regression coverage", () => {
             '<InputGroup className="h-8" data-sot-part="create-row">',
         );
         expect(tagManager).toContain("disabled={!canCreate}");
-        expect(tagManager).toContain(
-            "onClick={() => void handleCreateTag()}",
-        );
+        expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
         for (const rawClass of [
             "tagm-panel",
             "tagm-head",

@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { SettingFieldControl } from "@/features/settings/components/setting-field-control";
 import type { DataSourceFormField } from "@/lib/data-sources/presentation";
+import { cn } from "@/lib/utils";
 
 const SENSITIVE_FIELD_PATTERN =
     /sensitive|secret|token|cookie|password|credential|authorization/i;
@@ -26,9 +27,13 @@ function isSensitiveTextField(field: DataSourceFormField) {
 }
 
 interface DataSourceFieldControlProps {
+    controlClassName?: string;
     disabled?: boolean;
     field: DataSourceFormField;
+    fieldClassName?: string;
+    fieldContentClassName?: string;
     fieldId: string;
+    inputClassName?: string;
     onValueChange: (
         field: DataSourceFormField,
         value: string | boolean,
@@ -37,9 +42,13 @@ interface DataSourceFieldControlProps {
 }
 
 export function DataSourceFieldControl({
+    controlClassName,
     disabled = false,
     field,
+    fieldClassName,
+    fieldContentClassName,
     fieldId,
+    inputClassName,
     onValueChange,
     variant = "default",
 }: DataSourceFieldControlProps) {
@@ -53,13 +62,22 @@ export function DataSourceFieldControl({
         masked: readOnlyMaskedDisplay,
         sensitive: sensitiveTextField,
     };
+    const controlInputClassName = cn(
+        inputClassName,
+        renderedField.masked && "tracking-[0.15em]",
+        renderedField.className,
+    );
 
     if (variant === "settings") {
         return (
             <SettingFieldControl
+                controlClassName={controlClassName}
                 disabled={disabled}
                 field={renderedField}
+                fieldClassName={fieldClassName}
+                fieldContentClassName={fieldContentClassName}
                 fieldId={fieldId}
+                inputClassName={inputClassName}
                 onValueChange={(_nextField, value) =>
                     onValueChange(field, value)
                 }
@@ -81,14 +99,20 @@ export function DataSourceFieldControl({
             data-disabled={disabled ? "true" : undefined}
             data-field-id={field.id}
             orientation="horizontal"
+            className={fieldClassName}
         >
-            <FieldContent>
+            <FieldContent className={fieldContentClassName}>
                 <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
                     <FieldDescription>{field.description}</FieldDescription>
                 ) : null}
             </FieldContent>
-            <div className="flex flex-none items-center gap-2">
+            <div
+                className={cn(
+                    "flex flex-none items-center gap-2",
+                    controlClassName,
+                )}
+            >
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
@@ -105,6 +129,7 @@ export function DataSourceFieldControl({
                         value={String(field.value)}
                         onValueChange={(value) => onValueChange(field, value)}
                         disabled={disabled}
+                        className={controlInputClassName}
                         options={field.options ?? []}
                     />
                 ) : field.kind === "textarea" && !renderedField.sensitive ? (
@@ -112,7 +137,7 @@ export function DataSourceFieldControl({
                         id={fieldId}
                         rows={field.rows ?? 3}
                         spellCheck={field.spellCheck}
-                        className={renderedField.className}
+                        className={controlInputClassName}
                         value={String(field.value)}
                         onChange={handleTextValueChange}
                         placeholder={field.placeholder}
@@ -148,7 +173,7 @@ export function DataSourceFieldControl({
                         disabled={disabled}
                         readOnly={field.readOnly}
                         spellCheck={field.spellCheck}
-                        className={renderedField.className}
+                        className={controlInputClassName}
                         data-sot-mask={
                             renderedField.masked ? "true" : undefined
                         }

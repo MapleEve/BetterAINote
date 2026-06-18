@@ -153,10 +153,7 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.settings-body\b/, ".settings-body"],
     [/(^|\n|,)\s*\.settings-rail\b/, ".settings-rail"],
     [/(^|\n|,)\s*\.settings-main(?![\w-])/, ".settings-main"],
-    [
-        /(^|\n|,)\s*\.settings-main\.three-pane\b/,
-        ".settings-main.three-pane",
-    ],
+    [/(^|\n|,)\s*\.settings-main\.three-pane\b/, ".settings-main.three-pane"],
     [/(^|\n|,)\s*\.settings-main\[hidden\]/, ".settings-main[hidden]"],
     [
         /(^|\n|,)\s*\.settings-main\.three-pane\[hidden\]/,
@@ -177,6 +174,57 @@ const FORBIDDEN_PROVIDER_PRIMITIVE_REPAINT_DECLARATION =
 const FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
+const FORBIDDEN_SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_DECLARATION =
+    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
+
+const SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS = [
+    {
+        label: "provider detail fields",
+        preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
+        selectorFragment: '[data-slot="field"]',
+    },
+    {
+        label: "provider detail field descriptions",
+        preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
+        selectorFragment: '[data-slot="field-description"]',
+    },
+    {
+        label: "provider detail inputs",
+        preludeIncludes: ['[data-sot-panel="source-provider-detail"]'],
+        selectorFragment: '[data-slot="input"]',
+    },
+    {
+        label: "settings fields",
+        preludeIncludes: ['[data-sot-panel="settings-scroll-body"]'],
+        selectorFragment: '[data-slot="field"]',
+    },
+    {
+        label: "settings inputs",
+        preludeIncludes: ['[data-sot-panel="settings-scroll-body"]'],
+        selectorFragment: '[data-slot="input"]',
+    },
+    {
+        label: "settings save buttons",
+        preludeIncludes: ['[data-sot-panel="settings-save-actions"]'],
+        selectorFragment: '[data-slot="button"]',
+    },
+    {
+        label: "source action buttons",
+        preludeIncludes: ['[data-sot-panel="source-actions"]'],
+        selectorFragment: '[data-slot="button"]',
+    },
+    {
+        label: "provider meta card header",
+        preludeIncludes: ['[data-sot-part="provider-meta"]'],
+        selectorFragment: '[data-slot="card-header"]',
+    },
+    {
+        label: "settings badges",
+        preludeIncludes: ['[data-sot-panel="settings-scroll-body"]'],
+        selectorFragment: '[data-slot="badge"]',
+    },
+] as const;
+
 const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
@@ -191,7 +239,6 @@ const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="source-actions"][data-sot-state="saving"]',
     '[data-sot-panel="settings-scroll-body"]\n    [data-slot="field"]\n    [data-sot-part="settings-field-message"]',
     '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
-    '[data-sot-surface="settings-data-sources"]',
     '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
     '[data-sot-panel="source-actions"] {\n    align-items: center;',
 ] as const;
@@ -246,6 +293,21 @@ function expectNoLegacySettingsFieldPatterns(
             ).not.toMatch(pattern);
         }
     }
+}
+
+function collectScopedPrimitiveRepaintBlocks(
+    source: string,
+    target: (typeof SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS)[number],
+) {
+    return collectCssRuleBlocks(source, target.selectorFragment).filter(
+        ({ prelude, declarations }) =>
+            target.preludeIncludes.every((fragment) =>
+                prelude.includes(fragment),
+            ) &&
+            FORBIDDEN_SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_DECLARATION.test(
+                declarations,
+            ),
+    );
 }
 
 describe("settings SOT interaction regressions", () => {
@@ -757,12 +819,13 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('data-sot-part="source-provider-header"');
         expect(content).toContain('data-sot-part="source-provider-title"');
         expect(content).toContain('data-sot-part="source-provider-subtitle"');
+        expect(content).toContain('data-sot-surface="settings-data-sources"');
         expect(content).toContain("data-sot-status={status.state}");
         expect(content).toContain("DataSourceFieldControl");
         expect(content).toContain("data-sot-section-group");
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("<Field");
-        expect(content).toContain("<FieldContent>");
+        expect(content).toContain("<FieldContent");
         expect(content).toContain("<FieldLabel");
         expect(content).toContain("<FieldTitle>");
         expect(content).toContain("<FieldDescription>");
@@ -779,7 +842,7 @@ describe("settings SOT interaction regressions", () => {
             'from "@/components/ui/field";',
         );
         expect(dataSourceFieldControl).toContain("<Field");
-        expect(dataSourceFieldControl).toContain("<FieldContent>");
+        expect(dataSourceFieldControl).toContain("<FieldContent");
         expect(dataSourceFieldControl).toContain("<FieldLabel");
         expect(dataSourceFieldControl).toContain("<FieldDescription>");
         expect(dataSourceFieldControl).toContain(
@@ -999,6 +1062,71 @@ describe("settings SOT interaction regressions", () => {
         );
     });
 
+    it("keeps settings and data-source primitive repaint out of globals", () => {
+        const content = readSource(
+            "features/settings/components/settings-content.tsx",
+        );
+        const settingFieldControl = readSource(
+            "features/settings/components/setting-field-control.tsx",
+        );
+        const dataSourceFieldControl = readSource(
+            "features/data-sources/data-source-field-control.tsx",
+        );
+        const globals = readSource("app/globals.css");
+
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
+        expect(content).toContain("SETTINGS_FIELD_CLASS");
+        expect(content).toContain("getSettingsBannerClassName");
+        expect(content).toContain("getSettingsSaveStatusBadgeClassName");
+        expect(content).toContain("getSettingsSaveStatusDotClassName");
+        expect(content).toMatch(
+            /fieldClassName=\{\s*SOURCE_PROVIDER_DETAIL_FIELD_CLASS\s*\}/,
+        );
+        expect(content).toContain("inputClassName={");
+        expect(content).toContain('data-sot-panel="source-actions"');
+        expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(content).toContain('data-icon="inline-start"');
+        expect(content).toContain('className="animate-spin"');
+        expect(settingFieldControl).toContain("fieldClassName?: string");
+        expect(settingFieldControl).toContain("inputClassName?: string");
+        expect(settingFieldControl).toContain(
+            'field.masked && "tracking-[0.15em]"',
+        );
+        expect(settingFieldControl).toContain("className={inputClassName}");
+        expect(dataSourceFieldControl).toContain("fieldClassName?: string");
+        expect(dataSourceFieldControl).toContain("inputClassName?: string");
+        expect(dataSourceFieldControl).toContain("controlInputClassName");
+        expect(dataSourceFieldControl).toContain(
+            'renderedField.masked && "tracking-[0.15em]"',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="source-provider-detail"] [data-slot="field"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="source-provider-detail"] [data-slot="field-description"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="source-provider-detail"]\n    [data-slot="input"][data-sot-mask="true"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="provider-meta"][data-slot="card-header"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="settings-save-actions"] [data-slot="button"]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="source-actions"] [data-slot="button"]',
+        );
+
+        for (const target of SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS) {
+            expect(
+                collectScopedPrimitiveRepaintBlocks(globals, target),
+                `${target.label} should not repaint shadcn primitives from globals.css`,
+            ).toEqual([]);
+        }
+    });
+
     it("keeps data-source P0 detail rows explicit, safe, and wired to real actions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
@@ -1111,15 +1239,15 @@ describe("settings SOT interaction regressions", () => {
 
         const reconnectRow =
             dataSourcesPanel.match(
-                /<Field\s+data-sot-part="source-reconnect-row"[\s\S]*?<\/Field>/,
+                /<Field[\s\S]*?data-sot-part="source-reconnect-row"[\s\S]*?<\/Field>/,
             )?.[0] ?? "";
         const disconnectRow =
             dataSourcesPanel.match(
-                /<Field\s+data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
+                /<Field[\s\S]*?data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
             )?.[0] ?? "";
 
         expect(reconnectRow).toContain('orientation="horizontal"');
-        expect(reconnectRow).toContain("<FieldContent>");
+        expect(reconnectRow).toContain("<FieldContent");
         expect(reconnectRow).toContain("<FieldTitle>");
         expect(reconnectRow).toContain("<FieldDescription>");
         expect(reconnectRow).toContain('"重新连接"');
@@ -1131,7 +1259,7 @@ describe("settings SOT interaction regressions", () => {
             'aria-busy={actionState === "reconnecting"}',
         );
         expect(disconnectRow).toContain('orientation="horizontal"');
-        expect(disconnectRow).toContain("<FieldContent>");
+        expect(disconnectRow).toContain("<FieldContent");
         expect(disconnectRow).toContain("<FieldTitle>");
         expect(disconnectRow).toContain("<FieldDescription>");
         expect(disconnectRow).toContain('"断开连接"');
@@ -1270,7 +1398,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('from "@/components/ui/field";');
         expect(content).toContain("function SettingsRow");
         expect(content).toContain("<Field");
-        expect(content).toContain("<FieldContent>");
+        expect(content).toContain("<FieldContent");
         expect(content).toContain("<FieldTitle>{label}</FieldTitle>");
         expect(content).toContain(
             "<FieldDescription>{description}</FieldDescription>",
@@ -1628,17 +1756,19 @@ describe("settings SOT interaction regressions", () => {
         expect(maxInflightClamp?.slice(1)).toEqual(["0", "20"]);
     });
 
-    it("keeps section load failures as visual banners without alert role", () => {
+    it("keeps section load failures on shadcn Alert banners", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
         const sectionLoadErrorBanner = content.match(
-            /<Alert\s+data-sot-banner="settings-section-load-error"\s+data-sot-panel="settings-section-load-error"\s+data-sot-section=\{section\}[\s\S]*?>/,
+            /<Alert[\s\S]*?data-sot-banner="settings-section-load-error"[\s\S]*?data-sot-panel="settings-section-load-error"[\s\S]*?data-sot-section=\{section\}[\s\S]*?>/,
         )?.[0];
 
         expect(sectionLoadErrorBanner).toBeDefined();
-        expect(sectionLoadErrorBanner ?? "").not.toContain("role={undefined}");
-        expect(sectionLoadErrorBanner ?? "").not.toContain('role="alert"');
+        expect(sectionLoadErrorBanner ?? "").toContain(
+            'className={getSettingsBannerClassName("err", true)}',
+        );
+        expect(sectionLoadErrorBanner ?? "").toContain('variant="destructive"');
         expect(sectionLoadErrorBanner ?? "").not.toMatch(/\srole=/);
     });
 

@@ -403,6 +403,19 @@ function getBannerTone(tone: ProviderTone) {
     return "info";
 }
 
+function getSettingsBannerClassName(
+    tone: ProviderTone | "err" | "info" | "warn",
+    withAction = false,
+) {
+    return cn(
+        "mb-4 grid items-start gap-3 rounded-lg border px-3.5 py-3",
+        withAction ? "grid-cols-[auto_1fr_auto]" : "grid-cols-[auto_1fr]",
+        tone === "err"
+            ? "border-destructive/30 bg-destructive/10"
+            : "border-border bg-card",
+    );
+}
+
 function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     if (mode === "oauth-device-flow") {
         return {
@@ -435,6 +448,23 @@ function getSourceActionStatusDotClassName(state: string) {
         state === "saved" && "bg-primary",
         state === "saving" && "animate-pulse bg-primary",
         state === "error" && "bg-destructive",
+    );
+}
+
+function getSettingsSaveStatusBadgeClassName(saveState: SectionSaveState) {
+    return cn(
+        "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground",
+        (saveState === "saved" || saveState === "saving") && "text-primary",
+        saveState === "error" && "text-destructive",
+    );
+}
+
+function getSettingsSaveStatusDotClassName(saveState: SectionSaveState) {
+    return cn(
+        "size-2 rounded-full bg-secondary-foreground/45",
+        saveState === "saved" && "bg-primary",
+        saveState === "saving" && "animate-pulse bg-primary",
+        saveState === "error" && "bg-destructive",
     );
 }
 
@@ -616,17 +646,32 @@ function ProviderStateBanner({
 
     return (
         <Alert
+            className={getSettingsBannerClassName(tone)}
             data-sot-banner="source-state"
             data-sot-panel="source-state-banner"
             data-sot-state={getBannerTone(tone)}
             data-sot-tone={tone}
+            variant={tone === "err" ? "destructive" : "default"}
         >
-            <span data-sot-banner-icon>
-                <Icon aria-hidden="true" />
+            <span className={SETTINGS_BANNER_ICON_CLASS} data-sot-banner-icon>
+                <Icon
+                    aria-hidden="true"
+                    className={tone === "syncing" ? "animate-spin" : undefined}
+                />
             </span>
             <div data-sot-banner-body>
-                <div data-sot-banner-title>{title}</div>
-                <div data-sot-banner-sub>{description}</div>
+                <div
+                    className={SETTINGS_BANNER_TITLE_CLASS}
+                    data-sot-banner-title
+                >
+                    {title}
+                </div>
+                <div
+                    className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                    data-sot-banner-sub
+                >
+                    {description}
+                </div>
             </div>
         </Alert>
     );
@@ -1073,18 +1118,31 @@ function DataSourcesSettingsPanel({
 
                 {loadError ? (
                     <Alert
+                        className={getSettingsBannerClassName("err", true)}
                         data-sot-banner="source-load-error"
                         data-sot-panel="source-load-error"
                         data-sot-tone="err"
+                        variant="destructive"
                     >
-                        <span data-sot-banner-icon>
+                        <span
+                            className={SETTINGS_BANNER_ICON_CLASS}
+                            data-sot-banner-icon
+                        >
                             <AlertCircle aria-hidden="true" />
                         </span>
                         <span data-sot-banner-body>
-                            <span data-sot-banner-title>
+                            <span
+                                className={SETTINGS_BANNER_TITLE_CLASS}
+                                data-sot-banner-title
+                            >
                                 {isZh ? "加载失败" : "Load failed"}
                             </span>
-                            <span data-sot-banner-sub>{loadError}</span>
+                            <span
+                                className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                                data-sot-banner-sub
+                            >
+                                {loadError}
+                            </span>
                         </span>
                         <Button
                             type="button"
@@ -1092,7 +1150,10 @@ function DataSourcesSettingsPanel({
                             data-sot-control="source-load-retry"
                             onClick={() => void refreshSources()}
                         >
-                            <RotateCw aria-hidden="true" />
+                            <RotateCw
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                            />
                             {isZh ? "重试" : "Retry"}
                         </Button>
                     </Alert>
@@ -1293,8 +1354,15 @@ function DataSourcesSettingsPanel({
                             </ToggleGroup>
                         ) : selectedSource.provider !== "dingtalk-a1" ? (
                             <div data-sot-section-group>
-                                <Field orientation="horizontal">
-                                    <FieldContent>
+                                <Field
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
+                                    orientation="horizontal"
+                                >
+                                    <FieldContent
+                                        className={SETTINGS_FIELD_CONTENT_CLASS}
+                                    >
                                         <FieldTitle>
                                             {isZh
                                                 ? "登录方式"
@@ -1320,13 +1388,18 @@ function DataSourcesSettingsPanel({
                                 selectedSource.provider,
                             ) ? (
                                 <Field
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
                                     data-field-id="source-service-address"
                                     data-disabled={
                                         interactionDisabled ? "true" : undefined
                                     }
                                     orientation="horizontal"
                                 >
-                                    <FieldContent>
+                                    <FieldContent
+                                        className={SETTINGS_FIELD_CONTENT_CLASS}
+                                    >
                                         <FieldLabel
                                             htmlFor={`${selectedSource.provider}-base-url`}
                                         >
@@ -1384,6 +1457,15 @@ function DataSourcesSettingsPanel({
                                             value,
                                         )
                                     }
+                                    fieldClassName={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
+                                    fieldContentClassName={
+                                        SETTINGS_FIELD_CONTENT_CLASS
+                                    }
+                                    inputClassName={
+                                        SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                    }
                                     variant="settings"
                                 />
                             ))}
@@ -1419,6 +1501,15 @@ function DataSourcesSettingsPanel({
                                                     value,
                                                 )
                                             }
+                                            fieldClassName={
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                            }
+                                            fieldContentClassName={
+                                                SETTINGS_FIELD_CONTENT_CLASS
+                                            }
+                                            inputClassName={
+                                                SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                            }
                                             variant="settings"
                                         />
                                     ))}
@@ -1430,13 +1521,16 @@ function DataSourcesSettingsPanel({
 
                         <div data-sot-section-group>
                             <Field
+                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
                                 data-sot-part="source-auto-update-row"
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
                             >
-                                <FieldContent>
+                                <FieldContent
+                                    className={SETTINGS_FIELD_CONTENT_CLASS}
+                                >
                                     <FieldTitle>
                                         {isZh
                                             ? "自动更新"
@@ -1495,17 +1589,29 @@ function DataSourcesSettingsPanel({
                                             value,
                                         )
                                     }
+                                    fieldClassName={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CLASS
+                                    }
+                                    fieldContentClassName={
+                                        SETTINGS_FIELD_CONTENT_CLASS
+                                    }
+                                    inputClassName={
+                                        SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                    }
                                     variant="settings"
                                 />
                             ))}
 
                             <Field
+                                className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
                                 data-disabled={
                                     interactionDisabled ? "true" : undefined
                                 }
                                 orientation="horizontal"
                             >
-                                <FieldContent>
+                                <FieldContent
+                                    className={SETTINGS_FIELD_CONTENT_CLASS}
+                                >
                                     <FieldLabel
                                         htmlFor={`${selectedSource.provider}-enabled`}
                                     >
@@ -1597,6 +1703,13 @@ function DataSourcesSettingsPanel({
                                     void handleTestSource(selectedSource)
                                 }
                             >
+                                {actionState === "testing" ? (
+                                    <LoaderCircle
+                                        data-icon="inline-start"
+                                        aria-hidden="true"
+                                        className="animate-spin"
+                                    />
+                                ) : null}
                                 {actionState === "testing"
                                     ? isZh
                                         ? "测试中"
@@ -1627,6 +1740,13 @@ function DataSourcesSettingsPanel({
                                     void handleSaveSource(selectedSource)
                                 }
                             >
+                                {actionState === "saving" ? (
+                                    <LoaderCircle
+                                        data-icon="inline-start"
+                                        aria-hidden="true"
+                                        className="animate-spin"
+                                    />
+                                ) : null}
                                 {actionState === "saving"
                                     ? isZh
                                         ? "保存中"
@@ -1642,13 +1762,16 @@ function DataSourcesSettingsPanel({
                         </footer>
 
                         <Field
+                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
                             data-sot-part="source-reconnect-row"
                             data-disabled={
                                 interactionDisabled ? "true" : undefined
                             }
                             orientation="horizontal"
                         >
-                            <FieldContent>
+                            <FieldContent
+                                className={SETTINGS_FIELD_CONTENT_CLASS}
+                            >
                                 <FieldTitle>
                                     {isZh ? "重新连接" : "Reconnect"}
                                 </FieldTitle>
@@ -1693,13 +1816,16 @@ function DataSourcesSettingsPanel({
                         </Field>
 
                         <Field
+                            className={SOURCE_PROVIDER_DETAIL_FIELD_CLASS}
                             data-sot-part="source-disconnect-row"
                             data-disabled={
                                 interactionDisabled ? "true" : undefined
                             }
                             orientation="horizontal"
                         >
-                            <FieldContent>
+                            <FieldContent
+                                className={SETTINGS_FIELD_CONTENT_CLASS}
+                            >
                                 <FieldTitle>
                                     {isZh ? "断开连接" : "Disconnect"}
                                 </FieldTitle>
@@ -1780,9 +1906,17 @@ const VOSCRIPT_API_KEY_KEEP = "__keep_voscript_key__";
 const VOSCRIPT_API_KEY_CLEAR = "__clear_voscript_key__";
 const SETTINGS_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2";
+const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
+const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
-const SOURCE_PROVIDER_DETAIL_INPUT_CLASS = "min-w-60 max-w-full font-mono";
+const SOURCE_PROVIDER_DETAIL_FIELD_CLASS = SETTINGS_FIELD_CLASS;
+const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
+    "h-8 min-w-60 max-w-full font-mono text-xs";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
+const SETTINGS_BANNER_ICON_CLASS =
+    "inline-flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground [&>svg]:size-3.5";
+const SETTINGS_BANNER_TITLE_CLASS = "font-medium leading-none";
+const SETTINGS_BANNER_DESCRIPTION_CLASS = "mt-1 text-sm text-muted-foreground";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim()
@@ -1825,10 +1959,17 @@ function SaveStatus({
     return (
         <Badge
             variant="ghost"
-            className="border-0 bg-transparent p-0"
+            className={getSettingsSaveStatusBadgeClassName(saveState)}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
+            {saveState === "idle" ? null : (
+                <span
+                    aria-hidden="true"
+                    className={getSettingsSaveStatusDotClassName(saveState)}
+                    data-sot-part="settings-save-status-indicator"
+                />
+            )}
             {label}
         </Badge>
     );
@@ -1883,19 +2024,32 @@ function SectionShell({
                 data-sot-surface="settings-section"
             >
                 <Alert
+                    className={getSettingsBannerClassName("err", true)}
                     data-sot-banner="settings-section-load-error"
                     data-sot-panel="settings-section-load-error"
                     data-sot-section={section}
                     data-sot-tone="err"
+                    variant="destructive"
                 >
-                    <span data-sot-banner-icon>
+                    <span
+                        className={SETTINGS_BANNER_ICON_CLASS}
+                        data-sot-banner-icon
+                    >
                         <AlertCircle aria-hidden="true" />
                     </span>
                     <span data-sot-banner-body>
-                        <span data-sot-banner-title>
+                        <span
+                            className={SETTINGS_BANNER_TITLE_CLASS}
+                            data-sot-banner-title
+                        >
                             {isZh ? "加载失败" : "Load failed"}
                         </span>
-                        <span data-sot-banner-sub>{loadError}</span>
+                        <span
+                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                            data-sot-banner-sub
+                        >
+                            {loadError}
+                        </span>
                     </span>
                     <Button
                         type="button"
@@ -1904,7 +2058,7 @@ function SectionShell({
                         data-sot-control="settings-section-load-retry"
                         data-sot-section={section}
                     >
-                        <RotateCw aria-hidden="true" />
+                        <RotateCw data-icon="inline-start" aria-hidden="true" />
                         {isZh ? "重试" : "Retry"}
                     </Button>
                 </Alert>
@@ -1971,12 +2125,13 @@ function SettingsRow({
 }) {
     return (
         <Field
+            className={SETTINGS_FIELD_CLASS}
             data-invalid={fieldState === "invalid" ? "true" : undefined}
             data-sot-field={sotField}
             data-sot-state={fieldState ?? "ready"}
             orientation="horizontal"
         >
-            <FieldContent>
+            <FieldContent className={SETTINGS_FIELD_CONTENT_CLASS}>
                 <FieldTitle>{label}</FieldTitle>
                 {description ? (
                     <FieldDescription>{description}</FieldDescription>
@@ -2126,6 +2281,13 @@ function SaveActions({
                 data-sot-state={saveState}
                 onClick={onSave}
             >
+                {saveState === "saving" ? (
+                    <LoaderCircle
+                        data-icon="inline-start"
+                        aria-hidden="true"
+                        className="animate-spin"
+                    />
+                ) : null}
                 {saveState === "saving"
                     ? isZh
                         ? "保存中"
@@ -2919,7 +3081,8 @@ function VoScriptSettingsPanel({
             }
         >
             {showUnavailableBanner ? (
-                <output
+                <Alert
+                    className={getSettingsBannerClassName("warn")}
                     data-sot-banner="voscript-unavailable"
                     data-sot-panel="voscript-unavailable-banner"
                     data-sot-state={
@@ -2929,16 +3092,26 @@ function VoScriptSettingsPanel({
                     }
                     data-sot-tone="warn"
                 >
-                    <span data-sot-banner-icon aria-hidden="true">
+                    <span
+                        className={SETTINGS_BANNER_ICON_CLASS}
+                        data-sot-banner-icon
+                        aria-hidden="true"
+                    >
                         <AlertCircle aria-hidden="true" />
                     </span>
                     <div data-sot-banner-body>
-                        <div data-sot-banner-title>
+                        <div
+                            className={SETTINGS_BANNER_TITLE_CLASS}
+                            data-sot-banner-title
+                        >
                             {isZh
                                 ? "VoScript 当前不可用"
                                 : "VoScript is unavailable"}
                         </div>
-                        <div data-sot-banner-hint>
+                        <div
+                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                            data-sot-banner-hint
+                        >
                             {connectionTestState === "test-error" &&
                             connectionTestMessage
                                 ? connectionTestMessage
@@ -2947,7 +3120,7 @@ function VoScriptSettingsPanel({
                                   : "The service URL or API key is missing. New transcription jobs cannot start until you fill these fields and save."}
                         </div>
                     </div>
-                </output>
+                </Alert>
             ) : null}
             <SettingsGroup
                 title={isZh ? "服务连接" : "Service Connection"}
@@ -3066,7 +3239,11 @@ function VoScriptSettingsPanel({
                         onClick={() => void testConnection()}
                     >
                         {isTestingConnection ? (
-                            <LoaderCircle aria-hidden="true" />
+                            <LoaderCircle
+                                data-icon="inline-start"
+                                aria-hidden="true"
+                                className="animate-spin"
+                            />
                         ) : null}
                         {isTestingConnection
                             ? isZh

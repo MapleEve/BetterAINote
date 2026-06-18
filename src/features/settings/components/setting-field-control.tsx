@@ -36,9 +36,13 @@ export interface SettingFieldDefinition {
 }
 
 interface SettingFieldControlProps {
+    controlClassName?: string;
     disabled?: boolean;
     field: SettingFieldDefinition;
+    fieldClassName?: string;
+    fieldContentClassName?: string;
     fieldId: string;
+    inputClassName?: string;
     onValueChange: (
         field: SettingFieldDefinition,
         value: string | boolean,
@@ -47,9 +51,13 @@ interface SettingFieldControlProps {
 }
 
 export function SettingFieldControl({
+    controlClassName,
     disabled = false,
     field,
+    fieldClassName: fieldClassNameProp,
+    fieldContentClassName,
     fieldId,
+    inputClassName: inputClassNameProp,
     onValueChange,
     variant = "default",
 }: SettingFieldControlProps) {
@@ -66,13 +74,17 @@ export function SettingFieldControl({
     const fieldClassName = cn(
         "border-b border-border py-3 last:border-b-0",
         isSettingsVariant ? "gap-3 @md/field-group:gap-4" : "gap-[18px] py-2",
+        fieldClassNameProp,
     );
     const controlWrapClassName = cn(
         "flex flex-none items-center gap-2",
         isSettingsVariant && "min-w-0 @md/field-group:justify-end",
+        controlClassName,
     );
     const inputClassName = cn(
         isSettingsVariant && "min-w-60 max-w-full",
+        inputClassNameProp,
+        field.masked && "tracking-[0.15em]",
         field.className,
     );
 
@@ -83,7 +95,9 @@ export function SettingFieldControl({
                 orientation={fieldOrientation}
                 className={fieldClassName}
             >
-                <FieldContent className="min-w-0 gap-1">
+                <FieldContent
+                    className={cn("min-w-0 gap-1", fieldContentClassName)}
+                >
                     <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                     {field.description ? (
                         <FieldDescription>{field.description}</FieldDescription>
@@ -108,6 +122,7 @@ export function SettingFieldControl({
                                 onValueChange(field, value)
                             }
                             disabled={disabled}
+                            className={inputClassName}
                             options={field.options ?? []}
                         />
                     ) : field.kind === "textarea" && !field.sensitive ? (
