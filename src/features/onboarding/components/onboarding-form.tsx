@@ -14,7 +14,13 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import {
     Field,
     FieldContent,
@@ -275,10 +281,14 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             data-sot-surface="onboarding"
         >
             <Card hasNoPadding data-sot-card="onboarding">
-                <div data-sot-part="card-heading">上手 / Onboarding · 4 步</div>
-                <div data-sot-part="card-sub">
-                    连接来源 → 选默认转写 → 设置说话人档案 → 完成
-                </div>
+                <CardHeader data-sot-part="onboarding-card-header">
+                    <CardTitle data-sot-part="card-heading">
+                        上手 / Onboarding · 4 步
+                    </CardTitle>
+                    <CardDescription data-sot-part="card-sub">
+                        连接来源 → 选默认转写 → 设置说话人档案 → 完成
+                    </CardDescription>
+                </CardHeader>
                 <div
                     data-pct={progressPct}
                     data-sot-frame="onboarding"
@@ -315,15 +325,15 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             );
                         })}
                     </div>
-                    <div data-sot-part="onboarding-step-header">
-                        <div data-sot-part="onboarding-step-title">
+                    <CardHeader data-sot-part="onboarding-step-header">
+                        <CardTitle data-sot-part="onboarding-step-title">
                             {visibleStepTitle}
-                        </div>
-                        <div data-sot-part="onboarding-step-description">
+                        </CardTitle>
+                        <CardDescription data-sot-part="onboarding-step-description">
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
-                        </div>
-                    </div>
-                    <div data-sot-part="onboarding-step-body">
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent data-sot-part="onboarding-step-body">
                         {finishError ? (
                             <div
                                 data-sot-part="onboarding-error"
@@ -400,7 +410,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                                 transcriptionSaved={transcriptionSaved}
                             />
                         ) : null}
-                    </div>
+                    </CardContent>
                 </div>
             </Card>
         </main>
@@ -734,12 +744,14 @@ function SpeakersStep({
                     <span data-sot-part="provider-icon">
                         <UserRound />
                     </span>
-                    <span data-sot-part="provider-meta">
-                        <span data-sot-part="provider-name">第一个说话人</span>
-                        <span data-sot-part="provider-hint">
+                    <CardHeader data-sot-part="provider-meta">
+                        <CardTitle data-sot-part="provider-name">
+                            第一个说话人
+                        </CardTitle>
+                        <CardDescription data-sot-part="provider-hint">
                             可先留空，工作台内继续校对
-                        </span>
-                    </span>
+                        </CardDescription>
+                    </CardHeader>
                 </Card>
             </div>
             <OnboardingFieldRow
