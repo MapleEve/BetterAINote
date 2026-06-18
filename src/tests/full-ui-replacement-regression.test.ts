@@ -778,7 +778,7 @@ const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const SOURCE_REPORT_LEGACY_SURFACE_RE =
-    /uikit-|glass-surface|glass-control|CardContent|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+    /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
@@ -899,6 +899,16 @@ const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-source-report-state][data-state="loaded"][data-sub-state="transcript-missing"]',
     '[data-sot-source-report-section][data-sot-section="metadata"]::before',
 ];
+
+const SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS = [
+    '[data-sot-source-report-pane][data-slot="card"]',
+    '[data-sot-source-report-header][data-slot="card-header"]',
+    '[data-sot-source-report-title][data-slot="card-title"]',
+    '[data-sot-source-report-header-actions][data-slot="card-action"]',
+];
+
+const SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE =
+    /\b(?:background|border(?:-color|-radius)?|box-shadow|color|fill|font|letter-spacing|margin|padding|stroke)\s*:/;
 
 const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
     /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
@@ -2396,6 +2406,26 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of SOURCE_REPORT_CARD_PRIMITIVE_SELECTORS) {
+            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
+                ({ declarations }) =>
+                    SOURCE_REPORT_CARD_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    ),
+            );
+
+            expect(repaintBlocks).toEqual([]);
+        }
+        expect(sourceReportPanel).toContain("<CardContent");
+        expect(sourceReportPanel).toContain(
+            '"min-h-0 gap-3.5 overflow-hidden px-5 pt-4 pb-6"',
+        );
+        expect(sourceReportPanel).toContain(
+            'className="flex flex-col gap-3 px-0 sm:flex-row sm:items-start sm:justify-between"',
+        );
+        expect(sourceReportPanel).toContain(
+            'className="inline-flex min-w-0 items-center gap-1.5"',
+        );
         const sourceReportActionButtonCssBlocks = [
             ...collectCssRuleBlocks(globals, "[data-sot-source-report-actions]"),
             ...collectCssRuleBlocks(

@@ -16,6 +16,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import {
     Card,
     CardAction,
+    CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/data-sources/presentation";
 import type { UiLanguage } from "@/lib/i18n";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import { cn } from "@/lib/utils";
 import { runDataSourcesSync } from "@/services/data-sources";
 
 type SourceActionAvailability = {
@@ -1054,9 +1056,18 @@ export function SourceReportPanel({
     ) : null;
 
     const header = (
-        <CardHeader data-sot-source-report-header>
-            <div data-sot-source-report-heading>
-                <CardTitle data-sot-source-report-title>
+        <CardHeader
+            className="flex flex-col gap-3 px-0 sm:flex-row sm:items-start sm:justify-between"
+            data-sot-source-report-header
+        >
+            <div
+                className="flex min-w-0 flex-col gap-1"
+                data-sot-source-report-heading
+            >
+                <CardTitle
+                    className="inline-flex min-w-0 items-center gap-1.5"
+                    data-sot-source-report-title
+                >
                     <CloudDownload
                         data-icon="inline-start"
                         aria-hidden="true"
@@ -1067,7 +1078,10 @@ export function SourceReportPanel({
                     {getSourceRecordDescription(sourceProvider, language)}
                 </CardDescription>
             </div>
-            <CardAction data-sot-source-report-header-actions>
+            <CardAction
+                className="static col-auto row-auto flex max-w-full flex-wrap items-center justify-end gap-2 self-auto justify-self-auto sm:ml-auto"
+                data-sot-source-report-header-actions
+            >
                 {data ? (
                     <>
                         <Button
@@ -1195,7 +1209,7 @@ export function SourceReportPanel({
     );
 
     const content = (
-        <div data-sot-source-report-state-stack>
+        <CardContent className="px-0" data-sot-source-report-state-stack>
             {error && (
                 <SourceReportState sotState="error" state="error" error={error}>
                     <Alert
@@ -1535,14 +1549,17 @@ export function SourceReportPanel({
                     </Card>
                 </SourceReportState>
             )}
-        </div>
+        </CardContent>
     );
 
     if (variant === "embedded") {
         return (
             <Card
                 hasNoPadding
-                className={className}
+                className={cn(
+                    "min-h-0 gap-3.5 overflow-hidden px-5 pt-4 pb-6",
+                    className,
+                )}
                 data-sot-source-report-pane
                 data-sot-panel="recording-source-report"
                 data-sot-state={sourceReportState}
@@ -1557,7 +1574,10 @@ export function SourceReportPanel({
     return (
         <Card
             hasNoPadding
-            className={className}
+            className={cn(
+                "min-h-0 gap-3.5 overflow-hidden px-5 pt-4 pb-6",
+                className,
+            )}
             data-sot-source-report-pane
             data-sot-panel="recording-source-report"
             data-sot-state={sourceReportState}

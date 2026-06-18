@@ -5898,18 +5898,10 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    padding: 16px 20px 22px;
 }
 [data-sot-source-report-pane][data-slot="card"] {
-    border-radius: 16px;
-    border: 1px solid var(--line-hairline);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     min-height: 0;
     overflow: hidden;
-}
-[data-theme="dark"] [data-sot-source-report-pane][data-slot="card"] {
-    border-color: var(--glass-border);
 }
 [data-sot-source-report-state] {
     flex-direction: column;
@@ -6040,41 +6032,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     align-items: baseline;
     gap: 10px;
 }
-[data-sot-source-report-header][data-slot="card-header"] {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 0;
-}
-[data-sot-source-report-heading] {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 4px;
-}
-[data-sot-source-report-title][data-slot="card-title"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-    margin: 0;
-    color: var(--fg-primary);
-    font: 600 22px var(--font-display);
-    letter-spacing: -0.014em;
-}
-[data-sot-source-report-header-actions][data-slot="card-action"] {
-    position: static;
-    grid-column: auto;
-    grid-row: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-left: auto;
-    flex-wrap: wrap;
-    max-width: 100%;
-}
 [data-sot-source-report-section-title] {
     margin: 0;
     font: 600 12.5px var(--font-sans);
@@ -6082,12 +6039,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-}
-[data-sot-source-report-title][data-slot="card-title"] svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
 }
 [data-sot-source-report-description],
 [data-sot-source-report-section-description] {
