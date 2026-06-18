@@ -4450,7 +4450,6 @@ body[data-time-style="abs"]
 }
 
 /* Login-path picker (Open Platform vs Web session) */
-.path-picker,
 [data-sot-list="source-auth-modes"] {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -4458,7 +4457,6 @@ body[data-time-style="abs"]
     margin-bottom: 18px;
     width: 100%;
 }
-.path-card,
 [data-sot-control="source-auth-mode"][data-sot-auth-mode] {
     display: flex;
     flex-direction: column;
@@ -4476,17 +4474,14 @@ body[data-time-style="abs"]
     box-shadow: none;
     color: inherit;
 }
-[data-theme="dark"] .path-card,
 [data-theme="dark"] [data-sot-control="source-auth-mode"][data-sot-auth-mode] {
     background: rgb(255 255 255 / 0.04);
     border-color: var(--glass-border);
 }
-.path-card.active,
 [data-sot-control="source-auth-mode"][data-sot-state="selected"] {
     border-color: color-mix(in srgb, var(--accent) 55%, transparent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
-.path-card .pc-t,
 [data-sot-part="source-auth-mode-title"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
@@ -4494,12 +4489,11 @@ body[data-time-style="abs"]
     align-items: center;
     gap: 8px;
 }
-.path-card .pc-h,
 [data-sot-part="source-auth-mode-description"] {
     font: 500 11.5px / 1.5 var(--font-sans);
     color: var(--fg-tertiary);
 }
-.path-card .pc-badge {
+[data-sot-badge="source-auth-mode"][data-slot="badge"] {
     font: 600 10px var(--font-mono);
     letter-spacing: 0.04em;
     padding: 2px 6px;
@@ -4508,7 +4502,7 @@ body[data-time-style="abs"]
     color: var(--fg-tertiary);
     border: 1px solid var(--line-hairline);
 }
-.path-card .pc-badge.rec {
+[data-sot-badge="source-auth-mode"][data-slot="badge"][data-sot-tone="recommended"] {
     background: color-mix(in srgb, var(--accent) 14%, transparent);
     color: var(--accent);
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
@@ -5568,26 +5562,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 .player-controls.is-disabled [data-sot-control$="player-speed"] {
     pointer-events: none;
 }
-.vol-anchor {
-    position: relative;
-    display: inline-flex;
-}
-.vol-pop {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    right: 0;
-    z-index: var(--z-popover-inline);
-    pointer-events: none;
-}
-.vol-pop[data-open="true"] {
-    pointer-events: auto;
-}
-.vol-row {
-    display: flex;
-}
-.vol-mute {
-    display: inline-flex;
-}
 .sr-pane {
     display: flex;
 }
@@ -5841,8 +5815,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-panel="dashboard-activity"],
 [data-sot-panel="ai-rename-preview"],
 [data-sot-panel="recording-tag-manager"],
-[data-sot-menu="recording-more-actions"],
-.vol-pop {
+[data-sot-menu="recording-more-actions"] {
     /* SOLID surface — no transparency, no color-mix alpha, no backdrop-filter
      dependence. The panel itself carries the layer; whatever is behind it
      must be completely unreadable through it. */
@@ -5864,8 +5837,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-theme="dark"] [data-sot-panel="dashboard-activity"],
 [data-theme="dark"] [data-sot-panel="ai-rename-preview"],
 [data-theme="dark"] [data-sot-panel="recording-tag-manager"],
-[data-theme="dark"] [data-sot-menu="recording-more-actions"],
-[data-theme="dark"] .vol-pop {
+[data-theme="dark"] [data-sot-menu="recording-more-actions"] {
     /* Dark theme: fully opaque graphite. Previous 92% color-mix produced
      ~8% transparency — that was the source of the "panel competes with
      detail content" bleed-through called out in QA. */
@@ -5882,8 +5854,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-panel="ai-rename-preview"][data-open="true"],
 [data-sot-panel="recording-tag-manager"][data-open="true"],
 [data-sot-menu="recording-more-actions"][data-open="true"],
-[data-sot-menu="recording-more-actions"][data-state="open"],
-.vol-pop[data-open="true"] {
+[data-sot-menu="recording-more-actions"][data-state="open"] {
     opacity: 1;
     transform: translateY(0) scale(1);
 }
@@ -7749,54 +7720,6 @@ body[data-ds-todo="show"] .design-todo {
     width: var(--dashboard-speaker-share, 0%);
     border-radius: 999px;
     background: linear-gradient(90deg, var(--steel-500), var(--accent));
-}
-
-/* ---------- Volume popover ---------- */
-.vol-pop {
-    padding: 8px 10px;
-    min-width: 200px;
-}
-.vol-row {
-    align-items: center;
-    gap: 8px;
-}
-.vol-mute {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    padding: 1px 6px;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    color: var(--fg-secondary);
-    align-items: center;
-    justify-content: center;
-    font: revert;
-    font-family: inherit;
-}
-.vol-mute:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-.vol-mute svg {
-    width: 13px;
-    height: 13px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    vertical-align: baseline;
-}
-.vol-range {
-    flex: 1;
-    height: 18px;
-    background: transparent;
-    margin: 2px;
-    border-style: none;
-    font: revert;
-    font-feature-settings: revert;
-    font-variation-settings: revert;
 }
 
 /* ---------- Retranscribe banner ---------- */

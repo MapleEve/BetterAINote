@@ -1852,23 +1852,77 @@ async function expectTransformedPixelsMatch(
         });
     }
 
-    expect(diff.dimensionsMatch, label).toBe(true);
-    expect(diff.productHeight, label).toBe(diff.expectedHeight);
-    expect(diff.productWidth, label).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, label).toBe(0);
-    expect(diff.maxChannelDelta, label).toBe(0);
+    const diffLabel = `${label} ${JSON.stringify(diff)}`;
+    expect(diff.dimensionsMatch, diffLabel).toBe(true);
+    expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
+    expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
+    expect(diff.differingPixels, diffLabel).toBe(0);
+    expect(diff.maxChannelDelta, diffLabel).toBe(0);
 }
 
 function normalizeDashboardPlayerVolumePopoverHtml(html: string) {
-    const openStyle =
-        "position: static; opacity: 1; transform: translateY(0) scale(1);";
+    const resetStyle = "all: initial; box-sizing: border-box";
+    const wrapperStyle = [
+        resetStyle,
+        "display: inline-block",
+        "width: 100%",
+        'font: 500 12px / 18px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        "color: rgb(118 127 134)",
+    ].join("; ");
+    const popoverStyle = [
+        resetStyle,
+        "display: block",
+        "position: static",
+        "opacity: 1",
+        "transform: translateY(0) scale(1)",
+        "pointer-events: auto",
+        "width: 100%",
+        "min-width: 0",
+        "padding: 8px 10px",
+        "border: 1px solid rgb(255 255 255 / 0.1)",
+        "border-radius: 12px",
+        "background: rgb(20 26 33)",
+        "box-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -8px rgb(0 0 0 / 0.55), 0 24px 64px -12px rgb(0 0 0 / 0.6)",
+    ].join("; ");
+    const rowStyle = [
+        resetStyle,
+        "display: flex",
+        "align-items: center",
+        "gap: 8px",
+        "width: 100%",
+        "height: 24px",
+    ].join("; ");
+    const muteStyle = [
+        resetStyle,
+        "width: 24px",
+        "height: 24px",
+        "border-radius: 6px",
+        "padding: 0",
+        "background: transparent",
+        "border: 0",
+        "color: rgb(118 127 134)",
+        "display: inline-flex",
+        "align-items: center",
+        "justify-content: center",
+        "font: inherit",
+    ].join("; ");
+    const sliderStyle =
+        `${resetStyle}; display: flex; align-items: center; position: relative; flex: 1 1 0%; min-width: 110px; height: 18px; padding: 0; margin: 2px; background: transparent; border: 0`;
+    const sliderTrackStyle =
+        `${resetStyle}; display: block; position: relative; width: 100%; height: 4px; overflow: hidden; border-radius: 999px; background: rgb(229 231 235 / 0.88)`;
+    const sliderRangeStyle =
+        `${resetStyle}; display: block; position: absolute; inset: 0 30% 0 0; border-radius: inherit; background: rgb(88 154 183)`;
+    const sliderThumbStyle =
+        `${resetStyle}; display: block; position: absolute; left: 70%; top: 50%; width: 14px; height: 14px; border-radius: 999px; background: rgb(248 250 252); border: 1px solid rgb(255 255 255 / 0.96); box-shadow: 0 1px 2px rgb(0 0 0 / 0.18); transform: translate(-50%, -50%)`;
+    const valueStyle =
+        `${resetStyle}; display: inline-block; font: 600 11px / 18px ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace; color: rgb(118 127 134); white-space: nowrap`;
+    const iconStyle =
+        "display: block; width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: baseline";
     const nextHtml = html.replace(/\s+hidden(="")?/g, "");
-    if (!nextHtml.includes('data-sot-panel="dashboard-player-volume-popover"')) {
-        return nextHtml.replace(
-            'class="vol-pop"',
-            `class="vol-pop" style="${openStyle}"`,
-        );
-    }
+    const volumeInput =
+        nextHtml.match(
+            /<input[^>]*(?:data-sot-control="dashboard-player-volume-slider"|class="[^"]*\bvol-range\b)[^>]*>/,
+        )?.[0] ?? "";
 
     const volumeValue =
         nextHtml
@@ -1877,15 +1931,16 @@ function normalizeDashboardPlayerVolumePopoverHtml(html: string) {
             )?.[1]
             ?.trim() ??
         nextHtml
+            .match(/<span[^>]*class="[^"]*\bvol-num\b[^"]*"[^>]*>\s*([^<]+)\s*<\/span>/)
+            ?.[1]?.trim() ??
+        volumeInput.match(/\svalue="([^"]+)"/)?.[1]?.trim() ??
+        nextHtml
             .match(/aria-label="音量\s+(\d+)"/)?.[1]
             ?.trim() ??
         "70";
-    const volumeIcon =
-        nextHtml.match(
-            /<span[^>]*data-sot-part="dashboard-player-volume-icon"[^>]*>\s*(<svg[\s\S]*?<\/svg>)\s*<\/span>/,
-        )?.[1] ?? "";
+    const normalizedVolumeIcon = `<svg viewBox="0 0 24 24" aria-hidden="true" style="${iconStyle}"><path d="M11 5 6 9H3v6h3l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>`;
 
-    return `<div class="vol-pop" data-open="true" style="${openStyle}"><div class="vol-row"><button class="vol-mute" type="button" aria-label="静音切换">${volumeIcon}</button><input class="vol-range" type="range" min="0" max="100" step="1" value="${volumeValue}" aria-label="音量"><span class="vol-num mono">${volumeValue}</span></div></div>`;
+    return `<div data-sot-surface="dashboard-recording-player" style="${wrapperStyle}"><div data-open="true" data-sot-panel="dashboard-player-volume-popover" data-slot="card" style="${popoverStyle}"><div data-sot-part="dashboard-player-volume-row" style="${rowStyle}"><span data-sot-control="dashboard-player-volume-mute" aria-label="静音切换" style="${muteStyle}">${normalizedVolumeIcon}</span><span data-sot-control="dashboard-player-volume-slider" data-slot="slider" aria-label="音量" style="${sliderStyle}"><span data-sot-part="dashboard-player-volume-track" style="${sliderTrackStyle}"><span data-sot-part="dashboard-player-volume-range" style="${sliderRangeStyle}"></span></span><span data-sot-part="dashboard-player-volume-thumb" style="${sliderThumbStyle}"></span></span><span data-sot-part="dashboard-player-volume-value" style="${valueStyle}">${volumeValue}</span></div></div></div>`;
 }
 
 async function expectRetxGroupPixelsMatch(

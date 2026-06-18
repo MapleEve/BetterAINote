@@ -575,9 +575,15 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain(
             'data-sot-part="source-auth-mode-description"',
         );
+        expect(content).toContain('data-sot-badge="source-auth-mode"');
+        expect(content).toContain("data-sot-tone={");
+        expect(content).toContain('tone: "recommended"');
+        expect(content).toContain('tone: "personal"');
+        expect(content).toContain("<Badge");
         expect(content).toContain("authMode: mode");
         expect(content).not.toContain('className="path-picker"');
         expect(content).not.toContain("path-card");
+        expect(content).not.toContain("pc-badge");
         expect(content).toContain("SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY");
         expect(content).toContain('data-sot-part="source-provider-mark"');
         expect(content).toContain("getSourceProviderSettingsLabel");

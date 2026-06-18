@@ -660,6 +660,19 @@ const SOURCE_REPORT_SECTION_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-source-report-section][data-sot-section="metadata"]::before',
 ];
 
+const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
+    /\.(?:path-picker|path-card|pc-t|pc-h|pc-badge)(?![\w-])/;
+
+const SOURCE_AUTH_MODE_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-list="source-auth-modes"]',
+    '[data-sot-control="source-auth-mode"][data-sot-auth-mode]',
+    '[data-sot-control="source-auth-mode"][data-sot-state="selected"]',
+    '[data-sot-part="source-auth-mode-title"]',
+    '[data-sot-part="source-auth-mode-description"]',
+    '[data-sot-badge="source-auth-mode"][data-slot="badge"]',
+    '[data-sot-badge="source-auth-mode"][data-slot="badge"][data-sot-tone="recommended"]',
+];
+
 const DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES = [
     'className="t-actions"',
     'className="copy-label"',
@@ -1852,6 +1865,32 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
         );
+        const volumeLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                /\.(?:vol-anchor|vol-pop|vol-row|vol-mute|vol-ico|vol-range|vol-num)(?![\w-])/.test(
+                    text,
+                ),
+            );
+
+        expect(volumeLegacySelectorLines).toEqual([]);
+        for (const selector of [
+            '[data-sot-part="dashboard-player-volume-anchor"]',
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+            '[data-sot-part="dashboard-player-volume-row"]',
+            '[data-sot-control="dashboard-player-volume-mute"]',
+            '[data-sot-part="dashboard-player-volume-icon"]',
+            '[data-sot-control="dashboard-player-volume-slider"][data-slot="slider"]',
+            '[data-sot-part="recording-player-volume-anchor"]',
+            '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+            '[data-sot-part="recording-player-volume-row"]',
+            '[data-sot-control="recording-player-volume-mute"]',
+            '[data-sot-part="recording-player-volume-icon"]',
+            '[data-sot-control="recording-player-volume-slider"][data-slot="slider"]',
+        ]) {
+            expect(globals).toContain(selector);
+        }
         for (const legacyPlayerHook of [
             'className="player"',
             'className="play rounded-full"',
@@ -2277,8 +2316,31 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).not.toContain("sp-ico");
         expect(settings).not.toContain("sp-meta");
         expect(settings).not.toContain("sp-status");
+        expect(settings).toContain('data-sot-list="source-auth-modes"');
+        expect(settings).toContain('data-sot-control="source-auth-mode"');
+        expect(settings).toContain('data-sot-badge="source-auth-mode"');
+        expect(settings).toContain("data-sot-tone={");
+        expect(settings).toContain('tone: "recommended"');
+        expect(settings).toContain('tone: "personal"');
+        expect(settings).toContain("<ToggleGroup");
+        expect(settings).toContain("<ToggleGroupItem");
+        expect(settings).toContain("<Badge");
+        expect(settings).not.toContain("path-card");
+        expect(settings).not.toContain("pc-badge");
         expect(settings).toContain('data-sot-control="source-test"');
         expect(settings).toContain('data-sot-control="source-save"');
+        const sourceAuthModeLegacySelectorLines = globals
+            .split("\n")
+            .map((text, index) => ({ line: index + 1, text }))
+            .filter(({ text }) =>
+                SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
+
+        expect(sourceAuthModeLegacySelectorLines).toEqual([]);
+        for (const selector of SOURCE_AUTH_MODE_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
+        }
+
         expect(speakerReview).toContain('data-sot-panel="speaker-review"');
         expect(speakerReview).toContain("data-sot-state=");
         expect(speakerReview).toContain("<CardHeader");

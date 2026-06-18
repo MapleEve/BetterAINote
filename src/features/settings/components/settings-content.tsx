@@ -402,6 +402,24 @@ function getBannerTone(tone: ProviderTone) {
     return "info";
 }
 
+function getSourceAuthModeBadge(mode: string, isZh: boolean) {
+    if (mode === "oauth-device-flow") {
+        return {
+            label: isZh ? "推荐" : "Recommended",
+            tone: "recommended",
+        };
+    }
+
+    if (mode === "web-reverse") {
+        return {
+            label: isZh ? "个人" : "Personal",
+            tone: "personal",
+        };
+    }
+
+    return null;
+}
+
 function getSourceProviderDetailSubtitle(
     source: DataSourceDisplayState,
     isZh: boolean,
@@ -1161,6 +1179,10 @@ function DataSourcesSettingsPanel({
                                 {selectedSource.authModes.map((mode) => {
                                     const active =
                                         selectedSource.authMode === mode;
+                                    const modeBadge = getSourceAuthModeBadge(
+                                        mode,
+                                        isZh,
+                                    );
 
                                     return (
                                         <ToggleGroupItem
@@ -1179,6 +1201,17 @@ function DataSourcesSettingsPanel({
                                                     mode,
                                                     language,
                                                 )}
+                                                {modeBadge ? (
+                                                    <Badge
+                                                        data-sot-badge="source-auth-mode"
+                                                        data-sot-tone={
+                                                            modeBadge.tone
+                                                        }
+                                                        variant="outline"
+                                                    >
+                                                        {modeBadge.label}
+                                                    </Badge>
+                                                ) : null}
                                             </span>
                                             <span data-sot-part="source-auth-mode-description">
                                                 {mode === "web-reverse"
