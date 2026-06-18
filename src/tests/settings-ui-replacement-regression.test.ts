@@ -155,6 +155,35 @@ const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="source-actions"] {\n    align-items: center;',
 ] as const;
 
+const LEGACY_MODAL_SHELL_CSS_SELECTOR_RE =
+    /(^|[,\s>{])\.(?:scrim|modal|modal-head|modal-icon|modal-title|modal-desc|modal-body|modal-foot)(?![\w-])/m;
+
+const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
+    '[data-slot="dialog-overlay"]',
+    '[data-slot="dialog-overlay"][data-state="open"]',
+    '[data-slot="dialog-overlay"][data-state="closed"]',
+    '[data-slot="dialog-content"]',
+    '[data-slot="dialog-content"][data-state="closed"]',
+    '[data-sot-surface="settings-shell"][data-state="closed"]',
+    '[data-slot="dialog-header"]',
+    '[data-sot-part="dialog-icon"]',
+    '[data-slot="dialog-title"]',
+    '[data-slot="dialog-description"]',
+    '[data-slot="dialog-footer"]',
+    '[data-sot-content="confirm-dialog"]',
+    '[data-sot-part="confirm-head"]',
+    '[data-sot-part="confirm-body"]',
+    '[data-sot-part="confirm-foot"]',
+] as const;
+
+function readProductCss(source: string) {
+    const componentLibraryIndex = source.indexOf(
+        "BetterAINote · Component Library",
+    );
+    expect(componentLibraryIndex).toBeGreaterThan(0);
+    return source.slice(0, componentLibraryIndex);
+}
+
 function expectNoLegacySettingsFieldPatterns(
     sources: Partial<
         Record<(typeof TARGET_SETTINGS_MIGRATION_PATHS)[number], string>
@@ -293,14 +322,29 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain("z-index: var(--z-modal)");
         expect(globals).not.toContain(".ui-select-content");
         expect(globals).not.toContain("z-index: 650");
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '.scrim[data-open="false"] > [data-sot-surface="settings-shell"]',
+        );
+        expect(globals).toContain(
+            '[data-sot-surface="settings-shell"][data-state="closed"]',
         );
         for (const [pattern, label] of LEGACY_SETTINGS_SHELL_CSS_SELECTORS) {
             expect(globals, `globals should not use ${label}`).not.toMatch(
                 pattern,
             );
         }
+    });
+
+    it("keeps modal and scrim product CSS on dialog/data-sot selectors only", () => {
+        const globals = readSource("app/globals.css");
+        const productCss = readProductCss(globals);
+
+        expect(productCss).not.toMatch(LEGACY_MODAL_SHELL_CSS_SELECTOR_RE);
+        for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).toContain(selector);
+        }
+        expect(globals).toContain(".cl-stage-canvas > .scrim");
+        expect(globals).toContain(".cl-stage-scrim > .scrim");
     });
 
     it("keeps settings selects on the shared Radix shadcn wrapper", () => {

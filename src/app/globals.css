@@ -2927,51 +2927,45 @@ button {
     color: white;
 }
 
-/* ======== Modal scrim + shells ======== */
-.scrim {
-    position: fixed;
-    inset: 0;
+/* ======== Dialog overlay + shadcn modal slots ======== */
+[data-slot="dialog-overlay"] {
     width: auto;
     max-width: none;
     max-height: none;
     margin: 0;
     padding: 0;
     border: 0;
-    z-index: var(--z-modal);
     background: color-mix(in srgb, var(--graphite-950) 36%, transparent);
     backdrop-filter: blur(6px) saturate(120%);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: opacity 220ms var(--ease-out);
+    z-index: var(--z-modal);
 }
-.scrim[data-open="false"] {
+[data-slot="dialog-overlay"][data-state="open"] {
+    opacity: 1;
+    pointer-events: auto;
+}
+[data-slot="dialog-overlay"][data-state="closed"] {
     opacity: 0;
     pointer-events: none;
 }
-/* ----- Generic confirm modal — primary CTA on the right ----- */
-.modal {
-    position: relative;
-    z-index: 1;
-    width: 440px;
-    max-width: calc(100vw - 32px);
-    background: var(--bg-elevated);
-    border-radius: 14px;
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-lg);
+[data-slot="dialog-content"] {
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+    z-index: calc(var(--z-modal) + 1);
     transition:
         transform 280ms var(--ease-out),
         opacity 220ms var(--ease-out);
-    overflow: hidden;
 }
-.scrim[data-open="false"] > .modal {
-    transform: translateY(8px) scale(0.985);
+[data-slot="dialog-content"][data-state="closed"] {
     opacity: 0;
 }
-.modal-head {
-    padding: 18px 20px 4px;
+[data-slot="dialog-header"] {
+    gap: 8px;
 }
-.modal-icon {
+[data-sot-part="dialog-icon"] {
     width: 36px;
     height: 36px;
     border-radius: 10px;
@@ -2982,7 +2976,7 @@ button {
     color: var(--signal-warning-strong);
     margin-bottom: 12px;
 }
-.modal-icon svg {
+[data-sot-part="dialog-icon"] svg {
     width: 18px;
     height: 18px;
     stroke: currentColor;
@@ -2991,30 +2985,21 @@ button {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-.modal-title {
+[data-slot="dialog-title"] {
     font: 600 16px var(--font-display);
     letter-spacing: -0.012em;
     color: var(--fg-primary);
     margin: 0 0 4px;
 }
-.modal-desc {
+[data-slot="dialog-description"] {
     font: 13px / 1.55 var(--font-sans);
     color: var(--fg-secondary);
     margin: 0;
 }
-.modal-body {
-    padding: 12px 20px 4px;
-    font: 13px / 1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-.modal-foot {
+[data-slot="dialog-footer"] {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    padding: 16px 20px 16px;
-    border-top: 1px solid var(--line-hairline);
-    margin-top: 12px;
-    background: var(--bg-recessed);
 }
 
 /* ===========================================================
@@ -3738,7 +3723,7 @@ body[data-time-style="abs"]
         transform 280ms var(--ease-out),
         opacity 220ms var(--ease-out);
 }
-.scrim[data-open="false"] > [data-sot-surface="settings-shell"] {
+[data-sot-surface="settings-shell"][data-state="closed"] {
     transform: translateY(8px) scale(0.985);
     opacity: 0;
 }

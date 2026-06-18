@@ -544,10 +544,12 @@ async function installToastAndBannerFixtures(page: Page) {
         modalFixture.id = "toast-modal-fixture";
         modalFixture.className = "scrim";
         modalFixture.dataset.open = "true";
+        modalFixture.dataset.slot = "dialog-overlay";
+        modalFixture.dataset.state = "open";
         modalFixture.innerHTML = `
-            <section class="modal" role="dialog" aria-modal="true">
-              <div class="modal-head">
-                <h3 class="modal-title">确认操作</h3>
+            <section class="modal" data-slot="dialog-content" data-state="open" role="dialog" aria-modal="true">
+              <div class="modal-head" data-slot="dialog-header">
+                <h3 class="modal-title" data-slot="dialog-title">确认操作</h3>
               </div>
             </section>`;
         document.body.appendChild(modalFixture);

@@ -38,6 +38,14 @@ function collectSourceFiles(directory: string): string[] {
     });
 }
 
+function readProductCss(source: string) {
+    const componentLibraryIndex = source.indexOf(
+        "BetterAINote · Component Library",
+    );
+    expect(componentLibraryIndex).toBeGreaterThan(0);
+    return source.slice(0, componentLibraryIndex);
+}
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -146,6 +154,27 @@ const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
     "scrollbar-color",
     "text-decoration-color",
 ]);
+
+const LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE =
+    /(^|[,\s>{])\.(?:scrim|modal|modal-head|modal-icon|modal-title|modal-desc|modal-body|modal-foot)(?![\w-])/m;
+
+const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
+    '[data-slot="dialog-overlay"]',
+    '[data-slot="dialog-overlay"][data-state="open"]',
+    '[data-slot="dialog-overlay"][data-state="closed"]',
+    '[data-slot="dialog-content"]',
+    '[data-slot="dialog-content"][data-state="closed"]',
+    '[data-sot-surface="settings-shell"][data-state="closed"]',
+    '[data-slot="dialog-header"]',
+    '[data-sot-part="dialog-icon"]',
+    '[data-slot="dialog-title"]',
+    '[data-slot="dialog-description"]',
+    '[data-slot="dialog-footer"]',
+    '[data-sot-content="confirm-dialog"]',
+    '[data-sot-part="confirm-head"]',
+    '[data-sot-part="confirm-body"]',
+    '[data-sot-part="confirm-foot"]',
+] as const;
 
 const DASHBOARD_RECORDING_LIST_REPLACED_LEGACY_CLASSES = [
     "day-label",
@@ -926,6 +955,13 @@ describe("full UI replacement regression coverage", () => {
             "@supports not (color: oklch(",
         ]) {
             expect(globals).toContain(token);
+        }
+        const productCss = readProductCss(globals);
+        expect(productCss).not.toMatch(
+            LEGACY_MODAL_SHELL_PRODUCT_CSS_SELECTOR_RE,
+        );
+        for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).toContain(selector);
         }
 
         expect(card.trim()).not.toBe("export {};");
