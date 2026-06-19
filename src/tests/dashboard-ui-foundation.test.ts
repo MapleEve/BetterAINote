@@ -425,7 +425,10 @@ describe("dashboard SOT foundation", () => {
         const playerSurfaceIndex = workstation.indexOf(
             'data-sot-surface="dashboard-recording-player"',
         );
-        const playerStart = workstation.lastIndexOf("<Card", playerSurfaceIndex);
+        const playerStart = workstation.lastIndexOf(
+            "<Card",
+            playerSurfaceIndex,
+        );
         const transcriptShellIndex = workstation.indexOf(
             'data-sot-panel="dashboard-transcript-shell"',
             playerSurfaceIndex,
@@ -454,7 +457,9 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain('variant="outline"');
         expect(player).toContain('className="ml-auto"');
         expect(player).toContain('data-sot-control="player-status"');
-        expect(player).toContain("data-sot-tone={selectedPlayerStatus.tone}");
+        expect(player).toMatch(
+            /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
+        );
         expect(player).toContain('data-sot-part="status-dot"');
         expect(player).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',
@@ -569,9 +574,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toContain(
-            "DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS",
-        );
+        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
         expect(workstation).toMatch(
             /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
@@ -705,9 +708,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("data-tag-filter-list");
         expect(workstation).toContain('role="listbox"');
         expect(workstation).toContain('role="option"');
-        expect(workstation).toMatch(
-            /data-tag-value=\{\s*option\.value\s*\}/,
-        );
+        expect(workstation).toMatch(/data-tag-value=\{\s*option\.value\s*\}/);
         for (const hook of DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
@@ -834,11 +835,13 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).not.toContain(legacyClassName);
         }
         for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
-            const repaintBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ declarations }) =>
-                    DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    ),
+            const repaintBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ declarations }) =>
+                DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE.test(
+                    declarations,
+                ),
             );
 
             expect(repaintBlocks).toEqual([]);
@@ -950,9 +953,7 @@ describe("dashboard SOT foundation", () => {
         expect(segmentedTabs).toContain(
             "aria-disabled={item.disabled || undefined}",
         );
-        expect(segmentedTabs).toContain(
-            "aria-selected={item.value === value}",
-        );
+        expect(segmentedTabs).toContain("aria-selected={item.value === value}");
         expect(segmentedTabs).toContain("disabled={item.disabled}");
         expect(segmentedTabs).not.toContain("<button");
         expect(segmentedTabs).not.toContain('data-slot="segmented-tabs"');

@@ -212,11 +212,11 @@ describe("display settings store", () => {
                     JSON.stringify({
                         uiLanguage: "zh-CN",
                         dateTimeFormat: "relative",
-                    recordingListSortOrder: "newest",
-                    itemsPerPage: 50,
-                    displayDensity: "comfy",
-                    theme: "dark",
-                }),
+                        recordingListSortOrder: "newest",
+                        itemsPerPage: 50,
+                        displayDensity: "comfy",
+                        theme: "dark",
+                    }),
                     {
                         status: 200,
                         headers: { "Content-Type": "application/json" },

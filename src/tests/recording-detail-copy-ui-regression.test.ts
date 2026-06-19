@@ -639,9 +639,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
-        expect(detailHeader).toContain(
-            'className="min-w-0 flex-1 truncate"',
-        );
+        expect(detailHeader).toContain('className="min-w-0 flex-1 truncate"');
         expect(detailHeader).toContain('className="h-8 min-w-0 flex-1"');
         expect(detailHeader).toContain('className="ml-1 shrink-0"');
         expect(detailHeader).toContain(
@@ -1218,7 +1216,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("handleRenameSave");
         expect(detailWorkstation).toContain("handleRenameCancel");
         expect(detailWorkstation).toMatch(
-            /disabled=\{\s*isAutoRenaming \|\| isApplyingAutoRename\s*\}/,
+            /disabled=\{\s*isAutoRenaming\s*\|\|\s*isApplyingAutoRename\s*\}/,
         );
         expect(detailWorkstation).toMatch(
             /data-sot-state=\{\s*autoRenameDisabledReason/,

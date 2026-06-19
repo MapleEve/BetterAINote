@@ -1612,7 +1612,9 @@ export function SourceReportPanel({
                             <EmptyTitle data-sot-source-report-empty-title>
                                 这条录音没有关联来源
                             </EmptyTitle>
-                            <EmptyDescription data-sot-source-report-empty-description>
+                            <EmptyDescription
+                                data-sot-source-report-empty-description
+                            >
                                 本地导入或离线录制的录音不会有来源详情。
                             </EmptyDescription>
                         </EmptyHeader>

@@ -38,11 +38,7 @@ const skeletonLineClassNames: Record<SkeletonLineSize, string> = {
     title: "h-4 w-32",
 };
 
-function SkeletonLine({
-    size = "line-medium",
-}: {
-    size?: SkeletonLineSize;
-}) {
+function SkeletonLine({ size = "line-medium" }: { size?: SkeletonLineSize }) {
     return (
         <Skeleton
             className={skeletonLineClassNames[size]}
@@ -52,11 +48,7 @@ function SkeletonLine({
     );
 }
 
-function SkeletonLineGroup({
-    lines = 3,
-}: {
-    lines?: number;
-}) {
+function SkeletonLineGroup({ lines = 3 }: { lines?: number }) {
     return (
         <div
             className="flex flex-col gap-[7px]"

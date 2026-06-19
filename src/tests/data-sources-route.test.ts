@@ -26,9 +26,9 @@ vi.mock("@/lib/data-sources/providers/plaud/client", () => ({
     normalizePlaudBearerToken: vi.fn((value: string) => value.trim()),
 }));
 
-import { GET, PUT } from "@/app/api/data-sources/route";
 import { POST as DISCONNECT } from "@/app/api/data-sources/disconnect/route";
 import { POST as RECONNECT } from "@/app/api/data-sources/reconnect/route";
+import { GET, PUT } from "@/app/api/data-sources/route";
 import { POST as TEST } from "@/app/api/data-sources/test/route";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
@@ -118,9 +118,7 @@ describe("data sources route", () => {
                         lastSync: new Date("2026-04-18T09:00:00.000Z"),
                         syncStatus: "error",
                         lastSyncError: "导入失败，请稍后重试",
-                        lastSyncStartedAt: new Date(
-                            "2026-04-18T09:01:00.000Z",
-                        ),
+                        lastSyncStartedAt: new Date("2026-04-18T09:01:00.000Z"),
                         lastSyncFinishedAt: new Date(
                             "2026-04-18T09:02:00.000Z",
                         ),
@@ -1115,9 +1113,7 @@ describe("data sources route", () => {
                                 secretConfig: JSON.stringify({
                                     bearerToken: "saved-token",
                                 }),
-                                lastSync: new Date(
-                                    "2026-04-18T09:00:00.000Z",
-                                ),
+                                lastSync: new Date("2026-04-18T09:00:00.000Z"),
                                 syncStatus: "error",
                                 lastSyncError: "导入失败，请稍后重试",
                                 lastSyncStartedAt: new Date(

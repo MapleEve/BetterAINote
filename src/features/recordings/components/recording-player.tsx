@@ -56,8 +56,7 @@ const sotPlayerSeekRangeStyle: CSSProperties = {
     background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
 };
 const sotPlayerSeekThumbStyle: CSSProperties = {
-    boxShadow:
-        "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
+    boxShadow: "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
 };
 
 export function RecordingPlayer({

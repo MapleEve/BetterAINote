@@ -113,8 +113,7 @@ export function getDisplaySettingsResponse(settings: UserSettingsRow) {
         itemsPerPage:
             settings?.itemsPerPage ?? DEFAULT_DISPLAY_SETTINGS.itemsPerPage,
         displayDensity:
-            settings?.displayDensity ??
-            DEFAULT_DISPLAY_SETTINGS.displayDensity,
+            settings?.displayDensity ?? DEFAULT_DISPLAY_SETTINGS.displayDensity,
         theme: settings?.theme ?? DEFAULT_DISPLAY_SETTINGS.theme,
     };
 }

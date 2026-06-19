@@ -590,7 +590,8 @@ export const translations: Record<UiLanguage, TranslationTree> = {
             description:
                 "Customize your settings here. Use arrow keys to navigate sections, Enter or Space to select, and Escape to close.",
             localDeployment: "Local deployment",
-            singleUserSelfHosted: "Single-tenant · self-hosted · no sign-in account",
+            singleUserSelfHosted:
+                "Single-tenant · self-hosted · no sign-in account",
             groups: {
                 transcriptionServices: "Transcription Services",
                 dataConnections: "Data Connections",

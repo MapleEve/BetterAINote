@@ -186,7 +186,9 @@ describe("dashboard SOT search and activity interactions", () => {
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
-            .filter(({ text }) => DASHBOARD_SEARCH_LEGACY_CSS_SELECTOR_RE.test(text));
+            .filter(({ text }) =>
+                DASHBOARD_SEARCH_LEGACY_CSS_SELECTOR_RE.test(text),
+            );
 
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS) {

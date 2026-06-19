@@ -30,11 +30,7 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
-function extractElementSlice(
-    source: string,
-    marker: string,
-    tagName: string,
-) {
+function extractElementSlice(source: string, marker: string, tagName: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     const start = source.lastIndexOf(`<${tagName}`, markerIndex);
@@ -1274,7 +1270,7 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).toContain(
             '[data-sot-part="dashboard-transcript-speaker-time"][data-sot-format="mono"]',
         );
-        expect(globals).not.toContain('[data-sot-shell] *:focus');
+        expect(globals).not.toContain("[data-sot-shell] *:focus");
         expect(globals).not.toContain('[data-slot="button"]:focus-visible');
         expect(globals).toContain(
             '[data-sot-control="dashboard-recording-row"]:focus-visible',
@@ -1862,8 +1858,10 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(globals).toMatch(/\[data-sot-part="system-banner-icon"\]\s+svg/);
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-panel="system-banner"]')
-                .filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-panel="system-banner"]',
+            ).filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
         ).toEqual([]);
         expect(globals).not.toContain(
             '[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"]',
@@ -2045,7 +2043,9 @@ describe("full UI replacement regression coverage", () => {
 
         expect(detailEmpty).toContain("<Empty");
         expect(detailEmpty).toContain('data-detail-empty=""');
-        expect(detailEmpty).toContain('data-sot-panel="dashboard-detail-empty"');
+        expect(detailEmpty).toContain(
+            'data-sot-panel="dashboard-detail-empty"',
+        );
         expect(detailEmpty).toContain("<EmptyHeader>");
         expect(detailEmpty).toContain("<EmptyMedia");
         expect(detailEmpty).toContain('variant="icon"');
@@ -2129,12 +2129,14 @@ describe("full UI replacement regression coverage", () => {
         expect(legacyAiRenameSelectorLines).toEqual([]);
 
         for (const selector of AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS) {
-            const retainedBlocks = collectCssRuleBlocks(globals, selector).filter(
-                ({ prelude }) =>
-                    stripCssComments(prelude)
-                        .split(",")
-                        .map((selectorPart) => selectorPart.trim())
-                        .includes(selector),
+            const retainedBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ prelude }) =>
+                stripCssComments(prelude)
+                    .split(",")
+                    .map((selectorPart) => selectorPart.trim())
+                    .includes(selector),
             );
 
             expect(retainedBlocks).toHaveLength(1);
@@ -2284,9 +2286,7 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-control="send-login-link"][data-slot="button"]',
             '[data-sot-control="local-only"][data-slot="button"]',
         ]) {
-            expect(globals).not.toContain(
-                removedAuthPrimitiveRepaintSelector,
-            );
+            expect(globals).not.toContain(removedAuthPrimitiveRepaintSelector);
         }
         const authOnboardingLegacySelectorLines = globals
             .split("\n")
@@ -2395,9 +2395,7 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'data-sot-state={\n                                        active ? "selected" : "idle"\n                                    }',
         );
-        expect(onboarding).toContain(
-            'data-sot-part="source-auth-mode-title"',
-        );
+        expect(onboarding).toContain('data-sot-part="source-auth-mode-title"');
         expect(onboarding).toContain(
             'data-sot-part="source-auth-mode-description"',
         );
@@ -2831,8 +2829,8 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain('variant="outline"');
         expect(dashboardPlayer).toContain('className="ml-auto"');
         expect(dashboardPlayer).toContain('data-sot-control="player-status"');
-        expect(dashboardPlayer).toContain(
-            "data-sot-tone={selectedPlayerStatus.tone}",
+        expect(dashboardPlayer).toMatch(
+            /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
         expect(dashboardPlayer).toContain("<Button");
         expect(dashboardPlayer).toContain(
@@ -2989,7 +2987,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "className={sotSourceReportSegmentSkeletonClassNames[size]}",
         );
-        const sourceReportEmptyPrimitive = readSource("components/ui/empty.tsx");
+        const sourceReportEmptyPrimitive = readSource(
+            "components/ui/empty.tsx",
+        );
         for (const slot of [
             'data-slot="empty"',
             'data-slot="empty-header"',
@@ -3039,8 +3039,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportNoSourceEmpty).toContain(
             "<EmptyTitle data-sot-source-report-empty-title>",
         );
-        expect(sourceReportNoSourceEmpty).toContain(
-            "<EmptyDescription data-sot-source-report-empty-description>",
+        expect(sourceReportNoSourceEmpty).toMatch(
+            /<EmptyDescription\s+data-sot-source-report-empty-description\s*>/,
         );
         expect(sourceReportNoSourceEmpty).not.toContain("<Alert");
         expect(sourceReportNoSourceEmpty).not.toContain("<AlertTitle");
@@ -3060,9 +3060,7 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        expect(sourceReportPanel).toContain(
-            'className="gap-1.5 p-3"',
-        );
+        expect(sourceReportPanel).toContain('className="gap-1.5 p-3"');
         expect(sourceReportPanel).toContain(
             "function sourceReportStatusBadgeVariant",
         );
@@ -3305,9 +3303,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain(
             'dashboardDetailHeaderState === "saving"',
         );
-        expect(dashboardDetailHeader).toContain(
-            'data-sot-state="saving"',
-        );
+        expect(dashboardDetailHeader).toContain('data-sot-state="saving"');
         expect(dashboardDetailHeader).toContain("localDeleteAvailable ? (");
         expect(dashboardDetailHeader).not.toMatch(legacyHeaderClassNamePattern);
         expect(globals).not.toMatch(
@@ -3417,9 +3413,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "const dashboardTranscriptSkeletonClassNames",
         );
-        expect(workstation).toContain(
-            "function DashboardTranscriptSkeleton",
-        );
+        expect(workstation).toContain("function DashboardTranscriptSkeleton");
         expect(dashboardTranscriptLoadingTurn).toContain(
             "<DashboardTranscriptSkeleton",
         );
@@ -3492,12 +3486,8 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain(
             'className="size-4 animate-spin self-center"',
         );
-        expect(aiRenamePreview).toContain(
-            'className="flex flex-col gap-1.5"',
-        );
-        expect(aiRenamePreview).toContain(
-            'className="min-w-0 break-words"',
-        );
+        expect(aiRenamePreview).toContain('className="flex flex-col gap-1.5"');
+        expect(aiRenamePreview).toContain('className="min-w-0 break-words"');
         expect(aiRenamePreview).toContain(
             'className="flex items-center gap-1.5 px-3.5 py-2"',
         );
@@ -3878,9 +3868,7 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain(
             'data-sot-part="recording-transcription-empty"',
         );
-        expect(transcriptionSection).toContain(
-            'from "@/components/ui/empty";',
-        );
+        expect(transcriptionSection).toContain('from "@/components/ui/empty";');
         for (const primitive of [
             "Empty,",
             "EmptyContent,",
@@ -3921,9 +3909,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="start-local-transcription"',
         );
         expect(transcriptionEmpty).toContain("handleTranscribe(false)");
-        expect(transcriptionEmpty).toContain(
-            "transcribeUnavailableReason ??",
-        );
+        expect(transcriptionEmpty).toContain("transcribeUnavailableReason ??");
         expect(transcriptionEmpty).not.toContain("<section");
         expect(transcriptionEmpty).not.toContain("<h3");
         expect(transcriptionEmpty).not.toContain("<p");
@@ -4164,9 +4150,7 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
-        expect(detailHeader).toContain(
-            'className="min-w-0 flex-1 truncate"',
-        );
+        expect(detailHeader).toContain('className="min-w-0 flex-1 truncate"');
         expect(detailHeader).toContain('className="h-8 min-w-0 flex-1"');
         expect(detailHeader).toContain('className="ml-1 shrink-0"');
         expect(detailHeader).toContain(
@@ -4629,9 +4613,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerEmpty).toContain(
             '<EmptyDescription data-sot-part="empty-description">',
         );
-        expect(tagManagerEmpty).toContain(
-            "在下方为这条录音创建第一个标签。",
-        );
+        expect(tagManagerEmpty).toContain("在下方为这条录音创建第一个标签。");
         expect(tagManagerEmpty).not.toContain(
             '<div data-sot-part="empty-message">',
         );
@@ -4757,9 +4739,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(sourceReport).toContain(
-            'from "@/components/ui/empty";',
-        );
+        expect(sourceReport).toContain('from "@/components/ui/empty";');
         expect(sourceReport).toContain("<Alert");
         expect(sourceReport).toContain("<Empty");
         expect(sourceReport).toContain("<EmptyHeader");

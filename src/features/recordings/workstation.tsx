@@ -980,7 +980,8 @@ export function RecordingWorkstation({
                                         size="sm"
                                         onClick={handleAutoRename}
                                         disabled={
-                                            isAutoRenaming || isApplyingAutoRename
+                                            isAutoRenaming ||
+                                            isApplyingAutoRename
                                         }
                                         aria-haspopup="dialog"
                                         aria-expanded={Boolean(autoRenamePanel)}

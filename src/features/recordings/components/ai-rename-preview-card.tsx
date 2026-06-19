@@ -77,10 +77,7 @@ export function AiRenamePreviewCard({
     return (
         <Card
             hasNoPadding
-            className={cn(
-                "w-[min(360px,calc(100vw-32px))] gap-0",
-                className,
-            )}
+            className={cn("w-[min(360px,calc(100vw-32px))] gap-0", className)}
             data-open="true"
             data-sot-panel="ai-rename-preview"
             data-sot-state={state}

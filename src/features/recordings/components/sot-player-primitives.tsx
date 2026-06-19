@@ -1,11 +1,11 @@
 "use client";
 
-import type * as React from "react";
 import { Plus } from "lucide-react";
+import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { RecordingTag } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import { RecordingTagIconGlyph } from "./recording-tag-visuals";
 
 const SOT_SOURCE_BADGES = {
@@ -318,9 +318,10 @@ export function SotPlayerVolumeIcon({
     );
 }
 
-export function SotPlayerNoAudioIcon(
-    { className, ...props }: React.ComponentProps<"svg"> = {},
-) {
+export function SotPlayerNoAudioIcon({
+    className,
+    ...props
+}: React.ComponentProps<"svg"> = {}) {
     return (
         <svg
             viewBox="0 0 24 24"

@@ -823,9 +823,7 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsEmptyHints.join("\n")).toContain(
             '? "请稍候，正在读取已保存的数据源状态。"',
         );
-        expect(settingsEmptyHints.join("\n")).toContain(
-            '? "高级选项（可选）"',
-        );
+        expect(settingsEmptyHints.join("\n")).toContain('? "高级选项（可选）"');
         expect(settingsEmptyHints.join("\n")).toContain(
             '? "仅在来源要求额外组织信息时填写。"',
         );
@@ -842,13 +840,13 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(globals).not.toMatch(/(^|\n|,)\s*\.field-empty\b/);
         expect(
-            collectCssRuleBlocks(globals, 'settings-empty-hint'),
+            collectCssRuleBlocks(globals, "settings-empty-hint"),
         ).toHaveLength(0);
         expect(
-            collectCssRuleBlocks(globals, 'settings-empty-title'),
+            collectCssRuleBlocks(globals, "settings-empty-title"),
         ).toHaveLength(0);
         expect(
-            collectCssRuleBlocks(globals, 'settings-empty-description'),
+            collectCssRuleBlocks(globals, "settings-empty-description"),
         ).toHaveLength(0);
         expect(content).not.toContain('className="settings-main three-pane"');
         expect(content).not.toContain('className="empty-hint"');

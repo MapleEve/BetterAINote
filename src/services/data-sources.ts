@@ -27,8 +27,7 @@ interface DataSourceErrorResponse {
 export const DATA_SOURCES_API_PATH = "/api/data-sources";
 export const DATA_SOURCES_TEST_API_PATH = "/api/data-sources/test";
 export const DATA_SOURCES_SYNC_API_PATH = "/api/data-sources/sync";
-export const DATA_SOURCES_DISCONNECT_API_PATH =
-    "/api/data-sources/disconnect";
+export const DATA_SOURCES_DISCONNECT_API_PATH = "/api/data-sources/disconnect";
 export const DATA_SOURCES_RECONNECT_API_PATH = "/api/data-sources/reconnect";
 
 interface SaveDataSourceOptions {
@@ -152,8 +151,7 @@ export async function disconnectDataSource(
         throw new Error(
             getErrorMessage(
                 data,
-                options.fallbackMessage ??
-                    "Failed to disconnect data source",
+                options.fallbackMessage ?? "Failed to disconnect data source",
             ),
         );
     }

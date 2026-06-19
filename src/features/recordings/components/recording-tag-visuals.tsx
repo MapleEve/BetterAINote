@@ -108,11 +108,7 @@ export function RecordingTagIconGlyph({
     variant?: "full" | "manager";
 }) {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-        >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             {variant === "manager"
                 ? (recordingTagManagerIconPaths[icon] ??
                   recordingTagIconPaths[icon] ??

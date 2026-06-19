@@ -39,10 +39,7 @@ function DialogClose({
     return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-function DialogOverlay({
-    className,
-    ...props
-}: DialogOverlayProps) {
+function DialogOverlay({ className, ...props }: DialogOverlayProps) {
     return (
         <DialogPrimitive.Overlay
             data-slot="dialog-overlay"

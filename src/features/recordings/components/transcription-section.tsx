@@ -376,7 +376,10 @@ export function TranscriptionSection({
                             data-sot-state="error"
                             data-sot-tone="err"
                         >
-                            <AlertCircle data-sot-banner-icon aria-hidden="true" />
+                            <AlertCircle
+                                data-sot-banner-icon
+                                aria-hidden="true"
+                            />
                             <div data-sot-banner-body>
                                 <AlertTitle
                                     className="line-clamp-none overflow-visible"
@@ -467,15 +470,24 @@ export function TranscriptionSection({
                                     </Badge>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <Badge variant="outline" data-sot-meta="source">
+                                    <Badge
+                                        variant="outline"
+                                        data-sot-meta="source"
+                                    >
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
                                     </Badge>
                                 ) : null}
-                                <Badge variant="secondary" data-sot-meta="words">
+                                <Badge
+                                    variant="secondary"
+                                    data-sot-meta="words"
+                                >
                                     {wordCount} {t("transcription.words")}
                                 </Badge>
-                                <Badge variant="secondary" data-sot-meta="characters">
+                                <Badge
+                                    variant="secondary"
+                                    data-sot-meta="characters"
+                                >
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
                                 </Badge>

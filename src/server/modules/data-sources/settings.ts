@@ -15,8 +15,8 @@ import {
     type PersistedSourceConnectionState,
     type SourceConnectionStateDefaults,
     type SourceProvider,
-    type SourceSyncStatus,
     SourceProviderSettingsError,
+    type SourceSyncStatus,
 } from "@/lib/data-sources/types";
 import { ServiceUrlValidationError } from "@/lib/service-url";
 

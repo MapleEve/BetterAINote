@@ -133,9 +133,7 @@ export function LoginForm({
                         <FieldGroup className="mx-auto max-w-[280px] gap-3">
                             <Field
                                 data-disabled={
-                                    !isMounted || isLoading
-                                        ? "true"
-                                        : undefined
+                                    !isMounted || isLoading ? "true" : undefined
                                 }
                                 data-invalid={invalid ? "true" : undefined}
                             >

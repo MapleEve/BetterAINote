@@ -105,11 +105,11 @@ import {
 } from "@/lib/platform/browser-router";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
-import { cn } from "@/lib/utils";
 import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
 } from "@/lib/transcription/job-display";
+import { cn } from "@/lib/utils";
 import { getDataSources, runDataSourcesSync } from "@/services/data-sources";
 import type { Recording } from "@/types/recording";
 import type { CanonicalSettingsSection } from "@/types/settings";
@@ -307,8 +307,7 @@ const sotPlayerSeekRangeStyle: CSSProperties = {
     background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
 };
 const sotPlayerSeekThumbStyle: CSSProperties = {
-    boxShadow:
-        "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
+    boxShadow: "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
 };
 
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
@@ -5842,9 +5841,7 @@ export function Workstation({
                                                   ? aiState
                                                   : "idle"
                                         }
-                                        title={
-                                            aiUnavailableReason || undefined
-                                        }
+                                        title={aiUnavailableReason || undefined}
                                         onClick={() => void previewAutoRename()}
                                     >
                                         <Sparkles data-icon="inline-start" />
@@ -6196,7 +6193,9 @@ export function Workstation({
                                         variant="outline"
                                         className="ml-auto"
                                         data-sot-control="player-status"
-                                        data-sot-tone={selectedPlayerStatus.tone}
+                                        data-sot-tone={
+                                            selectedPlayerStatus.tone
+                                        }
                                     >
                                         <span data-sot-part="status-dot" />
                                         {selectedPlayerStatus.label}

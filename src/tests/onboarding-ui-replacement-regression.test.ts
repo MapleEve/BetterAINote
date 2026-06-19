@@ -141,9 +141,7 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );
-        expect(source).toContain(
-            'CardContent,',
-        );
+        expect(source).toContain("CardContent,");
         expect(source).toContain("CardDescription,");
         expect(source).toContain("CardHeader,");
         expect(source).toContain("CardTitle,");
