@@ -6109,7 +6109,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"
+                            className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -6143,7 +6143,7 @@ export function Workstation({
                                 </AlertDescription>
                             </Alert>
                             <CardHeader
-                                className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"
+                                className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"
                                 data-sot-part="dashboard-recording-player-meta"
                             >
                                 <span
@@ -6197,7 +6197,7 @@ export function Workstation({
                                 ) : null}
                                 {selectedPlayerStatus ? (
                                     <Badge
-                                        variant="outline"
+                                        variant="player-status"
                                         className="ml-auto"
                                         data-sot-control="player-status"
                                         data-sot-tone={
@@ -6210,7 +6210,7 @@ export function Workstation({
                                 ) : null}
                             </CardHeader>
                             <CardContent
-                                className="flex min-w-0 items-center gap-3 overflow-visible p-0"
+                                className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"
                                 aria-disabled={
                                     playbackDisabled ? "true" : undefined
                                 }

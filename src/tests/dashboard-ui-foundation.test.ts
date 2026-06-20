@@ -440,7 +440,7 @@ describe("dashboard SOT foundation", () => {
 
         expect(player).toContain("<Card");
         expect(player).toContain(
-            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"',
+            'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
         );
         expect(player).toContain("<Alert");
         expect(player).toContain(
@@ -449,11 +449,11 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain("<SotPlayerNoAudioIcon");
         expect(player).toContain("<CardHeader");
         expect(player).toContain(
-            'className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"',
+            'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
         );
         expect(player).toContain("<CardContent");
         expect(player).toContain(
-            'className="flex min-w-0 items-center gap-3 overflow-visible p-0"',
+            'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
         expect(player).toContain('variant="player"');
         expect(player).toContain('variant="player-primary"');
@@ -461,7 +461,7 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain('size="player-lg"');
         expect(player).toContain('size="player-sm"');
         expect(player).toContain("<Badge");
-        expect(player).toContain('variant="outline"');
+        expect(player).toContain('variant="player-status"');
         expect(player).toContain('className="ml-auto"');
         expect(player).toContain('data-sot-control="player-status"');
         expect(player).toMatch(

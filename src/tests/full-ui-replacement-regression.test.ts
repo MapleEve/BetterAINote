@@ -1521,7 +1521,12 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(button).toContain(`${variant}:`);
         }
-        for (const size of ['player: "size-9', '"player-sm"', '"player-lg"']) {
+        for (const size of [
+            'player: "size-[36px]',
+            '"player-sm"',
+            '"player-lg"',
+            '"player-lg": "size-[44px]',
+        ]) {
             expect(button).toContain(size);
         }
         expect(button).not.toContain("glass:");
@@ -2906,7 +2911,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
-            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"',
+            'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
@@ -2929,20 +2934,20 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardPlayer).toContain("<CardHeader");
         expect(dashboardPlayer).toContain(
-            'className="mb-3 flex flex-row flex-wrap items-center gap-2.5 p-0"',
+            'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-recording-player-meta"',
         );
         expect(dashboardPlayer).toContain("<CardContent");
         expect(dashboardPlayer).toContain(
-            'className="flex min-w-0 items-center gap-3 overflow-visible p-0"',
+            'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',
         );
         expect(dashboardPlayer).toContain("<Badge");
-        expect(dashboardPlayer).toContain('variant="outline"');
+        expect(dashboardPlayer).toContain('variant="player-status"');
         expect(dashboardPlayer).toContain('className="ml-auto"');
         expect(dashboardPlayer).toContain('data-sot-control="player-status"');
         expect(dashboardPlayer).toMatch(
@@ -3767,6 +3772,7 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
         expect(badge).toContain("source:");
+        expect(badge).toContain('"player-status":');
         expect(badge).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
@@ -4999,6 +5005,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).toContain("<Badge");
         expect(sotPlayerPrimitives).toContain('variant="source"');
+        expect(sotPlayerPrimitives).toContain('variant="player-status"');
         expect(sotPlayerPrimitives).toContain(
             'className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
         );

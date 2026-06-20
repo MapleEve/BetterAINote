@@ -224,7 +224,7 @@ export function SotPlayerStatusBadge({
 }) {
     return (
         <Badge
-            variant="outline"
+            variant="player-status"
             data-sot-control="player-status"
             data-sot-tone={tone}
         >
