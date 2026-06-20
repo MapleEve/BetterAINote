@@ -6205,7 +6205,9 @@ export function Workstation({
                                         }
                                     >
                                         <span data-sot-part="status-dot" />
-                                        {selectedPlayerStatus.label}
+                                        <span data-sot-part="status-label">
+                                            {selectedPlayerStatus.label}
+                                        </span>
                                     </Badge>
                                 ) : null}
                             </CardHeader>

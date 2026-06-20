@@ -1175,6 +1175,10 @@ button {
     text-align: center;
 }
 [data-sot-surface="dashboard-recording-player"]
+    [data-sot-part="dashboard-player-duration"] {
+    transform: translateX(-0.109375px);
+}
+[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-seek-shell"] {
     position: relative;
     display: block;
@@ -1916,6 +1920,9 @@ body[data-time-style="abs"]
     height: 5px;
     border-radius: 50%;
     background: currentColor;
+}
+[data-sot-control="player-status"] [data-sot-part="status-label"] {
+    margin-left: 4px;
 }
 [data-sot-part="dashboard-recording-status"][data-sot-tone="ok"] {
     background: color-mix(in srgb, var(--signal-success) 14%, transparent);

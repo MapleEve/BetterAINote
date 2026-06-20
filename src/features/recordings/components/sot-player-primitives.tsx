@@ -229,7 +229,7 @@ export function SotPlayerStatusBadge({
             data-sot-tone={tone}
         >
             <span data-sot-part="status-dot" />
-            {label}
+            <span data-sot-part="status-label">{label}</span>
         </Badge>
     );
 }

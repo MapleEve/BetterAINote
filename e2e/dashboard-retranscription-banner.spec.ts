@@ -3154,7 +3154,7 @@ test("dashboard player ready state matches SOT active player pixels", async ({
         );
 
         await dashboardPlayerControl(page, "dashboard-player-volume").click();
-        const productVolumePopover = dashboardPlayer(page)
+        const productVolumePopover = page
             .locator('[data-sot-panel="dashboard-player-volume-popover"]')
             .first();
         await expect(productVolumePopover).toBeVisible();
