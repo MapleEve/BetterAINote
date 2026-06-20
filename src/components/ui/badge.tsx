@@ -17,10 +17,6 @@ const badgeVariants = cva(
                     "bg-destructive text-destructive-foreground [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
                 outline:
                     "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-                source:
-                    "h-[22px] gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] text-[11.5px] font-semibold text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
-                "player-status":
-                    "h-[20px] gap-[5px] rounded-full border py-0 px-[8px] text-[11px] font-semibold shadow-none",
                 ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 [a&]:hover:underline",
             },

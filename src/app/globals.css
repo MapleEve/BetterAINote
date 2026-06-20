@@ -645,17 +645,6 @@ body[data-theme="dark"] {
 button:not([data-slot]) {
     font-family: inherit;
 }
-[data-slot="badge"][data-variant="source"] {
-    font: 600 11.5px var(--font-sans);
-    justify-content: normal;
-}
-[data-slot="badge"][data-variant="player-status"] {
-    font: 600 11px var(--font-sans);
-    justify-content: normal;
-    letter-spacing: 0.005em;
-    min-width: 65.171875px;
-    overflow: visible;
-}
 
 /* ======== App grid ======== */
 [data-sot-shell="dashboard-workstation"],

@@ -464,8 +464,9 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain('size="player-lg"');
         expect(player).toContain('size="player-sm"');
         expect(player).toContain("<Badge");
-        expect(player).toContain('variant="player-status"');
-        expect(player).toContain('className="ml-auto"');
+        expect(player).toContain('variant="ghost"');
+        expect(player).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
+        expect(player).toContain('"ml-auto"');
         expect(player).toContain('data-sot-control="player-status"');
         expect(player).toMatch(
             /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,

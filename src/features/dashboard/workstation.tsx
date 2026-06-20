@@ -93,6 +93,7 @@ import {
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
     SotPlayerSourceTag,
+    SOT_PLAYER_STATUS_BADGE_CLASS,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
     SotPlayerVolumeIcon,
@@ -6275,8 +6276,11 @@ export function Workstation({
                                 ) : null}
                                 {selectedPlayerStatus ? (
                                     <Badge
-                                        variant="player-status"
-                                        className="ml-auto"
+                                        variant="ghost"
+                                        className={cn(
+                                            SOT_PLAYER_STATUS_BADGE_CLASS,
+                                            "ml-auto",
+                                        )}
                                         data-sot-control="player-status"
                                         data-sot-tone={
                                             selectedPlayerStatus.tone

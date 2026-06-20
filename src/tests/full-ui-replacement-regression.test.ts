@@ -1308,17 +1308,7 @@ describe("full UI replacement regression coverage", () => {
         const globalSlotSelectors = globals
             .split("\n")
             .filter((line) => line.includes('[data-slot="'));
-        expect(
-            globalSlotSelectors.every(
-                (line) =>
-                    line.includes(
-                        '[data-slot="badge"][data-variant="source"]',
-                    ) ||
-                    line.includes(
-                        '[data-slot="badge"][data-variant="player-status"]',
-                    ),
-            ),
-        ).toBe(true);
+        expect(globalSlotSelectors).toEqual([]);
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -3014,8 +3004,9 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-recording-player-controls"',
         );
         expect(dashboardPlayer).toContain("<Badge");
-        expect(dashboardPlayer).toContain('variant="player-status"');
-        expect(dashboardPlayer).toContain('className="ml-auto"');
+        expect(dashboardPlayer).toContain('variant="ghost"');
+        expect(dashboardPlayer).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
+        expect(dashboardPlayer).toContain('"ml-auto"');
         expect(dashboardPlayer).toContain('data-sot-control="player-status"');
         expect(dashboardPlayer).toMatch(
             /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
@@ -3851,9 +3842,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("variant={");
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
-        expect(badge).toContain("source:");
-        expect(badge).toContain('"player-status":');
-        expect(badge).toContain("h-[22px]");
+        expect(badge).not.toContain("source:");
+        expect(badge).not.toContain('"player-status":');
+        expect(badge).not.toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
             '[data-sot-provider-status][data-slot="badge"]',
@@ -5089,8 +5080,15 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="player-status"',
         );
         expect(sotPlayerPrimitives).toContain("<Badge");
-        expect(sotPlayerPrimitives).toContain('variant="source"');
-        expect(sotPlayerPrimitives).toContain('variant="player-status"');
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_STATUS_BADGE_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain('variant="ghost"');
+        expect(sotPlayerPrimitives).not.toContain('variant="source"');
+        expect(sotPlayerPrimitives).not.toContain('variant="player-status"');
         expect(sotPlayerPrimitives).toContain(
             'className="inline-flex size-[16px] shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
         );

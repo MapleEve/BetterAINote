@@ -10,18 +10,11 @@ function readSource(relativePath: string) {
 }
 
 function expectOnlyAllowedGlobalSlotSelectors(globals: string) {
-    const disallowed = globals
+    const slotSelectors = globals
         .split("\n")
-        .filter((line) => line.includes('[data-slot="'))
-        .filter(
-            (line) =>
-                !line.includes('[data-slot="badge"][data-variant="source"]') &&
-                !line.includes(
-                    '[data-slot="badge"][data-variant="player-status"]',
-                ),
-        );
+        .filter((line) => line.includes('[data-slot="'));
 
-    expect(disallowed).toEqual([]);
+    expect(slotSelectors).toEqual([]);
 }
 
 function readCssBlock(source: string, marker: string) {
