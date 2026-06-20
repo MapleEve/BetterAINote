@@ -2197,7 +2197,7 @@ async function openSotDefaultNoAudioPlayer(page: Page) {
 }
 
 function stabilizeSkeletonAnimation(html: string) {
-    return `<style>.sk{animation:none!important;background-position:0 50%!important}</style>${html}`;
+    return `<style>.sk,[data-sot-part="source-report-card-skeleton"],[data-sot-part="source-report-segment-skeleton"]{animation:none!important;background-position:0 50%!important}</style>${html}`;
 }
 
 function tagManagerSotFixtureCss(scope: string) {

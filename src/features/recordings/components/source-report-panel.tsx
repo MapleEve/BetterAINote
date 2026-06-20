@@ -377,6 +377,19 @@ function sourceReportReadinessLabel(
 
 type SourceReportTone = "err" | "neu" | "ok" | "warn";
 
+const SOURCE_REPORT_METRIC_CARD_CLASS =
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+
+const SOURCE_REPORT_STATUS_BADGE_CLASS =
+    "h-[22px] min-w-[65px] justify-normal gap-[9px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none";
+
+const SOURCE_REPORT_STATUS_BADGE_TONE_CLASS: Record<SourceReportTone, string> = {
+    err: "border-[var(--source-report-status-err-border)] bg-[var(--source-report-status-err-bg)] text-[var(--signal-danger)]",
+    neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
+    ok: "border-[var(--source-report-status-ok-border)] bg-[var(--source-report-status-ok-bg)] text-[var(--source-report-status-ok-fg)]",
+    warn: "border-[var(--source-report-status-warn-border)] bg-[var(--source-report-status-warn-bg)] text-[var(--source-report-status-warn-fg)]",
+};
+
 type SourceReportCardSkeletonSize = "count" | "source" | "status";
 type SourceReportSegmentSkeletonSize =
     | "line-long"
@@ -390,21 +403,25 @@ const sourceReportCardSkeletonClassNames: Record<
     SourceReportCardSkeletonSize,
     string
 > = {
-    count: "!h-[18px] w-12",
-    source: "!h-[18px] w-[120px]",
-    status: "!h-[18px] w-20",
+    count: "inline-block !h-[18px] w-[48px] align-middle rounded-[6px]",
+    source: "inline-block !h-[18px] w-[120px] align-middle rounded-[6px]",
+    status: "inline-block !h-[18px] w-[80px] align-middle rounded-[6px]",
 };
 
 const sourceReportSegmentSkeletonClassNames: Record<
     SourceReportSegmentSkeletonSize,
     string
 > = {
-    "line-long": "mt-1.5 !h-[13px] w-[92%]",
-    "line-medium": "mt-1.5 !h-[13px] w-3/4",
-    "line-short": "mt-1.5 !h-[13px] w-3/5",
-    "line-wide": "mt-1.5 !h-[13px] w-[88%]",
-    speaker: "ml-1 !h-3 w-14",
-    time: "!h-3 w-24",
+    "line-long":
+        "mt-1.5 inline-block !h-[13px] w-[92%] align-middle rounded-[4px]",
+    "line-medium":
+        "mt-1.5 inline-block !h-[13px] w-[76%] align-middle rounded-[4px]",
+    "line-short":
+        "mt-1.5 inline-block !h-[13px] w-3/5 align-middle rounded-[4px]",
+    "line-wide":
+        "mt-1.5 inline-block !h-[13px] w-[88%] translate-y-px align-middle rounded-[4px]",
+    speaker: "ml-[5px] inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
+    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
 };
 
 function sourceReportReadinessTone(label: string): SourceReportTone {
@@ -538,7 +555,10 @@ function SourceReportStatusBadge({
     return (
         <Badge
             variant={sourceReportStatusBadgeVariant(tone)}
-            className="justify-start whitespace-normal"
+            className={cn(
+                SOURCE_REPORT_STATUS_BADGE_CLASS,
+                SOURCE_REPORT_STATUS_BADGE_TONE_CLASS[tone],
+            )}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -632,7 +652,7 @@ function SourceReportMetricCard({
     return (
         <Card
             hasNoPadding
-            className="gap-1.5 p-3"
+            className={SOURCE_REPORT_METRIC_CARD_CLASS}
             data-sot-card="source-report-metric"
             data-sot-metric={metric}
         >
@@ -1602,7 +1622,7 @@ export function SourceReportPanel({
                         data-sot-source-report-empty
                         data-sot-tone="neutral"
                     >
-                        <EmptyHeader>
+                        <EmptyHeader data-sot-source-report-empty-header>
                             <EmptyMedia
                                 variant="icon"
                                 data-sot-source-report-empty-icon

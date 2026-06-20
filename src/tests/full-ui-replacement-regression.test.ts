@@ -3194,7 +3194,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportNoSourceEmpty).toContain(
             "data-sot-source-report-empty",
         );
-        expect(sourceReportNoSourceEmpty).toContain("<EmptyHeader>");
+        expect(sourceReportNoSourceEmpty).toContain(
+            "<EmptyHeader data-sot-source-report-empty-header>",
+        );
         expect(sourceReportNoSourceEmpty).toContain("<EmptyMedia");
         expect(sourceReportNoSourceEmpty).toContain('variant="icon"');
         expect(sourceReportNoSourceEmpty).toContain(
@@ -3224,7 +3226,15 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        expect(sourceReportPanel).toContain('className="gap-1.5 p-3"');
+        expect(sourceReportPanel).toContain(
+            "const SOURCE_REPORT_METRIC_CARD_CLASS",
+        );
+        expect(sourceReportPanel).toContain(
+            '"gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none"',
+        );
+        expect(sourceReportPanel).toContain(
+            "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
+        );
         expect(sourceReportPanel).toContain(
             "function sourceReportStatusBadgeVariant",
         );
@@ -3232,6 +3242,9 @@ describe("full UI replacement regression coverage", () => {
             "variant={sourceReportStatusBadgeVariant(tone)}",
         );
         expect(sourceReportPanel).toContain(
+            "<div data-sot-source-report-actions>",
+        );
+        expect(sourceReportPanel).not.toContain(
             'className="justify-start whitespace-normal"',
         );
 
@@ -3449,7 +3462,7 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardDetailHeaderMode = editingTitle",
         );
         expect(dashboardDetailHeader).toContain(
-            '"relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0"',
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
         expect(dashboardDetailHeader).toContain(
             'className="min-w-0 flex-1 truncate"',
