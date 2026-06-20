@@ -1254,9 +1254,7 @@ async function setPlayerVolumeSlider(page: Page, value: number) {
 
 function playerVolumeButton(page: Page) {
     return page
-        .locator(
-            '[data-slot="button"][data-sot-control="recording-player-volume"]',
-        )
+        .locator('[data-sot-control="recording-player-volume"]')
         .first();
 }
 
@@ -3293,7 +3291,7 @@ async function capturePlayerResponsiveFrame(
                     '[data-sot-panel="recording-player-volume-popover"], .vol-pop',
                 ),
                 volumeTrigger: read(
-                    '[data-slot="button"][data-sot-control="recording-player-volume"], .vol-anchor > button[data-slot="button"]',
+                    '[data-sot-control="recording-player-volume"], .vol-anchor > [data-sot-control="recording-player-volume"]',
                 ),
             },
             viewport: {
@@ -7482,7 +7480,9 @@ test("recording detail disabled/no-audio player banner matches SOT pixels", asyn
             "disabled",
         );
         await expect(playerVolumeButton(page)).toBeDisabled();
-        await expect(playerVolumeSlider(page)).toBeDisabled();
+        await expect(
+            page.locator('[data-sot-control="recording-player-volume-slider"]'),
+        ).toHaveCount(0);
 
         sotPage = await page.context().newPage();
         const sotDisabledPlayer = await openSotDisabledNoAudioPlayer(sotPage);
@@ -10032,7 +10032,9 @@ test("recording detail source copy guards missing artifacts without writing empt
             "data-sot-state",
             "disabled",
         );
-        await expect(playerVolumeSlider(page)).toBeDisabled();
+        await expect(
+            page.locator('[data-sot-control="recording-player-volume-slider"]'),
+        ).toHaveCount(0);
         await expect(
             sourceReportState(page, "loaded").getByText("转写状态", {
                 exact: true,
