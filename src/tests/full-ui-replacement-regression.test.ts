@@ -2638,6 +2638,13 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-drawer-trigger"',
         );
+        expect(workstation).toContain("DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS");
+        expect(workstation).toMatch(
+            /<Button\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS\}[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
+        );
+        expect(workstation).not.toMatch(
+            /<button[\s\S]{0,240}data-sot-control="dashboard-drawer-trigger"/,
+        );
         expect(workstation).toContain('id="drawer-scrim"');
         expect(workstation).toContain('id="drawer-trigger"');
         expect(workstation).not.toContain("data-drawer-open=");
@@ -2650,6 +2657,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain("DASHBOARD_NAV_BUTTON_CLASS");
         expect(workstation).toContain("DASHBOARD_SOURCE_BUTTON_CLASS");
+        expect(workstation).toContain("DASHBOARD_SOURCE_ACTION_BUTTON_CLASS");
         expect(workstation).toContain("DASHBOARD_SYNC_BUTTON_CLASS");
         expect(workstation).toContain(
             "DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS",
@@ -2716,6 +2724,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-action"',
+        );
+        expect(sourceProviderRows).toMatch(
+            /<Button\s+asChild\s+variant="ghost"\s+size="xs"[\s\S]*className=\{\s*DASHBOARD_SOURCE_ACTION_BUTTON_CLASS\s*\}[\s\S]*data-sot-part="source-provider-action"/,
+        );
+        expect(sourceProviderRows).not.toContain(
+            "SOT defines source row action as span[role=button]",
         );
         expect(sourceProviderRows).toContain("data-sot-action={actionKind}");
         expect(sourceProviderRows).toContain("data-state={sourceRowState}");
@@ -2877,6 +2891,13 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-actions"',
+        );
+        expect(workstation).toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
+        expect(workstation).toMatch(
+            /<Button\s+variant="ghost"\s+size="sm"[\s\S]*className=\{\s*DASHBOARD_RECORDING_ROW_BUTTON_CLASS\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+        );
+        expect(workstation).not.toMatch(
+            /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
         );
         expect(workstation).toContain("aria-current={");
         expect(workstation).not.toContain('className="filter-row"');

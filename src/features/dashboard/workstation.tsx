@@ -11,6 +11,7 @@ import {
     EllipsisVertical,
     FileText,
     Globe2,
+    Menu,
     Mic,
     PanelLeft,
     Pencil,
@@ -285,6 +286,12 @@ const DASHBOARD_SOURCE_BUTTON_CLASS = cn(
 const DASHBOARD_SYNC_BUTTON_CLASS =
     "text-muted-foreground hover:text-foreground";
 
+const DASHBOARD_SOURCE_ACTION_BUTTON_CLASS =
+    "h-[22px] rounded-full px-[9px] text-[11px] font-semibold";
+
+const DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS =
+    "h-auto w-auto rounded-md px-[6px] py-px text-[var(--fg-primary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
+
 const DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS =
     "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:text-foreground";
 
@@ -292,6 +299,9 @@ const DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS = cn(
     "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs",
     "hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
 );
+
+const DASHBOARD_RECORDING_ROW_BUTTON_CLASS =
+    "h-auto justify-normal whitespace-normal rounded-[10px] px-3 py-[11px] text-left text-[13.3333px] font-normal";
 
 type SotPlayerSliderTrackStyle = CSSProperties & {
     "--sot-player-track": string;
@@ -4026,58 +4036,74 @@ export function Workstation({
                                         data-sot-part="source-provider-status"
                                     />
                                     {actionKind ? (
-                                        // biome-ignore lint/a11y/useSemanticElements: SOT defines source row action as span[role=button] inside the provider row.
-                                        <span
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-label={actionAriaLabel}
-                                            data-action={
-                                                actionKind === "retry"
-                                                    ? "retry-sync"
-                                                    : actionKind
+                                        <Button
+                                            asChild
+                                            variant="ghost"
+                                            size="xs"
+                                            className={
+                                                DASHBOARD_SOURCE_ACTION_BUTTON_CLASS
                                             }
-                                            data-sot-action={actionKind}
-                                            data-sot-part="source-provider-action"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                if (actionKind === "retry") {
-                                                    void runManualSync();
-                                                    return;
-                                                }
-                                                window.localStorage.setItem(
-                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
-                                                    item.key,
-                                                );
-                                                openSettings("data-sources");
-                                            }}
-                                            onKeyDown={(event) => {
-                                                if (
-                                                    event.key !== "Enter" &&
-                                                    event.key !== " "
-                                                ) {
-                                                    return;
-                                                }
-                                                event.preventDefault();
-                                                event.stopPropagation();
-                                                if (actionKind === "retry") {
-                                                    void runManualSync();
-                                                    return;
-                                                }
-                                                window.localStorage.setItem(
-                                                    SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
-                                                    item.key,
-                                                );
-                                                openSettings("data-sources");
-                                            }}
                                         >
-                                            {actionKind === "retry" ||
-                                            actionKind === "reauth" ? (
-                                                <RefreshCw />
-                                            ) : (
-                                                <Plus />
-                                            )}
-                                            {actionLabel}
-                                        </span>
+                                            <span
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-label={actionAriaLabel}
+                                                data-action={
+                                                    actionKind === "retry"
+                                                        ? "retry-sync"
+                                                        : actionKind
+                                                }
+                                                data-sot-action={actionKind}
+                                                data-sot-part="source-provider-action"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    if (
+                                                        actionKind === "retry"
+                                                    ) {
+                                                        void runManualSync();
+                                                        return;
+                                                    }
+                                                    window.localStorage.setItem(
+                                                        SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                        item.key,
+                                                    );
+                                                    openSettings(
+                                                        "data-sources",
+                                                    );
+                                                }}
+                                                onKeyDown={(event) => {
+                                                    if (
+                                                        event.key !== "Enter" &&
+                                                        event.key !== " "
+                                                    ) {
+                                                        return;
+                                                    }
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                    if (
+                                                        actionKind === "retry"
+                                                    ) {
+                                                        void runManualSync();
+                                                        return;
+                                                    }
+                                                    window.localStorage.setItem(
+                                                        SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY,
+                                                        item.key,
+                                                    );
+                                                    openSettings(
+                                                        "data-sources",
+                                                    );
+                                                }}
+                                            >
+                                                {actionKind === "retry" ||
+                                                actionKind === "reauth" ? (
+                                                    <RefreshCw data-icon="inline-start" />
+                                                ) : (
+                                                    <Plus data-icon="inline-start" />
+                                                )}
+                                                {actionLabel}
+                                            </span>
+                                        </Button>
                                     ) : (
                                         <span
                                             data-count={`src:${item.key}`}
@@ -4134,7 +4160,10 @@ export function Workstation({
 
             <main data-sot-panel="dashboard-main">
                 <header data-sot-panel="dashboard-topbar">
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className={DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS}
                         data-sot-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
@@ -4146,17 +4175,15 @@ export function Workstation({
                             setDrawerOpen(true);
                         }}
                     >
-                        {/* biome-ignore lint/a11y/noSvgWithoutTitle: SOT drawer trigger SVG is decorative inside the labelled button. */}
-                        <svg viewBox="0 0 24 24">
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <line x1="3" y1="12" x2="15" y2="12" />
-                            <line x1="3" y1="18" x2="21" y2="18" />
-                        </svg>{" "}
+                        <Menu
+                            className="pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+                            data-icon="inline-start"
+                        />
                         <span
                             data-sot-part="dashboard-drawer-active-dot"
                             aria-hidden="true"
                         />
-                    </button>
+                    </Button>
                     <Button
                         variant="ghost"
                         size="icon-sm"
@@ -5411,7 +5438,12 @@ export function Workstation({
                                                         entry.displayTag ??
                                                         recording.tags[0];
                                                     return (
-                                                        <button
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className={
+                                                                DASHBOARD_RECORDING_ROW_BUTTON_CLASS
+                                                            }
                                                             aria-current={
                                                                 active
                                                                     ? "true"
@@ -5535,7 +5567,7 @@ export function Workstation({
                                                                     </Badge>
                                                                 </div>
                                                             ) : null}
-                                                        </button>
+                                                        </Button>
                                                     );
                                                 })}
                                             </div>
