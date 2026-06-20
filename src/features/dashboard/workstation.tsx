@@ -6338,7 +6338,6 @@ export function Workstation({
                                     type="button"
                                     variant="player-speed-compact"
                                     size="sm"
-                                    className="min-w-12 justify-center font-mono tabular-nums"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"

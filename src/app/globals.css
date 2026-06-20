@@ -603,6 +603,28 @@ button {
 :where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"]:active {
     transform: scale(0.96);
 }
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-speed-compact"] {
+    height: 32px;
+    min-width: 50px;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    padding: 0 12px;
+    color: var(--fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: normal;
+    box-shadow: none;
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-speed-compact"]:hover {
+    background: var(--bg-recessed);
+    color: var(--fg-primary);
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-speed-compact"]:active {
+    transform: translateY(0.5px);
+}
 [data-slot="badge"][data-variant="source"] {
     font: 600 11.5px var(--font-sans);
     justify-content: normal;
@@ -610,6 +632,9 @@ button {
 [data-slot="badge"][data-variant="player-status"] {
     font: 600 11px var(--font-sans);
     justify-content: normal;
+    letter-spacing: 0.005em;
+    min-width: 65.171875px;
+    overflow: visible;
 }
 
 /* ======== App grid ======== */
@@ -1162,7 +1187,7 @@ button {
     [data-sot-part="dashboard-player-volume-anchor"] {
     position: relative;
     display: inline-flex;
-    margin-left: 9px;
+    margin-left: 0;
 }
 [data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
     [data-sot-control="dashboard-player-back"],
