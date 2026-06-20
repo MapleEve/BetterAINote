@@ -6333,7 +6333,7 @@ export function Workstation({
                                 </span>
                                 <Button
                                     type="button"
-                                    variant="ghost"
+                                    variant="player-speed-compact"
                                     size="sm"
                                     className="min-w-12 justify-center font-mono tabular-nums"
                                     disabled={playbackDisabled}

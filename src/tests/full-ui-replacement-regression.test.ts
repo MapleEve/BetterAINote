@@ -1524,6 +1524,7 @@ describe("full UI replacement regression coverage", () => {
             "primary",
             "player",
             '"player-primary"',
+            '"player-speed-compact"',
             "danger",
         ]) {
             expect(button).toContain(`${variant}:`);

@@ -1122,6 +1122,8 @@ button {
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-control-icon"]
     svg {
+    width: 16px;
+    height: 16px;
     stroke: currentColor;
     stroke-width: 1.8;
     fill: currentColor;
@@ -1160,7 +1162,7 @@ button {
     [data-sot-part="dashboard-player-volume-anchor"] {
     position: relative;
     display: inline-flex;
-    margin-left: 11px;
+    margin-left: 9px;
 }
 [data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
     [data-sot-control="dashboard-player-back"],
