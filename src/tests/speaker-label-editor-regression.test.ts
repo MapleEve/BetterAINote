@@ -212,7 +212,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain(
             'data-sot-control="speaker-review-inline-save"',
         );
-        expect(source).toContain('variant="primary"');
+        expect(source).toContain('variant="default"');
         expect(source).toContain('t("common.cancel")');
         expect(source).toContain('t("common.save")');
         expect(source).toMatch(/event\.key ===\s*"Escape"/);
@@ -457,7 +457,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
         expect(source).toContain('variant="ghost"');
-        expect(source).toContain('variant="danger"');
+        expect(source).toContain('variant="destructive"');
         expect(source).toContain("<ToggleGroup");
         expect(source).toContain("<ToggleGroupItem");
         expect(source).toContain("<Badge");

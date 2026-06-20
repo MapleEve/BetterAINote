@@ -106,7 +106,7 @@ describe("onboarding UI replacement regression", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(source).toContain('variant="outline"');
-        expect(source).toContain('variant="primary"');
+        expect(source).toContain('variant="default"');
         expect(source).toContain('size="xs"');
         expect(source).toContain('size="lg"');
         expect(source).toContain(

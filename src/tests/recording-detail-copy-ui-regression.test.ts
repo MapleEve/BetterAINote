@@ -217,10 +217,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(copyControl).toContain("isCopyingTranscript");
         expect(copyControl).toContain("!displayText.trim()");
         expect(retranscribeControl).toContain("<Button");
-        expect(retranscribeControl).toContain('variant="danger"');
+        expect(retranscribeControl).toContain('variant="destructive"');
         expect(retranscribeControl).toContain('size="sm"');
         expect(startControl).toContain("<Button");
-        expect(startControl).toContain('variant="primary"');
+        expect(startControl).toContain('variant="default"');
         expect(startControl).toContain('size="sm"');
         for (const removedSelector of [
             '[data-sot-panel="recording-transcription"][data-slot="card"]',
@@ -1150,10 +1150,10 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).not.toContain('className="detail"');
         }
 
-        expect(notFound).toContain('<Button asChild variant="primary">');
+        expect(notFound).toContain('<Button asChild variant="default">');
         expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(error).toContain("<Button");
-        expect(error).toContain('variant="primary"');
+        expect(error).toContain('variant="default"');
         expect(error).toContain('<Button asChild variant="ghost">');
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
@@ -1331,7 +1331,7 @@ describe("recording detail copy and title action UI regressions", () => {
 
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain("<Button");
-        expect(tagManager).toContain('variant="primary"');
+        expect(tagManager).toContain('variant="default"');
         expect(tagManager).toContain('size="icon-sm"');
         expect(tagManager).toContain('aria-label="添加"');
         expect(tagManager).not.toContain("tagm-add-btn");

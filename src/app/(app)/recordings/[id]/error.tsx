@@ -56,7 +56,7 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                 data-sot-actions="recording-error"
                             >
                                 <Button
-                                    variant="primary"
+                                    variant="default"
                                     type="button"
                                     onClick={reset}
                                 >

@@ -4291,7 +4291,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     outline-offset: 2px;
     box-shadow: none;
 }
-[data-sot-source-report-empty-actions] [data-variant="primary"] {
+[data-sot-source-report-empty-actions] [data-variant="default"] {
     background: linear-gradient(
         180deg,
         color-mix(in srgb, var(--accent) 92%, white 18%),

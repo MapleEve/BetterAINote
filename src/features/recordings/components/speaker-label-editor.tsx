@@ -1188,7 +1188,7 @@ export function SpeakerLabelEditor({
                                                 <Button
                                                     type="button"
                                                     size="sm"
-                                                    variant="primary"
+                                                    variant="default"
                                                     data-spk-save
                                                     data-sot-control="speaker-review-inline-save"
                                                     disabled={
@@ -1635,7 +1635,7 @@ export function SpeakerLabelEditor({
                                                         <Button
                                                             type="button"
                                                             size="sm"
-                                                            variant="danger"
+                                                            variant="destructive"
                                                             data-sot-confirm-action="confirm"
                                                             disabled={
                                                                 isSpeakerSaving

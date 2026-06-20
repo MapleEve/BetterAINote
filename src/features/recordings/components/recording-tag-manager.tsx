@@ -518,7 +518,7 @@ export function RecordingTagManager({
                         <InputGroupButton
                             type="button"
                             aria-label="添加"
-                            variant="primary"
+                            variant="default"
                             size="icon-sm"
                             className="shrink-0"
                             data-sot-control="recording-tag-create"
@@ -779,7 +779,7 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="danger"
+                    variant="destructive"
                     size="sm"
                     className="min-w-[70px] shrink-0"
                     data-sot-control="recording-tag-delete-confirm"
@@ -841,7 +841,7 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="primary"
+                    variant="default"
                     size="sm"
                     className="min-w-[70px] shrink-0"
                     data-sot-control="recording-tag-create"

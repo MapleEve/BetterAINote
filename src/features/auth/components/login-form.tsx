@@ -183,7 +183,7 @@ export function LoginForm({
                             <Field className="gap-0">
                                 <Button
                                     type="submit"
-                                    variant="primary"
+                                    variant="default"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
                                     className="h-[38px] w-full rounded-[8px] !border !border-solid !border-transparent !bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] !text-white shadow-none hover:!bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0"

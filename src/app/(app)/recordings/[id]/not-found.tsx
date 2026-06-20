@@ -49,7 +49,7 @@ export default function RecordingNotFound() {
                             <div data-sot-part="recording-route-empty-description">
                                 这条录音不存在或已经被删除，返回工作台后可以继续查看其他录音。
                             </div>
-                            <Button asChild variant="primary">
+                            <Button asChild variant="default">
                                 <Link href="/dashboard">返回工作台</Link>
                             </Button>
                         </div>

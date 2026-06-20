@@ -1328,7 +1328,7 @@ export function SourceReportPanel({
                             <Button
                                 type="button"
                                 size="xs"
-                                variant="primary"
+                                variant="default"
                                 onClick={loadReport}
                                 disabled={isLoading}
                                 data-sot-control="refresh-source-report"

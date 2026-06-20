@@ -215,7 +215,7 @@ export function RecordingPlayer({
                 </Button>
 
                 <Button
-                    variant="primary"
+                    variant="default"
                     size="icon-lg"
                     className="size-11 shrink rounded-full shadow-sm"
                     type="button"

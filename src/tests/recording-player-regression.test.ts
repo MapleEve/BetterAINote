@@ -172,7 +172,7 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain("<Popover");
         expect(source).toContain("<PopoverTrigger asChild>");
         expect(source).toContain("<PopoverContent");
-        expect(source).toContain('variant="primary"');
+        expect(source).toContain('variant="default"');
         expect(source).toContain('variant="ghost"');
         expect(source).toContain('size="icon"');
         expect(source).toContain('size="icon-sm"');

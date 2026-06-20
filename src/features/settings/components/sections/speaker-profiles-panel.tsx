@@ -696,7 +696,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="danger"
+                                        variant="destructive"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
                                         data-sot-control="speaker-profile-delete"
@@ -920,7 +920,7 @@ export function SpeakerProfilesPanel() {
                                     <Button
                                         type="button"
                                         size="sm"
-                                        variant="danger"
+                                        variant="destructive"
                                         onClick={() =>
                                             handleDeleteVoiceprint(voiceprint)
                                         }

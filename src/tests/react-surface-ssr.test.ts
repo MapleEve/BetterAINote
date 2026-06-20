@@ -102,7 +102,7 @@ describe("React surface SSR coverage", () => {
                 "main",
                 null,
                 React.createElement(Panel, null, "Panel"),
-                React.createElement(Button, { variant: "primary" }, "Sync"),
+                React.createElement(Button, { variant: "default" }, "Sync"),
                 React.createElement(Button, { variant: "outline" }, "Preview"),
                 React.createElement(Input, { defaultValue: "input" }),
                 React.createElement(Label, null, "Label"),
@@ -129,7 +129,7 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain('data-variant="default"');
         expect(html).not.toContain('class="panel');
         expect(html).toContain('data-slot="button"');
-        expect(html).toContain('data-variant="primary"');
+        expect(html).toContain('data-variant="default"');
         expect(html).toContain('data-variant="outline"');
         expect(html).toContain('data-slot="input"');
         expect(html).toContain('data-slot="label"');

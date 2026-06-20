@@ -5656,7 +5656,7 @@ export function Workstation({
                                         </div>
                                         {listState === "empty" ? (
                                             <Button
-                                                variant="primary"
+                                                variant="default"
                                                 size="sm"
                                                 type="button"
                                                 data-sot-control="recording-list-open-data-sources"
@@ -7229,7 +7229,7 @@ export function Workstation({
                                                     data-sot-source-report-empty-actions
                                                 >
                                                     <Button
-                                                        variant="primary"
+                                                        variant="default"
                                                         size="sm"
                                                         type="button"
                                                         onClick={() =>

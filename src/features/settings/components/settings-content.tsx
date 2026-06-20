@@ -1865,8 +1865,8 @@ function DataSourcesSettingsPanel({
                                 type="button"
                                 variant={
                                     sourceSaveState === "error"
-                                        ? "danger"
-                                        : "primary"
+                                        ? "destructive"
+                                        : "default"
                                 }
                                 size="sm"
                                 className={cn(
@@ -1995,7 +1995,7 @@ function DataSourcesSettingsPanel({
                             >
                                 <Button
                                     type="button"
-                                    variant="danger"
+                                    variant="destructive"
                                     size="sm"
                                     className={cn(
                                         SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
@@ -2453,7 +2453,7 @@ function SaveActions({
             {children}
             <Button
                 type="button"
-                variant="primary"
+                variant="default"
                 size="sm"
                 disabled={disabled}
                 aria-busy={saveState === "saving"}

@@ -934,7 +934,7 @@ const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-source-report-empty-actions]",
     "[data-sot-source-report-empty-actions] button",
     "[data-sot-source-report-empty-actions] button:focus-visible",
-    '[data-sot-source-report-empty-actions] [data-variant="primary"]',
+    '[data-sot-source-report-empty-actions] [data-variant="default"]',
     '[data-sot-source-report-empty-actions] [data-variant="ghost"]',
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"][data-sot-state="loading"]',
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"]:disabled',
@@ -1519,12 +1519,12 @@ describe("full UI replacement regression coverage", () => {
             "secondary",
             "ghost",
             "link",
-            "primary",
-            "danger",
         ]) {
             expect(button).toContain(`${variant}:`);
         }
         for (const size of [
+            "primary:",
+            "danger:",
             "player:",
             '"player-primary":',
             '"player-speed-compact":',
@@ -2393,7 +2393,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(login).toContain("<Button");
-        expect(login).toContain('variant="primary"');
+        expect(login).toContain('variant="default"');
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
@@ -2507,7 +2507,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(onboarding).toContain('variant="outline"');
-        expect(onboarding).toContain('variant="primary"');
+        expect(onboarding).toContain('variant="default"');
         expect(onboarding).toContain('size="xs"');
         expect(onboarding).toContain('size="lg"');
         expect(onboarding).toContain(
@@ -3361,7 +3361,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActions).toContain(
             'className="justify-center"',
         );
-        expect(sourceReportEmptyActions).toContain('variant="primary"');
+        expect(sourceReportEmptyActions).toContain('variant="default"');
         expect(sourceReportEmptyActions).toContain('variant="ghost"');
         expect(sourceReportEmptyActions).toContain('size="xs"');
         expect(sourceReportEmptyActions).toContain(
@@ -4598,7 +4598,7 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("<CardContent");
         expect(player).toContain("<Button");
         expect(player).toContain('variant="outline"');
-        expect(player).toContain('variant="primary"');
+        expect(player).toContain('variant="default"');
         expect(player).toContain('size="icon-lg"');
         expect(player).toContain(
             'className="size-11 shrink rounded-full shadow-sm"',
@@ -4777,7 +4777,7 @@ describe("full UI replacement regression coverage", () => {
             expect(tagManager).toContain(primitiveImport);
         }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        expect(tagManager).toContain('variant="primary"');
+        expect(tagManager).toContain('variant="default"');
         expect(tagManager).toContain('size="icon-sm"');
         expect(tagManager).toContain('variant="secondary"');
         expect(tagManager).toContain('"relative h-6 whitespace-nowrap"');

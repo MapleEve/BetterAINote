@@ -426,7 +426,7 @@ export function TranscriptionSection({
                                     <Button
                                         onClick={handleConfirmRetranscribe}
                                         size="sm"
-                                        variant="danger"
+                                        variant="destructive"
                                         data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
@@ -537,7 +537,7 @@ export function TranscriptionSection({
                             <Button
                                 onClick={() => handleTranscribe(false)}
                                 size="sm"
-                                variant="primary"
+                                variant="default"
                                 data-sot-control="start-local-transcription"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={

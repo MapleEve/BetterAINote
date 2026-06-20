@@ -756,7 +756,7 @@ function TranscriptionStep({
                     onClick={onNext}
                     size="xs"
                     type="button"
-                    variant="primary"
+                    variant="default"
                 >
                     下一步
                 </Button>
@@ -925,7 +925,7 @@ function FinishStep({
                 </Button>
                 <Button
                     type="button"
-                    variant="primary"
+                    variant="default"
                     size="xs"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
@@ -985,7 +985,7 @@ function WizardActions({
             ) : null}
             <Button
                 type="button"
-                variant="primary"
+                variant="default"
                 size="xs"
                 disabled={isSaving}
                 data-sot-control="onboarding-next"

@@ -1948,7 +1948,7 @@ describe("settings SOT interaction regressions", () => {
             const button = findButtonByControl(control);
 
             expect(button).toContain(`data-sot-control="${control}"`);
-            expect(button).toContain('variant="danger"');
+            expect(button).toContain('variant="destructive"');
             expect(button).not.toContain('className="btn"');
             expect(button).not.toContain('className="btn danger"');
         };
@@ -1984,7 +1984,7 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("<FieldTitle>");
         expect(speakers).toContain("<FieldLabel");
         expect(speakers).toContain("<FieldDescription>");
-        expect(speakers).toContain('variant="danger"');
+        expect(speakers).toContain('variant="destructive"');
         expectNoLegacySettingsFieldPatterns({
             "features/settings/components/sections/speaker-profiles-panel.tsx":
                 speakers,
