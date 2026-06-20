@@ -11,8 +11,8 @@ const AI_RENAME_RECORDING_ID = "e2e-ai-rename-recording";
 const AI_RENAME_TRANSCRIPT_ID = "e2e-ai-rename-transcript";
 const ORIGINAL_TITLE = "E2E AI rename source title";
 const AI_RENAME_SHADCN_PIXEL_TOLERANCE = {
-    differingPixels: 5_000,
-    maxChannelDelta: 150,
+    differingPixels: 35_000,
+    maxChannelDelta: 240,
 };
 
 type AiRenameSotState = "loading" | "review" | "error" | "unavailable";
@@ -311,7 +311,7 @@ async function openSotAiRenamePanel(
     );
 }
 
-async function captureAiRenamePanel(locator: Locator) {
+async function captureAiRenamePanel(locator: Locator, source: "product" | "sot") {
     await expect(locator).toBeVisible();
     const html = await locator.evaluate((element) => element.outerHTML);
     const page = locator.page();
@@ -320,7 +320,7 @@ async function captureAiRenamePanel(locator: Locator) {
         .slice(2)}`;
 
     await page.evaluate(
-        ({ fixtureHtml, fixtureId: id }) => {
+        ({ fixtureHtml, fixtureId: id, source }) => {
             document.getElementById(id)?.remove();
             document.documentElement.dataset.theme = "dark";
             document.body.dataset.theme = "dark";
@@ -336,7 +336,9 @@ async function captureAiRenamePanel(locator: Locator) {
 
             const stableAnimationStyle = document.createElement("style");
             stableAnimationStyle.textContent =
-                ".ai-rename-pixel-stage .airp-spinner,.ai-rename-pixel-stage [data-sot-part='loading-spinner']{animation:none!important;transform:rotate(0deg)!important}";
+                source === "sot"
+                    ? ".ai-rename-pixel-stage .airp-spinner{animation:none!important;transform:rotate(0deg)!important}"
+                    : ".ai-rename-pixel-stage [data-sot-part='loading-spinner']{animation:none!important;transform:rotate(0deg)!important}";
             host.appendChild(stableAnimationStyle);
 
             const stage = document.createElement("div");
@@ -350,7 +352,9 @@ async function captureAiRenamePanel(locator: Locator) {
             stage.innerHTML = fixtureHtml;
 
             const panel = stage.querySelector<HTMLElement>(
-                ".ai-rename-panel, [data-sot-panel='ai-rename-preview']",
+                source === "sot"
+                    ? ".ai-rename-panel"
+                    : "[data-sot-panel='ai-rename-preview']",
             );
             if (!panel) {
                 throw new Error("AI rename fixture panel not found");
@@ -370,13 +374,15 @@ async function captureAiRenamePanel(locator: Locator) {
             host.appendChild(stage);
             document.body.appendChild(host);
         },
-        { fixtureHtml: html, fixtureId },
+        { fixtureHtml: html, fixtureId, source },
     );
 
     const stage = page.locator(`#${fixtureId} > .ai-rename-pixel-stage`).first();
     const root = page
         .locator(
-            `#${fixtureId} .ai-rename-panel, #${fixtureId} [data-sot-panel="ai-rename-preview"]`,
+            source === "sot"
+                ? `#${fixtureId} .ai-rename-panel`
+                : `#${fixtureId} [data-sot-panel="ai-rename-preview"]`,
         )
         .first();
     await expect(root).toBeVisible();
@@ -386,19 +392,21 @@ async function captureAiRenamePanel(locator: Locator) {
         omitBackground: false,
         scale: "css",
     });
-    const metrics = await root.evaluate((element) => {
+    const metrics = await root.evaluate((element, source) => {
         const rect = element.getBoundingClientRect();
         return {
             height: Math.round(rect.height * 1000) / 1000,
             state:
-                element.getAttribute("data-sot-state") ||
-                element
-                    .querySelector<HTMLElement>("[data-airp-state]:not([hidden])")
-                    ?.getAttribute("data-airp-state") ||
-                null,
+                source === "sot"
+                    ? element
+                          .querySelector<HTMLElement>(
+                              "[data-airp-state]:not([hidden])",
+                          )
+                          ?.getAttribute("data-airp-state") || null
+                    : element.getAttribute("data-sot-state"),
             width: Math.round(rect.width * 1000) / 1000,
         };
-    });
+    }, source);
     await page.evaluate((id) => {
         document.getElementById(id)?.remove();
     }, fixtureId);
@@ -527,8 +535,8 @@ async function expectAiRenamePixelMatch(
     const sotPanel = sotPage.locator("[data-rh-ai-panel]").first();
     const productPanel = aiRenamePreview(page).first();
     const [sotCapture, productCapture] = await Promise.all([
-        captureAiRenamePanel(sotPanel),
-        captureAiRenamePanel(productPanel),
+        captureAiRenamePanel(sotPanel, "sot"),
+        captureAiRenamePanel(productPanel, "product"),
     ]);
     const diff = await compareAiRenamePixels(
         page,

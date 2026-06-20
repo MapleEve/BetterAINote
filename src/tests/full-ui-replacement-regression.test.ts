@@ -2177,7 +2177,9 @@ describe("full UI replacement regression coverage", () => {
                         text,
                     }))
                     .filter(({ text }) =>
-                        /\.ai-rename-panel|\.airp-|airp-|data-airp-/.test(text),
+                        /\.ai-rename-panel|\.airp-|airp-|data-airp-|\bAI_RENAME_[A-Z0-9_]+_CLASS\b|--ai-rename-[\w-]+/.test(
+                            text,
+                        ),
                     );
             }),
         );
@@ -3478,46 +3480,49 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-sot-part="review-old"');
         expect(aiRenamePreview).toContain('data-sot-part="review-new"');
         expect(aiRenamePreview).toContain(
-            '"w-[min(360px,calc(100vw-32px))] gap-0"',
+            '"w-[min(360px,calc(100vw-32px))] gap-0 !rounded-[var(--radius-lg)] !border-[var(--glass-border)] !bg-[rgb(23_25_27)] !font-sans !text-[var(--fg-primary)] ![box-shadow:0_18px_44px_rgb(0_0_0_/_0.4)]"',
         );
         expect(aiRenamePreview).toContain(
-            'className="flex min-h-20 flex-col px-3.5 py-3.5"',
+            'className="!grid-cols-[1fr_auto] !items-start !gap-x-[10px] !gap-y-[2px] !border-b !border-[var(--glass-border-soft)] !px-[14px] !pt-[12px] !pb-[8px]"',
         );
         expect(aiRenamePreview).toContain(
-            'className="size-4 animate-spin self-center"',
+            'className="flex !min-h-[80px] flex-col !px-[14px] !py-[14px]"',
         );
-        expect(aiRenamePreview).toContain('className="flex flex-col gap-1.5"');
-        expect(aiRenamePreview).toContain('className="min-w-0 break-words"');
         expect(aiRenamePreview).toContain(
-            'className="flex items-center gap-1.5 px-3.5 py-2"',
+            'className="mx-auto mb-[6px] inline-block !size-[16px] rounded-full border-2 border-[rgb(92_168_198_/_0.36)] border-t-[var(--accent)]"',
         );
-        for (const rawClass of [
-            "ai-rename-panel",
-            "airp-head",
-            "airp-head-l",
-            "airp-eyebrow",
-            "airp-sub",
-            "airp-close",
-            "airp-body",
-            "airp-state",
-            "airp-spinner",
-            "airp-msg",
-            "airp-label",
-            "airp-title",
-            "airp-hint",
-            "airp-error-icon",
-            "airp-actions",
-            "airp-spacer",
-            "airp-review-row",
-            "airp-review-line",
-            "airp-review-tag",
-            "airp-review-old",
-            "airp-review-new",
-            "data-airp-",
-            "mergeAiRenameClassName",
-        ]) {
-            expect(aiRenamePreview).not.toContain(rawClass);
-        }
+        expect(aiRenamePreview).toContain('size="icon"');
+        expect(aiRenamePreview).toContain('size="sm"');
+        expect(aiRenamePreview).toContain('variant="ghost"');
+        expect(aiRenamePreview).toContain('variant="outline"');
+        expect(aiRenamePreview).toContain(
+            'variant={state === "error" ? "destructive" : "default"}',
+        );
+        expect(aiRenamePreview).toContain(
+            '"!grid !min-w-0 !grid-cols-1 !justify-items-center !gap-[8px] !border-0 !bg-transparent !px-[4px] !py-[3px] !text-center !shadow-none"',
+        );
+        expect(aiRenamePreview).toContain(
+            '? "!bg-[rgb(184_130_27_/_0.14)] !text-[var(--signal-warning)]"',
+        );
+        expect(aiRenamePreview).toContain(
+            ': "!bg-[rgb(210_65_53_/_0.14)] !text-[var(--signal-danger)]"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="flex min-w-0 items-baseline gap-[8px] rounded-[8px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[10px] py-[8px]"',
+        );
+        expect(aiRenamePreview).toContain(
+            'className="flex items-center !gap-[6px] !border-t !border-[var(--glass-border-soft)] !px-[14px] !py-[10px] !bg-[rgb(30_32_34)]"',
+        );
+        expect(aiRenamePreview).not.toMatch(/\bAI_RENAME_[A-Z0-9_]+_CLASS\b/);
+        expect(aiRenamePreview).not.toMatch(/--ai-rename-[\w-]+/);
+        expect(aiRenamePreview).not.toMatch(
+            /(^|[\s"'`])ai-rename-panel($|[\s"'`])/,
+        );
+        expect(aiRenamePreview).not.toMatch(
+            /(^|[\s"'`])airp-[a-z0-9-]+($|[\s"'`])/i,
+        );
+        expect(aiRenamePreview).not.toContain("data-airp-");
+        expect(aiRenamePreview).not.toContain("mergeAiRenameClassName");
         expect(workstation).toContain("onApply={applyAiRename}");
         expect(workstation).toContain('aria-label="更多操作"');
         expect(workstation).toContain('from "@/components/ui/dropdown-menu"');
