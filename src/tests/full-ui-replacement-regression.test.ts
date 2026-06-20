@@ -1290,6 +1290,7 @@ describe("full UI replacement regression coverage", () => {
         const toggleGroup = readSource("components/ui/toggle-group.tsx");
         const toaster = readSource("components/ui/sonner.tsx");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
+        const layout = readSource("app/layout.tsx");
 
         expect(globals).toContain(
             "BetterAINote · Graphite Glass Design System",
@@ -1310,7 +1311,9 @@ describe("full UI replacement regression coverage", () => {
         expect(
             globalSlotSelectors.every(
                 (line) =>
-                    line.includes('[data-slot="badge"][data-variant="source"]') ||
+                    line.includes(
+                        '[data-slot="badge"][data-variant="source"]',
+                    ) ||
                     line.includes(
                         '[data-slot="badge"][data-variant="player-status"]',
                     ),
@@ -1755,6 +1758,7 @@ describe("full UI replacement regression coverage", () => {
         expect(toaster).not.toContain("DEFAULT_TOAST_DURATION_MS");
         expect(confirmDialog).toContain("ConfirmDialogContext");
         expect(confirmDialog).toContain("ConfirmDialogProvider");
+        expect(confirmDialog).toContain("ConfirmDialogSlotProps");
         expect(confirmDialog).toContain("useConfirmDialog");
         expect(confirmDialog).toMatch(/<Dialog(?:\s|>)/);
         for (const primitive of [
@@ -1768,22 +1772,34 @@ describe("full UI replacement regression coverage", () => {
             expect(confirmDialog).toContain(`<${primitive}`);
         }
         expect(confirmDialog).toContain("portalWrapperProps");
-        expect(confirmDialog).toContain('"data-sot-panel": "confirm-dialog"');
-        expect(confirmDialog).toContain('data-sot-content="confirm-dialog"');
-        expect(confirmDialog).toContain('data-sot-part="confirm-head"');
-        expect(confirmDialog).toContain('data-sot-part="confirm-body"');
-        expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toContain("slotProps?: ConfirmDialogSlotProps");
+        expect(confirmDialog).toContain("contentSlotProps");
+        expect(confirmDialog).not.toContain(
+            '"data-sot-panel": "confirm-dialog"',
+        );
+        expect(confirmDialog).not.toContain(
+            'data-sot-content="confirm-dialog"',
+        );
+        expect(confirmDialog).not.toContain('data-sot-part="confirm-head"');
+        expect(confirmDialog).not.toContain('data-sot-part="confirm-body"');
+        expect(confirmDialog).not.toContain('data-sot-part="confirm-foot"');
+        expect(layout).toContain("confirmDialogSotSlotProps");
+        expect(layout).toContain('"data-sot-panel": "confirm-dialog"');
+        expect(layout).toContain('"data-sot-content": "confirm-dialog"');
+        expect(layout).toContain('"data-sot-part": "confirm-head"');
+        expect(layout).toContain('"data-sot-part": "confirm-body"');
+        expect(layout).toContain('"data-sot-part": "confirm-foot"');
         expect(confirmDialog).toMatch(
-            /<DialogHeader[\s\S]*data-sot-part="confirm-head"[\s\S]*className="gap-2 text-left"/,
+            /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogTitle[\s\S]*data-sot-part="confirm-title"[\s\S]*className="m-0 text-base leading-snug font-semibold tracking-normal"/,
+            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*"m-0 text-base leading-snug font-semibold tracking-normal"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogDescription[\s\S]*data-sot-part="confirm-description"[\s\S]*className="m-0 text-sm leading-relaxed text-muted-foreground"/,
+            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*"m-0 text-sm leading-relaxed text-muted-foreground"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogFooter[\s\S]*data-sot-part="confirm-foot"[\s\S]*className="gap-\[8px\] sm:justify-end"/,
+            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-\[8px\] sm:justify-end"/,
         );
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
@@ -1794,9 +1810,8 @@ describe("full UI replacement regression coverage", () => {
         expect(confirmDialog).toContain('variant="outline"');
         expect(confirmDialog).toContain("variant={confirmButtonVariant}");
         expect(confirmDialog).toContain('size="sm"');
-        expect(confirmDialog).toContain(
-            'data-sot-list="confirm-dialog-details"',
-        );
+        expect(confirmDialog).toContain("detailsListSlotProps");
+        expect(layout).toContain('"data-sot-list": "confirm-dialog-details"');
         expect(confirmDialog).toContain("state.details.map");
         expect(confirmDialog).toContain("state.warning");
         expect(confirmDialog).not.toContain('className="scrim"');
@@ -2926,7 +2941,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('size="player-lg"');
         expect(workstation).not.toContain("SOT_PLAYER_ROUND_BUTTON_CLASS");
         expect(workstation).not.toContain("SOT_PLAYER_PLAY_BUTTON_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS");
+        expect(workstation).not.toContain(
+            "SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS",
+        );
         expect(workstation).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
@@ -3082,7 +3099,10 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(globals).toContain(selector);
         }
-        for (const [surface, selector] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
+        for (const [
+            surface,
+            selector,
+        ] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
             expect(
                 collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
                     prelude.includes(surface),
@@ -4601,7 +4621,9 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'className="col-start-1 row-span-2 place-self-center"',
         );
-        expect(player).toContain('<SotPlayerNoAudioIcon className="size-3.5" />');
+        expect(player).toContain(
+            '<SotPlayerNoAudioIcon className="size-3.5" />',
+        );
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
         expect(player).toContain(
@@ -4627,7 +4649,10 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const [surface, selector] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
+        for (const [
+            surface,
+            selector,
+        ] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
             expect(
                 collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
                     prelude.includes(surface),

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    type ComponentPropsWithoutRef,
     createContext,
     type ReactNode,
     useCallback,
@@ -20,6 +21,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface ConfirmDialogOptions {
     title: string;
@@ -31,15 +33,56 @@ interface ConfirmDialogOptions {
     warning?: string;
 }
 
+type DataAttributes = {
+    [key: `data-${string}`]: string | number | boolean | undefined;
+};
+
+type SlotProps<T> = T & DataAttributes;
+
+export interface ConfirmDialogSlotProps {
+    content?: SlotProps<
+        Omit<
+            ComponentPropsWithoutRef<typeof DialogContent>,
+            | "children"
+            | "overlayProps"
+            | "portalWrapperProps"
+            | "showCloseButton"
+        >
+    >;
+    overlay?: SlotProps<
+        NonNullable<
+            ComponentPropsWithoutRef<typeof DialogContent>["overlayProps"]
+        >
+    >;
+    portalWrapper?: SlotProps<
+        NonNullable<
+            ComponentPropsWithoutRef<typeof DialogContent>["portalWrapperProps"]
+        >
+    >;
+    header?: SlotProps<ComponentPropsWithoutRef<typeof DialogHeader>>;
+    title?: SlotProps<ComponentPropsWithoutRef<typeof DialogTitle>>;
+    body?: SlotProps<ComponentPropsWithoutRef<"div">>;
+    description?: SlotProps<ComponentPropsWithoutRef<typeof DialogDescription>>;
+    extra?: SlotProps<ComponentPropsWithoutRef<"div">>;
+    detailsList?: SlotProps<ComponentPropsWithoutRef<"ul">>;
+    detailItem?: SlotProps<ComponentPropsWithoutRef<"li">>;
+    warning?: SlotProps<ComponentPropsWithoutRef<"p">>;
+    footer?: SlotProps<ComponentPropsWithoutRef<typeof DialogFooter>>;
+    cancelButton?: SlotProps<ComponentPropsWithoutRef<typeof Button>>;
+    confirmButton?: SlotProps<ComponentPropsWithoutRef<typeof Button>>;
+}
+
 const ConfirmDialogContext = createContext<{
     confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
 } | null>(null);
 
-const confirmDialogPortalWrapperProps = {
-    "data-sot-panel": "confirm-dialog",
-};
-
-export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
+export function ConfirmDialogProvider({
+    children,
+    slotProps,
+}: {
+    children: ReactNode;
+    slotProps?: ConfirmDialogSlotProps;
+}) {
     const [state, setState] = useState<ConfirmDialogOptions | null>(null);
     const pendingResolveRef = useRef<((confirmed: boolean) => void) | null>(
         null,
@@ -84,6 +127,18 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
 
     const value = useMemo(() => ({ confirm }), [confirm]);
     const confirmButtonVariant = state?.confirmVariant ?? "destructive";
+    const contentSlotProps = slotProps?.content;
+    const headerSlotProps = slotProps?.header;
+    const titleSlotProps = slotProps?.title;
+    const bodySlotProps = slotProps?.body;
+    const descriptionSlotProps = slotProps?.description;
+    const extraSlotProps = slotProps?.extra;
+    const detailsListSlotProps = slotProps?.detailsList;
+    const detailItemSlotProps = slotProps?.detailItem;
+    const warningSlotProps = slotProps?.warning;
+    const footerSlotProps = slotProps?.footer;
+    const cancelButtonSlotProps = slotProps?.cancelButton;
+    const confirmButtonSlotProps = slotProps?.confirmButton;
 
     useEffect(() => {
         if (!state) return;
@@ -116,38 +171,47 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                 }}
             >
                 <DialogContent
-                    data-sot-content="confirm-dialog"
-                    overlayProps={{ "data-sot-overlay": "confirm-dialog" }}
-                    portalWrapperProps={confirmDialogPortalWrapperProps}
-                    className="sm:max-w-md"
+                    {...contentSlotProps}
+                    overlayProps={slotProps?.overlay}
+                    portalWrapperProps={slotProps?.portalWrapper}
+                    className={cn("sm:max-w-md", contentSlotProps?.className)}
                     showCloseButton={false}
                 >
                     <DialogHeader
-                        data-sot-part="confirm-head"
-                        className="gap-2 text-left"
+                        {...headerSlotProps}
+                        className={cn(
+                            "gap-2 text-left",
+                            headerSlotProps?.className,
+                        )}
                     >
                         <DialogTitle
-                            data-sot-part="confirm-title"
-                            className="m-0 text-base leading-snug font-semibold tracking-normal"
+                            {...titleSlotProps}
+                            className={cn(
+                                "m-0 text-base leading-snug font-semibold tracking-normal",
+                                titleSlotProps?.className,
+                            )}
                         >
                             {state?.title}
                         </DialogTitle>
                     </DialogHeader>
-                    <div data-sot-part="confirm-body">
+                    <div {...bodySlotProps}>
                         <DialogDescription
-                            data-sot-part="confirm-description"
-                            className="m-0 text-sm leading-relaxed text-muted-foreground"
+                            {...descriptionSlotProps}
+                            className={cn(
+                                "m-0 text-sm leading-relaxed text-muted-foreground",
+                                descriptionSlotProps?.className,
+                            )}
                         >
                             {state?.description}
                         </DialogDescription>
                         {state?.details?.length || state?.warning ? (
-                            <div data-sot-part="confirm-extra">
+                            <div {...extraSlotProps}>
                                 {state.details?.length ? (
-                                    <ul data-sot-list="confirm-dialog-details">
+                                    <ul {...detailsListSlotProps}>
                                         {state.details.map((item) => (
                                             <li
+                                                {...detailItemSlotProps}
                                                 key={item}
-                                                data-sot-item="confirm-dialog-detail"
                                             >
                                                 {item}
                                             </li>
@@ -155,31 +219,32 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                                     </ul>
                                 ) : null}
                                 {state.warning ? (
-                                    <p data-sot-part="confirm-warning">
-                                        {state.warning}
-                                    </p>
+                                    <p {...warningSlotProps}>{state.warning}</p>
                                 ) : null}
                             </div>
                         ) : null}
                     </div>
                     <DialogFooter
-                        data-sot-part="confirm-foot"
-                        className="gap-[8px] sm:justify-end"
+                        {...footerSlotProps}
+                        className={cn(
+                            "gap-[8px] sm:justify-end",
+                            footerSlotProps?.className,
+                        )}
                     >
                         <Button
+                            {...cancelButtonSlotProps}
                             type="button"
                             variant="outline"
                             size="sm"
-                            data-sot-control="confirm-dialog-cancel"
                             onClick={() => close(false)}
                         >
                             {state?.cancelLabel}
                         </Button>
                         <Button
+                            {...confirmButtonSlotProps}
                             type="button"
                             variant={confirmButtonVariant}
                             size="sm"
-                            data-sot-control="confirm-dialog-confirm"
                             onClick={() => close(true)}
                         >
                             {state?.confirmLabel}

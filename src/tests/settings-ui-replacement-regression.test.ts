@@ -9,6 +9,21 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function expectOnlyAllowedGlobalSlotSelectors(globals: string) {
+    const disallowed = globals
+        .split("\n")
+        .filter((line) => line.includes('[data-slot="'))
+        .filter(
+            (line) =>
+                !line.includes('[data-slot="badge"][data-variant="source"]') &&
+                !line.includes(
+                    '[data-slot="badge"][data-variant="player-status"]',
+                ),
+        );
+
+    expect(disallowed).toEqual([]);
+}
+
 function readCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -469,6 +484,7 @@ describe("settings SOT interaction regressions", () => {
     it("keeps modal and scrim product CSS on dialog/data-sot selectors only", () => {
         const globals = readSource("app/globals.css");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
+        const layout = readSource("app/layout.tsx");
         const productCss = readProductCss(globals);
 
         expect(productCss).not.toMatch(LEGACY_MODAL_SHELL_CSS_SELECTOR_RE);
@@ -492,18 +508,20 @@ describe("settings SOT interaction regressions", () => {
                 FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION,
             );
         }
-        expect(confirmDialog).toContain('data-sot-part="confirm-foot"');
+        expect(confirmDialog).toContain("ConfirmDialogSlotProps");
+        expect(confirmDialog).not.toContain('data-sot-part="confirm-foot"');
+        expect(layout).toContain('"data-sot-part": "confirm-foot"');
         expect(confirmDialog).toMatch(
-            /<DialogHeader[\s\S]*data-sot-part="confirm-head"[\s\S]*className="gap-2 text-left"/,
+            /<DialogHeader[\s\S]*\{\.\.\.headerSlotProps\}[\s\S]*className=\{cn\(\s*"gap-2 text-left"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogTitle[\s\S]*data-sot-part="confirm-title"[\s\S]*className="m-0 text-base leading-snug font-semibold tracking-normal"/,
+            /<DialogTitle[\s\S]*\{\.\.\.titleSlotProps\}[\s\S]*"m-0 text-base leading-snug font-semibold tracking-normal"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogDescription[\s\S]*data-sot-part="confirm-description"[\s\S]*className="m-0 text-sm leading-relaxed text-muted-foreground"/,
+            /<DialogDescription[\s\S]*\{\.\.\.descriptionSlotProps\}[\s\S]*"m-0 text-sm leading-relaxed text-muted-foreground"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogFooter[\s\S]*data-sot-part="confirm-foot"[\s\S]*className="gap-2 sm:justify-end"/,
+            /<DialogFooter[\s\S]*\{\.\.\.footerSlotProps\}[\s\S]*"gap-\[8px\] sm:justify-end"/,
         );
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
@@ -555,7 +573,7 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        expect(globals).not.toContain('[data-slot="');
+        expectOnlyAllowedGlobalSlotSelectors(globals);
     });
 
     it("keeps migrated settings fields on shadcn Field, Slider, and Skeleton primitives", () => {
@@ -1251,7 +1269,7 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).not.toContain(
             '[data-sot-panel="source-actions"] [data-slot="button"]',
         );
-        expect(globals).not.toContain('[data-slot="');
+        expectOnlyAllowedGlobalSlotSelectors(globals);
 
         for (const target of SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS) {
             expect(

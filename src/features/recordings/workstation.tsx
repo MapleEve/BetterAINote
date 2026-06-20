@@ -40,7 +40,10 @@ import {
     FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import {
+    type SegmentedTabItem,
+    SegmentedTabs,
+} from "@/components/ui/segmented-tabs";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingPlayer } from "@/features/recordings/components/recording-player";
@@ -98,6 +101,20 @@ interface RawTranscriptCopyPayload {
         text?: string | null;
     } | null;
     error?: string;
+}
+
+function getSotSegmentedTabProps<T extends string>(
+    _item: SegmentedTabItem<T>,
+    state: { active: boolean; disabled: boolean },
+) {
+    return {
+        "data-sot-control": "segmented-tab",
+        "data-sot-state": state.disabled
+            ? "disabled"
+            : state.active
+              ? "active"
+              : "idle",
+    };
 }
 
 function createSourceReportAvailability(
@@ -1407,6 +1424,11 @@ export function RecordingWorkstation({
                                         </Field>
                                         <div data-sot-part="recording-source-record-tabs">
                                             <SegmentedTabs
+                                                data-sot-control="segmented-tabs"
+                                                data-sot-size="sm"
+                                                getItemProps={
+                                                    getSotSegmentedTabProps
+                                                }
                                                 items={[
                                                     {
                                                         value: "source",

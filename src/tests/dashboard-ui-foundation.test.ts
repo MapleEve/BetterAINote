@@ -976,12 +976,15 @@ describe("dashboard SOT foundation", () => {
             expect(globals).toContain(token);
         }
 
-        expect(segmentedTabs).toContain('data-sot-control="segmented-tabs"');
-        expect(segmentedTabs).toContain("data-sot-size={size}");
+        expect(segmentedTabs).not.toContain(
+            'data-sot-control="segmented-tabs"',
+        );
+        expect(segmentedTabs).not.toContain("data-sot-size={size}");
         expect(segmentedTabs).toContain("data-tabs={items.length}");
         expect(segmentedTabs).toContain("data-active={activeIndex}");
-        expect(segmentedTabs).toContain('data-sot-control="segmented-tab"');
-        expect(segmentedTabs).toContain("data-sot-state={");
+        expect(segmentedTabs).toContain("getItemProps");
+        expect(segmentedTabs).not.toContain('data-sot-control="segmented-tab"');
+        expect(segmentedTabs).not.toContain("data-sot-state={");
         expect(segmentedTabs).toContain(
             'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
         );
@@ -999,11 +1002,13 @@ describe("dashboard SOT foundation", () => {
         expect(segmentedTabs).toContain(
             "aria-disabled={item.disabled || undefined}",
         );
-        expect(segmentedTabs).toContain("aria-selected={item.value === value}");
+        expect(segmentedTabs).toContain("aria-selected={active}");
         expect(segmentedTabs).toContain("disabled={item.disabled}");
         expect(segmentedTabs).not.toContain("<button");
         expect(segmentedTabs).not.toContain('data-slot="segmented-tabs"');
-        expect(segmentedTabs).not.toContain('data-slot="toggle-group-indicator"');
+        expect(segmentedTabs).not.toContain(
+            'data-slot="toggle-group-indicator"',
+        );
         expect(segmentedTabs).not.toContain(
             'data-sot-part="liquid-tabs-indicator"',
         );

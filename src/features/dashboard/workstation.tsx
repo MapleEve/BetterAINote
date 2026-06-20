@@ -72,7 +72,10 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import {
+    type SegmentedTabItem,
+    SegmentedTabs,
+} from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
@@ -302,6 +305,20 @@ const DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS = cn(
 
 const DASHBOARD_RECORDING_ROW_BUTTON_CLASS =
     "h-auto justify-normal whitespace-normal rounded-[10px] px-3 py-[11px] text-left text-[13.3333px] font-normal";
+
+function getSotSegmentedTabProps<T extends string>(
+    _item: SegmentedTabItem<T>,
+    state: { active: boolean; disabled: boolean },
+) {
+    return {
+        "data-sot-control": "segmented-tab",
+        "data-sot-state": state.disabled
+            ? "disabled"
+            : state.active
+              ? "active"
+              : "idle",
+    };
+}
 
 type SotPlayerSliderTrackStyle = CSSProperties & {
     "--sot-player-track": string;
@@ -786,12 +803,13 @@ const SOURCE_REPORT_METRIC_CARD_CLASS =
 const SOURCE_REPORT_STATUS_BADGE_CLASS =
     "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none";
 
-const SOURCE_REPORT_STATUS_BADGE_TONE_CLASS: Record<SourceReportTone, string> = {
-    err: "border-[var(--source-report-status-err-border)] bg-[var(--source-report-status-err-bg)] text-[var(--signal-danger)]",
-    neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
-    ok: "border-[var(--source-report-status-ok-border)] bg-[var(--source-report-status-ok-bg)] text-[var(--source-report-status-ok-fg)]",
-    warn: "border-[var(--source-report-status-warn-border)] bg-[var(--source-report-status-warn-bg)] text-[var(--source-report-status-warn-fg)]",
-};
+const SOURCE_REPORT_STATUS_BADGE_TONE_CLASS: Record<SourceReportTone, string> =
+    {
+        err: "border-[var(--source-report-status-err-border)] bg-[var(--source-report-status-err-bg)] text-[var(--signal-danger)]",
+        neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
+        ok: "border-[var(--source-report-status-ok-border)] bg-[var(--source-report-status-ok-bg)] text-[var(--source-report-status-ok-fg)]",
+        warn: "border-[var(--source-report-status-warn-border)] bg-[var(--source-report-status-warn-bg)] text-[var(--source-report-status-warn-fg)]",
+    };
 
 function sourceReportReadinessTone(label: string): SourceReportTone {
     if (label === "已就绪") return "ok";
@@ -4044,6 +4062,7 @@ export function Workstation({
                                                 DASHBOARD_SOURCE_ACTION_BUTTON_CLASS
                                             }
                                         >
+                                            {/* biome-ignore lint/a11y/useSemanticElements: shadcn Button is applied with asChild here to avoid nesting a native button inside the provider row button. */}
                                             <span
                                                 role="button"
                                                 tabIndex={0}
@@ -5226,7 +5245,10 @@ export function Workstation({
                                     </div>
                                     <SegmentedTabs
                                         aria-label="列表模式"
+                                        data-sot-control="segmented-tabs"
                                         data-sot-part="dashboard-recording-list-mode-segmented"
+                                        data-sot-size="sm"
+                                        getItemProps={getSotSegmentedTabProps}
                                         items={[
                                             {
                                                 value: "timeline",
@@ -6406,9 +6428,7 @@ export function Workstation({
                                 </Button>
                                 <Popover
                                     open={volumePopoverOpen}
-                                    onOpenChange={(open) =>
-                                        setVolumeOpen(open)
-                                    }
+                                    onOpenChange={(open) => setVolumeOpen(open)}
                                 >
                                     <div data-sot-part="dashboard-player-volume-anchor">
                                         <PopoverTrigger asChild>
@@ -6554,6 +6574,9 @@ export function Workstation({
                                 <SegmentedTabs
                                     aria-label="详情标签"
                                     className="shrink-0"
+                                    data-sot-control="segmented-tabs"
+                                    data-sot-size="sm"
+                                    getItemProps={getSotSegmentedTabProps}
                                     items={[
                                         { value: "transcript", label: "转写" },
                                         { value: "speakers", label: "说话人" },
