@@ -130,7 +130,7 @@ export function LoginForm({
                         />{" "}
                         <div data-sot-part="auth-heading">{title}</div>
                         <div data-sot-part="auth-description">{subtitle}</div>
-                        <FieldGroup className="mx-auto max-w-[280px] gap-3">
+                        <FieldGroup className="mx-auto max-w-[280px] gap-[10px]">
                             <Field
                                 data-disabled={
                                     !isMounted || isLoading ? "true" : undefined
@@ -149,7 +149,7 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    className="w-full"
+                                    className="h-[36px] w-full rounded-[9px] border-primary bg-[var(--bg-elevated)] px-[12px] py-0 !text-[13px] font-medium leading-[normal] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 md:!text-[13px] dark:bg-[var(--bg-elevated)]"
                                     data-sot-control="auth-email"
                                     data-sot-state={
                                         invalid
@@ -180,13 +180,13 @@ export function LoginForm({
                                     </FieldDescription>
                                 ) : null}
                             </Field>
-                            <Field>
+                            <Field className="gap-0">
                                 <Button
                                     type="submit"
                                     variant="primary"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
-                                    className="w-full"
+                                    className="h-[38px] w-full rounded-[8px] !border !border-solid !border-transparent !bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] !text-white shadow-none hover:!bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0"
                                     data-sot-control="send-login-link"
                                 >
                                     {isLoading ? "发送中..." : "发送登录链接"}
@@ -199,7 +199,7 @@ export function LoginForm({
                                         size="sm"
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
-                                        className="h-auto min-h-0 p-0 align-baseline"
+                                        className="h-auto min-h-0 rounded-none p-0 align-baseline !text-[12px] !font-normal !leading-[normal] !text-[var(--accent)] underline !underline-offset-auto"
                                         data-sot-control="local-only"
                                         data-sot-state={
                                             isLocalLoading ? "loading" : "ready"

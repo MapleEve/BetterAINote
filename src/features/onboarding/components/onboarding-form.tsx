@@ -281,7 +281,11 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             data-sot-ready={isMounted ? "true" : "false"}
             data-sot-surface="onboarding"
         >
-            <Card hasNoPadding data-sot-card="onboarding">
+            <Card
+                hasNoPadding
+                className="min-h-[375px]"
+                data-sot-card="onboarding"
+            >
                 <CardHeader
                     className="gap-0 p-0"
                     data-sot-part="onboarding-card-header"
@@ -735,6 +739,7 @@ function TranscriptionStep({
             </div>
             <div data-sot-part="onboarding-actions">
                 <Button
+                    className="!h-[26px] !gap-[6px] !rounded-[8px] !border !border-solid !border-[var(--line-hairline)] !bg-transparent !px-[10px] !text-[11px] !font-semibold !leading-[normal] !text-[var(--fg-secondary)] !shadow-none"
                     data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
@@ -745,6 +750,7 @@ function TranscriptionStep({
                     跳过
                 </Button>
                 <Button
+                    className="!h-[26px] !gap-[6px] !rounded-[8px] !border !border-solid !border-transparent !bg-[var(--accent)] !px-[10px] !text-[11px] !font-semibold !leading-[normal] !text-white !shadow-none"
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
