@@ -3138,7 +3138,22 @@ describe("full UI replacement regression coverage", () => {
             expect(dashboardPlayer).not.toContain(legacyPlayerHook);
         }
         expect(dashboardPlayer).not.toMatch(/<input[\s\S]*type="range"/);
-        expect(workstation).toContain('data-icon="inline-start"');
+        const dashboardFavoriteButton = extractElementSlice(
+            workstation,
+            'data-sot-control="dashboard-favorite"',
+            "Button",
+        );
+        expect(dashboardFavoriteButton).toContain(
+            '<Icon data-icon="inline-start" />',
+        );
+        const dashboardActivityDismissButton = extractElementSlice(
+            workstation,
+            'data-sot-control="dashboard-activity-dismiss"',
+            "Button",
+        );
+        expect(dashboardActivityDismissButton).toContain(
+            '<X data-icon="inline-start" />',
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-sync-indicator"',
         );

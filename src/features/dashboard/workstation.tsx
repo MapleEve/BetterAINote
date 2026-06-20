@@ -3922,7 +3922,7 @@ export function Workstation({
                                     );
                                 }}
                             >
-                                <Icon />
+                                <Icon data-icon="inline-start" />
                                 <span
                                     className="min-w-0 flex-1 truncate"
                                     data-sot-part="dashboard-favorite-label"
@@ -4980,7 +4980,7 @@ export function Workstation({
                                                                         )
                                                                     }
                                                                 >
-                                                                    <X />
+                                                                    <X data-icon="inline-start" />
                                                                 </Button>
                                                             </div>
                                                         </li>

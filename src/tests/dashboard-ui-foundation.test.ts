@@ -617,6 +617,22 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        const dashboardFavoriteButton = extractBoundedSlice(
+            workstation,
+            'data-sot-control="dashboard-favorite"',
+            'data-sot-part="dashboard-favorite-label"',
+        );
+        expect(dashboardFavoriteButton).toContain(
+            '<Icon data-icon="inline-start" />',
+        );
+        const dashboardActivityDismissButton = extractBoundedSlice(
+            workstation,
+            'data-sot-control="dashboard-activity-dismiss"',
+            "</Button>",
+        );
+        expect(dashboardActivityDismissButton).toContain(
+            '<X data-icon="inline-start" />',
+        );
         expect(workstation).toMatch(
             /<div\s+data-sot-format="mono"\s+data-sot-part="dashboard-activity-status-sub"\s*>/,
         );
