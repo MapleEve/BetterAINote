@@ -650,8 +650,13 @@ const DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS = [
     '[data-sot-part="dashboard-activity-empty-icon"] svg',
     '[data-sot-part="dashboard-activity-empty-title"]',
     '[data-sot-part="dashboard-activity-empty-body"]',
+];
+
+const DASHBOARD_TRANSCRIPT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-empty"]',
+    '[data-sot-panel="dashboard-transcript-empty"] > :first-child',
     '[data-sot-part="dashboard-transcript-empty-icon"]',
+    '[data-sot-part="dashboard-transcript-empty-icon"] svg',
     '[data-sot-part="dashboard-transcript-empty-message"]',
     '[data-sot-part="dashboard-transcript-empty-sub"]',
 ];
@@ -927,13 +932,17 @@ const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
 
 const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-source-report-empty-actions]",
+    "[data-sot-source-report-empty-actions] button",
+    "[data-sot-source-report-empty-actions] button:focus-visible",
+    '[data-sot-source-report-empty-actions] [data-variant="primary"]',
+    '[data-sot-source-report-empty-actions] [data-variant="ghost"]',
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"][data-sot-state="loading"]',
     '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"]:disabled',
-];
-
-const SOURCE_REPORT_EMPTY_PRIMITIVE_SELECTORS = [
     "[data-sot-source-report-empty]",
     '[data-sot-source-report-empty][data-sot-tone="err"]',
+    "[data-sot-source-report-empty-icon]",
+    '[data-sot-source-report-empty][data-sot-tone="err"]\n    [data-sot-source-report-empty-icon]',
+    "[data-sot-source-report-empty-icon] svg",
     "[data-sot-source-report-empty-title]",
     "[data-sot-source-report-empty-description]",
 ];
@@ -1522,6 +1531,9 @@ describe("full UI replacement regression coverage", () => {
             '"player-primary"',
             '"player-speed-compact"',
             '"compact-ghost"',
+            "copy",
+            '"copy-success"',
+            '"copy-danger"',
             "danger",
         ]) {
             expect(button).toContain(`${variant}:`);
@@ -1539,6 +1551,7 @@ describe("full UI replacement regression coverage", () => {
             '"size-[44px]',
             '"player-speed"',
             'compact: "h-[26px]',
+            'copy: "h-[26px]',
         ]) {
             expect(button).toContain(size);
         }
@@ -2230,6 +2243,9 @@ describe("full UI replacement regression coverage", () => {
 
         for (const selector of DASHBOARD_EMPTY_PRIMITIVE_CSS_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of DASHBOARD_TRANSCRIPT_EMPTY_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).toContain(selector);
         }
         expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain("[data-detail-empty][hidden]");
@@ -3167,9 +3183,6 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceReportEmptyLegacySelectorLines).toEqual([]);
-        for (const selector of SOURCE_REPORT_EMPTY_PRIMITIVE_SELECTORS) {
-            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
-        }
         for (const selector of SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }

@@ -29,6 +29,11 @@ const buttonVariants = cva(
                     "justify-center border border-transparent bg-transparent font-mono text-[12.5px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]",
                 "compact-ghost":
                     "border border-transparent bg-transparent text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                copy: "border border-transparent bg-transparent font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                "copy-success":
+                    "border border-[var(--button-copy-success-border)] bg-[var(--button-copy-success-bg)] font-semibold text-[var(--signal-success)] shadow-none hover:bg-[var(--button-copy-success-bg)] hover:text-[var(--signal-success)]",
+                "copy-danger":
+                    "border border-[var(--button-copy-danger-border)] bg-transparent font-semibold text-[var(--signal-danger)] shadow-none hover:bg-transparent hover:text-[var(--signal-danger)]",
                 danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
             },
             size: {
@@ -50,6 +55,7 @@ const buttonVariants = cva(
                 "player-speed":
                     "h-[32px] min-w-[50px] rounded-[9px] px-[12px]",
                 compact: "h-[26px] gap-[7px] rounded-[7px] px-[10px]",
+                copy: "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] leading-normal [&_svg:not([class*='size-'])]:size-[14px]",
             },
         },
         defaultVariants: {

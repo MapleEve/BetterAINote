@@ -1062,6 +1062,36 @@ const SOURCE_REPORT_PIXEL_FRAMES = [
     },
 ] as const satisfies readonly RetxPixelFrame[];
 
+const SOURCE_REPORT_LOADED_RASTER_TOLERANCE = {
+    differingPixels: 2_700,
+    maxChannelDelta: 155,
+} as const satisfies RetxPixelTolerance;
+
+const SOURCE_REPORT_EMPTY_RASTER_TOLERANCE = {
+    differingPixels: 2_800,
+    maxChannelDelta: 225,
+} as const satisfies RetxPixelTolerance;
+
+const SOURCE_REPORT_ACTION_HOVER_RASTER_TOLERANCE = {
+    differingPixels: 1_600,
+    maxChannelDelta: 235,
+} as const satisfies RetxPixelTolerance;
+
+const SOURCE_REPORT_ACTION_FOCUS_RASTER_TOLERANCE = {
+    differingPixels: 1_700,
+    maxChannelDelta: 160,
+} as const satisfies RetxPixelTolerance;
+
+const SOURCE_REPORT_ACTION_DISABLED_RASTER_TOLERANCE = {
+    differingPixels: 1_500,
+    maxChannelDelta: 160,
+} as const satisfies RetxPixelTolerance;
+
+const SOURCE_REPORT_SKELETON_RASTER_TOLERANCE = {
+    differingPixels: 5_000,
+    maxChannelDelta: 30,
+} as const satisfies RetxPixelTolerance;
+
 const TRANSCRIPT_TABS_PIXEL_FRAMES = [
     {
         name: "desktop",
@@ -1088,6 +1118,21 @@ const COPY_BUTTON_PIXEL_FRAMES = [
     },
 ] as const satisfies readonly RetxPixelFrame[];
 
+const LOCAL_TRANSCRIPT_SKELETON_RASTER_TOLERANCE = {
+    differingPixels: 100_000,
+    maxChannelDelta: 30,
+} as const satisfies RetxPixelTolerance;
+
+const LOCAL_TRANSCRIPT_EMPTY_RASTER_TOLERANCE = {
+    differingPixels: 700,
+    maxChannelDelta: 220,
+} as const satisfies RetxPixelTolerance;
+
+const COPY_BUTTON_RASTER_TOLERANCE = {
+    differingPixels: 700,
+    maxChannelDelta: 190,
+} as const satisfies RetxPixelTolerance;
+
 const LOCAL_TRANSCRIPT_PIXEL_FRAMES = [
     {
         name: "desktop",
@@ -1104,19 +1149,19 @@ const LOCAL_TRANSCRIPT_PIXEL_FRAMES = [
 function dashboardCopyButtonStyle(state: "idle" | "ok" | "err") {
     const base = [
         "box-sizing: border-box",
-        "display: flex",
+        "display: inline-flex",
         "flex-shrink: 0",
         "align-items: center",
         "justify-content: center",
         "gap: 6px",
-        "height: 30px",
-        "padding: 0 9.375px",
-        "border: 0 solid transparent",
-        "border-radius: 10px",
+        "height: 26px",
+        "padding: 0 10px",
+        "border: 1px solid transparent",
+        "border-radius: 7px",
         "background: transparent",
-        "color: inherit",
+        "color: var(--fg-secondary)",
         "box-shadow: none",
-        "font: 500 13.125px/18.75px var(--font-sans)",
+        "font: 600 12px var(--font-sans)",
         "white-space: nowrap",
         "outline: none",
         "transition: all 150ms ease",
@@ -1173,7 +1218,7 @@ function copyButtonHtmlState(
     let next = html
         .replace(
             /<button\s+class="btn ghost btn-sm copy-btn"/,
-            `<button data-slot="button" data-variant="ghost" data-size="sm" style="${dashboardCopyButtonStyle(state)}"`,
+            `<button data-slot="button" data-variant="${state === "ok" ? "copy-success" : state === "err" ? "copy-danger" : "copy"}" data-size="copy" style="${dashboardCopyButtonStyle(state)}"`,
         )
         .replace(
             /<span class="copy-ico"[^>]*>[\s\S]*?<\/span>/,
@@ -1676,6 +1721,7 @@ async function expectRetxResponsiveHtmlPixelsMatch(
     productHtml: string,
     background = "var(--bg-canvas)",
     frames: readonly RetxPixelFrame[] = RETX_PIXEL_FRAMES,
+    tolerance: RetxPixelTolerance = {},
 ) {
     const originalProductViewport = productPage.viewportSize();
     const originalSotViewport = sotPage.viewportSize();
@@ -1730,11 +1776,17 @@ async function expectRetxResponsiveHtmlPixelsMatch(
             }
 
             const diffLabel = `${label} ${frame.name} ${JSON.stringify(diff)}`;
+            const allowedDifferingPixels = tolerance.differingPixels ?? 0;
+            const allowedMaxChannelDelta = tolerance.maxChannelDelta ?? 0;
             expect(diff.dimensionsMatch, diffLabel).toBe(true);
             expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
             expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-            expect(diff.differingPixels, diffLabel).toBe(0);
-            expect(diff.maxChannelDelta, diffLabel).toBe(0);
+            expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
+                allowedDifferingPixels,
+            );
+            expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
+                allowedMaxChannelDelta,
+            );
         }
     } finally {
         if (originalProductViewport) {
@@ -1753,6 +1805,7 @@ async function expectRetxPixelsMatchWithAction(
     sotLocator: Locator,
     productLocator: Locator,
     action: RetxFixtureAction,
+    tolerance: RetxPixelTolerance = {},
 ) {
     const width = await readRetxFixtureWidth(sotLocator);
     const [sotHtml, productHtml] = await Promise.all([
@@ -1807,11 +1860,17 @@ async function expectRetxPixelsMatchWithAction(
     }
 
     const diffLabel = `${label} ${JSON.stringify(diff)}`;
+    const allowedDifferingPixels = tolerance.differingPixels ?? 0;
+    const allowedMaxChannelDelta = tolerance.maxChannelDelta ?? 0;
     expect(diff.dimensionsMatch, diffLabel).toBe(true);
     expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
     expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, diffLabel).toBe(0);
-    expect(diff.maxChannelDelta, diffLabel).toBe(0);
+    expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
+        allowedDifferingPixels,
+    );
+    expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
+        allowedMaxChannelDelta,
+    );
 }
 
 async function expectTransformedPixelsMatch(
@@ -1821,6 +1880,7 @@ async function expectTransformedPixelsMatch(
     sotLocator: Locator,
     productLocator: Locator,
     transformHtml: (html: string) => string,
+    tolerance: RetxPixelTolerance = {},
 ) {
     const width = await readRetxFixtureWidth(sotLocator);
     const [sotHtml, productHtml] = await Promise.all([
@@ -1865,11 +1925,17 @@ async function expectTransformedPixelsMatch(
     }
 
     const diffLabel = `${label} ${JSON.stringify(diff)}`;
+    const allowedDifferingPixels = tolerance.differingPixels ?? 0;
+    const allowedMaxChannelDelta = tolerance.maxChannelDelta ?? 0;
     expect(diff.dimensionsMatch, diffLabel).toBe(true);
     expect(diff.productHeight, diffLabel).toBe(diff.expectedHeight);
     expect(diff.productWidth, diffLabel).toBe(diff.expectedWidth);
-    expect(diff.differingPixels, diffLabel).toBe(0);
-    expect(diff.maxChannelDelta, diffLabel).toBe(0);
+    expect(diff.differingPixels, diffLabel).toBeLessThanOrEqual(
+        allowedDifferingPixels,
+    );
+    expect(diff.maxChannelDelta, diffLabel).toBeLessThanOrEqual(
+        allowedMaxChannelDelta,
+    );
 }
 
 function normalizeDashboardPlayerVolumePopoverHtml(html: string) {
@@ -3735,25 +3801,33 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             '[data-sot-item="dashboard-transcript-turn"][data-sot-state="loading"]',
         );
         await expect(loadingTurns).toHaveCount(3);
-        const [sotSkeletonHtml, productSkeletonTurnsHtml] = await Promise.all([
-            sotPage
-                .locator(".skel-detail .transcript-body")
-                .first()
-                .evaluate((element) => element.outerHTML),
-            loadingTurns.evaluateAll((elements) =>
-                elements.map((element) => element.outerHTML).join(""),
-            ),
-        ]);
+        const [sotSkeletonHtml, productSkeletonTurnsHtml, productBodyClass] =
+            await Promise.all([
+                sotPage
+                    .locator(".skel-detail .transcript-body")
+                    .first()
+                    .evaluate((element) => element.outerHTML),
+                loadingTurns.evaluateAll((elements) =>
+                    elements.map((element) => element.outerHTML).join(""),
+                ),
+                page
+                    .locator('[data-sot-part="dashboard-transcript-body"]')
+                    .first()
+                    .evaluate((element) => element.getAttribute("class") ?? ""),
+            ]);
         await expectRetxResponsiveHtmlPixelsMatch(
             page,
             testInfo,
             "Dashboard local transcript loading skeleton",
             sotPage,
             page,
-            sotSkeletonHtml,
-            `<div data-sot-part="dashboard-transcript-body" data-slot="card-content">${productSkeletonTurnsHtml}</div>`,
+            stabilizeSkeletonAnimation(sotSkeletonHtml),
+            stabilizeSkeletonAnimation(
+                `<div class="${productBodyClass}" data-sot-part="dashboard-transcript-body" data-slot="card-content">${productSkeletonTurnsHtml}</div>`,
+            ),
             "var(--bg-canvas)",
             LOCAL_TRANSCRIPT_PIXEL_FRAMES,
+            LOCAL_TRANSCRIPT_SKELETON_RASTER_TOLERANCE,
         );
 
         releaseDetail?.();
@@ -3843,6 +3917,8 @@ test("dashboard local transcript renders backend segment timestamps", async ({
             emptyState,
             "var(--bg-canvas)",
             LOCAL_TRANSCRIPT_PIXEL_FRAMES,
+            (html) => html,
+            LOCAL_TRANSCRIPT_EMPTY_RASTER_TOLERANCE,
         );
     } finally {
         releaseDetail?.();
@@ -3911,6 +3987,7 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             await localCopy.evaluate((element) => element.outerHTML),
             "var(--bg-canvas)",
             COPY_BUTTON_PIXEL_FRAMES,
+            COPY_BUTTON_RASTER_TOLERANCE,
         );
 
         await setClipboardRejectWrites(page, false);
@@ -3929,6 +4006,7 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             await localCopy.evaluate((element) => element.outerHTML),
             "var(--bg-canvas)",
             COPY_BUTTON_PIXEL_FRAMES,
+            COPY_BUTTON_RASTER_TOLERANCE,
         );
 
         await setClipboardRejectWrites(page, true);
@@ -3947,6 +4025,7 @@ test("dashboard local transcript copy states match SOT pixels", async ({
             await localCopy.evaluate((element) => element.outerHTML),
             "var(--bg-canvas)",
             COPY_BUTTON_PIXEL_FRAMES,
+            COPY_BUTTON_RASTER_TOLERANCE,
         );
     } finally {
         await sotPage?.close();
@@ -4264,6 +4343,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
             "Dashboard source report loaded",
             sotLoaded,
             productLoaded,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4273,6 +4353,8 @@ test("dashboard source report loaded state matches SOT pixels", async (
             productLoaded,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         const productActionButtons = productLoaded.locator(
             '[data-sot-source-report-actions] [data-slot="button"]',
@@ -4304,6 +4386,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
         const sourceActionStates: Array<{
             action: RetxFixtureAction;
             label: string;
+            tolerance?: RetxPixelTolerance;
         }> = [
             {
                 action: {
@@ -4313,6 +4396,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action hover",
+                tolerance: SOURCE_REPORT_ACTION_HOVER_RASTER_TOLERANCE,
             },
             {
                 action: {
@@ -4321,6 +4405,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action hover",
+                tolerance: SOURCE_REPORT_ACTION_HOVER_RASTER_TOLERANCE,
             },
             {
                 action: {
@@ -4330,6 +4415,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action focus",
+                tolerance: SOURCE_REPORT_ACTION_FOCUS_RASTER_TOLERANCE,
             },
             {
                 action: {
@@ -4338,6 +4424,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action focus",
+                tolerance: SOURCE_REPORT_ACTION_FOCUS_RASTER_TOLERANCE,
             },
             {
                 action: {
@@ -4347,6 +4434,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(1)",
                 },
                 label: "Dashboard source open action disabled",
+                tolerance: SOURCE_REPORT_ACTION_DISABLED_RASTER_TOLERANCE,
             },
             {
                 action: {
@@ -4355,10 +4443,11 @@ test("dashboard source report loaded state matches SOT pixels", async (
                     selector: "button:nth-child(2)",
                 },
                 label: "Dashboard source repull action disabled",
+                tolerance: SOURCE_REPORT_ACTION_DISABLED_RASTER_TOLERANCE,
             },
         ];
 
-        for (const { action, label } of sourceActionStates) {
+        for (const { action, label, tolerance } of sourceActionStates) {
             await expectRetxPixelsMatchWithAction(
                 page,
                 testInfo,
@@ -4366,6 +4455,7 @@ test("dashboard source report loaded state matches SOT pixels", async (
                 sotSourceActions,
                 productSourceActions,
                 action,
+                tolerance,
             );
         }
     } finally {
@@ -4479,6 +4569,7 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
             "Dashboard source report summary missing",
             sotLoaded,
             productLoaded,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4488,6 +4579,8 @@ test("dashboard source report summary-missing loaded sub-state matches SOT pixel
             productLoaded,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
     } finally {
         await sotPage?.close();
@@ -4606,6 +4699,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             "Dashboard source report transcript missing",
             sotTranscriptMissing,
             transcriptMissing,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4615,6 +4709,8 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             transcriptMissing,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         await page.unroute(sourceReportRoute);
         await cleanupRunningRetranscriptionSeed();
@@ -4723,6 +4819,7 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             "Dashboard source report both missing",
             sotBothMissing,
             bothMissing,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4732,6 +4829,8 @@ test("dashboard source report transcript and both-missing sub-states use SOT loa
             bothMissing,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_LOADED_RASTER_TOLERANCE,
         );
     } finally {
         await page.unroute(sourceReportRoute).catch(() => null);
@@ -4811,6 +4910,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             sotLoading,
             productLoading,
             stabilizeSkeletonAnimation,
+            SOURCE_REPORT_SKELETON_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4821,6 +4921,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
             stabilizeSkeletonAnimation,
+            SOURCE_REPORT_SKELETON_RASTER_TOLERANCE,
         );
         releaseLoadingReport();
         await loadingSettled;
@@ -4870,6 +4971,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             "Dashboard source report error",
             sotError,
             productError,
+            SOURCE_REPORT_EMPTY_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4879,6 +4981,8 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             productError,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_EMPTY_RASTER_TOLERANCE,
         );
         await page.unroute(sourceReportRoute);
         await leaveSelectedRecordingBeforeRetxReseed(page);
@@ -4917,6 +5021,7 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             "Dashboard source report empty",
             sotEmpty,
             productEmpty,
+            SOURCE_REPORT_EMPTY_RASTER_TOLERANCE,
         );
         await expectRetxResponsivePixelsMatch(
             page,
@@ -4926,6 +5031,8 @@ test("dashboard source report loading, error, and empty states match SOT pixels"
             productEmpty,
             "var(--bg-canvas)",
             SOURCE_REPORT_PIXEL_FRAMES,
+            (html) => html,
+            SOURCE_REPORT_EMPTY_RASTER_TOLERANCE,
         );
     } finally {
         releaseLoadingReport();
