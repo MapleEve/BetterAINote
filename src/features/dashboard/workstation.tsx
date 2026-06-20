@@ -6318,7 +6318,10 @@ export function Workstation({
                                             className:
                                                 SOT_PLAYER_SEEK_THUMB_CLASS,
                                             "data-pct": playerProgressPct,
-                                            style: sotPlayerSeekThumbStyle,
+                                            style: {
+                                                ...sotPlayerSeekThumbStyle,
+                                                transform: "translateX(-2px)",
+                                            },
                                         }}
                                         value={[progress]}
                                         onValueChange={(values) =>
