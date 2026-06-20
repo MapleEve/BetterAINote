@@ -21,19 +21,6 @@ const buttonVariants = cva(
                 link: "text-primary underline-offset-4 hover:underline",
                 primary:
                     "bg-primary text-primary-foreground hover:bg-primary/90",
-                player:
-                    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] font-normal text-[var(--button-player-fg)] [box-shadow:var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96]",
-                "player-primary":
-                    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] font-normal text-white [box-shadow:var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]",
-                "player-speed-compact":
-                    "justify-center border border-transparent bg-transparent font-mono text-[12.5px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]",
-                "compact-ghost":
-                    "border border-transparent bg-transparent text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                copy: "border border-transparent bg-transparent font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-                "copy-success":
-                    "border border-[var(--button-copy-success-border)] bg-[var(--button-copy-success-bg)] font-semibold text-[var(--signal-success)] shadow-none hover:bg-[var(--button-copy-success-bg)] hover:text-[var(--signal-success)]",
-                "copy-danger":
-                    "border border-[var(--button-copy-danger-border)] bg-transparent font-semibold text-[var(--signal-danger)] shadow-none hover:bg-transparent hover:text-[var(--signal-danger)]",
                 danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
             },
             size: {
@@ -46,16 +33,6 @@ const buttonVariants = cva(
                     "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
                 "icon-sm": "size-8",
                 "icon-lg": "size-10",
-                player:
-                    "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px]",
-                "player-sm":
-                    "size-[30px] rounded-[50%] px-[6px] py-px text-[13.3333px]",
-                "player-lg":
-                    "size-[44px] rounded-[50%] px-[6px] py-px text-[13.3333px]",
-                "player-speed":
-                    "h-[32px] min-w-[50px] rounded-[9px] px-[12px]",
-                compact: "h-[26px] gap-[7px] rounded-[7px] px-[10px]",
-                copy: "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] leading-normal [&_svg:not([class*='size-'])]:size-[14px]",
             },
         },
         defaultVariants: {

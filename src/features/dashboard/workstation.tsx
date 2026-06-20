@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
     Card,
     CardAction,
@@ -333,6 +333,25 @@ const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
 const SOT_PLAYER_SEEK_THUMB_CLASS =
     "size-[14px] border-0 bg-white p-0 shadow-none";
 const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
+const SOT_PLAYER_BUTTON_CLASS =
+    "size-[36px] rounded-[50%] border border-[var(--button-player-border)] bg-[var(--button-player-bg)] px-[6px] py-px text-[13.3333px] font-normal text-[var(--button-player-fg)] [box-shadow:var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96]";
+const SOT_PLAYER_BUTTON_SM_CLASS = cn(SOT_PLAYER_BUTTON_CLASS, "size-[30px]");
+const SOT_PLAYER_PRIMARY_BUTTON_CLASS =
+    "size-[44px] rounded-[50%] border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] px-[6px] py-px text-[13.3333px] font-normal text-white [box-shadow:var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
+const SOT_PLAYER_SPEED_BUTTON_CLASS =
+    "h-[32px] min-w-[50px] justify-center rounded-[9px] border border-transparent bg-transparent px-[12px] font-mono text-[12.5px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]";
+const SOT_COPY_BUTTON_BASE_CLASS =
+    "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] leading-normal font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px]";
+const SOT_COPY_SUCCESS_BUTTON_CLASS = cn(
+    SOT_COPY_BUTTON_BASE_CLASS,
+    "border-[var(--button-copy-success-border)] bg-[var(--button-copy-success-bg)] text-[var(--signal-success)] hover:bg-[var(--button-copy-success-bg)] hover:text-[var(--signal-success)]",
+);
+const SOT_COPY_DANGER_BUTTON_CLASS = cn(
+    SOT_COPY_BUTTON_BASE_CLASS,
+    "border-[var(--button-copy-danger-border)] text-[var(--signal-danger)] hover:bg-transparent hover:text-[var(--signal-danger)]",
+);
+const SOT_COMPACT_GHOST_BUTTON_CLASS =
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50";
 const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
     "--sot-player-track": "var(--graphite-200)",
 };
@@ -1323,12 +1342,10 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
     );
 }
 
-function getSotCopyButtonVariant(
-    state: "err" | "ok" | undefined,
-): ButtonProps["variant"] {
-    if (state === "err") return "copy-danger";
-    if (state === "ok") return "copy-success";
-    return "copy";
+function getSotCopyButtonClass(state: "err" | "ok" | undefined) {
+    if (state === "err") return SOT_COPY_DANGER_BUTTON_CLASS;
+    if (state === "ok") return SOT_COPY_SUCCESS_BUTTON_CLASS;
+    return SOT_COPY_BUTTON_BASE_CLASS;
 }
 
 function SotTranscriptEmptyIcon() {
@@ -6302,8 +6319,9 @@ export function Workstation({
                                 data-sot-state={playerControlsState}
                             >
                                 <Button
-                                    variant="player"
-                                    size="player"
+                                    variant="ghost"
+                                    size="icon"
+                                    className={SOT_PLAYER_BUTTON_CLASS}
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -6321,8 +6339,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="player-primary"
-                                    size="player-lg"
+                                    variant="ghost"
+                                    size="icon"
+                                    className={SOT_PLAYER_PRIMARY_BUTTON_CLASS}
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6349,8 +6368,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="player"
-                                    size="player"
+                                    variant="ghost"
+                                    size="icon"
+                                    className={SOT_PLAYER_BUTTON_CLASS}
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6420,8 +6440,9 @@ export function Workstation({
                                 </span>
                                 <Button
                                     type="button"
-                                    variant="player-speed-compact"
-                                    size="player-speed"
+                                    variant="ghost"
+                                    size="sm"
+                                    className={SOT_PLAYER_SPEED_BUTTON_CLASS}
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -6437,8 +6458,11 @@ export function Workstation({
                                     <div data-sot-part="dashboard-player-volume-anchor">
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant="player"
-                                                size="player-sm"
+                                                variant="ghost"
+                                                size="icon"
+                                                className={
+                                                    SOT_PLAYER_BUTTON_SM_CLASS
+                                                }
                                                 type="button"
                                                 aria-label={`音量 ${volume}`}
                                                 aria-expanded={
@@ -6616,13 +6640,14 @@ export function Workstation({
                                         </Badge>
                                     ) : null}
                                     <Button
-                                        variant={getSotCopyButtonVariant(
+                                        variant="ghost"
+                                        size="sm"
+                                        className={getSotCopyButtonClass(
                                             copyFeedback?.action ===
                                                 "local-transcript"
                                                 ? copyFeedback.state
                                                 : undefined,
                                         )}
-                                        size="copy"
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -6681,13 +6706,14 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant={getSotCopyButtonVariant(
+                                        variant="ghost"
+                                        size="sm"
+                                        className={getSotCopyButtonClass(
                                             copyFeedback?.action ===
                                                 "source-transcript"
                                                 ? copyFeedback.state
                                                 : undefined,
                                         )}
-                                        size="copy"
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6749,13 +6775,14 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant={getSotCopyButtonVariant(
+                                        variant="ghost"
+                                        size="sm"
+                                        className={getSotCopyButtonClass(
                                             copyFeedback?.action ===
                                                 "source-report"
                                                 ? copyFeedback.state
                                                 : undefined,
                                         )}
-                                        size="copy"
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={
@@ -6915,8 +6942,11 @@ export function Workstation({
                                     {dashboardRetxState === "failed" ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="compact-ghost"
-                                                size="compact"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
+                                                }
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -6927,8 +6957,11 @@ export function Workstation({
                                                 重试转写
                                             </Button>
                                             <Button
-                                                variant="compact-ghost"
-                                                size="compact"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
+                                                }
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6944,8 +6977,11 @@ export function Workstation({
                                       selectedRecording ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="compact-ghost"
-                                                size="compact"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
+                                                }
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""

@@ -1218,7 +1218,7 @@ function copyButtonHtmlState(
     let next = html
         .replace(
             /<button\s+class="btn ghost btn-sm copy-btn"/,
-            `<button data-slot="button" data-variant="${state === "ok" ? "copy-success" : state === "err" ? "copy-danger" : "copy"}" data-size="copy" style="${dashboardCopyButtonStyle(state)}"`,
+            `<button data-slot="button" data-variant="ghost" data-size="sm" style="${dashboardCopyButtonStyle(state)}"`,
         )
         .replace(
             /<span class="copy-ico"[^>]*>[\s\S]*?<\/span>/,
@@ -3193,8 +3193,9 @@ test("dashboard player exposes SOT seek speed volume and no-audio states", async
             "data-slot",
             "popover-trigger",
         );
-        await expect(volumeButton).toHaveAttribute("data-variant", "player");
-        await expect(volumeButton).toHaveAttribute("data-size", "player-sm");
+        await expect(volumeButton).toHaveAttribute("data-variant", "ghost");
+        await expect(volumeButton).toHaveAttribute("data-size", "icon");
+        await expect(volumeButton).toHaveClass(/size-\[30px\]/);
         await expect(volumeButton).toHaveClass(/rounded-\[50%\]/);
         await expect(volumeButton).toHaveAttribute("data-sot-state", "closed");
         await volumeButton.click();

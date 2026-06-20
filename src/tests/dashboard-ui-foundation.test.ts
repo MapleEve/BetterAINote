@@ -458,11 +458,17 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain(
             'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
-        expect(player).toContain('variant="player"');
-        expect(player).toContain('variant="player-primary"');
-        expect(player).toContain('size="player"');
-        expect(player).toContain('size="player-lg"');
-        expect(player).toContain('size="player-sm"');
+        expect(player).toContain('variant="ghost"');
+        expect(player).toContain('size="icon"');
+        expect(player).toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(player).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
+        expect(player).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(player).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(player).not.toContain('variant="player"');
+        expect(player).not.toContain('variant="player-primary"');
+        expect(player).not.toContain('size="player"');
+        expect(player).not.toContain('size="player-lg"');
+        expect(player).not.toContain('size="player-sm"');
         expect(player).toContain("<Badge");
         expect(player).toContain('variant="ghost"');
         expect(player).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
@@ -906,8 +912,9 @@ describe("dashboard SOT foundation", () => {
             expect(sourceReportLoaded).not.toContain(legacyClassName);
         }
         expect(workstation).toContain(
-            'import { Button, type ButtonProps } from "@/components/ui/button";',
+            'import { Button } from "@/components/ui/button";',
         );
+        expect(workstation).not.toContain("type ButtonProps");
         expect(workstation).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );

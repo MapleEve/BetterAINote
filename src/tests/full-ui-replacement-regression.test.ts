@@ -1520,33 +1520,26 @@ describe("full UI replacement regression coverage", () => {
             "ghost",
             "link",
             "primary",
-            "player",
-            '"player-primary"',
-            '"player-speed-compact"',
-            '"compact-ghost"',
-            "copy",
-            '"copy-success"',
-            '"copy-danger"',
             "danger",
         ]) {
             expect(button).toContain(`${variant}:`);
         }
-        expect(button).toContain("--button-player-bg");
-        expect(button).toContain("--button-player-primary-bg");
-        expect(button).toContain("--button-player-primary-shadow");
-        expect(button).toContain(
-            "[background:var(--button-player-primary-bg)]",
-        );
         for (const size of [
+            "player:",
+            '"player-primary":',
+            '"player-speed-compact":',
+            '"compact-ghost":',
+            "copy:",
+            '"copy-success":',
+            '"copy-danger":',
+            '"player-sm":',
+            '"player-lg":',
+            '"player-speed":',
+            "compact:",
             '"size-[36px]',
-            '"player-sm"',
-            '"player-lg"',
             '"size-[44px]',
-            '"player-speed"',
-            'compact: "h-[26px]',
-            'copy: "h-[26px]',
         ]) {
-            expect(button).toContain(size);
+            expect(button).not.toContain(size);
         }
         expect(button).not.toContain("glass:");
         expect(button).toContain(
@@ -2928,12 +2921,12 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<Button");
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
-        expect(workstation).toContain('size="player-lg"');
-        expect(workstation).not.toContain("SOT_PLAYER_ROUND_BUTTON_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_PLAY_BUTTON_CLASS");
-        expect(workstation).not.toContain(
-            "SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS",
-        );
+        expect(workstation).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
+        expect(workstation).toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(workstation).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(workstation).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(workstation).toContain("SOT_COPY_BUTTON_BASE_CLASS");
+        expect(workstation).toContain("SOT_COMPACT_GHOST_BUTTON_CLASS");
         expect(workstation).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
@@ -3015,11 +3008,17 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(dashboardPlayer).toContain('variant="player"');
-        expect(dashboardPlayer).toContain('variant="player-primary"');
-        expect(dashboardPlayer).toContain('size="player"');
-        expect(dashboardPlayer).toContain('size="player-lg"');
-        expect(dashboardPlayer).toContain('size="player-sm"');
+        expect(dashboardPlayer).toContain('variant="ghost"');
+        expect(dashboardPlayer).toContain('size="icon"');
+        expect(dashboardPlayer).toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(dashboardPlayer).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
+        expect(dashboardPlayer).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(dashboardPlayer).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(dashboardPlayer).not.toContain('variant="player"');
+        expect(dashboardPlayer).not.toContain('variant="player-primary"');
+        expect(dashboardPlayer).not.toContain('size="player"');
+        expect(dashboardPlayer).not.toContain('size="player-lg"');
+        expect(dashboardPlayer).not.toContain('size="player-sm"');
         expect(
             extractCssBlock(
                 globals,
