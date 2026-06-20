@@ -88,7 +88,7 @@ export function SotPlayerSourceTag({
             data-sot-provider={provider}
         >
             <span
-                className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"
+                className="inline-flex size-[16px] shrink-0 items-center justify-center overflow-hidden rounded-[4px]"
                 data-sot-cover={badge?.cover ? "true" : "false"}
                 data-sot-part="source-icon"
                 data-sot-source-icon={hasImage ? "image" : "letter"}
@@ -96,7 +96,7 @@ export function SotPlayerSourceTag({
             >
                 {badge?.icon ? (
                     <img
-                        className="block size-4 max-w-none object-contain"
+                        className="block size-[16px] max-w-none object-contain"
                         src={badge.icon}
                         alt=""
                     />

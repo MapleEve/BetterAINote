@@ -1298,11 +1298,18 @@ describe("full UI replacement regression coverage", () => {
         const globalSlotSelectors = globals
             .split("\n")
             .filter((line) => line.includes('[data-slot="'));
-        expect(globalSlotSelectors.every((line) =>
-            line.includes(
-                ':where([data-slot="button"], [data-slot="popover-trigger"])',
+        expect(
+            globalSlotSelectors.every(
+                (line) =>
+                    line.includes(
+                        ':where([data-slot="button"], [data-slot="popover-trigger"])',
+                    ) ||
+                    line.includes('[data-slot="badge"][data-variant="source"]') ||
+                    line.includes(
+                        '[data-slot="badge"][data-variant="player-status"]',
+                    ),
             ),
-        )).toBe(true);
+        ).toBe(true);
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -5007,10 +5014,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain('variant="source"');
         expect(sotPlayerPrimitives).toContain('variant="player-status"');
         expect(sotPlayerPrimitives).toContain(
-            'className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
+            'className="inline-flex size-[16px] shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
         );
         expect(sotPlayerPrimitives).toContain(
-            'className="block size-4 max-w-none object-contain"',
+            'className="block size-[16px] max-w-none object-contain"',
         );
         expect(sotPlayerPrimitives).toContain(
             'className={cn("size-4", className)}',

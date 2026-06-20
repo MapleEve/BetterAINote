@@ -298,12 +298,12 @@ type SotPlayerSliderTrackStyle = CSSProperties & {
 };
 
 const SOT_PLAYER_SEEK_SLIDER_CLASS = cn(
-    "h-3.5 min-w-0 cursor-pointer data-[disabled]:cursor-default",
-    "[&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
+    "h-[14px] min-w-0 cursor-pointer data-[disabled]:cursor-default",
+    "[&_[data-slot=slider-track]]:h-[6px] [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
 );
 const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
 const SOT_PLAYER_SEEK_THUMB_CLASS =
-    "size-3.5 border-0 bg-white p-0 shadow-none";
+    "size-[14px] border-0 bg-white p-0 shadow-none";
 const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
 const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
     "--sot-player-track": "var(--graphite-200)",
