@@ -66,6 +66,11 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -300,6 +305,15 @@ const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
 const SOT_PLAYER_SEEK_THUMB_CLASS =
     "size-3.5 border-0 bg-white p-0 shadow-none";
 const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
+const SOT_PLAYER_ROUND_BUTTON_CLASS = cn(
+    "size-9 shrink rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-xs",
+    "hover:bg-white hover:text-[var(--fg-primary)] dark:hover:bg-[rgb(255_255_255_/_0.08)]",
+);
+const SOT_PLAYER_PLAY_BUTTON_CLASS = "size-11 shrink rounded-full";
+const SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS = cn(
+    "size-[30px] shrink rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-xs",
+    "hover:bg-white hover:text-[var(--fg-primary)] dark:hover:bg-[rgb(255_255_255_/_0.08)]",
+);
 const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
     "--sot-player-track": "var(--graphite-200)",
 };
@@ -6104,7 +6118,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="gap-0 overflow-visible p-4"
+                            className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -6211,9 +6225,9 @@ export function Workstation({
                                 data-sot-state={playerControlsState}
                             >
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    className="shrink rounded-full"
+                                    className={SOT_PLAYER_ROUND_BUTTON_CLASS}
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -6231,9 +6245,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="primary"
+                                    variant="ghost"
                                     size="icon-lg"
-                                    className="shrink rounded-full shadow-sm"
+                                    className={SOT_PLAYER_PLAY_BUTTON_CLASS}
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6260,9 +6274,9 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    className="shrink rounded-full"
+                                    className={SOT_PLAYER_ROUND_BUTTON_CLASS}
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6340,118 +6354,139 @@ export function Workstation({
                                 >
                                     {playbackSpeedLabel}
                                 </Button>
-                                <div data-sot-part="dashboard-player-volume-anchor">
-                                    <Button
-                                        variant="outline"
-                                        size="icon-sm"
-                                        className="shrink rounded-full"
-                                        type="button"
-                                        aria-label={`音量 ${volume}`}
-                                        aria-expanded={volumePopoverOpen}
-                                        title={`音量 ${volume}`}
-                                        data-level={sotPlayerVolumeLevel(
-                                            volume,
-                                        )}
-                                        data-sot-control="dashboard-player-volume"
-                                        data-sot-state={
-                                            playbackDisabled
-                                                ? "disabled"
-                                                : volumePopoverOpen
-                                                  ? "open"
-                                                  : "closed"
-                                        }
-                                        data-sot-volume-state={
-                                            volumeMuted ? "muted" : "audible"
-                                        }
-                                        disabled={playbackDisabled}
-                                        onClick={() =>
-                                            setVolumeOpen((open) => !open)
-                                        }
-                                    >
-                                        <span
-                                            data-icon="inline-start"
-                                            data-sot-part="dashboard-player-control-icon"
-                                        >
-                                            <SotPlayerVolumeIcon
-                                                volume={volume}
-                                            />
-                                        </span>
-                                    </Button>
-                                    <Card
-                                        hasNoPadding
-                                        className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
-                                        data-open={
-                                            volumePopoverOpen ? "true" : "false"
-                                        }
-                                        data-sot-panel="dashboard-player-volume-popover"
-                                        data-sot-state={
-                                            volumePopoverOpen
-                                                ? "open"
-                                                : "closed"
-                                        }
-                                        hidden={!volumePopoverOpen}
-                                        aria-hidden={
-                                            volumePopoverOpen
-                                                ? undefined
-                                                : "true"
-                                        }
-                                        role="dialog"
-                                        aria-label="音量"
-                                    >
-                                        <div data-sot-part="dashboard-player-volume-row">
+                                <Popover
+                                    open={volumePopoverOpen}
+                                    onOpenChange={(open) =>
+                                        setVolumeOpen(open)
+                                    }
+                                >
+                                    <div data-sot-part="dashboard-player-volume-anchor">
+                                        <PopoverTrigger asChild>
                                             <Button
                                                 variant="ghost"
-                                                size="icon-xs"
+                                                size="icon-sm"
+                                                className={
+                                                    SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS
+                                                }
                                                 type="button"
-                                                aria-label="静音切换"
-                                                data-sot-control="dashboard-player-volume-mute"
+                                                aria-label={`音量 ${volume}`}
+                                                aria-expanded={
+                                                    volumePopoverOpen
+                                                }
+                                                title={`音量 ${volume}`}
+                                                data-level={sotPlayerVolumeLevel(
+                                                    volume,
+                                                )}
+                                                data-sot-control="dashboard-player-volume"
                                                 data-sot-state={
+                                                    playbackDisabled
+                                                        ? "disabled"
+                                                        : volumePopoverOpen
+                                                          ? "open"
+                                                          : "closed"
+                                                }
+                                                data-sot-volume-state={
                                                     volumeMuted
                                                         ? "muted"
                                                         : "audible"
                                                 }
                                                 disabled={playbackDisabled}
-                                                onClick={() =>
-                                                    setVolume(
-                                                        volumeMuted ? 70 : 0,
-                                                    )
-                                                }
                                             >
                                                 <span
                                                     data-icon="inline-start"
-                                                    data-sot-part="dashboard-player-volume-icon"
+                                                    data-sot-part="dashboard-player-control-icon"
                                                 >
                                                     <SotPlayerVolumeIcon
                                                         volume={volume}
                                                     />
                                                 </span>
                                             </Button>
-                                            <Slider
-                                                className={
-                                                    SOT_PLAYER_VOLUME_SLIDER_CLASS
-                                                }
-                                                min={0}
-                                                max={100}
-                                                step={1}
-                                                value={[volume]}
-                                                disabled={playbackDisabled}
-                                                data-sot-control="dashboard-player-volume-slider"
-                                                data-sot-state={
-                                                    playerControlState
-                                                }
-                                                aria-label="音量"
-                                                onValueChange={(nextValue) =>
-                                                    setVolume(
-                                                        nextValue[0] ?? volume,
-                                                    )
-                                                }
-                                            />
-                                            <span data-sot-part="dashboard-player-volume-value">
-                                                {volume}
-                                            </span>
-                                        </div>
-                                    </Card>
-                                </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            align="end"
+                                            side="top"
+                                            sideOffset={8}
+                                            className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
+                                            data-open={
+                                                volumePopoverOpen
+                                                    ? "true"
+                                                    : "false"
+                                            }
+                                            data-sot-panel="dashboard-player-volume-popover"
+                                            data-sot-state={
+                                                volumePopoverOpen
+                                                    ? "open"
+                                                    : "closed"
+                                            }
+                                            aria-label="音量"
+                                        >
+                                            <div
+                                                className="flex items-center gap-2"
+                                                data-sot-part="dashboard-player-volume-row"
+                                            >
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-xs"
+                                                    type="button"
+                                                    aria-label="静音切换"
+                                                    data-sot-control="dashboard-player-volume-mute"
+                                                    data-sot-state={
+                                                        volumeMuted
+                                                            ? "muted"
+                                                            : "audible"
+                                                    }
+                                                    disabled={playbackDisabled}
+                                                    onClick={() =>
+                                                        setVolume(
+                                                            volumeMuted
+                                                                ? 70
+                                                                : 0,
+                                                        )
+                                                    }
+                                                >
+                                                    <span
+                                                        className="inline-flex [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]"
+                                                        data-icon="inline-start"
+                                                        data-sot-part="dashboard-player-volume-icon"
+                                                    >
+                                                        <SotPlayerVolumeIcon
+                                                            volume={volume}
+                                                        />
+                                                    </span>
+                                                </Button>
+                                                <Slider
+                                                    className={
+                                                        SOT_PLAYER_VOLUME_SLIDER_CLASS
+                                                    }
+                                                    min={0}
+                                                    max={100}
+                                                    step={1}
+                                                    value={[volume]}
+                                                    disabled={playbackDisabled}
+                                                    data-sot-control="dashboard-player-volume-slider"
+                                                    data-sot-state={
+                                                        playerControlState
+                                                    }
+                                                    aria-label="音量"
+                                                    onValueChange={(
+                                                        nextValue,
+                                                    ) =>
+                                                        setVolume(
+                                                            nextValue[0] ??
+                                                                volume,
+                                                        )
+                                                    }
+                                                />
+                                                <span
+                                                    className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
+                                                    data-sot-part="dashboard-player-volume-value"
+                                                >
+                                                    {volume}
+                                                </span>
+                                            </div>
+                                        </PopoverContent>
+                                    </div>
+                                </Popover>
                             </CardContent>
                             {audioSrc ? (
                                 <audio ref={audioRef} src={audioSrc}>

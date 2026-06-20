@@ -1010,9 +1010,60 @@ const PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS = [
     '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
     '[data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"]',
     '[data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"]',
-    '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
-    '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+    '[data-sot-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
+    '[data-sot-panel="recording-player-volume-popover"][data-slot="popover-content"]',
     '[data-sot-control="player-source-tag"][data-slot="badge"]',
+] as const;
+
+const PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS = [
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-panel="dashboard-player-volume-popover"]',
+    ],
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-panel="dashboard-player-volume-popover"][hidden]',
+    ],
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+    ],
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-part="dashboard-player-volume-row"]',
+    ],
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-part="dashboard-player-volume-icon"]',
+    ],
+    [
+        '[data-sot-surface="dashboard-recording-player"]',
+        '[data-sot-part="dashboard-player-volume-value"]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-panel="recording-player-volume-popover"]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-panel="recording-player-volume-popover"][hidden]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-panel="recording-player-volume-popover"][data-open="true"]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-part="recording-player-volume-row"]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-part="recording-player-volume-icon"]',
+    ],
+    [
+        '[data-sot-surface="recording-player"]',
+        '[data-sot-part="recording-player-volume-value"]',
+    ],
 ] as const;
 
 const PLAYER_SLIDER_CONTROL_HOOKS = [
@@ -1222,6 +1273,7 @@ describe("full UI replacement regression coverage", () => {
         const dialog = readSource("components/ui/dialog.tsx");
         const input = readSource("components/ui/input.tsx");
         const label = readSource("components/ui/label.tsx");
+        const popover = readSource("components/ui/popover.tsx");
         const select = readSource("components/ui/select.tsx");
         const sidebar = readSource("components/ui/sidebar.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
@@ -1272,6 +1324,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(globals).not.toContain("[data-sot-shell] *:focus");
         expect(globals).not.toContain('[data-slot="button"]:focus-visible');
+        expect(globals).toContain("button:not([data-slot])");
         expect(globals).toContain(
             '[data-sot-control="dashboard-recording-row"]:focus-visible',
         );
@@ -1500,6 +1553,45 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(dialog).toContain("function DialogPortal(");
         expect(dialog).not.toContain("DialogContext");
+        expect(popover).toContain(
+            'import * as PopoverPrimitive from "@radix-ui/react-popover";',
+        );
+        for (const primitive of [
+            "Root",
+            "Trigger",
+            "Anchor",
+            "Portal",
+            "Close",
+            "Content",
+            "Arrow",
+        ]) {
+            expect(popover).toContain(`PopoverPrimitive.${primitive}`);
+        }
+        for (const primitive of [
+            "Popover",
+            "PopoverTrigger",
+            "PopoverContent",
+            "PopoverAnchor",
+            "PopoverPortal",
+            "PopoverClose",
+            "PopoverArrow",
+        ]) {
+            expect(popover).toMatch(new RegExp(`function ${primitive}\\(`));
+            expect(popover).toContain(`    ${primitive},`);
+        }
+        for (const slot of [
+            "popover",
+            "popover-trigger",
+            "popover-anchor",
+            "popover-portal",
+            "popover-close",
+            "popover-content",
+            "popover-arrow",
+        ]) {
+            expect(popover).toContain(`data-slot="${slot}"`);
+        }
+        expect(popover).toContain("bg-popover");
+        expect(popover).toContain("text-popover-foreground");
         expect(label).toContain(
             'import * as LabelPrimitive from "@radix-ui/react-label";',
         );
@@ -2760,6 +2852,18 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('size="icon-sm"');
         expect(workstation).toContain('size="icon-lg"');
         expect(workstation).toContain(
+            "const SOT_PLAYER_ROUND_BUTTON_CLASS = cn(",
+        );
+        expect(workstation).toContain(
+            'const SOT_PLAYER_PLAY_BUTTON_CLASS = "size-11 shrink rounded-full";',
+        );
+        expect(workstation).toContain(
+            "const SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS = cn(",
+        );
+        expect(workstation).toContain(
+            "className={SOT_PLAYER_PLAY_BUTTON_CLASS}",
+        );
+        expect(workstation).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(workstation).toContain(
@@ -2793,7 +2897,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
-            'className="gap-0 overflow-visible p-4"',
+            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
@@ -2836,6 +2940,24 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-play"',
         );
+        expect(dashboardPlayer).toContain(
+            "className={SOT_PLAYER_ROUND_BUTTON_CLASS}",
+        );
+        expect(dashboardPlayer).toContain(
+            "className={SOT_PLAYER_PLAY_BUTTON_CLASS}",
+        );
+        expect(dashboardPlayer).toContain(
+            "SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS",
+        );
+        expect(globals).toContain(
+            '[data-sot-control="dashboard-player-play"]',
+        );
+        expect(
+            extractCssBlock(
+                globals,
+                '[data-sot-control="dashboard-player-play"]',
+            ),
+        ).toContain("color-mix(in srgb, var(--accent) 92%, white 18%)");
         expect(dashboardPlayer).toContain("<Slider");
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-current-time"',
@@ -2853,8 +2975,13 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="dashboard-player-volume-popover"',
         );
         expect(dashboardPlayer).toContain(
-            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+            'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(dashboardPlayer).toContain("<Popover");
+        expect(dashboardPlayer).toContain("<PopoverTrigger asChild>");
+        expect(dashboardPlayer).toContain("<PopoverContent");
+        expect(dashboardPlayer).toContain('side="top"');
+        expect(dashboardPlayer).toContain('align="end"');
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-volume-mute"',
         );
@@ -2891,15 +3018,16 @@ describe("full UI replacement regression coverage", () => {
         expect(volumeLegacySelectorLines).toEqual([]);
         for (const selector of [
             '[data-sot-part="dashboard-player-volume-anchor"]',
-            '[data-sot-panel="dashboard-player-volume-popover"]',
-            '[data-sot-part="dashboard-player-volume-row"]',
-            '[data-sot-part="dashboard-player-volume-icon"]',
             '[data-sot-part="recording-player-volume-anchor"]',
-            '[data-sot-panel="recording-player-volume-popover"]',
-            '[data-sot-part="recording-player-volume-row"]',
-            '[data-sot-part="recording-player-volume-icon"]',
         ]) {
             expect(globals).toContain(selector);
+        }
+        for (const [surface, selector] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
+                    prelude.includes(surface),
+                ),
+            ).toEqual([]);
         }
         const playerSliderPrimitiveBlocks = PLAYER_SLIDER_CONTROL_HOOKS.flatMap(
             (control) =>
@@ -4389,6 +4517,9 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain('variant="outline"');
         expect(player).toContain('variant="primary"');
         expect(player).toContain('size="icon-lg"');
+        expect(player).toContain(
+            'className="size-11 shrink rounded-full shadow-sm"',
+        );
         expect(player).toContain('data-sot-part="recording-player-no-audio"');
         expect(player).toContain(
             'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
@@ -4403,8 +4534,13 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="recording-player-volume-popover"',
         );
         expect(player).toContain(
-            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+            'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(player).toContain("<Popover");
+        expect(player).toContain("<PopoverTrigger asChild>");
+        expect(player).toContain("<PopoverContent");
+        expect(player).toContain('side="top"');
+        expect(player).toContain('align="end"');
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
         );
@@ -4416,6 +4552,13 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const selector of PLAYER_ALERT_CARD_BADGE_PRIMITIVE_REPAINT_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const [surface, selector] of PLAYER_PORTAL_VOLUME_SCOPED_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
+                    prelude.includes(surface),
+                ),
+            ).toEqual([]);
         }
         for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
             const directBlocks = collectCssRuleBlocks(

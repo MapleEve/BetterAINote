@@ -439,7 +439,9 @@ describe("dashboard SOT foundation", () => {
         const player = workstation.slice(playerStart, transcriptShellIndex);
 
         expect(player).toContain("<Card");
-        expect(player).toContain('className="gap-0 overflow-visible p-4"');
+        expect(player).toContain(
+            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"',
+        );
         expect(player).toContain("<Alert");
         expect(player).toContain(
             'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
@@ -466,9 +468,14 @@ describe("dashboard SOT foundation", () => {
         );
         expect(player).toContain('data-sot-control="dashboard-player-seek"');
         expect(player).toContain('data-sot-control="dashboard-player-volume"');
+        expect(player).toContain("<Popover");
+        expect(player).toContain("<PopoverTrigger asChild>");
+        expect(player).toContain("<PopoverContent");
         expect(player).toContain(
-            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+            'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(player).toContain('side="top"');
+        expect(player).toContain('align="end"');
 
         expect(globals).not.toContain(
             '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
@@ -486,10 +493,42 @@ describe("dashboard SOT foundation", () => {
             '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
             '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
             '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
-            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
             '[data-sot-control="player-source-tag"][data-slot="badge"]',
         ]) {
             expect(globals).not.toContain(selector);
+        }
+        for (const [surface, selector] of [
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"][hidden]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-row"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-icon"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-value"]',
+            ],
+        ] as const) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
+                    prelude.includes(surface),
+                ),
+            ).toEqual([]);
         }
         expect(globals).toContain(
             '[data-sot-part="dashboard-player-seek-shell"]',
@@ -512,9 +551,6 @@ describe("dashboard SOT foundation", () => {
             ),
         );
         expect(dashboardPlayerSliderPrimitiveBlocks).toEqual([]);
-        expect(globals).toContain(
-            '[data-sot-panel="dashboard-player-volume-popover"]',
-        );
     });
 
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {

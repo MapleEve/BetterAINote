@@ -165,10 +165,19 @@ describe("dashboard recording player regressions", () => {
         expect(buttonSource).toContain('data-slot="button"');
         expect(buttonSource).toContain("buttonVariants");
         expect(source).toContain("<Button");
+        expect(source).toContain(
+            'import {\n    Popover,\n    PopoverContent,\n    PopoverTrigger,\n} from "@/components/ui/popover";',
+        );
+        expect(source).toContain("<Popover");
+        expect(source).toContain("<PopoverTrigger asChild>");
+        expect(source).toContain("<PopoverContent");
         expect(source).toContain('variant="primary"');
         expect(source).toContain('variant="ghost"');
         expect(source).toContain('size="icon"');
         expect(source).toContain('size="icon-sm"');
+        expect(source).toContain(
+            'className="size-11 shrink rounded-full shadow-sm"',
+        );
         expect(source).toContain('data-sot-control="recording-player-back"');
         expect(source).toContain('data-sot-control="recording-player-play"');
         expect(source).toContain('data-sot-control="recording-player-forward"');
@@ -208,8 +217,10 @@ describe("dashboard recording player regressions", () => {
             'data-sot-panel="recording-player-volume-popover"',
         );
         expect(source).toContain(
-            'className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+            'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(source).toContain('side="top"');
+        expect(source).toContain('align="end"');
         expect(source).toContain(
             'data-sot-control="recording-player-volume-slider"',
         );
@@ -267,6 +278,11 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"Playback progress"');
         expect(source).toContain('"音量"');
         expect(source).toContain('"Volume"');
+        expect(source).not.toContain("hidden={!volumePopoverOpen}");
+        expect(source).not.toContain(
+            'aria-hidden={volumePopoverOpen ? undefined : "true"}',
+        );
+        expect(source).not.toContain('role="dialog"');
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
         for (const legacyClass of RECORDING_PLAYER_LEGACY_CLASS_TOKENS) {
@@ -291,24 +307,76 @@ describe("dashboard recording player regressions", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of [
             '[data-sot-part="dashboard-recording-player-no-audio"][hidden]',
-            '[data-sot-panel="dashboard-player-volume-popover"]',
-            '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
             '[data-sot-part="recording-player-no-audio"][hidden]',
-            '[data-sot-panel="recording-player-volume-popover"]',
-            '[data-sot-panel="recording-player-volume-popover"][data-open="true"]',
             '[data-sot-panel="recording-detail-loading"]',
         ]) {
             expect(globals).toContain(selector);
+        }
+        for (const [surface, selector] of [
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"][hidden]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-panel="dashboard-player-volume-popover"][data-open="true"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-row"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-icon"]',
+            ],
+            [
+                '[data-sot-surface="dashboard-recording-player"]',
+                '[data-sot-part="dashboard-player-volume-value"]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-panel="recording-player-volume-popover"]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-panel="recording-player-volume-popover"][hidden]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-panel="recording-player-volume-popover"][data-open="true"]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-part="recording-player-volume-row"]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-part="recording-player-volume-icon"]',
+            ],
+            [
+                '[data-sot-surface="recording-player"]',
+                '[data-sot-part="recording-player-volume-value"]',
+            ],
+        ] as const) {
+            expect(
+                collectCssRuleBlocks(globals, selector).filter(({ prelude }) =>
+                    prelude.includes(surface),
+                ),
+            ).toEqual([]);
         }
         for (const selector of [
             '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
             '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
             '[data-sot-part="dashboard-recording-player-no-audio-description"][data-slot="alert-description"]',
-            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="card"]',
+            '[data-sot-panel="dashboard-player-volume-popover"][data-slot="popover-content"]',
             '[data-sot-part="recording-player-no-audio"][data-slot="alert"]',
             '[data-sot-part="recording-player-no-audio-title"][data-slot="alert-title"]',
             '[data-sot-part="recording-player-no-audio-description"][data-slot="alert-description"]',
-            '[data-sot-panel="recording-player-volume-popover"][data-slot="card"]',
+            '[data-sot-panel="recording-player-volume-popover"][data-slot="popover-content"]',
             '[data-sot-control="player-source-tag"][data-slot="badge"]',
         ]) {
             expect(globals).not.toContain(selector);

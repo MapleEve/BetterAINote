@@ -6,6 +6,11 @@ import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
@@ -210,7 +215,7 @@ export function RecordingPlayer({
                 <Button
                     variant="primary"
                     size="icon-lg"
-                    className="shrink rounded-full shadow-sm"
+                    className="size-11 shrink rounded-full shadow-sm"
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -355,102 +360,122 @@ export function RecordingPlayer({
                     {playbackSpeedLabel}
                 </Button>
 
-                <div data-sot-part="recording-player-volume-anchor">
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        className="shrink rounded-full"
-                        type="button"
-                        aria-label={
-                            language === "zh-CN"
-                                ? `音量 ${volume}`
-                                : `Volume ${volume}`
-                        }
-                        aria-expanded={volumePopoverOpen}
-                        title={
-                            language === "zh-CN"
-                                ? `音量 ${volume}`
-                                : `Volume ${volume}`
-                        }
-                        data-level={sotPlayerVolumeLevel(volume)}
-                        data-sot-control="recording-player-volume"
-                        data-sot-state={
-                            playbackDisabled
-                                ? "disabled"
-                                : volumePopoverOpen
-                                  ? "open"
-                                  : "closed"
-                        }
-                        data-sot-volume-state={
-                            volumeMuted ? "muted" : "audible"
-                        }
-                        disabled={playbackDisabled}
-                        onClick={() => setVolumeOpen((open) => !open)}
-                    >
-                        <span
-                            data-icon="inline-start"
-                            data-sot-part="recording-player-control-icon"
-                        >
-                            <SotPlayerVolumeIcon volume={volume} />
-                        </span>
-                    </Button>
-                    <Card
-                        hasNoPadding
-                        className="absolute right-0 bottom-full mb-2 min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
-                        data-open={volumePopoverOpen ? "true" : "false"}
-                        data-sot-panel="recording-player-volume-popover"
-                        data-sot-state={volumePopoverOpen ? "open" : "closed"}
-                        hidden={!volumePopoverOpen}
-                        aria-hidden={volumePopoverOpen ? undefined : "true"}
-                        role="dialog"
-                        aria-label={language === "zh-CN" ? "音量" : "Volume"}
-                    >
-                        <div data-sot-part="recording-player-volume-row">
+                <Popover
+                    open={volumePopoverOpen}
+                    onOpenChange={(open) => setVolumeOpen(open)}
+                >
+                    <div data-sot-part="recording-player-volume-anchor">
+                        <PopoverTrigger asChild>
                             <Button
-                                variant="ghost"
-                                size="icon-xs"
+                                variant="outline"
+                                size="icon-sm"
+                                className="shrink rounded-full"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"
-                                        ? "静音切换"
-                                        : "Toggle mute"
+                                        ? `音量 ${volume}`
+                                        : `Volume ${volume}`
                                 }
-                                data-sot-control="recording-player-volume-mute"
+                                aria-expanded={volumePopoverOpen}
+                                title={
+                                    language === "zh-CN"
+                                        ? `音量 ${volume}`
+                                        : `Volume ${volume}`
+                                }
+                                data-level={sotPlayerVolumeLevel(volume)}
+                                data-sot-control="recording-player-volume"
                                 data-sot-state={
+                                    playbackDisabled
+                                        ? "disabled"
+                                        : volumePopoverOpen
+                                          ? "open"
+                                          : "closed"
+                                }
+                                data-sot-volume-state={
                                     volumeMuted ? "muted" : "audible"
                                 }
                                 disabled={playbackDisabled}
-                                onClick={() => setVolume(volumeMuted ? 70 : 0)}
                             >
                                 <span
                                     data-icon="inline-start"
-                                    data-sot-part="recording-player-volume-icon"
+                                    data-sot-part="recording-player-control-icon"
                                 >
                                     <SotPlayerVolumeIcon volume={volume} />
                                 </span>
                             </Button>
-                            <Slider
-                                className={SOT_PLAYER_VOLUME_SLIDER_CLASS}
-                                min={0}
-                                max={100}
-                                step={1}
-                                value={[volume]}
-                                disabled={playbackDisabled}
-                                data-sot-control="recording-player-volume-slider"
-                                data-sot-state={controlState}
-                                aria-label={
-                                    language === "zh-CN" ? "音量" : "Volume"
-                                }
-                                onValueChange={(nextValue) =>
-                                    setVolume(nextValue[0] ?? volume)
-                                }
-                            />
-                            <span data-sot-part="recording-player-volume-value">
-                                {volume}
-                            </span>
-                        </div>
-                    </Card>
-                </div>
+                        </PopoverTrigger>
+                        <PopoverContent
+                            align="end"
+                            side="top"
+                            sideOffset={8}
+                            className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
+                            data-open={volumePopoverOpen ? "true" : "false"}
+                            data-sot-panel="recording-player-volume-popover"
+                            data-sot-state={
+                                volumePopoverOpen ? "open" : "closed"
+                            }
+                            aria-label={
+                                language === "zh-CN" ? "音量" : "Volume"
+                            }
+                        >
+                            <div
+                                className="flex items-center gap-2"
+                                data-sot-part="recording-player-volume-row"
+                            >
+                                <Button
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    type="button"
+                                    aria-label={
+                                        language === "zh-CN"
+                                            ? "静音切换"
+                                            : "Toggle mute"
+                                    }
+                                    data-sot-control="recording-player-volume-mute"
+                                    data-sot-state={
+                                        volumeMuted ? "muted" : "audible"
+                                    }
+                                    disabled={playbackDisabled}
+                                    onClick={() =>
+                                        setVolume(volumeMuted ? 70 : 0)
+                                    }
+                                >
+                                    <span
+                                        className="inline-flex [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]"
+                                        data-icon="inline-start"
+                                        data-sot-part="recording-player-volume-icon"
+                                    >
+                                        <SotPlayerVolumeIcon volume={volume} />
+                                    </span>
+                                </Button>
+                                <Slider
+                                    className={SOT_PLAYER_VOLUME_SLIDER_CLASS}
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[volume]}
+                                    disabled={playbackDisabled}
+                                    data-sot-control="recording-player-volume-slider"
+                                    data-sot-state={controlState}
+                                    aria-label={
+                                        language === "zh-CN"
+                                            ? "音量"
+                                            : "Volume"
+                                    }
+                                    onValueChange={(nextValue) =>
+                                        setVolume(nextValue[0] ?? volume)
+                                    }
+                                />
+                                <span
+                                    className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
+                                    data-sot-part="recording-player-volume-value"
+                                >
+                                    {volume}
+                                </span>
+                            </div>
+                        </PopoverContent>
+                    </div>
+                </Popover>
             </CardContent>
 
             <audio
