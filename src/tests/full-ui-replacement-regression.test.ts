@@ -1295,7 +1295,14 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("@supports not (color: oklch(");
         expect(globals).not.toMatch(/(^|[{\s,])\.panel(?![\w-])/m);
         expect(globals).not.toMatch(/(^|\n|,)\s*\.storage-bar\b/);
-        expect(globals).not.toContain('[data-slot="');
+        const globalSlotSelectors = globals
+            .split("\n")
+            .filter((line) => line.includes('[data-slot="'));
+        expect(globalSlotSelectors.every((line) =>
+            line.includes(
+                ':where([data-slot="button"], [data-slot="popover-trigger"])',
+            ),
+        )).toBe(true);
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -1325,6 +1332,12 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain("[data-sot-shell] *:focus");
         expect(globals).not.toContain('[data-slot="button"]:focus-visible');
         expect(globals).toContain("button:not([data-slot])");
+        expect(globals).toContain(
+            ':where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"]',
+        );
+        expect(globals).toContain(
+            ':where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"]',
+        );
         expect(globals).toContain(
             '[data-sot-control="dashboard-recording-row"]:focus-visible',
         );
@@ -1502,9 +1515,14 @@ describe("full UI replacement regression coverage", () => {
             "ghost",
             "link",
             "primary",
+            "player",
+            '"player-primary"',
             "danger",
         ]) {
             expect(button).toContain(`${variant}:`);
+        }
+        for (const size of ['player: "size-9', '"player-sm"', '"player-lg"']) {
+            expect(button).toContain(size);
         }
         expect(button).not.toContain("glass:");
         expect(button).toContain(
@@ -2850,19 +2868,10 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<Button");
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
-        expect(workstation).toContain('size="icon-lg"');
-        expect(workstation).toContain(
-            "const SOT_PLAYER_ROUND_BUTTON_CLASS = cn(",
-        );
-        expect(workstation).toContain(
-            'const SOT_PLAYER_PLAY_BUTTON_CLASS = "size-11 shrink rounded-full";',
-        );
-        expect(workstation).toContain(
-            "const SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS = cn(",
-        );
-        expect(workstation).toContain(
-            "className={SOT_PLAYER_PLAY_BUTTON_CLASS}",
-        );
+        expect(workstation).toContain('size="player-lg"');
+        expect(workstation).not.toContain("SOT_PLAYER_ROUND_BUTTON_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_PLAY_BUTTON_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS");
         expect(workstation).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
@@ -2897,7 +2906,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
-            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"',
+            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
@@ -2909,6 +2918,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<SotPlayerNoAudioIcon");
         expect(dashboardPlayer).toContain(
             'className="col-start-1 row-span-2 place-self-center"',
+        );
+        expect(dashboardPlayer).toContain(
+            '<SotPlayerNoAudioIcon className="size-3.5" />',
         );
         expect(dashboardPlayer).toContain("<AlertTitle");
         expect(dashboardPlayer).toContain("<AlertDescription");
@@ -2940,24 +2952,17 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(dashboardPlayer).toContain(
-            "className={SOT_PLAYER_ROUND_BUTTON_CLASS}",
-        );
-        expect(dashboardPlayer).toContain(
-            "className={SOT_PLAYER_PLAY_BUTTON_CLASS}",
-        );
-        expect(dashboardPlayer).toContain(
-            "SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS",
-        );
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-player-play"]',
-        );
+        expect(dashboardPlayer).toContain('variant="player"');
+        expect(dashboardPlayer).toContain('variant="player-primary"');
+        expect(dashboardPlayer).toContain('size="player"');
+        expect(dashboardPlayer).toContain('size="player-lg"');
+        expect(dashboardPlayer).toContain('size="player-sm"');
         expect(
             extractCssBlock(
                 globals,
                 '[data-sot-control="dashboard-player-play"]',
             ),
-        ).toContain("color-mix(in srgb, var(--accent) 92%, white 18%)");
+        ).not.toContain("background:");
         expect(dashboardPlayer).toContain("<Slider");
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-current-time"',
@@ -3761,6 +3766,8 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("variant={");
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
+        expect(badge).toContain("source:");
+        expect(badge).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
             '[data-sot-provider-status][data-slot="badge"]',
@@ -4528,6 +4535,7 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'className="col-start-1 row-span-2 place-self-center"',
         );
+        expect(player).toContain('<SotPlayerNoAudioIcon className="size-3.5" />');
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
         expect(player).toContain(
@@ -4990,10 +4998,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="player-status"',
         );
         expect(sotPlayerPrimitives).toContain("<Badge");
-        expect(sotPlayerPrimitives).toContain('variant="outline"');
-        expect(sotPlayerPrimitives).toContain(
-            'className="h-[22px] gap-1.5 py-0 pl-1 pr-2"',
-        );
+        expect(sotPlayerPrimitives).toContain('variant="source"');
         expect(sotPlayerPrimitives).toContain(
             'className="inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
         );

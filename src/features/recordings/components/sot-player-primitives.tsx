@@ -83,8 +83,7 @@ export function SotPlayerSourceTag({
 
     return (
         <Badge
-            variant="outline"
-            className="h-[22px] gap-1.5 py-0 pl-1 pr-2"
+            variant="source"
             data-sot-control="player-source-tag"
             data-sot-provider={provider}
         >

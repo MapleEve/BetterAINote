@@ -305,15 +305,6 @@ const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
 const SOT_PLAYER_SEEK_THUMB_CLASS =
     "size-3.5 border-0 bg-white p-0 shadow-none";
 const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
-const SOT_PLAYER_ROUND_BUTTON_CLASS = cn(
-    "size-9 shrink rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-xs",
-    "hover:bg-white hover:text-[var(--fg-primary)] dark:hover:bg-[rgb(255_255_255_/_0.08)]",
-);
-const SOT_PLAYER_PLAY_BUTTON_CLASS = "size-11 shrink rounded-full";
-const SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS = cn(
-    "size-[30px] shrink rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-xs",
-    "hover:bg-white hover:text-[var(--fg-primary)] dark:hover:bg-[rgb(255_255_255_/_0.08)]",
-);
 const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
     "--sot-player-track": "var(--graphite-200)",
 };
@@ -6118,7 +6109,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"
+                            className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -6137,11 +6128,13 @@ export function Workstation({
                                 hidden={!playbackDisabled}
                                 role="status"
                             >
-                                <SotPlayerNoAudioIcon
+                                <span
                                     className="col-start-1 row-span-2 place-self-center"
                                     data-icon="inline-start"
                                     data-sot-part="dashboard-recording-player-no-audio-icon"
-                                />
+                                >
+                                    <SotPlayerNoAudioIcon className="size-3.5" />
+                                </span>
                                 <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
                                     来源仅同步转写与报告
                                 </AlertTitle>
@@ -6225,9 +6218,8 @@ export function Workstation({
                                 data-sot-state={playerControlsState}
                             >
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={SOT_PLAYER_ROUND_BUTTON_CLASS}
+                                    variant="player"
+                                    size="player"
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -6245,9 +6237,8 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
-                                    size="icon-lg"
-                                    className={SOT_PLAYER_PLAY_BUTTON_CLASS}
+                                    variant="player-primary"
+                                    size="player-lg"
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6274,9 +6265,8 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={SOT_PLAYER_ROUND_BUTTON_CLASS}
+                                    variant="player"
+                                    size="player"
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6363,11 +6353,8 @@ export function Workstation({
                                     <div data-sot-part="dashboard-player-volume-anchor">
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
-                                                className={
-                                                    SOT_PLAYER_SMALL_ROUND_BUTTON_CLASS
-                                                }
+                                                variant="player"
+                                                size="player-sm"
                                                 type="button"
                                                 aria-label={`音量 ${volume}`}
                                                 aria-expanded={

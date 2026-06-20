@@ -121,6 +121,7 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain(
             'className="col-start-1 row-span-2 place-self-center"',
         );
+        expect(source).toContain('<SotPlayerNoAudioIcon className="size-3.5" />');
         expect(source).toContain("<AlertTitle");
         expect(source).toContain("<AlertDescription");
         expect(source).toContain('role="status"');

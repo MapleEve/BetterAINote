@@ -150,11 +150,13 @@ export function RecordingPlayer({
                 hidden={!playbackDisabled}
                 role="status"
             >
-                <SotPlayerNoAudioIcon
+                <span
                     className="col-start-1 row-span-2 place-self-center"
                     data-icon="inline-start"
                     data-sot-part="recording-player-no-audio-icon"
-                />
+                >
+                    <SotPlayerNoAudioIcon className="size-3.5" />
+                </span>
                 <AlertTitle data-sot-part="recording-player-no-audio-title">
                     来源仅同步转写与报告
                 </AlertTitle>

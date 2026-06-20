@@ -562,6 +562,47 @@ body[data-theme="dark"] {
 button {
     font-family: inherit;
 }
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"] {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-hairline);
+    color: var(--fg-secondary);
+    font-size: 13.3333px;
+    line-height: var(--lh-body);
+    box-shadow: var(--shadow-xs);
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"]:hover {
+    background: white;
+    color: var(--fg-primary);
+}
+[data-theme="dark"]
+    :where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"]:hover {
+    background: rgb(255 255 255 / 0.08);
+    color: var(--fg-primary);
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"]:active {
+    transform: scale(0.96);
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"] {
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 92%, white 18%),
+        var(--accent)
+    );
+    border: 1px solid color-mix(in srgb, var(--accent) 60%, black 8%);
+    color: white;
+    box-shadow:
+        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
+        inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"]:hover {
+    color: white;
+}
+:where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"]:active {
+    transform: scale(0.96);
+}
 
 /* ======== App grid ======== */
 [data-sot-shell="dashboard-workstation"],
@@ -1048,6 +1089,16 @@ button {
     [data-sot-part="dashboard-recording-player-no-audio"][hidden] {
     display: none;
 }
+[data-sot-part="dashboard-recording-player-no-audio-icon"],
+[data-sot-part="recording-player-no-audio-icon"] {
+    display: inline-grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
+    color: var(--signal-warning);
+}
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-recording-player-date"] {
     font: 500 11.5px var(--font-mono);
@@ -1061,33 +1112,6 @@ button {
     justify-content: center;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"],
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"] {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-secondary);
-    font-size: 13.3333px;
-    line-height: var(--lh-body);
-    box-shadow: var(--shadow-xs);
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--ease-out);
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-back"]:hover,
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-forward"]:hover {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg-primary);
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-control-icon"]
     svg {
     stroke: currentColor;
@@ -1097,23 +1121,6 @@ button {
     stroke-linejoin: round;
 }
 [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-play"] {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 50%;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    border-color: color-mix(in srgb, var(--accent) 60%, black 8%);
-    color: white;
-    box-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
-}
-[data-sot-surface="dashboard-recording-player"]
     [data-sot-control="dashboard-player-play"]
     [data-sot-part="dashboard-player-control-icon"]
     svg {
@@ -1121,25 +1128,6 @@ button {
     height: 18px;
     fill: white;
     stroke: white;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-speed"] {
-    height: 32px;
-    min-width: 50px;
-    padding: 0 12px;
-    border-radius: 9px;
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-    font:
-        600 12.5px / var(--lh-body) var(--font-mono);
-    justify-content: center;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-speed"]:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
 }
 [data-sot-surface="dashboard-recording-player"]
     [data-sot-part="dashboard-player-current-time"],
@@ -1166,25 +1154,6 @@ button {
     position: relative;
     display: inline-flex;
     margin-left: 11px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-volume"] {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    color: var(--fg-secondary);
-    font-size: 13.3333px;
-    line-height: var(--lh-body);
-    box-shadow: var(--shadow-xs);
-}
-[data-theme="dark"]
-    [data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-volume"]:hover {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg-primary);
 }
 [data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
     [data-sot-control="dashboard-player-back"],
@@ -1991,7 +1960,7 @@ body[data-time-style="abs"]
 
 /* source tag with logo */
 [data-sot-control="player-source-tag"] [data-sot-part="source-icon"] {
-    background: var(--bg-elevated);
+    background: rgb(255 255 255);
     border: 1px solid var(--line-hairline);
 }
 [data-sot-control="player-source-tag"]

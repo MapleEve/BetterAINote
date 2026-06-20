@@ -440,7 +440,7 @@ describe("dashboard SOT foundation", () => {
 
         expect(player).toContain("<Card");
         expect(player).toContain(
-            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-4 shadow-none backdrop-blur-none"',
+            'className="min-h-[114px] gap-0 overflow-visible border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] pb-[14px] pt-[18px] shadow-none backdrop-blur-none"',
         );
         expect(player).toContain("<Alert");
         expect(player).toContain(
@@ -455,6 +455,11 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain(
             'className="flex min-w-0 items-center gap-3 overflow-visible p-0"',
         );
+        expect(player).toContain('variant="player"');
+        expect(player).toContain('variant="player-primary"');
+        expect(player).toContain('size="player"');
+        expect(player).toContain('size="player-lg"');
+        expect(player).toContain('size="player-sm"');
         expect(player).toContain("<Badge");
         expect(player).toContain('variant="outline"');
         expect(player).toContain('className="ml-auto"');
