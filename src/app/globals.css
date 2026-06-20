@@ -5218,7 +5218,17 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    import-progress, export-progress.
    ============================================================ */
 [data-sot-panel="system-banner"] {
+    display: flex;
     align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line-hairline);
+    background: var(--bg-elevated);
+    color: var(--fg-primary);
+    box-shadow: var(--shadow-xs);
+    font-size: var(--text-body-sm);
+    line-height: var(--lh-body-sm);
 }
 [data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
     margin-top: 8px;
@@ -5234,6 +5244,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     color: var(--fg-secondary);
 }
 [data-sot-panel="system-banner"] [data-sot-part="system-banner-icon"] svg {
+    width: 14px;
+    height: 14px;
     fill: none;
     stroke: currentColor;
     stroke-width: 2;
@@ -5247,6 +5259,23 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     flex-direction: column;
     gap: 2px;
 }
+[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"] {
+    display: block;
+    min-height: auto;
+    overflow: visible;
+    -webkit-line-clamp: none;
+    -webkit-box-orient: horizontal;
+    letter-spacing: normal;
+    font-weight: var(--weight-semibold);
+    color: var(--fg-primary);
+}
+[data-sot-panel="system-banner"] [data-sot-part="system-banner-description"] {
+    display: block;
+    justify-items: normal;
+    gap: normal;
+    font: 500 12px / 1.45 var(--font-sans);
+    color: var(--fg-tertiary);
+}
 [data-sot-panel="system-banner"]
     [data-sot-part="system-banner-description"][data-sot-format="mono"] {
     font-family: var(--font-mono);
@@ -5255,6 +5284,44 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     display: flex;
     gap: 6px;
     flex: none;
+}
+[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: normal;
+    gap: 7px;
+    width: auto;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--line-hairline);
+    border-color: transparent;
+    border-radius: 7px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--fg-secondary);
+    font: 600 12px var(--font-sans);
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+}
+[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"] svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+[data-sot-panel="system-banner"][data-kind="update-available"][data-layout="single"]
+    [data-sot-control="system-banner-primary-action"] {
+    background: var(--glass-tint-base);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-color: var(--line-hairline);
+    box-shadow: var(--shadow-xs);
+    color: var(--fg-primary);
 }
 
 /* Variants — pull tint from semantic signal tokens (light + dark both). */

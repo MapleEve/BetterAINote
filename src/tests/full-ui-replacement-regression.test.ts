@@ -517,7 +517,10 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="system-banner"]',
     '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
     '[data-sot-part="system-banner-icon"]',
+    '[data-sot-part="system-banner-icon"] svg',
     '[data-sot-part="system-banner-body"]',
+    '[data-sot-part="system-banner-title"]',
+    '[data-sot-part="system-banner-description"]',
     '[data-sot-part="system-banner-actions"]',
     '[data-sot-panel="system-banner"][data-kind="offline"]',
     '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
@@ -528,6 +531,64 @@ const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="system-banner-progress"]',
     '[data-sot-part="system-banner-progress-bar"]',
     '[data-sot-part="system-banner-progress"][data-sot-state="indeterminate"]',
+];
+
+const SYSTEM_BANNER_ROOT_SOT_DECLARATIONS = [
+    "display: flex",
+    "align-items: center",
+    "gap: 12px",
+    "padding: 10px 14px",
+    "border-radius: var(--radius-md)",
+    "border: 1px solid var(--line-hairline)",
+    "background: var(--bg-elevated)",
+    "color: var(--fg-primary)",
+    "box-shadow: var(--shadow-xs)",
+    "font-size: var(--text-body-sm)",
+    "line-height: var(--lh-body-sm)",
+];
+
+const SYSTEM_BANNER_ICON_SVG_SOT_DECLARATIONS = ["width: 14px", "height: 14px"];
+
+const SYSTEM_BANNER_TITLE_SOT_DECLARATIONS = [
+    "display: block",
+    "min-height: auto",
+    "overflow: visible",
+    "-webkit-line-clamp: none",
+    "-webkit-box-orient: horizontal",
+    "letter-spacing: normal",
+    "font-weight: var(--weight-semibold)",
+    "color: var(--fg-primary)",
+];
+
+const SYSTEM_BANNER_DESCRIPTION_SOT_DECLARATIONS = [
+    "display: block",
+    "justify-items: normal",
+    "gap: normal",
+    "font: 500 12px / 1.45 var(--font-sans)",
+    "color: var(--fg-tertiary)",
+];
+
+const SYSTEM_BANNER_ACTION_BUTTON_SOT_DECLARATIONS = [
+    "display: inline-flex",
+    "align-items: center",
+    "justify-content: normal",
+    "gap: 7px",
+    "height: 26px",
+    "padding: 0 10px",
+    "border-radius: 7px",
+    "background: transparent",
+    "border-color: transparent",
+    "box-shadow: none",
+    "color: var(--fg-secondary)",
+    "font: 600 12px var(--font-sans)",
+];
+
+const SYSTEM_BANNER_UPDATE_BUTTON_SOT_DECLARATIONS = [
+    "background: var(--glass-tint-base)",
+    "backdrop-filter: blur(14px) saturate(140%)",
+    "border-color: var(--line-hairline)",
+    "box-shadow: var(--shadow-xs)",
+    "color: var(--fg-primary)",
 ];
 
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2000,8 +2061,50 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-panel="system-banner"]',
             ).filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
         ).toEqual([]);
+        const rootDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-panel="system-banner"]',
+        );
+        for (const declaration of SYSTEM_BANNER_ROOT_SOT_DECLARATIONS) {
+            expect(rootDeclarations).toContain(declaration);
+        }
+        const iconSvgDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-part="system-banner-icon"] svg',
+        );
+        for (const declaration of SYSTEM_BANNER_ICON_SVG_SOT_DECLARATIONS) {
+            expect(iconSvgDeclarations).toContain(declaration);
+        }
+        const titleDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-part="system-banner-title"]',
+        );
+        for (const declaration of SYSTEM_BANNER_TITLE_SOT_DECLARATIONS) {
+            expect(titleDeclarations).toContain(declaration);
+        }
+        const descriptionDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-part="system-banner-description"]',
+        );
+        for (const declaration of SYSTEM_BANNER_DESCRIPTION_SOT_DECLARATIONS) {
+            expect(descriptionDeclarations).toContain(declaration);
+        }
+        const actionButtonDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"]',
+        );
+        for (const declaration of SYSTEM_BANNER_ACTION_BUTTON_SOT_DECLARATIONS) {
+            expect(actionButtonDeclarations).toContain(declaration);
+        }
+        const updateButtonDeclarations = extractCssBlock(
+            stripCssComments(globals),
+            '[data-sot-panel="system-banner"][data-kind="update-available"][data-layout="single"]\n    [data-sot-control="system-banner-primary-action"]',
+        );
+        for (const declaration of SYSTEM_BANNER_UPDATE_BUTTON_SOT_DECLARATIONS) {
+            expect(updateButtonDeclarations).toContain(declaration);
+        }
         expect(globals).not.toContain(
-            '[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"]',
+            "[data-sot-panel=\"system-banner\"] [data-slot=\"button\"]",
         );
     });
 
@@ -2013,10 +2116,15 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
+        expect(banner).toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
         expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
         expect(banner).toContain("<AlertTitle");
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
+        expect(banner).toContain("<Button");
+        expect(banner).not.toContain("systemBannerButtonVariants");
         expect(banner).not.toMatch(/<section[\s>]/);
         expect(banner).not.toContain('data-slot="system-banner"');
         expect(banner).toMatch(
