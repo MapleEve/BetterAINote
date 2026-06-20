@@ -1115,7 +1115,7 @@ const DASHBOARD_RETRANSCRIPTION_LEGACY_CLASS_NAMES = [
 ];
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE =
-    /(^|[^\w-])\.(?:activity-pixel-stage|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
+    /(^|[^\w-])\.(?:activity-pixel-stage|notif-panel|notif-empty|turn|transcript|transcript-head|transcript-body|speaker|speaker-name|sr-pane|list-empty|empty-state|empty-ico|empty-msg|empty-sub|retx-banner|retx-banner-ico|retx-spinner|retx-disabled-hint|retx-refresh-marker|retx-banner-body|retx-banner-title|retx-banner-sub|retx-banner-actions|retx-ico-warn|retx-ico-ok|t-actions)(?![\w-])/;
 
 const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-transcript-body"]',
@@ -1718,12 +1718,10 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals
             .split("\n")
-            .filter(
-                (line) =>
-                    !line.includes(".cl-pop-host .notif-empty") &&
-                    DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
-                        line,
-                    ),
+            .filter((line) =>
+                DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_LEGACY_CSS_SELECTOR_RE.test(
+                    line,
+                ),
             );
 
         expect(legacySelectorLines).toEqual([]);
@@ -4830,6 +4828,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).not.toContain("tag-chip-inline");
         expect(sotPlayerPrimitives).not.toContain("utag-add");
         expect(sotPlayerPrimitives).not.toContain("utag-plus");
+        expect(sotPlayerPrimitives).not.toContain("data-tagm-trigger");
         expect(sotPlayerPrimitives).not.toContain("recordingTagColorClassName");
         expect(recordingTagVisuals).toContain(
             'import { Badge } from "@/components/ui/badge";',

@@ -135,7 +135,6 @@ export function SotPlayerTagChip({
                 size="xs"
                 aria-expanded={trigger ? state === "open" : undefined}
                 data-recording-tag-add=""
-                data-tagm-trigger="1"
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
                 data-sot-part="recording-tag-add"
                 data-sot-state={trigger ? state : undefined}
@@ -157,7 +156,6 @@ export function SotPlayerTagChip({
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
                     data-sot-tag-icon={tag.icon}
-                    data-tagm-trigger={trigger ? "1" : undefined}
                     data-sot-part="recording-tag-chip"
                     data-sot-control={
                         trigger ? "recording-tag-manager" : undefined
@@ -171,7 +169,6 @@ export function SotPlayerTagChip({
                     <Badge
                         variant="outline"
                         data-recording-tag-overflow=""
-                        data-tagm-trigger={trigger ? "1" : undefined}
                         data-sot-part="recording-tag-overflow"
                     >
                         +{count - 1}
@@ -191,7 +188,6 @@ export function SotPlayerTagChip({
                 data-recording-tag-chip=""
                 data-sot-tag-color={tag.color}
                 data-sot-tag-icon={tag.icon}
-                data-tagm-trigger={trigger ? "1" : undefined}
                 data-sot-part="recording-tag-chip"
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
                 data-sot-state={trigger ? state : undefined}
@@ -207,7 +203,6 @@ export function SotPlayerTagChip({
                     size="xs"
                     type="button"
                     data-recording-tag-overflow=""
-                    data-tagm-trigger={trigger ? "1" : undefined}
                     data-sot-part="recording-tag-overflow"
                     onClick={onClick}
                     aria-expanded={trigger ? state === "open" : undefined}

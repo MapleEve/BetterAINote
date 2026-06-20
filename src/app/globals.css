@@ -6285,7 +6285,6 @@ select::-ms-expand {
     height: 360px;
 }
 .cl-pop-host > [data-sot-panel="library-search"],
-.cl-pop-host > .notif-panel,
 .cl-pop-host > [data-sot-panel="recording-tag-manager"],
 .cl-pop-host > [data-sot-menu="recording-more-actions"],
 .cl-pop-host > [data-sot-panel="ai-rename-preview"] {
@@ -6304,9 +6303,6 @@ select::-ms-expand {
 }
 .cl-pop-host [data-sot-part="state"][hidden].cl-show {
     display: block !important;
-}
-.cl-pop-host .notif-empty[hidden].cl-show {
-    display: flex !important;
 }
 
 /* Force stack-strip + banners visible inside docs cards */
