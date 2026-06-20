@@ -164,13 +164,13 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                     </div>
                     <DialogFooter
                         data-sot-part="confirm-foot"
-                        className="gap-2 sm:justify-end"
+                        className="gap-[8px] sm:justify-end"
                     >
                         <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="sm:min-w-20"
+                            data-sot-control="confirm-dialog-cancel"
                             onClick={() => close(false)}
                         >
                             {state?.cancelLabel}
@@ -179,7 +179,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                             type="button"
                             variant={confirmButtonVariant}
                             size="sm"
-                            className="sm:min-w-20"
+                            data-sot-control="confirm-dialog-confirm"
                             onClick={() => close(true)}
                         >
                             {state?.confirmLabel}

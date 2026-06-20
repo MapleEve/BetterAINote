@@ -299,7 +299,7 @@ type SotPlayerSliderTrackStyle = CSSProperties & {
 
 const SOT_PLAYER_SEEK_SLIDER_CLASS = cn(
     "h-[14px] min-w-0 cursor-pointer data-[disabled]:cursor-default",
-    "[&_[data-slot=slider-track]]:h-[6px] [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
+    "[&_[data-slot=slider-track]]:h-[6px] [&_[data-slot=slider-track]]:rounded-[999px] [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:[box-shadow:inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
 );
 const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
 const SOT_PLAYER_SEEK_THUMB_CLASS =
@@ -5727,7 +5727,7 @@ export function Workstation({
                     >
                         <CardHeader
                             className={cn(
-                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
+                                "relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0",
                                 dashboardDetailHeaderState === "saving" &&
                                     "py-0",
                             )}
@@ -6120,7 +6120,7 @@ export function Workstation({
                             data-sot-surface="dashboard-recording-player"
                         >
                             <Alert
-                                className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"
+                                className="mb-3 flex items-center gap-[10px] px-[12px] py-[10px]"
                                 data-sot-part="dashboard-recording-player-no-audio"
                                 data-sot-state={
                                     playbackDisabled ? "visible" : "hidden"
@@ -6135,12 +6135,14 @@ export function Workstation({
                                 >
                                     <SotPlayerNoAudioIcon className="size-3.5" />
                                 </span>
-                                <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
-                                    来源仅同步转写与报告
-                                </AlertTitle>
-                                <AlertDescription data-sot-part="dashboard-recording-player-no-audio-description">
-                                    这条录音没有本地音频，无法播放或运行私有重转写。
-                                </AlertDescription>
+                                <span data-sot-part="dashboard-recording-player-no-audio-text">
+                                    <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
+                                        来源仅同步转写与报告
+                                    </AlertTitle>
+                                    <AlertDescription data-sot-part="dashboard-recording-player-no-audio-description">
+                                        这条录音没有本地音频，无法播放或运行私有重转写。
+                                    </AlertDescription>
+                                </span>
                             </Alert>
                             <CardHeader
                                 className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"
@@ -6339,7 +6341,7 @@ export function Workstation({
                                 <Button
                                     type="button"
                                     variant="player-speed-compact"
-                                    size="sm"
+                                    size="player-speed"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -6832,8 +6834,8 @@ export function Workstation({
                                     {dashboardRetxState === "failed" ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="outline"
-                                                size="sm"
+                                                variant="compact-ghost"
+                                                size="compact"
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -6844,8 +6846,8 @@ export function Workstation({
                                                 重试转写
                                             </Button>
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
+                                                variant="compact-ghost"
+                                                size="compact"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6861,8 +6863,8 @@ export function Workstation({
                                       selectedRecording ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
+                                                variant="compact-ghost"
+                                                size="compact"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""

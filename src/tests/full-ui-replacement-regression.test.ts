@@ -1301,9 +1301,6 @@ describe("full UI replacement regression coverage", () => {
         expect(
             globalSlotSelectors.every(
                 (line) =>
-                    line.includes(
-                        ':where([data-slot="button"], [data-slot="popover-trigger"])',
-                    ) ||
                     line.includes('[data-slot="badge"][data-variant="source"]') ||
                     line.includes(
                         '[data-slot="badge"][data-variant="player-status"]',
@@ -1339,11 +1336,8 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain("[data-sot-shell] *:focus");
         expect(globals).not.toContain('[data-slot="button"]:focus-visible');
         expect(globals).toContain("button:not([data-slot])");
-        expect(globals).toContain(
-            ':where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player"]',
-        );
-        expect(globals).toContain(
-            ':where([data-slot="button"], [data-slot="popover-trigger"])[data-variant="player-primary"]',
+        expect(globals).not.toContain(
+            ':where([data-slot="button"], [data-slot="popover-trigger"])',
         );
         expect(globals).toContain(
             '[data-sot-control="dashboard-recording-row"]:focus-visible',
@@ -1366,7 +1360,9 @@ describe("full UI replacement regression coverage", () => {
         const confirmFooterButtonRules = collectCssRuleBlocks(
             productCss,
             '[data-sot-part="confirm-foot"]',
-        ).filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+        ).filter(({ prelude }) =>
+            /\bbutton\b|\[data-slot="button"\]/.test(prelude),
+        );
         expect(confirmFooterButtonRules).toEqual([]);
         const destructiveButtonRules = collectCssRuleBlocks(
             productCss,
@@ -1525,15 +1521,24 @@ describe("full UI replacement regression coverage", () => {
             "player",
             '"player-primary"',
             '"player-speed-compact"',
+            '"compact-ghost"',
             "danger",
         ]) {
             expect(button).toContain(`${variant}:`);
         }
+        expect(button).toContain("--button-player-bg");
+        expect(button).toContain("--button-player-primary-bg");
+        expect(button).toContain("--button-player-primary-shadow");
+        expect(button).toContain(
+            "[background:var(--button-player-primary-bg)]",
+        );
         for (const size of [
-            'player: "size-[36px]',
+            '"size-[36px]',
             '"player-sm"',
             '"player-lg"',
-            '"player-lg": "size-[44px]',
+            '"size-[44px]',
+            '"player-speed"',
+            'compact: "h-[26px]',
         ]) {
             expect(button).toContain(size);
         }
@@ -1765,7 +1770,7 @@ describe("full UI replacement regression coverage", () => {
             /<DialogDescription[\s\S]*data-sot-part="confirm-description"[\s\S]*className="m-0 text-sm leading-relaxed text-muted-foreground"/,
         );
         expect(confirmDialog).toMatch(
-            /<DialogFooter[\s\S]*data-sot-part="confirm-foot"[\s\S]*className="gap-2 sm:justify-end"/,
+            /<DialogFooter[\s\S]*data-sot-part="confirm-foot"[\s\S]*className="gap-\[8px\] sm:justify-end"/,
         );
         expect(confirmDialog).toContain(
             'confirmVariant?: "default" | "destructive"',
@@ -2926,7 +2931,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardPlayer).toContain("<Alert");
         expect(dashboardPlayer).toContain(
-            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+            'className="mb-3 flex items-center gap-[10px] px-[12px] py-[10px]"',
         );
         expect(dashboardPlayer).toContain("<SotPlayerNoAudioIcon");
         expect(dashboardPlayer).toContain(
@@ -3431,7 +3436,7 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardDetailHeaderMode = editingTitle",
         );
         expect(dashboardDetailHeader).toContain(
-            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+            '"relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0"',
         );
         expect(dashboardDetailHeader).toContain(
             'className="min-w-0 flex-1 truncate"',

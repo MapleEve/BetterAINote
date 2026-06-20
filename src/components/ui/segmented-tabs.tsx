@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from "react";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
 export type SegmentedTabItem<T extends string = string> = {
     value: T;
@@ -42,14 +43,16 @@ export function SegmentedTabs<T extends string>({
     return (
         <ToggleGroup
             {...props}
-            className={className}
+            className={cn("min-w-[220px]", className)}
+            spacing={1}
+            variant="outline"
             type="single"
             value={value}
             onValueChange={handleValueChange}
             size={size === "sm" ? "sm" : "default"}
             role="tablist"
             aria-label={ariaLabel}
-            data-sot-control="liquid-tabs"
+            data-sot-control="segmented-tabs"
             data-sot-size={size}
             data-tabs={items.length}
             data-active={activeIndex}
@@ -58,7 +61,7 @@ export function SegmentedTabs<T extends string>({
                 <ToggleGroupItem
                     key={item.value}
                     value={item.value}
-                    data-sot-control="liquid-tab"
+                    data-sot-control="segmented-tab"
                     data-sot-state={
                         item.disabled
                             ? "disabled"
@@ -68,6 +71,7 @@ export function SegmentedTabs<T extends string>({
                     }
                     data-tab-key={item.tabKey ?? item.value}
                     role="tab"
+                    className="min-w-[80px]"
                     disabled={item.disabled}
                     aria-disabled={item.disabled || undefined}
                     aria-selected={item.value === value}

@@ -444,9 +444,12 @@ describe("dashboard SOT foundation", () => {
         );
         expect(player).toContain("<Alert");
         expect(player).toContain(
-            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+            'className="mb-3 flex items-center gap-[10px] px-[12px] py-[10px]"',
         );
         expect(player).toContain("<SotPlayerNoAudioIcon");
+        expect(player).toContain(
+            'data-sot-part="dashboard-recording-player-no-audio-text"',
+        );
         expect(player).toContain("<CardHeader");
         expect(player).toContain(
             'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
@@ -973,17 +976,19 @@ describe("dashboard SOT foundation", () => {
             expect(globals).toContain(token);
         }
 
-        expect(segmentedTabs).toContain('data-sot-control="liquid-tabs"');
+        expect(segmentedTabs).toContain('data-sot-control="segmented-tabs"');
         expect(segmentedTabs).toContain("data-sot-size={size}");
         expect(segmentedTabs).toContain("data-tabs={items.length}");
         expect(segmentedTabs).toContain("data-active={activeIndex}");
-        expect(segmentedTabs).toContain('data-sot-control="liquid-tab"');
+        expect(segmentedTabs).toContain('data-sot-control="segmented-tab"');
         expect(segmentedTabs).toContain("data-sot-state={");
         expect(segmentedTabs).toContain(
             'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
         );
         expect(segmentedTabs).toContain("<ToggleGroup");
         expect(segmentedTabs).toContain("<ToggleGroupItem");
+        expect(segmentedTabs).toContain('variant="outline"');
+        expect(segmentedTabs).toContain("spacing={1}");
         expect(segmentedTabs).toContain('type="single"');
         expect(segmentedTabs).toContain("value={value}");
         expect(segmentedTabs).toContain("if (!nextValue) return;");
@@ -998,9 +1003,12 @@ describe("dashboard SOT foundation", () => {
         expect(segmentedTabs).toContain("disabled={item.disabled}");
         expect(segmentedTabs).not.toContain("<button");
         expect(segmentedTabs).not.toContain('data-slot="segmented-tabs"');
+        expect(segmentedTabs).not.toContain('data-slot="toggle-group-indicator"');
         expect(segmentedTabs).not.toContain(
             'data-sot-part="liquid-tabs-indicator"',
         );
+        expect(segmentedTabs).not.toContain('data-sot-control="liquid-tabs"');
+        expect(segmentedTabs).not.toContain('data-sot-control="liquid-tab"');
         expect(segmentedTabs).not.toContain("data-idx");
         expect(segmentedTabs).not.toContain('className={cn("liquid-tabs"');
         expect(segmentedTabs).not.toContain('className="liquid-tabs"');
