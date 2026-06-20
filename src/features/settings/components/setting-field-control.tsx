@@ -48,6 +48,8 @@ interface SettingFieldControlProps {
         field: SettingFieldDefinition,
         value: string | boolean,
     ) => void;
+    switchClassName?: string;
+    switchThumbClassName?: string;
     variant?: "default" | "settings";
 }
 
@@ -61,6 +63,8 @@ export function SettingFieldControl({
     fieldId,
     inputClassName: inputClassNameProp,
     onValueChange,
+    switchClassName,
+    switchThumbClassName,
     variant = "default",
 }: SettingFieldControlProps) {
     const handleTextValueChange = (
@@ -111,6 +115,8 @@ export function SettingFieldControl({
                     {field.kind === "switch" ? (
                         <Switch
                             id={fieldId}
+                            className={switchClassName}
+                            thumbClassName={switchThumbClassName}
                             checked={Boolean(field.value)}
                             onCheckedChange={(checked) =>
                                 onValueChange(field, checked)

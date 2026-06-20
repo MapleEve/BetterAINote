@@ -503,6 +503,22 @@ function getProviderStatusBadgeClassName(tone: ProviderTone) {
     );
 }
 
+function getProviderDetailStatusBadgeClassName(tone: ProviderTone) {
+    return cn(
+        "!h-[24px] !gap-[6px] !rounded-[999px] !border !border-solid !px-[10px] !py-0 !text-[11px] !font-semibold !leading-[normal]",
+        tone === "ok" &&
+            "!border-[var(--source-provider-status-success-border)] !bg-[var(--source-provider-status-success-bg)] !text-[var(--signal-success)]",
+        (tone === "info" || tone === "syncing") &&
+            "!border-[var(--source-provider-status-info-border)] !bg-[var(--source-provider-status-info-bg)] !text-[var(--signal-info)]",
+        tone === "warn" &&
+            "!border-[var(--source-provider-status-warning-border)] !bg-[var(--source-provider-status-warning-bg)] !text-[var(--signal-warning-strong)]",
+        tone === "err" &&
+            "!border-[var(--source-provider-status-danger-border)] !bg-[var(--source-provider-status-danger-bg)] !text-[var(--signal-danger)]",
+        tone === "neu" &&
+            "!border-[var(--line-hairline)] !bg-[var(--bg-recessed)] !text-[var(--fg-secondary)]",
+    );
+}
+
 function getSourceProviderDetailSubtitle(
     source: DataSourceDisplayState,
     isZh: boolean,
@@ -1284,6 +1300,9 @@ function DataSourcesSettingsPanel({
                                 }
                                 className={cn(
                                     "h-6 gap-1.5 px-2.5",
+                                    getProviderDetailStatusBadgeClassName(
+                                        status.tone,
+                                    ),
                                     (status.tone === "ok" ||
                                         status.tone === "syncing") &&
                                         "text-primary",
@@ -1413,7 +1432,9 @@ function DataSourcesSettingsPanel({
                                     orientation="horizontal"
                                 >
                                     <FieldContent
-                                        className={SETTINGS_FIELD_CONTENT_CLASS}
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                        }
                                     >
                                         <FieldTitle>
                                             {isZh
@@ -1450,7 +1471,9 @@ function DataSourcesSettingsPanel({
                                     orientation="horizontal"
                                 >
                                     <FieldContent
-                                        className={SETTINGS_FIELD_CONTENT_CLASS}
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                        }
                                     >
                                         <FieldLabel
                                             htmlFor={`${selectedSource.provider}-base-url`}
@@ -1465,7 +1488,11 @@ function DataSourcesSettingsPanel({
                                             </FieldDescription>
                                         ) : null}
                                     </FieldContent>
-                                    <div className={SETTINGS_CONTROL_CLASS}>
+                                    <div
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                        }
+                                    >
                                         <Input
                                             className={
                                                 SOURCE_PROVIDER_DETAIL_INPUT_CLASS
@@ -1509,15 +1536,24 @@ function DataSourcesSettingsPanel({
                                             value,
                                         )
                                     }
+                                    controlClassName={
+                                        SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                    }
                                     fieldClassName={
                                         SOURCE_PROVIDER_DETAIL_FIELD_CLASS
                                     }
                                     fieldContentClassName={
-                                        SETTINGS_FIELD_CONTENT_CLASS
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
                                     fieldOrientation="horizontal"
                                     inputClassName={
                                         SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                    }
+                                    switchClassName={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                    }
+                                    switchThumbClassName={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS
                                     }
                                     variant="settings"
                                 />
@@ -1557,15 +1593,24 @@ function DataSourcesSettingsPanel({
                                                     value,
                                                 )
                                             }
+                                            controlClassName={
+                                                SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                            }
                                             fieldClassName={
                                                 SOURCE_PROVIDER_DETAIL_FIELD_CLASS
                                             }
                                             fieldContentClassName={
-                                                SETTINGS_FIELD_CONTENT_CLASS
+                                                SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                             }
                                             fieldOrientation="horizontal"
                                             inputClassName={
                                                 SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                            }
+                                            switchClassName={
+                                                SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                            }
+                                            switchThumbClassName={
+                                                SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS
                                             }
                                             variant="settings"
                                         />
@@ -1586,7 +1631,9 @@ function DataSourcesSettingsPanel({
                                 orientation="horizontal"
                             >
                                 <FieldContent
-                                    className={SETTINGS_FIELD_CONTENT_CLASS}
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                    }
                                 >
                                     <FieldTitle>
                                         {isZh
@@ -1599,8 +1646,18 @@ function DataSourcesSettingsPanel({
                                             : "Read new recordings every 15 minutes"}
                                     </FieldDescription>
                                 </FieldContent>
-                                <div className={SETTINGS_CONTROL_CLASS}>
+                                <div
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                    }
+                                >
                                     <Switch
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                        }
+                                        thumbClassName={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS
+                                        }
                                         data-sot-control="source-auto-update"
                                         data-sot-provider={
                                             selectedSource.provider
@@ -1646,14 +1703,24 @@ function DataSourcesSettingsPanel({
                                             value,
                                         )
                                     }
+                                    controlClassName={
+                                        SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                    }
                                     fieldClassName={
                                         SOURCE_PROVIDER_DETAIL_FIELD_CLASS
                                     }
                                     fieldContentClassName={
-                                        SETTINGS_FIELD_CONTENT_CLASS
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
                                     }
+                                    fieldOrientation="horizontal"
                                     inputClassName={
                                         SOURCE_PROVIDER_DETAIL_INPUT_CLASS
+                                    }
+                                    switchClassName={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                    }
+                                    switchThumbClassName={
+                                        SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS
                                     }
                                     variant="settings"
                                 />
@@ -1667,7 +1734,9 @@ function DataSourcesSettingsPanel({
                                 orientation="horizontal"
                             >
                                 <FieldContent
-                                    className={SETTINGS_FIELD_CONTENT_CLASS}
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                    }
                                 >
                                     <FieldLabel
                                         htmlFor={`${selectedSource.provider}-enabled`}
@@ -1680,8 +1749,18 @@ function DataSourcesSettingsPanel({
                                             : "Turn off to stop reading new recordings from this source."}
                                     </FieldDescription>
                                 </FieldContent>
-                                <div className={SETTINGS_CONTROL_CLASS}>
+                                <div
+                                    className={
+                                        SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                    }
+                                >
                                     <Switch
+                                        className={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_CLASS
+                                        }
+                                        thumbClassName={
+                                            SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS
+                                        }
                                         id={`${selectedSource.provider}-enabled`}
                                         data-sot-control="source-enable-sync"
                                         data-sot-provider={
@@ -1719,6 +1798,7 @@ function DataSourcesSettingsPanel({
                         </div>
 
                         <footer
+                            className={SOURCE_PROVIDER_ACTIONS_CLASS}
                             data-sot-panel="source-actions"
                             data-sot-provider={selectedSource.provider}
                             data-sot-state={sourceSaveState}
@@ -1745,6 +1825,8 @@ function DataSourcesSettingsPanel({
                                 variant="outline"
                                 size="sm"
                                 className={cn(
+                                    SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
+                                    SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
                                     sourceTestState === "success" &&
                                         "text-primary",
                                     sourceTestState === "error" &&
@@ -1787,6 +1869,12 @@ function DataSourcesSettingsPanel({
                                         : "primary"
                                 }
                                 size="sm"
+                                className={cn(
+                                    SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
+                                    SOURCE_PROVIDER_PRIMARY_ACTION_BUTTON_CLASS,
+                                    sourceSaveState === "error" &&
+                                        SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS,
+                                )}
                                 data-sot-action="save"
                                 data-sot-control="source-save"
                                 data-sot-provider={selectedSource.provider}
@@ -1827,22 +1915,32 @@ function DataSourcesSettingsPanel({
                             orientation="horizontal"
                         >
                             <FieldContent
-                                className={SETTINGS_FIELD_CONTENT_CLASS}
+                                className={
+                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                }
                             >
                                 <FieldTitle>
                                     {isZh ? "重新连接" : "Reconnect"}
                                 </FieldTitle>
                                 <FieldDescription>
                                     {isZh
-                                        ? "重新启用并检查当前来源连接。"
-                                        : "Re-enable and check this source connection."}
+                                        ? "清除当前凭据后重新登录"
+                                        : "Clear current credentials, then sign in again."}
                                 </FieldDescription>
                             </FieldContent>
-                            <div className={SETTINGS_CONTROL_CLASS}>
+                            <div
+                                className={
+                                    SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                }
+                            >
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
+                                    className={cn(
+                                        SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
+                                        SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
+                                    )}
                                     data-sot-control="source-reconnect"
                                     data-sot-state={sourceReconnectState}
                                     disabled={interactionDisabled}
@@ -1853,10 +1951,6 @@ function DataSourcesSettingsPanel({
                                         )
                                     }
                                 >
-                                    <RotateCw
-                                        data-icon="inline-start"
-                                        aria-hidden="true"
-                                    />
                                     {actionState === "reconnecting"
                                         ? isZh
                                             ? "重新连接中"
@@ -1881,22 +1975,33 @@ function DataSourcesSettingsPanel({
                             orientation="horizontal"
                         >
                             <FieldContent
-                                className={SETTINGS_FIELD_CONTENT_CLASS}
+                                className={
+                                    SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS
+                                }
                             >
                                 <FieldTitle>
                                     {isZh ? "断开连接" : "Disconnect"}
                                 </FieldTitle>
                                 <FieldDescription>
                                     {isZh
-                                        ? "保留配置，但暂停读取该来源。"
-                                        : "Keep settings, but pause imports from this source."}
+                                        ? `从此账号中删除 ${selectedSourceDisplayName} 授权`
+                                        : `Remove ${selectedSourceDisplayName} authorization from this account.`}
                                 </FieldDescription>
                             </FieldContent>
-                            <div className={SETTINGS_CONTROL_CLASS}>
+                            <div
+                                className={
+                                    SOURCE_PROVIDER_DETAIL_CONTROL_CLASS
+                                }
+                            >
                                 <Button
                                     type="button"
                                     variant="danger"
                                     size="sm"
+                                    className={cn(
+                                        SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
+                                        SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
+                                        SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS,
+                                    )}
                                     data-sot-control="source-disconnect"
                                     data-sot-state={sourceDisconnectState}
                                     disabled={interactionDisabled}
@@ -1907,10 +2012,6 @@ function DataSourcesSettingsPanel({
                                         )
                                     }
                                 >
-                                    <XCircle
-                                        data-icon="inline-start"
-                                        aria-hidden="true"
-                                    />
                                     {actionState === "disconnecting"
                                         ? isZh
                                             ? "断开中"
@@ -1969,12 +2070,30 @@ const SETTINGS_CONTROL_CLASS =
 const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
 const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
+const SOURCE_PROVIDER_DETAIL_CONTROL_CLASS =
+    "flex flex-none items-center justify-end gap-[10px]";
 const SOURCE_PROVIDER_DETAIL_FIELD_CLASS = [
     SETTINGS_FIELD_CLASS,
-    "gap-3.5",
+    "!grid !grid-cols-[1fr_auto] !items-center !gap-[18px] !border-[var(--line-hairline)] !py-[12px]",
 ].join(" ");
+const SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS =
+    "min-w-0 !gap-0 [&_[data-slot=field-label]]:!mb-[2px] [&_[data-slot=field-label]]:!font-sans [&_[data-slot=field-label]]:!text-[13px] [&_[data-slot=field-label]]:!font-semibold [&_[data-slot=field-label]]:!leading-[normal] [&_[data-slot=field-label]]:!text-[var(--fg-primary)] [&_[data-slot=field-description]]:!mt-0 [&_[data-slot=field-description]]:!font-sans [&_[data-slot=field-description]]:!text-[12px] [&_[data-slot=field-description]]:!font-normal [&_[data-slot=field-description]]:!leading-[1.5] [&_[data-slot=field-description]]:!text-[var(--fg-tertiary)]";
 const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
-    "h-8 min-w-60 max-w-full font-mono text-xs";
+    "!h-[30px] !w-[240px] !min-w-[240px] !max-w-[240px] !rounded-[7px] !border-[var(--line-hairline)] !bg-[var(--bg-recessed)] !px-[10px] !py-0 !font-mono !text-[12px] !font-medium !leading-[normal] !text-[var(--fg-primary)] !shadow-none md:!text-[12px] dark:!bg-[var(--bg-recessed)]";
+const SOURCE_PROVIDER_DETAIL_SWITCH_CLASS =
+    "!h-[20px] !w-[36px] !border-0 !bg-[var(--graphite-300)] !p-0 !shadow-none data-[state=checked]:!bg-[var(--accent)] dark:data-[state=unchecked]:!bg-[var(--source-provider-switch-unchecked-dark)]";
+const SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS =
+    "!size-[16px] !bg-white !shadow-xs data-[state=checked]:!translate-x-[18px] data-[state=unchecked]:!translate-x-[2px] dark:!bg-white";
+const SOURCE_PROVIDER_ACTION_BUTTON_CLASS =
+    "!h-[26px] !gap-[7px] !rounded-[7px] !px-[10px] !text-[12px] !font-semibold !leading-[normal]";
+const SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS =
+    "border-transparent !bg-transparent !text-[var(--fg-secondary)] !shadow-none hover:!bg-[var(--bg-recessed)] hover:!text-[var(--fg-primary)]";
+const SOURCE_PROVIDER_PRIMARY_ACTION_BUTTON_CLASS =
+    "![background:var(--source-provider-primary-bg)] ![border-color:var(--source-provider-primary-border)] ![box-shadow:var(--source-provider-primary-shadow)] !text-[var(--accent-on)]";
+const SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS =
+    "!text-[var(--signal-danger)]";
+const SOURCE_PROVIDER_ACTIONS_CLASS =
+    "!mt-[18px] !mb-px !ml-0 !flex-row !justify-start";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 const SETTINGS_BANNER_ICON_CLASS =
     "inline-flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground [&>svg]:size-3.5";

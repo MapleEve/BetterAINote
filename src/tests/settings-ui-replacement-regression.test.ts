@@ -1051,7 +1051,7 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-content.tsx",
         );
         const enableSwitch = content.match(
-            /<Switch\s+id=\{`\$\{selectedSource\.provider\}-enabled`\}[\s\S]*?\/>/,
+            /<Switch[\s\S]*?data-sot-control="source-enable-sync"[\s\S]*?\/>/,
         )?.[0];
 
         expect(enableSwitch).not.toContain("data-ds-enable");
@@ -1203,9 +1203,13 @@ describe("settings SOT interaction regressions", () => {
 
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS");
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
+        expect(content).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS");
         expect(content).toContain("SETTINGS_FIELD_CLASS");
-        expect(content).toContain('"gap-3.5"');
+        expect(content).toContain('"!grid !grid-cols-[1fr_auto]');
         expect(content).toContain('fieldOrientation="horizontal"');
+        expect(content).toContain("thumbClassName={");
         expect(content).toContain("getSettingsBannerClassName");
         expect(content).toContain("getSettingsSaveStatusBadgeClassName");
         expect(content).toContain("getSettingsSaveStatusDotClassName");

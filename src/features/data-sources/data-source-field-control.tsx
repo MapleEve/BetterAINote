@@ -39,6 +39,8 @@ interface DataSourceFieldControlProps {
         field: DataSourceFormField,
         value: string | boolean,
     ) => void;
+    switchClassName?: string;
+    switchThumbClassName?: string;
     variant?: "default" | "settings";
 }
 
@@ -52,6 +54,8 @@ export function DataSourceFieldControl({
     fieldId,
     inputClassName,
     onValueChange,
+    switchClassName,
+    switchThumbClassName,
     variant = "default",
 }: DataSourceFieldControlProps) {
     const readOnlyMaskedDisplay =
@@ -84,6 +88,8 @@ export function DataSourceFieldControl({
                 onValueChange={(_nextField, value) =>
                     onValueChange(field, value)
                 }
+                switchClassName={switchClassName}
+                switchThumbClassName={switchThumbClassName}
                 variant="settings"
             />
         );
@@ -119,6 +125,8 @@ export function DataSourceFieldControl({
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
+                        className={switchClassName}
+                        thumbClassName={switchThumbClassName}
                         checked={Boolean(field.value)}
                         onCheckedChange={(checked) =>
                             onValueChange(field, checked)

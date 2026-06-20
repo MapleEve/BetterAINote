@@ -231,6 +231,12 @@ const PROVIDER_CARD_PIXEL_TOLERANCES = {
         maxChannelDelta: 255,
     },
 } as const satisfies SotPixelTolerancesByFrame;
+const PROVIDER_DETAIL_PIXEL_TOLERANCES = {
+    default: {
+        differingPixels: 40_000,
+        maxChannelDelta: 255,
+    },
+} as const satisfies SotPixelTolerancesByFrame;
 const REAL_BACKEND_FORCED_PROVIDERS = [
     "dingtalk-a1",
     "ticnote",
@@ -1588,7 +1594,7 @@ test("data sources settings rail and provider primitives match SOT computed styl
             authModes: ["device-signin"],
             config: { syncTitleToSource: true },
             connected: true,
-            displayName: "钉钉闪记",
+            displayName: "钉钉 闪记",
             enabled: true,
             secretsConfigured: { deviceCredential: true },
         }),
@@ -1784,7 +1790,7 @@ test("data sources settings primitives match SOT component library pixels", asyn
             authModes: ["device-signin"],
             config: { syncTitleToSource: true },
             connected: true,
-            displayName: "钉钉闪记",
+            displayName: "钉钉 闪记",
             enabled: true,
             secretsConfigured: { deviceCredential: true },
         }),
@@ -1911,6 +1917,94 @@ test("data sources settings primitives match SOT component library pixels", asyn
         // must not add a globals repaint layer for those legacy button classes.
     } finally {
         await sotPage.close();
+    }
+});
+
+test("data sources provider detail matches SOT product pixels", async ({
+    browser,
+    page,
+}, testInfo) => {
+    const sources = [
+        makeSource("dingtalk-a1", {
+            authMode: "device-signin",
+            authModes: ["device-signin"],
+            config: { syncTitleToSource: true },
+            connected: true,
+            displayName: "钉钉 闪记",
+            enabled: true,
+            secretsConfigured: { deviceCredential: true },
+        }),
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+            enabled: true,
+            secretsConfigured: { bearerToken: true },
+        }),
+        makeSource("plaud", {
+            displayName: "Plaud",
+        }),
+        makeSource("feishu-minutes", {
+            authMode: "oauth-device-flow",
+            authModes: ["oauth-device-flow", "web-reverse"],
+            displayName: "飞书妙记",
+        }),
+        makeSource("iflyrec", {
+            authMode: "session-header",
+            authModes: ["session-header"],
+            connected: true,
+            connectionStatus: "expired",
+            config: { bizId: "tjzs" },
+            displayName: "讯飞听见",
+            enabled: true,
+            secretsConfigured: { sessionHeader: true },
+        }),
+    ];
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ sources }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    const section = await openDataSourcesSettings(page);
+    const sourceAssetDataUrls = await readSotSourceAssetDataUrls();
+
+    const dingtalkTile = section.locator(
+        '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
+    );
+    await dingtalkTile.click();
+    await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
+    const productDetail = section.locator(
+        '[data-sot-panel="source-provider-detail"][data-sot-provider="dingtalk-a1"]',
+    );
+    await expect(productDetail).toBeVisible();
+
+    const sotIndexPage = await browser.newPage();
+    try {
+        await openSotDataSourcesIndex(sotIndexPage);
+        await selectSotDataSourceProvider(sotIndexPage, "dingtalk-a1");
+        await expectSotFragmentPixelsMatch(
+            page,
+            testInfo,
+            sotIndexPage,
+            "data sources provider detail dingtalk connected",
+            sotIndexPage.locator("#ds-detail"),
+            sourceAssetDataUrls,
+            [],
+            PROVIDER_DETAIL_PIXEL_TOLERANCES,
+            productDetail,
+        );
+    } finally {
+        await sotIndexPage.close();
     }
 });
 
