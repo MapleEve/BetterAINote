@@ -1137,15 +1137,16 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).toContain("getProviderStatusBadgeVariant");
         expect(providerTile).toContain("getProviderStatusBadgeClassName");
         expect(providerTile).toContain(
-            'className="grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-2.5 whitespace-normal text-left"',
+            'className="group/source-provider grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start whitespace-normal text-left !gap-[10px] !rounded-[10px] !border !border-solid !border-transparent !bg-transparent !p-[10px] !shadow-none ![box-shadow:none] data-[sot-dimmed=true]:!opacity-[0.55] data-[state=idle]:hover:!bg-[var(--source-provider-card-hover)] data-[state=selected]:!border-[var(--line-hairline)] data-[state=selected]:!bg-[var(--bg-elevated)] data-[state=selected]:!shadow-xs dark:data-[state=selected]:!border-[var(--glass-border)] dark:data-[state=selected]:!bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:!shadow-none dark:data-[state=selected]:![box-shadow:none]"',
         );
         expect(providerTile).toContain(
-            'className="flex size-7 shrink-0 items-center justify-center overflow-hidden"',
+            'className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-[var(--line-hairline)] bg-white"',
         );
         expect(providerTile).toContain(
-            'className="flex min-w-0 flex-col gap-0.5"',
+            'className="flex min-w-0 flex-col gap-[2px]"',
         );
-        expect(providerTile).toContain('className="truncate"');
+        expect(providerTile).toContain('className="truncate !font-sans');
+        expect(providerTile).toContain('className="truncate !font-mono');
         expect(providerTile).toContain('"justify-self-end"');
         expect(providerTile).toContain('"animate-pulse"');
         expect(content).toContain('"text-primary"');
@@ -1153,7 +1154,7 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('"destructive"');
         expect(content).toContain('"secondary"');
         expect(content).toContain('"outline"');
-        expect(providerTile).toContain('"size-1.5 rounded-full bg-current"');
+        expect(providerTile).toContain('"size-[4px] rounded-full bg-current"');
         expect(providerTile).toContain('"animate-pulse"');
 
         for (const selector of [
@@ -1203,9 +1204,8 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
         expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
         expect(content).toContain("SETTINGS_FIELD_CLASS");
-        expect(content).toContain(
-            '"gap-3.5 max-[720px]:flex-col max-[720px]:items-start"',
-        );
+        expect(content).toContain('"gap-3.5"');
+        expect(content).toContain('fieldOrientation="horizontal"');
         expect(content).toContain("getSettingsBannerClassName");
         expect(content).toContain("getSettingsSaveStatusBadgeClassName");
         expect(content).toContain("getSettingsSaveStatusDotClassName");

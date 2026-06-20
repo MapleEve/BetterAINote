@@ -486,10 +486,20 @@ function getProviderStatusBadgeVariant(tone: ProviderTone) {
 
 function getProviderStatusBadgeClassName(tone: ProviderTone) {
     return cn(
-        "gap-1.5",
+        "!h-[18px] !gap-[4px] !rounded-[999px] !border !border-solid !px-[7px] !py-0 !text-[10.5px] !font-semibold !leading-[normal]",
         (tone === "ok" || tone === "info" || tone === "syncing") &&
             "text-primary",
-        tone === "warn" && "text-muted-foreground",
+        tone === "ok" &&
+            "!border-[var(--source-provider-status-success-border)] !bg-[var(--source-provider-status-success-bg)] !text-[var(--signal-success)]",
+        (tone === "info" || tone === "syncing") &&
+            "!border-[var(--source-provider-status-info-border)] !bg-[var(--source-provider-status-info-bg)] !text-[var(--signal-info)]",
+        tone === "warn" &&
+            "text-muted-foreground !border-[var(--source-provider-status-warning-border)] !bg-[var(--source-provider-status-warning-bg)] !text-[var(--signal-warning-strong)]",
+        tone === "err" &&
+            "!border-[var(--source-provider-status-danger-border)] !bg-[var(--source-provider-status-danger-bg)] !text-[var(--signal-danger)]",
+        tone === "neu" &&
+            "!border-[var(--line-hairline)] !bg-[var(--bg-recessed)] !text-[var(--fg-secondary)]",
+        "group-data-[sot-dimmed=true]/source-provider:!border-[var(--line-hairline)] group-data-[sot-dimmed=true]/source-provider:!bg-[var(--bg-recessed)] group-data-[sot-dimmed=true]/source-provider:!text-[var(--fg-tertiary)]",
     );
 }
 
@@ -572,7 +582,7 @@ function DataSourceProviderTile({
             variant={getProviderTileVariant(isSelected)}
             size="default"
             aria-pressed={isSelected}
-            className="grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-2.5 whitespace-normal text-left"
+            className="group/source-provider grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start whitespace-normal text-left !gap-[10px] !rounded-[10px] !border !border-solid !border-transparent !bg-transparent !p-[10px] !shadow-none ![box-shadow:none] data-[sot-dimmed=true]:!opacity-[0.55] data-[state=idle]:hover:!bg-[var(--source-provider-card-hover)] data-[state=selected]:!border-[var(--line-hairline)] data-[state=selected]:!bg-[var(--bg-elevated)] data-[state=selected]:!shadow-xs dark:data-[state=selected]:!border-[var(--glass-border)] dark:data-[state=selected]:!bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:!shadow-none dark:data-[state=selected]:![box-shadow:none]"
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -584,7 +594,7 @@ function DataSourceProviderTile({
             onClick={onSelect}
         >
             <span
-                className="flex size-7 shrink-0 items-center justify-center overflow-hidden"
+                className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-[var(--line-hairline)] bg-white"
                 data-sot-provider-icon=""
                 data-sot-cover={
                     source.provider === "feishu-minutes" ? "true" : undefined
@@ -610,14 +620,20 @@ function DataSourceProviderTile({
                 )}
             </span>
             <span
-                className="flex min-w-0 flex-col gap-0.5"
+                className="flex min-w-0 flex-col gap-[2px]"
                 data-sot-provider-meta=""
                 data-sot-part="source-provider-meta"
             >
-                <span className="truncate" data-sot-provider-name="">
+                <span
+                    className="truncate !font-sans !text-[13px] !font-semibold !leading-[normal] !text-[var(--fg-primary)]"
+                    data-sot-provider-name=""
+                >
                     {displayName}
                 </span>
-                <span className="truncate" data-sot-provider-hint="">
+                <span
+                    className="truncate !font-mono !text-[11.5px] !font-medium !leading-[normal] !text-[var(--fg-tertiary)]"
+                    data-sot-provider-hint=""
+                >
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
@@ -636,7 +652,7 @@ function DataSourceProviderTile({
             >
                 <span
                     className={cn(
-                        "size-1.5 rounded-full bg-current",
+                        "size-[4px] rounded-full bg-current",
                         status.tone === "syncing" && "animate-pulse",
                     )}
                     data-sot-provider-status-dot=""
@@ -1499,6 +1515,7 @@ function DataSourcesSettingsPanel({
                                     fieldContentClassName={
                                         SETTINGS_FIELD_CONTENT_CLASS
                                     }
+                                    fieldOrientation="horizontal"
                                     inputClassName={
                                         SOURCE_PROVIDER_DETAIL_INPUT_CLASS
                                     }
@@ -1546,6 +1563,7 @@ function DataSourcesSettingsPanel({
                                             fieldContentClassName={
                                                 SETTINGS_FIELD_CONTENT_CLASS
                                             }
+                                            fieldOrientation="horizontal"
                                             inputClassName={
                                                 SOURCE_PROVIDER_DETAIL_INPUT_CLASS
                                             }
@@ -1953,7 +1971,7 @@ const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
 const SOURCE_PROVIDER_DETAIL_FIELD_CLASS = [
     SETTINGS_FIELD_CLASS,
-    "gap-3.5 max-[720px]:flex-col max-[720px]:items-start",
+    "gap-3.5",
 ].join(" ");
 const SOURCE_PROVIDER_DETAIL_INPUT_CLASS =
     "h-8 min-w-60 max-w-full font-mono text-xs";

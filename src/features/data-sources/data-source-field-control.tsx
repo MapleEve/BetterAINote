@@ -32,6 +32,7 @@ interface DataSourceFieldControlProps {
     field: DataSourceFormField;
     fieldClassName?: string;
     fieldContentClassName?: string;
+    fieldOrientation?: "vertical" | "horizontal" | "responsive";
     fieldId: string;
     inputClassName?: string;
     onValueChange: (
@@ -47,6 +48,7 @@ export function DataSourceFieldControl({
     field,
     fieldClassName,
     fieldContentClassName,
+    fieldOrientation,
     fieldId,
     inputClassName,
     onValueChange,
@@ -76,6 +78,7 @@ export function DataSourceFieldControl({
                 field={renderedField}
                 fieldClassName={fieldClassName}
                 fieldContentClassName={fieldContentClassName}
+                fieldOrientation={fieldOrientation}
                 fieldId={fieldId}
                 inputClassName={inputClassName}
                 onValueChange={(_nextField, value) =>

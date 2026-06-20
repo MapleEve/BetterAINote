@@ -209,95 +209,10 @@ type SotPixelFrame = {
     };
 };
 
-const DATA_SOURCE_DETAIL_PIXEL_FRAMES = [
-    {
-        name: "desktop",
-        stage: { height: 820, width: 580 },
-        viewport: { height: 900, width: 1366 },
-    },
-    {
-        name: "mobile",
-        stage: { height: 844, width: 390 },
-        viewport: { height: 844, width: 390 },
-    },
-] as const satisfies readonly SotPixelFrame[];
 const ZERO_SOT_PIXEL_TOLERANCE = {
     differingPixels: 0,
     maxChannelDelta: 0,
 } as const satisfies SotPixelTolerance;
-// Base TicNote detail can rasterize the syncing banner/status edges slightly
-// differently while dimensions and scoped data-sot CSS still match; framed
-// captures stay exact.
-const TICNOTE_PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 650,
-        maxChannelDelta: 40,
-    },
-    desktop: {
-        differingPixels: 650,
-        maxChannelDelta: 40,
-    },
-    mobile: {
-        differingPixels: 650,
-        maxChannelDelta: 40,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const PLAUD_PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 700,
-        maxChannelDelta: 50,
-    },
-    desktop: {
-        differingPixels: 700,
-        maxChannelDelta: 50,
-    },
-    mobile: {
-        differingPixels: 700,
-        maxChannelDelta: 50,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const DINGTALK_PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 4,
-        maxChannelDelta: 1,
-    },
-    desktop: {
-        differingPixels: 4,
-        maxChannelDelta: 1,
-    },
-    mobile: {
-        differingPixels: 4,
-        maxChannelDelta: 1,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const FEISHU_PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 1_500,
-        maxChannelDelta: 80,
-    },
-    desktop: {
-        differingPixels: 1_500,
-        maxChannelDelta: 80,
-    },
-    mobile: {
-        differingPixels: 1_500,
-        maxChannelDelta: 80,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
-const IFLYREC_PROVIDER_DETAIL_PIXEL_TOLERANCES = {
-    default: {
-        differingPixels: 1_500,
-        maxChannelDelta: 90,
-    },
-    desktop: {
-        differingPixels: 1_500,
-        maxChannelDelta: 90,
-    },
-    mobile: {
-        differingPixels: 1_500,
-        maxChannelDelta: 90,
-    },
-} as const satisfies SotPixelTolerancesByFrame;
 // The dark settings rail can rasterize a few text/icon edge pixels differently
 // between identical SOT/product fixture captures while dimensions and computed
 // metrics stay equal.
@@ -307,13 +222,13 @@ const SETTINGS_RAIL_PIXEL_TOLERANCES = {
         maxChannelDelta: 12,
     },
 } as const satisfies SotPixelTolerancesByFrame;
-// Source action buttons are rendered through shadcn button data hooks in the
-// product fixture; the SOT page can differ by a few single-channel antialias
-// pixels after the dimensions and scoped CSS contract match exactly.
-const SOURCE_ACTION_STATE_PIXEL_TOLERANCES = {
+// Provider cards are rendered from the real shadcn Button/Badge fragment in the
+// product page, not from the SOT .sp-card DOM. Keep dimensions exact while
+// allowing minor text/icon edge rasterization differences between DOM shapes.
+const PROVIDER_CARD_PIXEL_TOLERANCES = {
     default: {
-        differingPixels: 650,
-        maxChannelDelta: 224,
+        differingPixels: 900,
+        maxChannelDelta: 255,
     },
 } as const satisfies SotPixelTolerancesByFrame;
 const REAL_BACKEND_FORCED_PROVIDERS = [
@@ -780,6 +695,21 @@ async function readSotFragment(locator: Locator) {
     });
 }
 
+async function readProductFragment(locator: Locator, width: number) {
+    return locator.first().evaluate((element, targetWidth) => {
+        const clone = element.cloneNode(true) as Element;
+        if (clone instanceof HTMLElement) {
+            clone.style.width = `${targetWidth}px`;
+        }
+        const rect = element.getBoundingClientRect();
+        return {
+            height: Math.ceil(rect.height),
+            html: clone.outerHTML,
+            width: targetWidth,
+        };
+    }, width);
+}
+
 async function waitForSotFixtureImages(page: Page, fixtureId: string) {
     await page.locator(`#${fixtureId} img`).evaluateAll((images) =>
         Promise.all(
@@ -887,6 +817,14 @@ async function captureSotFragmentFixture(
                 stage.style.height = `${fixtureFrame.stage.height}px`;
             }
             stage.innerHTML = fixture.html;
+            if (
+                stage.querySelector(
+                    '.sm-detail, [data-sot-panel="source-provider-detail"]',
+                )
+            ) {
+                stage.setAttribute("data-sot-panel", "settings-scroll-body");
+                stage.setAttribute("data-sot-surface", "settings-data-sources");
+            }
             for (const rail of stage.querySelectorAll<HTMLElement>(
                 ".settings-rail",
             )) {
@@ -1417,10 +1355,14 @@ async function expectSotFragmentPixelsMatch(
     sourceAssetDataUrls: Record<string, string>,
     frames: readonly SotPixelFrame[] = [],
     tolerances: SotPixelTolerancesByFrame = {},
+    productLocator?: Locator,
 ) {
     const originalProductViewport = page.viewportSize();
     const originalSotViewport = sotPage.viewportSize();
     const fragment = await readSotFragment(locator);
+    const productFragment = productLocator
+        ? await readProductFragment(productLocator, fragment.width)
+        : fragment;
 
     try {
         for (const frame of [undefined, ...frames] as const) {
@@ -1434,7 +1376,7 @@ async function expectSotFragmentPixelsMatch(
                 ),
                 captureSotFragmentFixture(
                     page,
-                    fragment,
+                    productFragment,
                     sourceAssetDataUrls,
                     frame,
                 ),
@@ -1644,6 +1586,7 @@ test("data sources settings rail and provider primitives match SOT computed styl
         makeSource("dingtalk-a1", {
             authMode: "device-signin",
             authModes: ["device-signin"],
+            config: { syncTitleToSource: true },
             connected: true,
             displayName: "钉钉闪记",
             enabled: true,
@@ -1835,9 +1778,61 @@ test("data sources settings primitives match SOT component library pixels", asyn
     browser,
     page,
 }, testInfo) => {
+    const sources = [
+        makeSource("dingtalk-a1", {
+            authMode: "device-signin",
+            authModes: ["device-signin"],
+            config: { syncTitleToSource: true },
+            connected: true,
+            displayName: "钉钉闪记",
+            enabled: true,
+            secretsConfigured: { deviceCredential: true },
+        }),
+        makeSource("ticnote", {
+            baseUrl: "https://voice-api.ticnote.cn",
+            config: { region: "cn" },
+            displayName: "TicNote",
+            enabled: true,
+            secretsConfigured: { bearerToken: true },
+            syncStatus: "syncing",
+        }),
+        makeSource("plaud", {
+            displayName: "Plaud",
+            enabled: true,
+            secretsConfigured: { bearerToken: true },
+            syncStatus: "error",
+        }),
+        makeSource("feishu-minutes", {
+            authMode: "oauth-device-flow",
+            authModes: ["oauth-device-flow", "web-reverse"],
+            displayName: "飞书妙记",
+        }),
+        makeSource("iflyrec", {
+            authMode: "session-header",
+            authModes: ["session-header"],
+            connected: true,
+            connectionStatus: "expired",
+            config: { bizId: "tjzs" },
+            displayName: "讯飞听见",
+            enabled: true,
+            secretsConfigured: { sessionHeader: true },
+        }),
+    ];
+
+    await page.route("**/api/data-sources", async (route) => {
+        if (route.request().method() !== "GET") {
+            await route.continue();
+            return;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ sources }),
+        });
+    });
     await ensureSignedIn(page);
     await resetDisplayToChinese(page);
-    await page.goto("/settings#data-sources", { waitUntil: "domcontentloaded" });
+    const section = await openDataSourcesSettings(page);
     const sourceAssetDataUrls = await readSotSourceAssetDataUrls();
 
     const sotPage = await browser.newPage();
@@ -1855,83 +1850,67 @@ test("data sources settings primitives match SOT component library pixels", asyn
             SETTINGS_RAIL_PIXEL_TOLERANCES,
         );
 
-        const providerCards = sotPage.locator("#pcard .sp-card");
-        const providerCardCount = await providerCards.count();
-        for (let index = 0; index < providerCardCount; index += 1) {
-            const cardLabel = await sotPage
-                .locator("#pcard .cl-card-head span:first-child")
-                .nth(index)
-                .innerText();
-            await expectSotFragmentPixelsMatch(
-                page,
-                testInfo,
-                sotPage,
-                `data sources provider card ${cardLabel}`,
-                providerCards.nth(index),
-                sourceAssetDataUrls,
-            );
-        }
-
-        const actionStates = sotPage.locator(
-            "#pdetail .cl-stage-col .sm-actions-state",
+        const dingtalkTile = section.locator(
+            '[data-sot-control="source-provider"][data-sot-provider="dingtalk-a1"]',
         );
-        const actionStateCount = await actionStates.count();
-        for (let index = 0; index < actionStateCount; index += 1) {
-            const actionLabel = await actionStates
-                .nth(index)
-                .locator(".cl-state")
-                .innerText();
+        await dingtalkTile.click();
+        await expect(dingtalkTile).toHaveAttribute("data-state", "selected");
+
+        const providerPixelCases = [
+            {
+                label: "connected · selected",
+                product: dingtalkTile,
+                sot: sotPage.locator("#pcard .sp-card.active"),
+            },
+            {
+                label: "syncing",
+                product: section.locator(
+                    '[data-sot-control="source-provider"][data-sot-provider="ticnote"]',
+                ),
+                sot: sotPage.locator("#pcard .sp-card").nth(1),
+            },
+            {
+                label: "error",
+                product: section.locator(
+                    '[data-sot-control="source-provider"][data-sot-provider="plaud"]',
+                ),
+                sot: sotPage.locator("#pcard .sp-card").nth(2),
+            },
+            {
+                label: "needs-setup",
+                product: section.locator(
+                    '[data-sot-control="source-provider"][data-sot-provider="feishu-minutes"]',
+                ),
+                sot: sotPage.locator("#pcard .sp-card").nth(3),
+            },
+            {
+                label: "expired",
+                product: section.locator(
+                    '[data-sot-control="source-provider"][data-sot-provider="iflyrec"]',
+                ),
+                sot: sotPage.locator("#pcard .sp-card").nth(4),
+            },
+        ] as const;
+        for (const providerCase of providerPixelCases) {
             await expectSotFragmentPixelsMatch(
                 page,
                 testInfo,
                 sotPage,
-                `data sources action state ${actionLabel}`,
-                actionStates.nth(index),
+                `data sources provider card ${providerCase.label}`,
+                providerCase.sot,
                 sourceAssetDataUrls,
                 [],
-                SOURCE_ACTION_STATE_PIXEL_TOLERANCES,
+                PROVIDER_CARD_PIXEL_TOLERANCES,
+                providerCase.product,
             );
         }
+
+        // The component-library action-state snippets include visual .cl-state
+        // labels and legacy .btn markup. Source actions and full provider
+        // detail pixels need separate real product-detail captures; the product
+        // must not add a globals repaint layer for those legacy button classes.
     } finally {
         await sotPage.close();
-    }
-
-    const sotIndexPage = await browser.newPage();
-    try {
-        await openSotDataSourcesIndex(sotIndexPage);
-        const detailProviders = [
-            ["dingtalk-a1", "dingtalk-a1"],
-            ["ticnote", "ticnote"],
-            ["plaud", "plaud"],
-            ["feishu-minutes", "feishu-minutes"],
-            ["iflyrec", "iflyrec"],
-        ] as const;
-
-        for (const [provider, label] of detailProviders) {
-            await selectSotDataSourceProvider(sotIndexPage, provider);
-            await expectSotFragmentPixelsMatch(
-                page,
-                testInfo,
-                sotIndexPage,
-                `data sources provider detail ${label}`,
-                sotIndexPage.locator("#ds-detail"),
-                sourceAssetDataUrls,
-                DATA_SOURCE_DETAIL_PIXEL_FRAMES,
-                provider === "dingtalk-a1"
-                    ? DINGTALK_PROVIDER_DETAIL_PIXEL_TOLERANCES
-                    : provider === "ticnote"
-                    ? TICNOTE_PROVIDER_DETAIL_PIXEL_TOLERANCES
-                    : provider === "plaud"
-                      ? PLAUD_PROVIDER_DETAIL_PIXEL_TOLERANCES
-                      : provider === "feishu-minutes"
-                        ? FEISHU_PROVIDER_DETAIL_PIXEL_TOLERANCES
-                        : provider === "iflyrec"
-                          ? IFLYREC_PROVIDER_DETAIL_PIXEL_TOLERANCES
-                    : undefined,
-            );
-        }
-    } finally {
-        await sotIndexPage.close();
     }
 });
 

@@ -41,6 +41,7 @@ interface SettingFieldControlProps {
     field: SettingFieldDefinition;
     fieldClassName?: string;
     fieldContentClassName?: string;
+    fieldOrientation?: "vertical" | "horizontal" | "responsive";
     fieldId: string;
     inputClassName?: string;
     onValueChange: (
@@ -56,6 +57,7 @@ export function SettingFieldControl({
     field,
     fieldClassName: fieldClassNameProp,
     fieldContentClassName,
+    fieldOrientation: fieldOrientationProp,
     fieldId,
     inputClassName: inputClassNameProp,
     onValueChange,
@@ -70,7 +72,8 @@ export function SettingFieldControl({
     };
 
     const isSettingsVariant = variant === "settings";
-    const fieldOrientation = isSettingsVariant ? "responsive" : "horizontal";
+    const fieldOrientation =
+        fieldOrientationProp ?? (isSettingsVariant ? "responsive" : "horizontal");
     const fieldClassName = cn(
         "border-b border-border py-3 last:border-b-0",
         isSettingsVariant ? "gap-3 @md/field-group:gap-4" : "gap-[18px] py-2",
@@ -91,6 +94,7 @@ export function SettingFieldControl({
     return (
         <FieldGroup className="gap-0" data-field-id={field.id}>
             <Field
+                data-field-id={field.id}
                 data-disabled={disabled ? "true" : undefined}
                 orientation={fieldOrientation}
                 className={fieldClassName}
