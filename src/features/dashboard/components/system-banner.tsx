@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type SVGProps, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -318,10 +318,10 @@ function SystemBannerIcon({
     }
 }
 
-function CloseIcon() {
+function CloseIcon(props: SVGProps<SVGSVGElement>) {
     return (
         // biome-ignore lint/a11y/noSvgWithoutTitle: SOT close icon is inside a button with aria-label.
-        <svg viewBox="0 0 24 24">
+        <svg viewBox="0 0 24 24" {...props}>
             <path d="M18 6 6 18M6 6l12 12" />
         </svg>
     );
@@ -546,7 +546,10 @@ function SystemBannerItem({
                         variant="ghost"
                         type="button"
                     >
-                        <CloseIcon />
+                        <CloseIcon
+                            data-icon="inline-start"
+                            aria-hidden="true"
+                        />
                     </Button>
                 ) : null}
             </div>

@@ -1064,6 +1064,9 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain('size="icon-sm"');
         expect(banner).toContain('variant="ghost"');
         expect(banner).toContain("variant={");
+        expect(banner).toMatch(
+            /data-sot-control="system-banner-dismiss-action"[\s\S]*<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+        );
         expect(banner).not.toContain("btn ghost btn-sm");
         expect(banner).toContain("<SystemBannerIcon");
         expect(banner).toContain("visibleBanners.length === 0");

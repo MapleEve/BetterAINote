@@ -2019,6 +2019,9 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain("</Alert>");
         expect(banner).not.toMatch(/<section[\s>]/);
         expect(banner).not.toContain('data-slot="system-banner"');
+        expect(banner).toMatch(
+            /<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+        );
     });
 
     it("keeps more actions menus product CSS on data-sot selectors", () => {
@@ -5052,6 +5055,12 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
         expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
+        expect(sotPlayerPrimitives).toMatch(
+            /<Plus\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
+        );
+        expect(sotPlayerPrimitives).toMatch(
+            /<Button[\s\S]*data-recording-tag-chip[\s\S]*<span\s+data-icon="inline-start">\s*<RecordingTagIconGlyph\s+icon=\{tag\.icon\}\s*\/>\s*<\/span>/,
+        );
         expect(sotPlayerPrimitives).toContain(
             'data-sot-part="recording-tag-overflow"',
         );
@@ -5079,12 +5088,8 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="player-status"',
         );
         expect(sotPlayerPrimitives).toContain("<Badge");
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_SOURCE_BADGE_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
-        );
+        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_SOURCE_BADGE_CLASS");
+        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
         expect(sotPlayerPrimitives).toContain('variant="ghost"');
         expect(sotPlayerPrimitives).not.toContain('variant="source"');
         expect(sotPlayerPrimitives).not.toContain('variant="player-status"');

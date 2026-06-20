@@ -147,7 +147,7 @@ export function SotPlayerTagChip({
                 onClick={onClick}
                 type="button"
             >
-                <Plus aria-hidden="true" />
+                <Plus data-icon="inline-start" aria-hidden="true" />
                 <span>标签</span>
             </Button>
         );
@@ -200,7 +200,9 @@ export function SotPlayerTagChip({
                 onClick={onClick}
                 aria-expanded={trigger ? state === "open" : undefined}
             >
-                <RecordingTagIconGlyph icon={tag.icon} />
+                <span data-icon="inline-start">
+                    <RecordingTagIconGlyph icon={tag.icon} />
+                </span>
                 {tag.name}
             </Button>
             {count > 1 ? (
