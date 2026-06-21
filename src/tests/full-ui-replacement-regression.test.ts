@@ -4154,15 +4154,22 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="speaker-review-merge-empty"',
             "Empty",
         );
-        expect(speakerReviewMergeEmpty).toContain("<EmptyHeader>");
-        expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
-        expect(speakerReviewMergeEmpty).toContain('variant="icon"');
-        expect(speakerReviewMergeEmpty).toContain("<CheckCircle2");
-        expect(speakerReviewMergeEmpty).toContain(
-            '<EmptyTitle data-sot-part="speaker-review-merge-empty-title">',
+        expect(speakerReviewMergeEmpty).toMatch(
+            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
         );
         expect(speakerReviewMergeEmpty).toContain(
-            '<EmptyDescription data-sot-part="speaker-review-merge-empty-description">',
+            '<EmptyHeader className="max-w-none gap-0">',
+        );
+        expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
+        expect(speakerReviewMergeEmpty).toContain('variant="subtleIcon"');
+        expect(speakerReviewMergeEmpty).toContain(
+            "<Check strokeWidth={1.8} />",
+        );
+        expect(speakerReviewMergeEmpty).toMatch(
+            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
+        );
+        expect(speakerReviewMergeEmpty).toMatch(
+            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
         );
         const speakerReviewNoSamplesEmpty = extractElementSlice(
             speakerReview,

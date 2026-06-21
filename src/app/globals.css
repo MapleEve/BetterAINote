@@ -173,6 +173,13 @@
     --bg-elevated: var(--graphite-50);
     --card-elevated-bg: var(--bg-elevated);
     --card-elevated-border: var(--line-hairline);
+    --card-popover-bg: var(--bg-elevated);
+    --card-popover-border: var(--line-hairline);
+    --card-popover-divider: var(--line-hairline);
+    --card-popover-shadow:
+        0 1px 2px rgb(15 23 42 / 0.04),
+        0 12px 32px -8px rgb(15 23 42 / 0.18),
+        0 24px 64px -12px rgb(15 23 42 / 0.22);
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);
@@ -433,6 +440,13 @@
         transparent
     );
     --card-elevated-border: var(--glass-border-soft);
+    --card-popover-bg: var(--graphite-900);
+    --card-popover-border: var(--glass-border);
+    --card-popover-divider: var(--glass-border-soft);
+    --card-popover-shadow:
+        0 1px 2px rgb(0 0 0 / 0.5),
+        0 12px 32px -8px rgb(0 0 0 / 0.55),
+        0 24px 64px -12px rgb(0 0 0 / 0.6);
     --bg-recessed: rgb(20 25 31);
     --bg-recessed: oklch(0.165 0.004 250); /* inputs/wells */
     --bg-overlay: rgb(31 36 42 / 0.74);

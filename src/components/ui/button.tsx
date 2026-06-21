@@ -18,6 +18,8 @@ const buttonVariants = cva(
                 secondary:
                     "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                ghostIcon:
+                    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] dark:hover:bg-[var(--bg-recessed)] [&_svg]:size-[16px] [&_svg]:-translate-x-[0.5px] [&_svg]:-translate-y-px [&_svg]:stroke-[1.8]",
                 link: "text-primary underline-offset-4 hover:underline",
             },
             size: {
@@ -28,7 +30,7 @@ const buttonVariants = cva(
                 icon: "size-9",
                 "icon-xs":
                     "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
-                "icon-sm": "size-8",
+                "icon-sm": "size-[32px]",
                 "icon-lg": "size-10",
             },
         },

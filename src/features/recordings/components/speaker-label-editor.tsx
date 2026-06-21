@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    CheckCircle2,
+    Check,
     Copy,
     FileText,
     Play,
@@ -825,7 +825,8 @@ export function SpeakerLabelEditor({
                             </Button>
                             <Card
                                 hasNoPadding
-                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-80 min-w-72 gap-0 overflow-hidden p-0"
+                                variant="popover"
+                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 p-0"
                                 id={mergePopoverId}
                                 data-sot-panel="speaker-review-merge"
                                 data-spk-merge-pop
@@ -835,15 +836,19 @@ export function SpeakerLabelEditor({
                                 aria-label="合并相似说话人"
                             >
                                 <CardHeader
-                                    className="flex items-center justify-between gap-2 px-3 py-3"
+                                    variant="popover"
+                                    className="flex items-center justify-between gap-[10px]"
                                     data-sot-part="speaker-review-merge-header"
                                 >
-                                    <CardTitle data-sot-part="speaker-review-merge-title">
+                                    <CardTitle
+                                        className="text-[12px] leading-normal"
+                                        data-sot-part="speaker-review-merge-title"
+                                    >
                                         合并相似说话人
                                     </CardTitle>
                                     <CardAction>
                                         <Button
-                                            variant="ghost"
+                                            variant="ghostIcon"
                                             size="icon-sm"
                                             data-spk-merge-close
                                             type="button"
@@ -854,6 +859,7 @@ export function SpeakerLabelEditor({
                                         >
                                             <X
                                                 data-icon="inline-start"
+                                                strokeWidth={1.8}
                                                 aria-hidden="true"
                                                 focusable="false"
                                             />
@@ -862,20 +868,26 @@ export function SpeakerLabelEditor({
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <Empty
-                                        className="p-4 md:p-6"
+                                        variant="compact"
                                         data-sot-part="speaker-review-merge-empty"
                                     >
-                                        <EmptyHeader>
+                                        <EmptyHeader className="max-w-none gap-0">
                                             <EmptyMedia
-                                                variant="icon"
+                                                variant="subtleIcon"
                                                 data-sot-part="speaker-review-merge-empty-icon"
                                             >
-                                                <CheckCircle2 />
+                                                <Check strokeWidth={1.8} />
                                             </EmptyMedia>
-                                            <EmptyTitle data-sot-part="speaker-review-merge-empty-title">
+                                            <EmptyTitle
+                                                variant="compact"
+                                                data-sot-part="speaker-review-merge-empty-title"
+                                            >
                                                 当前没有可合并的相似说话人
                                             </EmptyTitle>
-                                            <EmptyDescription data-sot-part="speaker-review-merge-empty-description">
+                                            <EmptyDescription
+                                                variant="compact"
+                                                data-sot-part="speaker-review-merge-empty-description"
+                                            >
                                                 如果两位说话人声纹接近，会出现在这里供你确认。
                                             </EmptyDescription>
                                         </EmptyHeader>

@@ -325,18 +325,23 @@ describe("dashboard speaker label editor regressions", () => {
             'data-sot-part="speaker-review-merge-empty"',
             "Empty",
         );
-        expect(mergeEmpty).toContain("<EmptyHeader>");
+        expect(mergeEmpty).toMatch(
+            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
+        );
+        expect(mergeEmpty).toContain(
+            '<EmptyHeader className="max-w-none gap-0">',
+        );
         expect(mergeEmpty).toContain("<EmptyMedia");
-        expect(mergeEmpty).toContain('variant="icon"');
-        expect(mergeEmpty).toContain("<CheckCircle2");
+        expect(mergeEmpty).toContain('variant="subtleIcon"');
+        expect(mergeEmpty).toContain("<Check strokeWidth={1.8} />");
         expect(mergeEmpty).toContain(
             'data-sot-part="speaker-review-merge-empty-icon"',
         );
-        expect(mergeEmpty).toContain(
-            '<EmptyTitle data-sot-part="speaker-review-merge-empty-title">',
+        expect(mergeEmpty).toMatch(
+            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
         );
-        expect(mergeEmpty).toContain(
-            '<EmptyDescription data-sot-part="speaker-review-merge-empty-description">',
+        expect(mergeEmpty).toMatch(
+            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
         );
         expect(mergeEmpty).not.toContain("<svg");
         expect(mergeEmpty).not.toContain("<p");
