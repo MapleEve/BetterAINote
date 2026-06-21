@@ -258,6 +258,15 @@ __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel[data-open="true"] {
     opacity: 1;
     transform: translateY(0) scale(1);
 }
+__ACTIVITY_SCOPE__ .activity-pixel-stage.cl-pop-host > .notif-panel {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    inset: auto !important;
+}
 __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-panel {
     width: 380px;
     max-width: calc(100vw - 32px);
@@ -506,6 +515,13 @@ __ACTIVITY_SCOPE__ .activity-pixel-stage .notif-empty-sub {
     font: 500 12px var(--font-sans);
     color: var(--fg-tertiary);
     margin: 0;
+}
+__ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 500 11px/1 var(--font-mono);
+    color: var(--fg-tertiary);
 }
 __ACTIVITY_SCOPE__ .activity-pixel-stage .inline-progress .inp-track {
     position: relative;
