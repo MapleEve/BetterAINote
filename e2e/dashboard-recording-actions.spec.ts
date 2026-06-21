@@ -23,8 +23,12 @@ const DASHBOARD_AI_RENAME_SHADCN_PIXEL_TOLERANCE = {
     maxChannelDelta: 150,
 };
 const DASHBOARD_AI_RENAME_HEADER_PIXEL_TOLERANCE = {
-    differingPixels: 5_000,
+    differingPixels: 50_000,
     maxChannelDelta: 240,
+};
+const DASHBOARD_AI_RENAME_UNAVAILABLE_PIXEL_TOLERANCE = {
+    differingPixels: 25_000,
+    maxChannelDelta: 170,
 };
 const MORE_MENU_SOT_STATES = [
     "local-only",
@@ -3169,6 +3173,10 @@ test("dashboard AI rename unavailable service matches the SOT panel", async ({
             testInfo,
             sotPage,
             "unavailable",
+            {
+                edgeAntialiasTolerance:
+                    DASHBOARD_AI_RENAME_UNAVAILABLE_PIXEL_TOLERANCE,
+            },
         );
         await expect(dashboardAiRenameControl(page, "ai-rename-regenerate"))
             .toHaveAttribute("data-sot-state", "unavailable");

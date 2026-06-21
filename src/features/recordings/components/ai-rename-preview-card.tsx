@@ -1,12 +1,7 @@
 "use client";
 
-import {
-    AlertTriangle,
-    Ban,
-    Check,
-    RefreshCw,
-    X,
-} from "lucide-react";
+import { Check, RefreshCw, X } from "lucide-react";
+import type { SVGProps } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +37,25 @@ interface AiRenamePreviewCardProps {
     className?: string;
 }
 
+function AiRenameUnavailableIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 24 24" {...props}>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M4.93 4.93l14.14 14.14" />
+        </svg>
+    );
+}
+
+function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 24 24" {...props}>
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        </svg>
+    );
+}
+
 export function AiRenamePreviewCard({
     applyLabel,
     bodyLabel,
@@ -71,7 +85,8 @@ export function AiRenamePreviewCard({
     const stateLabel = state === "review" ? "复核确认" : (bodyLabel ?? title);
     const reviewOldTitle = originalFilename?.trim() || "—";
     const reviewNewTitle = filename?.trim() || "—";
-    const ErrorIcon = state === "unavailable" ? Ban : AlertTriangle;
+    const ErrorIcon =
+        state === "unavailable" ? AiRenameUnavailableIcon : AiRenameErrorIcon;
 
     return (
         <Card

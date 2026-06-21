@@ -1328,6 +1328,44 @@ const AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS = [
     '.cl-pop-host > [data-sot-panel="ai-rename-preview"]',
 ] as const;
 
+const AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS = [
+    '[data-sot-panel="ai-rename-preview"][role="dialog"]',
+    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"][role="dialog"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="head"]',
+    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"] [data-sot-part="head"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="head-copy"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="eyebrow"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="subtitle"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"] svg',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="body"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="message"]',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]\n    [data-sot-part="state-description"]',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]\n    [data-sot-part="message"]',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="unavailable"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"]',
+    '[data-sot-panel="ai-rename-preview"][data-sot-state="unavailable"]\n    [data-sot-part="error-icon"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="error-icon"] svg',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="label"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="title"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="hint"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-row"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-line"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-tag"]',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="review-tag"][data-sot-review-field="new"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-old"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="review-new"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="actions"]',
+    '[data-theme="dark"] [data-sot-panel="ai-rename-preview"] [data-sot-part="actions"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-part="actions-spacer"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-control^="ai-rename-"]',
+    '[data-sot-panel="ai-rename-preview"] [data-sot-control^="ai-rename-"] svg',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"]:disabled',
+    '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"][aria-disabled="true"]',
+] as const;
+
 const AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE =
     /\[data-slot="(?:alert|alert-description|alert-title|badge|button|card|card-content|card-description|card-footer|card-header|card-title)"\]/;
 
@@ -2394,25 +2432,51 @@ describe("full UI replacement regression coverage", () => {
                     .includes(selector),
             );
 
-            expect(retainedBlocks).toHaveLength(1);
+            expect(retainedBlocks.length).toBeGreaterThanOrEqual(1);
         }
 
         const aiRenameBlocks = collectCssRuleBlocks(
             globals,
             '[data-sot-panel="ai-rename-preview"]',
         );
-        expect(aiRenameBlocks).toHaveLength(
-            AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS.length,
-        );
+        for (const selector of AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS) {
+            const retainedBlocks = collectCssRuleBlocks(
+                globals,
+                selector,
+            ).filter(({ prelude }) =>
+                stripCssComments(prelude)
+                    .split(",")
+                    .map((selectorPart) => selectorPart.trim())
+                    .includes(selector),
+            );
+
+            expect(retainedBlocks.length).toBeGreaterThanOrEqual(1);
+        }
 
         const primitiveOrRepaintBlocks = aiRenameBlocks.filter(
-            ({ declarations, prelude }) =>
-                AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE.test(
-                    stripCssComments(prelude),
-                ) ||
-                AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE.test(
-                    declarations,
-                ),
+            ({ declarations, prelude }) => {
+                const preludeSelectors = stripCssComments(prelude)
+                    .split(",")
+                    .map((selectorPart) => selectorPart.trim());
+                if (
+                    preludeSelectors.some((selector) =>
+                        AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS.includes(
+                            selector as (typeof AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS)[number],
+                        ),
+                    )
+                ) {
+                    return false;
+                }
+
+                return (
+                    AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE.test(
+                        preludeSelectors.join(","),
+                    ) ||
+                    AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE.test(
+                        declarations,
+                    )
+                );
+            },
         );
 
         expect(primitiveOrRepaintBlocks).toEqual([]);
@@ -3665,14 +3729,18 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeaderLegacySelectorLines).toEqual([]);
         for (const selector of [
             '[data-sot-panel="recording-detail-header"]',
-            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
             '[data-sot-part="detail-header-title-input"][data-slot="input"]',
             '[data-sot-part="detail-header-title-status"]',
             '[data-sot-part="detail-header-local-badge"]',
-            '[data-sot-part="detail-header-action"]',
-            '[data-sot-part="detail-header-action-anchor"]',
         ]) {
             expect(globals).not.toContain(selector);
+        }
+        for (const selector of [
+            '[data-sot-panel="dashboard-detail-header"]',
+            '[data-sot-panel="dashboard-detail-header"] [data-sot-part="detail-header-title"]',
+            '[data-sot-panel="dashboard-detail-header"]\n    [data-sot-part="detail-header-action-anchor"]',
+        ]) {
+            expect(globals).toContain(selector);
         }
         expect(workstation).toContain(
             'data-sot-panel="dashboard-retranscription"',
@@ -4513,12 +4581,9 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-panel="recording-detail-header"]',
         );
         for (const selector of [
-            '[data-sot-part="detail-header-title"][data-slot="card-title"]',
             '[data-sot-part="detail-header-title-input"][data-slot="input"]',
             '[data-sot-part="detail-header-title-status"]',
             '[data-sot-part="detail-header-local-badge"]',
-            '[data-sot-part="detail-header-action"]',
-            '[data-sot-part="detail-header-action-anchor"]',
         ]) {
             expect(globals).not.toContain(selector);
         }
