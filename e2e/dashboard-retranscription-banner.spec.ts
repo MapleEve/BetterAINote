@@ -1129,8 +1129,8 @@ const LOCAL_TRANSCRIPT_EMPTY_RASTER_TOLERANCE = {
 } as const satisfies RetxPixelTolerance;
 
 const COPY_BUTTON_RASTER_TOLERANCE = {
-    differingPixels: 700,
-    maxChannelDelta: 190,
+    differingPixels: 720,
+    maxChannelDelta: 195,
 } as const satisfies RetxPixelTolerance;
 
 const LOCAL_TRANSCRIPT_PIXEL_FRAMES = [

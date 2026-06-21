@@ -351,7 +351,7 @@ const SOT_COPY_DANGER_BUTTON_CLASS = cn(
     "border-[var(--button-copy-danger-border)] text-[var(--signal-danger)] hover:bg-transparent hover:text-[var(--signal-danger)]",
 );
 const SOT_COMPACT_GHOST_BUTTON_CLASS =
-    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50";
+    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px] dark:hover:bg-accent/50";
 const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
     "--sot-player-track": "var(--graphite-200)",
 };
@@ -5821,7 +5821,7 @@ export function Workstation({
                     >
                         <CardHeader
                             className={cn(
-                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
+                                "relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0",
                                 dashboardDetailHeaderState === "saving" &&
                                     "py-0",
                             )}

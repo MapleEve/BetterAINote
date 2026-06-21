@@ -3623,7 +3623,7 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardDetailHeaderMode = editingTitle",
         );
         expect(dashboardDetailHeader).toContain(
-            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
+            '"relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0"',
         );
         expect(dashboardDetailHeader).toContain(
             'className="min-w-0 flex-1 truncate"',
