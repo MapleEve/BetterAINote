@@ -5740,7 +5740,7 @@ export function Workstation({
                                         </div>
                                         <div data-sot-part="recording-list-page-nav">
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="sm"
                                                 type="button"
                                                 data-page-prev=""
@@ -5764,7 +5764,7 @@ export function Workstation({
                                                 {listTotalPages}
                                             </span>
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="sm"
                                                 type="button"
                                                 data-page-next=""
@@ -5793,7 +5793,7 @@ export function Workstation({
                                         </div>
                                         {listPaginationState === "paginated" ? (
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="sm"
                                                 type="button"
                                                 data-sot-control="recording-list-load-more"

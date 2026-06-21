@@ -2590,6 +2590,221 @@ async function captureListPanelFrameFixture(
                     flex-direction: column;
                     padding: 0;
                 }
+                #${CSS.escape(id)} .stack-strip {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    gap: 6px 8px;
+                    row-gap: 6px;
+                    min-width: 0;
+                    padding: 8px 12px;
+                    border-bottom: 1px solid var(--line-hairline);
+                    background: var(--bg-recessed);
+                    font: 500 11.5px var(--font-sans);
+                    color: var(--fg-tertiary);
+                }
+                [data-theme="dark"] #${CSS.escape(id)} .stack-strip {
+                    background: rgb(255 255 255 / .03);
+                    border-bottom-color: var(--glass-border-soft);
+                }
+                #${CSS.escape(id)} .stack-strip .stack-from {
+                    display: inline-flex;
+                    align-items: baseline;
+                    flex: 0 1 auto;
+                    min-width: 0;
+                    max-width: 100%;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    line-height: 22px;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-from b {
+                    white-space: nowrap;
+                    font-weight: 700;
+                    color: var(--fg-secondary);
+                }
+                #${CSS.escape(id)} .stack-strip .stack-sep {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 0 0 auto;
+                    width: 10px;
+                    height: 22px;
+                    line-height: 1;
+                    font-size: 13px;
+                    color: var(--fg-disabled);
+                    user-select: none;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip {
+                    display: inline-flex;
+                    flex: 0 0 auto;
+                    align-items: center;
+                    gap: 6px;
+                    height: 22px;
+                    padding: 0 4px 0 6px;
+                    border-radius: 999px;
+                    background: var(--bg-elevated);
+                    border: 1px solid var(--line-hairline);
+                    font: 600 11.5px var(--font-sans);
+                    color: var(--fg-primary);
+                    white-space: nowrap;
+                    line-height: 1;
+                }
+                [data-theme="dark"] #${CSS.escape(id)} .stack-strip .stack-chip {
+                    background: rgb(255 255 255 / .06);
+                    border-color: var(--glass-border);
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip .ico {
+                    display: inline-flex;
+                    flex: 0 0 14px;
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 4px;
+                    align-items: center;
+                    justify-content: center;
+                    background: #fff;
+                    border: 1px solid var(--line-hairline);
+                    overflow: hidden;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip .ico img {
+                    display: block;
+                    width: 14px;
+                    height: 14px;
+                    object-fit: contain;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip .ico.cover img {
+                    object-fit: cover;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip [data-stack-label] {
+                    white-space: nowrap;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip .x {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    display: inline-flex;
+                    flex: 0 0 16px;
+                    width: 16px;
+                    height: 16px;
+                    margin: 0;
+                    padding: 0;
+                    border: 0;
+                    border-radius: 50%;
+                    align-items: center;
+                    justify-content: center;
+                    background: transparent;
+                    color: var(--fg-tertiary);
+                    cursor: pointer;
+                    font: 600 11px var(--font-sans);
+                }
+                #${CSS.escape(id)} .stack-strip .stack-chip .x svg {
+                    display: block;
+                    width: 11px;
+                    height: 11px;
+                    stroke: currentColor;
+                    fill: none;
+                    stroke-width: 2;
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                }
+                #${CSS.escape(id)} .stack-strip .stack-info {
+                    display: inline-flex;
+                    align-items: center;
+                    flex: 0 1 auto;
+                    min-width: 0;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    line-height: 22px;
+                    color: var(--fg-tertiary);
+                }
+                #${CSS.escape(id)} .stack-strip .stack-info b {
+                    font-weight: 700;
+                    color: var(--fg-secondary);
+                }
+                #${CSS.escape(id)} .liquid-tabs {
+                    --idx: 0;
+                    --n: 2;
+                    position: relative;
+                    display: grid;
+                    grid-template-columns: repeat(var(--n), 1fr);
+                    gap: 0;
+                    padding: 4px;
+                    border-radius: 12px;
+                    background: var(--bg-recessed);
+                    border: 1px solid color-mix(in srgb, var(--graphite-300) 60%, transparent);
+                    box-shadow: inset 0 1px 2px rgb(20 22 28 / .04);
+                    width: fit-content;
+                    min-width: 220px;
+                }
+                [data-theme="dark"] #${CSS.escape(id)} .liquid-tabs {
+                    background: rgb(255 255 255 / .04);
+                    border-color: var(--glass-border-soft);
+                    box-shadow: inset 0 0 0 .5px rgb(255 255 255 / .03);
+                }
+                #${CSS.escape(id)} .liquid-tabs.sm {
+                    padding: 3px;
+                    border-radius: 10px;
+                }
+                #${CSS.escape(id)} .lt-ind {
+                    position: absolute;
+                    display: block;
+                    left: 4px;
+                    top: 4px;
+                    bottom: 4px;
+                    width: calc((100% - 8px) / var(--n));
+                    border-radius: 9px;
+                    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, white 18%), var(--accent));
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 22%, transparent), inset 0 1px 0 rgb(255 255 255 / .25);
+                    transform: translateX(calc(var(--idx) * 100%));
+                    transition: transform 460ms var(--ease-out);
+                }
+                #${CSS.escape(id)} .liquid-tabs.sm .lt-ind {
+                    left: 3px;
+                    top: 3px;
+                    bottom: 3px;
+                    width: calc((100% - 6px) / var(--n));
+                    border-radius: 7px;
+                }
+                #${CSS.escape(id)} .lt-tab {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    position: relative;
+                    z-index: 1;
+                    padding: 6px 14px;
+                    margin: 0;
+                    min-width: 80px;
+                    font-family: var(--font-sans);
+                    font-size: 12.5px;
+                    font-weight: 600;
+                    line-height: normal;
+                    color: var(--fg-secondary);
+                    background: transparent;
+                    border: 0;
+                    box-shadow: none;
+                    cursor: pointer;
+                    border-radius: 9px;
+                    text-align: center;
+                    text-transform: none;
+                    transition: color 220ms var(--ease-out);
+                }
+                #${CSS.escape(id)} .lt-tab.active {
+                    color: white;
+                }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="1"] { --n: 1; }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="2"] { --n: 2; }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="3"] { --n: 3; }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="4"] { --n: 4; }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="5"] { --n: 5; }
+                #${CSS.escape(id)} .liquid-tabs[data-tabs="6"] { --n: 6; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="0"] { --idx: 0; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="1"] { --idx: 1; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="2"] { --idx: 2; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="3"] { --idx: 3; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="4"] { --idx: 4; }
+                #${CSS.escape(id)} .liquid-tabs[data-idx="5"] { --idx: 5; }
                 #${CSS.escape(id)} [data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"] {
                     display: flex;
                     flex-wrap: wrap;
