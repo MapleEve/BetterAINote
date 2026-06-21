@@ -1321,14 +1321,14 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
-const AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS = [
+const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]',
     '[data-sot-panel="ai-rename-preview"][data-open="true"]',
     '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"][hidden]',
     '.cl-pop-host > [data-sot-panel="ai-rename-preview"]',
 ] as const;
 
-const AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS = [
+const AI_RENAME_PREVIEW_VISUAL_REPAINT_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"][role="dialog"]',
     '[data-theme="dark"] [data-sot-panel="ai-rename-preview"][role="dialog"]',
     '[data-sot-panel="ai-rename-preview"] [data-sot-part="head"]',
@@ -1339,7 +1339,6 @@ const AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"]',
     '[data-sot-panel="ai-rename-preview"] [data-sot-control="ai-rename-close"] svg',
     '[data-sot-panel="ai-rename-preview"] [data-sot-part="body"]',
-    '[data-sot-panel="ai-rename-preview"] [data-sot-part="state"]',
     '[data-sot-panel="ai-rename-preview"] [data-sot-part="message"]',
     '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]',
     '[data-sot-panel="ai-rename-preview"]\n    [data-sot-part="state"][data-sot-state="error"]\n    [data-sot-part="state-description"]',
@@ -1365,12 +1364,6 @@ const AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"]:disabled',
     '[data-sot-panel="ai-rename-preview"]\n    [data-sot-control^="ai-rename-"][aria-disabled="true"]',
 ] as const;
-
-const AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE =
-    /\[data-slot="(?:alert|alert-description|alert-title|badge|button|card|card-content|card-description|card-footer|card-header|card-title)"\]/;
-
-const AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE =
-    /^\s*(?:-webkit-backdrop-filter|backdrop-filter|background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|margin|padding|text-decoration(?:-[\w-]+)?|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
 describe("full UI replacement regression coverage", () => {
     it("keeps global SOT tokens, foundation primitives, and OKLCH fallbacks", () => {
@@ -2421,7 +2414,7 @@ describe("full UI replacement regression coverage", () => {
 
         expect(legacyAiRenameSelectorLines).toEqual([]);
 
-        for (const selector of AI_RENAME_PREVIEW_RETAINED_FUNCTIONAL_CSS_SELECTORS) {
+        for (const selector of AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS) {
             const retainedBlocks = collectCssRuleBlocks(
                 globals,
                 selector,
@@ -2435,51 +2428,11 @@ describe("full UI replacement regression coverage", () => {
             expect(retainedBlocks.length).toBeGreaterThanOrEqual(1);
         }
 
-        const aiRenameBlocks = collectCssRuleBlocks(
-            globals,
-            '[data-sot-panel="ai-rename-preview"]',
-        );
-        for (const selector of AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS) {
-            const retainedBlocks = collectCssRuleBlocks(
-                globals,
-                selector,
-            ).filter(({ prelude }) =>
-                stripCssComments(prelude)
-                    .split(",")
-                    .map((selectorPart) => selectorPart.trim())
-                    .includes(selector),
-            );
+        for (const selector of AI_RENAME_PREVIEW_VISUAL_REPAINT_CSS_SELECTORS) {
+            const retainedBlocks = collectCssRuleBlocks(globals, selector);
 
-            expect(retainedBlocks.length).toBeGreaterThanOrEqual(1);
+            expect(retainedBlocks).toEqual([]);
         }
-
-        const primitiveOrRepaintBlocks = aiRenameBlocks.filter(
-            ({ declarations, prelude }) => {
-                const preludeSelectors = stripCssComments(prelude)
-                    .split(",")
-                    .map((selectorPart) => selectorPart.trim());
-                if (
-                    preludeSelectors.some((selector) =>
-                        AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS.includes(
-                            selector as (typeof AI_RENAME_PREVIEW_DATA_SOT_REPAINT_CSS_SELECTORS)[number],
-                        ),
-                    )
-                ) {
-                    return false;
-                }
-
-                return (
-                    AI_RENAME_PREVIEW_PRIMITIVE_SELECTOR_RE.test(
-                        preludeSelectors.join(","),
-                    ) ||
-                    AI_RENAME_PREVIEW_GLOBAL_REPAINT_DECLARATION_RE.test(
-                        declarations,
-                    )
-                );
-            },
-        );
-
-        expect(primitiveOrRepaintBlocks).toEqual([]);
     });
 
     it("keeps AI rename legacy tokens out of product source", () => {
@@ -3871,11 +3824,15 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(aiRenamePreview).toContain('from "@/components/ui/card";');
+        expect(aiRenamePreview).toContain(
+            'from "@/components/ui/separator";',
+        );
         expect(aiRenamePreview).toContain('import { cn } from "@/lib/utils";');
         expect(aiRenamePreview).toContain("<Card");
         expect(aiRenamePreview).toContain("<CardHeader");
         expect(aiRenamePreview).toContain("<CardContent");
         expect(aiRenamePreview).toContain("<CardFooter");
+        expect(aiRenamePreview).toContain("<Separator");
         expect(aiRenamePreview).toContain("<Alert");
         expect(aiRenamePreview).toContain("<Badge");
         expect(aiRenamePreview).toContain("<Button");
@@ -3886,39 +3843,37 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-sot-part="review-old"');
         expect(aiRenamePreview).toContain('data-sot-part="review-new"');
         expect(aiRenamePreview).toContain(
-            '"w-[min(360px,calc(100vw-32px))] gap-0 !rounded-[var(--radius-lg)] !border-[var(--glass-border)] !bg-[rgb(23_25_27)] !font-sans !text-[var(--fg-primary)] ![box-shadow:0_18px_44px_rgb(0_0_0_/_0.4)]"',
+            '"w-[min(360px,calc(100vw-32px))] gap-0"',
         );
         expect(aiRenamePreview).toContain(
-            'className="!grid-cols-[1fr_auto] !items-start !gap-x-[10px] !gap-y-[2px] !border-b !border-[var(--glass-border-soft)] !px-[14px] !pt-[12px] !pb-[8px]"',
+            'className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"',
         );
         expect(aiRenamePreview).toContain(
-            'className="flex !min-h-[80px] flex-col !px-[14px] !py-[14px]"',
+            'className="flex min-h-20 flex-col px-4 py-4"',
         );
         expect(aiRenamePreview).toContain(
-            'className="mx-auto mb-[6px] inline-block !size-[16px] rounded-full border-2 border-[rgb(92_168_198_/_0.36)] border-t-[var(--accent)]"',
+            'className="mx-auto mb-1 size-4 animate-spin rounded-full border-2 border-border border-t-current"',
         );
-        expect(aiRenamePreview).toContain('size="icon"');
-        expect(aiRenamePreview).toContain('size="sm"');
+        expect(aiRenamePreview).toContain('size="icon-xs"');
+        expect(aiRenamePreview).toContain('size="xs"');
         expect(aiRenamePreview).toContain('variant="ghost"');
         expect(aiRenamePreview).toContain('variant="outline"');
+        expect(aiRenamePreview).toContain('variant="secondary"');
+        expect(aiRenamePreview).toContain('variant="default"');
         expect(aiRenamePreview).toContain(
             'variant={state === "error" ? "destructive" : "default"}',
         );
         expect(aiRenamePreview).toContain(
-            '"!grid !min-w-0 !grid-cols-1 !justify-items-center !gap-[8px] !border-0 !bg-transparent !px-[4px] !py-[3px] !text-center !shadow-none"',
+            'className="flex min-w-0 items-baseline gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-2"',
         );
         expect(aiRenamePreview).toContain(
-            '? "!bg-[rgb(184_130_27_/_0.14)] !text-[var(--signal-warning)]"',
+            'className="flex items-center gap-1.5 px-4 py-3"',
         );
-        expect(aiRenamePreview).toContain(
-            ': "!bg-[rgb(210_65_53_/_0.14)] !text-[var(--signal-danger)]"',
-        );
-        expect(aiRenamePreview).toContain(
-            'className="flex min-w-0 items-baseline gap-[8px] rounded-[8px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[10px] py-[8px]"',
-        );
-        expect(aiRenamePreview).toContain(
-            'className="flex items-center !gap-[6px] !border-t !border-[var(--glass-border-soft)] !px-[14px] !py-[10px] !bg-[rgb(30_32_34)]"',
-        );
+        expect(aiRenamePreview).not.toContain("!bg-");
+        expect(aiRenamePreview).not.toContain("!text-");
+        expect(aiRenamePreview).not.toContain("!font-");
+        expect(aiRenamePreview).not.toContain("!size-");
+        expect(aiRenamePreview).not.toContain("![box-shadow:");
         expect(aiRenamePreview).not.toMatch(/\bAI_RENAME_[A-Z0-9_]+_CLASS\b/);
         expect(aiRenamePreview).not.toMatch(/--ai-rename-[\w-]+/);
         expect(aiRenamePreview).not.toMatch(
