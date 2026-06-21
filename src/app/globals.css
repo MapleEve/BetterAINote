@@ -1789,6 +1789,10 @@ button:not([data-slot]) {
     opacity: 0;
     pointer-events: none;
 }
+[data-sot-panel="confirm-dialog"] {
+    /* Keep the global ConfirmDialog portal above an already-open settings shell. */
+    z-index: calc(var(--z-modal) + 2);
+}
 [data-sot-surface="settings-shell"],
 [data-sot-content="confirm-dialog"] {
     color: var(--fg-primary);

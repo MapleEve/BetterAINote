@@ -227,6 +227,7 @@ const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
     '[data-sot-overlay="confirm-dialog"]',
+    '[data-sot-panel="confirm-dialog"]',
     '[data-sot-overlay="settings-shell"][data-state="open"]',
     '[data-sot-overlay="confirm-dialog"][data-state="closed"]',
     '[data-sot-surface="settings-shell"],',
@@ -1411,6 +1412,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        expect(
+            extractCssBlock(productCss, '[data-sot-panel="confirm-dialog"]'),
+        ).toContain("z-index: calc(var(--z-modal) + 2);");
         for (const selector of DIALOG_SLOT_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
