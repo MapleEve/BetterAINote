@@ -171,6 +171,8 @@
        ----------------------------------------------------------- */
     --bg-canvas: var(--graphite-100);
     --bg-elevated: var(--graphite-50);
+    --card-elevated-bg: var(--bg-elevated);
+    --card-elevated-border: var(--line-hairline);
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);
@@ -424,6 +426,13 @@
     --bg-canvas: oklch(0.185 0.004 250); /* near-black, faintly cool */
     --bg-elevated: rgb(31 36 42);
     --bg-elevated: oklch(0.215 0.004 250); /* one step up — sidebars/panels */
+    --card-elevated-bg: rgb(31 36 42 / 0.7);
+    --card-elevated-bg: color-mix(
+        in srgb,
+        var(--bg-elevated) 70%,
+        transparent
+    );
+    --card-elevated-border: var(--glass-border-soft);
     --bg-recessed: rgb(20 25 31);
     --bg-recessed: oklch(0.165 0.004 250); /* inputs/wells */
     --bg-overlay: rgb(31 36 42 / 0.74);

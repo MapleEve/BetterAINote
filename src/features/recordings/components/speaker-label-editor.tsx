@@ -722,7 +722,7 @@ export function SpeakerLabelEditor({
                 data-sot-part="speaker-review-transcript-card"
             >
                 <CardHeader
-                    className="flex items-center justify-between gap-2 px-4 py-3 max-[860px]:flex-col max-[860px]:items-stretch"
+                    className="flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch"
                     data-sot-part="speaker-review-header"
                 >
                     <div
@@ -743,7 +743,7 @@ export function SpeakerLabelEditor({
                         </div>
                     </div>
                     <CardAction
-                        className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 max-[860px]:justify-start"
+                        className="flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start"
                         data-sot-part="speaker-review-actions"
                     >
                         <ToggleGroup
@@ -1008,7 +1008,7 @@ export function SpeakerLabelEditor({
                 </Empty>
             ) : (
                 <div
-                    className="flex flex-col gap-1.5"
+                    className="flex flex-col gap-[6px]"
                     data-sot-list="speaker-review-rows"
                     data-sot-variant="review"
                 >
@@ -1016,7 +1016,8 @@ export function SpeakerLabelEditor({
                         <Card
                             key={speaker.rawLabel}
                             hasNoPadding
-                            className="grid items-center gap-2.5 overflow-visible p-3"
+                            variant="elevated"
+                            className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"
                             data-sot-item="speaker-review-row"
                             data-sot-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
@@ -1214,7 +1215,7 @@ export function SpeakerLabelEditor({
                                 return (
                                     <>
                                         <div
-                                            className="flex min-w-0 flex-col gap-0.5"
+                                            className="flex min-w-0 flex-col gap-[2px]"
                                             data-sot-part="speaker-review-row-meta"
                                         >
                                             <div>

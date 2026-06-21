@@ -2,16 +2,27 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+const cardVariants = {
+    default: "",
+    elevated:
+        "rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)]",
+} as const;
+
 function Card({
     className,
     hasNoPadding = false,
+    variant = "default",
     ...props
-}: React.ComponentProps<"div"> & { hasNoPadding?: boolean }) {
+}: React.ComponentProps<"div"> & {
+    hasNoPadding?: boolean;
+    variant?: keyof typeof cardVariants;
+}) {
     return (
         <div
             data-slot="card"
             className={cn(
                 "flex flex-col gap-6 overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm backdrop-blur-xl",
+                cardVariants[variant],
                 !hasNoPadding && "py-6",
                 className,
             )}
