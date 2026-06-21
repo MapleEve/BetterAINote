@@ -3687,7 +3687,7 @@ describe("full UI replacement regression coverage", () => {
             "const dashboardDetailHeaderMode = editingTitle",
         );
         expect(dashboardDetailHeader).toContain(
-            '"relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0"',
+            '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
         expect(dashboardDetailHeader).toContain(
             'className="min-w-0 flex-1 truncate"',
@@ -3738,10 +3738,12 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of [
             '[data-sot-panel="dashboard-detail-header"]',
             '[data-sot-panel="dashboard-detail-header"] [data-sot-part="detail-header-title"]',
-            '[data-sot-panel="dashboard-detail-header"]\n    [data-sot-part="detail-header-action-anchor"]',
         ]) {
             expect(globals).toContain(selector);
         }
+        expect(globals).not.toContain(
+            '[data-sot-part="detail-header-action-anchor"]',
+        );
         expect(workstation).toContain(
             'data-sot-panel="dashboard-retranscription"',
         );

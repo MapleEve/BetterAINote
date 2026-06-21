@@ -5821,7 +5821,7 @@ export function Workstation({
                     >
                         <CardHeader
                             className={cn(
-                                "relative flex flex-row items-center gap-2.5 px-[4px] pt-[4px] pb-0",
+                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
                                 dashboardDetailHeaderState === "saving" &&
                                     "py-0",
                             )}

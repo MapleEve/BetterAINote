@@ -3466,14 +3466,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     white-space: nowrap;
 }
 [data-sot-panel="dashboard-detail-header"]
-    [data-sot-part="detail-header-action-anchor"] {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex: none;
-}
-[data-sot-panel="dashboard-detail-header"]
     [data-sot-control="rename-recording-title"],
 [data-sot-panel="dashboard-detail-header"]
     [data-sot-control="recording-more-actions"] {
