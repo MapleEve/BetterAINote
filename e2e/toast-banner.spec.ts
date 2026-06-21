@@ -465,6 +465,9 @@ async function installToastAndBannerFixtures(page: Page) {
                     opacity 200ms var(--ease-out),
                     transform 200ms var(--ease-out);
             }
+            #toast-modal-fixture.scrim {
+                z-index: var(--z-modal);
+            }
             #toast-stack .toast[data-open="true"] {
                 opacity: 1;
                 transform: translateY(0);
