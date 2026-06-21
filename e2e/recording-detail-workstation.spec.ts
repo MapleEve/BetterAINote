@@ -2916,6 +2916,10 @@ function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
             "$1",
         )
         .replace(
+            /(<[^>]*(?=[^>]*data-sot-control="recording-tag-manager")(?=[^>]*data-sot-part="recording-tag-chip")[^>]*>[\s\S]*?)<span[^>]*data-icon="[^"]+"[^>]*>\s*(<svg[\s\S]*?<\/svg>)\s*<\/span>/g,
+            "$1$2",
+        )
+        .replace(
             /<span[^>]*data-slot="slider-track"[^>]*>\s*(<span[^>]*data-slot="slider-range"[^>]*>\s*<\/span>)\s*<\/span>/g,
             "$1",
         )
