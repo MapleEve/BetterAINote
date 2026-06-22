@@ -68,6 +68,14 @@ const DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-part="library-search-tag-chip"] {',
 ];
 
+const DASHBOARD_ACTIVITY_PRIMITIVE_REPAINT_CSS_SELECTORS = [
+    '[data-sot-control="dashboard-activity-close"] {',
+    '[data-sot-control="dashboard-activity-close"] svg',
+    '[data-sot-control="dashboard-activity-dismiss"] {',
+    '[data-sot-control="dashboard-activity-dismiss"]:hover',
+    '[data-sot-control="dashboard-activity-dismiss"] svg',
+];
+
 const SEARCH_ACTIVITY_OLD_GENERIC_TOKENS = [
     'variant="ghost"',
     'variant="outline"',
@@ -252,6 +260,9 @@ describe("dashboard SOT search and activity interactions", () => {
             expect(globals).toContain(selector);
         }
         for (const selector of DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        for (const selector of DASHBOARD_ACTIVITY_PRIMITIVE_REPAINT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
     });
