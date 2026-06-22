@@ -83,6 +83,30 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function extractOpeningElement(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
+}
+
+function extractSelfClosingElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf("/>", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 2);
+}
+
 describe("dashboard recording player regressions", () => {
     it("does not pass an empty audio source to the hidden audio element", () => {
         const source = readFileSync(
@@ -145,6 +169,10 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/components/ui/slider.tsx"),
             "utf8",
         );
+        const popoverSource = readFileSync(
+            path.join(process.cwd(), "src/components/ui/popover.tsx"),
+            "utf8",
+        );
         const buttonSource = readFileSync(
             path.join(process.cwd(), "src/components/ui/button.tsx"),
             "utf8",
@@ -196,9 +224,80 @@ describe("dashboard recording player regressions", () => {
         expect(sliderSource).toContain('data-slot="slider-track"');
         expect(sliderSource).toContain('data-slot="slider-range"');
         expect(sliderSource).toContain('data-slot="slider-thumb"');
+        expect(sliderSource).toContain(
+            'type SliderVariant = "default" | "playerSeek" | "playerVolume";',
+        );
+        expect(sliderSource).toContain("SLIDER_ROOT_VARIANT_CLASS");
+        expect(sliderSource).toContain("SLIDER_TRACK_VARIANT_CLASS");
+        expect(sliderSource).toContain("SLIDER_RANGE_VARIANT_CLASS");
+        expect(sliderSource).toContain("SLIDER_THUMB_VARIANT_CLASS");
+        expect(sliderSource).toContain("data-variant={variant}");
+        expect(sliderSource).toContain("playerSeek:");
+        expect(sliderSource).toContain(
+            "h-[14px] min-w-0 flex-1 cursor-pointer",
+        );
+        expect(sliderSource).toContain("bg-[rgb(224_227_230)]");
+        expect(sliderSource).toContain(
+            "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]",
+        );
+        expect(sliderSource).toContain(
+            "shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]",
+        );
+        expect(sliderSource).toContain("playerVolume:");
+        expect(sliderSource).toContain(
+            'playerVolume: "h-[18px] min-w-[110px] flex-1"',
+        );
+        expect(popoverSource).toContain(
+            'type PopoverContentVariant = "default" | "playerVolume";',
+        );
+        expect(popoverSource).toContain("POPOVER_CONTENT_VARIANT_CLASS");
+        expect(popoverSource).toContain(
+            'playerVolume: "w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
+        );
+        expect(popoverSource).toContain("data-variant={variant}");
         expect(sliderSource).not.toContain("track-fill");
         expect(sliderSource).not.toContain("track-thumb");
         expect(source).toContain('"data-sot-control": "recording-player-seek"');
+        expect(source).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
+        expect(source).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
+        expect(source).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
+        expect(source).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
+        expect(source).not.toContain("recordingSeekSliderRootStyle");
+        expect(source).not.toContain("sotPlayerSeekRangeStyle");
+        expect(source).not.toContain("sotPlayerSeekThumbStyle");
+        const seekSliderSource = extractSelfClosingElement(
+            source,
+            '"data-sot-control": "recording-player-seek"',
+            "Slider",
+        );
+        expect(seekSliderSource).toContain('variant="playerSeek"');
+        expect(seekSliderSource).toContain("rootProps={{");
+        expect(seekSliderSource).toContain("rangeProps={{");
+        expect(seekSliderSource).toContain("thumbProps={{");
+        expect(seekSliderSource).toContain('"data-pct": playerProgressPct');
+        expect(seekSliderSource).toContain(
+            '"aria-disabled": playbackDisabled ? "true" : undefined',
+        );
+        expect(seekSliderSource).toContain('"aria-valuemax": 100');
+        expect(seekSliderSource).toContain('"aria-valuemin": 0');
+        expect(seekSliderSource).toContain(
+            '"aria-valuenow": Math.round(progress)',
+        );
+        expect(seekSliderSource).toContain('"data-sot-state": controlState');
+        expect(seekSliderSource).toContain("onClick: (event) =>");
+        expect(seekSliderSource).toContain("seekToPercent(");
+        expect(seekSliderSource).toContain("onKeyDown: (event) =>");
+        expect(seekSliderSource).toContain('event.key === "ArrowLeft"');
+        expect(seekSliderSource).toContain('event.key === "ArrowRight"');
+        expect(seekSliderSource).toContain('event.key === "Home"');
+        expect(seekSliderSource).toContain('event.key === "End"');
+        expect(seekSliderSource).toContain('role: "slider"');
+        expect(seekSliderSource).toContain(
+            "tabIndex: playbackDisabled ? -1 : 0",
+        );
+        expect(seekSliderSource).not.toContain("className=");
+        expect(seekSliderSource).not.toContain("className:");
+        expect(seekSliderSource).not.toContain("style:");
         const recordingSliderPrimitiveBlocks = [
             "recording-player-seek",
             "recording-player-volume-slider",
@@ -217,13 +316,33 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain(
             'data-sot-panel="recording-player-volume-popover"',
         );
-        expect(source).toContain(
+        const volumePopoverSource = extractOpeningElement(
+            source,
+            'data-sot-panel="recording-player-volume-popover"',
+            "PopoverContent",
+        );
+        expect(volumePopoverSource).toContain('variant="playerVolume"');
+        expect(volumePopoverSource).not.toContain("className=");
+        expect(source).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(source).toContain('side="top"');
         expect(source).toContain('align="end"');
         expect(source).toContain(
             'data-sot-control="recording-player-volume-slider"',
+        );
+        const volumeSliderSource = extractSelfClosingElement(
+            source,
+            'data-sot-control="recording-player-volume-slider"',
+            "Slider",
+        );
+        expect(volumeSliderSource).toContain('variant="playerVolume"');
+        expect(volumeSliderSource).toContain("data-sot-state={controlState}");
+        expect(volumeSliderSource).toContain("aria-label={");
+        expect(volumeSliderSource).toContain("onValueChange={(nextValue) =>");
+        expect(volumeSliderSource).not.toContain("className=");
+        expect(volumeSliderSource).not.toContain(
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
         );
         expect(source).toContain(
             'data-sot-part="recording-player-volume-value"',

@@ -5002,7 +5002,8 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'data-sot-panel="recording-player-volume-popover"',
         );
-        expect(player).toContain(
+        expect(player).toContain('variant="playerVolume"');
+        expect(player).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(player).toContain("<Popover");
@@ -5013,6 +5014,7 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
         );
+        expect(player).toContain('variant="playerSeek"');
         for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
             expect(player).toContain(`data-sot-control="${hook}"`);
         }

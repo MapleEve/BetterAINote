@@ -44,26 +44,6 @@ const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
 };
 
-type SotPlayerSliderTrackStyle = CSSProperties & {
-    "--sot-player-track": string;
-};
-
-const SOT_PLAYER_SEEK_SLIDER_CLASS =
-    "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:h-[6px] [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]";
-const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
-const SOT_PLAYER_SEEK_THUMB_CLASS =
-    "size-[14px] border-0 bg-white p-0 shadow-none";
-const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
-const recordingSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
-    "--sot-player-track": "rgb(224 227 230)",
-};
-const sotPlayerSeekRangeStyle: CSSProperties = {
-    background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
-};
-const sotPlayerSeekThumbStyle: CSSProperties = {
-    boxShadow: "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
-};
-
 export function RecordingPlayer({
     recording,
     tags = [],
@@ -278,16 +258,13 @@ export function RecordingPlayer({
                 </span>
 
                 <Slider
-                    className={SOT_PLAYER_SEEK_SLIDER_CLASS}
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
                     onValueChange={seekToSliderValue}
                     onValueCommit={seekToSliderValue}
                     rangeProps={{
-                        className: SOT_PLAYER_SEEK_RANGE_CLASS,
                         "data-pct": playerProgressPct,
-                        style: sotPlayerSeekRangeStyle,
                     }}
                     rootProps={{
                         "aria-disabled": playbackDisabled ? "true" : undefined,
@@ -301,7 +278,6 @@ export function RecordingPlayer({
                         "data-pct": playerProgressPct,
                         "data-sot-control": "recording-player-seek",
                         "data-sot-state": controlState,
-                        style: recordingSeekSliderRootStyle,
                         onClick: (event) => {
                             const rect =
                                 event.currentTarget.getBoundingClientRect();
@@ -332,11 +308,10 @@ export function RecordingPlayer({
                     }}
                     step={1}
                     thumbProps={{
-                        className: SOT_PLAYER_SEEK_THUMB_CLASS,
                         "data-pct": playerProgressPct,
-                        style: sotPlayerSeekThumbStyle,
                     }}
                     value={[progress]}
+                    variant="playerSeek"
                 />
 
                 <span data-sot-part="recording-player-duration">
@@ -410,7 +385,6 @@ export function RecordingPlayer({
                             align="end"
                             side="top"
                             sideOffset={8}
-                            className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
                             data-open={volumePopoverOpen ? "true" : "false"}
                             data-sot-panel="recording-player-volume-popover"
                             data-sot-state={
@@ -419,6 +393,7 @@ export function RecordingPlayer({
                             aria-label={
                                 language === "zh-CN" ? "音量" : "Volume"
                             }
+                            variant="playerVolume"
                         >
                             <div
                                 className="flex items-center gap-2"
@@ -451,7 +426,6 @@ export function RecordingPlayer({
                                     </span>
                                 </Button>
                                 <Slider
-                                    className={SOT_PLAYER_VOLUME_SLIDER_CLASS}
                                     min={0}
                                     max={100}
                                     step={1}
@@ -467,6 +441,7 @@ export function RecordingPlayer({
                                     onValueChange={(nextValue) =>
                                         setVolume(nextValue[0] ?? volume)
                                     }
+                                    variant="playerVolume"
                                 />
                                 <span
                                     className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
