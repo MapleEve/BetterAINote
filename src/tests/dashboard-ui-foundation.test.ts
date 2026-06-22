@@ -694,7 +694,10 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const badgePrimitive = readSource("components/ui/badge.tsx");
+        const cardPrimitive = readSource("components/ui/card.tsx");
         const globals = readSource("app/globals.css");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
 
         for (const provider of [
             "dingtalk-a1",
@@ -940,16 +943,46 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("<Button");
         expect(workstation).toContain("<Skeleton");
         expect(workstation).toContain("<Slider");
+        expect(cardPrimitive).toContain("sourceReportMetric:");
+        expect(cardPrimitive).toContain(
+            "border-[var(--source-report-metric-border)]",
+        );
+        expect(badgePrimitive).toContain("sourceReportStatus:");
+        expect(badgePrimitive).toContain("data-[sot-tone=ok]");
+        expect(badgePrimitive).toContain("data-[sot-tone=warn]");
+        expect(badgePrimitive).toContain("data-[sot-tone=err]");
+        expect(skeletonPrimitive).toContain("sourceReportCard:");
+        expect(skeletonPrimitive).toContain("sourceReportSegment:");
+        expect(skeletonPrimitive).toContain("sourceReportCardSource");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong");
+        expect(workstation).toContain('variant="sourceReportMetric"');
+        expect(workstation).toContain('variant="sourceReportStatus"');
+        expect(workstation).toContain('variant="sourceReportCard"');
+        expect(workstation).toContain('variant="sourceReportSegment"');
         expect(workstation).toContain(
+            "size={sourceReportCardSkeletonSize(size)}",
+        );
+        expect(workstation).toContain(
+            "size={sourceReportSegmentSkeletonSize(size)}",
+        );
+        expect(workstation).not.toContain("SOURCE_REPORT_METRIC_CARD_CLASS");
+        expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
+        expect(workstation).not.toContain(
+            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
+        );
+        expect(workstation).not.toContain(
             "const sotSourceReportCardSkeletonClassNames",
         );
-        expect(workstation).toContain(
+        expect(workstation).not.toContain(
             "const sotSourceReportSegmentSkeletonClassNames",
         );
-        expect(workstation).toContain(
+        expect(workstation).not.toContain(
+            "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
+        );
+        expect(workstation).not.toContain(
             "className={sotSourceReportCardSkeletonClassNames[size]}",
         );
-        expect(workstation).toContain(
+        expect(workstation).not.toContain(
             "className={sotSourceReportSegmentSkeletonClassNames[size]}",
         );
         expect(workstation).not.toMatch(

@@ -817,20 +817,6 @@ function sourceReportReadinessLabel(
 
 type SourceReportTone = "err" | "neu" | "ok" | "warn";
 
-const SOURCE_REPORT_METRIC_CARD_CLASS =
-    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
-
-const SOURCE_REPORT_STATUS_BADGE_CLASS =
-    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none";
-
-const SOURCE_REPORT_STATUS_BADGE_TONE_CLASS: Record<SourceReportTone, string> =
-    {
-        err: "border-[var(--source-report-status-err-border)] bg-[var(--source-report-status-err-bg)] text-[var(--signal-danger)]",
-        neu: "border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)]",
-        ok: "border-[var(--source-report-status-ok-border)] bg-[var(--source-report-status-ok-bg)] text-[var(--source-report-status-ok-fg)]",
-        warn: "border-[var(--source-report-status-warn-border)] bg-[var(--source-report-status-warn-bg)] text-[var(--source-report-status-warn-fg)]",
-    };
-
 function sourceReportReadinessTone(label: string): SourceReportTone {
     if (label === "已就绪") return "ok";
     if (label === "失败") return "err";
@@ -860,11 +846,7 @@ function SotSourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="outline"
-            className={cn(
-                SOURCE_REPORT_STATUS_BADGE_CLASS,
-                SOURCE_REPORT_STATUS_BADGE_TONE_CLASS[tone],
-            )}
+            variant="sourceReportStatus"
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -886,30 +868,35 @@ type SotSourceReportSegmentSkeletonSize =
     | "speaker"
     | "time";
 
-const sotSourceReportCardSkeletonClassNames: Record<
-    SotSourceReportCardSkeletonSize,
-    string
-> = {
-    count: "inline-block !h-[18px] w-12 align-middle rounded-[6px]",
-    source: "inline-block !h-[18px] w-[120px] align-middle rounded-[6px]",
-    status: "inline-block !h-[18px] w-20 align-middle rounded-[6px]",
-};
+function sourceReportCardSkeletonSize(size: SotSourceReportCardSkeletonSize) {
+    switch (size) {
+        case "count":
+            return "sourceReportCardCount";
+        case "source":
+            return "sourceReportCardSource";
+        case "status":
+            return "sourceReportCardStatus";
+    }
+}
 
-const sotSourceReportSegmentSkeletonClassNames: Record<
-    SotSourceReportSegmentSkeletonSize,
-    string
-> = {
-    "line-long":
-        "mt-1.5 inline-block !h-[13px] w-[92%] align-middle rounded-[4px]",
-    "line-medium":
-        "mt-1.5 inline-block !h-[13px] w-[76%] align-middle rounded-[4px]",
-    "line-short":
-        "mt-1.5 inline-block !h-[13px] w-3/5 align-middle rounded-[4px]",
-    "line-wide":
-        "mt-1.5 inline-block !h-[13px] w-[88%] align-middle rounded-[4px]",
-    speaker: "inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
-    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
-};
+function sourceReportSegmentSkeletonSize(
+    size: SotSourceReportSegmentSkeletonSize,
+) {
+    switch (size) {
+        case "line-long":
+            return "sourceReportSegmentLineLong";
+        case "line-medium":
+            return "sourceReportSegmentLineMedium";
+        case "line-short":
+            return "sourceReportSegmentLineShort";
+        case "line-wide":
+            return "sourceReportSegmentLineWide";
+        case "speaker":
+            return "sourceReportSegmentSpeaker";
+        case "time":
+            return "sourceReportSegmentTime";
+    }
+}
 
 function SotSourceReportMetricCard({
     children,
@@ -925,7 +912,7 @@ function SotSourceReportMetricCard({
     return (
         <Card
             hasNoPadding
-            className={SOURCE_REPORT_METRIC_CARD_CLASS}
+            variant="sourceReportMetric"
             data-sot-card="source-report-metric"
             data-sot-metric={metric}
         >
@@ -951,7 +938,8 @@ function SotSourceReportCardSkeleton({
 }) {
     return (
         <Skeleton
-            className={sotSourceReportCardSkeletonClassNames[size]}
+            variant="sourceReportCard"
+            size={sourceReportCardSkeletonSize(size)}
             aria-hidden="true"
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
@@ -966,7 +954,8 @@ function SotSourceReportSegmentSkeleton({
 }) {
     return (
         <Skeleton
-            className={sotSourceReportSegmentSkeletonClassNames[size]}
+            variant="sourceReportSegment"
+            size={sourceReportSegmentSkeletonSize(size)}
             aria-hidden="true"
             data-sot-part="source-report-segment-skeleton"
             data-sot-size={size}
