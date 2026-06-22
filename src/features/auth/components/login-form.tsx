@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import {
     Field,
     FieldDescription,
@@ -113,24 +119,46 @@ export function LoginForm({
             data-sot-surface={`${intent}-workstation`}
         >
             <Card
-                hasNoPadding
+                variant="authSurface"
                 data-sot-card="auth"
                 data-sot-surface={surfaceName}
                 data-sot-ready={isMounted ? "true" : "false"}
                 data-sot-state={surfaceState}
             >
                 <form onSubmit={handleSubmit}>
-                    <div data-sot-part="card-heading">{cardHeading}</div>
-                    <div data-sot-part="card-sub">邮箱 + 链接 · 不要密码</div>
-                    <div data-sot-frame="auth">
+                    <CardHeader variant="authHeader">
+                        <CardTitle
+                            variant="authHeaderTitle"
+                            data-sot-part="card-heading"
+                        >
+                            {cardHeading}
+                        </CardTitle>
+                        <CardDescription
+                            variant="authHeaderDescription"
+                            data-sot-part="card-sub"
+                        >
+                            邮箱 + 链接 · 不要密码
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent variant="authFrame" data-sot-frame="auth">
                         <img
                             data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                         />{" "}
-                        <div data-sot-part="auth-heading">{title}</div>
-                        <div data-sot-part="auth-description">{subtitle}</div>
-                        <FieldGroup className="mx-auto max-w-[280px] gap-[10px]">
+                        <CardTitle
+                            variant="authFrameTitle"
+                            data-sot-part="auth-heading"
+                        >
+                            {title}
+                        </CardTitle>
+                        <CardDescription
+                            variant="authFrameDescription"
+                            data-sot-part="auth-description"
+                        >
+                            {subtitle}
+                        </CardDescription>
+                        <FieldGroup variant="authCompact">
                             <Field
                                 data-disabled={
                                     !isMounted || isLoading ? "true" : undefined
@@ -149,8 +177,8 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    variant="accent"
-                                    controlSize="compact"
+                                    variant="authEmail"
+                                    controlSize="authEmail"
                                     data-sot-control="auth-email"
                                     data-sot-state={
                                         invalid
@@ -181,14 +209,13 @@ export function LoginForm({
                                     </FieldDescription>
                                 ) : null}
                             </Field>
-                            <Field className="gap-0">
+                            <Field variant="authAction">
                                 <Button
                                     type="submit"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
-                                    className="w-full"
-                                    size="form-submit"
-                                    variant="accent"
+                                    size="authSubmit"
+                                    variant="authSubmit"
                                     data-sot-control="send-login-link"
                                 >
                                     {isLoading ? "发送中..." : "发送登录链接"}
@@ -197,10 +224,10 @@ export function LoginForm({
                                     或{" "}
                                     <Button
                                         type="button"
-                                        size="inline-link"
+                                        size="authInlineLink"
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
-                                        variant="accentLink"
+                                        variant="authInlineLink"
                                         data-sot-control="local-only"
                                         data-sot-state={
                                             isLocalLoading ? "loading" : "ready"
@@ -214,7 +241,7 @@ export function LoginForm({
                                 </FieldDescription>
                             </Field>
                         </FieldGroup>
-                    </div>
+                    </CardContent>
                 </form>
             </Card>
         </main>

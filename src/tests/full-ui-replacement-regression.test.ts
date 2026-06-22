@@ -1719,6 +1719,13 @@ describe("full UI replacement regression coverage", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
+        expect(card).toContain("authSurface:");
+        expect(card).toContain("authHeader:");
+        expect(card).toContain("authHeaderTitle:");
+        expect(card).toContain("authHeaderDescription:");
+        expect(card).toContain("authFrame:");
+        expect(card).toContain("authFrameTitle:");
+        expect(card).toContain("authFrameDescription:");
         expect(card).toContain("detailHeader:");
         expect(card).toContain("data-[sot-state=saving]:py-0");
         expect(card).toContain(
@@ -1836,8 +1843,10 @@ describe("full UI replacement regression coverage", () => {
             "secondary",
             "ghost",
             "accent",
+            "authSubmit",
             "quietOutline",
             "accentLink",
+            "authInlineLink",
             "dashboardNav",
             "dashboardSource",
             "dashboardSync",
@@ -1909,7 +1918,9 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain("text-[var(--accent)]");
         expect(button).toContain('"control-xs":');
         expect(button).toContain('"form-submit":');
+        expect(button).toContain("authSubmit:");
         expect(button).toContain('"inline-link":');
+        expect(button).toContain("authInlineLink:");
         expect(button).toContain("playerControlSm:");
         expect(button).toContain("playerControlLg:");
         for (const dashboardSize of [
@@ -2077,6 +2088,7 @@ describe("full UI replacement regression coverage", () => {
         expect(input).toContain("data-size={controlSize}");
         expect(input).toContain("controlSize:");
         expect(input).toContain("accent:");
+        expect(input).toContain("authEmail:");
         expect(input).toContain("compact:");
         expect(input).toContain("detailHeaderTitle:");
         expect(input).toContain(
@@ -2861,8 +2873,11 @@ describe("full UI replacement regression coverage", () => {
         const globals = readSource("app/globals.css");
 
         expect(login).toContain('data-sot-layout="auth-workstation"');
-        expect(login).toContain('import { Card } from "@/components/ui/card";');
+        expect(login).toMatch(
+            /import\s*\{[\s\S]*Card,[\s\S]*CardContent,[\s\S]*CardDescription,[\s\S]*CardHeader,[\s\S]*CardTitle[\s\S]*\}\s*from "@\/components\/ui\/card";/,
+        );
         expect(login).toContain("<Card");
+        expect(login).toContain('variant="authSurface"');
         expect(login).toContain('data-sot-card="auth"');
         expect(login).toContain("data-sot-surface={surfaceName}");
         expect(login).toContain("data-sot-state={surfaceState}");
@@ -2904,6 +2919,13 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
+        expect(login).toMatch(
+            /<CardHeader\s+variant="authHeader">[\s\S]*<CardTitle(?=[^>]*\bvariant="authHeaderTitle")(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="authHeaderDescription")(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
+        );
+        expect(login).toMatch(
+            /<CardContent(?=[^>]*\bvariant="authFrame")(?=[^>]*\bdata-sot-frame="auth")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="authFrameTitle")(?=[^>]*\bdata-sot-part="auth-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="authFrameDescription")(?=[^>]*\bdata-sot-part="auth-description")[^>]*>/,
+        );
+        expect(login).toContain('<FieldGroup variant="authCompact">');
         const authEmailInput = extractOpeningElement(
             login,
             'data-sot-control="auth-email"',
@@ -2919,15 +2941,21 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="local-only"',
             "Button",
         );
-        expect(authEmailInput).toContain('variant="accent"');
-        expect(authEmailInput).toContain('controlSize="compact"');
+        expect(authEmailInput).toContain('variant="authEmail"');
+        expect(authEmailInput).toContain('controlSize="authEmail"');
         expect(authEmailInput).not.toContain("className=");
-        expect(authSubmitButton).toContain('variant="accent"');
-        expect(authSubmitButton).toContain('size="form-submit"');
-        expect(authSubmitButton).toContain('className="w-full"');
-        expect(authLocalButton).toContain('variant="accentLink"');
-        expect(authLocalButton).toContain('size="inline-link"');
+        expect(authSubmitButton).toContain('variant="authSubmit"');
+        expect(authSubmitButton).toContain('size="authSubmit"');
+        expect(authSubmitButton).not.toContain("className=");
+        expect(authLocalButton).toContain('variant="authInlineLink"');
+        expect(authLocalButton).toContain('size="authInlineLink"');
         expect(authLocalButton).not.toContain("className=");
+        expect(login).not.toContain("hasNoPadding");
+        expect(login).not.toContain('variant="accent"');
+        expect(login).not.toContain('variant="accentLink"');
+        expect(login).not.toContain('controlSize="compact"');
+        expect(login).not.toContain('size="form-submit"');
+        expect(login).not.toContain('size="inline-link"');
         for (const removedAuthPrimitiveRepaintClass of [
             "h-[36px]",
             "h-[38px]",

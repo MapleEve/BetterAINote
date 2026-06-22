@@ -5,7 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
-type FieldVariant = "default" | "sourceProviderDetail";
+type FieldVariant = "default" | "authAction" | "sourceProviderDetail";
+type FieldGroupVariant = "default" | "authCompact";
 type FieldContentVariant = "default" | "sourceProviderDetail";
 type FieldControlVariant = "default" | "sourceProviderDetail";
 type FieldSetVariant =
@@ -59,6 +60,13 @@ const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
 
 const sourceProviderDetailFieldClassName =
     "grid grid-cols-[1fr_auto] items-center gap-[18px] border-b border-[var(--line-hairline)] py-[12px] last:border-b-0";
+const authActionFieldClassName =
+    "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto";
+
+const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
+    default: "",
+    authCompact: "mx-auto max-w-[280px] gap-[10px]",
+};
 
 const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
     default: "gap-1.5 leading-snug",
@@ -111,12 +119,20 @@ function FieldLegend({
     );
 }
 
-function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
+function FieldGroup({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: FieldGroupVariant;
+}) {
     return (
         <div
             data-slot="field-group"
+            data-variant={variant}
             className={cn(
                 "group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+                fieldGroupVariantClassNames[variant],
                 className,
             )}
             {...props}
@@ -137,6 +153,8 @@ function fieldClassName({
         "group/field w-full data-[invalid=true]:text-destructive",
         variant === "sourceProviderDetail"
             ? sourceProviderDetailFieldClassName
+            : variant === "authAction"
+              ? authActionFieldClassName
             : [
                   "flex gap-3",
                   orientation === "vertical" &&
