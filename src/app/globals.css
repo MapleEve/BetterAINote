@@ -2628,51 +2628,6 @@ body[data-time-style="abs"]
     background: rgb(0 0 0 / 0.15);
     border-right-color: var(--glass-border-soft);
 }
-[data-sot-control="settings-nav"] {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    width: auto;
-    height: auto;
-    min-height: 0;
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    font: 500 13px var(--font-sans);
-    line-height: normal;
-    letter-spacing: 0;
-    color: var(--fg-secondary);
-    text-align: left;
-    box-shadow: none;
-}
-[data-sot-control="settings-nav"]:hover {
-    background: color-mix(in srgb, var(--fg-primary) 5%, transparent);
-    color: var(--fg-primary);
-}
-[data-sot-control="settings-nav"][data-state="active"] {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    box-shadow: var(--shadow-xs);
-    border: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-control="settings-nav"][data-state="active"] {
-    background: rgb(255 255 255 / 0.07);
-    border-color: var(--glass-border);
-    box-shadow: none;
-}
-[data-sot-control="settings-nav"] svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    flex: none;
-}
 
 [data-sot-panel="settings-scroll-body"],
 [data-sot-panel="settings-card-skeleton"],
@@ -4970,26 +4925,12 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     text-overflow: ellipsis;
 }
 
-[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] {
-    width: 100%;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg {
-    flex: none;
-}
-
 /* ============================================================
    Keyboard focus coverage — focus-visible only (no shift on mouse
    click). Uses the accent ring already proven on inputs so the
-   look stays consistent across surfaces. Buttons that already
-   define a custom :focus-visible (e.g. avatar, settings rail)
-   keep their own.
+   look stays consistent across surfaces.
    ============================================================ */
 [data-sot-control="dashboard-recording-row"]:focus-visible,
-[data-sot-control="settings-nav"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
 [data-sot-part="source-provider-action"]:focus-visible,
 [data-sot-part="source-filter-action"]:focus-visible,

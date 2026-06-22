@@ -318,6 +318,17 @@ const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="confirm-foot"]',
 ] as const;
 
+const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
+    '[data-sot-control="settings-nav"]',
+    '[data-sot-control="settings-nav"]:hover',
+    '[data-sot-control="settings-nav"][data-state="active"]',
+    '[data-theme="dark"] [data-sot-control="settings-nav"][data-state="active"]',
+    '[data-sot-control="settings-nav"] svg',
+    '[data-sot-control="settings-nav"]:focus-visible',
+    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"]',
+    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg',
+] as const;
+
 const DIALOG_SLOT_GLOBAL_SELECTORS = [
     '[data-slot="dialog-header"]',
     '[data-slot="dialog-title"]',
@@ -5300,6 +5311,33 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
         expect(settingsNavButton).toContain('variant="settingsNav"');
         expect(settingsNavButton).toContain('size="settingsNav"');
+        expect(button).toContain(
+            'settingsNav:\n                    "cursor-pointer border border-transparent bg-transparent',
+        );
+        expect(button).toContain(
+            "hover:bg-[var(--bg-recessed)]",
+        );
+        expect(button).toContain(
+            "focus-visible:outline-[var(--accent)]",
+        );
+        expect(button).toContain(
+            "data-[state=active]:bg-[var(--bg-elevated)]",
+        );
+        expect(button).toContain(
+            "dark:data-[state=active]:bg-[rgb(255_255_255_/_0.07)]",
+        );
+        expect(button).toContain(
+            "h-auto w-full min-w-0 justify-start gap-[10px] truncate",
+        );
+        expect(button).toContain(
+            "[&_svg:not([class*='size-'])]:size-[14px]",
+        );
+        for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain(
+            '[data-sot-control="settings-nav"][data-sot-section="account"]',
+        );
         for (const settingsControlButton of [
             settingsCloseButton,
             settingsNavButton,

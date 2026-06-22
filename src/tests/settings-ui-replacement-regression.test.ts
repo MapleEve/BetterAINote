@@ -123,6 +123,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
+}
+
 function collectElementSlices(source: string, marker: string, tagName: string) {
     const slices: string[] = [];
     let searchFrom = 0;
@@ -204,6 +213,17 @@ const LEGACY_SETTINGS_SHELL_CSS_SELECTORS = [
     [/(^|\n|,)\s*\.su-mail\b/, ".su-mail"],
     [/(^|\n|,)\s*\.sr-group\b/, ".sr-group"],
     [/(^|\n|,)\s*\.sr-group-label\b/, ".sr-group-label"],
+] as const;
+
+const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
+    '[data-sot-control="settings-nav"]',
+    '[data-sot-control="settings-nav"]:hover',
+    '[data-sot-control="settings-nav"][data-state="active"]',
+    '[data-theme="dark"] [data-sot-control="settings-nav"][data-state="active"]',
+    '[data-sot-control="settings-nav"] svg',
+    '[data-sot-control="settings-nav"]:focus-visible',
+    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"]',
+    '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg',
 ] as const;
 
 const FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION =
@@ -398,6 +418,33 @@ describe("settings SOT interaction regressions", () => {
         }
         expect(buttonPrimitive).toContain("settingsClose:");
         expect(buttonPrimitive).toContain("settingsNav:");
+        expect(buttonPrimitive).toContain(
+            'settingsNav:\n                    "cursor-pointer border border-transparent bg-transparent',
+        );
+        expect(buttonPrimitive).toContain(
+            "hover:bg-[var(--bg-recessed)]",
+        );
+        expect(buttonPrimitive).toContain(
+            "focus-visible:outline-[var(--accent)]",
+        );
+        expect(buttonPrimitive).toContain(
+            "data-[state=active]:bg-[var(--bg-elevated)]",
+        );
+        expect(buttonPrimitive).toContain(
+            "dark:data-[state=active]:bg-[rgb(255_255_255_/_0.07)]",
+        );
+        expect(buttonPrimitive).toContain(
+            "h-auto w-full min-w-0 justify-start gap-[10px] truncate",
+        );
+        expect(buttonPrimitive).toContain(
+            "[&_svg:not([class*='size-'])]:size-[14px]",
+        );
+        for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        expect(globals).toContain(
+            '[data-sot-control="settings-nav"][data-sot-section="account"]',
+        );
         expect(settingsCloseButton).toContain(
             'data-sot-control="settings-close"',
         );
