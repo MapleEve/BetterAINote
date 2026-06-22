@@ -4492,54 +4492,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     gap: 8px;
     margin-top: 4px;
 }
-[data-sot-source-report-actions] button {
-    display: inline-flex;
-    box-sizing: border-box;
-    align-items: center;
-    justify-content: center;
-    height: 26px;
-    gap: 7px;
-    padding: 0 10px;
-    border-radius: 7px;
-    border: 1px solid transparent;
-    border-color: transparent;
-    background: transparent;
-    color: var(--fg-secondary);
-    box-shadow: none;
-    font: 600 12px var(--font-sans);
-    letter-spacing: 0;
-}
-[data-sot-source-report-actions] button:hover {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-}
-[data-sot-source-report-actions] button:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-    outline-offset: 2px;
-    border-color: transparent;
-    box-shadow: none;
-}
-[data-sot-source-report-actions]
-    [data-sot-control="open-source-record"][data-sot-state="loading"],
-[data-sot-source-report-actions]
-    [data-sot-control="repull-source"][data-sot-state="loading"],
-[data-sot-source-report-actions]
-    [data-sot-control="repull-source"][aria-busy="true"] {
-    cursor: progress;
-}
-[data-sot-source-report-actions]
-    [data-sot-control="open-source-record"][data-sot-state="unavailable"],
-[data-sot-source-report-actions]
-    [data-sot-control="repull-source"][data-sot-state="unavailable"],
-[data-sot-source-report-actions]
-    [data-sot-control="open-source-record"]:disabled,
-[data-sot-source-report-actions] [data-sot-control="repull-source"]:disabled,
-[data-sot-source-report-actions]
-    [data-sot-control="open-source-record"][aria-disabled="true"],
-[data-sot-source-report-actions]
-    [data-sot-control="repull-source"][aria-disabled="true"] {
-    cursor: not-allowed;
-}
 
 [data-sot-source-report-empty-actions] {
     display: flex;

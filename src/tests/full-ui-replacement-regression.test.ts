@@ -4491,7 +4491,21 @@ describe("full UI replacement regression coverage", () => {
                 globals,
                 "[data-sot-source-report-empty-actions]",
             ),
-        ].filter(({ prelude }) => prelude.includes('[data-slot="button"]'));
+        ].filter(({ prelude, declarations }) => {
+            const normalizedPrelude = prelude.replace(/\s+/g, " ");
+            const targetsSourceReportButton =
+                /\[data-sot-source-report(?:-empty)?-actions\][^{,]*(?:\bbutton\b|\[data-slot="button"\])(?::(?:hover|focus-visible))?/.test(
+                    normalizedPrelude,
+                );
+            const targetsSourceReportActionStateCursor =
+                /\[data-sot-source-report-actions\][^{,]*\[data-sot-control="(?:open-source-record|repull-source)"\][^{,]*(?:\[data-sot-state="(?:loading|unavailable)"\]|\[aria-busy="true"\]|:disabled|\[aria-disabled="true"\])/.test(
+                    normalizedPrelude,
+                ) && /\bcursor\s*:\s*(?:progress|not-allowed)\b/.test(declarations);
+
+            return (
+                targetsSourceReportButton || targetsSourceReportActionStateCursor
+            );
+        });
 
         expect(sourceReportActionButtonCssBlocks).toEqual([]);
         const sourceReportActions = extractBoundedSlice(
