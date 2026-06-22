@@ -2229,30 +2229,6 @@ button:not([data-slot]) {
     color: var(--fg-secondary);
     letter-spacing: 0.02em;
 }
-[data-sot-control="dashboard-recording-row"] {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 14px;
-    padding: 11px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: transparent;
-    width: 100%;
-    text-align: left;
-    font: 13.3333px var(--font-sans);
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out);
-}
-[data-sot-control="dashboard-recording-row"]:hover {
-    background: var(--bg-recessed);
-}
-[data-sot-control="dashboard-recording-row"][data-sot-state="selected"] {
-    background: var(--accent-soft);
-    border-color: color-mix(in srgb, var(--accent) 38%, transparent);
-}
 [data-sot-part="dashboard-recording-row-body"] {
     min-width: 0;
     display: flex;

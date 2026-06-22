@@ -88,6 +88,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
+}
+
 const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
     "NAV",
     "SOURCE",
@@ -1310,6 +1319,19 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-list="dashboard-recording-rows"',
         );
+        expect(buttonPrimitive).toContain("dashboardRecordingRow:");
+        expect(buttonPrimitive).toContain(
+            "data-[sot-state=selected]:border-[color-mix(in_srgb,var(--accent)_38%,transparent)]",
+        );
+        for (const removedRecordingRowSelector of [
+            '[data-sot-control="dashboard-recording-row"]',
+            '[data-sot-control="dashboard-recording-row"]:hover',
+            '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
+        ]) {
+            expect(
+                collectExactCssRuleBlocks(globals, removedRecordingRowSelector),
+            ).toEqual([]);
+        }
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
         );

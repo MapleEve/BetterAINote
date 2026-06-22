@@ -275,6 +275,8 @@ type ColorDeclarationFinding = {
 };
 
 const MODERN_COLOR_RE = /\b(oklch|color-mix)\(/;
+const DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN =
+    "data-[sot-state=selected]:border-[color-mix(in_srgb,var(--accent)_38%,transparent)]";
 
 const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
     "background",
@@ -419,9 +421,6 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-list-group-label"]',
     '[data-sot-part="dashboard-recording-list-group-count"]',
     '[data-sot-part="dashboard-recording-list-group-divider"]',
-    '[data-sot-control="dashboard-recording-row"]',
-    '[data-sot-control="dashboard-recording-row"]:hover',
-    '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
     '[data-sot-part="dashboard-recording-source-mark"]',
     '[data-sot-part="dashboard-recording-row-body"]',
     '[data-sot-part="dashboard-recording-row-title"]',
@@ -977,6 +976,11 @@ function collectInlineModernColorFindings() {
             );
             if (relativePath === tagVisualsPath && catalogMatch) {
                 catalogSwatches.push(catalogMatch[1]);
+            } else if (
+                relativePath === "components/ui/button.tsx" &&
+                line.includes(DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN)
+            ) {
+                continue;
             } else {
                 unexpectedModernColorLines.push({
                     file: `src/${relativePath}`,
@@ -2471,6 +2475,15 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const removedRecordingRowSelector of [
+            '[data-sot-control="dashboard-recording-row"]',
+            '[data-sot-control="dashboard-recording-row"]:hover',
+            '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
+        ]) {
+            expect(
+                collectExactCssRuleBlocks(globals, removedRecordingRowSelector),
+            ).toEqual([]);
+        }
         expect(globals).not.toMatch(
             DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
         );
@@ -3852,6 +3865,10 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
         expect(workstation).toMatch(
             /<Button\s+variant="dashboardRecordingRow"\s+size="dashboardRecordingRow"[\s\S]*data-sot-control="dashboard-recording-row"/,
+        );
+        expect(button).toContain("dashboardRecordingRow:");
+        expect(button).toContain(
+            DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN,
         );
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
