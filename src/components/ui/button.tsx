@@ -38,6 +38,22 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[11px] [&_svg]:stroke-2",
                 chipRemove:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:invisible [&_svg]:size-[11px] [&_svg]:stroke-2",
+                recordingTagErrorRetry:
+                    "border border-transparent bg-transparent justify-normal [justify-content:normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                recordingTagToggle:
+                    "relative inline-flex rounded-[999px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:opacity-100 [&_svg]:size-[11px] [&_svg]:stroke-2",
+                recordingTagInlineCreate:
+                    "border border-[var(--accent)] bg-[var(--accent)] text-[var(--accent)] shadow-none hover:bg-[var(--accent-hover)] hover:text-[var(--accent)] disabled:opacity-100",
+                recordingTagCancel:
+                    "border border-transparent bg-transparent justify-normal [justify-content:normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                recordingTagCreate:
+                    "border border-[var(--button-primary-border)] bg-[image:var(--button-primary-bg)] text-[var(--button-primary-fg)] shadow-[var(--button-primary-shadow)] hover:bg-[image:var(--button-primary-hover-bg)]",
+                recordingTagDelete:
+                    "border border-[var(--button-destructive-border)] bg-[image:var(--button-destructive-bg)] text-[var(--button-destructive-fg)] shadow-[var(--button-destructive-shadow)] hover:bg-[image:var(--button-destructive-hover-bg)] focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+                recordingTagChipRemove:
+                    "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:invisible [&_svg]:size-[11px] [&_svg]:stroke-2",
+                recordingTagPanelClose:
+                    "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[11px] [&_svg]:stroke-2",
                 sourceProviderTile:
                     "group/source-provider border border-solid border-transparent bg-transparent text-left shadow-none [box-shadow:none] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-[var(--source-provider-card-hover)] data-[state=selected]:border-[var(--line-hairline)] data-[state=selected]:bg-[var(--bg-elevated)] data-[state=selected]:shadow-xs dark:data-[state=selected]:border-[var(--glass-border)] dark:data-[state=selected]:bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:shadow-none dark:data-[state=selected]:[box-shadow:none]",
                 sourceProviderAction:
@@ -175,6 +191,16 @@ const buttonVariants = cva(
                 sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 "pill-sm":
                     "h-[var(--button-pill-height)] justify-normal gap-[5px] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
+                recordingTagAction:
+                    "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] px-[10px] text-[12px] leading-[normal] font-semibold has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+                recordingTagToggle:
+                    "h-[var(--button-pill-height)] justify-normal gap-[5px] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
+                recordingTagInlineCreate:
+                    "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-[14px]",
+                recordingTagChipRemove:
+                    "size-[var(--icon-chip-size)] rounded-full",
+                recordingTagPanelClose:
+                    "size-[var(--icon-compact-size)] rounded-[6px]",
                 sourceProviderTile:
                     "grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] p-[10px] whitespace-normal has-[>svg]:px-[10px]",
                 sourceProviderAction:

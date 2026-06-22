@@ -38,7 +38,6 @@ import {
 import {
     InputGroup,
     InputGroupAddon,
-    InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
@@ -385,8 +384,8 @@ export function RecordingTagManager({
                 </span>
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
+                    variant="recordingTagErrorRetry"
+                    size="recordingTagAction"
                     className="shrink-0"
                     data-sot-control="recording-tag-error-retry"
                     onClick={onRetry}
@@ -415,8 +414,8 @@ export function RecordingTagManager({
         <Button
             key={tag.id}
             type="button"
-            variant="pill"
-            size="pill-sm"
+            variant="recordingTagToggle"
+            size="recordingTagToggle"
             className={cn(
                 "relative whitespace-nowrap",
                 saving && "pointer-events-none",
@@ -513,11 +512,11 @@ export function RecordingTagManager({
                         align="inline-end"
                         className="m-0 shrink-0 p-0"
                     >
-                        <InputGroupButton
+                        <Button
                             type="button"
                             aria-label="添加"
-                            variant="accentIcon"
-                            size="icon-compact"
+                            variant="recordingTagInlineCreate"
+                            size="recordingTagInlineCreate"
                             className="shrink-0"
                             data-sot-control="recording-tag-create"
                             data-sot-state="idle"
@@ -525,7 +524,7 @@ export function RecordingTagManager({
                             onClick={() => void handleCreateTag()}
                         >
                             <Plus aria-hidden="true" />
-                        </InputGroupButton>
+                        </Button>
                     </InputGroupAddon>
                 ) : null}
             </InputGroup>
@@ -772,8 +771,8 @@ export function RecordingTagManager({
                 <span className="flex-1" data-sot-part="footer-spacer" />
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
+                    variant="recordingTagCancel"
+                    size="recordingTagAction"
                     className="shrink-0"
                     data-sot-control="recording-tag-delete-cancel"
                     disabled={Boolean(deletingTagId)}
@@ -786,8 +785,8 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="actionDestructive"
-                    size="control-sm"
+                    variant="recordingTagDelete"
+                    size="recordingTagAction"
                     className="shrink-0"
                     data-sot-control="recording-tag-delete-confirm"
                     data-sot-state={
@@ -834,8 +833,8 @@ export function RecordingTagManager({
                 <span className="flex-1" data-sot-part="footer-spacer" />
                 <Button
                     type="button"
-                    variant="ghostNeutral"
-                    size="control-sm"
+                    variant="recordingTagCancel"
+                    size="recordingTagAction"
                     className="shrink-0"
                     data-sot-control="recording-tag-create-cancel"
                     disabled={isCreating}
@@ -848,8 +847,8 @@ export function RecordingTagManager({
                 </Button>
                 <Button
                     type="button"
-                    variant="actionPrimary"
-                    size="control-sm"
+                    variant="recordingTagCreate"
+                    size="recordingTagAction"
                     className="shrink-0"
                     data-sot-control="recording-tag-create"
                     data-sot-state={isCreating ? "saving" : "idle"}
@@ -938,8 +937,8 @@ export function RecordingTagManager({
                                             </span>
                                             <Button
                                                 type="button"
-                                                variant="chipRemove"
-                                                size="icon-chip"
+                                                variant="recordingTagChipRemove"
+                                                size="recordingTagChipRemove"
                                                 className="shrink-0"
                                                 aria-label="移除"
                                                 data-sot-control="recording-tag-delete-open"
@@ -1064,8 +1063,8 @@ export function RecordingTagManager({
                 {showCloseButton ? (
                     <CardAction data-sot-part="head-action">
                         <Button
-                            variant="ghostIconCompact"
-                            size="icon-2xs"
+                            variant="recordingTagPanelClose"
+                            size="recordingTagPanelClose"
                             className="shrink-0"
                             type="button"
                             aria-label="关闭"

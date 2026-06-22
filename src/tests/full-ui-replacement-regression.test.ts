@@ -1885,6 +1885,27 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain("actionPrimary:");
         expect(button).toContain("actionDestructive:");
         expect(button).toContain("accentIcon:");
+        for (const recordingTagButtonVariant of [
+            "recordingTagErrorRetry",
+            "recordingTagToggle",
+            "recordingTagInlineCreate",
+            "recordingTagCancel",
+            "recordingTagCreate",
+            "recordingTagDelete",
+            "recordingTagChipRemove",
+            "recordingTagPanelClose",
+        ]) {
+            expect(buttonVariantBlock).toContain(`${recordingTagButtonVariant}:`);
+        }
+        for (const recordingTagButtonSize of [
+            "recordingTagAction",
+            "recordingTagToggle",
+            "recordingTagInlineCreate",
+            "recordingTagChipRemove",
+            "recordingTagPanelClose",
+        ]) {
+            expect(buttonSizeBlock).toContain(`${recordingTagButtonSize}:`);
+        }
         expect(button).toContain("text-[var(--accent)]");
         expect(button).toContain('"control-xs":');
         expect(button).toContain('"form-submit":');
@@ -6283,7 +6304,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<FieldLegend");
         expect(tagManager).toContain("<InputGroup");
         expect(tagManager).toContain("<InputGroupInput");
-        expect(tagManager).toContain("<InputGroupButton");
+        expect(tagManager).not.toContain("<InputGroupButton");
         expect(tagManager).toContain("<ToggleGroup");
         expect(tagManager).toContain("<ToggleGroupItem");
         const tagManagerColorPicker = extractElementSlice(
@@ -6361,17 +6382,23 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('"recordingTagManagerCompact"');
         expect(tagManager).toContain("variant={contentVariant}");
         expect(tagManager).toContain('variant="recordingTagToggleNote"');
-        expect(tagManager).toContain('variant="pill"');
-        expect(tagManager).toContain('variant="ghostIconCompact"');
-        expect(tagManager).toContain('variant="ghostNeutral"');
-        expect(tagManager).toContain('variant="actionPrimary"');
-        expect(tagManager).toContain('variant="actionDestructive"');
-        expect(tagManager).toContain('variant="accentIcon"');
-        expect(tagManager).toContain('variant="chipRemove"');
+        for (const recordingTagButtonVariant of [
+            'variant="recordingTagErrorRetry"',
+            'variant="recordingTagToggle"',
+            'variant="recordingTagInlineCreate"',
+            'variant="recordingTagCancel"',
+            'variant="recordingTagCreate"',
+            'variant="recordingTagDelete"',
+            'variant="recordingTagChipRemove"',
+            'variant="recordingTagPanelClose"',
+        ]) {
+            expect(tagManager).toContain(recordingTagButtonVariant);
+        }
         expect(tagManager).toContain('variant="recordingTagPickerFrame"');
         expect(tagManager).toContain('variant="recordingTagPickerLabel"');
         expect(tagManager).toContain('variant="recordingTagSection"');
         expect(tagManager).toContain('variant="recordingTagSectionLabel"');
+        expect(tagManager).toContain('variant="pill"');
         expect(tagManager).toContain('variant="swatch"');
         expect(tagManager).toContain('variant="recordingTagError"');
         expect(tagManager).toContain('variant="recordingTagDeleteConfirm"');
@@ -6380,12 +6407,31 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('layout="recordingTagInline"');
         expect(tagManager).toContain('size="recordingTagColorPicker"');
         expect(tagManager).toContain('size="recordingTagIconPicker"');
-        expect(tagManager).toContain('size="icon-compact"');
-        expect(tagManager).toContain('size="control-sm"');
-        expect(tagManager).toContain('size="pill-sm"');
+        for (const recordingTagButtonSize of [
+            'size="recordingTagAction"',
+            'size="recordingTagToggle"',
+            'size="recordingTagInlineCreate"',
+            'size="recordingTagChipRemove"',
+            'size="recordingTagPanelClose"',
+        ]) {
+            expect(tagManager).toContain(recordingTagButtonSize);
+        }
         expect(tagManager).toContain('size="swatch"');
-        expect(tagManager).toContain('size="icon-2xs"');
-        expect(tagManager).toContain('size="icon-chip"');
+        for (const retiredRecordingTagButtonToken of [
+            'variant="ghostNeutral"',
+            'variant="actionPrimary"',
+            'variant="actionDestructive"',
+            'variant="accentIcon"',
+            'variant="chipRemove"',
+            'variant="ghostIconCompact"',
+            'size="icon-compact"',
+            'size="control-sm"',
+            'size="pill-sm"',
+            'size="icon-2xs"',
+            'size="icon-chip"',
+        ]) {
+            expect(tagManager).not.toContain(retiredRecordingTagButtonToken);
+        }
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain('saving && "pointer-events-none"');
@@ -6448,23 +6494,29 @@ describe("full UI replacement regression coverage", () => {
         const tagManagerInlineCreateButton = extractElementSlice(
             tagManager,
             'aria-label="添加"',
-            "InputGroupButton",
+            "Button",
         );
-        expect(tagManagerInlineCreateButton).toContain('variant="accentIcon"');
-        expect(tagManagerInlineCreateButton).toContain('size="icon-compact"');
+        expect(tagManagerInlineCreateButton).toContain(
+            'variant="recordingTagInlineCreate"',
+        );
+        expect(tagManagerInlineCreateButton).toContain(
+            'size="recordingTagInlineCreate"',
+        );
         expect(tagManagerInlineCreateButton).toContain(
             'data-sot-control="recording-tag-create"',
         );
         expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
         const tagManagerFooterCreateButton = extractElementSlice(
             tagManager,
-            'variant="actionPrimary"',
+            'variant="recordingTagCreate"',
             "Button",
         );
         expect(tagManagerFooterCreateButton).toContain(
-            'variant="actionPrimary"',
+            'variant="recordingTagCreate"',
         );
-        expect(tagManagerFooterCreateButton).toContain('size="control-sm"');
+        expect(tagManagerFooterCreateButton).toContain(
+            'size="recordingTagAction"',
+        );
         expect(tagManagerFooterCreateButton).toContain(
             'data-sot-control="recording-tag-create"',
         );

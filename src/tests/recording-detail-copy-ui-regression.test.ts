@@ -1542,8 +1542,23 @@ describe("recording detail copy and title action UI regressions", () => {
 
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain("<Button");
-        expect(tagManager).toContain('variant="accentIcon"');
-        expect(tagManager).toContain('size="icon-compact"');
+        expect(tagManager).toContain('variant="recordingTagInlineCreate"');
+        expect(tagManager).toContain('size="recordingTagInlineCreate"');
+        for (const retiredRecordingTagButtonToken of [
+            'variant="ghostNeutral"',
+            'variant="actionPrimary"',
+            'variant="actionDestructive"',
+            'variant="accentIcon"',
+            'variant="chipRemove"',
+            'variant="ghostIconCompact"',
+            'size="icon-compact"',
+            'size="control-sm"',
+            'size="pill-sm"',
+            'size="icon-2xs"',
+            'size="icon-chip"',
+        ]) {
+            expect(tagManager).not.toContain(retiredRecordingTagButtonToken);
+        }
         expect(tagManager).toContain('variant="recordingTagCreateRow"');
         expect(tagManager).toContain('variant="recordingTagNameInput"');
         expect(tagManager).toContain('aria-label="添加"');
