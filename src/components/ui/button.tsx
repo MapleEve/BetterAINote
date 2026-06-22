@@ -76,6 +76,10 @@ const buttonVariants = cva(
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 settingsNav:
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                settingsSave:
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
+                settingsTestAction:
+                    "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 sourceReportCopyAction:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
                 onboardingProviderCard:
@@ -231,6 +235,10 @@ const buttonVariants = cva(
                     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
                 settingsClose: "size-[32px]",
                 settingsNav:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                settingsSave:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                settingsTestAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 onboardingProviderCard:
                     "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 whitespace-normal has-[>svg]:px-3.5",

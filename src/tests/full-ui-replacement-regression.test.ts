@@ -5020,6 +5020,9 @@ describe("full UI replacement regression coverage", () => {
         const settings = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const settingFieldControl = readSource(
+            "features/settings/components/setting-field-control.tsx",
+        );
         const settingsDialog = readSource(
             "features/settings/components/settings-dialog.tsx",
         );
@@ -5162,8 +5165,73 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceActionStatus).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
+        const settingsRow =
+            settings.match(
+                /function SettingsRow[\s\S]*?function SelectControl/,
+            )?.[0] ?? "";
+        const settingsSegmentControl =
+            settings.match(
+                /function SegmentControl[\s\S]*?function SaveActions/,
+            )?.[0] ?? "";
+        const settingsSaveStatus = extractElementSlice(
+            settings,
+            'data-sot-part="settings-save-status"',
+            "Badge",
+        );
+        const settingsSaveAction = extractElementSlice(
+            settings,
+            'data-sot-control="settings-save"',
+            "Button",
+        );
+        const settingsVoScriptTestAction = extractElementSlice(
+            settings,
+            'data-sot-control="voscript-test"',
+            "Button",
+        );
+        expect(settingsRow).toContain('variant="settingsRow"');
+        expect(settingsRow).toContain('variant="settingsContent"');
+        expect(settingsRow).toContain('variant="settingsControl"');
+        expect(settingsRow).not.toContain("SETTINGS_FIELD_CLASS");
+        expect(settingsRow).not.toContain("SETTINGS_FIELD_CONTENT_CLASS");
+        expect(settingsRow).not.toContain("SETTINGS_CONTROL_CLASS");
+        expect(settings).not.toContain("SETTINGS_FIELD_CLASS");
+        expect(settingFieldControl).toContain('"settingsRow"');
+        expect(settingFieldControl).toContain('"settingsContent"');
+        expect(settingFieldControl).toContain('"settingsControl"');
+        expect(settingFieldControl).not.toContain(
+            '"border-b border-border py-3 last:border-b-0"',
+        );
+        expect(settingsSegmentControl).toContain('layout="settingsSegment"');
+        expect(settingsSegmentControl).toContain(
+            'variant="settingsSegmentOption"',
+        );
+        expect(settingsSegmentControl).toContain(
+            'size="settingsSegmentOption"',
+        );
+        expect(settingsSegmentControl).toContain(
+            'spacing="settingsSegmentSpacing"',
+        );
+        expect(settingsSegmentControl).not.toContain('variant="outline"');
+        expect(settingsSegmentControl).not.toContain('size="sm"');
+        expect(settingsSegmentControl).not.toContain("spacing={1}");
+        expect(settingsSaveStatus).toContain('variant="settingsSaveStatus"');
+        expect(settingsSaveStatus).not.toContain('variant="ghost"');
+        expect(settingsSaveAction).toContain('variant="settingsSave"');
+        expect(settingsSaveAction).toContain('size="settingsSave"');
+        expect(settingsSaveAction).not.toContain('variant="default"');
+        expect(settingsVoScriptTestAction).toContain(
+            'variant="settingsTestAction"',
+        );
+        expect(settingsVoScriptTestAction).toContain(
+            'size="settingsTestAction"',
+        );
+        expect(settingsVoScriptTestAction).not.toContain('variant="ghost"');
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
+        expect(badge).toContain("settingsSaveStatus:");
+        expect(badge).toContain(
+            "[&_[data-sot-part=settings-save-status-indicator]]",
+        );
         expect(badge).toContain("sourceAuthModeBadge:");
         expect(badge).toContain("sourceActionStatus:");
         expect(badge).toContain("data-[sot-tone=recommended]");
@@ -5196,6 +5264,14 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(alertPrimitive).toContain(settingsAlertPrimitiveToken);
         }
+        expect(fieldPrimitive).toContain("settingsRowFieldClassName");
+        expect(fieldPrimitive).toContain("settingsContent:");
+        expect(fieldPrimitive).toContain("settingsControl:");
+        expect(button).toContain("settingsSave:");
+        expect(button).toContain("settingsTestAction:");
+        expect(toggleGroupPrimitive).toContain("settingsSegment");
+        expect(toggleGroupPrimitive).toContain("settingsSegmentOption:");
+        expect(toggleGroupPrimitive).toContain("settingsSegmentSpacing");
         const settingsSourceStateAlert = extractOpeningElement(
             settings,
             'data-sot-banner="source-state"',

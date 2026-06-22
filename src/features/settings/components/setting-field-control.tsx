@@ -70,27 +70,19 @@ export function SettingFieldControl({
             : "horizontal";
     const fieldVariant = isSourceProviderDetailVariant
         ? "sourceProviderDetail"
-        : "default";
-    const fieldClassName = isSourceProviderDetailVariant
-        ? undefined
-        : cn(
-              "border-b border-border py-3 last:border-b-0",
-              isSettingsVariant
-                  ? "gap-3 @md/field-group:gap-4"
-                  : "gap-[18px] py-2",
-          );
+        : "settingsRow";
+    const fieldClassName =
+        !isSourceProviderDetailVariant && !isSettingsVariant
+            ? "gap-[18px] py-2"
+            : undefined;
     const fieldContentVariant = isSourceProviderDetailVariant
         ? "sourceProviderDetail"
-        : "default";
-    const fieldContentClassName = isSourceProviderDetailVariant
-        ? undefined
-        : "min-w-0 gap-1";
+        : "settingsContent";
     const fieldControlVariant = isSourceProviderDetailVariant
         ? "sourceProviderDetail"
-        : "default";
-    const fieldControlClassName = isSettingsVariant
-        ? "min-w-0 @md/field-group:justify-end"
-        : undefined;
+        : isSettingsVariant
+          ? "settingsControl"
+          : "default";
     const controlVariant = isSourceProviderDetailVariant
         ? "sourceProviderDetail"
         : "default";
@@ -112,19 +104,13 @@ export function SettingFieldControl({
                 variant={fieldVariant}
                 className={fieldClassName}
             >
-                <FieldContent
-                    variant={fieldContentVariant}
-                    className={fieldContentClassName}
-                >
+                <FieldContent variant={fieldContentVariant}>
                     <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                     {field.description ? (
                         <FieldDescription>{field.description}</FieldDescription>
                     ) : null}
                 </FieldContent>
-                <FieldControl
-                    variant={fieldControlVariant}
-                    className={fieldControlClassName}
-                >
+                <FieldControl variant={fieldControlVariant}>
                     {field.kind === "switch" ? (
                         <Switch
                             id={fieldId}

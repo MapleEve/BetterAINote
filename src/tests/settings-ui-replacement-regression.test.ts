@@ -1358,6 +1358,11 @@ describe("settings SOT interaction regressions", () => {
         );
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const inputPrimitive = readSource("components/ui/input.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const badgePrimitive = readSource("components/ui/badge.tsx");
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
         const globals = readSource("app/globals.css");
@@ -1366,13 +1371,15 @@ describe("settings SOT interaction regressions", () => {
         )?.[0];
 
         expect(content).not.toContain("SOURCE_PROVIDER_DETAIL_");
-        expect(content).toContain("SETTINGS_FIELD_CLASS");
+        expect(content).not.toContain("SETTINGS_FIELD_CLASS");
+        expect(content).not.toContain("SETTINGS_FIELD_CONTENT_CLASS");
+        expect(content).not.toContain("SETTINGS_CONTROL_CLASS");
         expect(content).not.toContain('"!grid !grid-cols-[1fr_auto]');
         expect(content).not.toContain('fieldOrientation="horizontal"');
         expect(content).not.toContain("thumbClassName={");
         expect(content).not.toContain("getSettingsBannerClassName");
-        expect(content).toContain("getSettingsSaveStatusBadgeClassName");
-        expect(content).toContain("getSettingsSaveStatusDotClassName");
+        expect(content).not.toContain("getSettingsSaveStatusBadgeClassName");
+        expect(content).not.toContain("getSettingsSaveStatusDotClassName");
         for (const settingsAlertPrimitiveToken of [
             "settingsBanner:",
             "settingsBannerError:",
@@ -1419,6 +1426,9 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(settingFieldControl).toContain("<FieldControl");
         expect(settingFieldControl).toContain("variant={fieldControlVariant}");
+        expect(settingFieldControl).toContain('"settingsRow"');
+        expect(settingFieldControl).toContain('"settingsContent"');
+        expect(settingFieldControl).toContain('"settingsControl"');
         expect(settingFieldControl).toContain("variant={controlVariant}");
         expect(settingFieldControl).toContain("controlSize={controlSize}");
         expect(settingFieldControl).toContain("size={controlSize}");
@@ -1426,6 +1436,11 @@ describe("settings SOT interaction regressions", () => {
             'field.masked && "tracking-[0.15em]"',
         );
         expect(settingFieldControl).toContain("className={inputClassName}");
+        expect(settingFieldControl).not.toContain(
+            '"border-b border-border py-3 last:border-b-0"',
+        );
+        expect(settingFieldControl).not.toContain("fieldContentClassName");
+        expect(settingFieldControl).not.toContain("fieldControlClassName");
         expect(dataSourceFieldControl).toContain(
             'variant?: "default" | "onboarding" | "settings" | "sourceProviderDetail"',
         );
@@ -1449,24 +1464,39 @@ describe("settings SOT interaction regressions", () => {
     | "default"
     | "authAction"
     | "onboardingSourceField"
+    | "settingsRow"
     | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain(
             `type FieldContentVariant =
     | "default"
+    | "settingsContent"
     | "onboardingSourceField"
     | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain(
             `type FieldControlVariant =
     | "default"
+    | "settingsControl"
     | "onboardingSourceField"
     | "sourceProviderDetail";`,
         );
+        expect(fieldPrimitive).toContain("settingsRowFieldClassName");
+        expect(fieldPrimitive).toContain("settingsContent:");
+        expect(fieldPrimitive).toContain("settingsControl:");
         expect(fieldPrimitive).toContain("sourceProviderDetailFieldClassName");
         expect(fieldPrimitive).toContain("grid grid-cols-[1fr_auto]");
         expect(fieldPrimitive).toContain("function FieldControl");
         expect(fieldPrimitive).toContain("data-variant={variant}");
+        expect(buttonPrimitive).toContain("settingsSave:");
+        expect(buttonPrimitive).toContain("settingsTestAction:");
+        expect(badgePrimitive).toContain("settingsSaveStatus:");
+        expect(badgePrimitive).toContain(
+            "[&_[data-sot-part=settings-save-status-indicator]]",
+        );
+        expect(toggleGroupPrimitive).toContain("settingsSegment");
+        expect(toggleGroupPrimitive).toContain("settingsSegmentOption:");
+        expect(toggleGroupPrimitive).toContain("settingsSegmentSpacing");
         expect(inputPrimitive).toContain("sourceProviderDetail:");
         expect(inputPrimitive).toContain(
             "h-[30px] w-[240px] min-w-[240px] max-w-[240px]",
@@ -1767,6 +1797,9 @@ describe("settings SOT interaction regressions", () => {
         const saveStatus = content.match(
             /function SaveStatus[\s\S]*?function SectionShell/,
         )?.[0];
+        const saveActions = content.match(
+            /function SaveActions[\s\S]*?function useResettingSaveState/,
+        )?.[0];
         const settingsRow =
             content.match(
                 /function SettingsRow[\s\S]*?function SelectControl/,
@@ -1813,6 +1846,12 @@ describe("settings SOT interaction regressions", () => {
         expect(settingsRow).toContain("{fieldMessage ? (");
         expect(settingsRow).toContain("<FieldError");
         expect(settingsRow).toContain('data-sot-part="settings-field-message"');
+        expect(settingsRow).toContain('variant="settingsRow"');
+        expect(settingsRow).toContain('variant="settingsContent"');
+        expect(settingsRow).toContain('variant="settingsControl"');
+        expect(settingsRow).not.toContain("SETTINGS_FIELD_CLASS");
+        expect(settingsRow).not.toContain("SETTINGS_FIELD_CONTENT_CLASS");
+        expect(settingsRow).not.toContain("SETTINGS_CONTROL_CLASS");
         expect(content).toContain('data-sot-state="invalid"');
         expect(content).toContain(
             'data-invalid={fieldState === "invalid" ? "true" : undefined}',
@@ -1821,7 +1860,11 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain("sm-row-name");
         expect(content).toContain("function SaveActions");
         expect(saveStatus).toContain('data-sot-part="settings-save-status"');
+        expect(saveStatus).toContain('variant="settingsSaveStatus"');
         expect(saveStatus).toContain("data-sot-state={saveState}");
+        expect(saveStatus).not.toContain('variant="ghost"');
+        expect(saveStatus).not.toContain("getSettingsSaveStatusBadgeClassName");
+        expect(saveStatus).not.toContain("getSettingsSaveStatusDotClassName");
         expect(content).toContain('data-sot-panel="settings-save-actions"');
         expect(content).toContain("data-sot-save-id={saveId ?? section}");
         expect(content).toContain("data-sot-section={section}");
@@ -1829,11 +1872,22 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain('aria-busy={saveState === "saving"}');
         expect(content).toContain('data-sot-action="save"');
         expect(content).toContain('data-sot-control="settings-save"');
+        expect(saveActions).toContain('variant="settingsSave"');
+        expect(saveActions).toContain('size="settingsSave"');
+        expect(saveActions).not.toContain('variant="default"');
         expect(content).toContain('control="density"');
         expect(content).toContain('saveId="voscript-connection"');
         expect(content).toContain('data-sot-action="test"');
         expect(content).toContain('data-sot-control="voscript-test"');
         expect(content).toContain('saveId="voscript-params"');
+        const voscriptTestAction = collectElementSlices(
+            content,
+            'data-sot-control="voscript-test"',
+            "Button",
+        )[0];
+        expect(voscriptTestAction).toContain('variant="settingsTestAction"');
+        expect(voscriptTestAction).toContain('size="settingsTestAction"');
+        expect(voscriptTestAction).not.toContain('variant="ghost"');
         for (const legacySaveHook of [
             "data-save-actions",
             "data-save-id",
@@ -2131,6 +2185,15 @@ describe("settings SOT interaction regressions", () => {
             'data-sot-panel="settings-segment-control"',
         );
         expect(segmentControl).toContain("data-sot-control={control}");
+        expect(segmentControl).toContain('layout="settingsSegment"');
+        expect(segmentControl).toContain('variant="settingsSegmentOption"');
+        expect(segmentControl).toContain('size="settingsSegmentOption"');
+        expect(segmentControl).toContain(
+            'spacing="settingsSegmentSpacing"',
+        );
+        expect(segmentControl).not.toContain('variant="outline"');
+        expect(segmentControl).not.toContain('size="sm"');
+        expect(segmentControl).not.toContain("spacing={1}");
         expect(segmentControl).toContain("data-sot-value={option.value}");
         expect(segmentControl).toContain(
             "data-sot-display-value={option.sotValue ?? option.value}",

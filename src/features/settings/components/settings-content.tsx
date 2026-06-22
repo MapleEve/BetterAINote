@@ -428,23 +428,6 @@ function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     return null;
 }
 
-function getSettingsSaveStatusBadgeClassName(saveState: SectionSaveState) {
-    return cn(
-        "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground",
-        (saveState === "saved" || saveState === "saving") && "text-primary",
-        saveState === "error" && "text-destructive",
-    );
-}
-
-function getSettingsSaveStatusDotClassName(saveState: SectionSaveState) {
-    return cn(
-        "size-2 rounded-full bg-secondary-foreground/45",
-        saveState === "saved" && "bg-primary",
-        saveState === "saving" && "animate-pulse bg-primary",
-        saveState === "error" && "bg-destructive",
-    );
-}
-
 function getSourceProviderDetailSubtitle(
     source: DataSourceDisplayState,
     isZh: boolean,
@@ -1826,10 +1809,6 @@ const TITLE_API_KEY_KEEP = "__keep_title_generation_key__";
 const TITLE_API_KEY_CLEAR = "__clear_title_generation_key__";
 const VOSCRIPT_API_KEY_KEEP = "__keep_voscript_key__";
 const VOSCRIPT_API_KEY_CLEAR = "__clear_voscript_key__";
-const SETTINGS_CONTROL_CLASS =
-    "flex min-w-0 flex-wrap items-center justify-end gap-2";
-const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
-const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 
@@ -1873,15 +1852,13 @@ function SaveStatus({
 
     return (
         <Badge
-            variant="ghost"
-            className={getSettingsSaveStatusBadgeClassName(saveState)}
+            variant="settingsSaveStatus"
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
             {saveState === "idle" ? null : (
                 <span
                     aria-hidden="true"
-                    className={getSettingsSaveStatusDotClassName(saveState)}
                     data-sot-part="settings-save-status-indicator"
                 />
             )}
@@ -2038,13 +2015,13 @@ function SettingsRow({
 }) {
     return (
         <Field
-            className={SETTINGS_FIELD_CLASS}
             data-invalid={fieldState === "invalid" ? "true" : undefined}
             data-sot-field={sotField}
             data-sot-state={fieldState ?? "ready"}
             orientation="horizontal"
+            variant="settingsRow"
         >
-            <FieldContent className={SETTINGS_FIELD_CONTENT_CLASS}>
+            <FieldContent variant="settingsContent">
                 <FieldTitle>{label}</FieldTitle>
                 {description ? (
                     <FieldDescription>{description}</FieldDescription>
@@ -2060,7 +2037,9 @@ function SettingsRow({
                 ) : null}
             </FieldContent>
             {children ? (
-                <div className={SETTINGS_CONTROL_CLASS}>{children}</div>
+                <FieldControl variant="settingsControl">
+                    {children}
+                </FieldControl>
             ) : null}
         </Field>
     );
@@ -2122,11 +2101,12 @@ function SegmentControl<Value extends string>({
             data-sot-control={control}
             data-sot-panel="settings-segment-control"
             disabled={disabled}
-            size="sm"
-            spacing={1}
+            layout="settingsSegment"
+            size="settingsSegmentOption"
+            spacing="settingsSegmentSpacing"
             type="single"
             value={value}
-            variant="outline"
+            variant="settingsSegmentOption"
             onValueChange={(nextValue) => {
                 if (typeof nextValue === "string" && nextValue) {
                     onChange(nextValue as Value);
@@ -2184,8 +2164,8 @@ function SaveActions({
             {children}
             <Button
                 type="button"
-                variant="default"
-                size="sm"
+                variant="settingsSave"
+                size="settingsSave"
                 disabled={disabled}
                 aria-busy={saveState === "saving"}
                 data-sot-action="save"
@@ -3142,8 +3122,8 @@ function VoScriptSettingsPanel({
                 >
                     <Button
                         type="button"
-                        variant="ghost"
-                        size="sm"
+                        variant="settingsTestAction"
+                        size="settingsTestAction"
                         aria-busy={isTestingConnection}
                         data-sot-action="test"
                         data-sot-control="voscript-test"

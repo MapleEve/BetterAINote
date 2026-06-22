@@ -10,6 +10,7 @@ type ToggleGroupLayout =
     | "default"
     | "iconGrid"
     | "onboardingSourceAuthMode"
+    | "settingsSegment"
     | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
@@ -18,6 +19,7 @@ type ToggleGroupLayout =
     | "dashboardRecordingTimeFilter";
 type ToggleGroupSemanticSpacing =
     | "onboardingSourceAuthMode"
+    | "settingsSegmentSpacing"
     | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagQuickColorPicker"
@@ -29,6 +31,7 @@ type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
     dashboardRecordingTimeFilter: 1,
     onboardingSourceAuthMode: 2,
+    settingsSegmentSpacing: 1,
     settingsSourceAuthMode: 2,
     recordingTagColorPicker: 2,
     recordingTagQuickColorPicker: 1,
@@ -49,6 +52,8 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
+                settingsSegmentOption:
+                    "border border-input bg-background shadow-xs data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
                 onboardingSourceAuthModeOption:
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 settingsSourceAuthModeOption:
@@ -78,6 +83,7 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
+                settingsSegmentOption: "h-8 px-2",
                 onboardingSourceAuthModeOption: "",
                 settingsSourceAuthModeOption: "",
                 librarySearchScopeItem:
@@ -151,6 +157,7 @@ function ToggleGroup({
                 layout === "iconGrid" && "grid grid-cols-6",
                 layout === "onboardingSourceAuthMode" &&
                     "grid w-full grid-cols-2 items-stretch",
+                layout === "settingsSegment" && "flex-wrap",
                 layout === "settingsSourceAuthMode" &&
                     "mb-4 grid w-full grid-cols-2 items-stretch",
                 layout === "recordingTagColorPicker" && "flex-wrap",

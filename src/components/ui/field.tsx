@@ -9,14 +9,17 @@ type FieldVariant =
     | "default"
     | "authAction"
     | "onboardingSourceField"
+    | "settingsRow"
     | "sourceProviderDetail";
 type FieldGroupVariant = "default" | "authCompact" | "onboardingSourceField";
 type FieldContentVariant =
     | "default"
+    | "settingsContent"
     | "onboardingSourceField"
     | "sourceProviderDetail";
 type FieldControlVariant =
     | "default"
+    | "settingsControl"
     | "onboardingSourceField"
     | "sourceProviderDetail";
 type FieldSetVariant =
@@ -74,6 +77,8 @@ const authActionFieldClassName =
     "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto";
 const onboardingSourceFieldClassName =
     "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
+const settingsRowFieldClassName =
+    "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
 
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
     default: "",
@@ -83,6 +88,7 @@ const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
 
 const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
     default: "gap-1.5 leading-snug",
+    settingsContent: "min-w-0 gap-1",
     onboardingSourceField: "min-w-0 gap-1",
     sourceProviderDetail:
         "min-w-0 gap-0 [&_[data-slot=field-label]]:mb-[2px] [&_[data-slot=field-label]]:font-sans [&_[data-slot=field-label]]:text-[13px] [&_[data-slot=field-label]]:font-semibold [&_[data-slot=field-label]]:leading-[normal] [&_[data-slot=field-label]]:text-[var(--fg-primary)] [&_[data-slot=field-description]]:mt-0 [&_[data-slot=field-description]]:font-sans [&_[data-slot=field-description]]:text-[12px] [&_[data-slot=field-description]]:font-normal [&_[data-slot=field-description]]:leading-[1.5] [&_[data-slot=field-description]]:text-[var(--fg-tertiary)]",
@@ -90,6 +96,8 @@ const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
 
 const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
     default: "flex flex-none items-center gap-2",
+    settingsControl:
+        "flex min-w-0 flex-wrap items-center justify-end gap-2 @md/field-group:justify-end",
     onboardingSourceField: "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end",
     sourceProviderDetail: "flex flex-none items-center justify-end gap-[10px]",
 };
@@ -172,8 +180,9 @@ function fieldClassName({
               ? authActionFieldClassName
               : variant === "onboardingSourceField"
                 ? onboardingSourceFieldClassName
-            : [
+                : [
                   "flex gap-3",
+                  variant === "settingsRow" && settingsRowFieldClassName,
                   orientation === "vertical" &&
                       "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
                   orientation === "horizontal" &&
