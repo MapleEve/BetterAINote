@@ -929,14 +929,38 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain("useSettingsSectionBusy");
         expect(content).toContain("isDataSourcesBusy");
         expect(content).toContain('data-sot-list="source-auth-modes"');
+        const sourceAuthModeControl = collectElementSlices(
+            content,
+            'data-sot-list="source-auth-modes"',
+            "ToggleGroup",
+        )[0];
         expect(content).toContain("<ToggleGroup");
         expect(content).toContain("<ToggleGroupItem");
         expect(content).toContain('type="single"');
         expect(content).toContain("value={selectedSource.authMode}");
-        expect(content).toContain(
+        expect(sourceAuthModeControl).toContain(
+            'layout="settingsSourceAuthMode"',
+        );
+        expect(sourceAuthModeControl).toContain(
+            'variant="settingsSourceAuthModeOption"',
+        );
+        expect(sourceAuthModeControl).toContain(
+            'size="settingsSourceAuthModeOption"',
+        );
+        expect(sourceAuthModeControl).toContain(
+            'spacing="settingsSourceAuthMode"',
+        );
+        expect(sourceAuthModeControl).toContain(
+            'variant="sourceAuthModeBadge"',
+        );
+        expect(sourceAuthModeControl).not.toContain('variant="outline"');
+        expect(sourceAuthModeControl).not.toContain('variant="secondary"');
+        expect(sourceAuthModeControl).not.toContain('size="lg"');
+        expect(sourceAuthModeControl).not.toContain("spacing={2}");
+        expect(sourceAuthModeControl).not.toContain(
             'className="mb-4 grid w-full grid-cols-2 items-stretch"',
         );
-        expect(content).toContain(
+        expect(sourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
         expect(content).toContain("data-sot-auth-mode={mode}");
@@ -1171,6 +1195,7 @@ describe("settings SOT interaction regressions", () => {
         );
         const button = readSource("components/ui/button.tsx");
         const badge = readSource("components/ui/badge.tsx");
+        const toggleGroup = readSource("components/ui/toggle-group.tsx");
         const globals = readSource("app/globals.css");
         const providerTile =
             content.match(
@@ -1235,12 +1260,23 @@ describe("settings SOT interaction regressions", () => {
         expect(button).toContain("data-[sot-dimmed=true]");
         expect(button).toContain("data-[sot-state=error]:text-destructive");
         expect(button).toContain("data-[sot-state=success]:text-primary");
+        expect(toggleGroup).toContain("settingsSourceAuthMode:");
+        expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
         expect(badge).toContain("sourceProviderStatus:");
         expect(badge).toContain("sourceProviderDetailStatus:");
+        expect(badge).toContain("sourceAuthModeBadge:");
+        expect(badge).toContain("sourceActionStatus:");
         expect(badge).toContain("data-[sot-tone=ok]");
         expect(badge).toContain("data-[sot-tone=warn]");
         expect(badge).toContain("data-[sot-tone=err]");
         expect(badge).toContain("data-[sot-tone=neu]");
+        expect(badge).toContain("data-[sot-tone=recommended]");
+        expect(badge).toContain("data-[sot-tone=personal]");
+        expect(badge).toContain(
+            "[&_[data-sot-part=source-action-status-indicator]]",
+        );
+        expect(content).not.toContain("getSourceActionStatusBadgeClassName");
+        expect(content).not.toContain("getSourceActionStatusDotClassName");
         expect(badge).toContain(
             "group-data-[sot-dimmed=true]/source-provider",
         );
@@ -1600,6 +1636,17 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(actionFooter).toContain("data-sot-state={sourceSaveState}");
         expect(actionFooter).toContain('data-sot-part="source-action-status"');
+        const sourceActionStatus = collectElementSlices(
+            actionFooter,
+            'data-sot-part="source-action-status"',
+            "Badge",
+        )[0];
+        expect(sourceActionStatus).toContain('variant="sourceActionStatus"');
+        expect(sourceActionStatus).not.toContain('variant="secondary"');
+        expect(sourceActionStatus).not.toContain("className=");
+        expect(sourceActionStatus).toContain(
+            'data-sot-part="source-action-status-indicator"',
+        );
         expect(actionFooter).not.toContain("data-save-actions");
         expect(actionFooter).not.toContain("data-save-id");
         expect(actionFooter).not.toContain("data-save-state");

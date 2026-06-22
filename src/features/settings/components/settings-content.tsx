@@ -441,23 +441,6 @@ function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     return null;
 }
 
-function getSourceActionStatusBadgeClassName(state: string) {
-    return cn(
-        "gap-1.5",
-        (state === "saved" || state === "saving") && "text-primary",
-        state === "error" && "text-destructive",
-    );
-}
-
-function getSourceActionStatusDotClassName(state: string) {
-    return cn(
-        "size-2 rounded-full bg-secondary-foreground/45",
-        state === "saved" && "bg-primary",
-        state === "saving" && "animate-pulse bg-primary",
-        state === "error" && "bg-destructive",
-    );
-}
-
 function getSettingsSaveStatusBadgeClassName(saveState: SectionSaveState) {
     return cn(
         "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground",
@@ -1274,7 +1257,6 @@ function DataSourcesSettingsPanel({
                                 aria-label={
                                     isZh ? "选择登录方式" : "Select auth mode"
                                 }
-                                className="mb-4 grid w-full grid-cols-2 items-stretch"
                                 disabled={interactionDisabled}
                                 data-sot-list="source-auth-modes"
                                 onValueChange={(mode) => {
@@ -1289,11 +1271,12 @@ function DataSourcesSettingsPanel({
                                         }),
                                     );
                                 }}
-                                size="lg"
-                                spacing={2}
+                                layout="settingsSourceAuthMode"
+                                size="settingsSourceAuthModeOption"
+                                spacing="settingsSourceAuthMode"
                                 type="single"
                                 value={selectedSource.authMode}
-                                variant="outline"
+                                variant="settingsSourceAuthModeOption"
                             >
                                 {selectedSource.authModes.map((mode) => {
                                     const active =
@@ -1307,7 +1290,6 @@ function DataSourcesSettingsPanel({
                                         <ToggleGroupItem
                                             key={mode}
                                             aria-pressed={active}
-                                            className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"
                                             data-sot-auth-mode={mode}
                                             data-sot-control="source-auth-mode"
                                             data-sot-state={
@@ -1326,17 +1308,11 @@ function DataSourcesSettingsPanel({
                                                 )}
                                                 {modeBadge ? (
                                                     <Badge
-                                                        className="px-1.5"
                                                         data-sot-badge="source-auth-mode"
                                                         data-sot-tone={
                                                             modeBadge.tone
                                                         }
-                                                        variant={
-                                                            modeBadge.tone ===
-                                                            "recommended"
-                                                                ? "secondary"
-                                                                : "outline"
-                                                        }
+                                                        variant="sourceAuthModeBadge"
                                                     >
                                                         {modeBadge.label}
                                                     </Badge>
@@ -1649,18 +1625,12 @@ function DataSourcesSettingsPanel({
                             data-sot-state={sourceSaveState}
                         >
                             <Badge
-                                variant="secondary"
-                                className={getSourceActionStatusBadgeClassName(
-                                    sourceSaveState,
-                                )}
+                                variant="sourceActionStatus"
                                 data-sot-part="source-action-status"
                                 data-sot-state={sourceSaveState}
                             >
                                 <span
                                     aria-hidden="true"
-                                    className={getSourceActionStatusDotClassName(
-                                        sourceSaveState,
-                                    )}
                                     data-sot-part="source-action-status-indicator"
                                 />
                                 {actionMessage?.title ?? ""}

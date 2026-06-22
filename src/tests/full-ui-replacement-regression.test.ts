@@ -2212,6 +2212,8 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("recordingTagIconOption:");
         expect(toggleGroup).toContain("onboardingSourceAuthMode:");
         expect(toggleGroup).toContain("onboardingSourceAuthModeOption:");
+        expect(toggleGroup).toContain("settingsSourceAuthMode:");
+        expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
         expect(toggleGroup).toContain('swatch:');
         expect(toggleGroup).toContain("[display:grid]");
         expect(toggleGroup).toContain("rounded-[50%]");
@@ -5115,9 +5117,60 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("<ToggleGroup");
         expect(settings).toContain("<ToggleGroupItem");
         expect(settings).toContain("<Badge");
-        expect(settings).toContain("variant={");
+        const settingsSourceAuthModeControl = extractElementSlice(
+            settings,
+            'data-sot-list="source-auth-modes"',
+            "ToggleGroup",
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            'layout="settingsSourceAuthMode"',
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            'variant="settingsSourceAuthModeOption"',
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            'size="settingsSourceAuthModeOption"',
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            'spacing="settingsSourceAuthMode"',
+        );
+        expect(settingsSourceAuthModeControl).toContain(
+            'variant="sourceAuthModeBadge"',
+        );
+        expect(settingsSourceAuthModeControl).not.toContain('variant="outline"');
+        expect(settingsSourceAuthModeControl).not.toContain(
+            'variant="secondary"',
+        );
+        expect(settingsSourceAuthModeControl).not.toContain('size="lg"');
+        expect(settingsSourceAuthModeControl).not.toContain("spacing={2}");
+        expect(settingsSourceAuthModeControl).not.toContain(
+            'className="mb-4 grid w-full grid-cols-2 items-stretch"',
+        );
+        expect(settingsSourceAuthModeControl).not.toContain(
+            'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
+        );
+        const settingsSourceActionStatus = extractElementSlice(
+            settings,
+            'data-sot-part="source-action-status"',
+            "Badge",
+        );
+        expect(settingsSourceActionStatus).toContain(
+            'variant="sourceActionStatus"',
+        );
+        expect(settingsSourceActionStatus).not.toContain('variant="secondary"');
+        expect(settingsSourceActionStatus).not.toContain("className=");
+        expect(settingsSourceActionStatus).toContain(
+            'data-sot-part="source-action-status-indicator"',
+        );
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
+        expect(badge).toContain("sourceAuthModeBadge:");
+        expect(badge).toContain("sourceActionStatus:");
+        expect(badge).toContain("data-[sot-tone=recommended]");
+        expect(badge).toContain("data-[sot-tone=personal]");
+        expect(badge).toContain(
+            "[&_[data-sot-part=source-action-status-indicator]]",
+        );
         expect(badge).not.toContain("source:");
         expect(badge).toContain("playerSource:");
         expect(badge).toContain("playerStatus:");

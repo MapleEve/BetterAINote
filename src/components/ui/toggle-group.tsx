@@ -10,6 +10,7 @@ type ToggleGroupLayout =
     | "default"
     | "iconGrid"
     | "onboardingSourceAuthMode"
+    | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
     | "speakerReviewMode"
@@ -17,6 +18,7 @@ type ToggleGroupLayout =
     | "dashboardRecordingTimeFilter";
 type ToggleGroupSemanticSpacing =
     | "onboardingSourceAuthMode"
+    | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagQuickColorPicker"
     | "recordingTagIconPicker"
@@ -27,6 +29,7 @@ type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
     dashboardRecordingTimeFilter: 1,
     onboardingSourceAuthMode: 2,
+    settingsSourceAuthMode: 2,
     recordingTagColorPicker: 2,
     recordingTagQuickColorPicker: 1,
     recordingTagIconPicker: 2,
@@ -47,6 +50,8 @@ const toggleGroupItemVariants = cva(
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
                 onboardingSourceAuthModeOption:
+                    "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
+                settingsSourceAuthModeOption:
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 librarySearchScopeItem:
                     "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
@@ -74,6 +79,7 @@ const toggleGroupItemVariants = cva(
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
                 onboardingSourceAuthModeOption: "",
+                settingsSourceAuthModeOption: "",
                 librarySearchScopeItem:
                     "h-6 rounded-full px-2.5 text-xs",
                 dashboardRecordingTimeFilter: "h-8 px-2",
@@ -145,6 +151,8 @@ function ToggleGroup({
                 layout === "iconGrid" && "grid grid-cols-6",
                 layout === "onboardingSourceAuthMode" &&
                     "grid w-full grid-cols-2 items-stretch",
+                layout === "settingsSourceAuthMode" &&
+                    "mb-4 grid w-full grid-cols-2 items-stretch",
                 layout === "recordingTagColorPicker" && "flex-wrap",
                 layout === "recordingTagIconPicker" && "grid grid-cols-6",
                 layout === "speakerReviewMode" && "flex-nowrap",
