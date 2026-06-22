@@ -1707,6 +1707,9 @@ describe("full UI replacement regression coverage", () => {
             "accent",
             "quietOutline",
             "accentLink",
+            "playerControl",
+            "playerPrimary",
+            "playerSpeed",
             "link",
         ]) {
             expect(button).toContain(`${variant}:`);
@@ -1738,6 +1741,12 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain('"control-xs":');
         expect(button).toContain('"form-submit":');
         expect(button).toContain('"inline-link":');
+        expect(button).toContain("playerControlSm:");
+        expect(button).toContain("playerControlLg:");
+        expect(button).toContain("size-[36px]");
+        expect(button).toContain("size-[30px]");
+        expect(button).toContain("size-[44px]");
+        expect(button).toContain("min-w-[50px]");
         expect(button).toContain("chipRemove:");
         expect(button).toContain("[&_svg]:invisible");
         expect(button).not.toContain("accentSelf");
@@ -1756,8 +1765,6 @@ describe("full UI replacement regression coverage", () => {
             '"player-lg":',
             '"player-speed":',
             "compact:",
-            '"size-[36px]',
-            '"size-[44px]',
         ]) {
             expect(button).not.toContain(size);
         }
@@ -3284,10 +3291,25 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<Button");
         expect(workstation).toContain('variant="ghost"');
         expect(workstation).toContain('size="icon-sm"');
-        expect(workstation).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
-        expect(workstation).toContain("SOT_PLAYER_BUTTON_CLASS");
-        expect(workstation).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
-        expect(workstation).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(workstation).toContain('variant="playerControl"');
+        expect(workstation).toContain('size="playerControl"');
+        expect(workstation).toContain('variant="playerPrimary"');
+        expect(workstation).toContain('size="playerControlLg"');
+        expect(workstation).toContain('variant="playerSpeed"');
+        expect(workstation).toContain('size="playerSpeed"');
+        expect(workstation).toContain('size="playerControlSm"');
+        expect(workstation).not.toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
+        expect(workstation).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
+        expect(workstation).not.toContain("dashboardSeekSliderRootStyle");
+        expect(workstation).not.toContain("sotPlayerSeekRangeStyle");
+        expect(workstation).not.toContain("sotPlayerSeekThumbStyle");
+        expect(workstation).not.toContain("SotPlayerSliderTrackStyle");
         expect(workstation).toContain("SOT_COPY_BUTTON_BASE_CLASS");
         expect(workstation).toContain("SOT_COMPACT_GHOST_BUTTON_CLASS");
         expect(workstation).toContain(
@@ -3371,12 +3393,19 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(dashboardPlayer).toContain('variant="ghost"');
-        expect(dashboardPlayer).toContain('size="icon"');
-        expect(dashboardPlayer).toContain("SOT_PLAYER_BUTTON_CLASS");
-        expect(dashboardPlayer).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
-        expect(dashboardPlayer).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
-        expect(dashboardPlayer).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(dashboardPlayer).toContain('variant="playerControl"');
+        expect(dashboardPlayer).toContain('size="playerControl"');
+        expect(dashboardPlayer).toContain('variant="playerPrimary"');
+        expect(dashboardPlayer).toContain('size="playerControlLg"');
+        expect(dashboardPlayer).toContain('variant="playerSpeed"');
+        expect(dashboardPlayer).toContain('size="playerSpeed"');
+        expect(dashboardPlayer).toContain('size="playerControlSm"');
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(dashboardPlayer).not.toContain(
+            "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
+        );
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
         expect(dashboardPlayer).not.toContain('variant="player"');
         expect(dashboardPlayer).not.toContain('variant="player-primary"');
         expect(dashboardPlayer).not.toContain('size="player"');
@@ -3398,15 +3427,30 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-seek"',
         );
+        expect(dashboardPlayer).toContain('variant="playerSeek"');
+        expect(dashboardPlayer).toContain('className="flex-none"');
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
+        expect(dashboardPlayer).not.toContain("dashboardSeekSliderRootStyle");
+        expect(dashboardPlayer).not.toContain("sotPlayerSeekRangeStyle");
+        expect(dashboardPlayer).not.toContain("sotPlayerSeekThumbStyle");
+        expect(dashboardPlayer).not.toContain("className: SOT_PLAYER");
+        expect(dashboardPlayer).not.toContain("style: sotPlayer");
+        expect(dashboardPlayer).not.toContain(
+            "style: dashboardSeekSliderRootStyle",
+        );
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-volume-anchor"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-panel="dashboard-player-volume-popover"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayer).toContain('variant="playerVolume"');
+        expect(dashboardPlayer).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(dashboardPlayer).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
         expect(dashboardPlayer).toContain("<Popover");
         expect(dashboardPlayer).toContain("<PopoverTrigger asChild>");
         expect(dashboardPlayer).toContain("<PopoverContent");

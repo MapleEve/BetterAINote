@@ -421,6 +421,7 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps the dashboard recording player composed through shadcn slots instead of CSS primitive repaints", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const button = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
         const playerSurfaceIndex = workstation.indexOf(
             'data-sot-surface="dashboard-recording-player"',
@@ -458,12 +459,26 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain(
             'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
-        expect(player).toContain('variant="ghost"');
-        expect(player).toContain('size="icon"');
-        expect(player).toContain("SOT_PLAYER_BUTTON_CLASS");
-        expect(player).toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
-        expect(player).toContain("SOT_PLAYER_BUTTON_SM_CLASS");
-        expect(player).toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(button).toContain("playerControl:");
+        expect(button).toContain("playerPrimary:");
+        expect(button).toContain("playerSpeed:");
+        expect(button).toContain("playerControlSm:");
+        expect(button).toContain("playerControlLg:");
+        expect(button).toContain("size-[36px]");
+        expect(button).toContain("size-[30px]");
+        expect(button).toContain("size-[44px]");
+        expect(button).toContain("min-w-[50px]");
+        expect(player).toContain('variant="playerControl"');
+        expect(player).toContain('size="playerControl"');
+        expect(player).toContain('variant="playerPrimary"');
+        expect(player).toContain('size="playerControlLg"');
+        expect(player).toContain('variant="playerSpeed"');
+        expect(player).toContain('size="playerSpeed"');
+        expect(player).toContain('size="playerControlSm"');
+        expect(player).not.toContain("SOT_PLAYER_BUTTON_CLASS");
+        expect(player).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
+        expect(player).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
+        expect(player).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
         expect(player).not.toContain('variant="player"');
         expect(player).not.toContain('variant="player-primary"');
         expect(player).not.toContain('size="player"');
@@ -482,13 +497,26 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-recording-player-controls"',
         );
         expect(player).toContain('data-sot-control="dashboard-player-seek"');
+        expect(player).toContain('variant="playerSeek"');
+        expect(player).toContain('className="flex-none"');
+        expect(player).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
+        expect(player).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
+        expect(player).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
+        expect(player).not.toContain("dashboardSeekSliderRootStyle");
+        expect(player).not.toContain("sotPlayerSeekRangeStyle");
+        expect(player).not.toContain("sotPlayerSeekThumbStyle");
+        expect(player).not.toContain("className: SOT_PLAYER");
+        expect(player).not.toContain("style: sotPlayer");
+        expect(player).not.toContain("style: dashboardSeekSliderRootStyle");
         expect(player).toContain('data-sot-control="dashboard-player-volume"');
         expect(player).toContain("<Popover");
         expect(player).toContain("<PopoverTrigger asChild>");
         expect(player).toContain("<PopoverContent");
-        expect(player).toContain(
+        expect(player).toContain('variant="playerVolume"');
+        expect(player).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
+        expect(player).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
         expect(player).toContain('side="top"');
         expect(player).toContain('align="end"');
 

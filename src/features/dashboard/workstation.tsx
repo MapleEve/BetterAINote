@@ -321,25 +321,6 @@ function getSotSegmentedTabProps<T extends string>(
     };
 }
 
-type SotPlayerSliderTrackStyle = CSSProperties & {
-    "--sot-player-track": string;
-};
-
-const SOT_PLAYER_SEEK_SLIDER_CLASS = cn(
-    "h-[14px] min-w-0 cursor-pointer data-[disabled]:cursor-default",
-    "[&_[data-slot=slider-track]]:h-[6px] [&_[data-slot=slider-track]]:rounded-[999px] [&_[data-slot=slider-track]]:bg-[var(--sot-player-track)] [&_[data-slot=slider-track]]:[box-shadow:inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
-);
-const SOT_PLAYER_SEEK_RANGE_CLASS = "bg-transparent";
-const SOT_PLAYER_SEEK_THUMB_CLASS =
-    "size-[14px] border-0 bg-white p-0 shadow-none";
-const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
-const SOT_PLAYER_BUTTON_CLASS =
-    "size-[36px] rounded-[50%] border border-[var(--button-player-border)] bg-[var(--button-player-bg)] px-[6px] py-px text-[13.3333px] font-normal text-[var(--button-player-fg)] [box-shadow:var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96]";
-const SOT_PLAYER_BUTTON_SM_CLASS = cn(SOT_PLAYER_BUTTON_CLASS, "size-[30px]");
-const SOT_PLAYER_PRIMARY_BUTTON_CLASS =
-    "size-[44px] rounded-[50%] border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] px-[6px] py-px text-[13.3333px] font-normal text-white [box-shadow:var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
-const SOT_PLAYER_SPEED_BUTTON_CLASS =
-    "h-[32px] min-w-[50px] justify-center rounded-[9px] border border-transparent bg-transparent px-[12px] font-mono text-[12.5px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]";
 const SOT_COPY_BUTTON_BASE_CLASS =
     "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] leading-normal font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px]";
 const SOT_COPY_SUCCESS_BUTTON_CLASS = cn(
@@ -352,15 +333,6 @@ const SOT_COPY_DANGER_BUTTON_CLASS = cn(
 );
 const SOT_COMPACT_GHOST_BUTTON_CLASS =
     "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px] dark:hover:bg-accent/50";
-const dashboardSeekSliderRootStyle: SotPlayerSliderTrackStyle = {
-    "--sot-player-track": "var(--graphite-200)",
-};
-const sotPlayerSeekRangeStyle: CSSProperties = {
-    background: "linear-gradient(90deg, var(--steel-500), var(--accent))",
-};
-const sotPlayerSeekThumbStyle: CSSProperties = {
-    boxShadow: "0 1px 4px rgb(0 0 0 / 0.15), 0 0 0 1px var(--line-hairline)",
-};
 
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
@@ -6308,9 +6280,8 @@ export function Workstation({
                                 data-sot-state={playerControlsState}
                             >
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={SOT_PLAYER_BUTTON_CLASS}
+                                    variant="playerControl"
+                                    size="playerControl"
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -6328,9 +6299,8 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={SOT_PLAYER_PRIMARY_BUTTON_CLASS}
+                                    variant="playerPrimary"
+                                    size="playerControlLg"
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6357,9 +6327,8 @@ export function Workstation({
                                     </span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={SOT_PLAYER_BUTTON_CLASS}
+                                    variant="playerControl"
+                                    size="playerControl"
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6387,10 +6356,7 @@ export function Workstation({
                                                 : undefined
                                         }
                                         aria-label="播放进度"
-                                        className={cn(
-                                            SOT_PLAYER_SEEK_SLIDER_CLASS,
-                                            "flex-none",
-                                        )}
+                                        className="flex-none"
                                         data-sot-control="dashboard-player-seek"
                                         data-sot-state={playerControlState}
                                         data-pct={playerProgressPct}
@@ -6398,25 +6364,14 @@ export function Workstation({
                                         max={100}
                                         min={0}
                                         rangeProps={{
-                                            className:
-                                                SOT_PLAYER_SEEK_RANGE_CLASS,
                                             "data-pct": playerProgressPct,
-                                            style: sotPlayerSeekRangeStyle,
-                                        }}
-                                        rootProps={{
-                                            style: dashboardSeekSliderRootStyle,
                                         }}
                                         step={1}
                                         thumbProps={{
-                                            className:
-                                                SOT_PLAYER_SEEK_THUMB_CLASS,
                                             "data-pct": playerProgressPct,
-                                            style: {
-                                                ...sotPlayerSeekThumbStyle,
-                                                transform: "translateX(-2px)",
-                                            },
                                         }}
                                         value={[progress]}
+                                        variant="playerSeek"
                                         onValueChange={(values) =>
                                             seekDashboardPlayerToPercent(
                                                 values[0] ?? 0,
@@ -6429,9 +6384,8 @@ export function Workstation({
                                 </span>
                                 <Button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className={SOT_PLAYER_SPEED_BUTTON_CLASS}
+                                    variant="playerSpeed"
+                                    size="playerSpeed"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -6447,11 +6401,8 @@ export function Workstation({
                                     <div data-sot-part="dashboard-player-volume-anchor">
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className={
-                                                    SOT_PLAYER_BUTTON_SM_CLASS
-                                                }
+                                                variant="playerControl"
+                                                size="playerControlSm"
                                                 type="button"
                                                 aria-label={`音量 ${volume}`}
                                                 aria-expanded={
@@ -6490,7 +6441,7 @@ export function Workstation({
                                             align="end"
                                             side="top"
                                             sideOffset={8}
-                                            className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"
+                                            variant="playerVolume"
                                             data-open={
                                                 volumePopoverOpen
                                                     ? "true"
@@ -6539,13 +6490,11 @@ export function Workstation({
                                                     </span>
                                                 </Button>
                                                 <Slider
-                                                    className={
-                                                        SOT_PLAYER_VOLUME_SLIDER_CLASS
-                                                    }
                                                     min={0}
                                                     max={100}
                                                     step={1}
                                                     value={[volume]}
+                                                    variant="playerVolume"
                                                     disabled={playbackDisabled}
                                                     data-sot-control="dashboard-player-volume-slider"
                                                     data-sot-state={

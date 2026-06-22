@@ -193,6 +193,11 @@ describe("dashboard recording player regressions", () => {
         );
         expect(buttonSource).toContain('data-slot="button"');
         expect(buttonSource).toContain("buttonVariants");
+        expect(buttonSource).toContain("playerControl:");
+        expect(buttonSource).toContain("playerPrimary:");
+        expect(buttonSource).toContain("playerSpeed:");
+        expect(buttonSource).toContain("playerControlSm:");
+        expect(buttonSource).toContain("playerControlLg:");
         expect(source).toContain("<Button");
         expect(source).toContain(
             'import {\n    Popover,\n    PopoverContent,\n    PopoverTrigger,\n} from "@/components/ui/popover";',
