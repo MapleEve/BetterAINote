@@ -475,51 +475,6 @@ function getSettingsSaveStatusDotClassName(saveState: SectionSaveState) {
     );
 }
 
-function getProviderTileVariant(isSelected: boolean) {
-    return isSelected ? "secondary" : "ghost";
-}
-
-function getProviderStatusBadgeVariant(tone: ProviderTone) {
-    if (tone === "err") return "destructive";
-    if (tone === "neu") return "secondary";
-    return "outline";
-}
-
-function getProviderStatusBadgeClassName(tone: ProviderTone) {
-    return cn(
-        "!h-[18px] !gap-[4px] !rounded-[999px] !border !border-solid !px-[7px] !py-0 !text-[10.5px] !font-semibold !leading-[normal]",
-        (tone === "ok" || tone === "info" || tone === "syncing") &&
-            "text-primary",
-        tone === "ok" &&
-            "!border-[var(--source-provider-status-success-border)] !bg-[var(--source-provider-status-success-bg)] !text-[var(--signal-success)]",
-        (tone === "info" || tone === "syncing") &&
-            "!border-[var(--source-provider-status-info-border)] !bg-[var(--source-provider-status-info-bg)] !text-[var(--signal-info)]",
-        tone === "warn" &&
-            "text-muted-foreground !border-[var(--source-provider-status-warning-border)] !bg-[var(--source-provider-status-warning-bg)] !text-[var(--signal-warning-strong)]",
-        tone === "err" &&
-            "!border-[var(--source-provider-status-danger-border)] !bg-[var(--source-provider-status-danger-bg)] !text-[var(--signal-danger)]",
-        tone === "neu" &&
-            "!border-[var(--line-hairline)] !bg-[var(--bg-recessed)] !text-[var(--fg-secondary)]",
-        "group-data-[sot-dimmed=true]/source-provider:!border-[var(--line-hairline)] group-data-[sot-dimmed=true]/source-provider:!bg-[var(--bg-recessed)] group-data-[sot-dimmed=true]/source-provider:!text-[var(--fg-tertiary)]",
-    );
-}
-
-function getProviderDetailStatusBadgeClassName(tone: ProviderTone) {
-    return cn(
-        "!h-[24px] !gap-[6px] !rounded-[999px] !border !border-solid !px-[10px] !py-0 !text-[11px] !font-semibold !leading-[normal]",
-        tone === "ok" &&
-            "!border-[var(--source-provider-status-success-border)] !bg-[var(--source-provider-status-success-bg)] !text-[var(--signal-success)]",
-        (tone === "info" || tone === "syncing") &&
-            "!border-[var(--source-provider-status-info-border)] !bg-[var(--source-provider-status-info-bg)] !text-[var(--signal-info)]",
-        tone === "warn" &&
-            "!border-[var(--source-provider-status-warning-border)] !bg-[var(--source-provider-status-warning-bg)] !text-[var(--signal-warning-strong)]",
-        tone === "err" &&
-            "!border-[var(--source-provider-status-danger-border)] !bg-[var(--source-provider-status-danger-bg)] !text-[var(--signal-danger)]",
-        tone === "neu" &&
-            "!border-[var(--line-hairline)] !bg-[var(--bg-recessed)] !text-[var(--fg-secondary)]",
-    );
-}
-
 function getSourceProviderDetailSubtitle(
     source: DataSourceDisplayState,
     isZh: boolean,
@@ -596,10 +551,9 @@ function DataSourceProviderTile({
     return (
         <Button
             type="button"
-            variant={getProviderTileVariant(isSelected)}
-            size="default"
+            variant="sourceProviderTile"
+            size="sourceProviderTile"
             aria-pressed={isSelected}
-            className="group/source-provider grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start whitespace-normal text-left !gap-[10px] !rounded-[10px] !border !border-solid !border-transparent !bg-transparent !p-[10px] !shadow-none ![box-shadow:none] data-[sot-dimmed=true]:!opacity-[0.55] data-[state=idle]:hover:!bg-[var(--source-provider-card-hover)] data-[state=selected]:!border-[var(--line-hairline)] data-[state=selected]:!bg-[var(--bg-elevated)] data-[state=selected]:!shadow-xs dark:data-[state=selected]:!border-[var(--glass-border)] dark:data-[state=selected]:!bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:!shadow-none dark:data-[state=selected]:![box-shadow:none]"
             data-state={isSelected ? "selected" : "idle"}
             data-sot-provider-card=""
             data-sot-control="source-provider"
@@ -642,13 +596,13 @@ function DataSourceProviderTile({
                 data-sot-part="source-provider-meta"
             >
                 <span
-                    className="truncate !font-sans !text-[13px] !font-semibold !leading-[normal] !text-[var(--fg-primary)]"
+                    className="truncate font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]"
                     data-sot-provider-name=""
                 >
                     {displayName}
                 </span>
                 <span
-                    className="truncate !font-mono !text-[11.5px] !font-medium !leading-[normal] !text-[var(--fg-tertiary)]"
+                    className="truncate font-mono text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]"
                     data-sot-provider-hint=""
                 >
                     {getSourceProviderStatusHint(source, language) ??
@@ -656,11 +610,8 @@ function DataSourceProviderTile({
                 </span>
             </span>
             <Badge
-                variant={getProviderStatusBadgeVariant(status.tone)}
-                className={cn(
-                    "justify-self-end",
-                    getProviderStatusBadgeClassName(status.tone),
-                )}
+                variant="sourceProviderStatus"
+                className="justify-self-end"
                 data-sot-provider-status=""
                 data-sot-state={status.state}
                 data-sot-status={status.state}
@@ -1292,24 +1243,7 @@ function DataSourcesSettingsPanel({
                                 </div>
                             </div>
                             <Badge
-                                variant={
-                                    status.tone === "err"
-                                        ? "destructive"
-                                        : status.tone === "neu"
-                                          ? "secondary"
-                                          : "outline"
-                                }
-                                className={cn(
-                                    "h-6 gap-1.5 px-2.5",
-                                    getProviderDetailStatusBadgeClassName(
-                                        status.tone,
-                                    ),
-                                    (status.tone === "ok" ||
-                                        status.tone === "syncing") &&
-                                        "text-primary",
-                                    status.tone === "warn" &&
-                                        "text-muted-foreground",
-                                )}
+                                variant="sourceProviderDetailStatus"
                                 data-sot-status={status.state}
                                 data-sot-tone={status.tone}
                             >
@@ -1709,7 +1643,7 @@ function DataSourcesSettingsPanel({
                         </div>
 
                         <footer
-                            className={SOURCE_PROVIDER_ACTIONS_CLASS}
+                            className="mt-[18px] mb-px ml-0 flex flex-row justify-start"
                             data-sot-panel="source-actions"
                             data-sot-provider={selectedSource.provider}
                             data-sot-state={sourceSaveState}
@@ -1733,16 +1667,8 @@ function DataSourcesSettingsPanel({
                             </Badge>
                             <Button
                                 type="button"
-                                variant="outline"
-                                size="sm"
-                                className={cn(
-                                    SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
-                                    SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
-                                    sourceTestState === "success" &&
-                                        "text-primary",
-                                    sourceTestState === "error" &&
-                                        "text-destructive",
-                                )}
+                                variant="sourceProviderAction"
+                                size="sourceProviderAction"
                                 data-sot-action="test"
                                 data-sot-control="source-test"
                                 data-sot-provider={selectedSource.provider}
@@ -1774,18 +1700,8 @@ function DataSourcesSettingsPanel({
                             </Button>
                             <Button
                                 type="button"
-                                variant={
-                                    sourceSaveState === "error"
-                                        ? "destructive"
-                                        : "default"
-                                }
-                                size="sm"
-                                className={cn(
-                                    SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
-                                    SOURCE_PROVIDER_PRIMARY_ACTION_BUTTON_CLASS,
-                                    sourceSaveState === "error" &&
-                                        SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS,
-                                )}
+                                variant="sourceProviderActionPrimary"
+                                size="sourceProviderAction"
                                 data-sot-action="save"
                                 data-sot-control="source-save"
                                 data-sot-provider={selectedSource.provider}
@@ -1840,12 +1756,8 @@ function DataSourcesSettingsPanel({
                             <FieldControl variant="sourceProviderDetail">
                                 <Button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className={cn(
-                                        SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
-                                        SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
-                                    )}
+                                    variant="sourceProviderAction"
+                                    size="sourceProviderAction"
                                     data-sot-control="source-reconnect"
                                     data-sot-state={sourceReconnectState}
                                     disabled={interactionDisabled}
@@ -1894,13 +1806,8 @@ function DataSourcesSettingsPanel({
                             <FieldControl variant="sourceProviderDetail">
                                 <Button
                                     type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    className={cn(
-                                        SOURCE_PROVIDER_ACTION_BUTTON_CLASS,
-                                        SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS,
-                                        SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS,
-                                    )}
+                                    variant="sourceProviderActionDanger"
+                                    size="sourceProviderAction"
                                     data-sot-control="source-disconnect"
                                     data-sot-state={sourceDisconnectState}
                                     disabled={interactionDisabled}
@@ -1969,16 +1876,6 @@ const SETTINGS_CONTROL_CLASS =
 const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
 const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
-const SOURCE_PROVIDER_ACTION_BUTTON_CLASS =
-    "!h-[26px] !gap-[7px] !rounded-[7px] !px-[10px] !text-[12px] !font-semibold !leading-[normal]";
-const SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS =
-    "border-transparent !bg-transparent !text-[var(--fg-secondary)] !shadow-none hover:!bg-[var(--bg-recessed)] hover:!text-[var(--fg-primary)]";
-const SOURCE_PROVIDER_PRIMARY_ACTION_BUTTON_CLASS =
-    "![background:var(--source-provider-primary-bg)] ![border-color:var(--source-provider-primary-border)] ![box-shadow:var(--source-provider-primary-shadow)] !text-[var(--accent-on)]";
-const SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS =
-    "!text-[var(--signal-danger)]";
-const SOURCE_PROVIDER_ACTIONS_CLASS =
-    "!mt-[18px] !mb-px !ml-0 !flex-row !justify-start";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
 const SETTINGS_BANNER_ICON_CLASS =
     "inline-flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground [&>svg]:size-3.5";

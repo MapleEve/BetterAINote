@@ -38,6 +38,14 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[11px] [&_svg]:stroke-2",
                 chipRemove:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:invisible [&_svg]:size-[11px] [&_svg]:stroke-2",
+                sourceProviderTile:
+                    "group/source-provider border border-solid border-transparent bg-transparent text-left shadow-none [box-shadow:none] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-[var(--source-provider-card-hover)] data-[state=selected]:border-[var(--line-hairline)] data-[state=selected]:bg-[var(--bg-elevated)] data-[state=selected]:shadow-xs dark:data-[state=selected]:border-[var(--glass-border)] dark:data-[state=selected]:bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:shadow-none dark:data-[state=selected]:[box-shadow:none]",
+                sourceProviderAction:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
+                sourceProviderActionPrimary:
+                    "border border-[var(--source-provider-primary-border)] bg-[image:var(--source-provider-primary-bg)] text-[var(--accent-on)] shadow-[var(--source-provider-primary-shadow)] data-[sot-state=error]:text-[var(--signal-danger)]",
+                sourceProviderActionDanger:
+                    "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
                 pill: "relative inline-flex rounded-[999px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:opacity-100 [&_svg]:size-[11px] [&_svg]:stroke-2",
                 link: "text-primary underline-offset-4 hover:underline",
             },
@@ -55,6 +63,10 @@ const buttonVariants = cva(
                 sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 "pill-sm":
                     "h-[var(--button-pill-height)] justify-normal gap-[5px] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
+                sourceProviderTile:
+                    "grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] p-[10px] whitespace-normal has-[>svg]:px-[10px]",
+                sourceProviderAction:
+                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
                 lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
                 icon: "size-9",
                 "icon-2xs": "size-[var(--icon-compact-size)] rounded-[6px]",

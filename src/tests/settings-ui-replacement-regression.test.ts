@@ -1112,10 +1112,8 @@ describe("settings SOT interaction regressions", () => {
             /data-provider=|data-selected=|data-dimmed=|data-provider-detail=|data-ds-state=/,
         );
         expect(providerTile).toContain('data-sot-control="source-provider"');
-        expect(providerTile).toContain(
-            "variant={getProviderTileVariant(isSelected)}",
-        );
-        expect(providerTile).toContain('size="default"');
+        expect(providerTile).toContain('variant="sourceProviderTile"');
+        expect(providerTile).toContain('size="sourceProviderTile"');
         expect(providerTile).toContain("aria-pressed={isSelected}");
         expect(providerTile).toContain("data-sot-provider={source.provider}");
         expect(providerTile).toContain(
@@ -1125,12 +1123,8 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).toContain(
             'data-sot-dimmed={isDimmed ? "true" : "false"}',
         );
-        expect(providerTile).toContain(
-            "variant={getProviderStatusBadgeVariant(status.tone)}",
-        );
-        expect(providerTile).toContain(
-            "getProviderStatusBadgeClassName(status.tone)",
-        );
+        expect(providerTile).toContain('variant="sourceProviderStatus"');
+        expect(providerTile).toContain("data-sot-tone={status.tone}");
         expect(detailRoot).toContain('data-sot-panel="source-provider-detail"');
         expect(detailRoot).toContain(
             'data-sot-provider={selectedSource?.provider ?? "none"}',
@@ -1148,35 +1142,81 @@ describe("settings SOT interaction regressions", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const button = readSource("components/ui/button.tsx");
+        const badge = readSource("components/ui/badge.tsx");
         const globals = readSource("app/globals.css");
         const providerTile =
             content.match(
                 /function DataSourceProviderTile[\s\S]*?function ProviderStateBanner/,
             )?.[0] ?? "";
+        const providerTileButton =
+            providerTile.match(
+                /<Button[\s\S]*?data-sot-control="source-provider"[\s\S]*?>/,
+            )?.[0] ?? "";
+        const sourceActionArea =
+            content.match(
+                /<footer[\s\S]*?data-sot-panel="source-actions"[\s\S]*?data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
+            )?.[0] ?? "";
 
-        expect(providerTile).toContain("getProviderTileVariant(isSelected)");
-        expect(providerTile).toContain("getProviderStatusBadgeVariant");
-        expect(providerTile).toContain("getProviderStatusBadgeClassName");
-        expect(providerTile).toContain(
-            'className="group/source-provider grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start whitespace-normal text-left !gap-[10px] !rounded-[10px] !border !border-solid !border-transparent !bg-transparent !p-[10px] !shadow-none ![box-shadow:none] data-[sot-dimmed=true]:!opacity-[0.55] data-[state=idle]:hover:!bg-[var(--source-provider-card-hover)] data-[state=selected]:!border-[var(--line-hairline)] data-[state=selected]:!bg-[var(--bg-elevated)] data-[state=selected]:!shadow-xs dark:data-[state=selected]:!border-[var(--glass-border)] dark:data-[state=selected]:!bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:!shadow-none dark:data-[state=selected]:![box-shadow:none]"',
+        expect(content).not.toContain("getProviderTileVariant");
+        expect(content).not.toContain("getProviderStatusBadgeVariant");
+        expect(content).not.toContain("getProviderStatusBadgeClassName");
+        expect(content).not.toContain("getProviderDetailStatusBadgeClassName");
+        expect(content).not.toContain("SOURCE_PROVIDER_ACTION_BUTTON_CLASS");
+        expect(content).not.toContain(
+            "SOURCE_PROVIDER_GHOST_ACTION_BUTTON_CLASS",
         );
+        expect(content).not.toContain(
+            "SOURCE_PROVIDER_PRIMARY_ACTION_BUTTON_CLASS",
+        );
+        expect(content).not.toContain(
+            "SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS",
+        );
+        expect(content).not.toContain("SOURCE_PROVIDER_ACTIONS_CLASS");
+        expect(providerTile).toContain('variant="sourceProviderTile"');
+        expect(providerTile).toContain('size="sourceProviderTile"');
+        expect(providerTileButton).not.toContain("className=");
         expect(providerTile).toContain(
             'className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-[var(--line-hairline)] bg-white"',
         );
         expect(providerTile).toContain(
             'className="flex min-w-0 flex-col gap-[2px]"',
         );
-        expect(providerTile).toContain('className="truncate !font-sans');
-        expect(providerTile).toContain('className="truncate !font-mono');
+        expect(providerTile).toContain('className="truncate font-sans');
+        expect(providerTile).toContain('className="truncate font-mono');
+        expect(providerTile).not.toMatch(/![a-z\[]/);
+        expect(providerTile).toContain('variant="sourceProviderStatus"');
         expect(providerTile).toContain('"justify-self-end"');
         expect(providerTile).toContain('"animate-pulse"');
-        expect(content).toContain('"text-primary"');
-        expect(content).toContain('"text-muted-foreground"');
-        expect(content).toContain('"destructive"');
-        expect(content).toContain('"secondary"');
-        expect(content).toContain('"outline"');
         expect(providerTile).toContain('"size-[4px] rounded-full bg-current"');
         expect(providerTile).toContain('"animate-pulse"');
+        expect(sourceActionArea).toContain('variant="sourceProviderAction"');
+        expect(sourceActionArea).toContain(
+            'variant="sourceProviderActionPrimary"',
+        );
+        expect(sourceActionArea).toContain(
+            'variant="sourceProviderActionDanger"',
+        );
+        expect(sourceActionArea).toContain('size="sourceProviderAction"');
+        expect(sourceActionArea).not.toContain("SOURCE_PROVIDER_");
+        expect(sourceActionArea).not.toMatch(/![a-z\[]/);
+        expect(button).toContain("sourceProviderTile:");
+        expect(button).toContain("sourceProviderAction:");
+        expect(button).toContain("sourceProviderActionPrimary:");
+        expect(button).toContain("sourceProviderActionDanger:");
+        expect(button).toContain("data-[state=selected]");
+        expect(button).toContain("data-[sot-dimmed=true]");
+        expect(button).toContain("data-[sot-state=error]:text-destructive");
+        expect(button).toContain("data-[sot-state=success]:text-primary");
+        expect(badge).toContain("sourceProviderStatus:");
+        expect(badge).toContain("sourceProviderDetailStatus:");
+        expect(badge).toContain("data-[sot-tone=ok]");
+        expect(badge).toContain("data-[sot-tone=warn]");
+        expect(badge).toContain("data-[sot-tone=err]");
+        expect(badge).toContain("data-[sot-tone=neu]");
+        expect(badge).toContain(
+            "group-data-[sot-dimmed=true]/source-provider",
+        );
 
         for (const selector of [
             '[data-sot-provider-card][data-slot="button"]',
