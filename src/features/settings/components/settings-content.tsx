@@ -518,7 +518,6 @@ function DataSourceProviderTile({
             onClick={onSelect}
         >
             <span
-                className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-[var(--line-hairline)] bg-white"
                 data-sot-provider-icon=""
                 data-sot-cover={
                     source.provider === "feishu-minutes" ? "true" : undefined
@@ -544,18 +543,15 @@ function DataSourceProviderTile({
                 )}
             </span>
             <span
-                className="flex min-w-0 flex-col gap-[2px]"
                 data-sot-provider-meta=""
                 data-sot-part="source-provider-meta"
             >
                 <span
-                    className="truncate font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]"
                     data-sot-provider-name=""
                 >
                     {displayName}
                 </span>
                 <span
-                    className="truncate font-mono text-[11.5px] font-medium leading-[normal] text-[var(--fg-tertiary)]"
                     data-sot-provider-hint=""
                 >
                     {getSourceProviderStatusHint(source, language) ??
@@ -572,10 +568,6 @@ function DataSourceProviderTile({
                 data-state={status.state}
             >
                 <span
-                    className={cn(
-                        "size-[4px] rounded-full bg-current",
-                        status.tone === "syncing" && "animate-pulse",
-                    )}
                     data-sot-provider-status-dot=""
                 />
                 {status.label}

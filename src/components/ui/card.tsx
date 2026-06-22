@@ -18,6 +18,8 @@ const cardVariants = {
         "gap-0 rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none",
     dashboardActivityPanel:
         "gap-0 overflow-hidden rounded-[12px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-lg)] backdrop-blur-none dark:border-[var(--glass-border)] dark:bg-[var(--graphite-900)]",
+    dashboardRecordingPlayer:
+        "min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none",
     sourceReportMetric:
         "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none",
     speakerReviewTranscript: "gap-0",

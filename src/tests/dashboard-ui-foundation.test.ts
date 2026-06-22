@@ -523,6 +523,7 @@ describe("dashboard SOT foundation", () => {
         const alert = readSource("components/ui/alert.tsx");
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
+        const card = readSource("components/ui/card.tsx");
         const globals = readSource("app/globals.css");
         const playerSurfaceIndex = workstation.indexOf(
             'data-sot-surface="dashboard-recording-player"',
@@ -566,9 +567,24 @@ describe("dashboard SOT foundation", () => {
         );
 
         expect(player).toContain("<Card");
-        expect(player).toContain(
+        expect(player).toContain("hasNoPadding");
+        expect(player).toContain('variant="dashboardRecordingPlayer"');
+        expect(player).not.toContain(
             'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
         );
+        expect(card).toContain("dashboardRecordingPlayer:");
+        expect(card).toContain('data-variant={variant}');
+        expect(card).toContain("cardVariants[variant]");
+        for (const token of [
+            "min-h-[114px]",
+            "overflow-visible",
+            "rounded-[16px]",
+            "border-[var(--glass-border-soft)]",
+            "shadow-none",
+            "backdrop-blur-none",
+        ]) {
+            expect(card).toContain(token);
+        }
         expect(player).toContain("<Alert");
         expect(alert).toContain("playerNoAudio:");
         expect(noAudioAlert).toContain('variant="playerNoAudio"');

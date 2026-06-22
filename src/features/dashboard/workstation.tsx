@@ -6083,7 +6083,7 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"
+                            variant="dashboardRecordingPlayer"
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }

@@ -3975,6 +3975,24 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
+            'variant="dashboardRecordingPlayer"',
+        );
+        expect(sourceReportCardPrimitive).toContain(
+            "dashboardRecordingPlayer:",
+        );
+        expect(sourceReportCardPrimitive).toContain('data-variant={variant}');
+        expect(sourceReportCardPrimitive).toContain("cardVariants[variant]");
+        for (const token of [
+            "min-h-[114px]",
+            "overflow-visible",
+            "rounded-[16px]",
+            "border-[var(--glass-border-soft)]",
+            "shadow-none",
+            "backdrop-blur-none",
+        ]) {
+            expect(sourceReportCardPrimitive).toContain(token);
+        }
+        expect(dashboardPlayer).not.toContain(
             'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
         );
         expect(dashboardPlayer).toContain(

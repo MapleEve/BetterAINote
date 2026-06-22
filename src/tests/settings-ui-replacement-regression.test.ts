@@ -1262,20 +1262,41 @@ describe("settings SOT interaction regressions", () => {
         expect(providerTile).toContain('variant="sourceProviderTile"');
         expect(providerTile).toContain('size="sourceProviderTile"');
         expect(providerTileButton).not.toContain("className=");
-        expect(providerTile).toContain(
+        expect(providerTile).not.toContain(
             'className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] border border-[var(--line-hairline)] bg-white"',
         );
-        expect(providerTile).toContain(
+        expect(providerTile).not.toContain(
             'className="flex min-w-0 flex-col gap-[2px]"',
         );
-        expect(providerTile).toContain('className="truncate font-sans');
-        expect(providerTile).toContain('className="truncate font-mono');
+        expect(providerTile).not.toContain('className="truncate font-sans');
+        expect(providerTile).not.toContain('className="truncate font-mono');
         expect(providerTile).not.toMatch(/![a-z\[]/);
         expect(providerTile).toContain('variant="sourceProviderStatus"');
         expect(providerTile).toContain('"justify-self-end"');
-        expect(providerTile).toContain('"animate-pulse"');
-        expect(providerTile).toContain('"size-[4px] rounded-full bg-current"');
-        expect(providerTile).toContain('"animate-pulse"');
+        expect(providerTile).not.toContain('"animate-pulse"');
+        expect(providerTile).not.toContain(
+            '"size-[4px] rounded-full bg-current"',
+        );
+        expect(button).toContain(
+            "[&_[data-sot-part=source-provider-mark]]:size-7",
+        );
+        expect(button).toContain(
+            "[&_[data-sot-part=source-provider-mark]]:rounded-[7px]",
+        );
+        expect(button).toContain(
+            "[&_[data-sot-part=source-provider-mark]]:bg-white",
+        );
+        expect(button).toContain(
+            "[&_[data-sot-part=source-provider-meta]]:flex",
+        );
+        expect(button).toContain("[&_[data-sot-provider-name]]:truncate");
+        expect(button).toContain(
+            "[&_[data-sot-provider-name]]:text-[13px]",
+        );
+        expect(button).toContain("[&_[data-sot-provider-hint]]:truncate");
+        expect(button).toContain(
+            "[&_[data-sot-provider-hint]]:text-[11.5px]",
+        );
         expect(sourceActionArea).toContain('variant="sourceProviderAction"');
         expect(sourceActionArea).toContain(
             'variant="sourceProviderActionPrimary"',
@@ -1308,6 +1329,13 @@ describe("settings SOT interaction regressions", () => {
         expect(badge).toContain("data-[sot-tone=personal]");
         expect(badge).toContain(
             "[&_[data-sot-part=source-action-status-indicator]]",
+        );
+        expect(badge).toContain("[&_[data-sot-provider-status-dot]]:size-[4px]");
+        expect(badge).toContain(
+            "[&_[data-sot-provider-status-dot]]:rounded-full",
+        );
+        expect(badge).toContain(
+            "data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse",
         );
         expect(content).not.toContain("getSourceActionStatusBadgeClassName");
         expect(content).not.toContain("getSourceActionStatusDotClassName");
