@@ -74,7 +74,6 @@ import {
 } from "@/lib/platform/browser-router";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
-import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 
 interface Transcription {
@@ -895,11 +894,7 @@ export function RecordingWorkstation({
                     </Card>
                     <section data-sot-panel="recording-workstation-detail">
                         <CardHeader
-                            className={cn(
-                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
-                                recordingDetailHeaderState === "saving" &&
-                                    "py-0",
-                            )}
+                            variant="detailHeader"
                             data-sot-panel="recording-detail-header"
                             data-sot-mode={recordingDetailHeaderState}
                             data-sot-state={recordingDetailHeaderState}
@@ -910,7 +905,7 @@ export function RecordingWorkstation({
                         >
                             {recordingDetailHeaderState === "normal" ? (
                                 <CardTitle
-                                    className="min-w-0 flex-1 truncate"
+                                    variant="detailHeaderTitle"
                                     data-sot-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
@@ -922,8 +917,7 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "normal" &&
                             localDeleteAvailable ? (
                                 <Badge
-                                    variant="outline"
-                                    className="ml-1 shrink-0"
+                                    variant="detailHeaderLocal"
                                     data-sot-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label={t("recording.localOnly")}
@@ -933,7 +927,8 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "editing" ? (
                                 <Input
-                                    className="h-8 min-w-0 flex-1"
+                                    variant="detailHeaderTitle"
+                                    controlSize="detailHeaderTitle"
                                     value={renameValue}
                                     onChange={(event) =>
                                         setRenameValue(event.target.value)
@@ -956,8 +951,7 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "saving" ? (
                                 <Badge
-                                    variant="ghost"
-                                    className="ml-1 shrink-0"
+                                    variant="detailHeaderStatus"
                                     data-sot-part="detail-header-title-status"
                                     data-sot-state="saving"
                                     data-rh-status
@@ -971,8 +965,8 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "normal" &&
                             canRenameRecording ? (
                                 <Button
-                                    variant="ghost"
-                                    size="icon-sm"
+                                    variant="detailHeaderIconAction"
+                                    size="detailHeaderIconAction"
                                     onClick={handleRenameStart}
                                     aria-label="重命名"
                                     title="重命名"
@@ -993,8 +987,8 @@ export function RecordingWorkstation({
                                     data-sot-mode="normal"
                                 >
                                     <Button
-                                        variant="outline"
-                                        size="sm"
+                                        variant="detailHeaderAction"
+                                        size="detailHeaderAction"
                                         onClick={handleAutoRename}
                                         disabled={
                                             isAutoRenaming ||
@@ -1029,8 +1023,8 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "editing" ? (
                                 <>
                                     <Button
-                                        variant="ghost"
-                                        size="icon-sm"
+                                        variant="detailHeaderIconAction"
+                                        size="detailHeaderIconAction"
                                         onClick={handleRenameSave}
                                         aria-label="保存新标题"
                                         title="保存（Enter）"
@@ -1042,8 +1036,8 @@ export function RecordingWorkstation({
                                         <Check data-icon="inline-start" />
                                     </Button>
                                     <Button
-                                        variant="ghost"
-                                        size="icon-sm"
+                                        variant="detailHeaderIconAction"
+                                        size="detailHeaderIconAction"
                                         onClick={handleRenameCancel}
                                         aria-label={t("recording.cancelRename")}
                                         title="取消（Esc）"
@@ -1071,8 +1065,8 @@ export function RecordingWorkstation({
                                     >
                                         <DropdownMenuTrigger asChild>
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
+                                                variant="detailHeaderIconAction"
+                                                size="detailHeaderIconAction"
                                                 type="button"
                                                 aria-label={t(
                                                     "dashboardChrome.moreActions",

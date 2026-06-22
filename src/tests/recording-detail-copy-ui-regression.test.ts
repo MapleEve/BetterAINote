@@ -631,17 +631,29 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailHeader).toContain("data-rh-ai-trigger");
         expect(detailHeader).toContain('data-sot-control="ai-rename"');
         expect(detailWorkstation).toContain(
-            'import { cn } from "@/lib/utils";',
-        );
-        expect(detailWorkstation).toContain(
             "const recordingDetailHeaderState = isSavingRename",
         );
-        expect(detailHeader).toContain(
+        expect(detailHeader).toContain('variant="detailHeader"');
+        expect(detailHeader).toContain('variant="detailHeaderTitle"');
+        expect(detailHeader).toContain('variant="detailHeaderLocal"');
+        expect(detailHeader).toContain('variant="detailHeaderStatus"');
+        expect(detailHeader).toContain('variant="detailHeaderIconAction"');
+        expect(detailHeader).toContain('size="detailHeaderIconAction"');
+        expect(detailHeader).toContain('variant="detailHeaderAction"');
+        expect(detailHeader).toContain('size="detailHeaderAction"');
+        expect(detailHeader).toContain('controlSize="detailHeaderTitle"');
+        expect(detailHeader).not.toContain('variant="ghost"');
+        expect(detailHeader).not.toContain('variant="outline"');
+        expect(detailHeader).not.toContain('size="icon-sm"');
+        expect(detailHeader).not.toContain('size="sm"');
+        expect(detailHeader).not.toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
-        expect(detailHeader).toContain('className="min-w-0 flex-1 truncate"');
-        expect(detailHeader).toContain('className="h-8 min-w-0 flex-1"');
-        expect(detailHeader).toContain('className="ml-1 shrink-0"');
+        expect(detailHeader).not.toContain(
+            'className="min-w-0 flex-1 truncate"',
+        );
+        expect(detailHeader).not.toContain('className="h-8 min-w-0 flex-1"');
+        expect(detailHeader).not.toContain('className="ml-1 shrink-0"');
         expect(detailHeader).toContain(
             'recordingDetailHeaderState === "normal"',
         );
