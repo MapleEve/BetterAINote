@@ -10,6 +10,7 @@ type FieldVariant =
     | "authAction"
     | "onboardingSourceField"
     | "settingsRow"
+    | "speakerSettingsRow"
     | "sourceProviderDetail";
 type FieldGroupVariant = "default" | "authCompact" | "onboardingSourceField";
 type FieldContentVariant =
@@ -79,6 +80,7 @@ const onboardingSourceFieldClassName =
     "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
 const settingsRowFieldClassName =
     "border-b border-border py-3 last:border-b-0 @md/field-group:gap-4";
+const speakerSettingsRowFieldClassName = "border-b border-border py-3";
 
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
     default: "",
@@ -183,6 +185,8 @@ function fieldClassName({
                 : [
                   "flex gap-3",
                   variant === "settingsRow" && settingsRowFieldClassName,
+                  variant === "speakerSettingsRow" &&
+                      speakerSettingsRowFieldClassName,
                   orientation === "vertical" &&
                       "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
                   orientation === "horizontal" &&

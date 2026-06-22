@@ -1465,6 +1465,7 @@ describe("settings SOT interaction regressions", () => {
     | "authAction"
     | "onboardingSourceField"
     | "settingsRow"
+    | "speakerSettingsRow"
     | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain(
@@ -2280,6 +2281,11 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
         const globals = readSource("app/globals.css");
+        const avatarPrimitive = readSource("components/ui/avatar.tsx");
+        const badgePrimitive = readSource("components/ui/badge.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const fieldPrimitive = readSource("components/ui/field.tsx");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
         const avatarFallbacks =
             speakers.match(/<AvatarFallback\b[^>]*>/g) ?? [];
         const speakerButtons =
@@ -2292,7 +2298,11 @@ describe("settings SOT interaction regressions", () => {
             const button = findButtonByControl(control);
 
             expect(button).toContain(`data-sot-control="${control}"`);
-            expect(button).toMatch(/variant="(?:secondary|ghost)"/);
+            expect(button).toContain('variant="speakerSettingsAction"');
+            expect(button).toContain('size="speakerSettingsAction"');
+            expect(button).not.toContain('variant="secondary"');
+            expect(button).not.toContain('variant="destructive"');
+            expect(button).not.toContain('size="sm"');
             expect(button).not.toContain('className="btn"');
             expect(button).not.toContain('className="btn danger"');
         };
@@ -2300,7 +2310,11 @@ describe("settings SOT interaction regressions", () => {
             const button = findButtonByControl(control);
 
             expect(button).toContain(`data-sot-control="${control}"`);
-            expect(button).toContain('variant="destructive"');
+            expect(button).toContain('variant="speakerSettingsDangerAction"');
+            expect(button).toContain('size="speakerSettingsAction"');
+            expect(button).not.toContain('variant="secondary"');
+            expect(button).not.toContain('variant="destructive"');
+            expect(button).not.toContain('size="sm"');
             expect(button).not.toContain('className="btn"');
             expect(button).not.toContain('className="btn danger"');
         };
@@ -2321,22 +2335,49 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("<AvatarFallback");
         expect(avatarFallbacks).toHaveLength(2);
         for (const fallback of avatarFallbacks) {
-            expect(fallback).toContain("className=");
-            expect(fallback).toContain("speakerAvatarFallbackClassName");
+            expect(fallback).toContain('variant="speakerSettings"');
+            expect(fallback).not.toContain("className=");
+            expect(fallback).not.toContain("speakerAvatarFallbackClassName");
         }
-        expect(speakers).toContain("speakerAvatarFallbackClassName");
-        expect(speakers).toContain("bg-accent text-primary");
-        expect(speakers).toContain("text-[11px] font-bold");
+        expect(speakers).not.toContain("speakerAvatarFallbackClassName");
+        expect(speakers).not.toContain("bg-accent text-primary");
+        expect(speakers).not.toContain("text-[11px] font-bold");
+        expect(avatarPrimitive).toContain("speakerSettings:");
+        expect(avatarPrimitive).toContain("bg-accent");
+        expect(avatarPrimitive).toContain("text-primary");
+        expect(avatarPrimitive).toContain("text-[11px]");
+        expect(avatarPrimitive).toContain("font-bold");
         expect(speakers).toContain("<Button");
         expect(speakers).toContain("<Badge");
+        expect(speakers).toContain('variant="speakerState"');
+        expect(speakers).not.toContain('variant="outline"');
         expect(speakers).toContain('data-sot-badge="speaker-state"');
         expect(speakers).toContain("data-sot-tone={tone}");
+        expect(badgePrimitive).toContain("speakerState:");
         expect(speakers).toContain("<Field");
+        expect(speakers).toContain('variant="speakerSettingsRow"');
+        expect(speakers).not.toContain(
+            'className="border-b border-border py-3"',
+        );
+        expect(fieldPrimitive).toContain('"speakerSettingsRow"');
+        expect(fieldPrimitive).toContain("speakerSettingsRowFieldClassName");
         expect(speakers).toContain("<FieldContent");
         expect(speakers).toContain("<FieldTitle>");
         expect(speakers).toContain("<FieldLabel");
         expect(speakers).toContain("<FieldDescription>");
-        expect(speakers).toContain('variant="destructive"');
+        expect(speakers).not.toContain('variant="secondary"');
+        expect(speakers).not.toContain('variant="destructive"');
+        expect(speakers).not.toContain('size="sm"');
+        expect(buttonPrimitive).toContain("speakerSettingsAction:");
+        expect(buttonPrimitive).toContain("speakerSettingsDangerAction:");
+        expect(speakers).toContain('"settingsBanner"');
+        expect(speakers).toContain('"settingsBannerError"');
+        expect(speakers).toContain('density="settingsBanner"');
+        expect(speakers).toContain(
+            'layout={action ? "settingsBannerAction" : "settingsBanner"}',
+        );
+        expect(alertPrimitive).toContain("settingsBanner:");
+        expect(alertPrimitive).toContain("settingsBannerError:");
         expectNoLegacySettingsFieldPatterns({
             "features/settings/components/sections/speaker-profiles-panel.tsx":
                 speakers,

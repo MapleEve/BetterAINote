@@ -5052,6 +5052,7 @@ describe("full UI replacement regression coverage", () => {
             "features/recordings/components/speaker-label-editor.tsx",
         );
         const alertPrimitive = readSource("components/ui/alert.tsx");
+        const avatarPrimitive = readSource("components/ui/avatar.tsx");
         const button = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const badge = readSource("components/ui/badge.tsx");
@@ -7308,6 +7309,12 @@ describe("full UI replacement regression coverage", () => {
         const speakerProfiles = readSource(
             "features/settings/components/sections/speaker-profiles-panel.tsx",
         );
+        const speakerProfileButtons =
+            speakerProfiles.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
+        const findSpeakerProfileButton = (control: string) =>
+            speakerProfileButtons.find((button) =>
+                button.includes(`data-sot-control="${control}"`),
+            ) ?? "";
         const speakerAvatarFallbacks =
             speakerProfiles.match(/<AvatarFallback\b[^>]*>/g) ?? [];
         expect(speakerProfiles).toContain(
@@ -7317,18 +7324,69 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerProfiles).toContain("<AvatarFallback");
         expect(speakerAvatarFallbacks).toHaveLength(2);
         for (const fallback of speakerAvatarFallbacks) {
-            expect(fallback).toContain("className=");
-            expect(fallback).toContain("speakerAvatarFallbackClassName");
+            expect(fallback).toContain('variant="speakerSettings"');
+            expect(fallback).not.toContain("className=");
+            expect(fallback).not.toContain("speakerAvatarFallbackClassName");
         }
-        expect(speakerProfiles).toContain("speakerAvatarFallbackClassName");
-        expect(speakerProfiles).toContain("bg-accent text-primary");
-        expect(speakerProfiles).toContain("text-[11px] font-bold");
+        expect(speakerProfiles).not.toContain("speakerAvatarFallbackClassName");
+        expect(speakerProfiles).not.toContain("bg-accent text-primary");
+        expect(speakerProfiles).not.toContain("text-[11px] font-bold");
+        expect(avatarPrimitive).toContain("speakerSettings:");
+        expect(avatarPrimitive).toContain("bg-accent");
+        expect(avatarPrimitive).toContain("text-primary");
+        expect(avatarPrimitive).toContain("text-[11px]");
+        expect(avatarPrimitive).toContain("font-bold");
         expect(speakerProfiles).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(speakerProfiles).toContain("<Badge");
+        expect(speakerProfiles).toContain('variant="speakerState"');
+        expect(speakerProfiles).not.toContain('variant="outline"');
         expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
         expect(speakerProfiles).toContain("data-sot-tone={tone}");
+        expect(badge).toContain("speakerState:");
+        expect(speakerProfiles).toContain('variant="speakerSettingsRow"');
+        expect(speakerProfiles).not.toContain(
+            'className="border-b border-border py-3"',
+        );
+        expect(fieldPrimitive).toContain('"speakerSettingsRow"');
+        expect(fieldPrimitive).toContain("speakerSettingsRowFieldClassName");
+        for (const control of [
+            "speaker-profiles-refresh",
+            "speaker-profile-create",
+            "speaker-profiles-retry",
+            "speaker-profile-save",
+            "speaker-voiceprints-refresh",
+            "speaker-voiceprints-retry",
+            "speaker-voiceprint-rename",
+        ]) {
+            const opening = findSpeakerProfileButton(control);
+
+            expect(opening).toContain(`data-sot-control="${control}"`);
+            expect(opening).toContain('variant="speakerSettingsAction"');
+            expect(opening).toContain('size="speakerSettingsAction"');
+            expect(opening).not.toContain('variant="secondary"');
+            expect(opening).not.toContain('variant="destructive"');
+            expect(opening).not.toContain('size="sm"');
+        }
+        for (const control of [
+            "speaker-profile-delete",
+            "speaker-voiceprint-delete",
+        ]) {
+            const opening = findSpeakerProfileButton(control);
+
+            expect(opening).toContain(`data-sot-control="${control}"`);
+            expect(opening).toContain('variant="speakerSettingsDangerAction"');
+            expect(opening).toContain('size="speakerSettingsAction"');
+            expect(opening).not.toContain('variant="secondary"');
+            expect(opening).not.toContain('variant="destructive"');
+            expect(opening).not.toContain('size="sm"');
+        }
+        expect(speakerProfiles).not.toContain('variant="secondary"');
+        expect(speakerProfiles).not.toContain('variant="destructive"');
+        expect(speakerProfiles).not.toContain('size="sm"');
+        expect(button).toContain("speakerSettingsAction:");
+        expect(button).toContain("speakerSettingsDangerAction:");
         expect(speakerProfiles).not.toContain("sot-speaker-pill");
         expect(globals).not.toContain(
             '[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',

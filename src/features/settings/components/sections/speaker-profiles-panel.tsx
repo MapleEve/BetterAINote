@@ -38,9 +38,6 @@ interface RemoteVoiceprint {
     updatedAt: string | null;
 }
 
-const speakerAvatarFallbackClassName =
-    "bg-accent text-primary text-[11px] font-bold";
-
 function formatTimestamp(value: string | null, locale: string) {
     if (!value) {
         return null;
@@ -67,7 +64,7 @@ function StatePill({
 }) {
     return (
         <Badge
-            variant="outline"
+            variant="speakerState"
             data-sot-badge="speaker-state"
             data-sot-tone={tone}
         >
@@ -94,6 +91,11 @@ function PanelNotice({
 
     return (
         <Alert
+            variant={
+                tone === "danger" ? "settingsBannerError" : "settingsBanner"
+            }
+            density="settingsBanner"
+            layout={action ? "settingsBannerAction" : "settingsBanner"}
             data-sot-banner="speaker-profiles-notice"
             data-sot-panel={panel}
             data-sot-state={state}
@@ -488,10 +490,7 @@ export function SpeakerProfilesPanel() {
                 data-sot-section-group
                 data-sot-state={profilesState}
             >
-                <Field
-                    orientation="horizontal"
-                    className="border-b border-border py-3"
-                >
+                <Field orientation="horizontal" variant="speakerSettingsRow">
                     <FieldContent>
                         <FieldTitle>
                             {isZh ? "已保存的说话人" : "Saved Speakers"}
@@ -504,8 +503,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="sm"
-                        variant="secondary"
+                        size="speakerSettingsAction"
+                        variant="speakerSettingsAction"
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
                         aria-busy={isProfilesLoading}
@@ -513,6 +512,7 @@ export function SpeakerProfilesPanel() {
                         data-sot-state={isProfilesLoading ? "loading" : "idle"}
                     >
                         <RefreshCw
+                            data-icon="inline-start"
                             data-icon-state={
                                 isProfilesLoading ? "loading" : undefined
                             }
@@ -521,10 +521,7 @@ export function SpeakerProfilesPanel() {
                     </Button>
                 </Field>
 
-                <Field
-                    orientation="horizontal"
-                    className="border-b border-border py-3"
-                >
+                <Field orientation="horizontal" variant="speakerSettingsRow">
                     <FieldContent className="min-w-0">
                         <FieldLabel htmlFor="new-speaker-name">
                             {isZh ? "说话人名称" : "Speaker name"}
@@ -540,8 +537,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="sm"
-                        variant="secondary"
+                        size="speakerSettingsAction"
+                        variant="speakerSettingsAction"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
                         aria-busy={localSavingId === "new"}
@@ -568,8 +565,8 @@ export function SpeakerProfilesPanel() {
                         action={
                             <Button
                                 type="button"
-                                size="sm"
-                                variant="secondary"
+                                size="speakerSettingsAction"
+                                variant="speakerSettingsAction"
                                 onClick={() => void refreshProfiles()}
                                 data-sot-control="speaker-profiles-retry"
                                 data-sot-state="idle"
@@ -606,11 +603,7 @@ export function SpeakerProfilesPanel() {
                                     }
                                 >
                                     <Avatar data-sot-part="speaker-profile-avatar">
-                                        <AvatarFallback
-                                            className={
-                                                speakerAvatarFallbackClassName
-                                            }
-                                        >
+                                        <AvatarFallback variant="speakerSettings">
                                             {profile.displayName
                                                 .trim()
                                                 .slice(0, 1)
@@ -680,8 +673,8 @@ export function SpeakerProfilesPanel() {
                                     </div>
                                     <Button
                                         type="button"
-                                        size="sm"
-                                        variant="secondary"
+                                        size="speakerSettingsAction"
+                                        variant="speakerSettingsAction"
                                         onClick={() => handleUpdate(profile)}
                                         disabled={isProfileSaving}
                                         aria-busy={isProfileSaving}
@@ -695,8 +688,8 @@ export function SpeakerProfilesPanel() {
                                     </Button>
                                     <Button
                                         type="button"
-                                        size="sm"
-                                        variant="destructive"
+                                        size="speakerSettingsAction"
+                                        variant="speakerSettingsDangerAction"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
                                         data-sot-control="speaker-profile-delete"
@@ -721,10 +714,7 @@ export function SpeakerProfilesPanel() {
                 data-sot-section-group
                 data-sot-state={voiceprintsState}
             >
-                <Field
-                    orientation="horizontal"
-                    className="border-b border-border py-3"
-                >
+                <Field orientation="horizontal" variant="speakerSettingsRow">
                     <FieldContent>
                         <FieldTitle>
                             {isZh ? "声纹库" : "Voiceprints"}
@@ -737,8 +727,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="sm"
-                        variant="secondary"
+                        size="speakerSettingsAction"
+                        variant="speakerSettingsAction"
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
                         aria-busy={isVoiceprintsLoading}
@@ -748,6 +738,7 @@ export function SpeakerProfilesPanel() {
                         }
                     >
                         <RefreshCw
+                            data-icon="inline-start"
                             data-icon-state={
                                 isVoiceprintsLoading ? "loading" : undefined
                             }
@@ -766,8 +757,8 @@ export function SpeakerProfilesPanel() {
                         action={
                             <Button
                                 type="button"
-                                size="sm"
-                                variant="secondary"
+                                size="speakerSettingsAction"
+                                variant="speakerSettingsAction"
                                 onClick={() => void refreshVoiceprints()}
                                 data-sot-control="speaker-voiceprints-retry"
                                 data-sot-state="idle"
@@ -817,11 +808,7 @@ export function SpeakerProfilesPanel() {
                                     data-sot-voiceprint-row=""
                                 >
                                     <Avatar data-sot-part="speaker-voiceprint-avatar">
-                                        <AvatarFallback
-                                            className={
-                                                speakerAvatarFallbackClassName
-                                            }
-                                        >
+                                        <AvatarFallback variant="speakerSettings">
                                             {voiceprint.displayName
                                                 .trim()
                                                 .slice(0, 1)
@@ -900,8 +887,8 @@ export function SpeakerProfilesPanel() {
 
                                     <Button
                                         type="button"
-                                        size="sm"
-                                        variant="secondary"
+                                        size="speakerSettingsAction"
+                                        variant="speakerSettingsAction"
                                         onClick={() =>
                                             handleRenameVoiceprint(voiceprint)
                                         }
@@ -919,8 +906,8 @@ export function SpeakerProfilesPanel() {
                                     </Button>
                                     <Button
                                         type="button"
-                                        size="sm"
-                                        variant="destructive"
+                                        size="speakerSettingsAction"
+                                        variant="speakerSettingsDangerAction"
                                         onClick={() =>
                                             handleDeleteVoiceprint(voiceprint)
                                         }

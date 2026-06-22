@@ -102,6 +102,10 @@ const buttonVariants = cva(
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground data-[sot-state=create]:text-[var(--fg-secondary)] dark:bg-input/30 dark:hover:bg-input/50",
                 speakerReviewIconAction:
                     "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[16px] [&_svg]:stroke-[1.8]",
+                speakerSettingsAction:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                speakerSettingsDangerAction:
+                    "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
                 aiRenamePreviewClose:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 aiRenamePreviewAction:
@@ -251,6 +255,8 @@ const buttonVariants = cva(
                 speakerReviewSuggestion:
                     "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2",
                 speakerReviewIcon: "size-[32px]",
+                speakerSettingsAction:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 aiRenamePreviewClose:
                     "size-6 rounded-md p-0 [&_svg:not([class*='size-'])]:size-3",
                 aiRenamePreviewAction:

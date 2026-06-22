@@ -5,6 +5,14 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+type AvatarFallbackVariant = "default" | "speakerSettings";
+
+const avatarFallbackVariantClassNames: Record<AvatarFallbackVariant, string> = {
+    default:
+        "bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+    speakerSettings: "bg-accent text-[11px] font-bold text-primary",
+};
+
 function Avatar({
     className,
     size = "default",
@@ -40,13 +48,18 @@ function AvatarImage({
 
 function AvatarFallback({
     className,
+    variant = "default",
     ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Fallback> & {
+    variant?: AvatarFallbackVariant;
+}) {
     return (
         <AvatarPrimitive.Fallback
             data-slot="avatar-fallback"
+            data-variant={variant}
             className={cn(
-                "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+                "flex size-full items-center justify-center rounded-full",
+                avatarFallbackVariantClassNames[variant],
                 className,
             )}
             {...props}
