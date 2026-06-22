@@ -3860,9 +3860,10 @@ export function Workstation({
                     >
                         {source !== "all" ? (
                             <Button
-                                variant="ghost"
-                                size="sm"
+                                variant="dashboardSourceClear"
+                                size="dashboardSourceClear"
                                 type="button"
+                                data-sot-control="dashboard-source-clear"
                                 onClick={() => setSource("all")}
                             >
                                 {t("sourceProviderRows.clear")}
@@ -7475,8 +7476,8 @@ export function Workstation({
                                             {turns.length || 0} 段说话人
                                         </div>
                                         <Button
-                                            variant="ghost"
-                                            size="sm"
+                                            variant="dashboardSpeakersMerge"
+                                            size="dashboardSpeakersMerge"
                                             type="button"
                                             data-sot-control="dashboard-speakers-merge"
                                         >

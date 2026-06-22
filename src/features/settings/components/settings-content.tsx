@@ -1106,7 +1106,8 @@ function DataSourcesSettingsPanel({
                         </span>
                         <Button
                             type="button"
-                            size="sm"
+                            variant="settingsSourceRetry"
+                            size="settingsSourceRetry"
                             data-sot-control="source-load-retry"
                             onClick={() => void refreshSources()}
                         >
@@ -1943,7 +1944,8 @@ function SectionShell({
                     </span>
                     <Button
                         type="button"
-                        size="sm"
+                        variant="settingsSectionRetry"
+                        size="settingsSectionRetry"
                         onClick={onRetry}
                         data-sot-control="settings-section-load-retry"
                         data-sot-section={section}

@@ -3377,6 +3377,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).toContain(
+            'data-sot-control="dashboard-source-clear"',
+        );
+        expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
@@ -3384,12 +3387,18 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(workstation).toContain('variant="dashboardNav"');
         expect(workstation).toContain('variant="dashboardSource"');
+        expect(workstation).toContain('variant="dashboardSourceClear"');
         expect(workstation).toContain('variant="dashboardSourceAction"');
         expect(workstation).toContain('variant="dashboardSync"');
         expect(workstation).toContain('variant="dashboardSidebarCollapse"');
         expect(workstation).toContain('variant="dashboardSettingsAvatar"');
+        expect(button).toContain("dashboardSourceClear:");
+        expect(button).toContain("dashboardSpeakersMerge:");
         expect(workstation).toMatch(
             /<Button\s+variant="dashboardNav"\s+size="dashboardNav"[\s\S]*data-sot-control="dashboard-favorite"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="dashboardSourceClear"\s+size="dashboardSourceClear"[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(workstation).toMatch(
             /<Button\s+variant="dashboardSync"\s+size="dashboardSync"[\s\S]*data-sot-control="dashboard-sync"/,
@@ -4790,6 +4799,19 @@ describe("full UI replacement regression coverage", () => {
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
+        const dashboardSpeakersMerge = extractOpeningElement(
+            workstation,
+            'data-sot-control="dashboard-speakers-merge"',
+            "Button",
+        );
+        expect(dashboardSpeakersMerge).toContain(
+            'variant="dashboardSpeakersMerge"',
+        );
+        expect(dashboardSpeakersMerge).toContain(
+            'size="dashboardSpeakersMerge"',
+        );
+        expect(dashboardSpeakersMerge).not.toContain('variant="ghost"');
+        expect(dashboardSpeakersMerge).not.toContain('size="sm"');
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
@@ -5288,6 +5310,8 @@ describe("full UI replacement regression coverage", () => {
         expect(fieldPrimitive).toContain("settingsControl:");
         expect(button).toContain("settingsSave:");
         expect(button).toContain("settingsTestAction:");
+        expect(button).toContain("settingsSourceRetry:");
+        expect(button).toContain("settingsSectionRetry:");
         expect(toggleGroupPrimitive).toContain("settingsSegment");
         expect(toggleGroupPrimitive).toContain("settingsSegmentOption:");
         expect(toggleGroupPrimitive).toContain("settingsSegmentSpacing");
@@ -5305,6 +5329,16 @@ describe("full UI replacement regression coverage", () => {
             settings,
             'data-sot-banner="settings-section-load-error"',
             "Alert",
+        );
+        const settingsSourceLoadRetry = extractElementSlice(
+            settings,
+            'data-sot-control="source-load-retry"',
+            "Button",
+        );
+        const settingsSectionLoadRetry = extractElementSlice(
+            settings,
+            'data-sot-control="settings-section-load-retry"',
+            "Button",
         );
         const settingsVoScriptUnavailableAlert = extractOpeningElement(
             settings,
@@ -5327,6 +5361,29 @@ describe("full UI replacement regression coverage", () => {
                 'layout="settingsBannerAction"',
             );
         }
+        expect(settingsSourceLoadRetry).toContain(
+            'variant="settingsSourceRetry"',
+        );
+        expect(settingsSourceLoadRetry).toContain(
+            'size="settingsSourceRetry"',
+        );
+        expect(settingsSourceLoadRetry).toContain(
+            "onClick={() => void refreshSources()}",
+        );
+        expect(settingsSourceLoadRetry).not.toContain('variant="default"');
+        expect(settingsSourceLoadRetry).not.toContain('size="sm"');
+        expect(settingsSectionLoadRetry).toContain(
+            'variant="settingsSectionRetry"',
+        );
+        expect(settingsSectionLoadRetry).toContain(
+            'size="settingsSectionRetry"',
+        );
+        expect(settingsSectionLoadRetry).toContain("onClick={onRetry}");
+        expect(settingsSectionLoadRetry).toContain(
+            "data-sot-section={section}",
+        );
+        expect(settingsSectionLoadRetry).not.toContain('variant="default"');
+        expect(settingsSectionLoadRetry).not.toContain('size="sm"');
         expect(settingsVoScriptUnavailableAlert).toContain(
             'variant="settingsVoScriptWarning"',
         );

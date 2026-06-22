@@ -1131,6 +1131,10 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceLoadError).toContain("<AlertTitle");
         expect(sourceLoadError).toContain("<AlertDescription");
         expect(retryButton).toContain('data-sot-control="source-load-retry"');
+        expect(retryButton).toContain('variant="settingsSourceRetry"');
+        expect(retryButton).toContain('size="settingsSourceRetry"');
+        expect(retryButton).not.toContain('variant="default"');
+        expect(retryButton).not.toContain('size="sm"');
         expect(retryButton).toContain("onClick={() => void refreshSources()}");
     });
 
@@ -1491,6 +1495,8 @@ describe("settings SOT interaction regressions", () => {
         expect(fieldPrimitive).toContain("data-variant={variant}");
         expect(buttonPrimitive).toContain("settingsSave:");
         expect(buttonPrimitive).toContain("settingsTestAction:");
+        expect(buttonPrimitive).toContain("settingsSourceRetry:");
+        expect(buttonPrimitive).toContain("settingsSectionRetry:");
         expect(badgePrimitive).toContain("settingsSaveStatus:");
         expect(badgePrimitive).toContain(
             "[&_[data-sot-part=settings-save-status-indicator]]",
@@ -2250,6 +2256,9 @@ describe("settings SOT interaction regressions", () => {
         const sectionLoadErrorBanner = content.match(
             /<Alert\s[^>]*data-sot-banner="settings-section-load-error"[^>]*data-sot-panel="settings-section-load-error"[^>]*data-sot-section=\{section\}[^>]*>/,
         )?.[0];
+        const sectionLoadRetryButton = content.match(
+            /<Button[\s\S]*?data-sot-control="settings-section-load-retry"[\s\S]*?<\/Button>/,
+        )?.[0];
 
         expect(sectionLoadErrorBanner).toBeDefined();
         expect(sectionLoadErrorBanner ?? "").toContain(
@@ -2274,6 +2283,21 @@ describe("settings SOT interaction regressions", () => {
             "border-destructive/30 bg-destructive/10",
         );
         expect(sectionLoadErrorBanner ?? "").not.toMatch(/\srole=/);
+        expect(sectionLoadRetryButton).toContain(
+            'data-sot-control="settings-section-load-retry"',
+        );
+        expect(sectionLoadRetryButton).toContain(
+            'variant="settingsSectionRetry"',
+        );
+        expect(sectionLoadRetryButton).toContain(
+            'size="settingsSectionRetry"',
+        );
+        expect(sectionLoadRetryButton).toContain("onClick={onRetry}");
+        expect(sectionLoadRetryButton).toContain(
+            "data-sot-section={section}",
+        );
+        expect(sectionLoadRetryButton).not.toContain('variant="default"');
+        expect(sectionLoadRetryButton).not.toContain('size="sm"');
     });
 
     it("keeps speaker profile and voiceprint management live without old UI surfaces", () => {

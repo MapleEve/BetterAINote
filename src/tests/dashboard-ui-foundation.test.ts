@@ -769,9 +769,11 @@ describe("dashboard SOT foundation", () => {
             "dashboardNav",
             "dashboardSource",
             "dashboardSync",
+            "dashboardSourceClear",
             "dashboardSourceAction",
             "dashboardCopy",
             "dashboardCompactAction",
+            "dashboardSpeakersMerge",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
@@ -782,9 +784,11 @@ describe("dashboard SOT foundation", () => {
             "dashboardNav",
             "dashboardSource",
             "dashboardSync",
+            "dashboardSourceClear",
             "dashboardSourceAction",
             "dashboardCopy",
             "dashboardCompactAction",
+            "dashboardSpeakersMerge",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
@@ -1054,6 +1058,9 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).toContain(
+            'data-sot-control="dashboard-source-clear"',
+        );
+        expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
         expect(workstation).toContain('variant="dashboardSource"');
@@ -1086,6 +1093,10 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).not.toContain(removedListHeaderClass);
         }
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        expect(buttonPrimitive).toContain("dashboardSourceClear:");
+        expect(workstation).toMatch(
+            /<Button\s+variant="dashboardSourceClear"\s+size="dashboardSourceClear"[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+        );
         expect(buttonPrimitive).toContain("sourceFilterClear:");
         expect(workstation).toMatch(
             /<Button\s+variant="sourceFilterClear"\s+size="sourceFilterClear"[\s\S]*data-sot-control="source-filter-clear"/,
@@ -1322,6 +1333,20 @@ describe("dashboard SOT foundation", () => {
         for (const hook of DASHBOARD_DETAIL_PANE_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
+        const dashboardSpeakersMerge = extractOpeningElement(
+            workstation,
+            'data-sot-control="dashboard-speakers-merge"',
+            "Button",
+        );
+        expect(buttonPrimitive).toContain("dashboardSpeakersMerge:");
+        expect(dashboardSpeakersMerge).toContain(
+            'variant="dashboardSpeakersMerge"',
+        );
+        expect(dashboardSpeakersMerge).toContain(
+            'size="dashboardSpeakersMerge"',
+        );
+        expect(dashboardSpeakersMerge).not.toContain('variant="ghost"');
+        expect(dashboardSpeakersMerge).not.toContain('size="sm"');
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }

@@ -80,6 +80,10 @@ const buttonVariants = cva(
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                 settingsTestAction:
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                settingsSourceRetry:
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
+                settingsSectionRetry:
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
                 sourceReportCopyAction:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
                 onboardingProviderCard:
@@ -118,11 +122,15 @@ const buttonVariants = cva(
                     "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)] data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55] dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none dark:data-[sot-state=connected-active]:border-[var(--glass-border)] dark:data-[sot-state=connected-active]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=connected-active]:shadow-none",
                 dashboardSync:
                     "bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+                dashboardSourceClear:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 dashboardSourceAction:
                     "bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 dashboardCopy:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
                 dashboardCompactAction:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                dashboardSpeakersMerge:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 dashboardDrawerTrigger:
                     "bg-transparent text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
@@ -246,6 +254,10 @@ const buttonVariants = cva(
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 settingsTestAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                settingsSourceRetry:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                settingsSectionRetry:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 onboardingProviderCard:
                     "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 whitespace-normal has-[>svg]:px-3.5",
                 onboardingDefaultSource:
@@ -268,11 +280,15 @@ const buttonVariants = cva(
                 dashboardSource:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
                 dashboardSync: "size-[32px]",
+                dashboardSourceClear:
+                    "h-[22px] w-fit gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-normal has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
                 dashboardSourceAction:
                     "h-[22px] gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-normal has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
                 dashboardCopy:
                     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
                 dashboardCompactAction:
+                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold has-[>svg]:px-[10px]",
+                dashboardSpeakersMerge:
                     "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold has-[>svg]:px-[10px]",
                 dashboardDrawerTrigger:
                     "h-auto w-auto rounded-md px-[6px] py-px",
