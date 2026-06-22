@@ -4,13 +4,16 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const emptyVariants = cva(
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-lg border-dashed p-6 text-center text-balance md:p-12",
+    "min-w-0 rounded-lg border-dashed text-center text-balance",
     {
         variants: {
             variant: {
-                default: "",
+                default:
+                    "flex flex-1 flex-col items-center justify-center gap-6 p-6 md:p-12",
                 compact:
-                    "flex-none gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
+                    "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
+                popover:
+                    "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
             },
         },
         defaultVariants: {
@@ -33,14 +36,28 @@ function Empty({
     );
 }
 
-function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
+const emptyHeaderVariants = cva("", {
+    variants: {
+        variant: {
+            default: "flex max-w-sm flex-col items-center gap-2 text-center",
+            popover: "flex max-w-none flex-col items-center gap-0 text-center",
+        },
+    },
+    defaultVariants: {
+        variant: "default",
+    },
+});
+
+function EmptyHeader({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof emptyHeaderVariants>) {
     return (
         <div
             data-slot="empty-header"
-            className={cn(
-                "flex max-w-sm flex-col items-center gap-2 text-center",
-                className,
-            )}
+            data-variant={variant}
+            className={cn(emptyHeaderVariants({ variant, className }))}
             {...props}
         />
     );
@@ -69,6 +86,8 @@ const emptyTitleVariants = cva("", {
             default: "text-lg font-medium tracking-tight",
             compact:
                 "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
+            popover:
+                "m-0 mb-[4px] text-[13px] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]",
         },
     },
     defaultVariants: {
@@ -83,6 +102,8 @@ const emptyDescriptionVariants = cva("", {
                 "m-0 text-sm/relaxed text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
             compact:
                 "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+            popover:
+                "m-0 text-[12px] leading-[1.5] font-medium text-[var(--fg-tertiary)] [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
         },
     },
     defaultVariants: {

@@ -23,6 +23,7 @@
 - `skeleton.tsx`
 - `slider.tsx`
 - `sonner.tsx`
+- `spinner.tsx`
 - `switch.tsx`
 - `textarea.tsx`
 - `toggle-group.tsx`

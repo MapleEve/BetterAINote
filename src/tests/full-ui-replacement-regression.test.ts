@@ -1395,13 +1395,83 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain("--bg-canvas:");
         expect(globals).toContain("--bg-elevated:");
         expect(globals).toContain("--fg-primary:");
+        for (const token of [
+            "--button-primary-bg:",
+            "--button-primary-hover-bg:",
+            "--button-primary-border:",
+            "--button-primary-fg:",
+            "--button-primary-shadow:",
+            "--button-destructive-bg:",
+            "--button-destructive-hover-bg:",
+            "--button-destructive-border:",
+            "--button-destructive-fg:",
+            "--button-destructive-shadow:",
+        ]) {
+            expect(globals).toContain(token);
+        }
+        expect(globals).toContain(
+            "color-mix(in srgb, var(--accent) 92%, white 18%)",
+        );
+        expect(globals).toContain("oklch(0.62 0.18 25)");
         expect(globals).toContain("@supports not (color: oklch(");
         expect(globals).not.toMatch(/(^|[{\s,])\.panel(?![\w-])/m);
         expect(globals).not.toMatch(/(^|\n|,)\s*\.storage-bar\b/);
         const globalSlotSelectors = globals
             .split("\n")
             .filter((line) => line.includes('[data-slot="'));
-        expect(globalSlotSelectors).toEqual([]);
+        expect(globalSlotSelectors.length).toBeGreaterThan(0);
+        for (const line of globalSlotSelectors) {
+            expect(
+                line.includes(
+                    '[data-slot="toggle-group-item"][data-variant="swatch"]',
+                ),
+                `${line.trim()} should be scoped to the ToggleGroup swatch primitive`,
+            ).toBe(true);
+        }
+        const swatchPrimitiveBlock = extractCssBlock(
+            globals,
+            '[data-slot="toggle-group-item"][data-variant="swatch"]',
+        );
+        expect(swatchPrimitiveBlock).toContain(
+            "--toggle-swatch-color: var(--tag-slate);",
+        );
+        expect(swatchPrimitiveBlock).toContain(
+            "--toggle-swatch-selected-border: var(--fg-primary);",
+        );
+        expect(swatchPrimitiveBlock).toContain("display: grid;");
+        expect(swatchPrimitiveBlock).toContain("place-items: center;");
+        expect(swatchPrimitiveBlock).toContain("border-radius: 50%;");
+        expect(swatchPrimitiveBlock).toContain("color: var(--fg-primary);");
+        expect(swatchPrimitiveBlock).toContain("font-size: 13.3333px;");
+        expect(swatchPrimitiveBlock).toContain("font-weight: 400;");
+        expect(swatchPrimitiveBlock).toContain("line-height: 0;");
+        const swatchSelectedBlocks = collectExactCssRuleBlocks(
+            globals,
+            '[data-slot="toggle-group-item"][data-variant="swatch"][data-state="on"]',
+        )
+            .map((block) => block.declarations)
+            .join("\n");
+        expect(swatchSelectedBlocks).toContain(
+            "background-color: var(--toggle-swatch-color);",
+        );
+        expect(swatchSelectedBlocks).toContain(
+            "border-color: var(--toggle-swatch-selected-border);",
+        );
+        for (const [tone, token] of [
+            ["blue", "--tag-blue"],
+            ["green", "--tag-green"],
+            ["orange", "--tag-amber"],
+            ["purple", "--tag-violet"],
+            ["red", "--tag-rose"],
+            ["slate", "--tag-slate"],
+        ]) {
+            expect(globals).toContain(
+                `[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="${tone}"]`,
+            );
+            expect(globals).toContain(
+                `--toggle-swatch-color: var(${token});`,
+            );
+        }
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -1611,6 +1681,8 @@ describe("full UI replacement regression coverage", () => {
         for (const variant of [
             "default",
             "destructive",
+            "actionPrimary",
+            "actionDestructive",
             "outline",
             "secondary",
             "ghost",
@@ -1618,6 +1690,34 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(button).toContain(`${variant}:`);
         }
+        expect(button).toContain(
+            'default:\n                    "bg-primary text-primary-foreground hover:bg-primary/90"',
+        );
+        expect(button).toContain(
+            'destructive:\n                    "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"',
+        );
+        for (const actionButtonClass of [
+            "border-[var(--button-primary-border)]",
+            "bg-[image:var(--button-primary-bg)]",
+            "text-[var(--button-primary-fg)]",
+            "shadow-[var(--button-primary-shadow)]",
+            "hover:bg-[image:var(--button-primary-hover-bg)]",
+            "border-[var(--button-destructive-border)]",
+            "bg-[image:var(--button-destructive-bg)]",
+            "text-[var(--button-destructive-fg)]",
+            "shadow-[var(--button-destructive-shadow)]",
+            "hover:bg-[image:var(--button-destructive-hover-bg)]",
+        ]) {
+            expect(button).toContain(actionButtonClass);
+        }
+        expect(button).toContain("actionPrimary:");
+        expect(button).toContain("actionDestructive:");
+        expect(button).toContain("accentIcon:");
+        expect(button).toContain("text-[var(--accent)]");
+        expect(button).toContain("chipRemove:");
+        expect(button).toContain("[&_svg]:invisible");
+        expect(button).not.toContain("accentSelf");
+        expect(button).not.toContain('"icon-chip-hidden-glyph":');
         for (const size of [
             "primary:",
             "danger:",
@@ -1818,7 +1918,20 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain('data-slot="toggle-group"');
         expect(toggleGroup).toContain('data-slot="toggle-group-item"');
         expect(toggleGroup).toContain("data-variant={variant}");
+        expect(toggleGroup).toContain("data-tone={itemTone}");
         expect(toggleGroup).toContain("data-size={size}");
+        expect(toggleGroup).toContain('swatch:');
+        expect(toggleGroup).toContain("[display:grid]");
+        expect(toggleGroup).toContain("rounded-[50%]");
+        expect(toggleGroup).toContain("text-[13.3333px]");
+        expect(toggleGroup).toContain("font-normal");
+        expect(toggleGroup).toContain("leading-[0]");
+        expect(toggleGroup).toContain(
+            'data-[state=on]:bg-[var(--toggle-swatch-color)]',
+        );
+        expect(toggleGroup).not.toContain(
+            "[--toggle-swatch-color:var(--tag-",
+        );
         expect(toaster).toContain(
             'import { Toaster as Sonner, type ToasterProps } from "sonner";',
         );
@@ -4863,6 +4976,15 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('data-sot-part="color-swatch"');
         expect(tagManager).toContain('data-sot-part="icon-option"');
         expect(tagManager).toContain('data-sot-part="toggle-note"');
+        const tagManagerToggleNote = extractElementSlice(
+            tagManager,
+            'data-sot-part="toggle-note"',
+            "CardDescription",
+        );
+        expect(tagManagerToggleNote).toContain(
+            '<CardDescription variant="popoverNote" data-sot-part="toggle-note">',
+        );
+        expect(tagManagerToggleNote).not.toContain('className="sr-only"');
         for (const anchor of [
             'data-open="true"',
             'data-state={visibleError ? "error" : undefined}',
@@ -4899,8 +5021,10 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('from "@/components/ui/empty";');
         expect(tagManager).toContain('from "@/components/ui/field";');
         expect(tagManager).toContain('from "@/components/ui/input-group";');
+        expect(tagManager).toContain('from "@/components/ui/spinner";');
         expect(tagManager).toContain('from "@/components/ui/toggle-group";');
         expect(tagManager).toContain("<Card");
+        expect(tagManager).toContain("<CardDescription");
         expect(tagManager).toContain("<CardHeader");
         expect(tagManager).toContain("<CardContent");
         expect(tagManager).toContain("<CardFooter");
@@ -4930,33 +5054,104 @@ describe("full UI replacement regression coverage", () => {
             "Badge",
             "Button",
             "Card,",
+            "CardDescription,",
             "Alert,",
             "Empty,",
+            "Spinner",
         ]) {
             expect(tagManager).toContain(primitiveImport);
         }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        expect(tagManager).toContain('variant="default"');
-        expect(tagManager).toContain('size="icon-sm"');
-        expect(tagManager).toContain('variant="secondary"');
-        expect(tagManager).toContain('"relative h-6 whitespace-nowrap"');
+        expect(tagManager).toContain('variant="popover"');
+        expect(tagManager).toContain('variant="popoverCompact"');
+        expect(tagManager).toContain('"popoverCreate"');
+        expect(tagManager).toContain('"popoverDelete"');
+        expect(tagManager).toContain("variant={contentVariant}");
+        expect(tagManager).toContain('variant="popoverNote"');
+        expect(tagManager).toContain('variant="pill"');
+        expect(tagManager).toContain('variant="ghostIconCompact"');
+        expect(tagManager).toContain('variant="ghostNeutral"');
+        expect(tagManager).toContain('variant="actionPrimary"');
+        expect(tagManager).toContain('variant="actionDestructive"');
+        expect(tagManager).toContain('variant="accentIcon"');
+        expect(tagManager).toContain('variant="chipRemove"');
+        expect(tagManager).toContain('variant="pickerFrame"');
+        expect(tagManager).toContain('variant="picker"');
+        expect(tagManager).toContain('variant="sectionLabel"');
+        expect(tagManager).toContain('variant="swatch"');
+        expect(tagManager).toContain('variant="destructiveSoftNeutral"');
+        expect(tagManager).toContain('size="icon-compact"');
+        expect(tagManager).toContain('size="control-sm"');
+        expect(tagManager).toContain('size="pill-sm"');
+        expect(tagManager).toContain('size="swatch"');
+        expect(tagManager).toContain('size="icon-2xs"');
+        expect(tagManager).toContain('size="icon-chip"');
+        expect(tagManager).toContain('size="iconPicker"');
+        expect(tagManager).toContain('layout="iconGrid"');
+        expect(tagManager).toContain('placement="inlineStart"');
+        expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain('saving && "pointer-events-none"');
-        expect(tagManager).toContain("<LoaderCircle");
-        expect(tagManager).toContain('className="animate-spin"');
+        expect(tagManager).toContain("<Spinner");
+        expect(tagManager).toContain('variant="checkDot"');
+        expect(tagManager).not.toContain("<LoaderCircle");
+        expect(tagManager).not.toContain('className="animate-spin"');
+        expect(tagManager).not.toContain("recordingTagSwatchStyle");
+        expect(tagManager).not.toContain("--recording-tag-swatch-color");
+        expect(tagManager).not.toContain("--toggle-swatch-color");
+        expect(tagManager).not.toContain("bg-white");
         expect(tagManager).toContain(
-            'className="max-h-[460px] w-80 max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
+            'className="max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
         );
-        expect(tagManager).toContain(
-            '<InputGroup className="h-8 gap-1.5" data-sot-part="create-row">',
+        expect(tagManager).toMatch(
+            /<InputGroup[\s\S]*variant="compact"[\s\S]*data-sot-part="create-row"/,
+        );
+        expect(tagManager).toMatch(
+            /<InputGroupInput[\s\S]*variant="compact"[\s\S]*data-sot-control="recording-tag-name"/,
+        );
+        const tagManagerInlineCreateButton = extractElementSlice(
+            tagManager,
+            'aria-label="添加"',
+            "InputGroupButton",
+        );
+        expect(tagManagerInlineCreateButton).toContain('variant="accentIcon"');
+        expect(tagManagerInlineCreateButton).toContain('size="icon-compact"');
+        expect(tagManagerInlineCreateButton).toContain(
+            'data-sot-control="recording-tag-create"',
+        );
+        expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
+        const tagManagerFooterCreateButton = extractElementSlice(
+            tagManager,
+            'variant="actionPrimary"',
+            "Button",
+        );
+        expect(tagManagerFooterCreateButton).toContain(
+            'variant="actionPrimary"',
+        );
+        expect(tagManagerFooterCreateButton).toContain('size="control-sm"');
+        expect(tagManagerFooterCreateButton).toContain(
+            'data-sot-control="recording-tag-create"',
         );
         expect(tagManager).toContain('className="min-w-0 max-w-full"');
         expect(tagManager).toContain('className="gap-3.5"');
         expect(tagManager).toContain('className="gap-2"');
-        expect(tagManager).toContain(
-            'className="m-0 contents min-w-0 border-0 p-0"',
-        );
         expect(tagManager).toContain("disabled={!canCreate}");
         expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
+        for (const shadcnRegression of [
+            "accentSelf",
+            "icon-chip-hidden-glyph",
+            "aria-disabled={!canCreate}",
+            "mr-[6px] align-[-2px]",
+            "flex min-h-[59px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
+            "flex min-h-[103px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
+            "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
+            "mb-2 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
+            "[display:grid] grid-cols-6",
+            "size-7 min-w-0 shrink-0 p-0",
+            'className="m-0 contents min-w-0 border-0 p-0"',
+            "[&>[data-slot=field-legend]]:mb-4",
+        ]) {
+            expect(tagManager).not.toContain(shadcnRegression);
+        }
         for (const rawClass of [
             "tagm-panel",
             "tagm-head",
@@ -4999,13 +5194,14 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManagerEmpty).toContain('data-sot-part="empty"');
         expect(tagManagerEmpty).toContain('data-sot-state="empty"');
-        expect(tagManagerEmpty).toContain("<EmptyHeader>");
+        expect(tagManagerEmpty).toContain('variant="popover"');
+        expect(tagManagerEmpty).toContain('<EmptyHeader variant="popover">');
         expect(tagManagerEmpty).toContain(
-            '<EmptyTitle data-sot-part="empty-message">',
+            '<EmptyTitle\n                                variant="popover"\n                                data-sot-part="empty-message"',
         );
         expect(tagManagerEmpty).toContain("还没有任何标签");
         expect(tagManagerEmpty).toContain(
-            '<EmptyDescription data-sot-part="empty-description">',
+            '<EmptyDescription\n                                variant="popover"\n                                data-sot-part="empty-description"',
         );
         expect(tagManagerEmpty).toContain("在下方为这条录音创建第一个标签。");
         expect(tagManagerEmpty).not.toContain(

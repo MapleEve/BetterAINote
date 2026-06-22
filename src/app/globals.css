@@ -176,10 +176,46 @@
     --card-popover-bg: var(--bg-elevated);
     --card-popover-border: var(--line-hairline);
     --card-popover-divider: var(--line-hairline);
+    --card-popover-footer-bg: var(--bg-recessed);
+    --card-popover-note-fg: rgba(0, 0, 0, 0.5);
     --card-popover-shadow:
         0 1px 2px rgb(15 23 42 / 0.04),
         0 12px 32px -8px rgb(15 23 42 / 0.18),
         0 24px 64px -12px rgb(15 23 42 / 0.22);
+    --badge-pill-height: 22px;
+    --badge-check-bg: rgb(80 161 191 / 0.7);
+    --badge-check-bg: color-mix(in srgb, var(--accent) 70%, transparent);
+    --swatch-selection-dot-bg: rgb(255 255 255);
+    --button-pill-height: 24px;
+    --button-compact-height: 26px;
+    --icon-compact-size: 22px;
+    --icon-chip-size: 16px;
+    --input-compact-border: var(--line-hairline);
+    --input-compact-bg: var(--bg-recessed);
+    --alert-destructive-soft-bg: rgb(201 73 78 / 0.1);
+    --alert-destructive-soft-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 10%,
+        transparent
+    );
+    --alert-destructive-soft-strong-bg: rgb(246 239 240);
+    --alert-destructive-soft-strong-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 8%,
+        var(--bg-elevated)
+    );
+    --alert-destructive-soft-strong-border: rgb(201 73 78 / 0.22);
+    --alert-destructive-soft-strong-border: color-mix(
+        in srgb,
+        var(--signal-danger) 22%,
+        transparent
+    );
+    --alert-destructive-soft-border: rgb(201 73 78 / 0.26);
+    --alert-destructive-soft-border: color-mix(
+        in srgb,
+        var(--signal-danger) 26%,
+        transparent
+    );
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);
@@ -202,6 +238,65 @@
     --accent-soft: color-mix(in srgb, var(--steel-500) 12%, transparent);
     --accent-on: rgb(250 251 252);
     --accent-on: oklch(0.985 0.003 250);
+
+    --button-primary-bg: linear-gradient(180deg, rgb(112 186 214), var(--accent));
+    --button-primary-bg: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 92%, white 18%),
+        var(--accent)
+    );
+    --button-primary-hover-bg: linear-gradient(
+        180deg,
+        rgb(106 180 209),
+        var(--accent)
+    );
+    --button-primary-hover-bg: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 96%, white 8%),
+        var(--accent)
+    );
+    --button-primary-border: rgb(70 145 174);
+    --button-primary-border: color-mix(
+        in srgb,
+        var(--accent) 60%,
+        black 8%
+    );
+    --button-primary-fg: rgb(255 255 255);
+    --button-primary-shadow:
+        0 2px 6px rgb(92 168 198 / 0.24),
+        inset 0 1px 0 rgb(255 255 255 / 0.22);
+    --button-primary-shadow:
+        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
+        inset 0 1px 0 rgb(255 255 255 / 0.22);
+    --button-destructive-bg: linear-gradient(
+        180deg,
+        rgb(218 79 60),
+        rgb(184 49 50)
+    );
+    --button-destructive-bg: linear-gradient(
+        180deg,
+        oklch(0.62 0.18 25),
+        oklch(0.55 0.2 25)
+    );
+    --button-destructive-hover-bg: linear-gradient(
+        180deg,
+        rgb(226 88 68),
+        rgb(192 56 55)
+    );
+    --button-destructive-hover-bg: linear-gradient(
+        180deg,
+        oklch(0.64 0.18 25),
+        oklch(0.57 0.2 25)
+    );
+    --button-destructive-border: rgb(164 44 42);
+    --button-destructive-border: oklch(0.5 0.2 25);
+    --button-destructive-fg: rgb(255 255 255);
+    --button-destructive-shadow:
+        0 2px 6px rgb(210 65 53 / 0.24),
+        inset 0 1px 0 rgb(255 255 255 / 0.2);
+    --button-destructive-shadow:
+        0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
+        inset 0 1px 0 rgb(255 255 255 / 0.2);
 
     --button-player-bg: var(--bg-elevated);
     --button-player-border: var(--line-hairline);
@@ -443,10 +538,36 @@
     --card-popover-bg: var(--graphite-900);
     --card-popover-border: var(--glass-border);
     --card-popover-divider: var(--glass-border-soft);
+    --card-popover-footer-bg: rgb(255 255 255 / 0.03);
+    --card-popover-note-fg: rgba(0, 0, 0, 0.5);
     --card-popover-shadow:
         0 1px 2px rgb(0 0 0 / 0.5),
         0 12px 32px -8px rgb(0 0 0 / 0.55),
         0 24px 64px -12px rgb(0 0 0 / 0.6);
+    --alert-destructive-soft-bg: rgb(223 83 90 / 0.1);
+    --alert-destructive-soft-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 10%,
+        transparent
+    );
+    --alert-destructive-soft-strong-bg: rgb(45 32 35);
+    --alert-destructive-soft-strong-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 8%,
+        var(--bg-elevated)
+    );
+    --alert-destructive-soft-strong-border: rgb(223 83 90 / 0.22);
+    --alert-destructive-soft-strong-border: color-mix(
+        in srgb,
+        var(--signal-danger) 22%,
+        transparent
+    );
+    --alert-destructive-soft-border: rgb(223 83 90 / 0.26);
+    --alert-destructive-soft-border: color-mix(
+        in srgb,
+        var(--signal-danger) 26%,
+        transparent
+    );
     --bg-recessed: rgb(20 25 31);
     --bg-recessed: oklch(0.165 0.004 250); /* inputs/wells */
     --bg-overlay: rgb(31 36 42 / 0.74);
@@ -667,6 +788,54 @@ body[data-theme="dark"] {
 
 button:not([data-slot]) {
     font-family: inherit;
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"] {
+    --toggle-swatch-color: var(--tag-slate);
+    --toggle-swatch-selected-border: var(--fg-primary);
+    --toggle-swatch-selected-shadow: inset 0 0 0 2px var(--bg-elevated);
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background-color: var(--toggle-swatch-color);
+    color: var(--fg-primary);
+    font-size: 13.3333px;
+    font-weight: 400;
+    line-height: 0;
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"]:hover,
+[data-slot="toggle-group-item"][data-variant="swatch"][data-state="on"] {
+    background-color: var(--toggle-swatch-color);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-state="on"] {
+    border-color: var(--toggle-swatch-selected-border);
+    box-shadow: var(--toggle-swatch-selected-shadow);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="blue"] {
+    --toggle-swatch-color: var(--tag-blue);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="green"] {
+    --toggle-swatch-color: var(--tag-green);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="orange"] {
+    --toggle-swatch-color: var(--tag-amber);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="purple"] {
+    --toggle-swatch-color: var(--tag-violet);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="red"] {
+    --toggle-swatch-color: var(--tag-rose);
+}
+
+[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="slate"] {
+    --toggle-swatch-color: var(--tag-slate);
 }
 
 /* ======== App grid ======== */

@@ -271,6 +271,31 @@ type SotConfirmStyleProp =
     | (typeof SOT_CONFIRM_STACK_STYLE_PROPS)[number]
     | (typeof SOT_CONFIRM_BUTTON_STYLE_PROPS)[number];
 type SotTagManagerStyleProp = (typeof SOT_TAG_MANAGER_STYLE_PROPS)[number];
+const SOT_TAG_MANAGER_PANEL_STYLE_PROPS = [
+    "boxSizing",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderTopColor",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderRightColor",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderBottomColor",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderLeftColor",
+    "borderRadius",
+    "backgroundColor",
+    "color",
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+] as const satisfies readonly SotTagManagerStyleProp[];
 const SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS = [
     "display",
     "boxSizing",
@@ -292,6 +317,25 @@ const SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS = [
     "fontFamily",
     "fontSize",
     "fontWeight",
+] as const satisfies readonly SotTagManagerStyleProp[];
+const SOT_TAG_MANAGER_SPINNER_STYLE_PROPS = [
+    "display",
+    "boxSizing",
+    "borderTopWidth",
+    "borderTopStyle",
+    "borderTopColor",
+    "borderRightWidth",
+    "borderRightStyle",
+    "borderRightColor",
+    "borderBottomWidth",
+    "borderBottomStyle",
+    "borderBottomColor",
+    "borderLeftWidth",
+    "borderLeftStyle",
+    "borderLeftColor",
+    "borderRadius",
+    "backgroundColor",
+    "color",
 ] as const satisfies readonly SotTagManagerStyleProp[];
 
 interface SotPixelDiff {
@@ -1478,8 +1522,10 @@ async function readSotTagManagerStyle(
             for (const side of ["Top", "Right", "Bottom", "Left"] as const) {
                 const width = `border${side}Width`;
                 const styleName = `border${side}Style`;
+                const colorName = `border${side}Color`;
                 if (entries[width] === "0px") {
                     entries[styleName] = "none";
+                    entries[colorName] = "transparent";
                 }
             }
             return entries;
@@ -1501,6 +1547,303 @@ async function expectSotTagManagerStyleMatch(
     ]);
 
     expect(product, `${productSelector} ~= ${sotSelector}`).toEqual(sot);
+}
+
+type SotTagManagerStyleCheck = {
+    label: string;
+    productSelector: string;
+    props?: readonly SotTagManagerStyleProp[];
+    sotSelector: string;
+};
+
+async function expectSotTagManagerPrimitiveStylesMatch(
+    sotPage: Page,
+    productPage: Page,
+    checks: readonly SotTagManagerStyleCheck[],
+) {
+    for (const check of checks) {
+        await expect(
+            sotPage.locator(check.sotSelector).first(),
+            `${check.label} SOT selector ${check.sotSelector}`,
+        ).toBeVisible();
+        await expect(
+            productPage.locator(check.productSelector).first(),
+            `${check.label} product selector ${check.productSelector}`,
+        ).toBeVisible();
+        await expectSotTagManagerStyleMatch(
+            sotPage,
+            productPage,
+            check.sotSelector,
+            check.productSelector,
+            check.props,
+        );
+    }
+}
+
+function tagManagerShellStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        {
+            label: "tag manager panel/card",
+            sotSelector: sotPanelSelector,
+            productSelector: '[data-sot-panel="recording-tag-manager"]',
+            props: SOT_TAG_MANAGER_PANEL_STYLE_PROPS,
+        },
+        {
+            label: "tag manager head/header",
+            sotSelector: `${sotPanelSelector} .tagm-head`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="head"]',
+        },
+        {
+            label: "tag manager body/content",
+            sotSelector: `${sotPanelSelector} .tagm-body`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="body"]',
+        },
+    ];
+}
+
+function tagManagerCreateRowStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        {
+            label: "tag manager create input group",
+            sotSelector: `${sotPanelSelector} .tagm-create-row`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"]',
+        },
+        {
+            label: "tag manager create input",
+            sotSelector: `${sotPanelSelector} .tagm-create-row .field-input`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-name"]',
+        },
+    ];
+}
+
+function tagManagerDefaultStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager selected chip",
+            sotSelector: `${sotPanelSelector} .tagm-sel-chip`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="selected-chip"]',
+        },
+        {
+            label: "tag manager tag toggle option",
+            sotSelector: `${sotPanelSelector} .tagm-opt`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+        },
+        ...tagManagerCreateRowStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager inline add button",
+            sotSelector: `${sotPanelSelector} .tagm-add-btn`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"] [data-sot-control="recording-tag-create"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+        {
+            label: "tag manager quick color swatch",
+            sotSelector: `${sotPanelSelector} .tagm-meta-row .tagm-swatch.c-violet`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-meta"] [data-sot-control="recording-tag-color"][data-sot-tag-color="purple"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+    ];
+}
+
+function tagManagerEmptyStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager empty panel",
+            sotSelector: `${sotPanelSelector} .tagm-empty`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-empty"]',
+        },
+        ...tagManagerCreateRowStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager empty inline add button",
+            sotSelector: `${sotPanelSelector} .tagm-add-btn`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="create-row"] [data-sot-control="recording-tag-create"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+    ];
+}
+
+function tagManagerCreateStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        ...tagManagerCreateRowStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager color picker frame",
+            sotSelector: `${sotPanelSelector} .tagm-picker:has(.tagm-swatches)`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"][data-sot-picker="color"]',
+        },
+        {
+            label: "tag manager color swatches",
+            sotSelector: `${sotPanelSelector} .tagm-swatches`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="color-swatches"][data-sot-picker="full"]',
+        },
+        {
+            label: "tag manager selected color swatch",
+            sotSelector: `${sotPanelSelector} .tagm-swatch.c-blue.is-selected`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-color"][data-sot-tag-color="blue"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+        {
+            label: "tag manager icon picker frame",
+            sotSelector: `${sotPanelSelector} .tagm-picker:has(.tagm-icon-grid)`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="picker-frame"][data-sot-picker="icon"]',
+        },
+        {
+            label: "tag manager icon grid",
+            sotSelector: `${sotPanelSelector} .tagm-icon-grid`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="icon-grid"]',
+        },
+        {
+            label: "tag manager selected icon option",
+            sotSelector: `${sotPanelSelector} .tagm-icon-grid .tg-pick.is-selected`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-icon"][data-sot-state="selected"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+        {
+            label: "tag manager create footer",
+            sotSelector: `${sotPanelSelector} .airp-actions`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="footer"]',
+        },
+        {
+            label: "tag manager create cancel button",
+            sotSelector: `${sotPanelSelector} .airp-actions .btn.ghost`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-create-cancel"]',
+        },
+        {
+            label: "tag manager create button",
+            sotSelector: `${sotPanelSelector} .airp-actions .btn.primary`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-create"]',
+        },
+    ];
+}
+
+function tagManagerSavingStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager busy option",
+            sotSelector: `${sotPanelSelector} .tagm-opt[aria-busy="true"]`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"][data-busy="true"]',
+        },
+        {
+            label: "tag manager saving spinner",
+            sotSelector: `${sotPanelSelector} .tagm-opt[aria-busy="true"] .btn-spinner`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"][data-busy="true"] [data-sot-part="tag-loading-icon"]',
+            props: SOT_TAG_MANAGER_SPINNER_STYLE_PROPS,
+        },
+    ];
+}
+
+function tagManagerErrorStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager error alert",
+            sotSelector: `${sotPanelSelector} .tagm-error`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-error"]',
+        },
+        {
+            label: "tag manager retry button",
+            sotSelector: `${sotPanelSelector} .tagm-error .btn`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-error-retry"]',
+        },
+        {
+            label: "tag manager error option",
+            sotSelector: `${sotPanelSelector} .tagm-opt`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+        },
+    ];
+}
+
+function tagManagerToggleStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager toggle option",
+            sotSelector: `${sotPanelSelector} .tagm-opt`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-toggle"]',
+        },
+        {
+            label: "tag manager check badge",
+            sotSelector: `${sotPanelSelector} .tagm-opt-check`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="tag-check"]',
+            props: SOT_TAG_MANAGER_ICON_BUTTON_STYLE_PROPS,
+        },
+    ];
+}
+
+function tagManagerDeleteConfirmStyleChecks(
+    sotPanelSelector: string,
+): SotTagManagerStyleCheck[] {
+    return [
+        ...tagManagerShellStyleChecks(sotPanelSelector),
+        {
+            label: "tag manager delete confirm panel",
+            sotSelector: `${sotPanelSelector} .tagm-delete-confirm`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-panel="recording-tag-delete-confirm"]',
+        },
+        {
+            label: "tag manager delete footer",
+            sotSelector: `${sotPanelSelector} .airp-actions`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-part="footer"]',
+        },
+        {
+            label: "tag manager delete cancel button",
+            sotSelector: `${sotPanelSelector} .airp-actions .btn.ghost`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-delete-cancel"]',
+        },
+        {
+            label: "tag manager delete destructive button",
+            sotSelector: `${sotPanelSelector} .airp-actions .btn.danger`,
+            productSelector:
+                '[data-sot-panel="recording-tag-manager"] [data-sot-control="recording-tag-delete-confirm"]',
+        },
+    ];
 }
 
 async function readSotFixtureWidth(locator: Locator) {
@@ -8919,6 +9262,13 @@ test("recording detail tag manager default state matches SOT pixels", async ({
         const sotDefaultPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Default") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerDefaultStyleChecks(
+                '#tagmgr .cl-card:has-text("Default") .tagm-panel',
+            ),
+        );
 
         await expectSinglePageTransformedSotPixelsMatch(
             page,
@@ -8988,6 +9338,13 @@ test("recording detail tag manager delete-confirm state matches SOT pixels", asy
                 '#tagmgr .cl-card:has-text("Remove · delete-confirm") .tagm-panel',
             )
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerDeleteConfirmStyleChecks(
+                '#tagmgr .cl-card:has-text("Remove · delete-confirm") .tagm-panel',
+            ),
+        );
 
         await expectSinglePageTransformedSotPixelsMatch(
             page,
@@ -9082,6 +9439,13 @@ test("recording detail tag manager saving state matches SOT pixels", async ({
         const sotSavingPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Saving") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerSavingStyleChecks(
+                '#tagmgr .cl-card:has-text("Saving") .tagm-panel',
+            ),
+        );
 
         await expectTransformedSotPixelsMatch(
             page,
@@ -9184,6 +9548,13 @@ test("recording detail tag manager error state matches SOT pixels", async ({
         const sotErrorPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Error") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerErrorStyleChecks(
+                '#tagmgr .cl-card:has-text("Error") .tagm-panel',
+            ),
+        );
 
         await expectTransformedSotPixelsMatch(
             page,
@@ -9298,11 +9669,12 @@ test("recording detail tag manager toggle state matches SOT pixels", async ({
             tagsPanel.locator('[data-sot-part="toggle-note"]'),
         ).toContainText("标签已应用");
 
-        await expectSotTagManagerStyleMatch(
+        await expectSotTagManagerPrimitiveStylesMatch(
             sotPage,
             page,
-            '#tagmgr .cl-card:has-text("Toggle") .tagm-opt',
-            '[data-sot-control="recording-tag-toggle"]',
+            tagManagerToggleStyleChecks(
+                '#tagmgr .cl-card:has-text("Toggle") .tagm-panel',
+            ),
         );
         const sotTogglePanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Toggle") .tagm-panel')
@@ -9355,6 +9727,13 @@ test("recording detail tag manager empty and create states match SOT responsive 
         const sotEmptyPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Empty") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerEmptyStyleChecks(
+                '#tagmgr .cl-card:has-text("Empty") .tagm-panel',
+            ),
+        );
         await expectTagManagerResponsiveSotPixelsMatch(
             page,
             testInfo,
@@ -9379,6 +9758,13 @@ test("recording detail tag manager empty and create states match SOT responsive 
         const sotCreatePanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Create") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerCreateStyleChecks(
+                '#tagmgr .cl-card:has-text("Create") .tagm-panel',
+            ),
+        );
         await expectTagManagerResponsiveSotPixelsMatch(
             page,
             testInfo,
@@ -9434,6 +9820,13 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         const sotEmptyPanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Empty") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerEmptyStyleChecks(
+                '#tagmgr .cl-card:has-text("Empty") .tagm-panel',
+            ),
+        );
 
         await expectTransformedSotPixelsMatch(
             page,
@@ -9489,6 +9882,13 @@ test("recording detail exposes the tag manager and persists tag toggles", async 
         const sotCreatePanel = sotPage
             .locator('#tagmgr .cl-card:has-text("Create") .tagm-panel')
             .first();
+        await expectSotTagManagerPrimitiveStylesMatch(
+            sotPage,
+            page,
+            tagManagerCreateStyleChecks(
+                '#tagmgr .cl-card:has-text("Create") .tagm-panel',
+            ),
+        );
 
         await expectTransformedSotPixelsMatch(
             page,

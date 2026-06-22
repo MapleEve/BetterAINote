@@ -11,14 +11,37 @@ type InputGroupAddonAlign =
     | "block-start"
     | "block-end";
 
-type InputGroupButtonSize = "xs" | "sm" | "icon-xs" | "icon-sm";
+type InputGroupVariant = "default" | "compact";
+type InputGroupButtonSize =
+    | "xs"
+    | "sm"
+    | "icon-xs"
+    | "icon-sm"
+    | "icon-compact";
 
-function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
+const inputGroupVariantClassNames: Record<InputGroupVariant, string> = {
+    default: "h-9 rounded-md border border-input bg-background shadow-xs",
+    compact: "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
+};
+
+const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
+    default: "",
+    compact:
+        "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
+};
+
+function InputGroup({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & { variant?: InputGroupVariant }) {
     return (
         <div
             data-slot="input-group"
+            data-variant={variant}
             className={cn(
-                "group/input-group relative flex h-9 min-w-0 items-center rounded-md border border-input bg-background shadow-xs outline-none transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/30 has-[>textarea]:h-auto",
+                "group/input-group relative flex min-w-0 items-center outline-none transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/30 has-[>textarea]:h-auto",
+                inputGroupVariantClassNames[variant],
                 className,
             )}
             {...props}
@@ -36,9 +59,9 @@ function inputGroupAddonClassName({
     return cn(
         "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius-md)-5px)] [&>svg:not([class*='size-'])]:size-4",
         align === "inline-start" &&
-            "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem]",
+            "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem] group-data-[variant=compact]/input-group:pl-0 group-data-[variant=compact]/input-group:has-[>button]:ml-0 group-data-[variant=compact]/input-group:has-[>kbd]:ml-0",
         align === "inline-end" &&
-            "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem]",
+            "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem] group-data-[variant=compact]/input-group:pr-0 group-data-[variant=compact]/input-group:has-[>button]:mr-0 group-data-[variant=compact]/input-group:has-[>kbd]:mr-0",
         align === "block-start" &&
             "order-first w-full justify-start px-3 pt-3 [.border-b]:pb-3",
         align === "block-end" &&
@@ -77,6 +100,8 @@ function inputGroupButtonClassName({
         size === "icon-xs" &&
             "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0",
         size === "icon-sm" && "size-8 p-0 has-[>svg]:p-0",
+        size === "icon-compact" &&
+            "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-[14px]",
         className,
     );
 }
@@ -115,13 +140,16 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
 
 function InputGroupInput({
     className,
+    variant = "default",
     ...props
-}: React.ComponentProps<"input">) {
+}: React.ComponentProps<"input"> & { variant?: InputGroupVariant }) {
     return (
         <Input
             data-slot="input-group-control"
+            data-variant={variant}
             className={cn(
                 "flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0",
+                inputGroupInputVariantClassNames[variant],
                 className,
             )}
             {...props}

@@ -7,13 +7,45 @@ const cardVariants = {
     elevated:
         "rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)]",
     popover:
-        "overflow-visible rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+        "overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none",
 } as const;
 
 const cardHeaderVariants = {
-    default: "",
+    default:
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
     popover:
-        "border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px]",
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+    popoverCompact:
+        "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
+} as const;
+
+const cardTitleVariants = {
+    default: "leading-none font-semibold",
+    popoverCompact:
+        "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
+} as const;
+
+const cardContentVariants = {
+    default: "px-6",
+    popoverCompact: "px-[14px] pb-[14px] pt-[12px]",
+    popoverCreate: "px-[14px] pb-[14px] pt-[12px]",
+    popoverDefault: "min-h-[234px] px-[14px] pb-[14px] pt-[12px]",
+    popoverDelete: "px-[14px] pb-[14px] pt-[12px]",
+    popoverEmpty: "px-[14px] pb-[14px] pt-[12px]",
+    popoverSaving: "min-h-[52px] px-[14px] pb-[14px] pt-[12px]",
+    popoverTight: "px-[14px] pb-[14px] pt-[12px]",
+} as const;
+
+const cardFooterVariants = {
+    default: "px-6 [.border-t]:pt-6",
+    popoverCompact:
+        "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
+} as const;
+
+const cardDescriptionVariants = {
+    default: "text-sm text-muted-foreground",
+    popoverNote:
+        "max-h-[32px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
 } as const;
 
 function Card({
@@ -52,7 +84,6 @@ function CardHeader({
         <div
             data-slot="card-header"
             className={cn(
-                "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
                 cardHeaderVariants[variant],
                 className,
             )}
@@ -61,21 +92,35 @@ function CardHeader({
     );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: keyof typeof cardTitleVariants;
+}) {
     return (
         <div
             data-slot="card-title"
-            className={cn("leading-none font-semibold", className)}
+            data-variant={variant}
+            className={cn(cardTitleVariants[variant], className)}
             {...props}
         />
     );
 }
 
-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
+function CardDescription({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: keyof typeof cardDescriptionVariants;
+}) {
     return (
         <div
             data-slot="card-description"
-            className={cn("text-sm text-muted-foreground", className)}
+            data-variant={variant}
+            className={cn(cardDescriptionVariants[variant], className)}
             {...props}
         />
     );
@@ -86,7 +131,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
         <div
             data-slot="card-action"
             className={cn(
-                "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+                "col-start-2 row-span-2 row-start-1 flex items-center self-start justify-self-end leading-none",
                 className,
             )}
             {...props}
@@ -94,21 +139,39 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
     );
 }
 
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+function CardContent({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: keyof typeof cardContentVariants;
+}) {
     return (
         <div
             data-slot="card-content"
-            className={cn("px-6", className)}
+            data-variant={variant}
+            className={cn(cardContentVariants[variant], className)}
             {...props}
         />
     );
 }
 
-function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+function CardFooter({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: keyof typeof cardFooterVariants;
+}) {
     return (
         <div
             data-slot="card-footer"
-            className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+            data-variant={variant}
+            className={cn(
+                "flex items-center",
+                cardFooterVariants[variant],
+                className,
+            )}
             {...props}
         />
     );

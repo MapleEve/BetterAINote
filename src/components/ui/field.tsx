@@ -5,13 +5,49 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
+type FieldSetVariant = "default" | "pickerFrame" | "section";
+type FieldSetSize = "default" | "colorPicker" | "iconPicker";
+type FieldLegendVariant = "legend" | "label" | "picker" | "sectionLabel";
 
-function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
+const fieldSetVariantClassNames: Record<FieldSetVariant, string> = {
+    default: "",
+    pickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
+    section: "gap-2",
+};
+
+const fieldSetSizeClassNames: Record<FieldSetSize, string> = {
+    default: "",
+    colorPicker: "min-h-[59px]",
+    iconPicker: "min-h-[103px]",
+};
+
+const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
+    legend: "mb-3 text-base font-medium",
+    label: "mb-3 text-sm font-medium",
+    picker:
+        "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
+    sectionLabel:
+        "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
+};
+
+function FieldSet({
+    className,
+    variant = "default",
+    size = "default",
+    ...props
+}: React.ComponentProps<"fieldset"> & {
+    variant?: FieldSetVariant;
+    size?: FieldSetSize;
+}) {
     return (
         <fieldset
             data-slot="field-set"
+            data-variant={variant}
+            data-size={size}
             className={cn(
                 "flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
+                fieldSetVariantClassNames[variant],
+                fieldSetSizeClassNames[size],
                 className,
             )}
             {...props}
@@ -23,15 +59,12 @@ function FieldLegend({
     className,
     variant = "legend",
     ...props
-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
+}: React.ComponentProps<"legend"> & { variant?: FieldLegendVariant }) {
     return (
         <legend
             data-slot="field-legend"
             data-variant={variant}
-            className={cn(
-                "mb-3 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
-                className,
-            )}
+            className={cn(fieldLegendVariantClassNames[variant], className)}
             {...props}
         />
     );
