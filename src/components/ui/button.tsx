@@ -74,6 +74,12 @@ const buttonVariants = cva(
                     "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 sourceRecordCopyAction:
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                transcriptionAction:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                transcriptionPrimaryAction:
+                    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+                transcriptionDangerAction:
+                    "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
                 dashboardSidebarCollapse:
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
                 dashboardSettingsAvatar:
@@ -150,6 +156,8 @@ const buttonVariants = cva(
                 detailHeaderAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 sourceRecordCopyAction:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                transcriptionAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 dashboardSidebarCollapse: "size-[22px] rounded-full",
                 dashboardSettingsAvatar:

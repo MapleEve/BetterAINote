@@ -1346,6 +1346,10 @@ const RECORDING_TRANSCRIPTION_PRIMITIVE_SELECTORS = [
     '[data-sot-part="recording-transcription-body"][data-slot="card-content"]',
     '[data-sot-banner="transcription-job"][data-slot="alert"]',
     '[data-sot-banner-title][data-slot="alert-title"]',
+    '[data-sot-meta="language"][data-slot="badge"]',
+    '[data-sot-meta="source"][data-slot="badge"]',
+    '[data-sot-meta="words"][data-slot="badge"]',
+    '[data-sot-meta="characters"][data-slot="badge"]',
     '[data-sot-part="recording-transcription-empty"][data-slot="empty"]',
     '[data-sot-part="recording-transcription-empty-title"][data-slot="empty-title"]',
     '[data-sot-part="recording-transcription-empty-description"][data-slot="empty-description"]',
@@ -1838,6 +1842,14 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(buttonSizeBlock).toContain(`${dashboardSize}:`);
         }
+        for (const transcriptionVariant of [
+            "transcriptionAction",
+            "transcriptionPrimaryAction",
+            "transcriptionDangerAction",
+        ]) {
+            expect(buttonVariantBlock).toContain(`${transcriptionVariant}:`);
+        }
+        expect(buttonSizeBlock).toContain("transcriptionAction:");
         for (const dashboardTranscriptActionClass of [
             "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
             "data-[copy-state=ok]:bg-[var(--button-copy-success-bg)]",
@@ -4709,6 +4721,10 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain("playerStatus:");
         expect(badge).not.toContain('"player-status":');
         expect(badge).toContain("sourceReportStatus:");
+        expect(badge).toContain("transcriptionMeta:");
+        expect(badge).toContain("data-[sot-tone=attribute]");
+        expect(badge).toContain("data-[sot-tone=measure]");
+        expect(alertPrimitive).toContain("statusError:");
         expect(badge).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
@@ -5009,6 +5025,62 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSection).toContain(
             'data-sot-control="start-local-transcription"',
         );
+        const transcriptionJobErrorAlert = extractOpeningElement(
+            transcriptionSection,
+            'data-sot-state="error"',
+            "Alert",
+        );
+        expect(transcriptionJobErrorAlert).toContain('variant="statusError"');
+        expect(transcriptionJobErrorAlert).not.toContain(
+            'variant="destructive"',
+        );
+        const transcriptionActionExpectations = [
+            {
+                control: 'data-sot-control="copy-local-transcript"',
+                variant: 'variant="transcriptionAction"',
+            },
+            {
+                control: 'data-sot-control="retranscribe-local"',
+                variant: 'variant="transcriptionDangerAction"',
+            },
+            {
+                control: 'data-sot-control="start-local-transcription"',
+                variant: 'variant="transcriptionPrimaryAction"',
+            },
+        ];
+        for (const { control, variant } of transcriptionActionExpectations) {
+            const actionOpening = extractOpeningElement(
+                transcriptionSection,
+                control,
+                "Button",
+            );
+            expect(actionOpening).toContain(variant);
+            expect(actionOpening).toContain('size="transcriptionAction"');
+            for (const genericActionToken of [
+                'variant="outline"',
+                'variant="destructive"',
+                'variant="default"',
+                'size="sm"',
+            ]) {
+                expect(actionOpening).not.toContain(genericActionToken);
+            }
+        }
+        for (const { meta, tone } of [
+            { meta: "language", tone: "attribute" },
+            { meta: "source", tone: "attribute" },
+            { meta: "words", tone: "measure" },
+            { meta: "characters", tone: "measure" },
+        ]) {
+            const metaOpening = extractOpeningElement(
+                transcriptionSection,
+                `data-sot-meta="${meta}"`,
+                "Badge",
+            );
+            expect(metaOpening).toContain('variant="transcriptionMeta"');
+            expect(metaOpening).toContain(`data-sot-tone="${tone}"`);
+            expect(metaOpening).not.toContain('variant="outline"');
+            expect(metaOpening).not.toContain('variant="secondary"');
+        }
         const transcriptionJobLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))

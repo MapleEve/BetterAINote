@@ -196,9 +196,13 @@ describe("recording detail copy and title action UI regressions", () => {
         const startControlIndex = detailTranscript.indexOf(
             'data-sot-control="start-local-transcription"',
         );
+        const jobErrorBannerIndex = detailTranscript.indexOf(
+            'data-sot-state="error"',
+        );
         expect(copyControlIndex).toBeGreaterThanOrEqual(0);
         expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
         expect(startControlIndex).toBeGreaterThanOrEqual(0);
+        expect(jobErrorBannerIndex).toBeGreaterThanOrEqual(0);
         const copyControl = detailTranscript.slice(
             Math.max(0, copyControlIndex - 280),
             copyControlIndex + 320,
@@ -211,17 +215,53 @@ describe("recording detail copy and title action UI regressions", () => {
             Math.max(0, startControlIndex - 280),
             startControlIndex + 320,
         );
+        const jobErrorBanner = detailTranscript.slice(
+            Math.max(0, jobErrorBannerIndex - 240),
+            jobErrorBannerIndex + 360,
+        );
+        const metaList = extractBoundedSlice(
+            detailTranscript,
+            'data-sot-list="recording-transcription-meta"',
+            "</div>",
+        );
         expect(copyControl).toContain("<Button");
-        expect(copyControl).toContain('variant="outline"');
-        expect(copyControl).toContain('size="sm"');
+        expect(copyControl).toContain('variant="transcriptionAction"');
+        expect(copyControl).toContain('size="transcriptionAction"');
         expect(copyControl).toContain("isCopyingTranscript");
         expect(copyControl).toContain("!displayText.trim()");
         expect(retranscribeControl).toContain("<Button");
-        expect(retranscribeControl).toContain('variant="destructive"');
-        expect(retranscribeControl).toContain('size="sm"');
+        expect(retranscribeControl).toContain(
+            'variant="transcriptionDangerAction"',
+        );
+        expect(retranscribeControl).toContain('size="transcriptionAction"');
         expect(startControl).toContain("<Button");
-        expect(startControl).toContain('variant="default"');
-        expect(startControl).toContain('size="sm"');
+        expect(startControl).toContain(
+            'variant="transcriptionPrimaryAction"',
+        );
+        expect(startControl).toContain('size="transcriptionAction"');
+        expect(jobErrorBanner).toContain("<Alert");
+        expect(jobErrorBanner).toContain('variant="statusError"');
+        expect(metaList).toContain("<Badge");
+        expect(metaList).toContain('variant="transcriptionMeta"');
+        expect(metaList).toContain('data-sot-tone="attribute"');
+        expect(metaList).toContain('data-sot-tone="measure"');
+        for (const genericActionToken of [
+            'variant="outline"',
+            'variant="destructive"',
+            'variant="default"',
+            'size="sm"',
+        ]) {
+            expect(copyControl).not.toContain(genericActionToken);
+            expect(retranscribeControl).not.toContain(genericActionToken);
+            expect(startControl).not.toContain(genericActionToken);
+        }
+        expect(jobErrorBanner).not.toContain('variant="destructive"');
+        for (const genericMetaToken of [
+            'variant="outline"',
+            'variant="secondary"',
+        ]) {
+            expect(metaList).not.toContain(genericMetaToken);
+        }
         for (const removedSelector of [
             '[data-sot-panel="recording-transcription"][data-slot="card"]',
             '[data-sot-part="recording-transcription-header"] {',

@@ -370,7 +370,7 @@ export function TranscriptionSection({
                         remoteStatus: jobRemoteStatus,
                     }) && (
                         <Alert
-                            variant="destructive"
+                            variant="statusError"
                             className="mb-3"
                             data-sot-banner="transcription-job"
                             data-sot-state="error"
@@ -406,8 +406,8 @@ export function TranscriptionSection({
                                 <div data-sot-part="recording-transcription-actions">
                                     <Button
                                         onClick={handleCopyTranscript}
-                                        size="sm"
-                                        variant="outline"
+                                        size="transcriptionAction"
+                                        variant="transcriptionAction"
                                         data-sot-control="copy-local-transcript"
                                         disabled={
                                             isCopyingTranscript ||
@@ -425,8 +425,8 @@ export function TranscriptionSection({
                                     </Button>
                                     <Button
                                         onClick={handleConfirmRetranscribe}
-                                        size="sm"
-                                        variant="destructive"
+                                        size="transcriptionAction"
+                                        variant="transcriptionDangerAction"
                                         data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
@@ -456,8 +456,9 @@ export function TranscriptionSection({
                             <div data-sot-list="recording-transcription-meta">
                                 {language ? (
                                     <Badge
-                                        variant="outline"
+                                        variant="transcriptionMeta"
                                         data-sot-meta="language"
+                                        data-sot-tone="attribute"
                                     >
                                         <Languages
                                             aria-hidden="true"
@@ -471,22 +472,25 @@ export function TranscriptionSection({
                                 ) : null}
                                 {transcriptionType ? (
                                     <Badge
-                                        variant="outline"
+                                        variant="transcriptionMeta"
                                         data-sot-meta="source"
+                                        data-sot-tone="attribute"
                                     >
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
                                     </Badge>
                                 ) : null}
                                 <Badge
-                                    variant="secondary"
+                                    variant="transcriptionMeta"
                                     data-sot-meta="words"
+                                    data-sot-tone="measure"
                                 >
                                     {wordCount} {t("transcription.words")}
                                 </Badge>
                                 <Badge
-                                    variant="secondary"
+                                    variant="transcriptionMeta"
                                     data-sot-meta="characters"
+                                    data-sot-tone="measure"
                                 >
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
@@ -536,8 +540,8 @@ export function TranscriptionSection({
                         <EmptyContent>
                             <Button
                                 onClick={() => handleTranscribe(false)}
-                                size="sm"
-                                variant="default"
+                                size="transcriptionAction"
+                                variant="transcriptionPrimaryAction"
                                 data-sot-control="start-local-transcription"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={

@@ -7,6 +7,7 @@ type AlertVariant =
     | "destructive"
     | "destructiveSoft"
     | "destructiveSoftNeutral"
+    | "statusError"
     | "playerNoAudio"
     | "sourceReportError"
     | "systemBanner";
@@ -33,6 +34,8 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     destructiveSoftNeutral:
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
+    statusError:
+        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     playerNoAudio:
         "border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-tertiary)]",
     sourceReportError:
