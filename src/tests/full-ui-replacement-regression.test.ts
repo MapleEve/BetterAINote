@@ -4529,6 +4529,7 @@ describe("full UI replacement regression coverage", () => {
         const speakerReview = readSource(
             "features/recordings/components/speaker-label-editor.tsx",
         );
+        const cardPrimitive = readSource("components/ui/card.tsx");
         const badge = readSource("components/ui/badge.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
@@ -5819,7 +5820,30 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("Check");
         expect(sourceReport).toContain('data-sot-list="source-report-cards"');
         expect(sourceReport).toContain('data-sot-card="source-report-metric"');
+        expect(cardPrimitive).toContain("sourceReportMetric:");
+        expect(sourceReport).toContain('variant="sourceReportMetric"');
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
+        expect(badge).toContain("sourceReportStatus:");
+        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(skeletonPrimitive).toContain("sourceReportCard:");
+        expect(skeletonPrimitive).toContain("sourceReportSegment:");
+        expect(skeletonPrimitive).toContain("sourceReportCardCount:");
+        expect(skeletonPrimitive).toContain("sourceReportCardSource:");
+        expect(skeletonPrimitive).toContain("sourceReportCardStatus:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentLineMedium:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentLineShort:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentLineWide:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentSpeaker:");
+        expect(skeletonPrimitive).toContain("sourceReportSegmentTime:");
+        expect(sourceReport).toContain('variant="sourceReportCard"');
+        expect(sourceReport).toContain('variant="sourceReportSegment"');
+        expect(sourceReport).toContain(
+            "size={sourceReportCardSkeletonSize(size)}",
+        );
+        expect(sourceReport).toContain(
+            "size={sourceReportSegmentSkeletonSize(size)}",
+        );
         expect(sourceReport).toContain("data-sot-source-report-header-actions");
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
@@ -5867,6 +5891,18 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain("className={className ? `panel");
         expect(sourceReport).not.toContain("sourceReportReadinessPillClass");
         expect(sourceReport).not.toContain("sourceReportSyncPillClass");
+        for (const legacySourceReportPrimitiveClass of [
+            "SOURCE_REPORT_METRIC_CARD_CLASS",
+            "SOURCE_REPORT_STATUS_BADGE_CLASS",
+            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
+            "sourceReportCardSkeletonClassNames",
+            "sourceReportSegmentSkeletonClassNames",
+            "sourceReportStatusBadgeVariant",
+        ]) {
+            expect(sourceReport).not.toContain(
+                legacySourceReportPrimitiveClass,
+            );
+        }
         expect(sourceReport).not.toMatch(
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );

@@ -332,6 +332,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(sourceReport).toContain('variant="sourceReportMetric"');
+        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(sourceReport).toContain('variant="sourceReportCard"');
+        expect(sourceReport).toContain('variant="sourceReportSegment"');
+        expect(sourceReport).toContain(
+            "size={sourceReportCardSkeletonSize(size)}",
+        );
+        expect(sourceReport).toContain(
+            "size={sourceReportSegmentSkeletonSize(size)}",
+        );
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );
@@ -366,6 +376,18 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain('className="dot"');
         expect(sourceReport).not.toContain('className="mono"');
         expect(sourceReport).not.toContain('data-sot-panel="source-actions"');
+        for (const legacySourceReportPrimitiveClass of [
+            "SOURCE_REPORT_METRIC_CARD_CLASS",
+            "SOURCE_REPORT_STATUS_BADGE_CLASS",
+            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
+            "sourceReportCardSkeletonClassNames",
+            "sourceReportSegmentSkeletonClassNames",
+            "sourceReportStatusBadgeVariant",
+        ]) {
+            expect(sourceReport).not.toContain(
+                legacySourceReportPrimitiveClass,
+            );
+        }
         for (const control of sourceReportButtonControls) {
             const controlIndex = sourceReport.indexOf(control);
             expect(controlIndex).toBeGreaterThanOrEqual(0);
