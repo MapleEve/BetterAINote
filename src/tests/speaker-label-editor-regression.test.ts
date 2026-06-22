@@ -17,6 +17,22 @@ describe("dashboard speaker label editor regressions", () => {
         path.join(process.cwd(), "src/app/globals.css"),
         "utf8",
     );
+    const alertPrimitiveSource = readFileSync(
+        path.join(process.cwd(), "src/components/ui/alert.tsx"),
+        "utf8",
+    );
+    const badgePrimitiveSource = readFileSync(
+        path.join(process.cwd(), "src/components/ui/badge.tsx"),
+        "utf8",
+    );
+    const buttonPrimitiveSource = readFileSync(
+        path.join(process.cwd(), "src/components/ui/button.tsx"),
+        "utf8",
+    );
+    const cardPrimitiveSource = readFileSync(
+        path.join(process.cwd(), "src/components/ui/card.tsx"),
+        "utf8",
+    );
     const i18nSource = readFileSync(
         path.join(process.cwd(), "src/lib/i18n.ts"),
         "utf8",
@@ -30,6 +46,71 @@ describe("dashboard speaker label editor regressions", () => {
         expect(start).toBeGreaterThanOrEqual(0);
         expect(end).toBeGreaterThan(start);
         return source.slice(start, end + tagName.length + 3);
+    }
+
+    function collectOpeningElements(tagName: string) {
+        const openings: string[] = [];
+        let searchFrom = 0;
+
+        while (searchFrom < source.length) {
+            const start = source.indexOf(`<${tagName}`, searchFrom);
+            if (start < 0) break;
+
+            let braceDepth = 0;
+            let quote: '"' | "'" | "`" | null = null;
+            let end = -1;
+
+            for (let index = start + tagName.length + 1; index < source.length; index += 1) {
+                const character = source[index];
+                const previous = source[index - 1];
+
+                if (quote) {
+                    if (character === quote && previous !== "\\") {
+                        quote = null;
+                    }
+                    continue;
+                }
+
+                if (
+                    character === '"' ||
+                    character === "'" ||
+                    character === "`"
+                ) {
+                    quote = character;
+                    continue;
+                }
+
+                if (character === "{") {
+                    braceDepth += 1;
+                    continue;
+                }
+
+                if (character === "}") {
+                    braceDepth = Math.max(0, braceDepth - 1);
+                    continue;
+                }
+
+                if (character === ">" && braceDepth === 0) {
+                    end = index;
+                    break;
+                }
+            }
+
+            expect(end).toBeGreaterThan(start);
+            openings.push(source.slice(start, end + 1));
+            searchFrom = end + 1;
+        }
+
+        return openings;
+    }
+
+    function collectSpeakerReviewButtonOpenings() {
+        return collectOpeningElements("Button").filter(
+            (opening) =>
+                opening.includes("speaker-review") ||
+                opening.includes("data-sot-confirm-action") ||
+                opening.includes("data-spk-merge-close"),
+        );
     }
 
     it("keeps transcript review visible when there are no saved speaker mappings", () => {
@@ -113,7 +194,9 @@ describe("dashboard speaker label editor regressions", () => {
     it("keeps speaker list load failures distinct from empty state", () => {
         expect(source).toContain("speakerLoadError");
         expect(source).toContain("<Alert");
-        expect(source).toContain('variant="destructive"');
+        expect(source).toContain('variant="speakerReviewError"');
+        expect(source).toContain('density="speakerReviewError"');
+        expect(source).toContain('layout="speakerReviewError"');
         expect(source).toContain("onClick={() => void refreshSpeakers()}");
         expect(source).toContain("speakerLoadError ? (");
         expect(source).toContain(") : speakers.length === 0 ? (");
@@ -212,7 +295,9 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain(
             'data-sot-control="speaker-review-inline-save"',
         );
-        expect(source).toContain('variant="default"');
+        expect(source).toContain('variant="speakerReviewGhostAction"');
+        expect(source).toContain('variant="speakerReviewPrimaryAction"');
+        expect(source).toContain('size="speakerReviewAction"');
         expect(source).toContain('t("common.cancel")');
         expect(source).toContain('t("common.save")');
         expect(source).toMatch(/event\.key ===\s*"Escape"/);
@@ -274,6 +359,150 @@ describe("dashboard speaker label editor regressions", () => {
         ]) {
             expect(globalsSource).not.toContain(selector);
         }
+
+        for (const token of [
+            "speakerReviewAction:",
+            "speakerReviewPrimaryAction:",
+            "speakerReviewGhostAction:",
+            "speakerReviewDangerAction:",
+            "speakerReviewSuggestion:",
+            "speakerReviewIconAction:",
+            "speakerReviewAction:",
+            "speakerReviewSuggestion:",
+            "speakerReviewIcon:",
+        ]) {
+            expect(buttonPrimitiveSource).toContain(token);
+        }
+        expect(badgePrimitiveSource).toContain("speakerReviewVoiceprint:");
+        expect(badgePrimitiveSource).toContain("data-[sot-tone=ready]");
+        expect(badgePrimitiveSource).toContain("data-[sot-tone=missing]");
+        expect(badgePrimitiveSource).toContain("data-[sot-tone=selected]");
+        for (const token of [
+            "speakerReviewTranscript:",
+            "speakerReviewRow:",
+            "speakerReviewMergePopover:",
+            "speakerReviewConfirm:",
+            "speakerReviewTitle:",
+            "speakerReviewMergeTitle:",
+            "speakerReviewDescription:",
+            "speakerReviewActions:",
+        ]) {
+            expect(cardPrimitiveSource).toContain(token);
+        }
+        expect(alertPrimitiveSource).toContain("speakerReviewError:");
+    });
+
+    it("uses speaker review semantic primitive variants for this slice", () => {
+        const buttonOpenings = collectSpeakerReviewButtonOpenings();
+        expect(buttonOpenings.length).toBeGreaterThan(0);
+        for (const opening of buttonOpenings) {
+            expect(opening).not.toContain('variant="ghost"');
+            expect(opening).not.toContain('variant="default"');
+            expect(opening).not.toContain('variant="destructive"');
+            expect(opening).not.toContain('variant="outline"');
+            expect(opening).not.toContain('size="sm"');
+        }
+
+        for (const { control, variant, size } of [
+            {
+                control: 'data-sot-control="speaker-review-copy-raw"',
+                variant: 'variant="speakerReviewPrimaryAction"',
+                size: 'size="speakerReviewAction"',
+            },
+            {
+                control: 'data-sot-control="speaker-review-refresh"',
+                variant: 'variant="speakerReviewGhostAction"',
+                size: 'size="speakerReviewAction"',
+            },
+            {
+                control: 'data-sot-control="speaker-review-inline-save"',
+                variant: 'variant="speakerReviewPrimaryAction"',
+                size: 'size="speakerReviewAction"',
+            },
+            {
+                control: 'data-sot-control="speaker-review-unlink"',
+                variant: 'variant="speakerReviewDangerAction"',
+                size: 'size="speakerReviewAction"',
+            },
+            {
+                control: 'data-sot-control="speaker-review-suggestion"',
+                variant: 'variant="speakerReviewSuggestion"',
+                size: 'size="speakerReviewSuggestion"',
+            },
+        ]) {
+            const opening = collectOpeningElements("Button").find((element) =>
+                element.includes(control),
+            );
+            expect(opening).toBeDefined();
+            expect(opening).toContain(variant);
+            expect(opening).toContain(size);
+        }
+
+        const cardOpenings = collectOpeningElements("Card");
+        expect(
+            cardOpenings.find((opening) =>
+                opening.includes(
+                    'data-sot-part="speaker-review-transcript-card"',
+                ),
+            ),
+        ).toContain('variant="speakerReviewTranscript"');
+        expect(
+            cardOpenings.find((opening) =>
+                opening.includes('data-sot-item="speaker-review-row"'),
+            ),
+        ).toContain('variant="speakerReviewRow"');
+        expect(
+            cardOpenings.find((opening) =>
+                opening.includes('data-sot-panel="speaker-review-merge"'),
+            ),
+        ).toContain('variant="speakerReviewMergePopover"');
+        expect(
+            cardOpenings.find((opening) =>
+                opening.includes('data-sot-confirm="speaker-unlink"'),
+            ),
+        ).toContain('variant="speakerReviewConfirm"');
+        for (const opening of cardOpenings.filter((element) =>
+            /speaker-review|speaker-unlink/.test(element),
+        )) {
+            expect(opening).not.toContain('variant="elevated"');
+            expect(opening).not.toContain('variant="popover"');
+        }
+        expect(source).not.toContain(
+            'className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"',
+        );
+        expect(source).not.toContain(
+            'className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"',
+        );
+        expect(source).not.toContain(
+            'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
+        );
+
+        const alertOpenings = collectOpeningElements("Alert").filter((opening) =>
+            opening.includes('data-sot-part="speaker-review-state"'),
+        );
+        expect(alertOpenings.length).toBeGreaterThan(0);
+        for (const opening of alertOpenings) {
+            expect(opening).toContain('variant="speakerReviewError"');
+            expect(opening).toContain('density="speakerReviewError"');
+            expect(opening).toContain('layout="speakerReviewError"');
+            expect(opening).not.toContain('variant="destructive"');
+        }
+
+        const voiceprintBadges = collectOpeningElements("Badge").filter(
+            (opening) =>
+                opening.includes(
+                    'data-sot-part="speaker-review-voiceprint-pill"',
+                ),
+        );
+        expect(voiceprintBadges.length).toBeGreaterThan(0);
+        for (const opening of voiceprintBadges) {
+            expect(opening).toContain('variant="speakerReviewVoiceprint"');
+            expect(opening).not.toContain('variant="outline"');
+        }
+        expect(source).toContain('data-sot-tone="missing"');
+        expect(source).toContain('? "selected"');
+        expect(source).toContain('? "ready"');
+        expect(source).toContain(': "missing"');
     });
 
     it("keeps inline rename and mapping controls wired through shadcn fields", () => {
@@ -461,8 +690,8 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain('className="sp-confirm-msg"');
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
-        expect(source).toContain('variant="ghost"');
-        expect(source).toContain('variant="destructive"');
+        expect(source).toContain('variant="speakerReviewGhostAction"');
+        expect(source).toContain('variant="speakerReviewDangerAction"');
         expect(source).toContain("<ToggleGroup");
         expect(source).toContain("<ToggleGroupItem");
         expect(source).toContain("<Badge");

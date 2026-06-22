@@ -10,6 +10,13 @@ const cardVariants = {
         "overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none",
     sourceReportMetric:
         "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none",
+    speakerReviewTranscript: "gap-0",
+    speakerReviewRow:
+        "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
+    speakerReviewMergePopover:
+        "gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+    speakerReviewConfirm:
+        "flex-row items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] p-[10px_12px] text-[length:var(--text-body-sm)] text-[var(--fg-primary)] shadow-none backdrop-blur-none [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:[font-weight:var(--weight-semibold)] [&_[data-sot-confirm-subject]]:text-[var(--fg-primary)]",
     aiRenamePreview: "w-[min(360px,calc(100vw-32px))] gap-0",
 } as const;
 
@@ -22,6 +29,10 @@ const cardHeaderVariants = {
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
     popoverCompact:
         "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
+    speakerReviewTranscript:
+        "flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
+    speakerReviewMergePopover:
+        "flex flex-row items-center justify-between gap-[10px] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px]",
     aiRenamePreview:
         "grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3 [&_[data-slot=card-head-copy]]:min-w-0",
 } as const;
@@ -31,6 +42,9 @@ const cardTitleVariants = {
     detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate",
     popoverCompact:
         "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
+    speakerReviewTitle: "leading-none font-semibold",
+    speakerReviewMergeTitle:
+        "text-[12px] font-semibold leading-normal text-[var(--fg-primary)]",
     aiRenamePreview:
         "break-words text-xs font-semibold leading-none text-foreground",
 } as const;
@@ -46,6 +60,9 @@ const cardContentVariants = {
     popoverEmpty: "px-[14px] pb-[14px] pt-[12px]",
     popoverSaving: "min-h-[52px] px-[14px] pb-[14px] pt-[12px]",
     popoverTight: "px-[14px] pb-[14px] pt-[12px]",
+    speakerReviewTranscript:
+        "px-4 pb-4 [&_[data-sot-list=speaker-review-meta]]:my-4 [&_[data-sot-list=speaker-review-meta]]:grid [&_[data-sot-list=speaker-review-meta]]:grid-cols-2 [&_[data-sot-list=speaker-review-meta]]:gap-x-3.5 [&_[data-sot-list=speaker-review-meta]]:gap-y-1.5 max-[640px]:[&_[data-sot-list=speaker-review-meta]]:grid-cols-1 [&_[data-sot-part=speaker-review-transcript-section]]:flex [&_[data-sot-part=speaker-review-transcript-section]]:flex-col [&_[data-sot-part=speaker-review-transcript-section]]:gap-2 [&_[data-sot-part=speaker-review-transcript-section]]:border-t [&_[data-sot-part=speaker-review-transcript-section]]:pt-2",
+    speakerReviewMergePopover: "p-0",
 } as const;
 
 const cardFooterVariants = {
@@ -59,12 +76,15 @@ const cardDescriptionVariants = {
     default: "text-sm text-muted-foreground",
     aiRenamePreview:
         "break-words text-xs font-medium leading-snug text-muted-foreground",
+    speakerReviewDescription: "text-sm text-muted-foreground",
     popoverNote:
         "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
 } as const;
 
 const cardActionVariants = {
     default: "",
+    speakerReviewActions:
+        "flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start",
     aiRenamePreview: "shrink-0",
 } as const;
 

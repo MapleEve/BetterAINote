@@ -54,6 +54,18 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 sourceReportCopyAction:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
+                speakerReviewAction:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                speakerReviewPrimaryAction:
+                    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+                speakerReviewGhostAction:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                speakerReviewDangerAction:
+                    "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+                speakerReviewSuggestion:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground data-[sot-state=create]:text-[var(--fg-secondary)] dark:bg-input/30 dark:hover:bg-input/50",
+                speakerReviewIconAction:
+                    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[16px] [&_svg]:stroke-[1.8]",
                 aiRenamePreviewClose:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 aiRenamePreviewAction:
@@ -151,6 +163,11 @@ const buttonVariants = cva(
                     "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
                 sourceReportCopyAction:
                     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
+                speakerReviewAction:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                speakerReviewSuggestion:
+                    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left has-[>svg]:px-2",
+                speakerReviewIcon: "size-[32px]",
                 aiRenamePreviewClose:
                     "size-6 rounded-md p-0 [&_svg:not([class*='size-'])]:size-3",
                 aiRenamePreviewAction:

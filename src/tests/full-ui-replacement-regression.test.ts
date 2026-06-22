@@ -58,6 +58,62 @@ function extractOpeningElementAt(
     return source.slice(start, end + 1);
 }
 
+function collectOpeningElements(source: string, tagName: string) {
+    const openings: string[] = [];
+    let searchFrom = 0;
+
+    while (searchFrom < source.length) {
+        const start = source.indexOf(`<${tagName}`, searchFrom);
+        if (start < 0) break;
+
+        let braceDepth = 0;
+        let quote: '"' | "'" | "`" | null = null;
+        let end = -1;
+
+        for (let index = start + tagName.length + 1; index < source.length; index += 1) {
+            const character = source[index];
+            const previous = source[index - 1];
+
+            if (quote) {
+                if (character === quote && previous !== "\\") {
+                    quote = null;
+                }
+                continue;
+            }
+
+            if (
+                character === '"' ||
+                character === "'" ||
+                character === "`"
+            ) {
+                quote = character;
+                continue;
+            }
+
+            if (character === "{") {
+                braceDepth += 1;
+                continue;
+            }
+
+            if (character === "}") {
+                braceDepth = Math.max(0, braceDepth - 1);
+                continue;
+            }
+
+            if (character === ">" && braceDepth === 0) {
+                end = index;
+                break;
+            }
+        }
+
+        expect(end).toBeGreaterThan(start);
+        openings.push(source.slice(start, end + 1));
+        searchFrom = end + 1;
+    }
+
+    return openings;
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -4749,7 +4805,35 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain("transcriptionMeta:");
         expect(badge).toContain("data-[sot-tone=attribute]");
         expect(badge).toContain("data-[sot-tone=measure]");
+        expect(badge).toContain("speakerReviewVoiceprint:");
+        expect(badge).toContain("data-[sot-tone=ready]");
+        expect(badge).toContain("data-[sot-tone=missing]");
+        expect(badge).toContain("data-[sot-tone=selected]");
         expect(alertPrimitive).toContain("statusError:");
+        expect(alertPrimitive).toContain("speakerReviewError:");
+        for (const speakerReviewButtonVariant of [
+            "speakerReviewAction",
+            "speakerReviewPrimaryAction",
+            "speakerReviewGhostAction",
+            "speakerReviewDangerAction",
+            "speakerReviewSuggestion",
+            "speakerReviewIconAction",
+        ]) {
+            expect(button).toContain(`${speakerReviewButtonVariant}:`);
+        }
+        expect(button).toContain("speakerReviewIcon:");
+        for (const speakerReviewCardVariant of [
+            "speakerReviewTranscript",
+            "speakerReviewRow",
+            "speakerReviewMergePopover",
+            "speakerReviewConfirm",
+            "speakerReviewTitle",
+            "speakerReviewMergeTitle",
+            "speakerReviewDescription",
+            "speakerReviewActions",
+        ]) {
+            expect(cardPrimitive).toContain(`${speakerReviewCardVariant}:`);
+        }
         expect(badge).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
@@ -4953,10 +5037,79 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain(
             'data-sot-control="speaker-review-suggestion"',
         );
-        expect(speakerReview).toContain('variant="outline"');
+        const speakerReviewButtonOpenings = collectOpeningElements(
+            speakerReview,
+            "Button",
+        ).filter(
+            (opening) =>
+                opening.includes("speaker-review") ||
+                opening.includes("data-sot-confirm-action") ||
+                opening.includes("data-spk-merge-close"),
+        );
+        expect(speakerReviewButtonOpenings.length).toBeGreaterThan(0);
+        for (const opening of speakerReviewButtonOpenings) {
+            expect(opening).not.toContain('variant="ghost"');
+            expect(opening).not.toContain('variant="default"');
+            expect(opening).not.toContain('variant="destructive"');
+            expect(opening).not.toContain('variant="outline"');
+            expect(opening).not.toContain('size="sm"');
+        }
+        expect(speakerReview).toContain('variant="speakerReviewSuggestion"');
+        expect(speakerReview).toContain('size="speakerReviewSuggestion"');
+        expect(speakerReview).toContain(
+            'variant="speakerReviewPrimaryAction"',
+        );
+        expect(speakerReview).toContain('variant="speakerReviewGhostAction"');
+        expect(speakerReview).toContain('variant="speakerReviewDangerAction"');
+        expect(speakerReview).toContain('size="speakerReviewAction"');
+        const speakerReviewCardOpenings = collectOpeningElements(
+            speakerReview,
+            "Card",
+        ).filter((opening) => /speaker-review|speaker-unlink/.test(opening));
+        for (const opening of speakerReviewCardOpenings) {
+            expect(opening).not.toContain('variant="elevated"');
+            expect(opening).not.toContain('variant="popover"');
+        }
+        expect(speakerReview).toContain('variant="speakerReviewTranscript"');
+        expect(speakerReview).toContain('variant="speakerReviewRow"');
+        expect(speakerReview).toContain(
+            'variant="speakerReviewMergePopover"',
+        );
+        expect(speakerReview).toContain('variant="speakerReviewConfirm"');
+        for (const opening of collectOpeningElements(
+            speakerReview,
+            "Alert",
+        ).filter((element) =>
+            element.includes('data-sot-part="speaker-review-state"'),
+        )) {
+            expect(opening).toContain('variant="speakerReviewError"');
+            expect(opening).toContain('density="speakerReviewError"');
+            expect(opening).toContain('layout="speakerReviewError"');
+            expect(opening).not.toContain('variant="destructive"');
+        }
+        const speakerReviewBadgeOpenings = collectOpeningElements(
+            speakerReview,
+            "Badge",
+        ).filter((opening) =>
+            opening.includes('data-sot-part="speaker-review-voiceprint-pill"'),
+        );
+        expect(speakerReviewBadgeOpenings.length).toBeGreaterThan(0);
+        for (const opening of speakerReviewBadgeOpenings) {
+            expect(opening).toContain('variant="speakerReviewVoiceprint"');
+            expect(opening).not.toContain('variant="outline"');
+        }
         expect(speakerReview).toContain("hidden={!isMergePopoverOpen}");
         expect(speakerReview).toContain(
             "data-open={String(isMergePopoverOpen)}",
+        );
+        expect(speakerReview).not.toContain(
+            'className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"',
+        );
+        expect(speakerReview).not.toContain(
+            'className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"',
+        );
+        expect(speakerReview).not.toContain(
+            'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
         );
         expect(speakerReview).not.toContain('className="sp-head"');
         expect(speakerReview).not.toContain(

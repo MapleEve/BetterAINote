@@ -718,15 +718,14 @@ export function SpeakerLabelEditor({
         >
             <Card
                 hasNoPadding
-                className="gap-0"
+                variant="speakerReviewTranscript"
                 data-sot-part="speaker-review-transcript-card"
             >
                 <CardHeader
-                    className="flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch"
+                    variant="speakerReviewTranscript"
                     data-sot-part="speaker-review-header"
                 >
                     <div
-                        className="flex min-w-0 items-center gap-2.5"
                         data-sot-part="speaker-review-header-copy"
                     >
                         <FileText
@@ -734,16 +733,22 @@ export function SpeakerLabelEditor({
                             aria-hidden="true"
                         />
                         <div className="min-w-0">
-                            <CardTitle data-sot-part="speaker-review-title">
+                            <CardTitle
+                                variant="speakerReviewTitle"
+                                data-sot-part="speaker-review-title"
+                            >
                                 {t("speakerReview.transcriptReviewTitle")}
                             </CardTitle>
-                            <CardDescription data-sot-part="speaker-review-description">
+                            <CardDescription
+                                variant="speakerReviewDescription"
+                                data-sot-part="speaker-review-description"
+                            >
                                 {t("speakerReview.transcriptReviewDescription")}
                             </CardDescription>
                         </div>
                     </div>
                     <CardAction
-                        className="flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start"
+                        variant="speakerReviewActions"
                         data-sot-part="speaker-review-actions"
                     >
                         <ToggleGroup
@@ -777,7 +782,8 @@ export function SpeakerLabelEditor({
                         </ToggleGroup>
                         <Button
                             type="button"
-                            size="sm"
+                            variant="speakerReviewPrimaryAction"
+                            size="speakerReviewAction"
                             onClick={handleCopyRawTranscript}
                             disabled={
                                 isCopyingRawTranscript ||
@@ -794,8 +800,8 @@ export function SpeakerLabelEditor({
                         </Button>
                         <Button
                             type="button"
-                            size="sm"
-                            variant="ghost"
+                            variant="speakerReviewGhostAction"
+                            size="speakerReviewAction"
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
                             data-sot-control="speaker-review-refresh"
@@ -811,8 +817,8 @@ export function SpeakerLabelEditor({
                             <Button
                                 ref={mergeButtonRef}
                                 type="button"
-                                size="sm"
-                                variant="ghost"
+                                variant="speakerReviewGhostAction"
+                                size="speakerReviewAction"
                                 data-spk-merge
                                 data-sot-control="speaker-review-merge"
                                 aria-controls={mergePopoverId}
@@ -825,8 +831,8 @@ export function SpeakerLabelEditor({
                             </Button>
                             <Card
                                 hasNoPadding
-                                variant="popover"
-                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 p-0"
+                                variant="speakerReviewMergePopover"
+                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]"
                                 id={mergePopoverId}
                                 data-sot-panel="speaker-review-merge"
                                 data-spk-merge-pop
@@ -836,20 +842,19 @@ export function SpeakerLabelEditor({
                                 aria-label="合并相似说话人"
                             >
                                 <CardHeader
-                                    variant="popover"
-                                    className="flex items-center justify-between gap-[10px]"
+                                    variant="speakerReviewMergePopover"
                                     data-sot-part="speaker-review-merge-header"
                                 >
                                     <CardTitle
-                                        className="text-[12px] leading-normal"
+                                        variant="speakerReviewMergeTitle"
                                         data-sot-part="speaker-review-merge-title"
                                     >
                                         合并相似说话人
                                     </CardTitle>
                                     <CardAction>
                                         <Button
-                                            variant="ghostIcon"
-                                            size="icon-sm"
+                                            variant="speakerReviewIconAction"
+                                            size="speakerReviewIcon"
                                             data-spk-merge-close
                                             type="button"
                                             aria-label="关闭"
@@ -866,7 +871,7 @@ export function SpeakerLabelEditor({
                                         </Button>
                                     </CardAction>
                                 </CardHeader>
-                                <CardContent className="p-0">
+                                <CardContent variant="speakerReviewMergePopover">
                                     <Empty
                                         variant="compact"
                                         data-sot-part="speaker-review-merge-empty"
@@ -902,19 +907,22 @@ export function SpeakerLabelEditor({
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
                     <Alert
-                        variant="destructive"
+                        variant="speakerReviewError"
+                        density="speakerReviewError"
+                        layout="speakerReviewError"
                         data-sot-part="speaker-review-state"
                         data-sot-state="error"
                     >
-                        <AlertTitle>{reviewError}</AlertTitle>
+                        <AlertTitle density="speakerReviewError">
+                            {reviewError}
+                        </AlertTitle>
                     </Alert>
                 ) : activeReview ? (
                     <CardContent
-                        className="px-4 pb-4"
+                        variant="speakerReviewTranscript"
                         data-sot-part="speaker-review-transcript-content"
                     >
                         <div
-                            className="my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[640px]:grid-cols-1"
                             data-sot-list="speaker-review-meta"
                         >
                             {activeReview.detectedLanguage ? (
@@ -975,7 +983,6 @@ export function SpeakerLabelEditor({
                             </span>
                         </div>
                         <div
-                            className="flex flex-col gap-2 border-t pt-2"
                             data-sot-part="speaker-review-transcript-section"
                         >
                             <p data-sot-part="speaker-review-segment-text">
@@ -988,15 +995,20 @@ export function SpeakerLabelEditor({
 
             {speakerLoadError ? (
                 <Alert
-                    variant="destructive"
+                    variant="speakerReviewError"
+                    density="speakerReviewError"
+                    layout="speakerReviewError"
                     data-sot-part="speaker-review-state"
                     data-sot-state="speaker-load-error"
                 >
-                    <AlertTitle>{speakerLoadError}</AlertTitle>
-                    <AlertDescription>
+                    <AlertTitle density="speakerReviewError">
+                        {speakerLoadError}
+                    </AlertTitle>
+                    <AlertDescription density="speakerReviewError">
                         <Button
                             type="button"
-                            size="sm"
+                            variant="speakerReviewAction"
+                            size="speakerReviewAction"
                             onClick={() => void refreshSpeakers()}
                             disabled={isLoading}
                             data-sot-control="speaker-review-refresh-speakers"
@@ -1028,8 +1040,7 @@ export function SpeakerLabelEditor({
                         <Card
                             key={speaker.rawLabel}
                             hasNoPadding
-                            variant="elevated"
-                            className="grid items-center gap-[10px] overflow-visible p-[10px_12px]"
+                            variant="speakerReviewRow"
                             data-sot-item="speaker-review-row"
                             data-sot-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
@@ -1185,8 +1196,8 @@ export function SpeakerLabelEditor({
                                             >
                                                 <Button
                                                     type="button"
-                                                    size="sm"
-                                                    variant="ghost"
+                                                    variant="speakerReviewGhostAction"
+                                                    size="speakerReviewAction"
                                                     data-spk-cancel
                                                     data-sot-control="speaker-review-inline-cancel"
                                                     disabled={isSpeakerSaving}
@@ -1200,8 +1211,8 @@ export function SpeakerLabelEditor({
                                                 </Button>
                                                 <Button
                                                     type="button"
-                                                    size="sm"
-                                                    variant="default"
+                                                    variant="speakerReviewPrimaryAction"
+                                                    size="speakerReviewAction"
                                                     data-spk-save
                                                     data-sot-control="speaker-review-inline-save"
                                                     disabled={
@@ -1293,8 +1304,8 @@ export function SpeakerLabelEditor({
                                             {saveError ? (
                                                 <Button
                                                     type="button"
-                                                    size="sm"
-                                                    variant="ghost"
+                                                    variant="speakerReviewGhostAction"
+                                                    size="speakerReviewAction"
                                                     data-sot-control="speaker-review-save-retry"
                                                     disabled={isSpeakerSaving}
                                                     onClick={() =>
@@ -1314,8 +1325,8 @@ export function SpeakerLabelEditor({
                                                 >
                                                     <Button
                                                         type="button"
-                                                        size="sm"
-                                                        variant="ghost"
+                                                        variant="speakerReviewGhostAction"
+                                                        size="speakerReviewAction"
                                                         data-spk-rename
                                                         data-sot-control="speaker-review-rename"
                                                         disabled={
@@ -1332,9 +1343,9 @@ export function SpeakerLabelEditor({
                                                     </Button>
                                                     {speaker.hasPlayableSample ? null : (
                                                         <Badge
-                                                            variant="outline"
+                                                            variant="speakerReviewVoiceprint"
                                                             data-sot-part="speaker-review-voiceprint-pill"
-                                                            data-sot-tone="warning"
+                                                            data-sot-tone="missing"
                                                         >
                                                             <Volume2 data-icon="inline-start" />
                                                             {t(
@@ -1402,7 +1413,8 @@ export function SpeakerLabelEditor({
                                                                     </p>
                                                                     <Button
                                                                         type="button"
-                                                                        size="sm"
+                                                                        variant="speakerReviewAction"
+                                                                        size="speakerReviewAction"
                                                                         data-sot-control="speaker-review-play-sample"
                                                                         onClick={() =>
                                                                             handlePlaySample(
@@ -1604,6 +1616,7 @@ export function SpeakerLabelEditor({
                                                 isConfirmingUnlink ? (
                                                     <Card
                                                         hasNoPadding
+                                                        variant="speakerReviewConfirm"
                                                         data-sot-confirm="speaker-unlink"
                                                         data-sot-confirm-state={
                                                             isSpeakerSaving
@@ -1631,8 +1644,8 @@ export function SpeakerLabelEditor({
                                                         </p>
                                                         <Button
                                                             type="button"
-                                                            size="sm"
-                                                            variant="ghost"
+                                                            variant="speakerReviewGhostAction"
+                                                            size="speakerReviewAction"
                                                             data-sot-confirm-action="cancel"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1647,8 +1660,8 @@ export function SpeakerLabelEditor({
                                                         </Button>
                                                         <Button
                                                             type="button"
-                                                            size="sm"
-                                                            variant="destructive"
+                                                            variant="speakerReviewDangerAction"
+                                                            size="speakerReviewAction"
                                                             data-sot-confirm-action="confirm"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1672,7 +1685,8 @@ export function SpeakerLabelEditor({
                                                     >
                                                         <Button
                                                             type="button"
-                                                            size="sm"
+                                                            variant="speakerReviewDangerAction"
+                                                            size="speakerReviewAction"
                                                             data-sot-control="speaker-review-unlink"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1738,9 +1752,8 @@ export function SpeakerLabelEditor({
                                                                         profile.id
                                                                     }
                                                                     type="button"
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className="grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch px-2 py-1.5 text-left"
+                                                                    variant="speakerReviewSuggestion"
+                                                                    size="speakerReviewSuggestion"
                                                                     data-sot-control="speaker-review-suggestion"
                                                                     disabled={
                                                                         isSpeakerSaving ||
@@ -1782,8 +1795,16 @@ export function SpeakerLabelEditor({
                                                                         }
                                                                     </span>
                                                                     <Badge
-                                                                        variant="outline"
+                                                                        variant="speakerReviewVoiceprint"
                                                                         data-sot-part="speaker-review-voiceprint-pill"
+                                                                        data-sot-tone={
+                                                                            speaker.matchedProfileId ===
+                                                                            profile.id
+                                                                                ? "selected"
+                                                                                : profile.hasVoiceprint
+                                                                                  ? "ready"
+                                                                                  : "missing"
+                                                                        }
                                                                     >
                                                                         {speaker.matchedProfileId ===
                                                                         profile.id
@@ -1805,9 +1826,8 @@ export function SpeakerLabelEditor({
                                                         !hasExactMatch ? (
                                                             <Button
                                                                 type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="h-auto min-h-8 w-full justify-start px-2 py-1.5"
+                                                                variant="speakerReviewSuggestion"
+                                                                size="speakerReviewSuggestion"
                                                                 data-sot-control="speaker-review-suggestion"
                                                                 data-sot-state="create"
                                                                 disabled={
