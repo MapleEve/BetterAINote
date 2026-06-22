@@ -316,7 +316,9 @@ describe("recording detail copy and title action UI regressions", () => {
         const transcriptionSkeletons = readSource(
             "features/recordings/components/transcription-skeletons.tsx",
         );
+        const alertPrimitive = readSource("components/ui/alert.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
+        const emptyPrimitive = readSource("components/ui/empty.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const sourceReportButtonControls = [
@@ -381,9 +383,25 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('variant="sourceReportStatus"');
         expect(sourceReport).toContain('variant="sourceReportCard"');
         expect(sourceReport).toContain('variant="sourceReportSegment"');
+        expect(alertPrimitive).toContain("sourceReportError:");
         expect(buttonPrimitive).toContain("sourceReportAction:");
         expect(buttonPrimitive).toContain("sourceReportGhostAction:");
         expect(buttonPrimitive).toContain("sourceReportCopyAction:");
+        expect(emptyPrimitive).toContain("sourceReportErrorIcon:");
+        expect(sourceReport).toContain('density="sourceReportError"');
+        expect(sourceReport).toContain('layout="sourceReportError"');
+        expect(sourceReport).toContain('variant="sourceReportErrorIcon"');
+        expect(sourceReport).toContain(
+            "data-sot-source-report-empty-icon",
+        );
+        expect(sourceReport).toContain("aria-hidden=\"true\"");
+        expect(sourceReport).toContain("<SourceReportAlertGlyph />");
+        expect(sourceReport).not.toContain(
+            'className="flex flex-col items-center gap-2 px-4 py-8 text-center"',
+        );
+        expect(sourceReport).not.toContain(
+            'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
+        );
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
         );
@@ -556,6 +574,21 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const legacyHeaderClassNamePattern =
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
+        const detailBackControlIndex = detailWorkstation.indexOf(
+            'data-sot-control="recording-detail-back"',
+        );
+        const detailBackControlStart = detailWorkstation.lastIndexOf(
+            "<Button",
+            detailBackControlIndex,
+        );
+        const detailBackControlEnd = detailWorkstation.indexOf(
+            "</Button>",
+            detailBackControlIndex,
+        );
+        const detailBackControl = detailWorkstation.slice(
+            detailBackControlStart,
+            detailBackControlEnd + "</Button>".length,
+        );
 
         expect(detailWorkstation).toContain(
             'data-sot-surface="recording-workstation"',
@@ -590,6 +623,22 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             'data-sot-control="recording-detail-back"',
         );
+        expect(detailBackControlIndex).toBeGreaterThanOrEqual(0);
+        expect(detailBackControlStart).toBeGreaterThanOrEqual(0);
+        expect(detailBackControlEnd).toBeGreaterThan(detailBackControlStart);
+        expect(button).toContain("recordingDetailBack:");
+        expect(detailBackControl).toContain('variant="recordingDetailBack"');
+        expect(detailBackControl).toContain('size="recordingDetailBack"');
+        expect(detailBackControl).toContain(
+            'navigateBrowserRoute(router, "/dashboard")',
+        );
+        expect(detailBackControl).toContain('data-sot-state="selected"');
+        expect(detailBackControl).toContain("<ArrowLeft");
+        expect(detailBackControl).toContain('data-icon="inline-start"');
+        expect(detailBackControl).toContain(
+            '{t("recording.backToDashboard")}',
+        );
+        expect(detailBackControl).not.toContain('variant="ghost"');
         expect(detailWorkstation).toContain('data-sot-state="selected"');
         expect(globals).toContain('[data-sot-shell="recording-workstation"]');
         expect(globals).toContain('[data-sot-panel="workstation-sidebar"]');

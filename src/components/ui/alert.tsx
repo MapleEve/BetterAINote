@@ -29,6 +29,7 @@ type AlertDensity =
     | "playerNoAudio"
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
+    | "sourceReportError"
     | "settingsBanner"
     | "speakerReviewError"
     | "systemBanner"
@@ -39,6 +40,7 @@ type AlertLayout =
     | "librarySearchError"
     | "playerNoAudio"
     | "recordingTagInline"
+    | "sourceReportError"
     | "settingsBanner"
     | "settingsBannerAction"
     | "speakerReviewError"
@@ -118,6 +120,7 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     recordingTagError:
         "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+    sourceReportError: "rounded-lg px-4 py-8 text-sm",
     settingsBanner: "mb-4 rounded-lg px-3.5 py-3 text-sm",
     speakerReviewError:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
@@ -136,6 +139,8 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
     playerNoAudio:
         "grid w-full grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px [&_[data-icon=inline-start]]:col-start-1 [&_[data-icon=inline-start]]:row-span-2 [&_[data-icon=inline-start]]:inline-grid [&_[data-icon=inline-start]]:size-[26px] [&_[data-icon=inline-start]]:place-self-center [&_[data-icon=inline-start]]:place-items-center [&_[data-icon=inline-start]]:rounded-[50%] [&_[data-icon=inline-start]]:bg-[var(--system-banner-offline-icon-bg)] [&_[data-icon=inline-start]]:text-[var(--signal-warning)] [&_[data-icon=inline-start]_svg]:size-[14px] [&_[data-player-no-audio-text]]:col-start-2 [&_[data-player-no-audio-text]]:flex [&_[data-player-no-audio-text]]:min-w-0 [&_[data-player-no-audio-text]]:flex-col [&_[data-player-no-audio-text]]:gap-px",
     recordingTagInline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
+    sourceReportError:
+        "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
     settingsBanner:
         "grid w-full grid-cols-[auto_1fr] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0",
     settingsBannerAction:

@@ -88,6 +88,8 @@ const emptyMediaVariants = cva(
                     "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
                 speakerReviewMergeIcon:
                     "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
+                sourceReportErrorIcon:
+                    "mb-0 size-10 rounded-full border border-border bg-background text-muted-foreground [&_svg:not([class*='size-'])]:size-5",
             },
         },
         defaultVariants: {

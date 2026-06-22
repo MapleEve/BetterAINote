@@ -1269,17 +1269,18 @@ export function SourceReportPanel({
                 <SourceReportState sotState="error" state="error" error={error}>
                     <Alert
                         variant="sourceReportError"
-                        className="flex flex-col items-center gap-2 px-4 py-8 text-center"
+                        density="sourceReportError"
+                        layout="sourceReportError"
                         data-sot-source-report-empty
                         data-sot-tone="err"
                     >
-                        <div
-                            className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"
+                        <EmptyMedia
+                            variant="sourceReportErrorIcon"
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >
                             <SourceReportAlertGlyph />
-                        </div>
+                        </EmptyMedia>
                         <AlertTitle
                             className="text-center"
                             data-sot-source-report-empty-title

@@ -818,7 +818,8 @@ export function RecordingWorkstation({
                 >
                     <div data-sot-part="recording-detail-nav-label">录音</div>
                     <Button
-                        variant="ghost"
+                        variant="recordingDetailBack"
+                        size="recordingDetailBack"
                         data-sot-control="recording-detail-back"
                         data-sot-state="selected"
                         type="button"

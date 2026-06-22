@@ -5092,6 +5092,11 @@ describe("full UI replacement regression coverage", () => {
             expect(settingsControlButton).not.toContain('size="icon-sm"');
             expect(settingsControlButton).not.toContain('size="sm"');
         }
+        const detailBackButton = extractElementSlice(
+            detail,
+            'data-sot-control="recording-detail-back"',
+            "Button",
+        );
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
         expect(detail).toContain('data-sot-shell="recording-workstation"');
         expect(detail).toContain('data-sot-panel="workstation-sidebar"');
@@ -5102,6 +5107,19 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="recording-workstation-detail"',
         );
         expect(detail).toContain('data-sot-control="recording-detail-back"');
+        expect(button).toContain("recordingDetailBack:");
+        expect(detailBackButton).toContain('variant="recordingDetailBack"');
+        expect(detailBackButton).toContain('size="recordingDetailBack"');
+        expect(detailBackButton).toContain(
+            'navigateBrowserRoute(router, "/dashboard")',
+        );
+        expect(detailBackButton).toContain('data-sot-state="selected"');
+        expect(detailBackButton).toContain("<ArrowLeft");
+        expect(detailBackButton).toContain('data-icon="inline-start"');
+        expect(detailBackButton).toContain(
+            '{t("recording.backToDashboard")}',
+        );
+        expect(detailBackButton).not.toContain('variant="ghost"');
         expect(detail).not.toContain('className="app"');
         expect(detail).not.toContain('className="sidebar glass glass-strong"');
         expect(detail).not.toContain('className="workspace"');
@@ -7097,6 +7115,22 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain("sourceReportStatus:");
         expect(sourceReport).toContain('variant="sourceReportStatus"');
         expect(sourceReport).toContain('variant="sourceReportError"');
+        expect(alertPrimitive).toContain("sourceReportError:");
+        expect(emptyPrimitive).toContain("sourceReportErrorIcon:");
+        expect(sourceReport).toContain('density="sourceReportError"');
+        expect(sourceReport).toContain('layout="sourceReportError"');
+        expect(sourceReport).toContain('variant="sourceReportErrorIcon"');
+        expect(sourceReport).toContain(
+            "data-sot-source-report-empty-icon",
+        );
+        expect(sourceReport).toContain("aria-hidden=\"true\"");
+        expect(sourceReport).toContain("<SourceReportAlertGlyph />");
+        expect(sourceReport).not.toContain(
+            'className="flex flex-col items-center gap-2 px-4 py-8 text-center"',
+        );
+        expect(sourceReport).not.toContain(
+            'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
+        );
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
         );
