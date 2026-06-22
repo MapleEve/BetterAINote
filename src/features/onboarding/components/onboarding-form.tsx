@@ -571,12 +571,12 @@ function SourceStep({
                             }
                             setAuthMode(mode);
                         }}
-                        size="lg"
-                        spacing={2}
+                        layout="onboardingSourceAuthMode"
+                        size="onboardingSourceAuthModeOption"
+                        spacing="onboardingSourceAuthMode"
                         type="single"
                         value={currentDraft.authMode}
-                        variant="outline"
-                        className="grid w-full grid-cols-2 items-stretch"
+                        variant="onboardingSourceAuthModeOption"
                     >
                         {currentProviderCatalog.authModes.map((mode) => {
                             const active = currentDraft.authMode === mode;
@@ -584,7 +584,6 @@ function SourceStep({
                             return (
                                 <ToggleGroupItem
                                     aria-pressed={active}
-                                    className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"
                                     data-sot-auth-mode={mode}
                                     data-sot-control="source-auth-mode"
                                     data-sot-state={
@@ -627,9 +626,12 @@ function SourceStep({
                     label="服务地址"
                 >
                     <Input
+                        data-sot-control="source-base-url"
                         disabled={isSaving}
                         id="source-base-url"
                         onChange={(event) => setBaseUrl(event.target.value)}
+                        variant="onboardingSourceUrl"
+                        controlSize="onboardingSourceUrl"
                         value={currentDraft.baseUrl}
                     />
                 </OnboardingFieldRow>
@@ -648,7 +650,7 @@ function SourceStep({
                     fieldId={field.id}
                     key={field.id}
                     onValueChange={updateField}
-                    variant="settings"
+                    variant="onboarding"
                 />
             ))}
 

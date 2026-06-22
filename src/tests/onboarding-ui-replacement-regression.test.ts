@@ -95,6 +95,12 @@ describe("onboarding UI replacement regression", () => {
         const source = readSource(
             "features/onboarding/components/onboarding-form.tsx",
         );
+        const dataSourceFieldControl = readSource(
+            "features/data-sources/data-source-field-control.tsx",
+        );
+        const fieldPrimitive = readSource("components/ui/field.tsx");
+        const inputPrimitive = readSource("components/ui/input.tsx");
+        const toggleGroupPrimitive = readSource("components/ui/toggle-group.tsx");
         const globals = readSource("app/globals.css");
 
         expect(source).toContain('data-sot-layout="onboarding-workstation"');
@@ -123,8 +129,36 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(source).toContain('variant="outline"');
-        expect(source).toContain('size="lg"');
+        expect(source).toContain('layout="onboardingSourceAuthMode"');
+        expect(source).toContain('variant="onboardingSourceAuthModeOption"');
+        expect(source).toContain('size="onboardingSourceAuthModeOption"');
+        expect(source).toContain('spacing="onboardingSourceAuthMode"');
+        expect(source).toContain('data-sot-control="source-base-url"');
+        expect(source).toContain('variant="onboardingSourceUrl"');
+        expect(source).toContain('controlSize="onboardingSourceUrl"');
+        expect(source).toContain('variant="onboarding"');
+        expect(toggleGroupPrimitive).toContain("onboardingSourceAuthMode");
+        expect(toggleGroupPrimitive).toContain(
+            "onboardingSourceAuthModeOption",
+        );
+        expect(inputPrimitive).toContain("onboardingSourceUrl:");
+        expect(inputPrimitive).toContain("onboardingSourceField:");
+        expect(fieldPrimitive).toContain("onboardingSourceField");
+        expect(dataSourceFieldControl).toContain(
+            'variant?: "default" | "onboarding" | "settings" | "sourceProviderDetail"',
+        );
+        expect(dataSourceFieldControl).toContain(
+            'const isOnboardingVariant = variant === "onboarding"',
+        );
+        expect(dataSourceFieldControl).toContain(
+            'variant={isOnboardingVariant ? "onboardingSourceField" : "default"}',
+        );
+        expect(dataSourceFieldControl).toContain(
+            '<FieldGroup variant="onboardingSourceField">',
+        );
+        expect(dataSourceFieldControl).toContain(
+            '? "onboardingSourceField"',
+        );
         expect(source).toContain('variant="onboardingSurface"');
         expect(source).toContain('variant="onboardingProviderCard"');
         expect(source).toContain('size="onboardingProviderCard"');
@@ -211,6 +245,24 @@ describe("onboarding UI replacement regression", () => {
         expect(sourceAuthModeControl).toContain("<ToggleGroup");
         expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
         expect(sourceAuthModeControl).not.toContain("<Select");
+        expect(sourceAuthModeControl).not.toContain('variant="outline"');
+        expect(sourceAuthModeControl).not.toContain('size="lg"');
+        expect(sourceAuthModeControl).not.toContain("spacing={2}");
+        expect(sourceAuthModeControl).not.toContain(
+            'className="grid w-full grid-cols-2 items-stretch"',
+        );
+        const onboardingDataSourceFieldControl =
+            source.match(/\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/)?.[0] ??
+            "";
+        expect(onboardingDataSourceFieldControl).toContain(
+            "<DataSourceFieldControl",
+        );
+        expect(onboardingDataSourceFieldControl).toContain(
+            'variant="onboarding"',
+        );
+        expect(onboardingDataSourceFieldControl).not.toContain(
+            'variant="settings"',
+        );
         expect(source).not.toContain(
             'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );

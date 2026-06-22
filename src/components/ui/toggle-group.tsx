@@ -9,12 +9,14 @@ import { cn } from "@/lib/utils";
 type ToggleGroupLayout =
     | "default"
     | "iconGrid"
+    | "onboardingSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
     | "speakerReviewMode"
     | "librarySearchScope"
     | "dashboardRecordingTimeFilter";
 type ToggleGroupSemanticSpacing =
+    | "onboardingSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagQuickColorPicker"
     | "recordingTagIconPicker"
@@ -24,6 +26,7 @@ type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
     dashboardRecordingTimeFilter: 1,
+    onboardingSourceAuthMode: 2,
     recordingTagColorPicker: 2,
     recordingTagQuickColorPicker: 1,
     recordingTagIconPicker: 2,
@@ -43,6 +46,8 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
+                onboardingSourceAuthModeOption:
+                    "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 librarySearchScopeItem:
                     "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
                 dashboardRecordingTimeFilter:
@@ -68,6 +73,7 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
+                onboardingSourceAuthModeOption: "",
                 librarySearchScopeItem:
                     "h-6 rounded-full px-2.5 text-xs",
                 dashboardRecordingTimeFilter: "h-8 px-2",
@@ -137,6 +143,8 @@ function ToggleGroup({
             className={cn(
                 "group/toggle-group flex w-fit items-center rounded-md",
                 layout === "iconGrid" && "grid grid-cols-6",
+                layout === "onboardingSourceAuthMode" &&
+                    "grid w-full grid-cols-2 items-stretch",
                 layout === "recordingTagColorPicker" && "flex-wrap",
                 layout === "recordingTagIconPicker" && "grid grid-cols-6",
                 layout === "speakerReviewMode" && "flex-nowrap",

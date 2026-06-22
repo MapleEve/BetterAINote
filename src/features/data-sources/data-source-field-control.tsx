@@ -5,6 +5,7 @@ import {
     FieldContent,
     FieldControl,
     FieldDescription,
+    FieldGroup,
     FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,7 @@ interface DataSourceFieldControlProps {
         field: DataSourceFormField,
         value: string | boolean,
     ) => void;
-    variant?: "default" | "settings" | "sourceProviderDetail";
+    variant?: "default" | "onboarding" | "settings" | "sourceProviderDetail";
 }
 
 export function DataSourceFieldControl({
@@ -59,6 +60,7 @@ export function DataSourceFieldControl({
         renderedField.masked && "tracking-[0.15em]",
         renderedField.className,
     );
+    const isOnboardingVariant = variant === "onboarding";
 
     if (variant === "settings" || variant === "sourceProviderDetail") {
         return (
@@ -82,19 +84,24 @@ export function DataSourceFieldControl({
         onValueChange(field, event.currentTarget.value);
     };
 
-    return (
+    const control = (
         <Field
             data-disabled={disabled ? "true" : undefined}
             data-field-id={field.id}
-            orientation="horizontal"
+            orientation={isOnboardingVariant ? "responsive" : "horizontal"}
+            variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
         >
-            <FieldContent>
+            <FieldContent
+                variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
+            >
                 <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
                     <FieldDescription>{field.description}</FieldDescription>
                 ) : null}
             </FieldContent>
-            <FieldControl>
+            <FieldControl
+                variant={isOnboardingVariant ? "onboardingSourceField" : "default"}
+            >
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
@@ -132,6 +139,16 @@ export function DataSourceFieldControl({
                 ) : (
                     <Input
                         id={fieldId}
+                        variant={
+                            isOnboardingVariant
+                                ? "onboardingSourceField"
+                                : "default"
+                        }
+                        controlSize={
+                            isOnboardingVariant
+                                ? "onboardingSourceField"
+                                : "default"
+                        }
                         type={renderedField.sensitive ? "password" : "text"}
                         value={String(field.value)}
                         onChange={handleTextValueChange}
@@ -164,4 +181,10 @@ export function DataSourceFieldControl({
             </FieldControl>
         </Field>
     );
+
+    if (isOnboardingVariant) {
+        return <FieldGroup variant="onboardingSourceField">{control}</FieldGroup>;
+    }
+
+    return control;
 }

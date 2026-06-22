@@ -5,10 +5,20 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
-type FieldVariant = "default" | "authAction" | "sourceProviderDetail";
-type FieldGroupVariant = "default" | "authCompact";
-type FieldContentVariant = "default" | "sourceProviderDetail";
-type FieldControlVariant = "default" | "sourceProviderDetail";
+type FieldVariant =
+    | "default"
+    | "authAction"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";
+type FieldGroupVariant = "default" | "authCompact" | "onboardingSourceField";
+type FieldContentVariant =
+    | "default"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";
+type FieldControlVariant =
+    | "default"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";
 type FieldSetVariant =
     | "default"
     | "pickerFrame"
@@ -62,20 +72,25 @@ const sourceProviderDetailFieldClassName =
     "grid grid-cols-[1fr_auto] items-center gap-[18px] border-b border-[var(--line-hairline)] py-[12px] last:border-b-0";
 const authActionFieldClassName =
     "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto";
+const onboardingSourceFieldClassName =
+    "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
 
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
     default: "",
     authCompact: "mx-auto max-w-[280px] gap-[10px]",
+    onboardingSourceField: "gap-0",
 };
 
 const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
     default: "gap-1.5 leading-snug",
+    onboardingSourceField: "min-w-0 gap-1",
     sourceProviderDetail:
         "min-w-0 gap-0 [&_[data-slot=field-label]]:mb-[2px] [&_[data-slot=field-label]]:font-sans [&_[data-slot=field-label]]:text-[13px] [&_[data-slot=field-label]]:font-semibold [&_[data-slot=field-label]]:leading-[normal] [&_[data-slot=field-label]]:text-[var(--fg-primary)] [&_[data-slot=field-description]]:mt-0 [&_[data-slot=field-description]]:font-sans [&_[data-slot=field-description]]:text-[12px] [&_[data-slot=field-description]]:font-normal [&_[data-slot=field-description]]:leading-[1.5] [&_[data-slot=field-description]]:text-[var(--fg-tertiary)]",
 };
 
 const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
     default: "flex flex-none items-center gap-2",
+    onboardingSourceField: "flex min-w-0 flex-none items-center gap-2 @md/field-group:justify-end",
     sourceProviderDetail: "flex flex-none items-center justify-end gap-[10px]",
 };
 
@@ -155,6 +170,8 @@ function fieldClassName({
             ? sourceProviderDetailFieldClassName
             : variant === "authAction"
               ? authActionFieldClassName
+              : variant === "onboardingSourceField"
+                ? onboardingSourceFieldClassName
             : [
                   "flex gap-3",
                   orientation === "vertical" &&

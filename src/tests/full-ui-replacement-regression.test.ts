@@ -2110,6 +2110,8 @@ describe("full UI replacement regression coverage", () => {
         expect(input).toContain("authEmail:");
         expect(input).toContain("compact:");
         expect(input).toContain("detailHeaderTitle:");
+        expect(input).toContain("onboardingSourceField:");
+        expect(input).toContain("onboardingSourceUrl:");
         expect(input).toContain(
             '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
         );
@@ -2203,6 +2205,8 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("recordingTagQuickColorPicker:");
         expect(toggleGroup).toContain("recordingTagIconPicker:");
         expect(toggleGroup).toContain("recordingTagIconOption:");
+        expect(toggleGroup).toContain("onboardingSourceAuthMode:");
+        expect(toggleGroup).toContain("onboardingSourceAuthModeOption:");
         expect(toggleGroup).toContain('swatch:');
         expect(toggleGroup).toContain("[display:grid]");
         expect(toggleGroup).toContain("rounded-[50%]");
@@ -3112,8 +3116,14 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(onboarding).toContain('variant="outline"');
-        expect(onboarding).toContain('size="lg"');
+        expect(onboarding).toContain('layout="onboardingSourceAuthMode"');
+        expect(onboarding).toContain('variant="onboardingSourceAuthModeOption"');
+        expect(onboarding).toContain('size="onboardingSourceAuthModeOption"');
+        expect(onboarding).toContain('spacing="onboardingSourceAuthMode"');
+        expect(onboarding).toContain('data-sot-control="source-base-url"');
+        expect(onboarding).toContain('variant="onboardingSourceUrl"');
+        expect(onboarding).toContain('controlSize="onboardingSourceUrl"');
+        expect(onboarding).toContain('variant="onboarding"');
         expect(onboarding).toContain('variant="onboardingSurface"');
         expect(onboarding).toContain('variant="onboardingProviderCard"');
         expect(onboarding).toContain('size="onboardingProviderCard"');
@@ -3207,6 +3217,30 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-part="source-auth-mode-title"');
         expect(onboarding).toContain(
             'data-sot-part="source-auth-mode-description"',
+        );
+        const sourceAuthModeControl =
+            onboarding.match(
+                /currentProviderCatalog\.authModes\.length > 1[\s\S]*?<MatrixRow/,
+            )?.[0] ?? "";
+        expect(sourceAuthModeControl).toContain("<ToggleGroup");
+        expect(sourceAuthModeControl).toContain("<ToggleGroupItem");
+        expect(sourceAuthModeControl).not.toContain('variant="outline"');
+        expect(sourceAuthModeControl).not.toContain('size="lg"');
+        expect(sourceAuthModeControl).not.toContain("spacing={2}");
+        expect(sourceAuthModeControl).not.toContain(
+            'className="grid w-full grid-cols-2 items-stretch"',
+        );
+        const onboardingDataSourceFieldControl =
+            onboarding.match(/\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/)?.[0] ??
+            "";
+        expect(onboardingDataSourceFieldControl).toContain(
+            "<DataSourceFieldControl",
+        );
+        expect(onboardingDataSourceFieldControl).toContain(
+            'variant="onboarding"',
+        );
+        expect(onboardingDataSourceFieldControl).not.toContain(
+            'variant="settings"',
         );
         expect(onboarding).toContain('data-sot-control="save-enter"');
         expect(onboarding).not.toContain("src-item");
