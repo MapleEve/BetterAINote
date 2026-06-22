@@ -1104,12 +1104,6 @@ const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
 
 const SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-source-report-empty-actions]",
-    "[data-sot-source-report-empty-actions] button",
-    "[data-sot-source-report-empty-actions] button:focus-visible",
-    '[data-sot-source-report-empty-actions] [data-variant="default"]',
-    '[data-sot-source-report-empty-actions] [data-variant="ghost"]',
-    '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"][data-sot-state="loading"]',
-    '[data-sot-source-report-empty-actions]\n    [data-sot-control="refresh-source-report"]:disabled',
     "[data-sot-source-report-empty]",
     '[data-sot-source-report-empty][data-sot-tone="err"]',
     "[data-sot-source-report-empty-icon]",
@@ -4324,6 +4318,30 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_EMPTY_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of [
+            "[data-sot-source-report-empty-actions] button",
+            "[data-sot-source-report-empty-actions] button:focus-visible",
+            '[data-sot-source-report-empty-actions] [data-variant="default"]',
+            '[data-sot-source-report-empty-actions] [data-variant="ghost"]',
+        ]) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        const sourceReportEmptyActionStateButtonBlocks = collectCssRuleBlocks(
+            globals,
+            "[data-sot-source-report-empty-actions]",
+        ).filter(({ declarations, prelude }) => {
+            const normalizedPrelude = prelude.replace(/\s+/g, " ");
+            return (
+                normalizedPrelude.includes(
+                    '[data-sot-state="loading"]',
+                ) ||
+                normalizedPrelude.includes('[aria-busy="true"]') ||
+                normalizedPrelude.includes(":disabled") ||
+                normalizedPrelude.includes('[aria-disabled="true"]') ||
+                /\bcursor\s*:/.test(declarations)
+            );
+        });
+        expect(sourceReportEmptyActionStateButtonBlocks).toEqual([]);
         const sourceReportNoSourceEmpty = extractBoundedSlice(
             sourceReportPanel,
             '<Empty\n                        className="px-4 py-8"',
