@@ -1544,7 +1544,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain("<Button");
         expect(tagManager).toContain('variant="accentIcon"');
         expect(tagManager).toContain('size="icon-compact"');
+        expect(tagManager).toContain('variant="recordingTagCreateRow"');
+        expect(tagManager).toContain('variant="recordingTagNameInput"');
         expect(tagManager).toContain('aria-label="添加"');
         expect(tagManager).not.toContain("tagm-add-btn");
+        expect(tagManager).not.toContain('variant="compact"');
     });
 });

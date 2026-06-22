@@ -8,6 +8,8 @@ const cardVariants = {
         "rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)]",
     popover:
         "overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+    recordingTagManagerPanel:
+        "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none max-md:max-w-none",
     librarySearchPanel:
         "gap-0 rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none",
     dashboardActivityPanel:
@@ -33,6 +35,8 @@ const cardHeaderVariants = {
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
     popoverCompact:
         "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
+    recordingTagManagerHeader:
+        "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
     speakerReviewTranscript:
         "flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
     speakerReviewMergePopover:
@@ -45,6 +49,8 @@ const cardTitleVariants = {
     default: "leading-none font-semibold",
     detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate",
     popoverCompact:
+        "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
+    recordingTagManagerTitle:
         "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
     speakerReviewTitle: "leading-none font-semibold",
     speakerReviewMergeTitle:
@@ -64,6 +70,20 @@ const cardContentVariants = {
     popoverEmpty: "px-[14px] pb-[14px] pt-[12px]",
     popoverSaving: "min-h-[52px] px-[14px] pb-[14px] pt-[12px]",
     popoverTight: "px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerCompact:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerCreate:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerDefault:
+        "flex min-h-[234px] flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerDelete:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerEmpty:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerSaving:
+        "flex min-h-[52px] flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerTight:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
     speakerReviewTranscript:
         "px-4 pb-4 [&_[data-sot-list=speaker-review-meta]]:my-4 [&_[data-sot-list=speaker-review-meta]]:grid [&_[data-sot-list=speaker-review-meta]]:grid-cols-2 [&_[data-sot-list=speaker-review-meta]]:gap-x-3.5 [&_[data-sot-list=speaker-review-meta]]:gap-y-1.5 max-[640px]:[&_[data-sot-list=speaker-review-meta]]:grid-cols-1 [&_[data-sot-part=speaker-review-transcript-section]]:flex [&_[data-sot-part=speaker-review-transcript-section]]:flex-col [&_[data-sot-part=speaker-review-transcript-section]]:gap-2 [&_[data-sot-part=speaker-review-transcript-section]]:border-t [&_[data-sot-part=speaker-review-transcript-section]]:pt-2",
     speakerReviewMergePopover: "p-0",
@@ -74,6 +94,8 @@ const cardFooterVariants = {
     aiRenamePreview: "gap-1.5 px-4 py-3",
     popoverCompact:
         "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
+    recordingTagManagerFooter:
+        "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
 } as const;
 
 const cardDescriptionVariants = {
@@ -82,6 +104,8 @@ const cardDescriptionVariants = {
         "break-words text-xs font-medium leading-snug text-muted-foreground",
     speakerReviewDescription: "text-sm text-muted-foreground",
     popoverNote:
+        "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
+    recordingTagToggleNote:
         "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
 } as const;
 
@@ -107,7 +131,8 @@ function Card({
             data-variant={variant}
             className={cn(
                 "flex flex-col gap-6 overflow-hidden rounded-xl border border-border bg-card text-card-foreground",
-                variant !== "popover" && "shadow-sm backdrop-blur-xl",
+                !["popover", "recordingTagManagerPanel"].includes(variant) &&
+                    "shadow-sm backdrop-blur-xl",
                 cardVariants[variant],
                 !hasNoPadding && "py-6",
                 className,

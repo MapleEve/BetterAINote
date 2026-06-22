@@ -14,6 +14,8 @@ const emptyVariants = cva(
                     "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
                 popover:
                     "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
+                recordingTagEmptyState:
+                    "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
                 speakerReviewMerge:
                     "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
                 speakerReviewDetected:
@@ -47,6 +49,8 @@ const emptyHeaderVariants = cva("", {
         variant: {
             default: "flex max-w-sm flex-col items-center gap-2 text-center",
             popover: "flex max-w-none flex-col items-center gap-0 text-center",
+            recordingTagEmptyState:
+                "flex max-w-none flex-col items-center gap-0 text-center",
             speakerReviewMerge:
                 "flex max-w-none flex-col items-center gap-0 text-center",
             speakerReviewState:
@@ -100,6 +104,8 @@ const emptyTitleVariants = cva("", {
                 "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
             popover:
                 "m-0 mb-[4px] text-[13px] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]",
+            recordingTagEmptyState:
+                "m-0 mb-[4px] text-[13px] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]",
             speakerReviewMerge:
                 "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
             speakerReviewState: "text-lg font-medium tracking-tight",
@@ -118,6 +124,8 @@ const emptyDescriptionVariants = cva("", {
             compact:
                 "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
             popover:
+                "m-0 text-[12px] leading-[1.5] font-medium text-[var(--fg-tertiary)] [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+            recordingTagEmptyState:
                 "m-0 text-[12px] leading-[1.5] font-medium text-[var(--fg-tertiary)] [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
             speakerReviewMerge:
                 "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",

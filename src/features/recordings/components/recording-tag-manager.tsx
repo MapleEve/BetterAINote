@@ -362,9 +362,9 @@ export function RecordingTagManager({
         sourceError?: string | null;
     }) => (
         <Alert
-            density="compact"
-            layout="inline"
-            variant="destructiveSoft"
+            density="recordingTagError"
+            layout="recordingTagInline"
+            variant="recordingTagError"
             data-sot-panel="recording-tag-error"
             data-sot-part="error"
             data-sot-state="error"
@@ -376,7 +376,7 @@ export function RecordingTagManager({
                 className="shrink-0"
             />
             <AlertDescription
-                density="compact"
+                density="recordingTagError"
                 className="flex-1"
                 data-sot-part="error-description"
             >
@@ -484,12 +484,11 @@ export function RecordingTagManager({
                 标签名
             </FieldLabel>
             <InputGroup
-                variant="compact"
-                className="gap-[6px]"
+                variant="recordingTagCreateRow"
                 data-sot-part="create-row"
             >
                 <InputGroupInput
-                    variant="compact"
+                    variant="recordingTagNameInput"
                     id={tagNameInputId}
                     type="text"
                     className="min-w-0"
@@ -576,13 +575,13 @@ export function RecordingTagManager({
 
     const renderColorPicker = () => (
         <FieldSet
-            variant="pickerFrame"
-            size="colorPicker"
+            variant="recordingTagPickerFrame"
+            size="recordingTagColorPicker"
             data-sot-part="picker-frame"
             data-sot-picker="color"
         >
             <FieldLegend
-                variant="picker"
+                variant="recordingTagPickerLabel"
                 data-sot-part="picker-label"
             >
                 颜色
@@ -595,13 +594,13 @@ export function RecordingTagManager({
 
     const renderIconPicker = () => (
         <FieldSet
-            variant="pickerFrame"
-            size="iconPicker"
+            variant="recordingTagPickerFrame"
+            size="recordingTagIconPicker"
             data-sot-part="picker-frame"
             data-sot-picker="icon"
         >
             <FieldLegend
-                variant="picker"
+                variant="recordingTagPickerLabel"
                 data-sot-part="picker-label"
             >
                 图标
@@ -647,18 +646,18 @@ export function RecordingTagManager({
     let panelFooter: ReactNode = null;
     const contentVariant =
         hasNoTags && !isCreateMode
-            ? "popoverEmpty"
+            ? "recordingTagManagerEmpty"
             : Boolean(deleteTarget)
-              ? "popoverDelete"
+              ? "recordingTagManagerDelete"
               : isCreateMode
-                ? "popoverCreate"
+                ? "recordingTagManagerCreate"
             : shouldShowSavingState
-              ? "popoverSaving"
+              ? "recordingTagManagerSaving"
             : shouldShowErrorState
-              ? "popoverTight"
+              ? "recordingTagManagerTight"
             : shouldShowToggleState
-              ? "popoverCompact"
-              : "popoverDefault";
+              ? "recordingTagManagerCompact"
+              : "recordingTagManagerDefault";
 
     if (shouldShowSavingState) {
         panelContent = (
@@ -722,7 +721,10 @@ export function RecordingTagManager({
             </div>
         );
         panelAfterBody = (
-            <CardDescription variant="popoverNote" data-sot-part="toggle-note">
+            <CardDescription
+                variant="recordingTagToggleNote"
+                data-sot-part="toggle-note"
+            >
                 aria-pressed=&quot;true&quot; → 标签已应用 ·
                 点击再次切换为「未应用」。
             </CardDescription>
@@ -731,9 +733,9 @@ export function RecordingTagManager({
         panelContent = (
             <>
                 <Alert
-                    density="comfortable"
-                    layout="inline"
-                    variant="destructiveSoftNeutral"
+                    density="recordingTagDeleteConfirm"
+                    layout="recordingTagInline"
+                    variant="recordingTagDeleteConfirm"
                     data-sot-panel="recording-tag-delete-confirm"
                     data-sot-part="delete-confirm"
                     data-sot-state={
@@ -746,7 +748,7 @@ export function RecordingTagManager({
                         className="shrink-0"
                     />
                     <AlertDescription
-                        density="comfortable"
+                        density="recordingTagDeleteConfirm"
                         className="flex-1"
                         data-sot-part="delete-message"
                     >
@@ -872,20 +874,20 @@ export function RecordingTagManager({
             <>
                 {hasNoTags ? (
                     <Empty
-                        variant="popover"
+                        variant="recordingTagEmptyState"
                         data-sot-panel="recording-tag-empty"
                         data-sot-part="empty"
                         data-sot-state="empty"
                     >
-                        <EmptyHeader variant="popover">
+                        <EmptyHeader variant="recordingTagEmptyState">
                             <EmptyTitle
-                                variant="popover"
+                                variant="recordingTagEmptyState"
                                 data-sot-part="empty-message"
                             >
                                 还没有任何标签
                             </EmptyTitle>
                             <EmptyDescription
-                                variant="popover"
+                                variant="recordingTagEmptyState"
                                 data-sot-part="empty-description"
                             >
                                 在下方为这条录音创建第一个标签。
@@ -895,11 +897,11 @@ export function RecordingTagManager({
                 ) : (
                     <>
                         <FieldSet
-                            variant="section"
+                            variant="recordingTagSection"
                             data-sot-part="section"
                         >
                             <FieldLegend
-                                variant="sectionLabel"
+                                variant="recordingTagSectionLabel"
                                 data-sot-part="section-label"
                             >
                                 已选 · {selectedTags.length}
@@ -964,11 +966,11 @@ export function RecordingTagManager({
                         </FieldSet>
 
                         <FieldSet
-                            variant="section"
+                            variant="recordingTagSection"
                             data-sot-part="section"
                         >
                             <FieldLegend
-                                variant="sectionLabel"
+                                variant="recordingTagSectionLabel"
                                 data-sot-part="section-label"
                             >
                                 全部标签
@@ -1029,7 +1031,7 @@ export function RecordingTagManager({
     return (
         <Card
             hasNoPadding
-            variant="popover"
+            variant="recordingTagManagerPanel"
             role="dialog"
             aria-label="管理标签"
             aria-busy={busy ? "true" : undefined}
@@ -1048,14 +1050,15 @@ export function RecordingTagManager({
                       : "idle"
             }
             data-sot-variant={variant}
-            className="max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"
         >
             <CardHeader
-                variant="popoverCompact"
-                className="items-center justify-between"
+                variant="recordingTagManagerHeader"
                 data-sot-part="head"
             >
-                <CardTitle variant="popoverCompact" data-sot-part="title">
+                <CardTitle
+                    variant="recordingTagManagerTitle"
+                    data-sot-part="title"
+                >
                     {title}
                 </CardTitle>
                 {showCloseButton ? (
@@ -1077,7 +1080,6 @@ export function RecordingTagManager({
             </CardHeader>
             <CardContent
                 variant={contentVariant}
-                className="flex flex-col gap-[14px] overflow-auto"
                 data-sot-part="body"
             >
                 {panelContent}
@@ -1085,7 +1087,7 @@ export function RecordingTagManager({
             {panelAfterBody}
             {panelFooter ? (
                 <CardFooter
-                    variant="popoverCompact"
+                    variant="recordingTagManagerFooter"
                     data-sot-part="footer"
                 >
                     {panelFooter}

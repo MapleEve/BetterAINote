@@ -4902,6 +4902,7 @@ describe("full UI replacement regression coverage", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const badge = readSource("components/ui/badge.tsx");
         const emptyPrimitive = readSource("components/ui/empty.tsx");
+        const fieldPrimitive = readSource("components/ui/field.tsx");
         const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const toggleGroupPrimitive = readSource(
@@ -6222,8 +6223,9 @@ describe("full UI replacement regression coverage", () => {
             "CardDescription",
         );
         expect(tagManagerToggleNote).toContain(
-            '<CardDescription variant="popoverNote" data-sot-part="toggle-note">',
+            'variant="recordingTagToggleNote"',
         );
+        expect(tagManagerToggleNote).toContain('data-sot-part="toggle-note"');
         expect(tagManagerToggleNote).not.toContain('className="sr-only"');
         for (const anchor of [
             'data-open="true"',
@@ -6347,12 +6349,18 @@ describe("full UI replacement regression coverage", () => {
             expect(tagManager).toContain(primitiveImport);
         }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        expect(tagManager).toContain('variant="popover"');
-        expect(tagManager).toContain('variant="popoverCompact"');
-        expect(tagManager).toContain('"popoverCreate"');
-        expect(tagManager).toContain('"popoverDelete"');
+        expect(tagManager).toContain('variant="recordingTagManagerPanel"');
+        expect(tagManager).toContain('variant="recordingTagManagerHeader"');
+        expect(tagManager).toContain('variant="recordingTagManagerTitle"');
+        expect(tagManager).toContain('"recordingTagManagerCreate"');
+        expect(tagManager).toContain('"recordingTagManagerDelete"');
+        expect(tagManager).toContain('"recordingTagManagerDefault"');
+        expect(tagManager).toContain('"recordingTagManagerEmpty"');
+        expect(tagManager).toContain('"recordingTagManagerSaving"');
+        expect(tagManager).toContain('"recordingTagManagerTight"');
+        expect(tagManager).toContain('"recordingTagManagerCompact"');
         expect(tagManager).toContain("variant={contentVariant}");
-        expect(tagManager).toContain('variant="popoverNote"');
+        expect(tagManager).toContain('variant="recordingTagToggleNote"');
         expect(tagManager).toContain('variant="pill"');
         expect(tagManager).toContain('variant="ghostIconCompact"');
         expect(tagManager).toContain('variant="ghostNeutral"');
@@ -6360,11 +6368,18 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('variant="actionDestructive"');
         expect(tagManager).toContain('variant="accentIcon"');
         expect(tagManager).toContain('variant="chipRemove"');
-        expect(tagManager).toContain('variant="pickerFrame"');
-        expect(tagManager).toContain('variant="picker"');
-        expect(tagManager).toContain('variant="sectionLabel"');
+        expect(tagManager).toContain('variant="recordingTagPickerFrame"');
+        expect(tagManager).toContain('variant="recordingTagPickerLabel"');
+        expect(tagManager).toContain('variant="recordingTagSection"');
+        expect(tagManager).toContain('variant="recordingTagSectionLabel"');
         expect(tagManager).toContain('variant="swatch"');
-        expect(tagManager).toContain('variant="destructiveSoftNeutral"');
+        expect(tagManager).toContain('variant="recordingTagError"');
+        expect(tagManager).toContain('variant="recordingTagDeleteConfirm"');
+        expect(tagManager).toContain('density="recordingTagError"');
+        expect(tagManager).toContain('density="recordingTagDeleteConfirm"');
+        expect(tagManager).toContain('layout="recordingTagInline"');
+        expect(tagManager).toContain('size="recordingTagColorPicker"');
+        expect(tagManager).toContain('size="recordingTagIconPicker"');
         expect(tagManager).toContain('size="icon-compact"');
         expect(tagManager).toContain('size="control-sm"');
         expect(tagManager).toContain('size="pill-sm"');
@@ -6382,15 +6397,54 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).not.toContain("--recording-tag-swatch-color");
         expect(tagManager).not.toContain("--toggle-swatch-color");
         expect(tagManager).not.toContain("bg-white");
-        expect(tagManager).toContain(
+        expect(cardPrimitive).toContain("recordingTagManagerPanel:");
+        expect(cardPrimitive).toContain(
+            "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0",
+        );
+        expect(cardPrimitive).toContain("recordingTagToggleNote:");
+        expect(emptyPrimitive).toContain("recordingTagEmptyState:");
+        expect(inputGroupPrimitive).toContain("recordingTagCreateRow:");
+        expect(inputGroupPrimitive).toContain("recordingTagNameInput:");
+        expect(fieldPrimitive).toContain("recordingTagPickerFrame:");
+        expect(fieldPrimitive).toContain("recordingTagPickerLabel:");
+        expect(fieldPrimitive).toContain("recordingTagSectionLabel:");
+        expect(alertPrimitive).toContain("recordingTagError:");
+        expect(alertPrimitive).toContain("recordingTagDeleteConfirm:");
+        expect(tagManager).not.toContain(
             'className="max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
         );
         expect(tagManager).toMatch(
-            /<InputGroup[\s\S]*variant="compact"[\s\S]*data-sot-part="create-row"/,
+            /<InputGroup[\s\S]*variant="recordingTagCreateRow"[\s\S]*data-sot-part="create-row"/,
         );
         expect(tagManager).toMatch(
-            /<InputGroupInput[\s\S]*variant="compact"[\s\S]*data-sot-control="recording-tag-name"/,
+            /<InputGroupInput[\s\S]*variant="recordingTagNameInput"[\s\S]*data-sot-control="recording-tag-name"/,
         );
+        for (const retiredRecordingTagShellToken of [
+            'variant="popover"',
+            'variant="popoverCompact"',
+            '"popoverCreate"',
+            '"popoverDelete"',
+            '"popoverDefault"',
+            '"popoverEmpty"',
+            '"popoverSaving"',
+            '"popoverTight"',
+            '"popoverCompact"',
+            'variant="popoverNote"',
+            'variant="pickerFrame"',
+            'variant="picker"',
+            'variant="section"',
+            'variant="sectionLabel"',
+            'variant="destructiveSoft"',
+            'variant="destructiveSoftNeutral"',
+            'variant="compact"',
+            'density="compact"',
+            'density="comfortable"',
+            'layout="inline"',
+            'size="colorPicker"',
+            'size="iconPicker"',
+        ]) {
+            expect(tagManager).not.toContain(retiredRecordingTagShellToken);
+        }
         const tagManagerInlineCreateButton = extractElementSlice(
             tagManager,
             'aria-label="添加"',
@@ -6477,14 +6531,16 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManagerEmpty).toContain('data-sot-part="empty"');
         expect(tagManagerEmpty).toContain('data-sot-state="empty"');
-        expect(tagManagerEmpty).toContain('variant="popover"');
-        expect(tagManagerEmpty).toContain('<EmptyHeader variant="popover">');
+        expect(tagManagerEmpty).toContain('variant="recordingTagEmptyState"');
         expect(tagManagerEmpty).toContain(
-            '<EmptyTitle\n                                variant="popover"\n                                data-sot-part="empty-message"',
+            '<EmptyHeader variant="recordingTagEmptyState">',
+        );
+        expect(tagManagerEmpty).toContain(
+            '<EmptyTitle\n                                variant="recordingTagEmptyState"\n                                data-sot-part="empty-message"',
         );
         expect(tagManagerEmpty).toContain("还没有任何标签");
         expect(tagManagerEmpty).toContain(
-            '<EmptyDescription\n                                variant="popover"\n                                data-sot-part="empty-description"',
+            '<EmptyDescription\n                                variant="recordingTagEmptyState"\n                                data-sot-part="empty-description"',
         );
         expect(tagManagerEmpty).toContain("在下方为这条录音创建第一个标签。");
         expect(tagManagerEmpty).not.toContain(

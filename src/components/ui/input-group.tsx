@@ -11,7 +11,12 @@ type InputGroupAddonAlign =
     | "block-start"
     | "block-end";
 
-type InputGroupVariant = "default" | "compact" | "librarySearchInputRow";
+type InputGroupVariant =
+    | "default"
+    | "compact"
+    | "librarySearchInputRow"
+    | "recordingTagCreateRow"
+    | "recordingTagNameInput";
 type InputGroupButtonSize =
     | "xs"
     | "sm"
@@ -30,6 +35,10 @@ const inputGroupVariantClassNames: Record<InputGroupVariant, string> = {
     compact: "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
     librarySearchInputRow:
         "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0",
+    recordingTagCreateRow:
+        "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
+    recordingTagNameInput:
+        "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
 };
 
 const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
@@ -38,6 +47,10 @@ const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
         "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
     librarySearchInputRow:
         "h-8 px-1 text-sm font-medium md:text-sm",
+    recordingTagCreateRow:
+        "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
+    recordingTagNameInput:
+        "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
 };
 
 const inputGroupButtonVariantClassNames: Partial<
@@ -85,9 +98,9 @@ function inputGroupAddonClassName({
     return cn(
         "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius-md)-5px)] [&>svg:not([class*='size-'])]:size-4",
         align === "inline-start" &&
-            "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem] group-data-[variant=compact]/input-group:pl-0 group-data-[variant=compact]/input-group:has-[>button]:ml-0 group-data-[variant=compact]/input-group:has-[>kbd]:ml-0",
+            "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem] group-data-[variant=compact]/input-group:pl-0 group-data-[variant=compact]/input-group:has-[>button]:ml-0 group-data-[variant=compact]/input-group:has-[>kbd]:ml-0 group-data-[variant=recordingTagCreateRow]/input-group:pl-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>button]:ml-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>kbd]:ml-0",
         align === "inline-end" &&
-            "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem] group-data-[variant=compact]/input-group:pr-0 group-data-[variant=compact]/input-group:has-[>button]:mr-0 group-data-[variant=compact]/input-group:has-[>kbd]:mr-0",
+            "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem] group-data-[variant=compact]/input-group:pr-0 group-data-[variant=compact]/input-group:has-[>button]:mr-0 group-data-[variant=compact]/input-group:has-[>kbd]:mr-0 group-data-[variant=recordingTagCreateRow]/input-group:pr-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>button]:mr-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>kbd]:mr-0",
         "group-data-[variant=librarySearchInputRow]/input-group:p-0 group-data-[variant=librarySearchInputRow]/input-group:has-[>button]:m-0",
         align === "block-start" &&
             "order-first w-full justify-start px-3 pt-3 [.border-b]:pb-3",

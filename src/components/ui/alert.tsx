@@ -10,6 +10,8 @@ type AlertVariant =
     | "statusError"
     | "librarySearchError"
     | "playerNoAudio"
+    | "recordingTagDeleteConfirm"
+    | "recordingTagError"
     | "sourceReportError"
     | "speakerReviewError"
     | "systemBanner"
@@ -21,6 +23,8 @@ type AlertDensity =
     | "comfortable"
     | "librarySearchError"
     | "playerNoAudio"
+    | "recordingTagDeleteConfirm"
+    | "recordingTagError"
     | "speakerReviewError"
     | "systemBanner"
     | "aiRenamePreview";
@@ -29,6 +33,7 @@ type AlertLayout =
     | "inline"
     | "librarySearchError"
     | "playerNoAudio"
+    | "recordingTagInline"
     | "speakerReviewError"
     | "systemBanner"
     | "aiRenamePreview";
@@ -43,6 +48,8 @@ type AlertDescriptionDensity =
     | "compact"
     | "comfortable"
     | "playerNoAudio"
+    | "recordingTagDeleteConfirm"
+    | "recordingTagError"
     | "speakerReviewError"
     | "systemBanner"
     | "aiRenamePreview";
@@ -61,6 +68,10 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-0 bg-transparent text-[var(--signal-danger)] shadow-none *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     playerNoAudio:
         "border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-tertiary)]",
+    recordingTagDeleteConfirm:
+        "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
+    recordingTagError:
+        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     sourceReportError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     speakerReviewError:
@@ -84,6 +95,10 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "px-4 py-4 text-center text-sm",
     playerNoAudio:
         "mb-3 rounded-[10px] px-3 py-2.5 text-[12.5px] leading-normal",
+    recordingTagDeleteConfirm:
+        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+    recordingTagError:
+        "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     speakerReviewError:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
     systemBanner:
@@ -100,6 +115,7 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
         "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
     playerNoAudio:
         "grid w-full grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px [&_[data-icon=inline-start]]:col-start-1 [&_[data-icon=inline-start]]:row-span-2 [&_[data-icon=inline-start]]:inline-grid [&_[data-icon=inline-start]]:size-[26px] [&_[data-icon=inline-start]]:place-self-center [&_[data-icon=inline-start]]:place-items-center [&_[data-icon=inline-start]]:rounded-[50%] [&_[data-icon=inline-start]]:bg-[var(--system-banner-offline-icon-bg)] [&_[data-icon=inline-start]]:text-[var(--signal-warning)] [&_[data-icon=inline-start]_svg]:size-[14px] [&_[data-player-no-audio-text]]:col-start-2 [&_[data-player-no-audio-text]]:flex [&_[data-player-no-audio-text]]:min-w-0 [&_[data-player-no-audio-text]]:flex-col [&_[data-player-no-audio-text]]:gap-px",
+    recordingTagInline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
     speakerReviewError:
         "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
     systemBanner:
@@ -131,6 +147,10 @@ const alertDescriptionDensityClassNames: Record<
         "block text-[13px] leading-normal text-current [&_strong]:font-bold",
     playerNoAudio:
         "col-start-2 block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
+    recordingTagDeleteConfirm:
+        "block text-[13px] leading-normal text-current [&_strong]:font-bold",
+    recordingTagError:
+        "flex items-center gap-2 text-[12px] leading-[1.4] font-medium text-current [&_p]:leading-[1.4]",
     speakerReviewError:
         "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal",
     systemBanner:
