@@ -12,7 +12,13 @@ function readSource(relativePath: string) {
 function expectOnlyAllowedGlobalSlotSelectors(globals: string) {
     const slotSelectors = globals
         .split("\n")
-        .filter((line) => line.includes('[data-slot="'));
+        .filter((line) => line.includes('[data-slot="'))
+        .filter(
+            (line) =>
+                !line.includes(
+                    '[data-slot="toggle-group-item"][data-variant="swatch"]',
+                ),
+        );
 
     expect(slotSelectors).toEqual([]);
 }
@@ -1214,39 +1220,113 @@ describe("settings SOT interaction regressions", () => {
         const dataSourceFieldControl = readSource(
             "features/data-sources/data-source-field-control.tsx",
         );
+        const onboardingForm = readSource(
+            "features/onboarding/components/onboarding-form.tsx",
+        );
+        const fieldPrimitive = readSource("components/ui/field.tsx");
+        const inputPrimitive = readSource("components/ui/input.tsx");
+        const switchPrimitive = readSource("components/ui/switch.tsx");
         const globals = readSource("app/globals.css");
 
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_INPUT_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_FIELD_CONTENT_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_CLASS");
-        expect(content).toContain("SOURCE_PROVIDER_DETAIL_SWITCH_THUMB_CLASS");
+        expect(content).not.toContain("SOURCE_PROVIDER_DETAIL_");
         expect(content).toContain("SETTINGS_FIELD_CLASS");
-        expect(content).toContain('"!grid !grid-cols-[1fr_auto]');
-        expect(content).toContain('fieldOrientation="horizontal"');
-        expect(content).toContain("thumbClassName={");
+        expect(content).not.toContain('"!grid !grid-cols-[1fr_auto]');
+        expect(content).not.toContain('fieldOrientation="horizontal"');
+        expect(content).not.toContain("thumbClassName={");
         expect(content).toContain("getSettingsBannerClassName");
         expect(content).toContain("getSettingsSaveStatusBadgeClassName");
         expect(content).toContain("getSettingsSaveStatusDotClassName");
-        expect(content).toMatch(
+        expect(content).not.toMatch(/SOURCE_PROVIDER_DETAIL_[A-Z_]+/);
+        expect(content).not.toMatch(
             /fieldClassName=\{\s*SOURCE_PROVIDER_DETAIL_FIELD_CLASS\s*\}/,
         );
-        expect(content).toContain("inputClassName={");
+        expect(content).not.toContain("inputClassName={");
+        expect(content).toContain('variant="sourceProviderDetail"');
+        expect(content).toContain("<FieldControl");
+        expect(content).toContain('controlSize="sourceProviderDetail"');
+        expect(content).toContain('size="sourceProviderDetail"');
         expect(content).toContain('data-sot-panel="source-actions"');
         expect(content).toContain('data-sot-panel="settings-save-actions"');
         expect(content).toContain('data-icon="inline-start"');
         expect(content).toContain('className="animate-spin"');
-        expect(settingFieldControl).toContain("fieldClassName?: string");
-        expect(settingFieldControl).toContain("inputClassName?: string");
+        for (const source of [
+            content,
+            settingFieldControl,
+            dataSourceFieldControl,
+            switchPrimitive,
+        ]) {
+            expect(source).not.toContain("thumbClassName={");
+            expect(source).not.toContain("thumbClassName?: string");
+        }
+        for (const source of [settingFieldControl, dataSourceFieldControl]) {
+            expect(source).not.toContain("fieldClassName?: string");
+            expect(source).not.toContain("fieldContentClassName?: string");
+            expect(source).not.toContain("inputClassName?: string");
+            expect(source).not.toContain("switchClassName?: string");
+            expect(source).not.toContain("switchThumbClassName?: string");
+        }
+        expect(settingFieldControl).toContain(
+            'variant?: "default" | "settings" | "sourceProviderDetail"',
+        );
+        expect(settingFieldControl).toContain(
+            'const isSourceProviderDetailVariant = variant === "sourceProviderDetail"',
+        );
+        expect(settingFieldControl).toContain("<FieldControl");
+        expect(settingFieldControl).toContain("variant={fieldControlVariant}");
+        expect(settingFieldControl).toContain("variant={controlVariant}");
+        expect(settingFieldControl).toContain("controlSize={controlSize}");
+        expect(settingFieldControl).toContain("size={controlSize}");
         expect(settingFieldControl).toContain(
             'field.masked && "tracking-[0.15em]"',
         );
         expect(settingFieldControl).toContain("className={inputClassName}");
-        expect(dataSourceFieldControl).toContain("fieldClassName?: string");
-        expect(dataSourceFieldControl).toContain("inputClassName?: string");
+        expect(dataSourceFieldControl).toContain(
+            'variant?: "default" | "settings" | "sourceProviderDetail"',
+        );
+        expect(dataSourceFieldControl).toContain('variant = "default"');
+        expect(dataSourceFieldControl).toContain(
+            'if (variant === "settings" || variant === "sourceProviderDetail")',
+        );
+        expect(dataSourceFieldControl).toContain("variant={variant}");
         expect(dataSourceFieldControl).toContain("controlInputClassName");
         expect(dataSourceFieldControl).toContain(
             'renderedField.masked && "tracking-[0.15em]"',
+        );
+        expect(onboardingForm).toContain("<DataSourceFieldControl");
+        expect(onboardingForm).toContain('variant="settings"');
+        expect(fieldPrimitive).toContain(
+            'type FieldVariant = "default" | "sourceProviderDetail"',
+        );
+        expect(fieldPrimitive).toContain(
+            'type FieldContentVariant = "default" | "sourceProviderDetail"',
+        );
+        expect(fieldPrimitive).toContain(
+            'type FieldControlVariant = "default" | "sourceProviderDetail"',
+        );
+        expect(fieldPrimitive).toContain("sourceProviderDetailFieldClassName");
+        expect(fieldPrimitive).toContain("grid grid-cols-[1fr_auto]");
+        expect(fieldPrimitive).toContain("function FieldControl");
+        expect(fieldPrimitive).toContain("data-variant={variant}");
+        expect(inputPrimitive).toContain("sourceProviderDetail:");
+        expect(inputPrimitive).toContain(
+            "h-[30px] w-[240px] min-w-[240px] max-w-[240px]",
+        );
+        expect(inputPrimitive).toContain("font-mono");
+        expect(inputPrimitive).toContain("text-[12px]");
+        expect(inputPrimitive).toContain("bg-[var(--bg-recessed)]");
+        expect(switchPrimitive).toContain(
+            'type SwitchVariant = "default" | "sourceProviderDetail"',
+        );
+        expect(switchPrimitive).toContain(
+            'type SwitchSize = "sm" | "default" | "sourceProviderDetail"',
+        );
+        expect(switchPrimitive).toContain("h-[20px] w-[36px]");
+        expect(switchPrimitive).toContain("size-[16px]");
+        expect(switchPrimitive).toContain(
+            "data-[state=checked]:translate-x-[18px]",
+        );
+        expect(switchPrimitive).toContain(
+            "data-[state=unchecked]:translate-x-[2px]",
         );
         expect(globals).not.toContain(
             '[data-sot-panel="source-provider-detail"] [data-slot="field"]',

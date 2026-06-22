@@ -3,6 +3,7 @@
 import {
     Field,
     FieldContent,
+    FieldControl,
     FieldDescription,
     FieldGroup,
     FieldLabel,
@@ -36,35 +37,21 @@ export interface SettingFieldDefinition {
 }
 
 interface SettingFieldControlProps {
-    controlClassName?: string;
     disabled?: boolean;
     field: SettingFieldDefinition;
-    fieldClassName?: string;
-    fieldContentClassName?: string;
-    fieldOrientation?: "vertical" | "horizontal" | "responsive";
     fieldId: string;
-    inputClassName?: string;
     onValueChange: (
         field: SettingFieldDefinition,
         value: string | boolean,
     ) => void;
-    switchClassName?: string;
-    switchThumbClassName?: string;
-    variant?: "default" | "settings";
+    variant?: "default" | "settings" | "sourceProviderDetail";
 }
 
 export function SettingFieldControl({
-    controlClassName,
     disabled = false,
     field,
-    fieldClassName: fieldClassNameProp,
-    fieldContentClassName,
-    fieldOrientation: fieldOrientationProp,
     fieldId,
-    inputClassName: inputClassNameProp,
     onValueChange,
-    switchClassName,
-    switchThumbClassName,
     variant = "default",
 }: SettingFieldControlProps) {
     const handleTextValueChange = (
@@ -76,21 +63,42 @@ export function SettingFieldControl({
     };
 
     const isSettingsVariant = variant === "settings";
+    const isSourceProviderDetailVariant = variant === "sourceProviderDetail";
     const fieldOrientation =
-        fieldOrientationProp ?? (isSettingsVariant ? "responsive" : "horizontal");
-    const fieldClassName = cn(
-        "border-b border-border py-3 last:border-b-0",
-        isSettingsVariant ? "gap-3 @md/field-group:gap-4" : "gap-[18px] py-2",
-        fieldClassNameProp,
-    );
-    const controlWrapClassName = cn(
-        "flex flex-none items-center gap-2",
-        isSettingsVariant && "min-w-0 @md/field-group:justify-end",
-        controlClassName,
-    );
+        isSettingsVariant || isSourceProviderDetailVariant
+            ? "responsive"
+            : "horizontal";
+    const fieldVariant = isSourceProviderDetailVariant
+        ? "sourceProviderDetail"
+        : "default";
+    const fieldClassName = isSourceProviderDetailVariant
+        ? undefined
+        : cn(
+              "border-b border-border py-3 last:border-b-0",
+              isSettingsVariant
+                  ? "gap-3 @md/field-group:gap-4"
+                  : "gap-[18px] py-2",
+          );
+    const fieldContentVariant = isSourceProviderDetailVariant
+        ? "sourceProviderDetail"
+        : "default";
+    const fieldContentClassName = isSourceProviderDetailVariant
+        ? undefined
+        : "min-w-0 gap-1";
+    const fieldControlVariant = isSourceProviderDetailVariant
+        ? "sourceProviderDetail"
+        : "default";
+    const fieldControlClassName = isSettingsVariant
+        ? "min-w-0 @md/field-group:justify-end"
+        : undefined;
+    const controlVariant = isSourceProviderDetailVariant
+        ? "sourceProviderDetail"
+        : "default";
+    const controlSize = isSourceProviderDetailVariant
+        ? "sourceProviderDetail"
+        : "default";
     const inputClassName = cn(
         isSettingsVariant && "min-w-60 max-w-full",
-        inputClassNameProp,
         field.masked && "tracking-[0.15em]",
         field.className,
     );
@@ -101,22 +109,27 @@ export function SettingFieldControl({
                 data-field-id={field.id}
                 data-disabled={disabled ? "true" : undefined}
                 orientation={fieldOrientation}
+                variant={fieldVariant}
                 className={fieldClassName}
             >
                 <FieldContent
-                    className={cn("min-w-0 gap-1", fieldContentClassName)}
+                    variant={fieldContentVariant}
+                    className={fieldContentClassName}
                 >
                     <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                     {field.description ? (
                         <FieldDescription>{field.description}</FieldDescription>
                     ) : null}
                 </FieldContent>
-                <div className={controlWrapClassName}>
+                <FieldControl
+                    variant={fieldControlVariant}
+                    className={fieldControlClassName}
+                >
                     {field.kind === "switch" ? (
                         <Switch
                             id={fieldId}
-                            className={switchClassName}
-                            thumbClassName={switchThumbClassName}
+                            variant={controlVariant}
+                            size={controlSize}
                             checked={Boolean(field.value)}
                             onCheckedChange={(checked) =>
                                 onValueChange(field, checked)
@@ -151,6 +164,8 @@ export function SettingFieldControl({
                     ) : (
                         <Input
                             id={fieldId}
+                            variant={controlVariant}
+                            controlSize={controlSize}
                             type={
                                 field.sensitive
                                     ? "password"
@@ -184,7 +199,7 @@ export function SettingFieldControl({
                             data-sot-mask={field.masked ? "true" : undefined}
                         />
                     )}
-                </div>
+                </FieldControl>
             </Field>
         </FieldGroup>
     );

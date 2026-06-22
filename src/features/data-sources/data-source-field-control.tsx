@@ -3,6 +3,7 @@ import type React from "react";
 import {
     Field,
     FieldContent,
+    FieldControl,
     FieldDescription,
     FieldLabel,
 } from "@/components/ui/field";
@@ -27,35 +28,21 @@ function isSensitiveTextField(field: DataSourceFormField) {
 }
 
 interface DataSourceFieldControlProps {
-    controlClassName?: string;
     disabled?: boolean;
     field: DataSourceFormField;
-    fieldClassName?: string;
-    fieldContentClassName?: string;
-    fieldOrientation?: "vertical" | "horizontal" | "responsive";
     fieldId: string;
-    inputClassName?: string;
     onValueChange: (
         field: DataSourceFormField,
         value: string | boolean,
     ) => void;
-    switchClassName?: string;
-    switchThumbClassName?: string;
-    variant?: "default" | "settings";
+    variant?: "default" | "settings" | "sourceProviderDetail";
 }
 
 export function DataSourceFieldControl({
-    controlClassName,
     disabled = false,
     field,
-    fieldClassName,
-    fieldContentClassName,
-    fieldOrientation,
     fieldId,
-    inputClassName,
     onValueChange,
-    switchClassName,
-    switchThumbClassName,
     variant = "default",
 }: DataSourceFieldControlProps) {
     const readOnlyMaskedDisplay =
@@ -69,28 +56,20 @@ export function DataSourceFieldControl({
         sensitive: sensitiveTextField,
     };
     const controlInputClassName = cn(
-        inputClassName,
         renderedField.masked && "tracking-[0.15em]",
         renderedField.className,
     );
 
-    if (variant === "settings") {
+    if (variant === "settings" || variant === "sourceProviderDetail") {
         return (
             <SettingFieldControl
-                controlClassName={controlClassName}
                 disabled={disabled}
                 field={renderedField}
-                fieldClassName={fieldClassName}
-                fieldContentClassName={fieldContentClassName}
-                fieldOrientation={fieldOrientation}
                 fieldId={fieldId}
-                inputClassName={inputClassName}
                 onValueChange={(_nextField, value) =>
                     onValueChange(field, value)
                 }
-                switchClassName={switchClassName}
-                switchThumbClassName={switchThumbClassName}
-                variant="settings"
+                variant={variant}
             />
         );
     }
@@ -108,25 +87,17 @@ export function DataSourceFieldControl({
             data-disabled={disabled ? "true" : undefined}
             data-field-id={field.id}
             orientation="horizontal"
-            className={fieldClassName}
         >
-            <FieldContent className={fieldContentClassName}>
+            <FieldContent>
                 <FieldLabel htmlFor={fieldId}>{field.label}</FieldLabel>
                 {field.description ? (
                     <FieldDescription>{field.description}</FieldDescription>
                 ) : null}
             </FieldContent>
-            <div
-                className={cn(
-                    "flex flex-none items-center gap-2",
-                    controlClassName,
-                )}
-            >
+            <FieldControl>
                 {field.kind === "switch" ? (
                     <Switch
                         id={fieldId}
-                        className={switchClassName}
-                        thumbClassName={switchThumbClassName}
                         checked={Boolean(field.value)}
                         onCheckedChange={(checked) =>
                             onValueChange(field, checked)
@@ -190,7 +161,7 @@ export function DataSourceFieldControl({
                         }
                     />
                 )}
-            </div>
+            </FieldControl>
         </Field>
     );
 }

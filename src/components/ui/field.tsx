@@ -5,6 +5,9 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
+type FieldVariant = "default" | "sourceProviderDetail";
+type FieldContentVariant = "default" | "sourceProviderDetail";
+type FieldControlVariant = "default" | "sourceProviderDetail";
 type FieldSetVariant = "default" | "pickerFrame" | "section";
 type FieldSetSize = "default" | "colorPicker" | "iconPicker";
 type FieldLegendVariant = "legend" | "label" | "picker" | "sectionLabel";
@@ -28,6 +31,20 @@ const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
         "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
     sectionLabel:
         "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
+};
+
+const sourceProviderDetailFieldClassName =
+    "grid grid-cols-[1fr_auto] items-center gap-[18px] border-b border-[var(--line-hairline)] py-[12px] last:border-b-0";
+
+const fieldContentVariantClassNames: Record<FieldContentVariant, string> = {
+    default: "gap-1.5 leading-snug",
+    sourceProviderDetail:
+        "min-w-0 gap-0 [&_[data-slot=field-label]]:mb-[2px] [&_[data-slot=field-label]]:font-sans [&_[data-slot=field-label]]:text-[13px] [&_[data-slot=field-label]]:font-semibold [&_[data-slot=field-label]]:leading-[normal] [&_[data-slot=field-label]]:text-[var(--fg-primary)] [&_[data-slot=field-description]]:mt-0 [&_[data-slot=field-description]]:font-sans [&_[data-slot=field-description]]:text-[12px] [&_[data-slot=field-description]]:font-normal [&_[data-slot=field-description]]:leading-[1.5] [&_[data-slot=field-description]]:text-[var(--fg-tertiary)]",
+};
+
+const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
+    default: "flex flex-none items-center gap-2",
+    sourceProviderDetail: "flex flex-none items-center justify-end gap-[10px]",
 };
 
 function FieldSet({
@@ -85,19 +102,26 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
 
 function fieldClassName({
     orientation,
+    variant,
     className,
 }: {
     orientation: FieldOrientation;
+    variant: FieldVariant;
     className?: string;
 }) {
     return cn(
-        "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
-        orientation === "vertical" &&
-            "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
-        orientation === "horizontal" &&
-            "flex-row items-center [&>[data-slot=field-label]]:flex-auto has-[>[data-slot=field-content]]:items-start",
-        orientation === "responsive" &&
-            "flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto",
+        "group/field w-full data-[invalid=true]:text-destructive",
+        variant === "sourceProviderDetail"
+            ? sourceProviderDetailFieldClassName
+            : [
+                  "flex gap-3",
+                  orientation === "vertical" &&
+                      "flex-col [&>*]:w-full [&>.sr-only]:w-auto",
+                  orientation === "horizontal" &&
+                      "flex-row items-center [&>[data-slot=field-label]]:flex-auto has-[>[data-slot=field-content]]:items-start",
+                  orientation === "responsive" &&
+                      "flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto",
+              ],
         className,
     );
 }
@@ -105,26 +129,52 @@ function fieldClassName({
 function Field({
     className,
     orientation = "vertical",
+    variant = "default",
     ...props
-}: React.ComponentProps<"div"> & { orientation?: FieldOrientation }) {
+}: React.ComponentProps<"div"> & {
+    orientation?: FieldOrientation;
+    variant?: FieldVariant;
+}) {
     return (
         <div
             data-slot="field"
             data-orientation={orientation}
-            className={fieldClassName({ orientation, className })}
+            data-variant={variant}
+            className={fieldClassName({ orientation, variant, className })}
             {...props}
         />
     );
 }
 
-function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
+function FieldContent({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & { variant?: FieldContentVariant }) {
     return (
         <div
             data-slot="field-content"
+            data-variant={variant}
             className={cn(
-                "group/field-content flex flex-1 flex-col gap-1.5 leading-snug",
+                "group/field-content flex flex-1 flex-col",
+                fieldContentVariantClassNames[variant],
                 className,
             )}
+            {...props}
+        />
+    );
+}
+
+function FieldControl({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & { variant?: FieldControlVariant }) {
+    return (
+        <div
+            data-slot="field-control"
+            data-variant={variant}
+            className={cn(fieldControlVariantClassNames[variant], className)}
             {...props}
         />
     );
@@ -238,5 +288,6 @@ export {
     FieldSeparator,
     FieldSet,
     FieldContent,
+    FieldControl,
     FieldTitle,
 };
