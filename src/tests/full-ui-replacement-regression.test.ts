@@ -1319,6 +1319,20 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
     '[data-sot-control="dismiss-retranscription-complete"][data-slot="button"]',
 ] as const;
 
+const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
+    "copy-local-transcript",
+    "copy-source-transcript",
+    "copy-source-report",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS = [
+    "refresh-source-report",
+    "retranscribe-recording",
+    "retry-retranscription",
+    "dismiss-retranscription-failed",
+    "dismiss-retranscription-complete",
+] as const;
+
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
@@ -1754,6 +1768,8 @@ describe("full UI replacement regression coverage", () => {
             "dashboardSource",
             "dashboardSync",
             "dashboardSourceAction",
+            "dashboardCopy",
+            "dashboardCompactAction",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
@@ -1804,11 +1820,24 @@ describe("full UI replacement regression coverage", () => {
             "dashboardSource",
             "dashboardSync",
             "dashboardSourceAction",
+            "dashboardCopy",
+            "dashboardCompactAction",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
         ]) {
             expect(buttonSizeBlock).toContain(`${dashboardSize}:`);
+        }
+        for (const dashboardTranscriptActionClass of [
+            "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
+            "data-[copy-state=ok]:bg-[var(--button-copy-success-bg)]",
+            "data-[copy-state=ok]:text-[var(--signal-success)]",
+            "data-[copy-state=err]:border-[var(--button-copy-danger-border)]",
+            "data-[copy-state=err]:text-[var(--signal-danger)]",
+            "data-[copy-state=err]:hover:bg-transparent",
+            "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        ]) {
+            expect(button).toContain(dashboardTranscriptActionClass);
         }
         expect(button).toContain("size-[36px]");
         expect(button).toContain("size-[30px]");
@@ -3439,8 +3468,37 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain("sotPlayerSeekRangeStyle");
         expect(workstation).not.toContain("sotPlayerSeekThumbStyle");
         expect(workstation).not.toContain("SotPlayerSliderTrackStyle");
-        expect(workstation).toContain("SOT_COPY_BUTTON_BASE_CLASS");
-        expect(workstation).toContain("SOT_COMPACT_GHOST_BUTTON_CLASS");
+        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain('variant="dashboardCopy"');
+            expect(buttonOpening).toContain('size="dashboardCopy"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain(
+                'variant="dashboardCompactAction"',
+            );
+            expect(buttonOpening).toContain('size="dashboardCompactAction"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const removed of [
+            "SOT_COPY_BUTTON_BASE_CLASS",
+            "SOT_COPY_SUCCESS_BUTTON_CLASS",
+            "SOT_COPY_DANGER_BUTTON_CLASS",
+            "SOT_COMPACT_GHOST_BUTTON_CLASS",
+            "getSotCopyButtonClass",
+        ]) {
+            expect(workstation).not.toContain(removed);
+        }
         expect(workstation).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );

@@ -21,6 +21,16 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractOpeningElement(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
+}
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -109,6 +119,20 @@ const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "recordingListTagFilterOption",
     "recordingListStateAction",
     "recordingListPagination",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
+    "copy-local-transcript",
+    "copy-source-transcript",
+    "copy-source-report",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS = [
+    "refresh-source-report",
+    "retranscribe-recording",
+    "retry-retranscription",
+    "dismiss-retranscription-failed",
+    "dismiss-retranscription-complete",
 ] as const;
 
 const OLD_UI_RE =
@@ -649,6 +673,8 @@ describe("dashboard SOT foundation", () => {
             "dashboardSource",
             "dashboardSync",
             "dashboardSourceAction",
+            "dashboardCopy",
+            "dashboardCompactAction",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
@@ -660,11 +686,23 @@ describe("dashboard SOT foundation", () => {
             "dashboardSource",
             "dashboardSync",
             "dashboardSourceAction",
+            "dashboardCopy",
+            "dashboardCompactAction",
             "dashboardDrawerTrigger",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
         ]) {
             expect(buttonSizeBlock).toContain(`${size}:`);
+        }
+        for (const copyStateClass of [
+            "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
+            "data-[copy-state=ok]:bg-[var(--button-copy-success-bg)]",
+            "data-[copy-state=ok]:text-[var(--signal-success)]",
+            "data-[copy-state=err]:border-[var(--button-copy-danger-border)]",
+            "data-[copy-state=err]:text-[var(--signal-danger)]",
+            "data-[copy-state=err]:hover:bg-transparent",
+        ]) {
+            expect(buttonVariantBlock).toContain(copyStateClass);
         }
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
@@ -1060,6 +1098,37 @@ describe("dashboard SOT foundation", () => {
             );
 
             expect(repaintBlocks).toEqual([]);
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain('variant="dashboardCopy"');
+            expect(buttonOpening).toContain('size="dashboardCopy"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain(
+                'variant="dashboardCompactAction"',
+            );
+            expect(buttonOpening).toContain('size="dashboardCompactAction"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const removed of [
+            "SOT_COPY_BUTTON_BASE_CLASS",
+            "SOT_COPY_SUCCESS_BUTTON_CLASS",
+            "SOT_COPY_DANGER_BUTTON_CLASS",
+            "SOT_COMPACT_GHOST_BUTTON_CLASS",
+            "getSotCopyButtonClass",
+        ]) {
+            expect(workstation).not.toContain(removed);
         }
         const sourceReportLoaded = extractBoundedSlice(
             workstation,

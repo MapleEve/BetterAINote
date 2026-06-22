@@ -284,19 +284,6 @@ function getSotSegmentedTabProps<T extends string>(
     };
 }
 
-const SOT_COPY_BUTTON_BASE_CLASS =
-    "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] leading-normal font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px]";
-const SOT_COPY_SUCCESS_BUTTON_CLASS = cn(
-    SOT_COPY_BUTTON_BASE_CLASS,
-    "border-[var(--button-copy-success-border)] bg-[var(--button-copy-success-bg)] text-[var(--signal-success)] hover:bg-[var(--button-copy-success-bg)] hover:text-[var(--signal-success)]",
-);
-const SOT_COPY_DANGER_BUTTON_CLASS = cn(
-    SOT_COPY_BUTTON_BASE_CLASS,
-    "border-[var(--button-copy-danger-border)] text-[var(--signal-danger)] hover:bg-transparent hover:text-[var(--signal-danger)]",
-);
-const SOT_COMPACT_GHOST_BUTTON_CLASS =
-    "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-[10px] dark:hover:bg-accent/50";
-
 type ActivityTone = "loading" | "error" | "warn" | "success" | "info";
 type ActivityItem = {
     id: string;
@@ -1264,12 +1251,6 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
             aria-hidden="true"
         />
     );
-}
-
-function getSotCopyButtonClass(state: "err" | "ok" | undefined) {
-    if (state === "err") return SOT_COPY_DANGER_BUTTON_CLASS;
-    if (state === "ok") return SOT_COPY_SUCCESS_BUTTON_CLASS;
-    return SOT_COPY_BUTTON_BASE_CLASS;
 }
 
 function SotTranscriptEmptyIcon() {
@@ -6520,14 +6501,8 @@ export function Workstation({
                                         </Badge>
                                     ) : null}
                                     <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className={getSotCopyButtonClass(
-                                            copyFeedback?.action ===
-                                                "local-transcript"
-                                                ? copyFeedback.state
-                                                : undefined,
-                                        )}
+                                        variant="dashboardCopy"
+                                        size="dashboardCopy"
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -6586,14 +6561,8 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className={getSotCopyButtonClass(
-                                            copyFeedback?.action ===
-                                                "source-transcript"
-                                                ? copyFeedback.state
-                                                : undefined,
-                                        )}
+                                        variant="dashboardCopy"
+                                        size="dashboardCopy"
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6655,14 +6624,8 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className={getSotCopyButtonClass(
-                                            copyFeedback?.action ===
-                                                "source-report"
-                                                ? copyFeedback.state
-                                                : undefined,
-                                        )}
+                                        variant="dashboardCopy"
+                                        size="dashboardCopy"
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={
@@ -6722,8 +6685,8 @@ export function Workstation({
                                     </Button>
                                     {detailTab === "source" ? (
                                         <Button
-                                            variant="ghost"
-                                            size="sm"
+                                            variant="dashboardCompactAction"
+                                            size="dashboardCompactAction"
                                             type="button"
                                             data-sot-control="refresh-source-report"
                                             data-sot-state={sourceReportState}
@@ -6753,8 +6716,8 @@ export function Workstation({
                                     </span>
                                     <Button
                                         id="retx-btn"
-                                        variant="ghost"
-                                        size="sm"
+                                        variant="dashboardCompactAction"
+                                        size="dashboardCompactAction"
                                         type="button"
                                         data-sot-control="retranscribe-recording"
                                         data-sot-state={dashboardRetxState}
@@ -6822,11 +6785,8 @@ export function Workstation({
                                     {dashboardRetxState === "failed" ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
-                                                }
+                                                variant="dashboardCompactAction"
+                                                size="dashboardCompactAction"
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -6837,11 +6797,8 @@ export function Workstation({
                                                 重试转写
                                             </Button>
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
-                                                }
+                                                variant="dashboardCompactAction"
+                                                size="dashboardCompactAction"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -6857,11 +6814,8 @@ export function Workstation({
                                       selectedRecording ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={
-                                                    SOT_COMPACT_GHOST_BUTTON_CLASS
-                                                }
+                                                variant="dashboardCompactAction"
+                                                size="dashboardCompactAction"
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""

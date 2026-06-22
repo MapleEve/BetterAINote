@@ -54,6 +54,10 @@ const buttonVariants = cva(
                     "bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
                 dashboardSourceAction:
                     "bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                dashboardCopy:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
+                dashboardCompactAction:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 dashboardDrawerTrigger:
                     "bg-transparent text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 dashboardSidebarCollapse:
@@ -112,6 +116,10 @@ const buttonVariants = cva(
                 dashboardSync: "size-[32px]",
                 dashboardSourceAction:
                     "h-[22px] gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-normal has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
+                dashboardCopy:
+                    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
+                dashboardCompactAction:
+                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold has-[>svg]:px-[10px]",
                 dashboardDrawerTrigger:
                     "h-auto w-auto rounded-md px-[6px] py-px",
                 dashboardSidebarCollapse: "size-[22px] rounded-full",
