@@ -2480,7 +2480,9 @@ describe("settings SOT interaction regressions", () => {
         expect(globals).toContain('[data-sot-panel="speaker-profiles"]');
         expect(globals).toContain('[data-sot-list="speaker-profile-rows"]');
         expect(globals).toContain('[data-sot-item="speaker-profile-row"]');
-        expect(globals).toContain('[data-sot-badge="speaker-state"]');
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-badge="speaker-state"]'),
+        ).toEqual([]);
         expect(speakers).not.toContain("data-profiles-state");
         expect(speakers).not.toContain("data-vs-state");
         expect(speakers).not.toMatch(/\bvs-profile/);

@@ -3691,13 +3691,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     font: 600 13px var(--font-sans);
     color: var(--fg-primary);
 }
-[data-sot-part="dashboard-activity-count"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
-    padding: 0;
-    border: 0;
-    background: transparent;
-}
 [data-sot-control="dashboard-activity-close"] {
     width: 26px;
     height: 26px;
@@ -4989,37 +4982,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     font: 500 11.5px / 1.4 var(--font-mono);
     letter-spacing: 0.02em;
 }
-[data-sot-badge="speaker-state"][data-sot-tone] {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: 999px;
-    /* Pill must not wrap — keeps the auto-track width predictable. */
-    white-space: nowrap;
-    flex: none;
-    font: 600 10.5px var(--font-sans);
-    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
-    color: var(--signal-success);
-    border: 1px solid color-mix(in srgb, var(--signal-success) 30%, transparent);
-}
-[data-sot-badge="speaker-state"][data-sot-tone="warning"] {
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: var(--signal-warning-strong);
-    border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
-}
-[data-sot-badge="speaker-state"][data-sot-tone="danger"] {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
-}
-[data-sot-badge="speaker-state"][data-sot-tone="neutral"] {
-    background: var(--bg-recessed);
-    color: var(--fg-secondary);
-    border-color: var(--line-hairline);
-}
-
 [data-sot-shortcuts] {
     grid-template-columns: 1fr auto;
     gap: 8px 14px;
