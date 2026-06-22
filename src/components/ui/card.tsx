@@ -10,6 +10,7 @@ const cardVariants = {
         "overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none",
     sourceReportMetric:
         "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none",
+    aiRenamePreview: "w-[min(360px,calc(100vw-32px))] gap-0",
 } as const;
 
 const cardHeaderVariants = {
@@ -21,6 +22,8 @@ const cardHeaderVariants = {
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
     popoverCompact:
         "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
+    aiRenamePreview:
+        "grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3 [&_[data-slot=card-head-copy]]:min-w-0",
 } as const;
 
 const cardTitleVariants = {
@@ -28,10 +31,14 @@ const cardTitleVariants = {
     detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate",
     popoverCompact:
         "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
+    aiRenamePreview:
+        "break-words text-xs font-semibold leading-none text-foreground",
 } as const;
 
 const cardContentVariants = {
     default: "px-6",
+    aiRenamePreview:
+        "flex min-h-20 flex-col px-4 py-4 [&_[data-slot=card-state]]:flex [&_[data-slot=card-state]]:flex-col [&_[data-slot=card-state]]:gap-2 [&_[data-slot=card-state-label]]:text-[10.5px] [&_[data-slot=card-state-label]]:font-semibold [&_[data-slot=card-state-label]]:uppercase [&_[data-slot=card-state-label]]:tracking-[0.08em] [&_[data-slot=card-state-label]]:text-muted-foreground [&_[data-slot=card-message]]:m-0 [&_[data-slot=card-message]]:break-words [&_[data-slot=card-message]]:text-sm [&_[data-slot=card-message]]:leading-6 [&_[data-slot=card-message]]:text-muted-foreground [&_[data-slot=card-hint]]:m-0 [&_[data-slot=card-hint]]:break-words [&_[data-slot=card-hint]]:text-sm [&_[data-slot=card-hint]]:leading-6 [&_[data-slot=card-hint]]:text-muted-foreground [&_[data-slot=card-review-row]]:my-1.5 [&_[data-slot=card-review-row]]:flex [&_[data-slot=card-review-row]]:flex-col [&_[data-slot=card-review-row]]:gap-1.5 [&_[data-slot=card-review-line]]:flex [&_[data-slot=card-review-line]]:min-w-0 [&_[data-slot=card-review-line]]:items-baseline [&_[data-slot=card-review-line]]:gap-2 [&_[data-slot=card-review-line]]:rounded-lg [&_[data-slot=card-review-line]]:border [&_[data-slot=card-review-line]]:border-border [&_[data-slot=card-review-line]]:bg-muted/50 [&_[data-slot=card-review-line]]:px-2.5 [&_[data-slot=card-review-line]]:py-2 [&_[data-slot=card-review-value]]:min-w-0 [&_[data-slot=card-review-value]]:break-words [&_[data-slot=card-review-value]]:text-sm [&_[data-slot=card-review-value]]:font-semibold [&_[data-slot=card-review-value]]:leading-relaxed [&_[data-review-tone=old]]:line-through [&_[data-review-tone=old]]:text-muted-foreground [&_[data-review-tone=new]]:text-foreground [&_[data-slot=card-preview-title]]:min-w-0 [&_[data-slot=card-preview-title]]:rounded-lg [&_[data-slot=card-preview-title]]:border [&_[data-slot=card-preview-title]]:border-border [&_[data-slot=card-preview-title]]:bg-muted/50 [&_[data-slot=card-preview-title]]:px-2.5 [&_[data-slot=card-preview-title]]:py-2 [&_[data-slot=card-preview-title]]:text-sm [&_[data-slot=card-preview-title]]:font-semibold [&_[data-slot=card-preview-title]]:leading-relaxed [&_[data-slot=card-preview-title]]:text-foreground",
     popoverCompact: "px-[14px] pb-[14px] pt-[12px]",
     popoverCreate: "px-[14px] pb-[14px] pt-[12px]",
     popoverDefault: "min-h-[234px] px-[14px] pb-[14px] pt-[12px]",
@@ -43,14 +50,22 @@ const cardContentVariants = {
 
 const cardFooterVariants = {
     default: "px-6 [.border-t]:pt-6",
+    aiRenamePreview: "gap-1.5 px-4 py-3",
     popoverCompact:
         "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
 } as const;
 
 const cardDescriptionVariants = {
     default: "text-sm text-muted-foreground",
+    aiRenamePreview:
+        "break-words text-xs font-medium leading-snug text-muted-foreground",
     popoverNote:
         "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
+} as const;
+
+const cardActionVariants = {
+    default: "",
+    aiRenamePreview: "shrink-0",
 } as const;
 
 function Card({
@@ -132,12 +147,20 @@ function CardDescription({
     );
 }
 
-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+function CardAction({
+    className,
+    variant = "default",
+    ...props
+}: React.ComponentProps<"div"> & {
+    variant?: keyof typeof cardActionVariants;
+}) {
     return (
         <div
             data-slot="card-action"
+            data-variant={variant}
             className={cn(
                 "col-start-2 row-span-2 row-start-1 flex items-center self-start justify-self-end leading-none",
+                cardActionVariants[variant],
                 className,
             )}
             {...props}

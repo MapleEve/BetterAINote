@@ -15,7 +15,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AiRenamePreviewCardProps {
     title: string;
@@ -92,7 +92,8 @@ export function AiRenamePreviewCard({
     return (
         <Card
             hasNoPadding
-            className={cn("w-[min(360px,calc(100vw-32px))] gap-0", className)}
+            variant="aiRenamePreview"
+            className={className}
             data-open="true"
             data-sot-panel="ai-rename-preview"
             data-sot-state={state}
@@ -100,18 +101,18 @@ export function AiRenamePreviewCard({
             aria-label={title}
         >
             <CardHeader
-                className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"
+                variant="aiRenamePreview"
                 data-sot-part="head"
             >
-                <div className="min-w-0" data-sot-part="head-copy">
+                <div data-slot="card-head-copy" data-sot-part="head-copy">
                     <CardTitle
-                        className="break-words text-xs font-semibold leading-none text-foreground"
+                        variant="aiRenamePreview"
                         data-sot-part="eyebrow"
                     >
                         {title}
                     </CardTitle>
                     <CardDescription
-                        className="break-words text-xs font-medium leading-snug text-muted-foreground"
+                        variant="aiRenamePreview"
                         data-sot-part="subtitle"
                     >
                         {subtitle ?? ""}
@@ -119,14 +120,13 @@ export function AiRenamePreviewCard({
                 </div>
                 {onCancel ? (
                     <CardAction
-                        className="shrink-0"
+                        variant="aiRenamePreview"
                         data-sot-part="head-action"
                     >
                         <Button
                             type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            className="rounded-md"
+                            variant="aiRenamePreviewClose"
+                            size="aiRenamePreviewClose"
                             onClick={onCancel}
                             disabled={isApplying}
                             aria-label={closeLabel ?? cancelLabel}
@@ -141,22 +141,22 @@ export function AiRenamePreviewCard({
             </CardHeader>
 
             <CardContent
-                className="flex min-h-20 flex-col px-4 py-4"
+                variant="aiRenamePreview"
                 data-sot-part="body"
             >
                 {state === "loading" ? (
                     <div
-                        className="flex flex-col gap-2"
+                        data-slot="card-state"
                         data-sot-part="state"
                         data-sot-state="loading"
                     >
-                        <span
-                            className="mx-auto mb-1 size-4 animate-spin rounded-full border-2 border-border border-t-current"
+                        <Spinner
+                            placement="centeredBlock"
                             data-sot-part="loading-spinner"
                             aria-hidden="true"
                         />
                         <p
-                            className="m-0 break-words text-sm leading-6 text-muted-foreground"
+                            data-slot="card-message"
                             data-sot-part="message"
                         >
                             {message ?? title}
@@ -164,41 +164,37 @@ export function AiRenamePreviewCard({
                     </div>
                 ) : isErrorState ? (
                     <Alert
-                        variant={state === "error" ? "destructive" : "default"}
-                        className="items-start gap-3"
+                        variant={
+                            state === "error"
+                                ? "aiRenamePreviewError"
+                                : "aiRenamePreviewUnavailable"
+                        }
+                        density="aiRenamePreview"
+                        layout="aiRenamePreview"
                         data-sot-part="state"
                         data-sot-state={state}
                     >
                         <span
-                            className={cn(
-                                "flex size-8 shrink-0 items-center justify-center rounded-full",
-                                state === "unavailable"
-                                    ? "bg-muted text-muted-foreground"
-                                    : "bg-destructive/10 text-destructive",
-                            )}
+                            data-slot="alert-icon"
                             data-sot-part="error-icon"
                             aria-hidden="true"
                         >
-                            <ErrorIcon
-                                width={14}
-                                height={14}
-                                aria-hidden="true"
-                            />
+                            <ErrorIcon aria-hidden="true" />
                         </span>
                         <AlertTitle className="sr-only">{title}</AlertTitle>
                         <AlertDescription
-                            className="grid min-w-0 gap-1 text-left"
+                            density="aiRenamePreview"
                             data-sot-part="state-description"
                         >
                             <p
-                                className="m-0 break-words text-sm font-medium leading-6 text-foreground"
+                                data-slot="alert-message"
                                 data-sot-part="message"
                             >
                                 {message ?? title}
                             </p>
                             {hint ? (
                                 <p
-                                    className="m-0 break-words text-sm leading-6 text-muted-foreground"
+                                    data-slot="alert-hint"
                                     data-sot-part="hint"
                                 >
                                     {hint}
@@ -208,35 +204,35 @@ export function AiRenamePreviewCard({
                     </Alert>
                 ) : (
                     <div
-                        className="flex flex-col gap-2"
+                        data-slot="card-state"
                         data-sot-part="state"
                         data-sot-state={state}
                     >
                         <div
-                            className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+                            data-slot="card-state-label"
                             data-sot-part="label"
                         >
                             {stateLabel}
                         </div>
                         {state === "review" ? (
                             <div
-                                className="my-1.5 flex flex-col gap-1.5"
+                                data-slot="card-review-row"
                                 data-sot-part="review-row"
                             >
                                 <div
-                                    className="flex min-w-0 items-baseline gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-2"
+                                    data-slot="card-review-line"
                                     data-sot-part="review-line"
                                 >
                                     <Badge
-                                        variant="outline"
-                                        className="min-w-[56px] justify-start uppercase tracking-[0.04em]"
+                                        variant="aiRenamePreviewOldTag"
                                         data-sot-part="review-tag"
                                         data-sot-review-field="old"
                                     >
                                         原标题
                                     </Badge>
                                     <span
-                                        className="min-w-0 break-words text-sm font-semibold leading-relaxed line-through text-muted-foreground"
+                                        data-slot="card-review-value"
+                                        data-review-tone="old"
                                         data-sot-part="review-old"
                                         data-sot-review-value="old"
                                     >
@@ -244,19 +240,19 @@ export function AiRenamePreviewCard({
                                     </span>
                                 </div>
                                 <div
-                                    className="flex min-w-0 items-baseline gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-2"
+                                    data-slot="card-review-line"
                                     data-sot-part="review-line"
                                 >
                                     <Badge
-                                        variant="secondary"
-                                        className="min-w-[56px] justify-start uppercase tracking-[0.04em]"
+                                        variant="aiRenamePreviewNewTag"
                                         data-sot-part="review-tag"
                                         data-sot-review-field="new"
                                     >
                                         新标题
                                     </Badge>
                                     <span
-                                        className="min-w-0 break-words text-sm font-semibold leading-relaxed text-foreground"
+                                        data-slot="card-review-value"
+                                        data-review-tone="new"
                                         data-sot-part="review-new"
                                         data-sot-review-value="new"
                                     >
@@ -266,7 +262,7 @@ export function AiRenamePreviewCard({
                             </div>
                         ) : filename ? (
                             <div
-                                className="min-w-0 rounded-lg border border-border bg-muted/50 px-2.5 py-2 text-sm font-semibold leading-relaxed text-foreground"
+                                data-slot="card-preview-title"
                                 data-sot-part="title"
                             >
                                 {filename}
@@ -274,7 +270,7 @@ export function AiRenamePreviewCard({
                         ) : null}
                         {message ? (
                             <p
-                                className="m-0 break-words text-sm leading-6 text-muted-foreground"
+                                data-slot="card-hint"
                                 data-sot-part="hint"
                             >
                                 {message}
@@ -288,15 +284,14 @@ export function AiRenamePreviewCard({
                 <>
                     <Separator className="mx-4" />
                     <CardFooter
-                        className="flex items-center gap-1.5 px-4 py-3"
+                        variant="aiRenamePreview"
                         data-sot-part="actions"
                     >
                         {showRegenerate ? (
                             <Button
                                 type="button"
-                                variant="ghost"
-                                size="xs"
-                                className="shrink-0"
+                                variant="aiRenamePreviewAction"
+                                size="aiRenamePreviewAction"
                                 onClick={onRegenerate}
                                 disabled={isBusy || state === "unavailable"}
                                 aria-busy={isRegenerating}
@@ -326,9 +321,8 @@ export function AiRenamePreviewCard({
                         {showCancel ? (
                             <Button
                                 type="button"
-                                variant="ghost"
-                                size="xs"
-                                className="shrink-0"
+                                variant="aiRenamePreviewAction"
+                                size="aiRenamePreviewAction"
                                 onClick={onCancel}
                                 disabled={isApplying}
                                 aria-label={cancelLabel}
@@ -342,9 +336,8 @@ export function AiRenamePreviewCard({
                         {showApply ? (
                             <Button
                                 type="button"
-                                variant="default"
-                                size="xs"
-                                className="shrink-0"
+                                variant="aiRenamePreviewPrimaryAction"
+                                size="aiRenamePreviewAction"
                                 onClick={onApply}
                                 disabled={isBusy || !canAct}
                                 aria-disabled={

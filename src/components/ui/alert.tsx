@@ -10,21 +10,30 @@ type AlertVariant =
     | "statusError"
     | "playerNoAudio"
     | "sourceReportError"
-    | "systemBanner";
+    | "systemBanner"
+    | "aiRenamePreviewError"
+    | "aiRenamePreviewUnavailable";
 type AlertDensity =
     | "default"
     | "compact"
     | "comfortable"
     | "playerNoAudio"
-    | "systemBanner";
-type AlertLayout = "default" | "inline" | "playerNoAudio" | "systemBanner";
+    | "systemBanner"
+    | "aiRenamePreview";
+type AlertLayout =
+    | "default"
+    | "inline"
+    | "playerNoAudio"
+    | "systemBanner"
+    | "aiRenamePreview";
 type AlertTitleDensity = "default" | "playerNoAudio" | "systemBanner";
 type AlertDescriptionDensity =
     | "default"
     | "compact"
     | "comfortable"
     | "playerNoAudio"
-    | "systemBanner";
+    | "systemBanner"
+    | "aiRenamePreview";
 
 const alertVariantClassNames: Record<AlertVariant, string> = {
     default: "bg-card text-card-foreground",
@@ -42,6 +51,10 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     systemBanner:
         "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] bg-[var(--system-banner-bg)] text-[var(--fg-primary)] [border-color:var(--system-banner-border)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
+    aiRenamePreviewError:
+        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
+    aiRenamePreviewUnavailable:
+        "bg-card text-card-foreground *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-muted [&_[data-slot=alert-icon]]:text-muted-foreground",
 };
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
@@ -55,6 +68,8 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "mb-3 rounded-[10px] px-3 py-2.5 text-[12.5px] leading-normal",
     systemBanner:
         "rounded-[var(--radius-md)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] shadow-[var(--shadow-xs)]",
+    aiRenamePreview:
+        "rounded-lg px-4 py-3 text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-8 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {
@@ -65,6 +80,7 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
         "grid w-full grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px [&_[data-icon=inline-start]]:col-start-1 [&_[data-icon=inline-start]]:row-span-2 [&_[data-icon=inline-start]]:inline-grid [&_[data-icon=inline-start]]:size-[26px] [&_[data-icon=inline-start]]:place-self-center [&_[data-icon=inline-start]]:place-items-center [&_[data-icon=inline-start]]:rounded-[50%] [&_[data-icon=inline-start]]:bg-[var(--system-banner-offline-icon-bg)] [&_[data-icon=inline-start]]:text-[var(--signal-warning)] [&_[data-icon=inline-start]_svg]:size-[14px] [&_[data-player-no-audio-text]]:col-start-2 [&_[data-player-no-audio-text]]:flex [&_[data-player-no-audio-text]]:min-w-0 [&_[data-player-no-audio-text]]:flex-col [&_[data-player-no-audio-text]]:gap-px",
     systemBanner:
         "flex w-full items-center gap-3 [&_[data-sot-part=system-banner-actions]]:flex [&_[data-sot-part=system-banner-actions]]:flex-none [&_[data-sot-part=system-banner-actions]]:gap-1.5 [&_[data-sot-part=system-banner-body]]:flex [&_[data-sot-part=system-banner-body]]:min-w-0 [&_[data-sot-part=system-banner-body]]:flex-1 [&_[data-sot-part=system-banner-body]]:flex-col [&_[data-sot-part=system-banner-body]]:gap-0.5 [&_[data-sot-part=system-banner-icon]]:inline-grid [&_[data-sot-part=system-banner-icon]]:size-7 [&_[data-sot-part=system-banner-icon]]:flex-none [&_[data-sot-part=system-banner-icon]]:place-items-center [&_[data-sot-part=system-banner-icon]]:rounded-[var(--radius-sm)] [&_[data-sot-part=system-banner-icon]]:bg-[var(--system-banner-icon-bg)] [&_[data-sot-part=system-banner-icon]]:text-[var(--system-banner-icon-color)] [&_[data-sot-part=system-banner-icon]_svg]:size-[14px] [&_[data-sot-part=system-banner-icon]_svg]:fill-none [&_[data-sot-part=system-banner-icon]_svg]:stroke-current [&_[data-sot-part=system-banner-icon]_svg]:stroke-2 [&_[data-sot-part=system-banner-icon]_svg]:[stroke-linecap:round] [&_[data-sot-part=system-banner-icon]_svg]:[stroke-linejoin:round]",
+    aiRenamePreview: "flex w-full items-start gap-3",
 };
 
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
@@ -90,6 +106,8 @@ const alertDescriptionDensityClassNames: Record<
         "col-start-2 block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
     systemBanner:
         "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-[var(--fg-tertiary)] data-[sot-format=mono]:font-mono",
+    aiRenamePreview:
+        "grid min-w-0 gap-1 text-left [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:text-sm [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-6 [&_[data-slot=alert-message]]:text-foreground [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:text-sm [&_[data-slot=alert-hint]]:leading-6 [&_[data-slot=alert-hint]]:text-muted-foreground",
 };
 
 function Alert({

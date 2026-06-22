@@ -16,6 +16,7 @@ const spinnerVariants = cva(
             placement: {
                 default: "",
                 inlineStart: "mr-[6px] align-[-2px]",
+                centeredBlock: "mx-auto mb-1",
             },
         },
         defaultVariants: {

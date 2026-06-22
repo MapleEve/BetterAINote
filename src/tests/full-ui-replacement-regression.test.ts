@@ -4207,11 +4207,13 @@ describe("full UI replacement regression coverage", () => {
         const aiRenamePreview = readSource(
             "features/recordings/components/ai-rename-preview-card.tsx",
         );
+        const alert = readSource("components/ui/alert.tsx");
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const spinnerPrimitive = readSource("components/ui/spinner.tsx");
         const globals = readSource("app/globals.css");
         const dashboardTranscriptShell = extractCardSlice(
             workstation,
@@ -4544,7 +4546,6 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain(
             'from "@/components/ui/separator";',
         );
-        expect(aiRenamePreview).toContain('import { cn } from "@/lib/utils";');
         expect(aiRenamePreview).toContain("<Card");
         expect(aiRenamePreview).toContain("<CardHeader");
         expect(aiRenamePreview).toContain("<CardContent");
@@ -4560,32 +4561,54 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toContain('data-sot-part="review-old"');
         expect(aiRenamePreview).toContain('data-sot-part="review-new"');
         expect(aiRenamePreview).toContain(
-            '"w-[min(360px,calc(100vw-32px))] gap-0"',
+            'import { Spinner } from "@/components/ui/spinner";',
         );
+        expect(aiRenamePreview).toContain('variant="aiRenamePreview"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewClose"');
+        expect(aiRenamePreview).toContain('size="aiRenamePreviewClose"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewAction"');
         expect(aiRenamePreview).toContain(
-            'className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"',
+            'variant="aiRenamePreviewPrimaryAction"',
         );
-        expect(aiRenamePreview).toContain(
-            'className="flex min-h-20 flex-col px-4 py-4"',
-        );
-        expect(aiRenamePreview).toContain(
-            'className="mx-auto mb-1 size-4 animate-spin rounded-full border-2 border-border border-t-current"',
-        );
-        expect(aiRenamePreview).toContain('size="icon-xs"');
-        expect(aiRenamePreview).toContain('size="xs"');
-        expect(aiRenamePreview).toContain('variant="ghost"');
-        expect(aiRenamePreview).toContain('variant="outline"');
-        expect(aiRenamePreview).toContain('variant="secondary"');
-        expect(aiRenamePreview).toContain('variant="default"');
-        expect(aiRenamePreview).toContain(
+        expect(aiRenamePreview).toContain('size="aiRenamePreviewAction"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewOldTag"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewNewTag"');
+        expect(aiRenamePreview).toContain('placement="centeredBlock"');
+        expect(aiRenamePreview).toContain('density="aiRenamePreview"');
+        expect(aiRenamePreview).toContain('layout="aiRenamePreview"');
+        expect(aiRenamePreview).toContain('"aiRenamePreviewError"');
+        expect(aiRenamePreview).toContain('"aiRenamePreviewUnavailable"');
+        expect(aiRenamePreview).toContain('data-slot="card-review-value"');
+        expect(aiRenamePreview).toContain('data-review-tone="old"');
+        expect(aiRenamePreview).toContain('data-review-tone="new"');
+        expect(aiRenamePreview).toContain('data-slot="alert-icon"');
+        expect(card).toContain("aiRenamePreview:");
+        expect(button).toContain("aiRenamePreviewClose:");
+        expect(button).toContain("aiRenamePreviewAction:");
+        expect(button).toContain("aiRenamePreviewPrimaryAction:");
+        expect(badge).toContain("aiRenamePreviewOldTag:");
+        expect(badge).toContain("aiRenamePreviewNewTag:");
+        expect(alert).toContain("aiRenamePreviewError:");
+        expect(alert).toContain("aiRenamePreviewUnavailable:");
+        expect(spinnerPrimitive).toContain("centeredBlock:");
+        for (const retiredAiRenameToken of [
+            'size="icon-xs"',
+            'size="xs"',
+            'variant="ghost"',
+            'variant="outline"',
+            'variant="secondary"',
+            'variant="default"',
             'variant={state === "error" ? "destructive" : "default"}',
-        );
-        expect(aiRenamePreview).toContain(
+            'className="grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3"',
+            'className="flex min-h-20 flex-col px-4 py-4"',
+            'className="mx-auto mb-1 size-4 animate-spin rounded-full border-2 border-border border-t-current"',
             'className="flex min-w-0 items-baseline gap-2 rounded-lg border border-border bg-muted/50 px-2.5 py-2"',
-        );
-        expect(aiRenamePreview).toContain(
             'className="flex items-center gap-1.5 px-4 py-3"',
-        );
+            "animate-spin rounded-full border-2 border-border border-t-current",
+            'import { cn } from "@/lib/utils";',
+        ]) {
+            expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
+        }
         expect(aiRenamePreview).not.toContain("!bg-");
         expect(aiRenamePreview).not.toContain("!text-");
         expect(aiRenamePreview).not.toContain("!font-");

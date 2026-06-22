@@ -1370,6 +1370,11 @@ describe("recording detail copy and title action UI regressions", () => {
         const dashboardWorkstation = readSource(
             "features/dashboard/workstation.tsx",
         );
+        const aiRenamePreview = readSource(
+            "features/recordings/components/ai-rename-preview-card.tsx",
+        );
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const spinnerPrimitive = readSource("components/ui/spinner.tsx");
 
         expect(detailWorkstation).toContain("SegmentedTabs");
         const sourceRecordSegmentedTabs = extractBoundedSlice(
@@ -1416,6 +1421,32 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("previewAutoRename");
         expect(dashboardWorkstation).toContain("applyAiRename");
         expect(dashboardWorkstation).toContain("/rename/auto");
+        expect(aiRenamePreview).toContain(
+            'data-sot-panel="ai-rename-preview"',
+        );
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewClose"');
+        expect(aiRenamePreview).toContain('size="aiRenamePreviewClose"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewAction"');
+        expect(aiRenamePreview).toContain(
+            'variant="aiRenamePreviewPrimaryAction"',
+        );
+        expect(aiRenamePreview).toContain('size="aiRenamePreviewAction"');
+        expect(aiRenamePreview).toContain('placement="centeredBlock"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewOldTag"');
+        expect(aiRenamePreview).toContain('variant="aiRenamePreviewNewTag"');
+        expect(buttonPrimitive).toContain("aiRenamePreviewPrimaryAction:");
+        expect(spinnerPrimitive).toContain("centeredBlock:");
+        for (const retiredAiRenameToken of [
+            'variant="ghost"',
+            'variant="default"',
+            'variant="outline"',
+            'variant="secondary"',
+            'size="icon-xs"',
+            'size="xs"',
+            "animate-spin rounded-full border-2 border-border border-t-current",
+        ]) {
+            expect(aiRenamePreview).not.toContain(retiredAiRenameToken);
+        }
         expect(dashboardWorkstation).toContain("aria-busy={");
         expect(dashboardWorkstation).toContain('aria-label="更多操作"');
         expect(dashboardWorkstation).toContain(
