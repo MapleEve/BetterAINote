@@ -2473,58 +2473,6 @@ body[data-time-style="abs"]
     border-color: var(--glass-border);
 }
 
-[data-recording-tag-chip][data-variant="outline"] {
-    --tag-c: var(--graphite-500);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: fit-content;
-    height: 22px;
-    padding: 0 9px 0 7px;
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--tag-c) 12%, var(--bg-elevated));
-    border: 1px solid color-mix(in srgb, var(--tag-c) 32%, transparent);
-    color: color-mix(in srgb, var(--tag-c) 72%, var(--fg-primary));
-    font: 600 11.5px var(--font-sans);
-    box-shadow: var(--shadow-xs);
-    white-space: nowrap;
-    transition: none;
-}
-[data-recording-tag-chip][data-variant="outline"] svg {
-    width: 11px;
-    height: 11px;
-    flex: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="blue"] {
-    --tag-c: var(--tag-blue);
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="purple"] {
-    --tag-c: var(--tag-violet);
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="red"] {
-    --tag-c: var(--tag-rose);
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="orange"] {
-    --tag-c: var(--tag-amber);
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="green"] {
-    --tag-c: var(--tag-green);
-}
-[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="slate"] {
-    --tag-c: var(--tag-slate);
-}
-[data-theme="dark"] [data-recording-tag-chip][data-variant="outline"] {
-    background: color-mix(in srgb, var(--tag-c) 18%, transparent);
-    color: color-mix(in srgb, var(--tag-c) 30%, var(--fg-primary));
-    border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
-}
-
 /* sidebar source nav with logo */
 [data-sot-list="dashboard-sources"] [data-sot-part="source-provider-error"] {
     padding: 6px 10px;

@@ -1007,6 +1007,9 @@ describe("dashboard SOT foundation", () => {
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const badgePrimitive = readSource("components/ui/badge.tsx");
+        const recordingTagVisuals = readSource(
+            "features/recordings/components/recording-tag-visuals.tsx",
+        );
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const globals = readSource("app/globals.css");
@@ -1165,11 +1168,33 @@ describe("dashboard SOT foundation", () => {
             'variant="recordingTagChip"',
         );
         expect(dashboardRecordingTagChip).not.toContain('variant="outline"');
+        const sharedRecordingTagChip = extractOpeningElement(
+            recordingTagVisuals,
+            "data-recording-tag-chip",
+            "Badge",
+        );
+        expect(sharedRecordingTagChip).toContain(
+            "data-sot-tag-color={tag.color}",
+        );
+        expect(sharedRecordingTagChip).toContain(
+            "data-sot-tag-icon={tag.icon}",
+        );
         expect(badgePrimitive).toContain("recordingTagChip:");
+        for (const tagColorRule of [
+            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)]",
+            "data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)]",
+            "data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)]",
+            "data-[sot-tag-color=green]:[--tag-c:var(--tag-green)]",
+            "data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)]",
+        ]) {
+            expect(badgePrimitive).toContain(tagColorRule);
+        }
+        expect(badgePrimitive).toContain("[&>svg]:stroke-current");
         expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="recordingTagChip"]',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="outline"]',
         );
         expect(workstation).toContain("<RecordingTagIconGlyph");

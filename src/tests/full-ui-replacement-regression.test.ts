@@ -3579,10 +3579,21 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardRecordingTagChip).not.toContain('variant="outline"');
         expect(sourceReportBadgePrimitive).toContain("recordingTagChip:");
+        for (const tagColorRule of [
+            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)]",
+            "data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)]",
+            "data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)]",
+            "data-[sot-tag-color=green]:[--tag-c:var(--tag-green)]",
+            "data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)]",
+        ]) {
+            expect(sourceReportBadgePrimitive).toContain(tagColorRule);
+        }
+        expect(sourceReportBadgePrimitive).toContain("[&>svg]:stroke-current");
         expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="recordingTagChip"]',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="outline"]',
         );
         expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
@@ -6733,6 +6744,21 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(recordingTagVisuals).toContain("<Badge");
         expect(recordingTagVisuals).toContain("data-recording-tag-chip");
+        const sharedRecordingTagChip = extractOpeningElement(
+            recordingTagVisuals,
+            "data-recording-tag-chip",
+            "Badge",
+        );
+        expect(sharedRecordingTagChip).toContain(
+            'variant="recordingTagChip"',
+        );
+        expect(sharedRecordingTagChip).toContain(
+            "data-sot-tag-color={tag.color}",
+        );
+        expect(sharedRecordingTagChip).toContain(
+            "data-sot-tag-icon={tag.icon}",
+        );
+        expect(sharedRecordingTagChip).not.toContain('variant="outline"');
         expect(recordingTagVisuals).not.toContain("utag c-");
         expect(recordingTagVisuals).not.toContain("mergeUserTagClassName");
         expect(sotPlayerPrimitives).toContain(

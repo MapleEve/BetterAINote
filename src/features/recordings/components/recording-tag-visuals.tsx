@@ -121,7 +121,7 @@ export function RecordingTagIconGlyph({
 export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
     return (
         <Badge
-            variant="outline"
+            variant="recordingTagChip"
             data-recording-tag-chip=""
             data-sot-tag-color={tag.color}
             data-sot-tag-icon={tag.icon}
