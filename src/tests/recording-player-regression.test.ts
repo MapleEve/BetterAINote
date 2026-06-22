@@ -93,6 +93,18 @@ function extractOpeningElement(source: string, marker: string, tagName: string) 
     return source.slice(start, end + 1);
 }
 
+function extractBoundedSlice(
+    source: string,
+    startMarker: string,
+    endMarker: string,
+) {
+    const start = source.indexOf(startMarker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(endMarker, start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end);
+}
+
 function extractSelfClosingElement(
     source: string,
     marker: string,
@@ -196,6 +208,10 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/components/ui/badge.tsx"),
             "utf8",
         );
+        const buttonPrimitive = readFileSync(
+            path.join(process.cwd(), "src/components/ui/button.tsx"),
+            "utf8",
+        );
         const sotPlayerPrimitives = readFileSync(
             path.join(
                 process.cwd(),
@@ -213,9 +229,19 @@ describe("dashboard recording player regressions", () => {
             'data-sot-control="player-status"',
             "Badge",
         );
+        const tagChipPrimitive = extractBoundedSlice(
+            sotPlayerPrimitives,
+            "export function SotPlayerTagChip",
+            "export type SotPlayerStatusTone",
+        );
 
         expect(badgePrimitive).toContain("playerSource:");
         expect(badgePrimitive).toContain("playerStatus:");
+        expect(badgePrimitive).toContain("playerTagChip:");
+        expect(badgePrimitive).toContain("playerTagOverflow:");
+        expect(buttonPrimitive).toContain("playerTagAdd:");
+        expect(buttonPrimitive).toContain("playerTagChip:");
+        expect(buttonPrimitive).toContain("playerTagOverflow:");
         expect(sotPlayerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
@@ -233,6 +259,14 @@ describe("dashboard recording player regressions", () => {
         expect(sotPlayerPrimitives).not.toContain(
             "SOT_PLAYER_STATUS_BADGE_CLASS",
         );
+        expect(tagChipPrimitive).toContain('variant="playerTagAdd"');
+        expect(tagChipPrimitive).toContain('size="playerTagAdd"');
+        expect(tagChipPrimitive).toContain('variant="playerTagChip"');
+        expect(tagChipPrimitive).toContain('size="playerTagChip"');
+        expect(tagChipPrimitive).toContain('variant="playerTagOverflow"');
+        expect(tagChipPrimitive).toContain('size="playerTagOverflow"');
+        expect(tagChipPrimitive).not.toContain('variant="outline"');
+        expect(tagChipPrimitive).not.toContain('size="xs"');
     });
 
     it("keeps SOT player controls without dropping tag or speed behavior", () => {

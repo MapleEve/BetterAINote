@@ -130,8 +130,8 @@ export function SotPlayerTagChip({
 
         return (
             <Button
-                variant="outline"
-                size="xs"
+                variant="playerTagAdd"
+                size="playerTagAdd"
                 aria-expanded={trigger ? state === "open" : undefined}
                 data-recording-tag-add=""
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
@@ -150,7 +150,7 @@ export function SotPlayerTagChip({
         return (
             <>
                 <Badge
-                    variant="outline"
+                    variant="playerTagChip"
                     data-recording-tag-chip=""
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
@@ -166,7 +166,7 @@ export function SotPlayerTagChip({
                 </Badge>
                 {count > 1 ? (
                     <Badge
-                        variant="outline"
+                        variant="playerTagOverflow"
                         data-recording-tag-overflow=""
                         data-sot-part="recording-tag-overflow"
                     >
@@ -180,8 +180,8 @@ export function SotPlayerTagChip({
     return (
         <>
             <Button
-                variant="outline"
-                size="xs"
+                variant="playerTagChip"
+                size="playerTagChip"
                 type="button"
                 data-tag-id={tag.id}
                 data-recording-tag-chip=""
@@ -200,8 +200,8 @@ export function SotPlayerTagChip({
             </Button>
             {count > 1 ? (
                 <Button
-                    variant="outline"
-                    size="xs"
+                    variant="playerTagOverflow"
+                    size="playerTagOverflow"
                     type="button"
                     data-recording-tag-overflow=""
                     data-sot-part="recording-tag-overflow"

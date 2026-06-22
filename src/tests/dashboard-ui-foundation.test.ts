@@ -634,6 +634,8 @@ describe("dashboard SOT foundation", () => {
         expect(player).not.toContain('size="player-sm"');
         expect(badge).toContain("playerSource:");
         expect(badge).toContain("playerStatus:");
+        expect(badge).toContain("playerTagChip:");
+        expect(badge).toContain("playerTagOverflow:");
         expect(player).toContain("<Badge");
         expect(statusBadge).toContain('variant="playerStatus"');
         expect(statusBadge).toContain('className="ml-auto"');
@@ -805,6 +807,14 @@ describe("dashboard SOT foundation", () => {
         }
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
             expect(buttonSizeBlock).toContain(`${size}:`);
+        }
+        for (const variant of [
+            "playerTagAdd",
+            "playerTagChip",
+            "playerTagOverflow",
+        ]) {
+            expect(buttonVariantBlock).toContain(`${variant}:`);
+            expect(buttonSizeBlock).toContain(`${variant}:`);
         }
 
         for (const removed of [

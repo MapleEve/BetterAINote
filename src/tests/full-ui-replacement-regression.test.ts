@@ -4719,6 +4719,8 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("source:");
         expect(badge).toContain("playerSource:");
         expect(badge).toContain("playerStatus:");
+        expect(badge).toContain("playerTagChip:");
+        expect(badge).toContain("playerTagOverflow:");
         expect(badge).not.toContain('"player-status":');
         expect(badge).toContain("sourceReportStatus:");
         expect(badge).toContain("transcriptionMeta:");
@@ -6248,6 +6250,11 @@ describe("full UI replacement regression coverage", () => {
             /\bCSSProperties\b|SOURCE_REPORT_LOADING_SKELETON_STYLES|style=\{|sk _is|_is-/,
         );
         expect(sourceReport).not.toMatch(SOURCE_REPORT_LEGACY_SURFACE_RE);
+        const sotPlayerTagChip = extractBoundedSlice(
+            sotPlayerPrimitives,
+            "export function SotPlayerTagChip",
+            "export type SotPlayerStatusTone",
+        );
         expect(sotPlayerPrimitives).toContain(
             'import { Button } from "@/components/ui/button";',
         );
@@ -6256,6 +6263,19 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
         expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
+        expect(button).toContain("playerTagAdd:");
+        expect(button).toContain("playerTagChip:");
+        expect(button).toContain("playerTagOverflow:");
+        expect(badge).toContain("playerTagChip:");
+        expect(badge).toContain("playerTagOverflow:");
+        expect(sotPlayerTagChip).toContain('variant="playerTagAdd"');
+        expect(sotPlayerTagChip).toContain('size="playerTagAdd"');
+        expect(sotPlayerTagChip).toContain('variant="playerTagChip"');
+        expect(sotPlayerTagChip).toContain('size="playerTagChip"');
+        expect(sotPlayerTagChip).toContain('variant="playerTagOverflow"');
+        expect(sotPlayerTagChip).toContain('size="playerTagOverflow"');
+        expect(sotPlayerTagChip).not.toContain('variant="outline"');
+        expect(sotPlayerTagChip).not.toContain('size="xs"');
         expect(sotPlayerPrimitives).toMatch(
             /<Plus\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
