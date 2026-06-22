@@ -1315,13 +1315,19 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
-    "copy-local-transcript",
     "copy-source-transcript",
     "copy-source-report",
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS = [
     "refresh-source-report",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS = [
+    "copy-local-transcript",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS = [
     "retranscribe-recording",
     "retry-retranscription",
     "dismiss-retranscription-failed",
@@ -3489,7 +3495,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain("sotPlayerSeekRangeStyle");
         expect(workstation).not.toContain("sotPlayerSeekThumbStyle");
         expect(workstation).not.toContain("SotPlayerSliderTrackStyle");
-        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+        for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
                 `data-sot-control="${control}"`,
@@ -3499,7 +3505,23 @@ describe("full UI replacement regression coverage", () => {
             expect(buttonOpening).toContain('size="dashboardCopy"');
             expect(buttonOpening).not.toContain("className=");
         }
-        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain(
+                'variant="sourceReportCopyAction"',
+            );
+            expect(buttonOpening).toContain('size="sourceReportCopyAction"');
+            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).not.toContain('variant="secondary"');
+            expect(buttonOpening).not.toContain('variant="destructive"');
+            expect(buttonOpening).not.toContain('size="sm"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
                 `data-sot-control="${control}"`,
@@ -3509,6 +3531,19 @@ describe("full UI replacement regression coverage", () => {
                 'variant="dashboardCompactAction"',
             );
             expect(buttonOpening).toContain('size="dashboardCompactAction"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain('variant="sourceReportAction"');
+            expect(buttonOpening).toContain('size="sourceReportAction"');
+            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).not.toContain('variant="default"');
+            expect(buttonOpening).not.toContain('size="sm"');
             expect(buttonOpening).not.toContain("className=");
         }
         for (const removed of [
@@ -4030,6 +4065,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportButtonPrimitive).toContain(
             "sourceReportGhostAction:",
         );
+        expect(sourceReportButtonPrimitive).toContain(
+            "sourceReportCopyAction:",
+        );
         expect(sourceReportActions).toContain('variant="sourceReportAction"');
         expect(sourceReportActions).toContain(
             'variant="sourceReportGhostAction"',
@@ -4075,6 +4113,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceReportEmptyActions).not.toContain('variant="default"');
         expect(sourceReportEmptyActions).not.toContain('variant="ghost"');
+        expect(sourceReportEmptyActions).not.toContain('size="sm"');
         expect(sourceReportEmptyActions).not.toContain('size="xs"');
         expect(sourceReportEmptyActions).toContain(
             'data-sot-control="refresh-source-report"',
@@ -4089,6 +4128,47 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(dashboardSourceReportLoaded).toContain(hook);
+        }
+        expect(dashboardSourceReportLoaded).toContain(
+            'variant="sourceReportStatus"',
+        );
+        for (const genericToken of [
+            'variant="outline"',
+            'variant="ghost"',
+            'variant="default"',
+            'size="sm"',
+        ]) {
+            expect(dashboardSourceReportLoaded).not.toContain(genericToken);
+        }
+        const dashboardSourceReportOpenAction = extractOpeningElement(
+            workstation,
+            'data-sot-control="open-source-record"',
+            "Button",
+        );
+        const dashboardSourceReportRepullAction = extractOpeningElement(
+            workstation,
+            'data-sot-control="repull-source"',
+            "Button",
+        );
+        expect(dashboardSourceReportOpenAction).toContain(
+            'variant="sourceReportAction"',
+        );
+        expect(dashboardSourceReportOpenAction).toContain(
+            'size="sourceReportAction"',
+        );
+        expect(dashboardSourceReportRepullAction).toContain(
+            'variant="sourceReportGhostAction"',
+        );
+        expect(dashboardSourceReportRepullAction).toContain(
+            'size="sourceReportAction"',
+        );
+        for (const action of [
+            dashboardSourceReportOpenAction,
+            dashboardSourceReportRepullAction,
+        ]) {
+            expect(action).not.toContain('variant="ghost"');
+            expect(action).not.toContain('variant="outline"');
+            expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
             expect(workstation).toContain(hook);
@@ -5987,6 +6067,13 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
         expect(badge).toContain("sourceReportStatus:");
         expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(sourceReport).toContain('variant="sourceReportError"');
+        expect(sourceReport).toContain(
+            '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
+        );
+        expect(sourceReport).toContain(
+            '"sourceReportCopyAction" satisfies ButtonProps["size"]',
+        );
         expect(skeletonPrimitive).toContain("sourceReportCard:");
         expect(skeletonPrimitive).toContain("sourceReportSegment:");
         expect(skeletonPrimitive).toContain("sourceReportCardCount:");
@@ -6007,6 +6094,26 @@ describe("full UI replacement regression coverage", () => {
             "size={sourceReportSegmentSkeletonSize(size)}",
         );
         expect(sourceReport).toContain("data-sot-source-report-header-actions");
+        for (const control of [
+            'data-sot-control="copy-source-transcript"',
+            'data-sot-control="copy-source-report"',
+        ]) {
+            const copyControl = extractOpeningElement(
+                sourceReport,
+                control,
+                "Button",
+            );
+            expect(copyControl).toContain(
+                "variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}",
+            );
+            expect(copyControl).toContain(
+                "size={SOURCE_REPORT_COPY_BUTTON_SIZE}",
+            );
+            expect(copyControl).not.toContain('variant="ghost"');
+            expect(copyControl).not.toContain('variant="secondary"');
+            expect(copyControl).not.toContain('variant="destructive"');
+            expect(copyControl).not.toContain('size="sm"');
+        }
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
         );

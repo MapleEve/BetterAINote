@@ -6567,8 +6567,8 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="dashboardCopy"
-                                        size="dashboardCopy"
+                                        variant="sourceReportCopyAction"
+                                        size="sourceReportCopyAction"
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6630,8 +6630,8 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="dashboardCopy"
-                                        size="dashboardCopy"
+                                        variant="sourceReportCopyAction"
+                                        size="sourceReportCopyAction"
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={
@@ -6691,8 +6691,8 @@ export function Workstation({
                                     </Button>
                                     {detailTab === "source" ? (
                                         <Button
-                                            variant="dashboardCompactAction"
-                                            size="dashboardCompactAction"
+                                            variant="sourceReportAction"
+                                            size="sourceReportAction"
                                             type="button"
                                             data-sot-control="refresh-source-report"
                                             data-sot-state={sourceReportState}
@@ -7043,6 +7043,7 @@ export function Workstation({
                                             }
                                         >
                                             <Alert
+                                                variant="sourceReportError"
                                                 data-sot-source-report-empty
                                                 data-sot-tone="err"
                                             >
@@ -7069,9 +7070,11 @@ export function Workstation({
                                                     data-sot-source-report-empty-actions
                                                 >
                                                     <Button
-                                                        variant="default"
-                                                        size="sm"
+                                                        variant="sourceReportPrimaryAction"
+                                                        size="sourceReportAction"
                                                         type="button"
+                                                        data-sot-control="refresh-source-report"
+                                                        data-sot-state="error"
                                                         onClick={() =>
                                                             void loadSourceReport()
                                                         }
@@ -7079,9 +7082,11 @@ export function Workstation({
                                                         重试
                                                     </Button>
                                                     <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        variant="sourceReportGhostAction"
+                                                        size="sourceReportAction"
                                                         type="button"
+                                                        data-sot-control="source-report-activity-log"
+                                                        data-sot-state="error"
                                                         onClick={() => {
                                                             setSearchOpen(
                                                                 false,
@@ -7106,7 +7111,7 @@ export function Workstation({
                                         >
                                             {!selectedRecording?.hasAudio ? (
                                                 <Badge
-                                                    variant="outline"
+                                                    variant="sourceReportStatus"
                                                     data-sot-badge="source-report-status"
                                                     data-sot-tone="warn"
                                                 >
@@ -7370,8 +7375,8 @@ export function Workstation({
                                                     data-sot-source-report-actions
                                                 >
                                                     <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        variant="sourceReportAction"
+                                                        size="sourceReportAction"
                                                         type="button"
                                                         disabled={
                                                             !sourceOpenUrl
@@ -7398,8 +7403,8 @@ export function Workstation({
                                                         )}
                                                     </Button>
                                                     <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        variant="sourceReportGhostAction"
+                                                        size="sourceReportAction"
                                                         type="button"
                                                         disabled={
                                                             sourceRepullDisabled

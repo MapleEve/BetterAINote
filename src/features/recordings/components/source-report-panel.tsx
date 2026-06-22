@@ -478,13 +478,10 @@ function SotCopyIcon({ state }: { state?: "err" | "ok" }) {
     );
 }
 
-function getSotCopyButtonVariant(
-    state: "err" | "ok" | undefined,
-): ButtonProps["variant"] {
-    if (state === "err") return "destructive";
-    if (state === "ok") return "secondary";
-    return "ghost";
-}
+const SOURCE_REPORT_COPY_BUTTON_VARIANT =
+    "sourceReportCopyAction" satisfies ButtonProps["variant"];
+const SOURCE_REPORT_COPY_BUTTON_SIZE =
+    "sourceReportCopyAction" satisfies ButtonProps["size"];
 
 function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
@@ -1150,12 +1147,8 @@ export function SourceReportPanel({
                 {data ? (
                     <>
                         <Button
-                            variant={getSotCopyButtonVariant(
-                                copyFeedback?.action === "source-transcript"
-                                    ? copyFeedback.state
-                                    : undefined,
-                            )}
-                            size="sm"
+                            variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}
+                            size={SOURCE_REPORT_COPY_BUTTON_SIZE}
                             type="button"
                             data-copy="source-transcript"
                             data-copy-state={
@@ -1195,12 +1188,8 @@ export function SourceReportPanel({
                             </span>
                         </Button>
                         <Button
-                            variant={getSotCopyButtonVariant(
-                                copyFeedback?.action === "source-report"
-                                    ? copyFeedback.state
-                                    : undefined,
-                            )}
-                            size="sm"
+                            variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}
+                            size={SOURCE_REPORT_COPY_BUTTON_SIZE}
                             type="button"
                             data-copy="source-report"
                             data-copy-state={
@@ -1243,7 +1232,8 @@ export function SourceReportPanel({
                 ) : null}
                 <Button
                     type="button"
-                    size="sm"
+                    variant="sourceReportAction"
+                    size="sourceReportAction"
                     onClick={loadReport}
                     disabled={isLoading}
                     data-sot-control="refresh-source-report"
@@ -1278,7 +1268,7 @@ export function SourceReportPanel({
             {error && (
                 <SourceReportState sotState="error" state="error" error={error}>
                     <Alert
-                        variant="destructive"
+                        variant="sourceReportError"
                         className="flex flex-col items-center gap-2 px-4 py-8 text-center"
                         data-sot-source-report-empty
                         data-sot-tone="err"

@@ -122,13 +122,19 @@ const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
-    "copy-local-transcript",
     "copy-source-transcript",
     "copy-source-report",
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS = [
     "refresh-source-report",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS = [
+    "copy-local-transcript",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS = [
     "retranscribe-recording",
     "retry-retranscription",
     "dismiss-retranscription-failed",
@@ -1186,7 +1192,7 @@ describe("dashboard SOT foundation", () => {
 
             expect(repaintBlocks).toEqual([]);
         }
-        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+        for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
                 `data-sot-control="${control}"`,
@@ -1196,7 +1202,23 @@ describe("dashboard SOT foundation", () => {
             expect(buttonOpening).toContain('size="dashboardCopy"');
             expect(buttonOpening).not.toContain("className=");
         }
-        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+        for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain(
+                'variant="sourceReportCopyAction"',
+            );
+            expect(buttonOpening).toContain('size="sourceReportCopyAction"');
+            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).not.toContain('variant="secondary"');
+            expect(buttonOpening).not.toContain('variant="destructive"');
+            expect(buttonOpening).not.toContain('size="sm"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,
                 `data-sot-control="${control}"`,
@@ -1206,6 +1228,19 @@ describe("dashboard SOT foundation", () => {
                 'variant="dashboardCompactAction"',
             );
             expect(buttonOpening).toContain('size="dashboardCompactAction"');
+            expect(buttonOpening).not.toContain("className=");
+        }
+        for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
+            const buttonOpening = extractOpeningElement(
+                workstation,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(buttonOpening).toContain('variant="sourceReportAction"');
+            expect(buttonOpening).toContain('size="sourceReportAction"');
+            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).not.toContain('variant="default"');
+            expect(buttonOpening).not.toContain('size="sm"');
             expect(buttonOpening).not.toContain("className=");
         }
         for (const removed of [
@@ -1224,6 +1259,41 @@ describe("dashboard SOT foundation", () => {
         );
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(sourceReportLoaded).toContain(hook);
+        }
+        expect(sourceReportLoaded).toContain('variant="sourceReportStatus"');
+        for (const genericToken of [
+            'variant="outline"',
+            'variant="ghost"',
+            'variant="default"',
+            'size="sm"',
+        ]) {
+            expect(sourceReportLoaded).not.toContain(genericToken);
+        }
+        const sourceReportOpenAction = extractOpeningElement(
+            workstation,
+            'data-sot-control="open-source-record"',
+            "Button",
+        );
+        const sourceReportRepullAction = extractOpeningElement(
+            workstation,
+            'data-sot-control="repull-source"',
+            "Button",
+        );
+        expect(sourceReportOpenAction).toContain(
+            'variant="sourceReportAction"',
+        );
+        expect(sourceReportOpenAction).toContain('size="sourceReportAction"');
+        expect(sourceReportRepullAction).toContain(
+            'variant="sourceReportGhostAction"',
+        );
+        expect(sourceReportRepullAction).toContain('size="sourceReportAction"');
+        for (const action of [
+            sourceReportOpenAction,
+            sourceReportRepullAction,
+        ]) {
+            expect(action).not.toContain('variant="ghost"');
+            expect(action).not.toContain('variant="outline"');
+            expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
             expect(workstation).toContain(hook);

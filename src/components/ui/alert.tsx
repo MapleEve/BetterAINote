@@ -8,6 +8,7 @@ type AlertVariant =
     | "destructiveSoft"
     | "destructiveSoftNeutral"
     | "playerNoAudio"
+    | "sourceReportError"
     | "systemBanner";
 type AlertDensity =
     | "default"
@@ -34,6 +35,8 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
     playerNoAudio:
         "border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-tertiary)]",
+    sourceReportError:
+        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     systemBanner:
         "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] bg-[var(--system-banner-bg)] text-[var(--fg-primary)] [border-color:var(--system-banner-border)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
 };

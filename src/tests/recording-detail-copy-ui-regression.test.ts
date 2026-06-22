@@ -343,6 +343,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('variant="sourceReportSegment"');
         expect(buttonPrimitive).toContain("sourceReportAction:");
         expect(buttonPrimitive).toContain("sourceReportGhostAction:");
+        expect(buttonPrimitive).toContain("sourceReportCopyAction:");
+        expect(sourceReport).toContain(
+            '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
+        );
+        expect(sourceReport).toContain(
+            '"sourceReportCopyAction" satisfies ButtonProps["size"]',
+        );
         expect(sourceReport).toContain(
             "size={sourceReportCardSkeletonSize(size)}",
         );
@@ -425,9 +432,15 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(controlSource).toContain("<Button");
             if (sourceReportCopyControls.includes(control)) {
                 expect(controlSource).toContain(
-                    "variant={getSotCopyButtonVariant(",
+                    "variant={SOURCE_REPORT_COPY_BUTTON_VARIANT}",
                 );
-                expect(controlSource).toContain('size="sm"');
+                expect(controlSource).toContain(
+                    "size={SOURCE_REPORT_COPY_BUTTON_SIZE}",
+                );
+                expect(controlSource).not.toContain('variant="ghost"');
+                expect(controlSource).not.toContain('variant="secondary"');
+                expect(controlSource).not.toContain('variant="destructive"');
+                expect(controlSource).not.toContain('size="sm"');
             } else {
                 expect(controlSource).toContain('size="sourceReportAction"');
                 expect(controlSource).toMatch(
