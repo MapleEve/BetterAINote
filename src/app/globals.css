@@ -1909,7 +1909,7 @@ button:not([data-slot]) {
 }
 
 /* ======== System reference cards / auth / onboarding ======== */
-[data-sot-card] {
+[data-sot-card]:not([data-sot-card="source-report-metric"]) {
     display: block;
     background: var(--bg-elevated);
     border: 1px solid var(--line-hairline);
@@ -1920,7 +1920,8 @@ button:not([data-slot]) {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
-[data-sot-card] + [data-sot-card] {
+[data-sot-card]:not([data-sot-card="source-report-metric"])
+    + [data-sot-card]:not([data-sot-card="source-report-metric"]) {
     margin-top: 14px;
 }
 [data-sot-part="card-heading"] {
@@ -4273,18 +4274,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-list="source-report-cards"] > [data-sot-card] + [data-sot-card] {
     margin-top: 0;
 }
-[data-sot-card="source-report-metric"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--source-report-metric-bg);
-    border-color: var(--source-report-metric-border);
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
 [data-sot-part="source-report-card-label"] {
     font: 600 10.5px var(--font-sans);
     text-transform: uppercase;
@@ -4328,39 +4317,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-part="source-report-card-value"][data-sot-value="number"] {
     font: 600 16px var(--font-mono);
     color: var(--fg-primary);
-}
-
-[data-sot-badge="source-report-status"][data-sot-tone]
-    [data-sot-part="dashboard-source-report-status-dot"],
-[data-sot-badge="source-report-status"][data-sot-tone]
-    [data-sot-part="source-report-status-dot"] {
-    display: inline-block;
-    width: 5px;
-    height: 5px;
-    margin-right: 0;
-    border-radius: 50%;
-    background: currentColor;
-}
-[data-sot-badge="source-report-status"][data-sot-tone="ok"]
-    [data-sot-part="dashboard-source-report-status-dot"],
-[data-sot-badge="source-report-status"][data-sot-tone="ok"]
-    [data-sot-part="source-report-status-dot"] {
-    background: var(--source-report-status-ok-fg);
-}
-[data-sot-badge="source-report-status"][data-sot-tone="warn"]
-    [data-sot-part="dashboard-source-report-status-dot"],
-[data-sot-badge="source-report-status"][data-sot-tone="warn"]
-    [data-sot-part="source-report-status-dot"] {
-    background: var(--signal-warning);
-}
-[data-sot-badge="source-report-status"][data-sot-tone="err"]
-    [data-sot-part="dashboard-source-report-status-dot"],
-[data-sot-badge="source-report-status"][data-sot-tone="err"]
-    [data-sot-part="source-report-status-dot"] {
-    background: var(--signal-danger);
-}
-[data-sot-badge="source-report-status"] {
-    letter-spacing: 0;
 }
 
 [data-sot-source-report-section] {

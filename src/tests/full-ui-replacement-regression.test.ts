@@ -1123,19 +1123,37 @@ const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="source-report-card-value"][data-sot-value="source"]',
     '[data-sot-part="source-report-card-source-fallback"]',
     '[data-sot-part="source-report-card-value"][data-sot-value="number"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="source-report-status-dot"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="ok"]\n    [data-sot-part="source-report-status-dot"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="warn"]\n    [data-sot-part="source-report-status-dot"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone="err"]\n    [data-sot-part="source-report-status-dot"]',
 ];
 
-const SOURCE_REPORT_METRIC_PRIMITIVE_SELECTORS = [
+const SOURCE_REPORT_METRIC_GENERIC_CARD_SELECTORS = [
+    "[data-sot-card]",
+    "[data-sot-card] + [data-sot-card]",
+];
+
+const SOURCE_REPORT_METRIC_GENERIC_CARD_EXCLUSIONS = [
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])',
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
+];
+
+const SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS = [
+    '[data-sot-card="source-report-metric"]',
     '[data-sot-card="source-report-metric"][data-sot-metric]',
     '[data-theme="dark"] [data-sot-card="source-report-metric"][data-sot-metric]',
+];
+
+const SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS = [
+    '[data-sot-badge="source-report-status"]',
+    '[data-sot-part="source-report-status-dot"]',
+    '[data-sot-part="dashboard-source-report-status-dot"]',
+];
+
+const SOURCE_REPORT_METRIC_REMOVED_PRIMITIVE_SELECTORS = [
     '[data-sot-badge="source-report-status"][data-sot-tone]',
-    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="ok"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="warn"]',
-    '[data-sot-badge="source-report-status"][data-sot-tone][data-sot-tone="err"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="ok"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="warn"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone="err"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="source-report-status-dot"]',
+    '[data-sot-badge="source-report-status"][data-sot-tone]\n    [data-sot-part="dashboard-source-report-status-dot"]',
 ];
 
 const SOURCE_REPORT_SECTION_LEGACY_CSS_SELECTOR_RE =
@@ -4417,7 +4435,19 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(sourceReportMetricLegacySelectorLines).toEqual([]);
-        for (const selector of SOURCE_REPORT_METRIC_PRIMITIVE_SELECTORS) {
+        for (const selector of SOURCE_REPORT_METRIC_GENERIC_CARD_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of SOURCE_REPORT_METRIC_GENERIC_CARD_EXCLUSIONS) {
+            expect(globals).toContain(selector);
+        }
+        for (const selector of SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+        for (const selector of SOURCE_REPORT_METRIC_REMOVED_PRIMITIVE_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
@@ -4431,6 +4461,20 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=ok]");
         expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=warn]");
         expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=err]");
+        for (const sourceReportStatusDotPrimitiveClass of [
+            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
+            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
+            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
+        ]) {
+            expect(sourceReportBadgePrimitive).toContain(
+                sourceReportStatusDotPrimitiveClass,
+            );
+        }
         expect(workstation).toContain('variant="sourceReportMetric"');
         expect(workstation).toContain('variant="sourceReportStatus"');
         expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
@@ -7338,7 +7382,15 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
         expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
-        expect(globals).toContain('[data-sot-part="source-report-status-dot"]');
+        expect(badge).toContain(
+            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+        );
+        expect(badge).toContain(
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
+        );
+        for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).toContain(
             '[data-sot-source-report-segment-time][data-sot-format="mono"]',
         );

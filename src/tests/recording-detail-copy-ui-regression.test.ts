@@ -317,6 +317,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "features/recordings/components/transcription-skeletons.tsx",
         );
         const alertPrimitive = readSource("components/ui/alert.tsx");
+        const badgePrimitive = readSource("components/ui/badge.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const emptyPrimitive = readSource("components/ui/empty.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
@@ -447,7 +448,31 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
         expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
-        expect(globals).toContain('[data-sot-part="source-report-status-dot"]');
+        expect(badgePrimitive).toContain("sourceReportStatus:");
+        expect(badgePrimitive).toContain(
+            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
+        );
+        expect(badgePrimitive).toContain(
+            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
+        );
+        expect(badgePrimitive).toContain(
+            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
+        );
+        expect(badgePrimitive).toContain(
+            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+        );
+        for (const removedSourceReportStatusGlobalSelector of [
+            '[data-sot-badge="source-report-status"]',
+            '[data-sot-part="source-report-status-dot"]',
+            '[data-sot-part="dashboard-source-report-status-dot"]',
+        ]) {
+            expect(
+                collectCssRuleBlocks(
+                    globals,
+                    removedSourceReportStatusGlobalSelector,
+                ),
+            ).toEqual([]);
+        }
         expect(globals).toContain(
             '[data-sot-source-report-segment-time][data-sot-format="mono"]',
         );
