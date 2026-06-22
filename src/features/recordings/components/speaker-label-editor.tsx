@@ -831,7 +831,6 @@ export function SpeakerLabelEditor({
                             <Card
                                 hasNoPadding
                                 variant="speakerReviewMergePopover"
-                                className="absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]"
                                 id={mergePopoverId}
                                 data-sot-panel="speaker-review-merge"
                                 data-spk-merge-pop

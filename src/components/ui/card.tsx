@@ -18,7 +18,7 @@ const cardVariants = {
     speakerReviewRow:
         "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
     speakerReviewMergePopover:
-        "gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+        "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none",
     speakerReviewConfirm:
         "flex-row items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] p-[10px_12px] text-[length:var(--text-body-sm)] text-[var(--fg-primary)] shadow-none backdrop-blur-none [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:[font-weight:var(--weight-semibold)] [&_[data-sot-confirm-subject]]:text-[var(--fg-primary)]",
     aiRenamePreview: "w-[min(360px,calc(100vw-32px))] gap-0",

@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
+const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
+    "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
 
 describe("dashboard speaker label editor regressions", () => {
     const source = readFileSync(
@@ -508,6 +510,46 @@ describe("dashboard speaker label editor regressions", () => {
                 opening.includes('data-sot-panel="speaker-review-merge"'),
             ),
         ).toContain('variant="speakerReviewMergePopover"');
+        const mergePopoverOpening = cardOpenings.find((opening) =>
+            opening.includes('data-sot-panel="speaker-review-merge"'),
+        );
+        expect(mergePopoverOpening).toBeDefined();
+        expect(mergePopoverOpening).toContain("id={mergePopoverId}");
+        expect(mergePopoverOpening).toContain("data-spk-merge-pop");
+        expect(mergePopoverOpening).toContain(
+            "data-open={String(isMergePopoverOpen)}",
+        );
+        expect(mergePopoverOpening).toContain("hidden={!isMergePopoverOpen}");
+        expect(mergePopoverOpening).toContain('role="dialog"');
+        expect(mergePopoverOpening).toContain('aria-label="合并相似说话人"');
+        expect(mergePopoverOpening).not.toContain(
+            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
+        );
+        expect(cardPrimitiveSource).toContain(
+            SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT,
+        );
+        expect(source).not.toContain(
+            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
+        );
+
+        // The feature keeps only the relative anchor shell; Card owns popover placement.
+        const mergeAnchorOpening = collectOpeningElements("div").find((opening) =>
+            opening.includes(
+                'data-sot-part="speaker-review-merge-anchor"',
+            ),
+        );
+        expect(mergeAnchorOpening).toContain('className="relative inline-flex"');
+        expect(mergeAnchorOpening).toContain("ref={mergeAnchorRef}");
+        const mergeTriggerOpening = collectOpeningElements("Button").find(
+            (opening) =>
+                opening.includes(
+                    'data-sot-control="speaker-review-merge"',
+                ),
+        );
+        expect(mergeTriggerOpening).toContain("aria-controls={mergePopoverId}");
+        expect(mergeTriggerOpening).toContain(
+            "aria-expanded={isMergePopoverOpen}",
+        );
         expect(
             cardOpenings.find((opening) =>
                 opening.includes('data-sot-confirm="speaker-unlink"'),

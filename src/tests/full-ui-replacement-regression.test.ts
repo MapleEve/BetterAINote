@@ -3,6 +3,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.join(process.cwd(), "src");
+const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
+    "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -5298,6 +5300,23 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain('variant="speakerReviewRow"');
         expect(speakerReview).toContain(
             'variant="speakerReviewMergePopover"',
+        );
+        expect(cardPrimitive).toContain(
+            SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT,
+        );
+        expect(speakerReview).not.toContain(
+            `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
+        );
+        const speakerReviewMergeAnchor = collectOpeningElements(
+            speakerReview,
+            "div",
+        ).find((opening) =>
+            opening.includes(
+                'data-sot-part="speaker-review-merge-anchor"',
+            ),
+        );
+        expect(speakerReviewMergeAnchor).toContain(
+            'className="relative inline-flex"',
         );
         expect(speakerReview).toContain('variant="speakerReviewConfirm"');
         for (const opening of collectOpeningElements(
