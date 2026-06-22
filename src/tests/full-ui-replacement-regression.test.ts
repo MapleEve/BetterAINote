@@ -511,6 +511,29 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
     "SETTINGS_AVATAR",
 ].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
 
+const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
+    "dashboardRecordingRow",
+    "recordingListChipClear",
+    "sourceFilterAction",
+    "sourceFilterClearAll",
+    "recordingListTagFilterTrigger",
+    "recordingListTagFilterOption",
+    "recordingListStatePrimary",
+    "recordingListStateAction",
+    "recordingListPagination",
+] as const;
+
+const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
+    "dashboardRecordingRow",
+    "recordingListChipClear",
+    "sourceFilterAction",
+    "sourceFilterClearAll",
+    "recordingListTagFilterTrigger",
+    "recordingListTagFilterOption",
+    "recordingListStateAction",
+    "recordingListPagination",
+] as const;
+
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"]',
@@ -1698,6 +1721,11 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain('data-slot="button"');
         expect(button).toContain("data-variant={variant}");
         expect(button).toContain("data-size={size}");
+        const buttonVariantBlock = extractBoundedSlice(
+            button,
+            "variant: {",
+            "size: {",
+        );
         const buttonSizeBlock = extractBoundedSlice(
             button,
             "size: {",
@@ -1735,6 +1763,12 @@ describe("full UI replacement regression coverage", () => {
             "link",
         ]) {
             expect(button).toContain(`${variant}:`);
+        }
+        for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
+            expect(buttonVariantBlock).toContain(`${variant}:`);
+        }
+        for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
+            expect(buttonSizeBlock).toContain(`${size}:`);
         }
         expect(button).toContain(
             'default:\n                    "bg-primary text-primary-foreground hover:bg-primary/90"',
@@ -3154,6 +3188,26 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceFilterStack).toContain('data-sot-action="retry"');
         expect(sourceFilterStack).toContain('data-sot-action="widen"');
         expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
+        expect(sourceFilterStack).toMatch(
+            /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="source-filter-clear"/,
+        );
+        for (const control of [
+            "source-filter-retry-sync",
+            "source-filter-widen",
+            "source-filter-open-settings",
+        ]) {
+            expect(sourceFilterStack).toMatch(
+                new RegExp(
+                    `<Button\\s+variant="sourceFilterAction"\\s+size="sourceFilterAction"[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
+                ),
+            );
+        }
+        expect(sourceFilterStack).toMatch(
+            /<Button\s+variant="sourceFilterClearAll"\s+size="sourceFilterClearAll"[\s\S]*data-sot-control="source-filter-clear-all"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="library-search-filter-clear"/,
+        );
         expect(sourceFilterStack).not.toMatch(
             legacySourceFilterActionClassNamePattern,
         );
@@ -3301,13 +3355,47 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-actions"',
         );
-        expect(workstation).toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
+        expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="sm"[\s\S]*className=\{\s*DASHBOARD_RECORDING_ROW_BUTTON_CLASS\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /<Button\s+variant="dashboardRecordingRow"\s+size="dashboardRecordingRow"[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
         );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListTagFilterTrigger"\s+size="recordingListTagFilterTrigger"[\s\S]*data-sot-control="recording-list-tag-filter-trigger"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListTagFilterOption"\s+size="recordingListTagFilterOption"[\s\S]*role="option"[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}/,
+        );
+        expect(workstation).not.toMatch(
+            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListStatePrimary"\s+size="recordingListStateAction"[\s\S]*data-sot-control="recording-list-open-data-sources"/,
+        );
+        for (const control of [
+            "recording-list-clear-filters",
+            "recording-list-clear-timeline",
+            "recording-list-clear-tag",
+        ]) {
+            expect(workstation).toMatch(
+                new RegExp(
+                    `<Button\\s+variant="recordingListStateAction"\\s+size="recordingListStateAction"[\\s\\S]*data-sot-control="${control}"`,
+                ),
+            );
+        }
+        for (const control of [
+            "recording-list-prev-page",
+            "recording-list-next-page",
+            "recording-list-load-more",
+        ]) {
+            expect(workstation).toMatch(
+                new RegExp(
+                    `<Button\\s+variant="recordingListPagination"\\s+size="recordingListPagination"[\\s\\S]*data-sot-control="${control}"`,
+                ),
+            );
+        }
         expect(workstation).toContain("aria-current={");
         expect(workstation).not.toContain('className="filter-row"');
         expect(workstation).not.toContain('"chip-f"');

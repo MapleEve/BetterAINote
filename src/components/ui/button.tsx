@@ -60,6 +60,24 @@ const buttonVariants = cva(
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
                 dashboardSettingsAvatar:
                     "border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
+                dashboardRecordingRow:
+                    "grid w-full grid-cols-[1fr_auto] items-center gap-[14px] whitespace-normal border border-transparent bg-transparent text-left text-[13.3333px] font-normal shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--accent-soft)]",
+                recordingListChipClear:
+                    "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                sourceFilterAction:
+                    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)]",
+                sourceFilterClearAll:
+                    "bg-transparent text-primary shadow-none underline-offset-4 hover:bg-transparent hover:text-primary hover:underline",
+                recordingListTagFilterTrigger:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                recordingListTagFilterOption:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:hover:bg-accent/50",
+                recordingListStatePrimary:
+                    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+                recordingListStateAction:
+                    "bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                recordingListPagination:
+                    "bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 playerControl:
                     "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] shadow-[var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96]",
                 playerPrimary:
@@ -99,6 +117,22 @@ const buttonVariants = cva(
                 dashboardSidebarCollapse: "size-[22px] rounded-full",
                 dashboardSettingsAvatar:
                     "size-[30px] rounded-full text-xs font-semibold",
+                dashboardRecordingRow:
+                    "h-auto rounded-[10px] px-3 py-[11px] text-[13.3333px] leading-normal has-[>svg]:px-3",
+                recordingListChipClear:
+                    "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
+                sourceFilterAction:
+                    "ml-[6px] h-[22px] flex-none gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-none whitespace-nowrap has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-[11px]",
+                sourceFilterClearAll:
+                    "h-6 rounded-md px-2 text-sm has-[>svg]:px-2",
+                recordingListTagFilterTrigger:
+                    "h-8 w-full justify-start gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                recordingListTagFilterOption:
+                    "h-8 w-full justify-start gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                recordingListStateAction:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                recordingListPagination:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 playerControl:
                     "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal",
                 playerControlSm:

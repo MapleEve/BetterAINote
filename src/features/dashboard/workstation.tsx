@@ -270,9 +270,6 @@ type SourceStatus =
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
 
-const DASHBOARD_RECORDING_ROW_BUTTON_CLASS =
-    "h-auto justify-normal whitespace-normal rounded-[10px] px-3 py-[11px] text-left text-[13.3333px] font-normal";
-
 function getSotSegmentedTabProps<T extends string>(
     _item: SegmentedTabItem<T>,
     state: { active: boolean; disabled: boolean },
@@ -5020,9 +5017,8 @@ export function Workstation({
                                                 )}
                                             </span>
                                             <Button
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                className="size-4 rounded-full p-0"
+                                                variant="recordingListChipClear"
+                                                size="recordingListChipClear"
                                                 type="button"
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
@@ -5050,8 +5046,8 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "sync-error" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="sourceFilterAction"
+                                                size="sourceFilterAction"
                                                 type="button"
                                                 data-sot-control="source-filter-retry-sync"
                                                 data-sot-action="retry"
@@ -5069,8 +5065,8 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "no-results" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="sourceFilterAction"
+                                                size="sourceFilterAction"
                                                 type="button"
                                                 data-sot-control="source-filter-widen"
                                                 data-sot-action="widen"
@@ -5093,8 +5089,8 @@ export function Workstation({
                                             selectedSourceRow.status,
                                         ) ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="sourceFilterAction"
+                                                size="sourceFilterAction"
                                                 type="button"
                                                 data-sot-control="source-filter-open-settings"
                                                 data-sot-action="open-settings"
@@ -5115,9 +5111,8 @@ export function Workstation({
                                             </Button>
                                         ) : null}
                                         <Button
-                                            variant="link"
-                                            size="sm"
-                                            className="h-6 px-2"
+                                            variant="sourceFilterClearAll"
+                                            size="sourceFilterClearAll"
                                             type="button"
                                             data-sot-control="source-filter-clear-all"
                                             onClick={() => setSource("all")}
@@ -5147,9 +5142,8 @@ export function Workstation({
                                         <span data-sot-part="library-search-filter-chip">
                                             {librarySearchFilter.label}
                                             <Button
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                className="size-4 rounded-full p-0"
+                                                variant="recordingListChipClear"
+                                                size="recordingListChipClear"
                                                 type="button"
                                                 aria-label={t(
                                                     "dashboardChrome.clear",
@@ -5261,9 +5255,8 @@ export function Workstation({
                                     ref={tagFilterRef}
                                 >
                                     <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full justify-start"
+                                        variant="recordingListTagFilterTrigger"
+                                        size="recordingListTagFilterTrigger"
                                         type="button"
                                         aria-haspopup="listbox"
                                         aria-expanded={tagFilterOpen}
@@ -5303,13 +5296,8 @@ export function Workstation({
                                                 selectedTagFilter;
                                             return (
                                                 <Button
-                                                    variant={
-                                                        active
-                                                            ? "secondary"
-                                                            : "ghost"
-                                                    }
-                                                    size="sm"
-                                                    className="w-full justify-start"
+                                                    variant="recordingListTagFilterOption"
+                                                    size="recordingListTagFilterOption"
                                                     type="button"
                                                     role="option"
                                                     data-tag-value={
@@ -5397,11 +5385,8 @@ export function Workstation({
                                                         recording.tags[0];
                                                     return (
                                                         <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className={
-                                                                DASHBOARD_RECORDING_ROW_BUTTON_CLASS
-                                                            }
+                                                            variant="dashboardRecordingRow"
+                                                            size="dashboardRecordingRow"
                                                             aria-current={
                                                                 active
                                                                     ? "true"
@@ -5574,8 +5559,8 @@ export function Workstation({
                                         </div>
                                         {listState === "empty" ? (
                                             <Button
-                                                variant="default"
-                                                size="sm"
+                                                variant="recordingListStatePrimary"
+                                                size="recordingListStateAction"
                                                 type="button"
                                                 data-sot-control="recording-list-open-data-sources"
                                                 onClick={() =>
@@ -5589,8 +5574,8 @@ export function Workstation({
                                         ) : null}
                                         {listState === "no-match" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListStateAction"
+                                                size="recordingListStateAction"
                                                 type="button"
                                                 data-sot-control="recording-list-clear-filters"
                                                 onClick={() => {
@@ -5611,8 +5596,8 @@ export function Workstation({
                                         ) : null}
                                         {listState === "timeline-empty" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListStateAction"
+                                                size="recordingListStateAction"
                                                 type="button"
                                                 data-sot-control="recording-list-clear-timeline"
                                                 onClick={() =>
@@ -5626,8 +5611,8 @@ export function Workstation({
                                         ) : null}
                                         {listState === "tag-empty" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListStateAction"
+                                                size="recordingListStateAction"
                                                 type="button"
                                                 data-sot-control="recording-list-clear-tag"
                                                 onClick={() =>
@@ -5658,8 +5643,8 @@ export function Workstation({
                                         </div>
                                         <div data-sot-part="recording-list-page-nav">
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListPagination"
+                                                size="recordingListPagination"
                                                 type="button"
                                                 data-page-prev=""
                                                 disabled={currentListPage <= 1}
@@ -5682,8 +5667,8 @@ export function Workstation({
                                                 {listTotalPages}
                                             </span>
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListPagination"
+                                                size="recordingListPagination"
                                                 type="button"
                                                 data-page-next=""
                                                 disabled={
@@ -5711,8 +5696,8 @@ export function Workstation({
                                         </div>
                                         {listPaginationState === "paginated" ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="recordingListPagination"
+                                                size="recordingListPagination"
                                                 type="button"
                                                 data-sot-control="recording-list-load-more"
                                                 onClick={() =>

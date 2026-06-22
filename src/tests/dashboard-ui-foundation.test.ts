@@ -88,6 +88,29 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
     "SETTINGS_AVATAR",
 ].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
 
+const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
+    "dashboardRecordingRow",
+    "recordingListChipClear",
+    "sourceFilterAction",
+    "sourceFilterClearAll",
+    "recordingListTagFilterTrigger",
+    "recordingListTagFilterOption",
+    "recordingListStatePrimary",
+    "recordingListStateAction",
+    "recordingListPagination",
+] as const;
+
+const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
+    "dashboardRecordingRow",
+    "recordingListChipClear",
+    "sourceFilterAction",
+    "sourceFilterClearAll",
+    "recordingListTagFilterTrigger",
+    "recordingListTagFilterOption",
+    "recordingListStateAction",
+    "recordingListPagination",
+] as const;
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -646,6 +669,12 @@ describe("dashboard SOT foundation", () => {
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
         }
+        for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
+            expect(buttonVariantBlock).toContain(`${variant}:`);
+        }
+        for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
+            expect(buttonSizeBlock).toContain(`${size}:`);
+        }
 
         for (const removed of [
             "ActivityOverlay",
@@ -849,6 +878,30 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).not.toContain(removedListHeaderClass);
         }
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
+        for (const control of [
+            "source-filter-clear",
+            "library-search-filter-clear",
+        ]) {
+            expect(workstation).toMatch(
+                new RegExp(
+                    `<Button\\s+variant="recordingListChipClear"\\s+size="recordingListChipClear"[\\s\\S]*data-sot-control="${control}"`,
+                ),
+            );
+        }
+        for (const control of [
+            "source-filter-retry-sync",
+            "source-filter-widen",
+            "source-filter-open-settings",
+        ]) {
+            expect(workstation).toMatch(
+                new RegExp(
+                    `<Button\\s+variant="sourceFilterAction"\\s+size="sourceFilterAction"[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
+                ),
+            );
+        }
+        expect(workstation).toMatch(
+            /<Button\s+variant="sourceFilterClearAll"\s+size="sourceFilterClearAll"[\s\S]*data-sot-control="source-filter-clear-all"/,
+        );
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");
         expect(workstation).toContain(
@@ -861,6 +914,15 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("data-tag-filter-list");
         expect(workstation).toContain('role="listbox"');
         expect(workstation).toContain('role="option"');
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListTagFilterTrigger"\s+size="recordingListTagFilterTrigger"[\s\S]*data-sot-control="recording-list-tag-filter-trigger"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListTagFilterOption"\s+size="recordingListTagFilterOption"[\s\S]*role="option"[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}/,
+        );
+        expect(workstation).not.toMatch(
+            /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,
+        );
         expect(workstation).toMatch(/data-tag-value=\{\s*option\.value\s*\}/);
         for (const hook of DASHBOARD_RECORDING_LIST_BATCH_SOT_HOOKS) {
             expect(workstation).toContain(hook);
