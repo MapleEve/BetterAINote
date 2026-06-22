@@ -5187,6 +5187,75 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain("data-[sot-tone=selected]");
         expect(alertPrimitive).toContain("statusError:");
         expect(alertPrimitive).toContain("speakerReviewError:");
+        for (const settingsAlertPrimitiveToken of [
+            "settingsBanner:",
+            "settingsBannerError:",
+            "settingsLoadError:",
+            "settingsVoScriptWarning:",
+            "settingsBannerAction:",
+        ]) {
+            expect(alertPrimitive).toContain(settingsAlertPrimitiveToken);
+        }
+        const settingsSourceStateAlert = extractOpeningElement(
+            settings,
+            'data-sot-banner="source-state"',
+            "Alert",
+        );
+        const settingsSourceLoadErrorAlert = extractOpeningElement(
+            settings,
+            'data-sot-banner="source-load-error"',
+            "Alert",
+        );
+        const settingsSectionLoadErrorAlert = extractOpeningElement(
+            settings,
+            'data-sot-banner="settings-section-load-error"',
+            "Alert",
+        );
+        const settingsVoScriptUnavailableAlert = extractOpeningElement(
+            settings,
+            'data-sot-banner="voscript-unavailable"',
+            "Alert",
+        );
+        expect(settingsSourceStateAlert).toContain('density="settingsBanner"');
+        expect(settingsSourceStateAlert).toContain('layout="settingsBanner"');
+        expect(settingsSourceStateAlert).toContain('"settingsBannerError"');
+        expect(settingsSourceStateAlert).toContain('"settingsBanner"');
+        for (const settingsLoadErrorAlert of [
+            settingsSourceLoadErrorAlert,
+            settingsSectionLoadErrorAlert,
+        ]) {
+            expect(settingsLoadErrorAlert).toContain(
+                'variant="settingsLoadError"',
+            );
+            expect(settingsLoadErrorAlert).toContain('density="settingsBanner"');
+            expect(settingsLoadErrorAlert).toContain(
+                'layout="settingsBannerAction"',
+            );
+        }
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'variant="settingsVoScriptWarning"',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'density="settingsBanner"',
+        );
+        expect(settingsVoScriptUnavailableAlert).toContain(
+            'layout="settingsBanner"',
+        );
+        for (const settingsBannerAlert of [
+            settingsSourceStateAlert,
+            settingsSourceLoadErrorAlert,
+            settingsSectionLoadErrorAlert,
+            settingsVoScriptUnavailableAlert,
+        ]) {
+            expect(settingsBannerAlert).not.toContain(
+                "getSettingsBannerClassName",
+            );
+            expect(settingsBannerAlert).not.toContain('variant="destructive"');
+            expect(settingsBannerAlert).not.toContain("grid-cols-[auto_1fr");
+            expect(settingsBannerAlert).not.toContain(
+                "border-destructive/30 bg-destructive/10",
+            );
+        }
         for (const speakerReviewButtonVariant of [
             "speakerReviewAction",
             "speakerReviewPrimaryAction",

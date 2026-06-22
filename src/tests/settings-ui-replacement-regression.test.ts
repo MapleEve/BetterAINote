@@ -1107,13 +1107,29 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-content.tsx",
         );
         const sourceLoadError = content.match(
-            /data-sot-panel="source-load-error"[\s\S]*?<\/Alert>/,
+            /<Alert\s[^>]*data-sot-banner="source-load-error"[^>]*>[\s\S]*?<\/Alert>/,
+        )?.[0];
+        const sourceLoadErrorOpening = sourceLoadError?.match(
+            /<Alert\s[^>]*>/,
         )?.[0];
         const retryButton = sourceLoadError?.match(
             /<Button[\s\S]*?<\/Button>/,
         )?.[0];
 
         expect(sourceLoadError).toContain('data-sot-panel="source-load-error"');
+        expect(sourceLoadErrorOpening).toContain('variant="settingsLoadError"');
+        expect(sourceLoadErrorOpening).toContain('density="settingsBanner"');
+        expect(sourceLoadErrorOpening).toContain('layout="settingsBannerAction"');
+        expect(sourceLoadErrorOpening).not.toContain('variant="destructive"');
+        expect(sourceLoadErrorOpening).not.toContain(
+            "getSettingsBannerClassName",
+        );
+        expect(sourceLoadErrorOpening).not.toContain("grid-cols-[auto_1fr");
+        expect(sourceLoadErrorOpening).not.toContain(
+            "border-destructive/30 bg-destructive/10",
+        );
+        expect(sourceLoadError).toContain("<AlertTitle");
+        expect(sourceLoadError).toContain("<AlertDescription");
         expect(retryButton).toContain('data-sot-control="source-load-retry"');
         expect(retryButton).toContain("onClick={() => void refreshSources()}");
     });
@@ -1201,6 +1217,10 @@ describe("settings SOT interaction regressions", () => {
             content.match(
                 /function DataSourceProviderTile[\s\S]*?function ProviderStateBanner/,
             )?.[0] ?? "";
+        const providerStateBanner =
+            content.match(
+                /<Alert\s[^>]*data-sot-banner="source-state"[^>]*>/,
+            )?.[0] ?? "";
         const providerTileButton =
             providerTile.match(
                 /<Button[\s\S]*?data-sot-control="source-provider"[\s\S]*?>/,
@@ -1225,6 +1245,16 @@ describe("settings SOT interaction regressions", () => {
             "SOURCE_PROVIDER_DANGER_ACTION_BUTTON_CLASS",
         );
         expect(content).not.toContain("SOURCE_PROVIDER_ACTIONS_CLASS");
+        expect(providerStateBanner).toContain('density="settingsBanner"');
+        expect(providerStateBanner).toContain('layout="settingsBanner"');
+        expect(providerStateBanner).toContain('"settingsBannerError"');
+        expect(providerStateBanner).toContain('"settingsBanner"');
+        expect(providerStateBanner).not.toContain("getSettingsBannerClassName");
+        expect(providerStateBanner).not.toContain('variant="destructive"');
+        expect(providerStateBanner).not.toContain("grid-cols-[auto_1fr");
+        expect(providerStateBanner).not.toContain(
+            "border-destructive/30 bg-destructive/10",
+        );
         expect(providerTile).toContain('variant="sourceProviderTile"');
         expect(providerTile).toContain('size="sourceProviderTile"');
         expect(providerTileButton).not.toContain("className=");
@@ -1328,6 +1358,7 @@ describe("settings SOT interaction regressions", () => {
         );
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const inputPrimitive = readSource("components/ui/input.tsx");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
         const globals = readSource("app/globals.css");
         const onboardingProviderFieldSlice = onboardingForm.match(
@@ -1339,9 +1370,18 @@ describe("settings SOT interaction regressions", () => {
         expect(content).not.toContain('"!grid !grid-cols-[1fr_auto]');
         expect(content).not.toContain('fieldOrientation="horizontal"');
         expect(content).not.toContain("thumbClassName={");
-        expect(content).toContain("getSettingsBannerClassName");
+        expect(content).not.toContain("getSettingsBannerClassName");
         expect(content).toContain("getSettingsSaveStatusBadgeClassName");
         expect(content).toContain("getSettingsSaveStatusDotClassName");
+        for (const settingsAlertPrimitiveToken of [
+            "settingsBanner:",
+            "settingsBannerError:",
+            "settingsLoadError:",
+            "settingsVoScriptWarning:",
+            "settingsBannerAction:",
+        ]) {
+            expect(alertPrimitive).toContain(settingsAlertPrimitiveToken);
+        }
         expect(content).not.toMatch(/SOURCE_PROVIDER_DETAIL_[A-Z_]+/);
         expect(content).not.toMatch(
             /fieldClassName=\{\s*SOURCE_PROVIDER_DETAIL_FIELD_CLASS\s*\}/,
@@ -1808,6 +1848,23 @@ describe("settings SOT interaction regressions", () => {
         expect(content).toContain(
             'data-sot-panel="voscript-unavailable-banner"',
         );
+        const voscriptUnavailableBanner =
+            voscriptPanel?.match(
+                /<Alert\s[^>]*data-sot-banner="voscript-unavailable"[^>]*>/,
+            )?.[0] ?? "";
+        expect(voscriptUnavailableBanner).toContain(
+            'variant="settingsVoScriptWarning"',
+        );
+        expect(voscriptUnavailableBanner).toContain('density="settingsBanner"');
+        expect(voscriptUnavailableBanner).toContain('layout="settingsBanner"');
+        expect(voscriptUnavailableBanner).not.toContain(
+            "getSettingsBannerClassName",
+        );
+        expect(voscriptUnavailableBanner).not.toContain('variant="destructive"');
+        expect(voscriptUnavailableBanner).not.toContain("grid-cols-[auto_1fr");
+        expect(voscriptUnavailableBanner).not.toContain(
+            "border-destructive/30 bg-destructive/10",
+        );
         expect(globals).toContain('[data-sot-availability="unavailable"]');
         expect(globals).toContain(
             '[data-sot-panel="voscript-unavailable-banner"]',
@@ -2127,14 +2184,31 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-content.tsx",
         );
         const sectionLoadErrorBanner = content.match(
-            /<Alert[\s\S]*?data-sot-banner="settings-section-load-error"[\s\S]*?data-sot-panel="settings-section-load-error"[\s\S]*?data-sot-section=\{section\}[\s\S]*?>/,
+            /<Alert\s[^>]*data-sot-banner="settings-section-load-error"[^>]*data-sot-panel="settings-section-load-error"[^>]*data-sot-section=\{section\}[^>]*>/,
         )?.[0];
 
         expect(sectionLoadErrorBanner).toBeDefined();
         expect(sectionLoadErrorBanner ?? "").toContain(
-            'className={getSettingsBannerClassName("err", true)}',
+            'variant="settingsLoadError"',
         );
-        expect(sectionLoadErrorBanner ?? "").toContain('variant="destructive"');
+        expect(sectionLoadErrorBanner ?? "").toContain(
+            'density="settingsBanner"',
+        );
+        expect(sectionLoadErrorBanner ?? "").toContain(
+            'layout="settingsBannerAction"',
+        );
+        expect(sectionLoadErrorBanner ?? "").not.toContain(
+            "getSettingsBannerClassName",
+        );
+        expect(sectionLoadErrorBanner ?? "").not.toContain(
+            'variant="destructive"',
+        );
+        expect(sectionLoadErrorBanner ?? "").not.toContain(
+            "grid-cols-[auto_1fr",
+        );
+        expect(sectionLoadErrorBanner ?? "").not.toContain(
+            "border-destructive/30 bg-destructive/10",
+        );
         expect(sectionLoadErrorBanner ?? "").not.toMatch(/\srole=/);
     });
 

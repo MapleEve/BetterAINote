@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { type Ref, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -410,19 +410,6 @@ function getBannerTone(tone: ProviderTone) {
     return "info";
 }
 
-function getSettingsBannerClassName(
-    tone: ProviderTone | "err" | "info" | "warn",
-    withAction = false,
-) {
-    return cn(
-        "mb-4 grid items-start gap-3 rounded-lg border px-3.5 py-3",
-        withAction ? "grid-cols-[auto_1fr_auto]" : "grid-cols-[auto_1fr]",
-        tone === "err"
-            ? "border-destructive/30 bg-destructive/10"
-            : "border-border bg-card",
-    );
-}
-
 function getSourceAuthModeBadge(mode: string, isZh: boolean) {
     if (mode === "oauth-device-flow") {
         return {
@@ -638,32 +625,32 @@ function ProviderStateBanner({
 
     return (
         <Alert
-            className={getSettingsBannerClassName(tone)}
             data-sot-banner="source-state"
             data-sot-panel="source-state-banner"
             data-sot-state={getBannerTone(tone)}
             data-sot-tone={tone}
-            variant={tone === "err" ? "destructive" : "default"}
+            density="settingsBanner"
+            layout="settingsBanner"
+            variant={
+                tone === "err" ? "settingsBannerError" : "settingsBanner"
+            }
         >
-            <span className={SETTINGS_BANNER_ICON_CLASS} data-sot-banner-icon>
+            <span data-sot-banner-icon>
                 <Icon
                     aria-hidden="true"
                     className={tone === "syncing" ? "animate-spin" : undefined}
                 />
             </span>
             <div data-sot-banner-body>
-                <div
-                    className={SETTINGS_BANNER_TITLE_CLASS}
-                    data-sot-banner-title
-                >
+                <AlertTitle density="settingsBanner" data-sot-banner-title>
                     {title}
-                </div>
-                <div
-                    className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                </AlertTitle>
+                <AlertDescription
+                    density="settingsBanner"
                     data-sot-banner-sub
                 >
                     {description}
-                </div>
+                </AlertDescription>
             </div>
         </Alert>
     );
@@ -1110,31 +1097,29 @@ function DataSourcesSettingsPanel({
 
                 {loadError ? (
                     <Alert
-                        className={getSettingsBannerClassName("err", true)}
                         data-sot-banner="source-load-error"
                         data-sot-panel="source-load-error"
                         data-sot-tone="err"
-                        variant="destructive"
+                        density="settingsBanner"
+                        layout="settingsBannerAction"
+                        variant="settingsLoadError"
                     >
-                        <span
-                            className={SETTINGS_BANNER_ICON_CLASS}
-                            data-sot-banner-icon
-                        >
+                        <span data-sot-banner-icon>
                             <AlertCircle aria-hidden="true" />
                         </span>
                         <span data-sot-banner-body>
-                            <span
-                                className={SETTINGS_BANNER_TITLE_CLASS}
+                            <AlertTitle
+                                density="settingsBanner"
                                 data-sot-banner-title
                             >
                                 {isZh ? "加载失败" : "Load failed"}
-                            </span>
-                            <span
-                                className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                            </AlertTitle>
+                            <AlertDescription
+                                density="settingsBanner"
                                 data-sot-banner-sub
                             >
                                 {loadError}
-                            </span>
+                            </AlertDescription>
                         </span>
                         <Button
                             type="button"
@@ -1847,10 +1832,6 @@ const SETTINGS_FIELD_CLASS = "border-b border-border py-3 last:border-b-0";
 const SETTINGS_FIELD_CONTENT_CLASS = "min-w-0 gap-1";
 const SETTINGS_INPUT_CLASS = "min-w-60 max-w-full";
 const SETTINGS_NUMBER_INPUT_CLASS = "w-24 max-w-full";
-const SETTINGS_BANNER_ICON_CLASS =
-    "inline-flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground [&>svg]:size-3.5";
-const SETTINGS_BANNER_TITLE_CLASS = "font-medium leading-none";
-const SETTINGS_BANNER_DESCRIPTION_CLASS = "mt-1 text-sm text-muted-foreground";
 
 function getErrorMessage(error: unknown, fallback: string) {
     return error instanceof Error && error.message.trim()
@@ -1958,32 +1939,30 @@ function SectionShell({
                 data-sot-surface="settings-section"
             >
                 <Alert
-                    className={getSettingsBannerClassName("err", true)}
                     data-sot-banner="settings-section-load-error"
                     data-sot-panel="settings-section-load-error"
                     data-sot-section={section}
                     data-sot-tone="err"
-                    variant="destructive"
+                    density="settingsBanner"
+                    layout="settingsBannerAction"
+                    variant="settingsLoadError"
                 >
-                    <span
-                        className={SETTINGS_BANNER_ICON_CLASS}
-                        data-sot-banner-icon
-                    >
+                    <span data-sot-banner-icon>
                         <AlertCircle aria-hidden="true" />
                     </span>
                     <span data-sot-banner-body>
-                        <span
-                            className={SETTINGS_BANNER_TITLE_CLASS}
+                        <AlertTitle
+                            density="settingsBanner"
                             data-sot-banner-title
                         >
                             {isZh ? "加载失败" : "Load failed"}
-                        </span>
-                        <span
-                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                        </AlertTitle>
+                        <AlertDescription
+                            density="settingsBanner"
                             data-sot-banner-sub
                         >
                             {loadError}
-                        </span>
+                        </AlertDescription>
                     </span>
                     <Button
                         type="button"
@@ -3016,7 +2995,6 @@ function VoScriptSettingsPanel({
         >
             {showUnavailableBanner ? (
                 <Alert
-                    className={getSettingsBannerClassName("warn")}
                     data-sot-banner="voscript-unavailable"
                     data-sot-panel="voscript-unavailable-banner"
                     data-sot-state={
@@ -3025,25 +3003,27 @@ function VoScriptSettingsPanel({
                             : "missing-connection"
                     }
                     data-sot-tone="warn"
+                    density="settingsBanner"
+                    layout="settingsBanner"
+                    variant="settingsVoScriptWarning"
                 >
                     <span
-                        className={SETTINGS_BANNER_ICON_CLASS}
                         data-sot-banner-icon
                         aria-hidden="true"
                     >
                         <AlertCircle aria-hidden="true" />
                     </span>
                     <div data-sot-banner-body>
-                        <div
-                            className={SETTINGS_BANNER_TITLE_CLASS}
+                        <AlertTitle
+                            density="settingsBanner"
                             data-sot-banner-title
                         >
                             {isZh
                                 ? "VoScript 当前不可用"
                                 : "VoScript is unavailable"}
-                        </div>
-                        <div
-                            className={SETTINGS_BANNER_DESCRIPTION_CLASS}
+                        </AlertTitle>
+                        <AlertDescription
+                            density="settingsBanner"
                             data-sot-banner-hint
                         >
                             {connectionTestState === "test-error" &&
@@ -3052,7 +3032,7 @@ function VoScriptSettingsPanel({
                                 : isZh
                                   ? "服务地址或 API key 缺失，列表中将无法触发新转写。填好下面字段并保存后会自动重试。"
                                   : "The service URL or API key is missing. New transcription jobs cannot start until you fill these fields and save."}
-                        </div>
+                        </AlertDescription>
                     </div>
                 </Alert>
             ) : null}
