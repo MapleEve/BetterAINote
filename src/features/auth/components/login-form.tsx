@@ -149,7 +149,8 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    className="h-[36px] w-full rounded-[9px] border-primary bg-[var(--bg-elevated)] px-[12px] py-0 !text-[13px] font-medium leading-[normal] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 md:!text-[13px] dark:bg-[var(--bg-elevated)]"
+                                    variant="accent"
+                                    controlSize="compact"
                                     data-sot-control="auth-email"
                                     data-sot-state={
                                         invalid
@@ -183,10 +184,11 @@ export function LoginForm({
                             <Field className="gap-0">
                                 <Button
                                     type="submit"
-                                    variant="default"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
-                                    className="h-[38px] w-full rounded-[8px] !border !border-solid !border-transparent !bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] !text-white shadow-none hover:!bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0"
+                                    className="w-full"
+                                    size="form-submit"
+                                    variant="accent"
                                     data-sot-control="send-login-link"
                                 >
                                     {isLoading ? "发送中..." : "发送登录链接"}
@@ -195,11 +197,10 @@ export function LoginForm({
                                     或{" "}
                                     <Button
                                         type="button"
-                                        variant="link"
-                                        size="sm"
+                                        size="inline-link"
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
-                                        className="h-auto min-h-0 rounded-none p-0 align-baseline !text-[12px] !font-normal !leading-[normal] !text-[var(--accent)] underline !underline-offset-auto"
+                                        variant="accentLink"
                                         data-sot-control="local-only"
                                         data-sot-state={
                                             isLocalLoading ? "loading" : "ready"

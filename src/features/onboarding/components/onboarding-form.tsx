@@ -739,24 +739,22 @@ function TranscriptionStep({
             </div>
             <div data-sot-part="onboarding-actions">
                 <Button
-                    className="!h-[26px] !gap-[6px] !rounded-[8px] !border !border-solid !border-[var(--line-hairline)] !bg-transparent !px-[10px] !text-[11px] !font-semibold !leading-[normal] !text-[var(--fg-secondary)] !shadow-none"
                     data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="xs"
+                    size="control-xs"
                     type="button"
-                    variant="outline"
+                    variant="quietOutline"
                 >
                     跳过
                 </Button>
                 <Button
-                    className="!h-[26px] !gap-[6px] !rounded-[8px] !border !border-solid !border-transparent !bg-[var(--accent)] !px-[10px] !text-[11px] !font-semibold !leading-[normal] !text-white !shadow-none"
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="xs"
+                    size="control-xs"
                     type="button"
-                    variant="default"
+                    variant="accent"
                 >
                     下一步
                 </Button>
@@ -916,8 +914,8 @@ function FinishStep({
             <div data-sot-part="onboarding-actions">
                 <Button
                     type="button"
-                    variant="outline"
-                    size="xs"
+                    variant="quietOutline"
+                    size="control-xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -925,8 +923,8 @@ function FinishStep({
                 </Button>
                 <Button
                     type="button"
-                    variant="default"
-                    size="xs"
+                    variant="accent"
+                    size="control-xs"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
                     data-sot-control="save-enter"
@@ -975,8 +973,8 @@ function WizardActions({
             {onBack ? (
                 <Button
                     type="button"
-                    variant="outline"
-                    size="xs"
+                    variant="quietOutline"
+                    size="control-xs"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -985,8 +983,8 @@ function WizardActions({
             ) : null}
             <Button
                 type="button"
-                variant="default"
-                size="xs"
+                variant="accent"
+                size="control-xs"
                 disabled={isSaving}
                 data-sot-control="onboarding-next"
                 onClick={onNext}

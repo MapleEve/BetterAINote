@@ -22,6 +22,12 @@ const buttonVariants = cva(
                 secondary:
                     "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                accent:
+                    "border border-transparent bg-[var(--accent)] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0",
+                quietOutline:
+                    "border border-[var(--line-hairline)] bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)]",
+                accentLink:
+                    "text-[var(--accent)] underline underline-offset-auto hover:text-[var(--accent)] hover:underline",
                 ghostNeutral:
                     "border border-transparent bg-transparent justify-normal [justify-content:normal] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 accentIcon:
@@ -40,6 +46,12 @@ const buttonVariants = cva(
                 xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
                 "control-sm":
                     "h-[var(--button-compact-height)] justify-normal [justify-content:normal] gap-[7px] rounded-[7px] px-[10px] text-[12px] leading-[normal] font-semibold has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+                "control-xs":
+                    "h-[26px] gap-[6px] rounded-[8px] px-[10px] text-[11px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
+                "form-submit":
+                    "h-[38px] rounded-[8px] px-[12px] py-0 text-[12px] font-semibold leading-[normal] has-[>svg]:px-[12px]",
+                "inline-link":
+                    "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal]",
                 sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 "pill-sm":
                     "h-[var(--button-pill-height)] justify-normal gap-[5px] px-[10px] py-0 font-sans text-[11.5px] font-semibold leading-[normal] has-[>svg]:px-[10px]",

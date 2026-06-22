@@ -66,6 +66,24 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function extractOpeningElement(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    return extractOpeningElementAt(source, markerIndex, tagName);
+}
+
+function extractOpeningElementAt(
+    source: string,
+    markerIndex: number,
+    tagName: string,
+) {
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
+}
+
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -106,12 +124,48 @@ describe("onboarding UI replacement regression", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(source).toContain('variant="outline"');
-        expect(source).toContain('variant="default"');
-        expect(source).toContain('size="xs"');
+        expect(source).toContain('variant="accent"');
+        expect(source).toContain('variant="quietOutline"');
+        expect(source).toContain('size="control-xs"');
         expect(source).toContain('size="lg"');
         expect(source).toContain(
             'variant={isActive ? "secondary" : "outline"}',
         );
+        const onboardingSkipButton = extractOpeningElement(
+            source,
+            'data-sot-control="onboarding-skip"',
+            "Button",
+        );
+        const onboardingNextButtons = [
+            ...source.matchAll(/data-sot-control="onboarding-next"/g),
+        ].map((match) =>
+            extractOpeningElementAt(source, match.index, "Button"),
+        );
+        expect(onboardingSkipButton).toContain('variant="quietOutline"');
+        expect(onboardingSkipButton).toContain('size="control-xs"');
+        expect(onboardingSkipButton).not.toContain("className=");
+        expect(onboardingNextButtons.length).toBeGreaterThan(0);
+        for (const onboardingNextButton of onboardingNextButtons) {
+            expect(onboardingNextButton).toContain('variant="accent"');
+            expect(onboardingNextButton).toContain('size="control-xs"');
+            expect(onboardingNextButton).not.toContain("className=");
+        }
+        for (const removedPrimitiveRepaintClass of [
+            "!h-[26px]",
+            "!gap-[6px]",
+            "!rounded-[8px]",
+            "!border",
+            "!bg-[var(--accent)]",
+            "!px-[10px]",
+            "!text-[11px]",
+            "!font-semibold",
+            "!leading-[normal]",
+            "!text-[var(--fg-secondary)]",
+            "!text-white",
+            "!shadow-none",
+        ]) {
+            expect(source).not.toContain(removedPrimitiveRepaintClass);
+        }
         expect(source).toContain(
             '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
         );

@@ -40,6 +40,24 @@ function extractElementSlice(source: string, marker: string, tagName: string) {
     return source.slice(start, end + tagName.length + 3);
 }
 
+function extractOpeningElement(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    return extractOpeningElementAt(source, markerIndex, tagName);
+}
+
+function extractOpeningElementAt(
+    source: string,
+    markerIndex: number,
+    tagName: string,
+) {
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -1686,6 +1704,9 @@ describe("full UI replacement regression coverage", () => {
             "outline",
             "secondary",
             "ghost",
+            "accent",
+            "quietOutline",
+            "accentLink",
             "link",
         ]) {
             expect(button).toContain(`${variant}:`);
@@ -1714,6 +1735,9 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain("actionDestructive:");
         expect(button).toContain("accentIcon:");
         expect(button).toContain("text-[var(--accent)]");
+        expect(button).toContain('"control-xs":');
+        expect(button).toContain('"form-submit":');
+        expect(button).toContain('"inline-link":');
         expect(button).toContain("chipRemove:");
         expect(button).toContain("[&_svg]:invisible");
         expect(button).not.toContain("accentSelf");
@@ -1833,7 +1857,17 @@ describe("full UI replacement regression coverage", () => {
         expect(label).toContain('data-slot="label"');
         expect(label).not.toContain('className={cn("field-name"');
         expect(input).toContain('React.ComponentProps<"input">');
+        expect(input).toContain(
+            'import { cva, type VariantProps } from "class-variance-authority";',
+        );
+        expect(input).toContain("const inputVariants = cva(");
+        expect(input).toContain("VariantProps<typeof inputVariants>");
         expect(input).toContain('data-slot="input"');
+        expect(input).toContain("data-variant={variant}");
+        expect(input).toContain("data-size={controlSize}");
+        expect(input).toContain("controlSize:");
+        expect(input).toContain("accent:");
+        expect(input).toContain("compact:");
         for (const className of [
             "border-input",
             "focus-visible:ring-ring/50",
@@ -2638,11 +2672,50 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(login).toContain("<Button");
-        expect(login).toContain('variant="default"');
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
-        expect(login).toContain('variant="link"');
+        const authEmailInput = extractOpeningElement(
+            login,
+            'data-sot-control="auth-email"',
+            "Input",
+        );
+        const authSubmitButton = extractOpeningElement(
+            login,
+            'data-sot-control="send-login-link"',
+            "Button",
+        );
+        const authLocalButton = extractOpeningElement(
+            login,
+            'data-sot-control="local-only"',
+            "Button",
+        );
+        expect(authEmailInput).toContain('variant="accent"');
+        expect(authEmailInput).toContain('controlSize="compact"');
+        expect(authEmailInput).not.toContain("className=");
+        expect(authSubmitButton).toContain('variant="accent"');
+        expect(authSubmitButton).toContain('size="form-submit"');
+        expect(authSubmitButton).toContain('className="w-full"');
+        expect(authLocalButton).toContain('variant="accentLink"');
+        expect(authLocalButton).toContain('size="inline-link"');
+        expect(authLocalButton).not.toContain("className=");
+        for (const removedAuthPrimitiveRepaintClass of [
+            "h-[36px]",
+            "h-[38px]",
+            "rounded-[9px]",
+            "!text-[13px]",
+            "md:!text-[13px]",
+            "!border",
+            "!bg-[var(--accent)]",
+            "hover:!bg-[var(--accent)]",
+            "!text-white",
+            "!font-normal",
+            "!leading-[normal]",
+            "!text-[var(--accent)]",
+            "!underline-offset-auto",
+        ]) {
+            expect(login).not.toContain(removedAuthPrimitiveRepaintClass);
+        }
         expect(login).toContain("aria-invalid={invalid}");
         expect(login).toContain("aria-busy={isLoading}");
         expect(login).toContain("aria-busy={isLocalLoading}");
@@ -2752,12 +2825,50 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(onboarding).toContain('variant="outline"');
-        expect(onboarding).toContain('variant="default"');
-        expect(onboarding).toContain('size="xs"');
+        expect(onboarding).toContain('variant="accent"');
+        expect(onboarding).toContain('variant="quietOutline"');
+        expect(onboarding).toContain('size="control-xs"');
         expect(onboarding).toContain('size="lg"');
         expect(onboarding).toContain(
             'variant={isActive ? "secondary" : "outline"}',
         );
+        const onboardingSkipButton = extractOpeningElement(
+            onboarding,
+            'data-sot-control="onboarding-skip"',
+            "Button",
+        );
+        const onboardingNextButtons = [
+            ...onboarding.matchAll(/data-sot-control="onboarding-next"/g),
+        ].map((match) =>
+            extractOpeningElementAt(onboarding, match.index, "Button"),
+        );
+        expect(onboardingSkipButton).toContain('variant="quietOutline"');
+        expect(onboardingSkipButton).toContain('size="control-xs"');
+        expect(onboardingSkipButton).not.toContain("className=");
+        expect(onboardingNextButtons.length).toBeGreaterThan(0);
+        for (const onboardingNextButton of onboardingNextButtons) {
+            expect(onboardingNextButton).toContain('variant="accent"');
+            expect(onboardingNextButton).toContain('size="control-xs"');
+            expect(onboardingNextButton).not.toContain("className=");
+        }
+        for (const removedOnboardingPrimitiveRepaintClass of [
+            "!h-[26px]",
+            "!gap-[6px]",
+            "!rounded-[8px]",
+            "!border",
+            "!bg-[var(--accent)]",
+            "!px-[10px]",
+            "!text-[11px]",
+            "!font-semibold",
+            "!leading-[normal]",
+            "!text-[var(--fg-secondary)]",
+            "!text-white",
+            "!shadow-none",
+        ]) {
+            expect(onboarding).not.toContain(
+                removedOnboardingPrimitiveRepaintClass,
+            );
+        }
         expect(onboarding).toContain(
             '"grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"',
         );
