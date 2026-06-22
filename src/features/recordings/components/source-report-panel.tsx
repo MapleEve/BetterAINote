@@ -1083,8 +1083,8 @@ export function SourceReportPanel({
     const sourceActionControls = data ? (
         <div data-sot-source-report-actions>
             <Button
-                variant="outline"
-                size="xs"
+                variant="sourceReportAction"
+                size="sourceReportAction"
                 type="button"
                 disabled={!openSourceUrl}
                 title={
@@ -1099,8 +1099,8 @@ export function SourceReportPanel({
                 {getOpenSourceLabel(sourceProviderForReport, language)}
             </Button>
             <Button
-                variant="ghost"
-                size="xs"
+                variant="sourceReportGhostAction"
+                size="sourceReportAction"
                 type="button"
                 disabled={repullDisabled}
                 aria-busy={repullState === "loading"}
@@ -1309,8 +1309,8 @@ export function SourceReportPanel({
                         >
                             <Button
                                 type="button"
-                                size="xs"
-                                variant="default"
+                                size="sourceReportAction"
+                                variant="sourceReportPrimaryAction"
                                 onClick={loadReport}
                                 disabled={isLoading}
                                 data-sot-control="refresh-source-report"
@@ -1320,8 +1320,8 @@ export function SourceReportPanel({
                             </Button>
                             <Button
                                 type="button"
-                                size="xs"
-                                variant="ghost"
+                                size="sourceReportAction"
+                                variant="sourceReportGhostAction"
                                 onClick={() => {
                                     window.location.assign(
                                         "/dashboard#activity",

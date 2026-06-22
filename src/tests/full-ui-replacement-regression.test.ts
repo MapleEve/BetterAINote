@@ -3101,6 +3101,9 @@ describe("full UI replacement regression coverage", () => {
         const sourceReportBadgePrimitive = readSource(
             "components/ui/badge.tsx",
         );
+        const sourceReportButtonPrimitive = readSource(
+            "components/ui/button.tsx",
+        );
         const sourceReportCardPrimitive = readSource("components/ui/card.tsx");
         const sourceReportSkeletonPrimitive = readSource(
             "components/ui/skeleton.tsx",
@@ -4020,9 +4023,21 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportActions).toContain(
             "<div data-sot-source-report-actions>",
         );
-        expect(sourceReportActions).toContain('variant="outline"');
-        expect(sourceReportActions).toContain('variant="ghost"');
-        expect(sourceReportActions).toContain('size="xs"');
+        expect(sourceReportButtonPrimitive).toContain("sourceReportAction:");
+        expect(sourceReportButtonPrimitive).toContain(
+            "sourceReportPrimaryAction:",
+        );
+        expect(sourceReportButtonPrimitive).toContain(
+            "sourceReportGhostAction:",
+        );
+        expect(sourceReportActions).toContain('variant="sourceReportAction"');
+        expect(sourceReportActions).toContain(
+            'variant="sourceReportGhostAction"',
+        );
+        expect(sourceReportActions).toContain('size="sourceReportAction"');
+        expect(sourceReportActions).not.toContain('variant="outline"');
+        expect(sourceReportActions).not.toContain('variant="ghost"');
+        expect(sourceReportActions).not.toContain('size="xs"');
         expect(sourceReportActions).toContain(
             'data-sot-control="open-source-record"',
         );
@@ -4049,9 +4064,18 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActions).toContain(
             'className="justify-center"',
         );
-        expect(sourceReportEmptyActions).toContain('variant="default"');
-        expect(sourceReportEmptyActions).toContain('variant="ghost"');
-        expect(sourceReportEmptyActions).toContain('size="xs"');
+        expect(sourceReportEmptyActions).toContain(
+            'variant="sourceReportPrimaryAction"',
+        );
+        expect(sourceReportEmptyActions).toContain(
+            'variant="sourceReportGhostAction"',
+        );
+        expect(sourceReportEmptyActions).toContain(
+            'size="sourceReportAction"',
+        );
+        expect(sourceReportEmptyActions).not.toContain('variant="default"');
+        expect(sourceReportEmptyActions).not.toContain('variant="ghost"');
+        expect(sourceReportEmptyActions).not.toContain('size="xs"');
         expect(sourceReportEmptyActions).toContain(
             'data-sot-control="refresh-source-report"',
         );
@@ -5261,13 +5285,17 @@ describe("full UI replacement regression coverage", () => {
             const markerIndex = sourceRecordPanel.indexOf(marker);
             expect(markerIndex).toBeGreaterThanOrEqual(0);
             const copyButtonSource = sourceRecordPanel.slice(
-                Math.max(0, markerIndex - 320),
+                Math.max(0, markerIndex - 520),
                 markerIndex + 1200,
             );
 
             expect(copyButtonSource).toContain("<Button");
-            expect(copyButtonSource).toContain('variant="outline"');
-            expect(copyButtonSource).toContain('size="sm"');
+            expect(copyButtonSource).toContain(
+                'variant="sourceRecordCopyAction"',
+            );
+            expect(copyButtonSource).toContain('size="sourceRecordCopyAction"');
+            expect(copyButtonSource).not.toContain('variant="outline"');
+            expect(copyButtonSource).not.toContain('size="sm"');
             expect(copyButtonSource).toContain(
                 '<Copy data-icon="inline-start" />',
             );

@@ -1337,8 +1337,8 @@ export function RecordingWorkstation({
                                         <div data-sot-part="recording-source-record-actions">
                                             <Button
                                                 type="button"
-                                                variant="outline"
-                                                size="sm"
+                                                variant="sourceRecordCopyAction"
+                                                size="sourceRecordCopyAction"
                                                 onClick={
                                                     handleCopyLocalTranscript
                                                 }
@@ -1359,8 +1359,8 @@ export function RecordingWorkstation({
                                             </Button>
                                             <Button
                                                 type="button"
-                                                variant="outline"
-                                                size="sm"
+                                                variant="sourceRecordCopyAction"
+                                                size="sourceRecordCopyAction"
                                                 onClick={
                                                     handleCopyRawTranscript
                                                 }

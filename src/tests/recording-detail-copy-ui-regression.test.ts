@@ -276,6 +276,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const transcriptionSkeletons = readSource(
             "features/recordings/components/transcription-skeletons.tsx",
         );
+        const buttonPrimitive = readSource("components/ui/button.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const sourceReportButtonControls = [
@@ -340,6 +341,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('variant="sourceReportStatus"');
         expect(sourceReport).toContain('variant="sourceReportCard"');
         expect(sourceReport).toContain('variant="sourceReportSegment"');
+        expect(buttonPrimitive).toContain("sourceReportAction:");
+        expect(buttonPrimitive).toContain("sourceReportGhostAction:");
         expect(sourceReport).toContain(
             "size={sourceReportCardSkeletonSize(size)}",
         );
@@ -426,9 +429,13 @@ describe("recording detail copy and title action UI regressions", () => {
                 );
                 expect(controlSource).toContain('size="sm"');
             } else {
+                expect(controlSource).toContain('size="sourceReportAction"');
                 expect(controlSource).toMatch(
-                    /variant="(?:ghost|outline)"[\s\S]*size="(?:sm|xs)"/,
+                    /variant="sourceReport(?:Ghost)?Action"/,
                 );
+                expect(controlSource).not.toContain('variant="outline"');
+                expect(controlSource).not.toContain('variant="ghost"');
+                expect(controlSource).not.toContain('size="xs"');
             }
             expect(controlSource).toContain("data-sot-control=");
             expect(controlSource).not.toContain("copy-btn");
@@ -461,6 +468,7 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         const globals = readSource("app/globals.css");
         const badge = readSource("components/ui/badge.tsx");
+        const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
         const listPanelIndex = detailWorkstation.indexOf(
@@ -817,6 +825,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("<SourceReportPanel");
         expect(detailWorkstation).toContain("onAvailabilityChange");
         expect(detailWorkstation).toContain("autoLoad");
+        expect(button).toContain("sourceRecordCopyAction:");
         expect(detailWorkstation).toContain(
             'data-sot-part="recording-source-record-actions"',
         );
@@ -828,13 +837,17 @@ describe("recording detail copy and title action UI regressions", () => {
             const markerIndex = sourceRecordPanel.indexOf(marker);
             expect(markerIndex).toBeGreaterThanOrEqual(0);
             const copyButtonSource = sourceRecordPanel.slice(
-                Math.max(0, markerIndex - 320),
+                Math.max(0, markerIndex - 520),
                 markerIndex + 1200,
             );
 
             expect(copyButtonSource).toContain("<Button");
-            expect(copyButtonSource).toContain('variant="outline"');
-            expect(copyButtonSource).toContain('size="sm"');
+            expect(copyButtonSource).toContain(
+                'variant="sourceRecordCopyAction"',
+            );
+            expect(copyButtonSource).toContain('size="sourceRecordCopyAction"');
+            expect(copyButtonSource).not.toContain('variant="outline"');
+            expect(copyButtonSource).not.toContain('size="sm"');
             expect(copyButtonSource).toContain(
                 '<Copy data-icon="inline-start" />',
             );
