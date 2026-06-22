@@ -74,6 +74,14 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 sourceReportCopyAction:
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]",
+                onboardingProviderCard:
+                    "border border-input bg-background text-left shadow-xs hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:bg-input/30 dark:hover:bg-input/50 dark:data-[sot-state=selected]:bg-secondary",
+                onboardingDefaultSource:
+                    "border border-[var(--line-hairline)] bg-transparent text-left text-[var(--fg-primary)] shadow-none hover:bg-transparent hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--accent)] data-[sot-state=selected]:bg-[var(--accent-soft)] data-[sot-state=disabled]:opacity-[0.55]",
+                onboardingSecondaryAction:
+                    "border border-[var(--line-hairline)] bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)]",
+                onboardingPrimaryAction:
+                    "border border-transparent bg-[var(--accent)] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0",
                 speakerReviewAction:
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 speakerReviewPrimaryAction:
@@ -217,6 +225,12 @@ const buttonVariants = cva(
                     "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
                 sourceReportCopyAction:
                     "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
+                onboardingProviderCard:
+                    "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 whitespace-normal has-[>svg]:px-3.5",
+                onboardingDefaultSource:
+                    "h-auto w-full justify-start gap-2 rounded-[8px] p-2 font-normal leading-[23.25px] whitespace-normal has-[>svg]:px-2",
+                onboardingAction:
+                    "h-[26px] gap-[6px] rounded-[8px] px-[10px] text-[11px] font-semibold leading-[normal] has-[>svg]:px-[10px]",
                 speakerReviewAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 speakerReviewSuggestion:

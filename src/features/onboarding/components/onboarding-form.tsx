@@ -281,19 +281,21 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             data-sot-ready={isMounted ? "true" : "false"}
             data-sot-surface="onboarding"
         >
-            <Card
-                hasNoPadding
-                className="min-h-[375px]"
-                data-sot-card="onboarding"
-            >
+            <Card variant="onboardingSurface" data-sot-card="onboarding">
                 <CardHeader
-                    className="gap-0 p-0"
+                    variant="onboardingHeader"
                     data-sot-part="onboarding-card-header"
                 >
-                    <CardTitle data-sot-part="card-heading">
+                    <CardTitle
+                        variant="onboardingHeading"
+                        data-sot-part="card-heading"
+                    >
                         上手 / Onboarding · 4 步
                     </CardTitle>
-                    <CardDescription data-sot-part="card-sub">
+                    <CardDescription
+                        variant="onboardingSub"
+                        data-sot-part="card-sub"
+                    >
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
                     </CardDescription>
                 </CardHeader>
@@ -334,18 +336,24 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         })}
                     </div>
                     <CardHeader
-                        className="gap-0 p-0"
+                        variant="onboardingStepHeader"
                         data-sot-part="onboarding-step-header"
                     >
-                        <CardTitle data-sot-part="onboarding-step-title">
+                        <CardTitle
+                            variant="onboardingStepTitle"
+                            data-sot-part="onboarding-step-title"
+                        >
                             {visibleStepTitle}
                         </CardTitle>
-                        <CardDescription data-sot-part="onboarding-step-description">
+                        <CardDescription
+                            variant="onboardingStepDescription"
+                            data-sot-part="onboarding-step-description"
+                        >
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </CardDescription>
                     </CardHeader>
                     <CardContent
-                        className="gap-0 p-0"
+                        variant="onboardingStepBody"
                         data-sot-part="onboarding-step-body"
                     >
                         {finishError ? (
@@ -501,9 +509,8 @@ function SourceStep({
 
                     return (
                         <Button
-                            variant={isActive ? "secondary" : "outline"}
-                            size="lg"
-                            className="grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 px-3.5 py-3 text-left"
+                            variant="onboardingProviderCard"
+                            size="onboardingProviderCard"
                             data-sot-control="provider-card"
                             data-sot-cover={
                                 item.provider === "feishu-minutes"
@@ -696,8 +703,7 @@ function TranscriptionStep({
                     const isActive = option.id === defaultTranscriptionSource;
 
                     return (
-                        // biome-ignore lint/a11y/useSemanticElements: SOT §09 rows are divs; click and keyboard handlers keep the restored row interactive.
-                        <div
+                        <Button
                             data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
                             data-sot-state={
@@ -707,33 +713,21 @@ function TranscriptionStep({
                                       ? "idle"
                                       : "disabled"
                             }
+                            disabled={isSaving || !option.connected}
                             key={option.id}
+                            size="onboardingDefaultSource"
+                            type="button"
+                            variant="onboardingDefaultSource"
                             onClick={() => {
-                                if (!isSaving && option.connected) {
-                                    setDefaultTranscriptionSource(option.id);
-                                }
-                            }}
-                            onKeyDown={(event) => {
-                                if (
-                                    isSaving ||
-                                    !option.connected ||
-                                    (event.key !== "Enter" && event.key !== " ")
-                                ) {
-                                    return;
-                                }
-
-                                event.preventDefault();
                                 setDefaultTranscriptionSource(option.id);
                             }}
-                            role="button"
-                            tabIndex={isSaving || !option.connected ? -1 : 0}
                         >
                             <span
                                 data-sot-part="onboarding-default-source-swatch"
                                 data-sot-swatch={option.swatch}
                             />
                             {option.label}
-                        </div>
+                        </Button>
                     );
                 })}
             </div>
@@ -742,9 +736,9 @@ function TranscriptionStep({
                     data-sot-control="onboarding-skip"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="control-xs"
+                    size="onboardingAction"
                     type="button"
-                    variant="quietOutline"
+                    variant="onboardingSecondaryAction"
                 >
                     跳过
                 </Button>
@@ -752,9 +746,9 @@ function TranscriptionStep({
                     data-sot-control="onboarding-next"
                     disabled={isSaving}
                     onClick={onNext}
-                    size="control-xs"
+                    size="onboardingAction"
                     type="button"
-                    variant="accent"
+                    variant="onboardingPrimaryAction"
                 >
                     下一步
                 </Button>
@@ -786,19 +780,27 @@ function SpeakersStep({
         <>
             <div data-sot-list="speaker-profiles">
                 <Card
-                    hasNoPadding
-                    className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"
+                    variant="onboardingSpeakerDraft"
                     data-sot-control="speaker-profile-draft"
                     data-sot-state={speakerState}
                 >
                     <span data-sot-part="provider-icon">
                         <UserRound />
                     </span>
-                    <CardHeader data-sot-part="provider-meta">
-                        <CardTitle data-sot-part="provider-name">
+                    <CardHeader
+                        variant="onboardingProviderMeta"
+                        data-sot-part="provider-meta"
+                    >
+                        <CardTitle
+                            variant="onboardingProviderName"
+                            data-sot-part="provider-name"
+                        >
                             第一个说话人
                         </CardTitle>
-                        <CardDescription data-sot-part="provider-hint">
+                        <CardDescription
+                            variant="onboardingProviderHint"
+                            data-sot-part="provider-hint"
+                        >
                             可先留空，工作台内继续校对
                         </CardDescription>
                     </CardHeader>
@@ -914,8 +916,8 @@ function FinishStep({
             <div data-sot-part="onboarding-actions">
                 <Button
                     type="button"
-                    variant="quietOutline"
-                    size="control-xs"
+                    variant="onboardingSecondaryAction"
+                    size="onboardingAction"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -923,8 +925,8 @@ function FinishStep({
                 </Button>
                 <Button
                     type="button"
-                    variant="accent"
-                    size="control-xs"
+                    variant="onboardingPrimaryAction"
+                    size="onboardingAction"
                     disabled={isSaving || isFinishing}
                     aria-busy={isSaving || isFinishing}
                     data-sot-control="save-enter"
@@ -973,8 +975,8 @@ function WizardActions({
             {onBack ? (
                 <Button
                     type="button"
-                    variant="quietOutline"
-                    size="control-xs"
+                    variant="onboardingSecondaryAction"
+                    size="onboardingAction"
                     disabled={isSaving}
                     onClick={onBack}
                 >
@@ -983,8 +985,8 @@ function WizardActions({
             ) : null}
             <Button
                 type="button"
-                variant="accent"
-                size="control-xs"
+                variant="onboardingPrimaryAction"
+                size="onboardingAction"
                 disabled={isSaving}
                 data-sot-control="onboarding-next"
                 onClick={onNext}
