@@ -2041,29 +2041,6 @@ button:not([data-slot]) {
     flex-direction: column;
     gap: 6px;
 }
-[data-sot-control="onboarding-default-source"] {
-    appearance: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--line-hairline);
-    background: transparent;
-    color: var(--fg-primary);
-    font: inherit;
-    line-height: 23.25px;
-    text-align: left;
-    cursor: pointer;
-}
-[data-sot-control="onboarding-default-source"][data-sot-state="selected"] {
-    border-color: var(--accent);
-    background: color-mix(in oklab, var(--accent) 6%, transparent);
-}
-[data-sot-control="onboarding-default-source"][data-sot-state="disabled"] {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
 [data-sot-part="onboarding-default-source-swatch"] {
     width: 20px;
     height: 20px;

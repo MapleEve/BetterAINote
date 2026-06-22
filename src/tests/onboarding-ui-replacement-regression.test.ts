@@ -66,6 +66,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
+}
+
 function extractOpeningElement(source: string, marker: string, tagName: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -89,6 +98,12 @@ const OLD_UI_CONTRACT_RE =
 
 const ONBOARDING_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
+
+const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
+    '[data-sot-control="onboarding-default-source"]',
+    '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
+    '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
+] as const;
 
 describe("onboarding UI replacement regression", () => {
     it("keeps onboarding as a four-step SOT workstation surface", () => {
@@ -327,9 +342,9 @@ describe("onboarding UI replacement regression", () => {
         expect(globals).toContain(
             '[data-sot-list="onboarding-default-sources"]',
         );
-        expect(globals).toContain(
-            '[data-sot-control="onboarding-default-source"]',
-        );
+        for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).toContain(
             '[data-sot-part="onboarding-default-source-swatch"]',
         );

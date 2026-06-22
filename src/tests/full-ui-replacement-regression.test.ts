@@ -5,6 +5,11 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.join(process.cwd(), "src");
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
     "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
+const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
+    '[data-sot-control="onboarding-default-source"]',
+    '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
+    '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
+] as const;
 
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -3393,9 +3398,9 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-list="onboarding-default-sources"]',
         );
-        expect(globals).toContain(
-            '[data-sot-control="onboarding-default-source"]',
-        );
+        for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).toContain(
             '[data-sot-part="onboarding-default-source-swatch"]',
         );

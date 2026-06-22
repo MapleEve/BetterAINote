@@ -89,7 +89,7 @@ const buttonVariants = cva(
                 onboardingProviderCard:
                     "border border-input bg-background text-left shadow-xs hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:bg-input/30 dark:hover:bg-input/50 dark:data-[sot-state=selected]:bg-secondary",
                 onboardingDefaultSource:
-                    "border border-[var(--line-hairline)] bg-transparent text-left text-[var(--fg-primary)] shadow-none hover:bg-transparent hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--accent)] data-[sot-state=selected]:bg-[var(--accent-soft)] data-[sot-state=disabled]:opacity-[0.55]",
+                    "cursor-pointer appearance-none border border-[var(--line-hairline)] bg-transparent text-left text-[var(--fg-primary)] shadow-none hover:bg-transparent hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--accent)] data-[sot-state=selected]:bg-[var(--accent-soft)] data-[sot-state=selected]:hover:bg-[var(--accent-soft)] data-[sot-state=disabled]:cursor-not-allowed data-[sot-state=disabled]:opacity-[0.55] disabled:cursor-not-allowed disabled:opacity-[0.55]",
                 onboardingSecondaryAction:
                     "border border-[var(--line-hairline)] bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)]",
                 onboardingPrimaryAction:
