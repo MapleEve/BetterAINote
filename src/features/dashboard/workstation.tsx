@@ -6097,7 +6097,9 @@ export function Workstation({
                             data-sot-surface="dashboard-recording-player"
                         >
                             <Alert
-                                className="mb-3 flex items-center gap-[10px] px-[12px] py-[10px]"
+                                variant="playerNoAudio"
+                                density="playerNoAudio"
+                                layout="playerNoAudio"
                                 data-sot-part="dashboard-recording-player-no-audio"
                                 data-sot-state={
                                     playbackDisabled ? "visible" : "hidden"
@@ -6106,17 +6108,25 @@ export function Workstation({
                                 role="status"
                             >
                                 <span
-                                    className="col-start-1 row-span-2 place-self-center"
                                     data-icon="inline-start"
                                     data-sot-part="dashboard-recording-player-no-audio-icon"
                                 >
-                                    <SotPlayerNoAudioIcon className="size-3.5" />
+                                    <SotPlayerNoAudioIcon />
                                 </span>
-                                <span data-sot-part="dashboard-recording-player-no-audio-text">
-                                    <AlertTitle data-sot-part="dashboard-recording-player-no-audio-title">
+                                <span
+                                    data-player-no-audio-text=""
+                                    data-sot-part="dashboard-recording-player-no-audio-text"
+                                >
+                                    <AlertTitle
+                                        density="playerNoAudio"
+                                        data-sot-part="dashboard-recording-player-no-audio-title"
+                                    >
                                         来源仅同步转写与报告
                                     </AlertTitle>
-                                    <AlertDescription data-sot-part="dashboard-recording-player-no-audio-description">
+                                    <AlertDescription
+                                        density="playerNoAudio"
+                                        data-sot-part="dashboard-recording-player-no-audio-description"
+                                    >
                                         这条录音没有本地音频，无法播放或运行私有重转写。
                                     </AlertDescription>
                                 </span>
@@ -6379,8 +6389,8 @@ export function Workstation({
                                                 data-sot-part="dashboard-player-volume-row"
                                             >
                                                 <Button
-                                                    variant="ghost"
-                                                    size="icon-xs"
+                                                    variant="playerControl"
+                                                    size="playerControlSm"
                                                     type="button"
                                                     aria-label="静音切换"
                                                     data-sot-control="dashboard-player-volume-mute"
@@ -6399,8 +6409,8 @@ export function Workstation({
                                                     }
                                                 >
                                                     <span
-                                                        className="inline-flex [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]"
                                                         data-icon="inline-start"
+                                                        data-player-control-icon=""
                                                         data-sot-part="dashboard-player-volume-icon"
                                                     >
                                                         <SotPlayerVolumeIcon

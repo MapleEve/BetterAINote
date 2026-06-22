@@ -124,23 +124,30 @@ export function RecordingPlayer({
             style={sotPlayerFontVariables}
         >
             <Alert
-                className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"
+                variant="playerNoAudio"
+                density="playerNoAudio"
+                layout="playerNoAudio"
                 data-sot-part="recording-player-no-audio"
                 data-sot-state={playbackDisabled ? "visible" : "hidden"}
                 hidden={!playbackDisabled}
                 role="status"
             >
                 <span
-                    className="col-start-1 row-span-2 place-self-center"
                     data-icon="inline-start"
                     data-sot-part="recording-player-no-audio-icon"
                 >
-                    <SotPlayerNoAudioIcon className="size-3.5" />
+                    <SotPlayerNoAudioIcon />
                 </span>
-                <AlertTitle data-sot-part="recording-player-no-audio-title">
+                <AlertTitle
+                    density="playerNoAudio"
+                    data-sot-part="recording-player-no-audio-title"
+                >
                     来源仅同步转写与报告
                 </AlertTitle>
-                <AlertDescription data-sot-part="recording-player-no-audio-description">
+                <AlertDescription
+                    density="playerNoAudio"
+                    data-sot-part="recording-player-no-audio-description"
+                >
                     这条录音没有本地音频，无法播放或运行私有重转写。
                 </AlertDescription>
             </Alert>
@@ -174,9 +181,8 @@ export function RecordingPlayer({
                 data-sot-state={controlsState}
             >
                 <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink rounded-full"
+                    variant="playerControl"
+                    size="playerControl"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
@@ -195,9 +201,8 @@ export function RecordingPlayer({
                 </Button>
 
                 <Button
-                    variant="default"
-                    size="icon-lg"
-                    className="size-11 shrink rounded-full shadow-sm"
+                    variant="playerPrimary"
+                    size="playerControlLg"
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -233,9 +238,8 @@ export function RecordingPlayer({
                 </Button>
 
                 <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink rounded-full"
+                    variant="playerControl"
+                    size="playerControl"
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
@@ -321,9 +325,8 @@ export function RecordingPlayer({
                 <Button
                     type="button"
                     onClick={cyclePlaybackSpeed}
-                    variant="ghost"
-                    size="sm"
-                    className="min-w-12 justify-center font-mono tabular-nums"
+                    variant="playerSpeed"
+                    size="playerSpeed"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -344,9 +347,8 @@ export function RecordingPlayer({
                     <div data-sot-part="recording-player-volume-anchor">
                         <PopoverTrigger asChild>
                             <Button
-                                variant="outline"
-                                size="icon-sm"
-                                className="shrink rounded-full"
+                                variant="playerControl"
+                                size="playerControlSm"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"
@@ -400,8 +402,8 @@ export function RecordingPlayer({
                                 data-sot-part="recording-player-volume-row"
                             >
                                 <Button
-                                    variant="ghost"
-                                    size="icon-xs"
+                                    variant="playerControl"
+                                    size="playerControlSm"
                                     type="button"
                                     aria-label={
                                         language === "zh-CN"
@@ -418,8 +420,8 @@ export function RecordingPlayer({
                                     }
                                 >
                                     <span
-                                        className="inline-flex [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]"
                                         data-icon="inline-start"
+                                        data-player-control-icon=""
                                         data-sot-part="recording-player-volume-icon"
                                     >
                                         <SotPlayerVolumeIcon volume={volume} />

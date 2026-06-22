@@ -135,22 +135,56 @@ describe("dashboard recording player regressions", () => {
             ),
             "utf8",
         );
+        const alertPrimitive = readFileSync(
+            path.join(process.cwd(), "src/components/ui/alert.tsx"),
+            "utf8",
+        );
+        const noAudioAlert = extractOpeningElement(
+            source,
+            'data-sot-part="recording-player-no-audio"',
+            "Alert",
+        );
+        const noAudioTitle = extractOpeningElement(
+            source,
+            'data-sot-part="recording-player-no-audio-title"',
+            "AlertTitle",
+        );
+        const noAudioDescription = extractOpeningElement(
+            source,
+            'data-sot-part="recording-player-no-audio-description"',
+            "AlertDescription",
+        );
 
+        expect(alertPrimitive).toContain("playerNoAudio:");
+        expect(alertPrimitive).toContain('| "playerNoAudio"');
         expect(source).toContain('data-sot-part="recording-player-no-audio"');
         expect(source).toContain("<Alert");
-        expect(source).toContain(
-            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
+        expect(noAudioAlert).toContain('variant="playerNoAudio"');
+        expect(noAudioAlert).toContain('density="playerNoAudio"');
+        expect(noAudioAlert).toContain('layout="playerNoAudio"');
+        expect(noAudioAlert).not.toContain("className=");
+        expect(alertPrimitive).toContain("data-player-no-audio-text");
+        expect(alertPrimitive).not.toContain(
+            "dashboard-recording-player-no-audio-text",
         );
+        expect(alertPrimitive).not.toContain("recording-player-no-audio-text");
         expect(source).toContain("<SotPlayerNoAudioIcon");
-        expect(source).toContain(
+        expect(source).not.toContain(
             'className="col-start-1 row-span-2 place-self-center"',
         );
-        expect(source).toContain('<SotPlayerNoAudioIcon className="size-3.5" />');
+        expect(source).not.toContain(
+            '<SotPlayerNoAudioIcon className="size-3.5" />',
+        );
         expect(source).toContain("<AlertTitle");
+        expect(noAudioTitle).toContain('density="playerNoAudio"');
         expect(source).toContain("<AlertDescription");
+        expect(noAudioDescription).toContain('density="playerNoAudio"');
         expect(source).toContain('role="status"');
         expect(source).toContain(
             "这条录音没有本地音频，无法播放或运行私有重转写。",
+        );
+        expect(source).not.toContain(
+            'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',
         );
         expect(source).not.toContain("border-white/10");
         expect(source).not.toContain("bg-white/5");
@@ -242,6 +276,10 @@ describe("dashboard recording player regressions", () => {
         expect(buttonSource).toContain("playerSpeed:");
         expect(buttonSource).toContain("playerControlSm:");
         expect(buttonSource).toContain("playerControlLg:");
+        expect(buttonSource).toContain("tabular-nums");
+        expect(buttonSource).toContain("data-player-control-icon");
+        expect(buttonSource).not.toContain("dashboard-player-volume-icon");
+        expect(buttonSource).not.toContain("recording-player-volume-icon");
         expect(source).toContain("<Button");
         expect(source).toContain(
             'import {\n    Popover,\n    PopoverContent,\n    PopoverTrigger,\n} from "@/components/ui/popover";',
@@ -249,13 +287,68 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain("<Popover");
         expect(source).toContain("<PopoverTrigger asChild>");
         expect(source).toContain("<PopoverContent");
-        expect(source).toContain('variant="default"');
-        expect(source).toContain('variant="ghost"');
-        expect(source).toContain('size="icon"');
-        expect(source).toContain('size="icon-sm"');
-        expect(source).toContain(
-            'className="size-11 shrink rounded-full shadow-sm"',
+        const backControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-back"',
+            "Button",
         );
+        const playControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-play"',
+            "Button",
+        );
+        const forwardControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-forward"',
+            "Button",
+        );
+        const speedControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-speed"',
+            "Button",
+        );
+        const volumeControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-volume"',
+            "Button",
+        );
+        const volumeMuteControl = extractOpeningElement(
+            source,
+            'data-sot-control="recording-player-volume-mute"',
+            "Button",
+        );
+
+        for (const control of [backControl, forwardControl]) {
+            expect(control).toContain('variant="playerControl"');
+            expect(control).toContain('size="playerControl"');
+            expect(control).not.toContain("className=");
+        }
+        expect(playControl).toContain('variant="playerPrimary"');
+        expect(playControl).toContain('size="playerControlLg"');
+        expect(playControl).not.toContain("className=");
+        expect(speedControl).toContain('variant="playerSpeed"');
+        expect(speedControl).toContain('size="playerSpeed"');
+        expect(speedControl).not.toContain("className=");
+        for (const control of [volumeControl, volumeMuteControl]) {
+            expect(control).toContain('variant="playerControl"');
+            expect(control).toContain('size="playerControlSm"');
+            expect(control).not.toContain("className=");
+        }
+        expect(source).toContain("data-player-control-icon");
+        for (const legacyControlToken of [
+            'variant="outline"',
+            'variant="default"',
+            'variant="ghost"',
+            'size="icon"',
+            'size="icon-sm"',
+            'size="icon-lg"',
+            'size="sm"',
+            'size="icon-xs"',
+            'className="size-11 shrink rounded-full shadow-sm"',
+            'className="shrink rounded-full"',
+        ]) {
+            expect(source).not.toContain(legacyControlToken);
+        }
         expect(source).toContain('data-sot-control="recording-player-back"');
         expect(source).toContain('data-sot-control="recording-player-play"');
         expect(source).toContain('data-sot-control="recording-player-forward"');
@@ -421,14 +514,8 @@ describe("dashboard recording player regressions", () => {
             'data-sot-control="recording-player-speed"',
         );
         expect(speedControlIndex).toBeGreaterThanOrEqual(0);
-        const speedControlSource = source.slice(
-            Math.max(0, speedControlIndex - 420),
-            speedControlIndex + 260,
-        );
-        expect(speedControlSource).toContain("<Button");
-        expect(speedControlSource).toContain('variant="ghost"');
-        expect(speedControlSource).toContain('size="sm"');
-        expect(speedControlSource).toContain(
+        expect(speedControl).toContain("<Button");
+        expect(speedControl).toContain(
             'data-sot-control="recording-player-speed"',
         );
         expect(source).toContain("togglePlayPause");

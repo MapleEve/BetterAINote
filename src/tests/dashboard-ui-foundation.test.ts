@@ -512,6 +512,7 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps the dashboard recording player composed through shadcn slots instead of CSS primitive repaints", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const alert = readSource("components/ui/alert.tsx");
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
@@ -535,19 +536,50 @@ describe("dashboard SOT foundation", () => {
             'data-sot-control="player-status"',
             "Badge",
         );
+        const noAudioAlert = extractOpeningElement(
+            player,
+            'data-sot-part="dashboard-recording-player-no-audio"',
+            "Alert",
+        );
+        const noAudioTitle = extractOpeningElement(
+            player,
+            'data-sot-part="dashboard-recording-player-no-audio-title"',
+            "AlertTitle",
+        );
+        const noAudioDescription = extractOpeningElement(
+            player,
+            'data-sot-part="dashboard-recording-player-no-audio-description"',
+            "AlertDescription",
+        );
+        const volumeMuteControl = extractOpeningElement(
+            player,
+            'data-sot-control="dashboard-player-volume-mute"',
+            "Button",
+        );
 
         expect(player).toContain("<Card");
         expect(player).toContain(
             'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
         );
         expect(player).toContain("<Alert");
-        expect(player).toContain(
-            'className="mb-3 flex items-center gap-[10px] px-[12px] py-[10px]"',
-        );
+        expect(alert).toContain("playerNoAudio:");
+        expect(noAudioAlert).toContain('variant="playerNoAudio"');
+        expect(noAudioAlert).toContain('density="playerNoAudio"');
+        expect(noAudioAlert).toContain('layout="playerNoAudio"');
+        expect(noAudioAlert).not.toContain("className=");
+        expect(alert).toContain("data-player-no-audio-text");
+        expect(alert).not.toContain("dashboard-recording-player-no-audio-text");
+        expect(alert).not.toContain("recording-player-no-audio-text");
         expect(player).toContain("<SotPlayerNoAudioIcon");
+        expect(player).not.toContain(
+            '<SotPlayerNoAudioIcon className="size-3.5" />',
+        );
+        expect(player).toContain("data-player-no-audio-text");
         expect(player).toContain(
             'data-sot-part="dashboard-recording-player-no-audio-text"',
         );
+        expect(noAudioTitle).toContain('density="playerNoAudio"');
+        expect(noAudioDescription).toContain('density="playerNoAudio"');
         expect(player).toContain("<CardHeader");
         expect(player).toContain(
             'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
@@ -565,6 +597,9 @@ describe("dashboard SOT foundation", () => {
         expect(button).toContain("size-[30px]");
         expect(button).toContain("size-[44px]");
         expect(button).toContain("min-w-[50px]");
+        expect(button).toContain("data-player-control-icon");
+        expect(button).not.toContain("dashboard-player-volume-icon");
+        expect(button).not.toContain("recording-player-volume-icon");
         expect(player).toContain('variant="playerControl"');
         expect(player).toContain('size="playerControl"');
         expect(player).toContain('variant="playerPrimary"');
@@ -572,10 +607,20 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain('variant="playerSpeed"');
         expect(player).toContain('size="playerSpeed"');
         expect(player).toContain('size="playerControlSm"');
+        expect(volumeMuteControl).toContain('variant="playerControl"');
+        expect(volumeMuteControl).toContain('size="playerControlSm"');
+        expect(volumeMuteControl).not.toContain("className=");
+        expect(player).toContain("data-player-control-icon");
         expect(player).not.toContain("SOT_PLAYER_BUTTON_CLASS");
         expect(player).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
         expect(player).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
         expect(player).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
+        expect(player).not.toContain('variant="ghost"');
+        expect(player).not.toContain('variant="outline"');
+        expect(player).not.toContain('variant="default"');
+        expect(player).not.toContain('size="icon-sm"');
+        expect(player).not.toContain('size="icon-xs"');
+        expect(player).not.toContain('size="sm"');
         expect(player).not.toContain('variant="player"');
         expect(player).not.toContain('variant="player-primary"');
         expect(player).not.toContain('size="player"');
