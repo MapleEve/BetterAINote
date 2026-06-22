@@ -9,6 +9,18 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function extractBoundedSlice(
+    source: string,
+    startMarker: string,
+    endMarker: string,
+) {
+    const start = source.indexOf(startMarker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(endMarker, start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end);
+}
+
 const OLD_UI_RE =
     /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
 
@@ -56,9 +68,41 @@ const DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-part="library-search-tag-chip"] {',
 ];
 
+const SEARCH_ACTIVITY_OLD_GENERIC_TOKENS = [
+    'variant="ghost"',
+    'variant="outline"',
+    'variant="secondary"',
+    'size="icon-sm"',
+    'size="icon-xs"',
+    'size="xs"',
+    'size="sm"',
+] as const;
+
+const SEARCH_ACTIVITY_OLD_VISUAL_CLASS_SNIPPETS = [
+    "border border-transparent text-muted-foreground data-[sot-state=open]",
+    "rounded-xl border-border bg-card text-card-foreground shadow-2xl",
+    "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border",
+    "p-0 text-muted-foreground",
+    "h-8 px-1 text-sm font-medium",
+    "text-muted-foreground hover:text-foreground",
+    "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
+    "h-6 rounded-full px-2.5 text-xs data-[state=on]",
+    "flex flex-col items-center gap-2 border-0 bg-transparent px-4 py-4 text-center",
+    "line-clamp-none min-h-0 text-center text-sm font-medium",
+    "h-auto min-h-[52px] w-full flex-col items-start justify-start",
+    "w-fit gap-1.5 border-primary/25 bg-primary/10 text-primary",
+    "text-sm font-semibold leading-snug text-foreground",
+    "font-mono text-[11.5px] font-medium leading-snug tracking-[0.02em] text-muted-foreground",
+] as const;
+
 describe("dashboard SOT search and activity interactions", () => {
     it("keeps search inline in the SOT topbar with all query states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const searchSlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="library-search-anchor"',
+            'data-sot-part="dashboard-activity-anchor"',
+        );
 
         expect(workstation).not.toMatch(OLD_UI_RE);
         expect(workstation).toContain("const [searchOpen, setSearchOpen]");
@@ -91,20 +135,33 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("<InputGroupButton");
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");
-        expect(workstation).toContain(
-            'className="border border-transparent text-muted-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground"',
-        );
-        expect(workstation).toContain('variant="outline"');
-        expect(workstation).toContain('size="xs"');
-        expect(workstation).toContain(
-            'className="h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0"',
-        );
-        expect(workstation).toContain(
-            'className="w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2"',
-        );
-        expect(workstation).toContain(
-            'className="h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 whitespace-normal rounded-sm px-2.5 py-2 text-left data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"',
-        );
+        for (const semanticToken of [
+            'variant="dashboardSearchTrigger"',
+            'size="dashboardSearchTrigger"',
+            'variant="librarySearchPanel"',
+            'variant="librarySearchInputRow"',
+            'variant="librarySearchClear"',
+            'size="librarySearchClear"',
+            'layout="librarySearchScope"',
+            'variant="librarySearchScopeItem"',
+            'size="librarySearchScopeItem"',
+            'variant="librarySearchError"',
+            'density="librarySearchError"',
+            'layout="librarySearchError"',
+            'variant="librarySearchRetry"',
+            'size="librarySearchRetry"',
+            'variant="librarySearchResult"',
+            'size="librarySearchResult"',
+            'variant="librarySearchTag"',
+        ]) {
+            expect(searchSlice).toContain(semanticToken);
+        }
+        for (const oldToken of SEARCH_ACTIVITY_OLD_GENERIC_TOKENS) {
+            expect(searchSlice).not.toContain(oldToken);
+        }
+        for (const oldClass of SEARCH_ACTIVITY_OLD_VISUAL_CLASS_SNIPPETS) {
+            expect(searchSlice).not.toContain(oldClass);
+        }
         expect(workstation).toContain('data-sot-panel="library-search"');
         expect(workstation).toContain(
             'data-sot-part="library-search-input-row"',
@@ -263,6 +320,11 @@ describe("dashboard SOT search and activity interactions", () => {
 
     it("keeps activity center inline with sync, settings, recording, dismiss, and empty states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const activitySlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="dashboard-activity-anchor"',
+            '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
+        );
 
         expect(workstation).toContain("const [activityOpen, setActivityOpen]");
         expect(workstation).toContain("const [dismissedActivityIds");
@@ -290,8 +352,25 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-activity-close"',
         );
-        expect(workstation).toContain('size="icon-sm"');
-        expect(workstation).toContain('variant="ghost"');
+        for (const semanticToken of [
+            'variant="dashboardActivityTrigger"',
+            'size="dashboardActivityTrigger"',
+            'variant="dashboardActivityPanel"',
+            'variant="dashboardActivityCount"',
+            'variant="dashboardActivityClose"',
+            'size="dashboardActivityClose"',
+            'variant="dashboardActivitySync"',
+            'size="dashboardActivitySync"',
+            'variant="dashboardActivityAction"',
+            'size="dashboardActivityAction"',
+            'variant="dashboardActivityDismiss"',
+            'size="dashboardActivityDismiss"',
+        ]) {
+            expect(activitySlice).toContain(semanticToken);
+        }
+        for (const oldToken of SEARCH_ACTIVITY_OLD_GENERIC_TOKENS) {
+            expect(activitySlice).not.toContain(oldToken);
+        }
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain(
             'data-sot-part="dashboard-activity-status"',
@@ -347,5 +426,37 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain('item.action === "settings"');
         expect(workstation).toContain('openSettings("data-sources")');
         expect(workstation).toContain("selectRecording(item.recordingId)");
+    });
+
+    it("defines search and activity semantic primitives in the shadcn layer", () => {
+        const button = readSource("components/ui/button.tsx");
+        const badge = readSource("components/ui/badge.tsx");
+        const card = readSource("components/ui/card.tsx");
+        const inputGroup = readSource("components/ui/input-group.tsx");
+        const toggleGroup = readSource("components/ui/toggle-group.tsx");
+        const alert = readSource("components/ui/alert.tsx");
+
+        for (const token of [
+            "dashboardSearchTrigger:",
+            "librarySearchClear:",
+            "librarySearchRetry:",
+            "librarySearchResult:",
+            "dashboardActivityTrigger:",
+            "dashboardActivityClose:",
+            "dashboardActivitySync:",
+            "dashboardActivityAction:",
+            "dashboardActivityDismiss:",
+        ]) {
+            expect(button).toContain(token);
+        }
+        expect(badge).toContain("librarySearchTag:");
+        expect(badge).toContain("dashboardActivityCount:");
+        expect(card).toContain("librarySearchPanel:");
+        expect(card).toContain("dashboardActivityPanel:");
+        expect(inputGroup).toContain("librarySearchInputRow:");
+        expect(inputGroup).toContain('"librarySearchClear"');
+        expect(toggleGroup).toContain('"librarySearchScope"');
+        expect(toggleGroup).toContain("librarySearchScopeItem:");
+        expect(alert).toContain('"librarySearchError"');
     });
 });

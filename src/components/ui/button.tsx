@@ -86,6 +86,24 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 dashboardDrawerTrigger:
                     "bg-transparent text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                dashboardSearchTrigger:
+                    "relative border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:stroke-current",
+                librarySearchClear:
+                    "border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground",
+                librarySearchRetry:
+                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                librarySearchResult:
+                    "border border-transparent bg-transparent text-left shadow-none hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground [&_[data-sot-part=library-search-result-meta]]:font-mono [&_[data-sot-part=library-search-result-meta]]:text-[11.5px] [&_[data-sot-part=library-search-result-meta]]:font-medium [&_[data-sot-part=library-search-result-meta]]:leading-snug [&_[data-sot-part=library-search-result-meta]]:tracking-[0.02em] [&_[data-sot-part=library-search-result-meta]]:text-muted-foreground [&_[data-sot-part=library-search-result-title]]:text-sm [&_[data-sot-part=library-search-result-title]]:font-semibold [&_[data-sot-part=library-search-result-title]]:leading-snug [&_[data-sot-part=library-search-result-title]]:text-foreground",
+                dashboardActivityTrigger:
+                    "relative border border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-white [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)]",
+                dashboardActivityClose:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current",
+                dashboardActivitySync:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed",
+                dashboardActivityAction:
+                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed",
+                dashboardActivityDismiss:
+                    "border border-transparent bg-transparent text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current",
                 detailHeaderIconAction:
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 detailHeaderAction:
@@ -185,6 +203,24 @@ const buttonVariants = cva(
                     "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold has-[>svg]:px-[10px]",
                 dashboardDrawerTrigger:
                     "h-auto w-auto rounded-md px-[6px] py-px",
+                dashboardSearchTrigger:
+                    "size-[32px] rounded-md p-0 [&_svg:not([class*='size-'])]:size-4",
+                librarySearchClear:
+                    "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-3",
+                librarySearchRetry:
+                    "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+                librarySearchResult:
+                    "h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 whitespace-normal rounded-sm px-2.5 py-2",
+                dashboardActivityTrigger:
+                    "size-[32px] rounded-md p-0 [&_svg:not([class*='size-'])]:size-4",
+                dashboardActivityClose:
+                    "size-[26px] rounded-[7px] p-0 [&_svg:not([class*='size-'])]:size-3",
+                dashboardActivitySync:
+                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px]",
+                dashboardActivityAction:
+                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px]",
+                dashboardActivityDismiss:
+                    "size-[22px] rounded-[6px] p-px has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-[11px]",
                 detailHeaderIconAction: "size-[32px]",
                 detailHeaderAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",

@@ -6,7 +6,11 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type ToggleGroupLayout = "default" | "iconGrid" | "speakerReviewMode";
+type ToggleGroupLayout =
+    | "default"
+    | "iconGrid"
+    | "speakerReviewMode"
+    | "librarySearchScope";
 type ToggleGroupSemanticSpacing = "speakerReviewMode";
 type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 
@@ -27,6 +31,8 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
+                librarySearchScopeItem:
+                    "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
                 sotSegmented: "border border-input bg-background shadow-xs",
                 speakerReviewMode: "",
                 swatch:
@@ -44,6 +50,8 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
+                librarySearchScopeItem:
+                    "h-6 rounded-full px-2.5 text-xs",
                 sotSegmentedSm: "h-8 px-2",
                 speakerReviewModeItem: "h-8 px-2.5",
                 swatch: "size-[18px] min-w-0 p-0",
@@ -108,6 +116,8 @@ function ToggleGroup({
                 "group/toggle-group flex w-fit items-center rounded-md",
                 layout === "iconGrid" && "grid grid-cols-6",
                 layout === "speakerReviewMode" && "flex-nowrap",
+                layout === "librarySearchScope" &&
+                    "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
                 className,
             )}
             {...props}

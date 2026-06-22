@@ -4160,9 +4160,8 @@ export function Workstation({
                         >
                             <Button
                                 ref={searchTriggerRef}
-                                variant="ghost"
-                                size="icon-sm"
-                                className="border border-transparent text-muted-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground"
+                                variant="dashboardSearchTrigger"
+                                size="dashboardSearchTrigger"
                                 type="button"
                                 aria-label={t("librarySearch.openSearch")}
                                 aria-expanded={searchOpen}
@@ -4181,7 +4180,7 @@ export function Workstation({
                             {searchOpen ? (
                                 <Card
                                     hasNoPadding
-                                    className="rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none"
+                                    variant="librarySearchPanel"
                                     data-open="true"
                                     data-state={searchPanelState}
                                     data-sot-panel="library-search"
@@ -4194,7 +4193,7 @@ export function Workstation({
                                     onKeyDown={handleLibrarySearchKeyDown}
                                 >
                                     <InputGroup
-                                        className="h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0"
+                                        variant="librarySearchInputRow"
                                         data-sot-part="library-search-input-row"
                                         data-state={searchPanelState}
                                         data-disabled={String(
@@ -4203,12 +4202,11 @@ export function Workstation({
                                     >
                                         <InputGroupAddon
                                             align="inline-start"
-                                            className="p-0 text-muted-foreground"
                                         >
                                             <Search data-icon="inline-start" />
                                         </InputGroupAddon>
                                         <InputGroupInput
-                                            className="h-8 px-1 text-sm font-medium"
+                                            variant="librarySearchInputRow"
                                             ref={searchInputRef}
                                             value={query}
                                             aria-disabled={
@@ -4237,8 +4235,8 @@ export function Workstation({
                                         searchPanelState !== "indexing" &&
                                         searchPanelState !== "error" ? (
                                             <InputGroupButton
-                                                size="icon-xs"
-                                                className="text-muted-foreground hover:text-foreground"
+                                                variant="librarySearchClear"
+                                                size="librarySearchClear"
                                                 aria-label={t(
                                                     "librarySearch.clearSearch",
                                                 )}
@@ -4264,11 +4262,11 @@ export function Workstation({
                                     </InputGroup>
                                     <ToggleGroup
                                         type="single"
-                                        variant="outline"
-                                        size="sm"
+                                        layout="librarySearchScope"
+                                        variant="librarySearchScopeItem"
+                                        size="librarySearchScopeItem"
                                         value={searchScope}
                                         spacing={1.5}
-                                        className="w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2"
                                         aria-label={t(
                                             "librarySearch.scopeLegend",
                                         )}
@@ -4294,7 +4292,6 @@ export function Workstation({
                                             <ToggleGroupItem
                                                 key={item.value}
                                                 value={item.value}
-                                                className="h-6 rounded-full px-2.5 text-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
                                                 aria-pressed={
                                                     item.value === searchScope
                                                 }
@@ -4356,21 +4353,21 @@ export function Workstation({
                                             </div>
                                         ) : searchError ? (
                                             <Alert
-                                                variant="destructive"
-                                                className="flex flex-col items-center gap-2 border-0 bg-transparent px-4 py-4 text-center shadow-none"
+                                                variant="librarySearchError"
+                                                density="librarySearchError"
+                                                layout="librarySearchError"
                                                 data-sot-part="library-search-error"
                                                 data-sot-state="error"
                                             >
                                                 <AlertTitle
-                                                    className="line-clamp-none min-h-0 text-center text-sm font-medium"
+                                                    density="librarySearchError"
                                                     data-sot-part="library-search-state-title"
                                                 >
                                                     {t("librarySearch.error")}
                                                 </AlertTitle>
                                                 <Button
-                                                    variant="outline"
-                                                    size="xs"
-                                                    className="self-center"
+                                                    variant="librarySearchRetry"
+                                                    size="librarySearchRetry"
                                                     type="button"
                                                     data-sot-control="library-search-retry"
                                                     onClick={() => {
@@ -4433,9 +4430,8 @@ export function Workstation({
                                                                         );
                                                                     return (
                                                                         <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            className="h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 whitespace-normal rounded-sm px-2.5 py-2 text-left data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                                                                            variant="librarySearchResult"
+                                                                            size="librarySearchResult"
                                                                             type="button"
                                                                             key={`${result.entityType}:${result.entityId}`}
                                                                             data-active={
@@ -4472,8 +4468,7 @@ export function Workstation({
                                                                             {result.entityType ===
                                                                             "tag" ? (
                                                                                 <Badge
-                                                                                    variant="secondary"
-                                                                                    className="w-fit gap-1.5 border-primary/25 bg-primary/10 text-primary"
+                                                                                    variant="librarySearchTag"
                                                                                     data-sot-part="library-search-tag-chip"
                                                                                 >
                                                                                     <Tags data-icon="inline-start" />
@@ -4484,7 +4479,6 @@ export function Workstation({
                                                                                 </Badge>
                                                                             ) : (
                                                                                 <span
-                                                                                    className="text-sm font-semibold leading-snug text-foreground"
                                                                                     data-sot-part="library-search-result-title"
                                                                                 >
                                                                                     {highlightSearchText(
@@ -4494,7 +4488,6 @@ export function Workstation({
                                                                                 </span>
                                                                             )}
                                                                             <span
-                                                                                className="font-mono text-[11.5px] font-medium leading-snug tracking-[0.02em] text-muted-foreground"
                                                                                 data-sot-part="library-search-result-meta"
                                                                             >
                                                                                 {
@@ -4559,8 +4552,8 @@ export function Workstation({
                         >
                             <Button
                                 ref={activityTriggerRef}
-                                variant="ghost"
-                                size="icon-sm"
+                                variant="dashboardActivityTrigger"
+                                size="dashboardActivityTrigger"
                                 type="button"
                                 aria-label={t("activityOverlay.open")}
                                 aria-expanded={activityOpen}
@@ -4588,6 +4581,7 @@ export function Workstation({
                             {activityOpen ? (
                                 <Card
                                     hasNoPadding
+                                    variant="dashboardActivityPanel"
                                     data-open="true"
                                     data-state={activityPanelState}
                                     data-sot-panel="dashboard-activity"
@@ -4604,7 +4598,7 @@ export function Workstation({
                                                 {t("activityOverlay.title")}
                                             </CardTitle>
                                             <Badge
-                                                variant="outline"
+                                                variant="dashboardActivityCount"
                                                 data-sot-part="dashboard-activity-count"
                                             >
                                                 {t(
@@ -4617,8 +4611,8 @@ export function Workstation({
                                         </div>
                                         <CardAction data-sot-part="dashboard-activity-header-action">
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
+                                                variant="dashboardActivityClose"
+                                                size="dashboardActivityClose"
                                                 type="button"
                                                 aria-label={t(
                                                     "activityOverlay.close",
@@ -4657,8 +4651,8 @@ export function Workstation({
                                                 </div>
                                             </div>
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="dashboardActivitySync"
+                                                size="dashboardActivitySync"
                                                 type="button"
                                                 aria-busy={syncButtonBusy}
                                                 disabled={syncButtonBusy}
@@ -4816,8 +4810,8 @@ export function Workstation({
                                                             <div data-sot-part="dashboard-activity-item-actions">
                                                                 {item.action ? (
                                                                     <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
+                                                                        variant="dashboardActivityAction"
+                                                                        size="dashboardActivityAction"
                                                                         type="button"
                                                                         data-action-state={
                                                                             item.action ===
@@ -4854,8 +4848,8 @@ export function Workstation({
                                                                     </Button>
                                                                 ) : null}
                                                                 <Button
-                                                                    variant="ghost"
-                                                                    size="icon-xs"
+                                                                    variant="dashboardActivityDismiss"
+                                                                    size="dashboardActivityDismiss"
                                                                     type="button"
                                                                     aria-label={t(
                                                                         "activityOverlay.dismissItem",

@@ -862,6 +862,64 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        const dashboardSearchSlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="library-search-anchor"',
+            'data-sot-part="dashboard-activity-anchor"',
+        );
+        for (const semanticToken of [
+            'variant="dashboardSearchTrigger"',
+            'size="dashboardSearchTrigger"',
+            'variant="librarySearchPanel"',
+            'variant="librarySearchInputRow"',
+            'variant="librarySearchClear"',
+            'layout="librarySearchScope"',
+            'variant="librarySearchScopeItem"',
+            'variant="librarySearchRetry"',
+            'variant="librarySearchResult"',
+            'variant="librarySearchTag"',
+        ]) {
+            expect(dashboardSearchSlice).toContain(semanticToken);
+        }
+        for (const oldToken of [
+            'variant="ghost"',
+            'variant="outline"',
+            'variant="secondary"',
+            'size="icon-sm"',
+            'size="icon-xs"',
+            'size="xs"',
+            'size="sm"',
+        ]) {
+            expect(dashboardSearchSlice).not.toContain(oldToken);
+        }
+        const dashboardActivitySlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="dashboard-activity-anchor"',
+            '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
+        );
+        for (const semanticToken of [
+            'variant="dashboardActivityTrigger"',
+            'size="dashboardActivityTrigger"',
+            'variant="dashboardActivityPanel"',
+            'variant="dashboardActivityCount"',
+            'variant="dashboardActivityClose"',
+            'variant="dashboardActivitySync"',
+            'variant="dashboardActivityAction"',
+            'variant="dashboardActivityDismiss"',
+        ]) {
+            expect(dashboardActivitySlice).toContain(semanticToken);
+        }
+        for (const oldToken of [
+            'variant="ghost"',
+            'variant="outline"',
+            'variant="secondary"',
+            'size="icon-sm"',
+            'size="icon-xs"',
+            'size="xs"',
+            'size="sm"',
+        ]) {
+            expect(dashboardActivitySlice).not.toContain(oldToken);
+        }
         const dashboardFavoriteButton = extractBoundedSlice(
             workstation,
             'variant="dashboardNav"',

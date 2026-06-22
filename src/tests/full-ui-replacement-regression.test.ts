@@ -3364,6 +3364,36 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-sot-list="library-search-results"');
         expect(workstation).toContain("groupedSearchResults.map");
         expect(workstation).toContain("group.results.map");
+        const dashboardSearchSlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="library-search-anchor"',
+            'data-sot-part="dashboard-activity-anchor"',
+        );
+        for (const semanticToken of [
+            'variant="dashboardSearchTrigger"',
+            'size="dashboardSearchTrigger"',
+            'variant="librarySearchPanel"',
+            'variant="librarySearchInputRow"',
+            'variant="librarySearchClear"',
+            'layout="librarySearchScope"',
+            'variant="librarySearchScopeItem"',
+            'variant="librarySearchRetry"',
+            'variant="librarySearchResult"',
+            'variant="librarySearchTag"',
+        ]) {
+            expect(dashboardSearchSlice).toContain(semanticToken);
+        }
+        for (const oldToken of [
+            'variant="ghost"',
+            'variant="outline"',
+            'variant="secondary"',
+            'size="icon-sm"',
+            'size="icon-xs"',
+            'size="xs"',
+            'size="sm"',
+        ]) {
+            expect(dashboardSearchSlice).not.toContain(oldToken);
+        }
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
         expect(workstation).toMatch(
@@ -3373,6 +3403,34 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="dashboard-activity-status-sub"]',
         );
         expect(workstation).toContain("visibleActivityItems.map");
+        const dashboardActivitySlice = extractBoundedSlice(
+            workstation,
+            'data-sot-part="dashboard-activity-anchor"',
+            '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
+        );
+        for (const semanticToken of [
+            'variant="dashboardActivityTrigger"',
+            'size="dashboardActivityTrigger"',
+            'variant="dashboardActivityPanel"',
+            'variant="dashboardActivityCount"',
+            'variant="dashboardActivityClose"',
+            'variant="dashboardActivitySync"',
+            'variant="dashboardActivityAction"',
+            'variant="dashboardActivityDismiss"',
+        ]) {
+            expect(dashboardActivitySlice).toContain(semanticToken);
+        }
+        for (const oldToken of [
+            'variant="ghost"',
+            'variant="outline"',
+            'variant="secondary"',
+            'size="icon-sm"',
+            'size="icon-xs"',
+            'size="xs"',
+            'size="sm"',
+        ]) {
+            expect(dashboardActivitySlice).not.toContain(oldToken);
+        }
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
         expect(workstation).toMatch(
@@ -3542,8 +3600,10 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
         );
         expect(workstation).toContain("<Button");
-        expect(workstation).toContain('variant="ghost"');
-        expect(workstation).toContain('size="icon-sm"');
+        expect(workstation).toContain('variant="dashboardSearchTrigger"');
+        expect(workstation).toContain('size="dashboardSearchTrigger"');
+        expect(workstation).toContain('variant="dashboardActivityTrigger"');
+        expect(workstation).toContain('size="dashboardActivityTrigger"');
         expect(workstation).toContain('variant="playerControl"');
         expect(workstation).toContain('size="playerControl"');
         expect(workstation).toContain('variant="playerPrimary"');
@@ -3916,6 +3976,12 @@ describe("full UI replacement regression coverage", () => {
             workstation,
             'data-sot-control="dashboard-activity-dismiss"',
             "Button",
+        );
+        expect(dashboardActivityDismissButton).toContain(
+            'variant="dashboardActivityDismiss"',
+        );
+        expect(dashboardActivityDismissButton).toContain(
+            'size="dashboardActivityDismiss"',
         );
         expect(dashboardActivityDismissButton).toContain(
             '<X data-icon="inline-start" />',
