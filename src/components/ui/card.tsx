@@ -45,7 +45,7 @@ const cardFooterVariants = {
 const cardDescriptionVariants = {
     default: "text-sm text-muted-foreground",
     popoverNote:
-        "max-h-[32px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
+        "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
 } as const;
 
 function Card({
