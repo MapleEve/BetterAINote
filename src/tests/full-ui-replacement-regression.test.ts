@@ -1006,6 +1006,22 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-sub"',
 ];
 
+const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
+    "dashboardTranscriptAvatar",
+    "dashboardTranscriptLine60",
+    "dashboardTranscriptLine70",
+    "dashboardTranscriptLine78",
+    "dashboardTranscriptLine82",
+    "dashboardTranscriptLine88",
+    "dashboardTranscriptLine92",
+    "dashboardTranscriptLine94",
+    "dashboardTranscriptLine96",
+    "dashboardTranscriptSpeaker120",
+    "dashboardTranscriptSpeaker130",
+    "dashboardTranscriptSpeaker140",
+    "dashboardTranscriptTime",
+] as const;
+
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
     'data-sot-part="dashboard-source-report-status-dot"',
     "data-sot-source-report-segment-time",
@@ -4035,6 +4051,7 @@ describe("full UI replacement regression coverage", () => {
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const dashboardTranscriptShell = extractCardSlice(
             workstation,
@@ -4252,7 +4269,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-state="loading"',
         );
-        expect(workstation).toContain(
+        expect(workstation).not.toContain(
             "const dashboardTranscriptSkeletonClassNames",
         );
         expect(workstation).toContain("function DashboardTranscriptSkeleton");
@@ -4260,6 +4277,18 @@ describe("full UI replacement regression coverage", () => {
             "<DashboardTranscriptSkeleton",
         );
         expect(dashboardTranscriptLoadingTurn).not.toContain("<Skeleton");
+        expect(skeletonPrimitive).toContain("dashboardTranscript:");
+        for (const size of DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES) {
+            expect(skeletonPrimitive).toContain(size);
+        }
+        expect(workstation).toContain('variant="dashboardTranscript"');
+        expect(workstation).toContain(
+            "size={dashboardTranscriptSkeletonSize(size)}",
+        );
+        expect(workstation).not.toContain(
+            "className={dashboardTranscriptSkeletonClassNames[size]}",
+        );
+        expect(workstation).toContain('data-sot-size={size}');
         expect(globals).not.toContain(
             '[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
         );

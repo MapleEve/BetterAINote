@@ -171,6 +171,22 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-sub"',
 ];
 
+const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
+    "dashboardTranscriptAvatar",
+    "dashboardTranscriptLine60",
+    "dashboardTranscriptLine70",
+    "dashboardTranscriptLine78",
+    "dashboardTranscriptLine82",
+    "dashboardTranscriptLine88",
+    "dashboardTranscriptLine92",
+    "dashboardTranscriptLine94",
+    "dashboardTranscriptLine96",
+    "dashboardTranscriptSpeaker120",
+    "dashboardTranscriptSpeaker130",
+    "dashboardTranscriptSpeaker140",
+    "dashboardTranscriptTime",
+] as const;
+
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
     'data-sot-part="dashboard-source-report-status-dot"',
     "data-sot-source-report-segment-time",
@@ -1173,12 +1189,20 @@ describe("dashboard SOT foundation", () => {
         expect(badgePrimitive).toContain("data-[sot-tone=ok]");
         expect(badgePrimitive).toContain("data-[sot-tone=warn]");
         expect(badgePrimitive).toContain("data-[sot-tone=err]");
+        expect(skeletonPrimitive).toContain("dashboardTranscript:");
+        for (const size of DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES) {
+            expect(skeletonPrimitive).toContain(size);
+        }
         expect(skeletonPrimitive).toContain("sourceReportCard:");
         expect(skeletonPrimitive).toContain("sourceReportSegment:");
         expect(skeletonPrimitive).toContain("sourceReportCardSource");
         expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong");
         expect(workstation).toContain('variant="sourceReportMetric"');
         expect(workstation).toContain('variant="sourceReportStatus"');
+        expect(workstation).toContain('variant="dashboardTranscript"');
+        expect(workstation).toContain(
+            "size={dashboardTranscriptSkeletonSize(size)}",
+        );
         expect(workstation).toContain('variant="sourceReportCard"');
         expect(workstation).toContain('variant="sourceReportSegment"');
         expect(workstation).toContain(
@@ -1191,6 +1215,12 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
+        );
+        expect(workstation).not.toContain(
+            "const dashboardTranscriptSkeletonClassNames",
+        );
+        expect(workstation).not.toContain(
+            "className={dashboardTranscriptSkeletonClassNames[size]}",
         );
         expect(workstation).not.toContain(
             "const sotSourceReportCardSkeletonClassNames",
