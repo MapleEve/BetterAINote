@@ -652,6 +652,30 @@ describe("dashboard SOT foundation", () => {
         expect(player).not.toContain('size="player-sm"');
         expect(badge).toContain("playerSource:");
         expect(badge).toContain("playerStatus:");
+        for (const playerStatusToken of [
+            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
+            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
+            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
+            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
+            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
+            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-tone=err]:text-[var(--signal-danger)]",
+            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=info]:text-[var(--signal-info)]",
+            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
+            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
+            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
+            "[&_[data-sot-part=status-dot]]:size-[5px]",
+            "[&_[data-sot-part=status-dot]]:rounded-full",
+            "[&_[data-sot-part=status-dot]]:bg-current",
+            "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "[&_[data-sot-part=status-label]]:ml-[4px]",
+        ]) {
+            expect(badge).toContain(playerStatusToken);
+        }
         expect(badge).toContain("playerTagChip:");
         expect(badge).toContain("playerTagOverflow:");
         expect(player).toContain("<Badge");
@@ -702,6 +726,9 @@ describe("dashboard SOT foundation", () => {
         expect(globals).not.toContain(
             '[data-sot-control="player-status"][data-slot="badge"]',
         );
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
+        ).toEqual([]);
         for (const selector of [
             '[data-sot-part="dashboard-recording-player-no-audio"][data-slot="alert"]',
             '[data-sot-part="dashboard-recording-player-no-audio-title"][data-slot="alert-title"]',
@@ -1286,9 +1313,46 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
+        expect(workstation).toMatch(
+            /<Badge\s+variant="dashboardRecordingStatus"[\s\S]*data-sot-part="dashboard-recording-status"[\s\S]*data-sot-tone=\{\s*rowStatus\.tone\s*\}/,
+        );
+        expect(workstation).not.toMatch(
+            /<span\s+data-sot-part="dashboard-recording-status"/,
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status-dot"',
         );
+        expect(badgePrimitive).toContain("dashboardRecordingStatus:");
+        for (const dashboardStatusToken of [
+            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
+            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
+            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
+            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
+            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
+            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-tone=err]:text-[var(--signal-danger)]",
+            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=info]:text-[var(--signal-info)]",
+            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
+            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
+            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
+            "data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)]",
+            "[&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full",
+            "[&_[data-sot-part=dashboard-recording-status-dot]]:bg-current",
+            "data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+        ]) {
+            expect(badgePrimitive).toContain(dashboardStatusToken);
+        }
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="dashboard-recording-status"]',
+            ),
+        ).toEqual([]);
         expect(workstation).toContain('tone: "err"');
         expect(workstation).toContain('tone: "warn"');
         expect(workstation).toContain('tone: "ok"');

@@ -219,6 +219,10 @@ describe("dashboard recording player regressions", () => {
             ),
             "utf8",
         );
+        const globals = readFileSync(
+            path.join(process.cwd(), "src/app/globals.css"),
+            "utf8",
+        );
         const sourceBadge = extractOpeningElement(
             sotPlayerPrimitives,
             'data-sot-control="player-source-tag"',
@@ -237,6 +241,30 @@ describe("dashboard recording player regressions", () => {
 
         expect(badgePrimitive).toContain("playerSource:");
         expect(badgePrimitive).toContain("playerStatus:");
+        for (const playerStatusToken of [
+            "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
+            "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
+            "data-[sot-tone=ok]:text-[var(--signal-success)]",
+            "data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)]",
+            "data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)]",
+            "data-[sot-tone=warn]:text-[var(--signal-warning-strong)]",
+            "data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)]",
+            "data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-tone=err]:text-[var(--signal-danger)]",
+            "data-[sot-tone=info]:border-[var(--source-provider-status-info-border)]",
+            "data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)]",
+            "data-[sot-tone=info]:text-[var(--signal-info)]",
+            "data-[sot-tone=neu]:border-[var(--line-hairline)]",
+            "data-[sot-tone=neu]:bg-[var(--bg-recessed)]",
+            "data-[sot-tone=neu]:text-[var(--fg-secondary)]",
+            "[&_[data-sot-part=status-dot]]:size-[5px]",
+            "[&_[data-sot-part=status-dot]]:rounded-full",
+            "[&_[data-sot-part=status-dot]]:bg-current",
+            "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "[&_[data-sot-part=status-label]]:ml-[4px]",
+        ]) {
+            expect(badgePrimitive).toContain(playerStatusToken);
+        }
         expect(badgePrimitive).toContain("playerTagChip:");
         expect(badgePrimitive).toContain("playerTagOverflow:");
         expect(buttonPrimitive).toContain("playerTagAdd:");
@@ -253,6 +281,9 @@ describe("dashboard recording player regressions", () => {
         expect(statusBadge).toContain('variant="playerStatus"');
         expect(statusBadge).toContain('data-sot-control="player-status"');
         expect(statusBadge).not.toContain("className=");
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
+        ).toEqual([]);
         expect(sotPlayerPrimitives).not.toContain(
             "SOT_PLAYER_SOURCE_BADGE_CLASS",
         );

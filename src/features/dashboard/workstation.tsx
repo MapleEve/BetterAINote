@@ -5456,7 +5456,8 @@ export function Workstation({
                                                                             )}
                                                                         </span>
                                                                     </span>
-                                                                    <span
+                                                                    <Badge
+                                                                        variant="dashboardRecordingStatus"
                                                                         data-sot-part="dashboard-recording-status"
                                                                         data-sot-tone={
                                                                             rowStatus.tone
@@ -5466,7 +5467,7 @@ export function Workstation({
                                                                         {
                                                                             rowStatus.label
                                                                         }
-                                                                    </span>
+                                                                    </Badge>
                                                                 </div>
                                                             </div>
                                                             {primaryTag ? (
