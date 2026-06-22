@@ -389,7 +389,10 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps shadcn foundation primitives real without reintroducing dashboard compatibility surfaces", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const badge = readSource("components/ui/badge.tsx");
+        const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
+        const input = readSource("components/ui/input.tsx");
         const breadcrumb = readSource("components/ui/breadcrumb.tsx");
         const sidebar = readSource("components/ui/sidebar.tsx");
 
@@ -421,6 +424,21 @@ describe("dashboard SOT foundation", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
+        expect(card).toContain("detailHeader:");
+        expect(card).toContain("data-[sot-state=saving]:py-0");
+        expect(card).toContain(
+            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        );
+        expect(badge).toContain("detailHeaderLocal:");
+        expect(badge).toContain("detailHeaderStatus:");
+        expect(badge).toContain("ml-1 shrink-0");
+        expect(button).toContain("detailHeaderIconAction:");
+        expect(button).toContain("detailHeaderAction:");
+        expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
+        expect(input).toContain("detailHeaderTitle:");
+        expect(input).toContain(
+            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+        );
 
         for (const primitive of [
             "Breadcrumb",

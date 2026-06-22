@@ -5708,11 +5708,7 @@ export function Workstation({
                         data-empty={selectedRecording ? "false" : "true"}
                     >
                         <CardHeader
-                            className={cn(
-                                "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0",
-                                dashboardDetailHeaderState === "saving" &&
-                                    "py-0",
-                            )}
+                            variant="detailHeader"
                             data-sot-panel="dashboard-detail-header"
                             data-sot-mode={dashboardDetailHeaderMode}
                             data-sot-state={dashboardDetailHeaderState}
@@ -5723,7 +5719,7 @@ export function Workstation({
                         >
                             {dashboardDetailHeaderState === "normal" ? (
                                 <CardTitle
-                                    className="min-w-0 flex-1 truncate"
+                                    variant="detailHeaderTitle"
                                     data-sot-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
@@ -5736,8 +5732,7 @@ export function Workstation({
                             {dashboardDetailHeaderState === "normal" &&
                             localDeleteAvailable ? (
                                 <Badge
-                                    variant="outline"
-                                    className="ml-1 shrink-0"
+                                    variant="detailHeaderLocal"
                                     data-sot-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label="仅存在本地副本"
@@ -5749,7 +5744,8 @@ export function Workstation({
                                 <>
                                     <Input
                                         type="text"
-                                        className="h-8 min-w-0 flex-1"
+                                        variant="detailHeaderTitle"
+                                        controlSize="detailHeaderTitle"
                                         data-rh-input
                                         data-sot-part="detail-header-title-input"
                                         data-sot-state="editing"
@@ -5776,8 +5772,7 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "saving" ? (
                                 <Badge
-                                    variant="ghost"
-                                    className="ml-1 shrink-0"
+                                    variant="detailHeaderStatus"
                                     data-sot-part="detail-header-title-status"
                                     data-sot-state="saving"
                                     data-rh-status
@@ -5789,8 +5784,8 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <Button
-                                    variant="ghost"
-                                    size="icon-sm"
+                                    variant="detailHeaderIconAction"
+                                    size="detailHeaderIconAction"
                                     type="button"
                                     aria-label="重命名"
                                     title="重命名"
@@ -5812,8 +5807,8 @@ export function Workstation({
                                     data-sot-mode="normal"
                                 >
                                     <Button
-                                        variant="outline"
-                                        size="sm"
+                                        variant="detailHeaderAction"
+                                        size="detailHeaderAction"
                                         type="button"
                                         aria-haspopup="dialog"
                                         aria-expanded={aiOpen}
@@ -5883,8 +5878,8 @@ export function Workstation({
                             {dashboardDetailHeaderState === "editing" ? (
                                 <>
                                     <Button
-                                        variant="ghost"
-                                        size="icon-sm"
+                                        variant="detailHeaderIconAction"
+                                        size="detailHeaderIconAction"
                                         type="button"
                                         aria-label="保存新标题"
                                         title="保存"
@@ -5898,8 +5893,8 @@ export function Workstation({
                                         <Check data-icon="inline-start" />
                                     </Button>
                                     <Button
-                                        variant="ghost"
-                                        size="icon-sm"
+                                        variant="detailHeaderIconAction"
+                                        size="detailHeaderIconAction"
                                         type="button"
                                         aria-label="取消重命名"
                                         title="取消"
@@ -5939,8 +5934,8 @@ export function Workstation({
                                     >
                                         <DropdownMenuTrigger asChild>
                                             <Button
-                                                variant="ghost"
-                                                size="icon-sm"
+                                                variant="detailHeaderIconAction"
+                                                size="detailHeaderIconAction"
                                                 type="button"
                                                 aria-label="更多操作"
                                                 aria-haspopup="menu"

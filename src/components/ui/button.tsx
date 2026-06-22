@@ -60,6 +60,10 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 dashboardDrawerTrigger:
                     "bg-transparent text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                detailHeaderIconAction:
+                    "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                detailHeaderAction:
+                    "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 dashboardSidebarCollapse:
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
                 dashboardSettingsAvatar:
@@ -122,6 +126,9 @@ const buttonVariants = cva(
                     "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold has-[>svg]:px-[10px]",
                 dashboardDrawerTrigger:
                     "h-auto w-auto rounded-md px-[6px] py-px",
+                detailHeaderIconAction: "size-[32px]",
+                detailHeaderAction:
+                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 dashboardSidebarCollapse: "size-[22px] rounded-full",
                 dashboardSettingsAvatar:
                     "size-[30px] rounded-full text-xs font-semibold",

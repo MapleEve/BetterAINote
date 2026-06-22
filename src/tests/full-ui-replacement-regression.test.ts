@@ -1666,6 +1666,11 @@ describe("full UI replacement regression coverage", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
+        expect(card).toContain("detailHeader:");
+        expect(card).toContain("data-[sot-state=saving]:py-0");
+        expect(card).toContain(
+            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        );
         expect(panel).toContain('data-slot="card"');
         expect(panel).toContain("bg-card text-card-foreground");
         expect(panel).toContain("data-variant={variant}");
@@ -1787,6 +1792,8 @@ describe("full UI replacement regression coverage", () => {
             "dashboardCopy",
             "dashboardCompactAction",
             "dashboardDrawerTrigger",
+            "detailHeaderIconAction",
+            "detailHeaderAction",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
             "playerControl",
@@ -1839,6 +1846,8 @@ describe("full UI replacement regression coverage", () => {
             "dashboardCopy",
             "dashboardCompactAction",
             "dashboardDrawerTrigger",
+            "detailHeaderIconAction",
+            "detailHeaderAction",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
         ]) {
@@ -1987,6 +1996,10 @@ describe("full UI replacement regression coverage", () => {
         expect(input).toContain("controlSize:");
         expect(input).toContain("accent:");
         expect(input).toContain("compact:");
+        expect(input).toContain("detailHeaderTitle:");
+        expect(input).toContain(
+            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+        );
         for (const className of [
             "border-input",
             "focus-visible:ring-ring/50",
@@ -4092,11 +4105,28 @@ describe("full UI replacement regression coverage", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
+        expect(badge).toContain("detailHeaderLocal:");
+        expect(badge).toContain("detailHeaderStatus:");
+        expect(badge).toContain("ml-1 shrink-0");
         expect(button).toContain('data-slot="button"');
         expect(button).toContain("data-variant={variant}");
         expect(button).toContain("data-size={size}");
         expect(card).toContain('data-slot="card-header"');
         expect(input).toContain('data-slot="input"');
+        expect(card).toContain("detailHeader:");
+        expect(card).toContain("data-[sot-state=saving]:py-0");
+        expect(card).toContain(
+            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        );
+        expect(badge).toContain("detailHeaderLocal:");
+        expect(badge).toContain("detailHeaderStatus:");
+        expect(button).toContain("detailHeaderIconAction:");
+        expect(button).toContain("detailHeaderAction:");
+        expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
+        expect(input).toContain("detailHeaderTitle:");
+        expect(input).toContain(
+            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+        );
         expect(dashboardDetailHeader).toContain("<CardHeader");
         expect(dashboardDetailHeader).toContain("<CardTitle");
         expect(dashboardDetailHeader).toContain("<Badge");
@@ -4127,26 +4157,56 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
         expect(dashboardDetailHeader).toContain('data-sot-control="ai-rename"');
-        expect(dashboardDetailHeader).toContain('variant="ghost"');
-        expect(dashboardDetailHeader).toContain('variant="outline"');
-        expect(dashboardDetailHeader).toContain('size="icon-sm"');
-        expect(dashboardDetailHeader).toContain('size="sm"');
+        expect(dashboardDetailHeader).toContain('variant="detailHeader"');
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderTitle"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderLocal"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderStatus"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderIconAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'size="detailHeaderIconAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'size="detailHeaderAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'controlSize="detailHeaderTitle"',
+        );
+        expect(dashboardDetailHeader).not.toContain('variant="ghost"');
+        expect(dashboardDetailHeader).not.toContain('variant="outline"');
+        expect(dashboardDetailHeader).not.toContain('size="icon-sm"');
+        expect(dashboardDetailHeader).not.toContain('size="sm"');
         expect(workstation).toContain(
             "const dashboardDetailHeaderState = renaming",
         );
         expect(workstation).toContain(
             "const dashboardDetailHeaderMode = editingTitle",
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             'className="min-w-0 flex-1 truncate"',
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             'className="h-8 min-w-0 flex-1"',
         );
-        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
+        expect(dashboardDetailHeader).not.toContain(
+            'className="ml-1 shrink-0"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="relative inline-flex items-center gap-1.5"',
+        );
         expect(dashboardDetailHeader).toContain(
             'dashboardDetailHeaderState === "normal"',
         );

@@ -18,6 +18,10 @@ const badgeVariants = cva(
                 outline:
                     "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
                 ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+                detailHeaderLocal:
+                    "ml-1 shrink-0 border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+                detailHeaderStatus:
+                    "ml-1 shrink-0 [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
                 pill: "h-[var(--badge-pill-height)] justify-normal gap-[5px] rounded-[999px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] py-0 pl-[8px] pr-[4px] text-[11px] font-semibold text-[var(--fg-primary)] [&>svg]:size-[11px] [&>svg]:stroke-2",
                 checkDot:
                     "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-[var(--badge-check-bg)] p-0 text-[11.5px] font-semibold leading-none text-[var(--accent-on)] [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",

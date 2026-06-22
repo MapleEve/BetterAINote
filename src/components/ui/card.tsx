@@ -15,6 +15,8 @@ const cardVariants = {
 const cardHeaderVariants = {
     default:
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+    detailHeader:
+        "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0",
     popover:
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
     popoverCompact:
@@ -23,6 +25,7 @@ const cardHeaderVariants = {
 
 const cardTitleVariants = {
     default: "leading-none font-semibold",
+    detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate",
     popoverCompact:
         "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
 } as const;
@@ -85,6 +88,7 @@ function CardHeader({
     return (
         <div
             data-slot="card-header"
+            data-variant={variant}
             className={cn(
                 cardHeaderVariants[variant],
                 className,

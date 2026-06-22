@@ -869,6 +869,7 @@ describe("recording detail copy and title action UI regressions", () => {
             "features/dashboard/workstation.tsx",
         );
         const badge = readSource("components/ui/badge.tsx");
+        const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
         const input = readSource("components/ui/input.tsx");
         const dashboardTranscriptShell = extractCardSlice(
@@ -913,8 +914,22 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
+        expect(badge).toContain("detailHeaderLocal:");
+        expect(badge).toContain("detailHeaderStatus:");
+        expect(button).toContain("detailHeaderIconAction:");
+        expect(button).toContain("detailHeaderAction:");
+        expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
         expect(card).toContain('data-slot="card-header"');
+        expect(card).toContain("detailHeader:");
+        expect(card).toContain("data-[sot-state=saving]:py-0");
+        expect(card).toContain(
+            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        );
         expect(input).toContain('data-slot="input"');
+        expect(input).toContain("detailHeaderTitle:");
+        expect(input).toContain(
+            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
+        );
         expect(dashboardDetailHeader).toContain(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -939,16 +954,46 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "const dashboardDetailHeaderMode = editingTitle",
         );
+        expect(dashboardDetailHeader).toContain('variant="detailHeader"');
         expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderTitle"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderLocal"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderStatus"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderIconAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'size="detailHeaderIconAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'variant="detailHeaderAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'size="detailHeaderAction"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'controlSize="detailHeaderTitle"',
+        );
+        expect(dashboardDetailHeader).not.toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             'className="min-w-0 flex-1 truncate"',
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             'className="h-8 min-w-0 flex-1"',
         );
-        expect(dashboardDetailHeader).toContain('className="ml-1 shrink-0"');
+        expect(dashboardDetailHeader).not.toContain(
+            'className="ml-1 shrink-0"',
+        );
+        expect(dashboardDetailHeader).toContain(
+            'className="relative inline-flex items-center gap-1.5"',
+        );
         expect(dashboardDetailHeader).toContain(
             'dashboardDetailHeaderState === "normal"',
         );
