@@ -46,6 +46,20 @@ const buttonVariants = cva(
                     "border border-[var(--source-provider-primary-border)] bg-[image:var(--source-provider-primary-bg)] text-[var(--accent-on)] shadow-[var(--source-provider-primary-shadow)] data-[sot-state=error]:text-[var(--signal-danger)]",
                 sourceProviderActionDanger:
                     "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
+                dashboardNav:
+                    "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
+                dashboardSource:
+                    "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)] data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55] dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none dark:data-[sot-state=connected-active]:border-[var(--glass-border)] dark:data-[sot-state=connected-active]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=connected-active]:shadow-none",
+                dashboardSync:
+                    "bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+                dashboardSourceAction:
+                    "bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                dashboardDrawerTrigger:
+                    "bg-transparent text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                dashboardSidebarCollapse:
+                    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+                dashboardSettingsAvatar:
+                    "border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
                 playerControl:
                     "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] shadow-[var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96]",
                 playerPrimary:
@@ -73,6 +87,18 @@ const buttonVariants = cva(
                     "grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] p-[10px] whitespace-normal has-[>svg]:px-[10px]",
                 sourceProviderAction:
                     "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
+                dashboardNav:
+                    "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
+                dashboardSource:
+                    "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
+                dashboardSync: "size-[32px]",
+                dashboardSourceAction:
+                    "h-[22px] gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-normal has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
+                dashboardDrawerTrigger:
+                    "h-auto w-auto rounded-md px-[6px] py-px",
+                dashboardSidebarCollapse: "size-[22px] rounded-full",
+                dashboardSettingsAvatar:
+                    "size-[30px] rounded-full text-xs font-semibold",
                 playerControl:
                     "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal",
                 playerControlSm:

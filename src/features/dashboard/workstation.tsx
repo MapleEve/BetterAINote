@@ -270,40 +270,6 @@ type SourceStatus =
     | "planned";
 type SyncButtonState = "idle" | "queued" | "running" | "success" | "error";
 
-const DASHBOARD_NAV_BUTTON_CLASS = cn(
-    "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent px-2.5 py-[7px] text-left text-[13px] font-medium",
-    "text-[var(--fg-secondary)] hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)]",
-    "disabled:cursor-not-allowed disabled:opacity-50",
-    "data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs",
-    "dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
-);
-
-const DASHBOARD_SOURCE_BUTTON_CLASS = cn(
-    DASHBOARD_NAV_BUTTON_CLASS,
-    "data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs",
-    "dark:data-[sot-state=connected-active]:border-[var(--glass-border)] dark:data-[sot-state=connected-active]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=connected-active]:shadow-none",
-    "data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)]",
-    "data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)]",
-    "data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55]",
-);
-
-const DASHBOARD_SYNC_BUTTON_CLASS =
-    "text-muted-foreground hover:text-foreground";
-
-const DASHBOARD_SOURCE_ACTION_BUTTON_CLASS =
-    "h-[22px] rounded-full px-[9px] text-[11px] font-semibold";
-
-const DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS =
-    "h-auto w-auto rounded-md px-[6px] py-px text-[var(--fg-primary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
-
-const DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS =
-    "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:text-foreground";
-
-const DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS = cn(
-    "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs",
-    "hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
-);
-
 const DASHBOARD_RECORDING_ROW_BUTTON_CLASS =
     "h-auto justify-normal whitespace-normal rounded-[10px] px-3 py-[11px] text-left text-[13.3333px] font-normal";
 
@@ -3855,9 +3821,8 @@ export function Workstation({
                                     ).size;
                         return (
                             <Button
-                                variant="ghost"
-                                size="sm"
-                                className={DASHBOARD_NAV_BUTTON_CLASS}
+                                variant="dashboardNav"
+                                size="dashboardNav"
                                 type="button"
                                 aria-pressed={favorite === item.value}
                                 data-active={
@@ -3964,9 +3929,8 @@ export function Workstation({
                                     : item.count;
                             return (
                                 <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className={DASHBOARD_SOURCE_BUTTON_CLASS}
+                                    variant="dashboardSource"
+                                    size="dashboardSource"
                                     type="button"
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
@@ -4035,11 +3999,8 @@ export function Workstation({
                                     {actionKind ? (
                                         <Button
                                             asChild
-                                            variant="ghost"
-                                            size="xs"
-                                            className={
-                                                DASHBOARD_SOURCE_ACTION_BUTTON_CLASS
-                                            }
+                                            variant="dashboardSourceAction"
+                                            size="dashboardSourceAction"
                                         >
                                             {/* biome-ignore lint/a11y/useSemanticElements: shadcn Button is applied with asChild here to avoid nesting a native button inside the provider row button. */}
                                             <span
@@ -4133,9 +4094,8 @@ export function Workstation({
                             </div>
                         </div>
                         <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className={DASHBOARD_SYNC_BUTTON_CLASS}
+                            variant="dashboardSync"
+                            size="dashboardSync"
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
@@ -4159,9 +4119,8 @@ export function Workstation({
             <main data-sot-panel="dashboard-main">
                 <header data-sot-panel="dashboard-topbar">
                     <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className={DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS}
+                        variant="dashboardDrawerTrigger"
+                        size="dashboardDrawerTrigger"
                         data-sot-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
@@ -4183,9 +4142,8 @@ export function Workstation({
                         />
                     </Button>
                     <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className={DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS}
+                        variant="dashboardSidebarCollapse"
+                        size="dashboardSidebarCollapse"
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
@@ -4980,9 +4938,8 @@ export function Workstation({
                         </div>
                         <Button
                             asChild
-                            variant="ghost"
-                            size="icon-sm"
-                            className={DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS}
+                            variant="dashboardSettingsAvatar"
+                            size="dashboardSettingsAvatar"
                         >
                             <button
                                 ref={settingsTriggerRef}

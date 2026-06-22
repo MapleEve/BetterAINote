@@ -501,6 +501,16 @@ const DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS = [
     '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
 ] as const;
 
+const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
+    "NAV",
+    "SOURCE",
+    "SYNC",
+    "SOURCE_ACTION",
+    "DRAWER_TRIGGER",
+    "SIDEBAR_COLLAPSE",
+    "SETTINGS_AVATAR",
+].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
+
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"]',
@@ -1688,6 +1698,11 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain('data-slot="button"');
         expect(button).toContain("data-variant={variant}");
         expect(button).toContain("data-size={size}");
+        const buttonSizeBlock = extractBoundedSlice(
+            button,
+            "size: {",
+            "defaultVariants:",
+        );
         for (const focusClass of [
             "outline-none",
             "focus-visible:border-ring",
@@ -1707,6 +1722,13 @@ describe("full UI replacement regression coverage", () => {
             "accent",
             "quietOutline",
             "accentLink",
+            "dashboardNav",
+            "dashboardSource",
+            "dashboardSync",
+            "dashboardSourceAction",
+            "dashboardDrawerTrigger",
+            "dashboardSidebarCollapse",
+            "dashboardSettingsAvatar",
             "playerControl",
             "playerPrimary",
             "playerSpeed",
@@ -1743,6 +1765,17 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain('"inline-link":');
         expect(button).toContain("playerControlSm:");
         expect(button).toContain("playerControlLg:");
+        for (const dashboardSize of [
+            "dashboardNav",
+            "dashboardSource",
+            "dashboardSync",
+            "dashboardSourceAction",
+            "dashboardDrawerTrigger",
+            "dashboardSidebarCollapse",
+            "dashboardSettingsAvatar",
+        ]) {
+            expect(buttonSizeBlock).toContain(`${dashboardSize}:`);
+        }
         expect(button).toContain("size-[36px]");
         expect(button).toContain("size-[30px]");
         expect(button).toContain("size-[44px]");
@@ -3006,9 +3039,8 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-drawer-trigger"',
         );
-        expect(workstation).toContain("DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS");
         expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_DRAWER_TRIGGER_BUTTON_CLASS\}[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
+            /<Button\s+variant="dashboardDrawerTrigger"\s+size="dashboardDrawerTrigger"[\s\S]*data-sot-control="dashboard-drawer-trigger"[\s\S]*<Menu[\s\S]*data-icon="inline-start"/,
         );
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,240}data-sot-control="dashboard-drawer-trigger"/,
@@ -3023,14 +3055,24 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(workstation).toContain("DASHBOARD_NAV_BUTTON_CLASS");
-        expect(workstation).toContain("DASHBOARD_SOURCE_BUTTON_CLASS");
-        expect(workstation).toContain("DASHBOARD_SOURCE_ACTION_BUTTON_CLASS");
-        expect(workstation).toContain("DASHBOARD_SYNC_BUTTON_CLASS");
-        expect(workstation).toContain(
-            "DASHBOARD_SIDEBAR_COLLAPSE_BUTTON_CLASS",
+        for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
+            expect(workstation).not.toContain(removedConstant);
+        }
+        expect(workstation).toContain('variant="dashboardNav"');
+        expect(workstation).toContain('variant="dashboardSource"');
+        expect(workstation).toContain('variant="dashboardSourceAction"');
+        expect(workstation).toContain('variant="dashboardSync"');
+        expect(workstation).toContain('variant="dashboardSidebarCollapse"');
+        expect(workstation).toContain('variant="dashboardSettingsAvatar"');
+        expect(workstation).toMatch(
+            /<Button\s+variant="dashboardNav"\s+size="dashboardNav"[\s\S]*data-sot-control="dashboard-favorite"/,
         );
-        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
+        expect(workstation).toMatch(
+            /<Button\s+variant="dashboardSync"\s+size="dashboardSync"[\s\S]*data-sot-control="dashboard-sync"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="dashboardSidebarCollapse"\s+size="dashboardSidebarCollapse"[\s\S]*data-sot-control="sidebar-collapse"/,
+        );
         expect(workstation).toContain(
             'data-sot-panel="dashboard-source-filter-stack"',
         );
@@ -3076,8 +3118,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderRows).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(sourceProviderRows).toContain('variant="ghost"');
-        expect(sourceProviderRows).toContain('size="sm"');
+        expect(sourceProviderRows).toContain('variant="dashboardSource"');
+        expect(sourceProviderRows).toContain('size="dashboardSource"');
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-mark"',
         );
@@ -3094,7 +3136,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="source-provider-action"',
         );
         expect(sourceProviderRows).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="xs"[\s\S]*className=\{\s*DASHBOARD_SOURCE_ACTION_BUTTON_CLASS\s*\}[\s\S]*data-sot-part="source-provider-action"/,
+            /<Button\s+asChild\s+variant="dashboardSourceAction"\s+size="dashboardSourceAction"[\s\S]*data-sot-part="source-provider-action"/,
         );
         expect(sourceProviderRows).not.toContain(
             "SOT defines source row action as span[role=button]",
@@ -3155,9 +3197,8 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("visibleActivityItems.map");
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
         expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+            /<Button\s+asChild\s+variant="dashboardSettingsAvatar"\s+size="dashboardSettingsAvatar"[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',

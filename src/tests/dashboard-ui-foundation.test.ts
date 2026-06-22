@@ -78,6 +78,16 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
+    "NAV",
+    "SOURCE",
+    "SYNC",
+    "SOURCE_ACTION",
+    "DRAWER_TRIGGER",
+    "SIDEBAR_COLLAPSE",
+    "SETTINGS_AVATAR",
+].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
+
 const OLD_UI_RE =
     /uikit-|glass-surface|glass-control|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -598,7 +608,44 @@ describe("dashboard SOT foundation", () => {
 
     it("renders the dashboard from the SOT workstation shell instead of compatibility components", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const button = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
+        const buttonVariantBlock = extractBoundedSlice(
+            button,
+            "variant: {",
+            "size: {",
+        );
+        const buttonSizeBlock = extractBoundedSlice(
+            button,
+            "size: {",
+            "defaultVariants:",
+        );
+
+        for (const variant of [
+            "dashboardNav",
+            "dashboardSource",
+            "dashboardSync",
+            "dashboardSourceAction",
+            "dashboardDrawerTrigger",
+            "dashboardSidebarCollapse",
+            "dashboardSettingsAvatar",
+        ]) {
+            expect(buttonVariantBlock).toContain(`${variant}:`);
+        }
+        for (const size of [
+            "dashboardNav",
+            "dashboardSource",
+            "dashboardSync",
+            "dashboardSourceAction",
+            "dashboardDrawerTrigger",
+            "dashboardSidebarCollapse",
+            "dashboardSettingsAvatar",
+        ]) {
+            expect(buttonSizeBlock).toContain(`${size}:`);
+        }
+        for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
+            expect(workstation).not.toContain(removedConstant);
+        }
 
         for (const removed of [
             "ActivityOverlay",
@@ -647,9 +694,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         const dashboardFavoriteButton = extractBoundedSlice(
             workstation,
-            'data-sot-control="dashboard-favorite"',
+            'variant="dashboardNav"',
             'data-sot-part="dashboard-favorite-label"',
         );
+        const dashboardFavoriteButtonOpening = extractBoundedSlice(
+            workstation,
+            'variant="dashboardNav"',
+            ">",
+        );
+        expect(dashboardFavoriteButton).toContain('variant="dashboardNav"');
+        expect(dashboardFavoriteButton).toContain('size="dashboardNav"');
+        expect(dashboardFavoriteButtonOpening).not.toContain("className=");
         expect(dashboardFavoriteButton).toContain(
             '<Icon data-icon="inline-start" />',
         );
@@ -669,9 +724,8 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
-        expect(workstation).toContain("DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS");
         expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="ghost"\s+size="icon-sm"[\s\S]*className=\{DASHBOARD_SETTINGS_AVATAR_BUTTON_CLASS\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+            /<Button\s+asChild\s+variant="dashboardSettingsAvatar"\s+size="dashboardSettingsAvatar"[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
@@ -765,7 +819,8 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(workstation).toContain("DASHBOARD_SOURCE_BUTTON_CLASS");
+        expect(workstation).toContain('variant="dashboardSource"');
+        expect(workstation).toContain('size="dashboardSource"');
         expect(workstation).toContain('data-sot-part="source-provider-label"');
         expect(workstation).toContain('data-sot-part="source-provider-status"');
         expect(workstation).toContain("sourceRowDisabled(");
@@ -1033,7 +1088,8 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-sync-indicator"',
         );
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
-        expect(workstation).toContain("DASHBOARD_SYNC_BUTTON_CLASS");
+        expect(workstation).toContain('variant="dashboardSync"');
+        expect(workstation).toContain('size="dashboardSync"');
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
