@@ -56,13 +56,18 @@ export default function RecordingError({ reset }: { reset: () => void }) {
                                 data-sot-actions="recording-error"
                             >
                                 <Button
-                                    variant="default"
+                                    variant="recordingRoutePrimaryAction"
+                                    size="recordingRouteAction"
                                     type="button"
                                     onClick={reset}
                                 >
                                     重试
                                 </Button>
-                                <Button asChild variant="ghost">
+                                <Button
+                                    asChild
+                                    variant="recordingRouteGhostAction"
+                                    size="recordingRouteAction"
+                                >
                                     <Link href="/dashboard">返回工作台</Link>
                                 </Button>
                             </div>

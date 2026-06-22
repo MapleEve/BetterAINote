@@ -156,6 +156,10 @@ const buttonVariants = cva(
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 detailHeaderAction:
                     "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                recordingRoutePrimaryAction:
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
+                recordingRouteGhostAction:
+                    "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 recordingDetailBack:
                     "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
                 sourceRecordCopyAction:
@@ -313,6 +317,7 @@ const buttonVariants = cva(
                 detailHeaderIconAction: "size-[32px]",
                 detailHeaderAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                recordingRouteAction: "h-9 px-4 py-2 has-[>svg]:px-3",
                 recordingDetailBack:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
                 sourceRecordCopyAction:

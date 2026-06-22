@@ -1368,11 +1368,32 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(source).not.toContain('className="detail"');
         }
 
-        expect(notFound).toContain('<Button asChild variant="default">');
+        const notFoundPrimaryAction = extractBoundedSlice(
+            notFound,
+            'variant="recordingRoutePrimaryAction"',
+            "</Button>",
+        );
+        expect(notFoundPrimaryAction).toContain(
+            'size="recordingRouteAction"',
+        );
         expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(error).toContain("<Button");
-        expect(error).toContain('variant="default"');
-        expect(error).toContain('<Button asChild variant="ghost">');
+        const errorPrimaryAction = extractBoundedSlice(
+            error,
+            'variant="recordingRoutePrimaryAction"',
+            "</Button>",
+        );
+        const errorGhostAction = extractBoundedSlice(
+            error,
+            'variant="recordingRouteGhostAction"',
+            "</Button>",
+        );
+        expect(errorPrimaryAction).toContain('size="recordingRouteAction"');
+        expect(errorGhostAction).toContain('size="recordingRouteAction"');
+        for (const source of [notFound, error]) {
+            expect(source).not.toContain('variant="default"');
+            expect(source).not.toContain('variant="ghost"');
+        }
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
         expect(loading).toContain('aria-busy="true"');

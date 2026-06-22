@@ -1964,6 +1964,15 @@ describe("full UI replacement regression coverage", () => {
             expect(buttonVariantBlock).toContain(`${transcriptionVariant}:`);
         }
         expect(buttonSizeBlock).toContain("transcriptionAction:");
+        for (const recordingRouteButtonVariant of [
+            "recordingRoutePrimaryAction",
+            "recordingRouteGhostAction",
+        ]) {
+            expect(buttonVariantBlock).toContain(
+                `${recordingRouteButtonVariant}:`,
+            );
+        }
+        expect(buttonSizeBlock).toContain("recordingRouteAction:");
         for (const dashboardTranscriptActionClass of [
             "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
             "data-[copy-state=ok]:bg-[var(--button-copy-success-bg)]",
@@ -2311,6 +2320,38 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain("--z-confirm-modal");
         expect(globals).not.toContain("Hardware Design System");
         expect(globals).not.toContain("warm beige");
+    });
+
+    it("keeps standalone recording route fallback actions on route Button variants", () => {
+        const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
+        const error = readSource("app/(app)/recordings/[id]/error.tsx");
+
+        const notFoundPrimaryAction = extractBoundedSlice(
+            notFound,
+            'variant="recordingRoutePrimaryAction"',
+            "</Button>",
+        );
+        expect(notFoundPrimaryAction).toContain(
+            'size="recordingRouteAction"',
+        );
+
+        const errorPrimaryAction = extractBoundedSlice(
+            error,
+            'variant="recordingRoutePrimaryAction"',
+            "</Button>",
+        );
+        const errorGhostAction = extractBoundedSlice(
+            error,
+            'variant="recordingRouteGhostAction"',
+            "</Button>",
+        );
+        expect(errorPrimaryAction).toContain('size="recordingRouteAction"');
+        expect(errorGhostAction).toContain('size="recordingRouteAction"');
+        expect(error).toContain("onClick={reset}");
+        for (const source of [notFound, error]) {
+            expect(source).not.toContain('variant="default"');
+            expect(source).not.toContain('variant="ghost"');
+        }
     });
 
     it("classifies non-token modern CSS colors without fallback-only leakage", () => {
