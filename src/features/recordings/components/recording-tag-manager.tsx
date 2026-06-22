@@ -545,10 +545,14 @@ export function RecordingTagManager({
                     setColor(value as RecordingTagColor);
                 }
             }}
-            variant="outline"
-            size="sm"
-            spacing={picker === "quick" ? 1 : 2}
-            className="flex-wrap"
+            variant="recordingTagColorPicker"
+            size="recordingTagColorPicker"
+            layout="recordingTagColorPicker"
+            spacing={
+                picker === "quick"
+                    ? "recordingTagQuickColorPicker"
+                    : "recordingTagColorPicker"
+            }
             aria-label="颜色"
             data-sot-part="color-swatches"
             data-sot-picker={picker}
@@ -611,10 +615,10 @@ export function RecordingTagManager({
                             setIcon(value as RecordingTagIcon);
                         }
                     }}
-                    variant="outline"
-                    size="sm"
-                    layout="iconGrid"
-                    spacing={2}
+                    variant="recordingTagIconPicker"
+                    size="recordingTagIconPicker"
+                    layout="recordingTagIconPicker"
+                    spacing="recordingTagIconPicker"
                     aria-label="图标"
                     data-sot-part="icon-grid"
                 >
@@ -627,7 +631,8 @@ export function RecordingTagManager({
                             data-sot-part="icon-option"
                             data-sot-state={icon === item ? "selected" : "idle"}
                             data-sot-tag-icon={item}
-                            size="iconPicker"
+                            variant="recordingTagIconOption"
+                            size="recordingTagIconOption"
                         >
                             <RecordingTagIconGlyph icon={item} />
                         </ToggleGroupItem>

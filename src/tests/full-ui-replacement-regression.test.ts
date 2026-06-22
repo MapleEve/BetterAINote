@@ -2147,6 +2147,10 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("data-variant={variant}");
         expect(toggleGroup).toContain("data-tone={itemTone}");
         expect(toggleGroup).toContain("data-size={size}");
+        expect(toggleGroup).toContain("recordingTagColorPicker:");
+        expect(toggleGroup).toContain("recordingTagQuickColorPicker:");
+        expect(toggleGroup).toContain("recordingTagIconPicker:");
+        expect(toggleGroup).toContain("recordingTagIconOption:");
         expect(toggleGroup).toContain('swatch:');
         expect(toggleGroup).toContain("[display:grid]");
         expect(toggleGroup).toContain("rounded-[50%]");
@@ -6280,6 +6284,51 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain("<InputGroupButton");
         expect(tagManager).toContain("<ToggleGroup");
         expect(tagManager).toContain("<ToggleGroupItem");
+        const tagManagerColorPicker = extractElementSlice(
+            tagManager,
+            'data-sot-part="color-swatches"',
+            "ToggleGroup",
+        );
+        const tagManagerIconPicker = extractElementSlice(
+            tagManager,
+            'data-sot-part="icon-grid"',
+            "ToggleGroup",
+        );
+        expect(tagManagerColorPicker).toContain(
+            'variant="recordingTagColorPicker"',
+        );
+        expect(tagManagerColorPicker).toContain(
+            'size="recordingTagColorPicker"',
+        );
+        expect(tagManagerColorPicker).toContain(
+            'layout="recordingTagColorPicker"',
+        );
+        expect(tagManagerColorPicker).toContain(
+            '"recordingTagQuickColorPicker"',
+        );
+        expect(tagManagerColorPicker).toContain('"recordingTagColorPicker"');
+        expect(tagManagerColorPicker).toContain('variant="swatch"');
+        expect(tagManagerColorPicker).toContain('size="swatch"');
+        expect(tagManagerColorPicker).not.toContain('variant="outline"');
+        expect(tagManagerIconPicker).toContain(
+            'variant="recordingTagIconPicker"',
+        );
+        expect(tagManagerIconPicker).toContain(
+            'size="recordingTagIconPicker"',
+        );
+        expect(tagManagerIconPicker).toContain(
+            'layout="recordingTagIconPicker"',
+        );
+        expect(tagManagerIconPicker).toContain(
+            'spacing="recordingTagIconPicker"',
+        );
+        expect(tagManagerIconPicker).toContain(
+            'variant="recordingTagIconOption"',
+        );
+        expect(tagManagerIconPicker).toContain(
+            'size="recordingTagIconOption"',
+        );
+        expect(tagManagerIconPicker).not.toContain('variant="outline"');
         for (const primitiveImport of [
             "Field,",
             "FieldGroup,",
@@ -6322,8 +6371,6 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('size="swatch"');
         expect(tagManager).toContain('size="icon-2xs"');
         expect(tagManager).toContain('size="icon-chip"');
-        expect(tagManager).toContain('size="iconPicker"');
-        expect(tagManager).toContain('layout="iconGrid"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain('saving && "pointer-events-none"');
