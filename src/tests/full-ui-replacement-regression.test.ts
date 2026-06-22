@@ -1859,6 +1859,8 @@ describe("full UI replacement regression coverage", () => {
             "quietOutline",
             "accentLink",
             "authInlineLink",
+            "settingsClose",
+            "settingsNav",
             "dashboardNav",
             "dashboardSource",
             "dashboardSync",
@@ -1883,6 +1885,9 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
             expect(buttonVariantBlock).toContain(`${variant}:`);
+        }
+        for (const settingsButtonSize of ["settingsClose", "settingsNav"]) {
+            expect(buttonSizeBlock).toContain(`${settingsButtonSize}:`);
         }
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
             expect(buttonSizeBlock).toContain(`${size}:`);
@@ -5013,6 +5018,9 @@ describe("full UI replacement regression coverage", () => {
         const settings = readSource(
             "features/settings/components/settings-content.tsx",
         );
+        const settingsDialog = readSource(
+            "features/settings/components/settings-dialog.tsx",
+        );
         const detail = readSource("features/recordings/workstation.tsx");
         const player = readSource(
             "features/recordings/components/recording-player.tsx",
@@ -5050,8 +5058,34 @@ describe("full UI replacement regression coverage", () => {
             "components/ui/toggle-group.tsx",
         );
         const globals = readSource("app/globals.css");
+        const settingsCloseButton = extractElementSlice(
+            settingsDialog,
+            'variant="settingsClose"',
+            "Button",
+        );
+        const settingsNavButton = extractElementSlice(
+            settingsDialog,
+            'variant="settingsNav"',
+            "Button",
+        );
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
+        expect(settingsCloseButton).toContain(
+            'data-sot-control="settings-close"',
+        );
+        expect(settingsCloseButton).toContain('variant="settingsClose"');
+        expect(settingsCloseButton).toContain('size="settingsClose"');
+        expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
+        expect(settingsNavButton).toContain('variant="settingsNav"');
+        expect(settingsNavButton).toContain('size="settingsNav"');
+        for (const settingsControlButton of [
+            settingsCloseButton,
+            settingsNavButton,
+        ]) {
+            expect(settingsControlButton).not.toContain('variant="ghost"');
+            expect(settingsControlButton).not.toContain('size="icon-sm"');
+            expect(settingsControlButton).not.toContain('size="sm"');
+        }
         expect(settings).toContain('data-sot-panel="source-provider-detail"');
         expect(detail).toContain('data-sot-shell="recording-workstation"');
         expect(detail).toContain('data-sot-panel="workstation-sidebar"');

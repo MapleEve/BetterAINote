@@ -563,8 +563,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
 
                         <DialogClose asChild>
                             <Button
-                                variant="ghost"
-                                size="icon-sm"
+                                variant="settingsClose"
+                                size="settingsClose"
                                 aria-label={t("settingsDialog.close")}
                                 className="shrink-0"
                                 data-sot-control="settings-close"
@@ -607,8 +607,8 @@ export function SettingsDialog(props: SettingsDialogProps) {
                                         return (
                                             <Button
                                                 key={item.id}
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="settingsNav"
+                                                size="settingsNav"
                                                 data-sot-control="settings-nav"
                                                 data-sot-nav={
                                                     itemIndex === 0

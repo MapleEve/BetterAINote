@@ -354,10 +354,21 @@ describe("settings SOT interaction regressions", () => {
         );
         const i18n = readSource("lib/i18n.ts");
         const baseDialog = readSource("components/ui/dialog.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
         const headerDisplaySetup = dialog.match(
             /const settingsUserName[\s\S]*?const isSettingsBusy/,
         )?.[0];
+        const [settingsCloseButton] = collectElementSlices(
+            dialog,
+            'variant="settingsClose"',
+            "Button",
+        );
+        const [settingsNavButton] = collectElementSlices(
+            dialog,
+            'variant="settingsNav"',
+            "Button",
+        );
 
         expect(dialog).toContain('data-sot-surface="settings-shell"');
         expect(dialog).toContain("data-sot-busy=");
@@ -385,8 +396,24 @@ describe("settings SOT interaction regressions", () => {
         for (const legacyClassName of LEGACY_SETTINGS_SHELL_CLASSNAMES) {
             expect(dialog).not.toContain(legacyClassName);
         }
-        expect(dialog).toContain('variant="ghost"');
-        expect(dialog).toContain('size="sm"');
+        expect(buttonPrimitive).toContain("settingsClose:");
+        expect(buttonPrimitive).toContain("settingsNav:");
+        expect(settingsCloseButton).toContain(
+            'data-sot-control="settings-close"',
+        );
+        expect(settingsCloseButton).toContain('variant="settingsClose"');
+        expect(settingsCloseButton).toContain('size="settingsClose"');
+        expect(settingsNavButton).toContain('data-sot-control="settings-nav"');
+        expect(settingsNavButton).toContain('variant="settingsNav"');
+        expect(settingsNavButton).toContain('size="settingsNav"');
+        for (const settingsControlButton of [
+            settingsCloseButton,
+            settingsNavButton,
+        ]) {
+            expect(settingsControlButton).not.toContain('variant="ghost"');
+            expect(settingsControlButton).not.toContain('size="icon-sm"');
+            expect(settingsControlButton).not.toContain('size="sm"');
+        }
         expect(dialog).toContain("data-state={");
         expect(dialog).not.toContain('"sr-item active"');
         expect(dialog).not.toContain('"sr-item"');
@@ -1267,6 +1294,9 @@ describe("settings SOT interaction regressions", () => {
         const inputPrimitive = readSource("components/ui/input.tsx");
         const switchPrimitive = readSource("components/ui/switch.tsx");
         const globals = readSource("app/globals.css");
+        const onboardingProviderFieldSlice = onboardingForm.match(
+            /\{providerFields\.map\(\(field\) => \([\s\S]*?<DataSourceFieldControl[\s\S]*?\/>\s*\)\)\}/,
+        )?.[0];
 
         expect(content).not.toContain("SOURCE_PROVIDER_DETAIL_");
         expect(content).toContain("SETTINGS_FIELD_CLASS");
@@ -1321,7 +1351,7 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(settingFieldControl).toContain("className={inputClassName}");
         expect(dataSourceFieldControl).toContain(
-            'variant?: "default" | "settings" | "sourceProviderDetail"',
+            'variant?: "default" | "onboarding" | "settings" | "sourceProviderDetail"',
         );
         expect(dataSourceFieldControl).toContain('variant = "default"');
         expect(dataSourceFieldControl).toContain(
@@ -1333,15 +1363,29 @@ describe("settings SOT interaction regressions", () => {
             'renderedField.masked && "tracking-[0.15em]"',
         );
         expect(onboardingForm).toContain("<DataSourceFieldControl");
-        expect(onboardingForm).toContain('variant="settings"');
+        expect(onboardingProviderFieldSlice).toContain(
+            "<DataSourceFieldControl",
+        );
+        expect(onboardingProviderFieldSlice).toContain('variant="onboarding"');
+        expect(onboardingProviderFieldSlice).not.toContain('variant="settings"');
         expect(fieldPrimitive).toContain(
-            'type FieldVariant = "default" | "sourceProviderDetail"',
+            `type FieldVariant =
+    | "default"
+    | "authAction"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain(
-            'type FieldContentVariant = "default" | "sourceProviderDetail"',
+            `type FieldContentVariant =
+    | "default"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain(
-            'type FieldControlVariant = "default" | "sourceProviderDetail"',
+            `type FieldControlVariant =
+    | "default"
+    | "onboardingSourceField"
+    | "sourceProviderDetail";`,
         );
         expect(fieldPrimitive).toContain("sourceProviderDetailFieldClassName");
         expect(fieldPrimitive).toContain("grid grid-cols-[1fr_auto]");
