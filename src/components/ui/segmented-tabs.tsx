@@ -32,8 +32,10 @@ type SegmentedTabsItemContext = {
     active: boolean;
     disabled: boolean;
     index: number;
-    size: "default" | "sm";
+    size: SegmentedTabsSize;
 };
+
+type SegmentedTabsSize = "default" | "sm" | "sotSegmentedSm";
 
 export function SegmentedTabs<T extends string>({
     items,
@@ -41,7 +43,8 @@ export function SegmentedTabs<T extends string>({
     onValueChange,
     className,
     getItemProps,
-    size = "sm",
+    variant = "sotSegmented",
+    size = "sotSegmentedSm",
     "aria-label": ariaLabel,
     ...props
 }: SegmentedTabsRootProps & {
@@ -52,7 +55,7 @@ export function SegmentedTabs<T extends string>({
         item: SegmentedTabItem<T>,
         context: SegmentedTabsItemContext,
     ) => SegmentedTabsItemProps;
-    size?: "default" | "sm";
+    size?: SegmentedTabsSize;
 }) {
     const activeIndex = Math.max(
         0,
@@ -68,11 +71,11 @@ export function SegmentedTabs<T extends string>({
             {...props}
             className={cn("min-w-[220px]", className)}
             spacing={1}
-            variant="outline"
+            variant={variant}
             type="single"
             value={value}
             onValueChange={handleValueChange}
-            size={size === "sm" ? "sm" : "default"}
+            size={size}
             role="tablist"
             aria-label={ariaLabel}
             data-tabs={items.length}

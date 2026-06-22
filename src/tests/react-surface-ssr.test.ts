@@ -130,12 +130,20 @@ describe("React surface SSR coverage", () => {
         expect(html).not.toContain('class="panel');
         expect(html).toContain('data-slot="button"');
         expect(html).toContain('data-variant="default"');
-        expect(html).toContain('data-variant="outline"');
+        expect(html).toMatch(
+            /data-slot="button"[^>]*data-variant="outline"/,
+        );
         expect(html).toContain('data-slot="input"');
         expect(html).toContain('data-slot="label"');
         expect(html).toContain('data-slot="textarea"');
         expect(html).toContain('data-slot="switch"');
         expect(html).toContain('data-slot="toggle-group"');
+        expect(html).toMatch(
+            /data-slot="toggle-group"[^>]*data-variant="sotSegmented"[^>]*data-size="sotSegmentedSm"/,
+        );
+        expect(html).not.toMatch(
+            /data-slot="toggle-group"[^>]*data-variant="outline"/,
+        );
         expect(html).toContain('data-tabs="2"');
         expect(html).toContain('data-active="0"');
         expect(html).toContain('data-slot="toggle-group-item"');

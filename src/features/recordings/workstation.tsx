@@ -1418,6 +1418,8 @@ export function RecordingWorkstation({
                                         </Field>
                                         <div data-sot-part="recording-source-record-tabs">
                                             <SegmentedTabs
+                                                variant="sotSegmented"
+                                                size="sotSegmentedSm"
                                                 data-sot-control="segmented-tabs"
                                                 data-sot-size="sm"
                                                 getItemProps={

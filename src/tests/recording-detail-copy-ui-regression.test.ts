@@ -1372,6 +1372,17 @@ describe("recording detail copy and title action UI regressions", () => {
         );
 
         expect(detailWorkstation).toContain("SegmentedTabs");
+        const sourceRecordSegmentedTabs = extractBoundedSlice(
+            detailWorkstation,
+            'data-sot-part="recording-source-record-tabs"',
+            '<FieldDescription data-sot-part="recording-source-record-hint">',
+        );
+        expect(sourceRecordSegmentedTabs).toContain('variant="sotSegmented"');
+        expect(sourceRecordSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(sourceRecordSegmentedTabs).toContain(
+            'data-sot-control="segmented-tabs"',
+        );
+        expect(sourceRecordSegmentedTabs).toContain('data-sot-size="sm"');
         expect(detailWorkstation).toContain('"source" | "local" | "speakers"');
         expect(detailWorkstation).toContain("showSpeakerReview={false}");
         expect(detailWorkstation).toContain("<SpeakerLabelEditor");

@@ -13,6 +13,7 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
+                sotSegmented: "border border-input bg-background shadow-xs",
                 swatch:
                     "group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent bg-[var(--toggle-swatch-color)] p-0 text-[13.3333px] font-normal leading-[0] text-[var(--fg-primary)] shadow-none hover:bg-[var(--toggle-swatch-color)] hover:text-[var(--fg-primary)] data-[state=on]:border-[var(--toggle-swatch-selected-border)] data-[state=on]:bg-[var(--toggle-swatch-color)] data-[state=on]:text-[var(--fg-primary)] data-[state=on]:shadow-[var(--toggle-swatch-selected-shadow)]",
             },
@@ -28,6 +29,7 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
+                sotSegmentedSm: "h-8 px-2",
                 swatch: "size-[18px] min-w-0 p-0",
                 iconPicker: "size-7 min-w-0 shrink-0 p-0",
                 lg: "h-10 px-4",
@@ -127,7 +129,7 @@ function ToggleGroupItem({
                     size: itemSize,
                 }),
                 context.spacing === 0 &&
-                    "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l",
+                    "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l data-[variant=sotSegmented]:border-l-0 first:data-[variant=sotSegmented]:border-l",
                 className,
             )}
             {...props}

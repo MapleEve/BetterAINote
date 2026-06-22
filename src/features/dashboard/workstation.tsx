@@ -5160,6 +5160,8 @@ export function Workstation({
                                     </div>
                                     <SegmentedTabs
                                         aria-label="列表模式"
+                                        variant="sotSegmented"
+                                        size="sotSegmentedSm"
                                         data-sot-control="segmented-tabs"
                                         data-sot-part="dashboard-recording-list-mode-segmented"
                                         data-sot-size="sm"
@@ -6468,6 +6470,8 @@ export function Workstation({
                             >
                                 <SegmentedTabs
                                     aria-label="详情标签"
+                                    variant="sotSegmented"
+                                    size="sotSegmentedSm"
                                     className="shrink-0"
                                     data-sot-control="segmented-tabs"
                                     data-sot-size="sm"

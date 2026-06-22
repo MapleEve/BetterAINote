@@ -1157,6 +1157,17 @@ describe("dashboard SOT foundation", () => {
         );
         expect(workstation).toContain('aria-label="列表模式"');
         expect(workstation).toContain("<SegmentedTabs");
+        const listModeSegmentedTabs = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-mode-segmented"',
+            "SegmentedTabs",
+        );
+        expect(listModeSegmentedTabs).toContain('variant="sotSegmented"');
+        expect(listModeSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(listModeSegmentedTabs).toContain(
+            'data-sot-control="segmented-tabs"',
+        );
+        expect(listModeSegmentedTabs).toContain('data-sot-size="sm"');
         expect(workstation).toContain('value: "timeline"');
         expect(workstation).toContain("recordingList.timeTab");
         expect(workstation).toContain('value: "tags"');
@@ -1168,6 +1179,17 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('label: "转写"');
         expect(workstation).toContain('value: "speakers"');
         expect(workstation).toContain('label: "说话人"');
+        const detailSegmentedTabs = extractOpeningElement(
+            workstation,
+            'aria-label="详情标签"',
+            "SegmentedTabs",
+        );
+        expect(detailSegmentedTabs).toContain('variant="sotSegmented"');
+        expect(detailSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(detailSegmentedTabs).toContain(
+            'data-sot-control="segmented-tabs"',
+        );
+        expect(detailSegmentedTabs).toContain('data-sot-size="sm"');
         expect(workstation).toContain('hidden={detailTab !== "transcript"}');
         expect(workstation).toContain(
             'className="min-h-0 flex-1 gap-0 rounded-2xl"',
@@ -1417,6 +1439,9 @@ describe("dashboard SOT foundation", () => {
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const progressPrimitive = readSource("components/ui/progress.tsx");
         const segmentedTabs = readSource("components/ui/segmented-tabs.tsx");
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
         const banner = readSource(
             "features/dashboard/components/system-banner.tsx",
         );
@@ -1446,7 +1471,13 @@ describe("dashboard SOT foundation", () => {
         );
         expect(segmentedTabs).toContain("<ToggleGroup");
         expect(segmentedTabs).toContain("<ToggleGroupItem");
-        expect(segmentedTabs).toContain('variant="outline"');
+        expect(segmentedTabs).toContain('variant = "sotSegmented"');
+        expect(segmentedTabs).toContain('size = "sotSegmentedSm"');
+        expect(segmentedTabs).toContain("variant={variant}");
+        expect(segmentedTabs).toContain("size={size}");
+        expect(segmentedTabs).not.toContain('variant="outline"');
+        expect(toggleGroupPrimitive).toContain("sotSegmented:");
+        expect(toggleGroupPrimitive).toContain("sotSegmentedSm:");
         expect(segmentedTabs).toContain("spacing={1}");
         expect(segmentedTabs).toContain('type="single"');
         expect(segmentedTabs).toContain("value={value}");
