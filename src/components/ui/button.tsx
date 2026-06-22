@@ -76,6 +76,12 @@ const buttonVariants = cva(
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)]",
                 sourceFilterClearAll:
                     "bg-transparent text-primary shadow-none underline-offset-4 hover:bg-transparent hover:text-primary hover:underline",
+                systemBannerAction:
+                    "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                systemBannerPrimaryAction:
+                    "cursor-pointer border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)]",
+                systemBannerDismissAction:
+                    "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 recordingListTagFilterTrigger:
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 recordingListTagFilterOption:
@@ -140,6 +146,10 @@ const buttonVariants = cva(
                     "ml-[6px] h-[22px] flex-none gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-none whitespace-nowrap has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceFilterClearAll:
                     "h-6 rounded-md px-2 text-sm has-[>svg]:px-2",
+                systemBannerAction:
+                    "h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
+                systemBannerDismissAction:
+                    "size-[26px] rounded-[7px] p-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
                 recordingListTagFilterTrigger:
                     "h-8 w-full justify-start gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 recordingListTagFilterOption:

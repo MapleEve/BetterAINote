@@ -565,82 +565,61 @@ const RETIRED_LIQUID_TABS_CSS_SELECTORS = [
 const SYSTEM_BANNER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:sys-banner|sbn-(?:ico|body|title|sub|actions|progress|bar))(?![\w-])/;
 
-const SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-panel="system-banner"]',
-    '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
-    '[data-sot-part="system-banner-icon"]',
-    '[data-sot-part="system-banner-icon"] svg',
-    '[data-sot-part="system-banner-body"]',
-    '[data-sot-part="system-banner-title"]',
-    '[data-sot-part="system-banner-description"]',
-    '[data-sot-part="system-banner-actions"]',
+const RETIRED_SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-icon"]',
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-body"]',
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"]',
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-description"]',
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-actions"]',
+    '[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"]',
     '[data-sot-panel="system-banner"][data-kind="offline"]',
     '[data-sot-panel="system-banner"][data-kind="permission-denied"]',
     '[data-sot-panel="system-banner"][data-kind="db-locked"]',
     '[data-sot-panel="system-banner"][data-kind="update-available"]',
     '[data-sot-panel="system-banner"][data-kind="import-progress"]',
     '[data-sot-panel="system-banner"][data-kind="export-progress"]',
-    '[data-sot-part="system-banner-progress"]',
-    '[data-sot-part="system-banner-progress-bar"]',
-    '[data-sot-part="system-banner-progress"][data-sot-state="indeterminate"]',
+    '[data-sot-panel="system-banner"] [data-sot-part="system-banner-progress"]',
+    '[data-sot-panel="system-banner"][data-pct="0"]',
+    '[data-sot-panel="system-banner"][data-pct="10"]',
+    '[data-sot-panel="system-banner"][data-pct="20"]',
+    '[data-sot-panel="system-banner"][data-pct="30"]',
+    '[data-sot-panel="system-banner"][data-pct="40"]',
+    '[data-sot-panel="system-banner"][data-pct="50"]',
+    '[data-sot-panel="system-banner"][data-pct="60"]',
+    '[data-sot-panel="system-banner"][data-pct="70"]',
+    '[data-sot-panel="system-banner"][data-pct="80"]',
+    '[data-sot-panel="system-banner"][data-pct="90"]',
+    '[data-sot-panel="system-banner"][data-pct="100"]',
 ];
 
-const SYSTEM_BANNER_ROOT_SOT_DECLARATIONS = [
-    "display: flex",
-    "align-items: center",
-    "gap: 12px",
-    "padding: 10px 14px",
-    "border-radius: var(--radius-md)",
-    "border: 1px solid var(--line-hairline)",
-    "background: var(--bg-elevated)",
-    "color: var(--fg-primary)",
-    "box-shadow: var(--shadow-xs)",
-    "font-size: var(--text-body-sm)",
-    "line-height: var(--lh-body-sm)",
+const SYSTEM_BANNER_ALERT_PRIMITIVE_TOKENS = [
+    "systemBanner",
+    "data-[kind=offline]",
+    "data-[kind=permission-denied]",
+    "data-[kind=db-locked]",
+    "data-[kind=update-available]",
+    "data-[kind=import-progress]",
+    "data-[kind=export-progress]",
+    "[&_[data-sot-part=system-banner-icon]]",
+    "[&_[data-sot-part=system-banner-body]]",
+    "[&_[data-sot-part=system-banner-actions]]",
 ];
 
-const SYSTEM_BANNER_ICON_SVG_SOT_DECLARATIONS = ["width: 14px", "height: 14px"];
-
-const SYSTEM_BANNER_TITLE_SOT_DECLARATIONS = [
-    "display: block",
-    "min-height: auto",
-    "overflow: visible",
-    "-webkit-line-clamp: none",
-    "-webkit-box-orient: horizontal",
-    "letter-spacing: normal",
-    "font-weight: var(--weight-semibold)",
-    "color: var(--fg-primary)",
+const SYSTEM_BANNER_BUTTON_PRIMITIVE_TOKENS = [
+    "systemBannerAction",
+    "systemBannerPrimaryAction",
+    "systemBannerDismissAction",
+    "systemBannerAction:",
+    "systemBannerDismissAction:",
 ];
 
-const SYSTEM_BANNER_DESCRIPTION_SOT_DECLARATIONS = [
-    "display: block",
-    "justify-items: normal",
-    "gap: normal",
-    "font: 500 12px / 1.45 var(--font-sans)",
-    "color: var(--fg-tertiary)",
-];
-
-const SYSTEM_BANNER_ACTION_BUTTON_SOT_DECLARATIONS = [
-    "display: inline-flex",
-    "align-items: center",
-    "justify-content: normal",
-    "gap: 7px",
-    "height: 26px",
-    "padding: 0 10px",
-    "border-radius: 7px",
-    "background: transparent",
-    "border-color: transparent",
-    "box-shadow: none",
-    "color: var(--fg-secondary)",
-    "font: 600 12px var(--font-sans)",
-];
-
-const SYSTEM_BANNER_UPDATE_BUTTON_SOT_DECLARATIONS = [
-    "background: var(--glass-tint-base)",
-    "backdrop-filter: blur(14px) saturate(140%)",
-    "border-color: var(--line-hairline)",
-    "box-shadow: var(--shadow-xs)",
-    "color: var(--fg-primary)",
+const SYSTEM_BANNER_PROGRESS_PRIMITIVE_TOKENS = [
+    'import { Progress as ProgressPrimitive } from "radix-ui";',
+    "systemBanner",
+    '"system-banner-progress"',
+    '"system-banner-progress-bar"',
+    "data-sot-state={dataSotState}",
+    "sbn-sweep",
 ];
 
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2355,8 +2334,11 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain('[data-idx="');
     });
 
-    it("keeps system banners product CSS on data-sot selectors", () => {
+    it("moves system banner surface styling into shadcn primitives", () => {
         const globals = readSource("app/globals.css");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const progressPrimitive = readSource("components/ui/progress.tsx");
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2365,64 +2347,42 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of RETIRED_SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
-        expect(globals).toMatch(/\[data-sot-part="system-banner-icon"\]\s+svg/);
+        expect(globals).toContain(
+            '[data-sot-panel="system-banner"] + [data-sot-panel="system-banner"]',
+        );
+        expect(globals).toContain("@keyframes sbn-sweep");
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-panel="system-banner"]')
+                .map(({ prelude }) => prelude.trim())
+                .filter(
+                    (prelude) =>
+                        prelude === '[data-sot-panel="system-banner"]',
+                ),
+        ).toEqual([]);
         expect(
             collectCssRuleBlocks(
                 globals,
                 '[data-sot-panel="system-banner"]',
             ).filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
         ).toEqual([]);
-        const rootDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-panel="system-banner"]',
-        );
-        for (const declaration of SYSTEM_BANNER_ROOT_SOT_DECLARATIONS) {
-            expect(rootDeclarations).toContain(declaration);
-        }
-        const iconSvgDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-part="system-banner-icon"] svg',
-        );
-        for (const declaration of SYSTEM_BANNER_ICON_SVG_SOT_DECLARATIONS) {
-            expect(iconSvgDeclarations).toContain(declaration);
-        }
-        const titleDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-part="system-banner-title"]',
-        );
-        for (const declaration of SYSTEM_BANNER_TITLE_SOT_DECLARATIONS) {
-            expect(titleDeclarations).toContain(declaration);
-        }
-        const descriptionDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-part="system-banner-description"]',
-        );
-        for (const declaration of SYSTEM_BANNER_DESCRIPTION_SOT_DECLARATIONS) {
-            expect(descriptionDeclarations).toContain(declaration);
-        }
-        const actionButtonDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"]',
-        );
-        for (const declaration of SYSTEM_BANNER_ACTION_BUTTON_SOT_DECLARATIONS) {
-            expect(actionButtonDeclarations).toContain(declaration);
-        }
-        const updateButtonDeclarations = extractCssBlock(
-            stripCssComments(globals),
-            '[data-sot-panel="system-banner"][data-kind="update-available"][data-layout="single"]\n    [data-sot-control="system-banner-primary-action"]',
-        );
-        for (const declaration of SYSTEM_BANNER_UPDATE_BUTTON_SOT_DECLARATIONS) {
-            expect(updateButtonDeclarations).toContain(declaration);
-        }
         expect(globals).not.toContain(
             "[data-sot-panel=\"system-banner\"] [data-slot=\"button\"]",
         );
+        for (const token of SYSTEM_BANNER_ALERT_PRIMITIVE_TOKENS) {
+            expect(alertPrimitive).toContain(token);
+        }
+        for (const token of SYSTEM_BANNER_BUTTON_PRIMITIVE_TOKENS) {
+            expect(buttonPrimitive).toContain(token);
+        }
+        for (const token of SYSTEM_BANNER_PROGRESS_PRIMITIVE_TOKENS) {
+            expect(progressPrimitive).toContain(token);
+        }
     });
 
-    it("composes system banners with the shadcn Alert primitive", () => {
+    it("composes system banners with shadcn Alert, Button, and Progress primitives", () => {
         const banner = readSource(
             "features/dashboard/components/system-banner.tsx",
         );
@@ -2433,11 +2393,38 @@ describe("full UI replacement regression coverage", () => {
         expect(banner).toContain(
             'import { Button } from "@/components/ui/button";',
         );
+        expect(banner).toContain(
+            'import { Progress } from "@/components/ui/progress";',
+        );
         expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
+        expect(banner).toContain('variant="systemBanner"');
+        expect(banner).toContain('density="systemBanner"');
+        expect(banner).toContain('layout="systemBanner"');
         expect(banner).toContain("<AlertTitle");
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
         expect(banner).toContain("<Button");
+        expect(banner).toContain("<Progress");
+        expect(banner).toContain("value={progress ?? 0}");
+        expect(banner).toContain('size="systemBannerAction"');
+        expect(banner).toContain('size="systemBannerDismissAction"');
+        expect(banner).toContain('variant="systemBannerAction"');
+        expect(banner).toContain('variant="systemBannerDismissAction"');
+        expect(banner).toContain("variant={primaryActionVariant}");
+        expect(banner).toContain('"systemBannerPrimaryAction"');
+        expect(banner).not.toContain('size="sm"');
+        expect(banner).not.toContain('size="icon-sm"');
+        expect(banner).not.toContain('variant="ghost"');
+        expect(banner).not.toContain('variant="outline"');
+        expect(banner).not.toMatch(
+            /<div[\s\S]*data-sot-part="system-banner-progress"/,
+        );
+        expect(banner).not.toContain(
+            '<span data-sot-part="system-banner-progress-bar" />',
+        );
+        expect(banner).not.toContain(
+            'className={cn("flex items-center gap-3 px-3.5 py-2.5", className)}',
+        );
         expect(banner).not.toContain("systemBannerButtonVariants");
         expect(banner).not.toMatch(/<section[\s>]/);
         expect(banner).not.toContain('data-slot="system-banner"');

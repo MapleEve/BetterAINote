@@ -4,8 +4,8 @@ import { type SVGProps, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
-import { cn } from "@/lib/utils";
 
 type SystemBannerState =
     | "offline"
@@ -446,6 +446,10 @@ function SystemBannerItem({
     const { dismissLabel, primaryLabel, primaryRole, secondaryLabel } =
         getRenderedActions(banner, defaultActions, isStacked, isZh);
     const bannerA11y = getBannerA11y(banner.state);
+    const primaryActionVariant =
+        banner.state === "update-available" && !isStacked
+            ? "systemBannerPrimaryAction"
+            : "systemBannerAction";
     const handleAction = (role: SystemBannerActionRole) => {
         dispatchSystemBannerAction(banner, role);
 
@@ -465,7 +469,10 @@ function SystemBannerItem({
         <Alert
             aria-live={bannerA11y["aria-live"]}
             role={bannerA11y.role}
-            className={cn("flex items-center gap-3 px-3.5 py-2.5", className)}
+            className={className}
+            density="systemBanner"
+            layout="systemBanner"
+            variant="systemBanner"
             data-sot-panel="system-banner"
             data-kind={banner.state}
             data-layout={isStacked ? "stacked" : "single"}
@@ -479,25 +486,28 @@ function SystemBannerItem({
                 />
             </span>
             <div data-sot-part="system-banner-body">
-                <AlertTitle data-sot-part="system-banner-title">
+                <AlertTitle
+                    data-sot-part="system-banner-title"
+                    density="systemBanner"
+                >
                     {banner.title ?? defaultCopy.title}
                 </AlertTitle>
                 <AlertDescription
                     data-sot-part="system-banner-description"
                     data-sot-format={hasProgress ? "mono" : undefined}
+                    density="systemBanner"
                 >
                     {banner.message ?? defaultCopy.message}
                 </AlertDescription>
                 {hasProgress ? (
-                    <div
+                    <Progress
                         aria-hidden="true"
-                        data-sot-part="system-banner-progress"
                         data-sot-state={
                             banner.indeterminate ? "indeterminate" : "ready"
                         }
-                    >
-                        <span data-sot-part="system-banner-progress-bar" />
-                    </div>
+                        value={progress ?? 0}
+                        variant="systemBanner"
+                    />
                 ) : null}
             </div>
             <div data-sot-part="system-banner-actions">
@@ -514,13 +524,9 @@ function SystemBannerItem({
                             banner.state === "import-progress"
                         }
                         onClick={() => handleAction(primaryRole)}
-                        size="sm"
+                        size="systemBannerAction"
                         data-sot-control="system-banner-primary-action"
-                        variant={
-                            banner.state === "update-available" && !isStacked
-                                ? "outline"
-                                : "ghost"
-                        }
+                        variant={primaryActionVariant}
                         type="button"
                     >
                         {primaryLabel}
@@ -529,9 +535,9 @@ function SystemBannerItem({
                 {secondaryLabel ? (
                     <Button
                         onClick={() => handleAction("secondary")}
-                        size="sm"
+                        size="systemBannerAction"
                         data-sot-control="system-banner-secondary-action"
-                        variant="ghost"
+                        variant="systemBannerAction"
                         type="button"
                     >
                         {secondaryLabel}
@@ -541,9 +547,9 @@ function SystemBannerItem({
                     <Button
                         aria-label={dismissLabel}
                         onClick={() => onDismiss(banner)}
-                        size="icon-sm"
+                        size="systemBannerDismissAction"
                         data-sot-control="system-banner-dismiss-action"
-                        variant="ghost"
+                        variant="systemBannerDismissAction"
                         type="button"
                     >
                         <CloseIcon

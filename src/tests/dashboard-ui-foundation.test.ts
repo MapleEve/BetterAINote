@@ -1288,6 +1288,9 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps SOT global tokens and system banner state semantics available", () => {
         const globals = readSource("app/globals.css");
+        const alertPrimitive = readSource("components/ui/alert.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const progressPrimitive = readSource("components/ui/progress.tsx");
         const segmentedTabs = readSource("components/ui/segmented-tabs.tsx");
         const banner = readSource(
             "features/dashboard/components/system-banner.tsx",
@@ -1352,8 +1355,15 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
+        expect(banner).toContain(
+            'import { Progress } from "@/components/ui/progress";',
+        );
         expect(banner).toMatch(/<Alert\s/);
+        expect(banner).toContain('variant="systemBanner"');
+        expect(banner).toContain('density="systemBanner"');
+        expect(banner).toContain('layout="systemBanner"');
         expect(banner).toContain("<AlertTitle");
+        expect(banner).toContain("density=\"systemBanner\"");
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
         expect(banner).not.toMatch(/<section[\s>]/);
@@ -1363,12 +1373,28 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain('data-sot-part="system-banner-body"');
         expect(banner).toContain('data-sot-part="system-banner-title"');
         expect(banner).toContain('data-sot-part="system-banner-description"');
-        expect(banner).toContain('data-sot-part="system-banner-progress"');
-        expect(banner).toContain('data-sot-part="system-banner-progress-bar"');
+        expect(progressPrimitive).toContain(
+            '"system-banner-progress"',
+        );
+        expect(progressPrimitive).toContain(
+            '"system-banner-progress-bar"',
+        );
         expect(banner).toContain('data-sot-part="system-banner-actions"');
         expect(banner).toContain('data-sot-format={hasProgress ? "mono"');
+        expect(banner).toContain("<Progress");
+        expect(banner).toContain('variant="systemBanner"');
+        expect(banner).toContain("value={progress ?? 0}");
+        expect(banner).not.toMatch(
+            /<div[\s\S]*data-sot-part="system-banner-progress"/,
+        );
+        expect(banner).not.toContain(
+            '<span data-sot-part="system-banner-progress-bar" />',
+        );
         expect(banner).not.toContain('className={cn("sys-banner", className)}');
         expect(banner).not.toContain('className="sys-banner"');
+        expect(banner).not.toContain(
+            'className={cn("flex items-center gap-3 px-3.5 py-2.5", className)}',
+        );
         expect(banner).not.toContain('"sbn-progress"');
         expect(banner).not.toContain('"sbn-bar"');
         expect(banner).not.toContain("sbn-");
@@ -1380,10 +1406,16 @@ describe("dashboard SOT foundation", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(banner).toContain("<Button");
-        expect(banner).toContain('size="sm"');
-        expect(banner).toContain('size="icon-sm"');
-        expect(banner).toContain('variant="ghost"');
-        expect(banner).toContain("variant={");
+        expect(banner).toContain('size="systemBannerAction"');
+        expect(banner).toContain('size="systemBannerDismissAction"');
+        expect(banner).toContain('variant="systemBannerAction"');
+        expect(banner).toContain('variant="systemBannerDismissAction"');
+        expect(banner).toContain("variant={primaryActionVariant}");
+        expect(banner).toContain('"systemBannerPrimaryAction"');
+        expect(banner).not.toContain('size="sm"');
+        expect(banner).not.toContain('size="icon-sm"');
+        expect(banner).not.toContain('variant="ghost"');
+        expect(banner).not.toContain('variant="outline"');
         expect(banner).toMatch(
             /data-sot-control="system-banner-dismiss-action"[\s\S]*<CloseIcon\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
@@ -1395,5 +1427,16 @@ describe("dashboard SOT foundation", () => {
         expect(banner).not.toContain("lucide-react");
         expect(banner).not.toContain("data-system-banner");
         expect(banner).not.toMatch(OLD_UI_RE);
+        expect(alertPrimitive).toContain('"systemBanner"');
+        expect(alertPrimitive).toContain("data-[kind=offline]");
+        expect(buttonPrimitive).toContain("systemBannerAction");
+        expect(buttonPrimitive).toContain("systemBannerPrimaryAction");
+        expect(buttonPrimitive).toContain("systemBannerDismissAction");
+        expect(progressPrimitive).toContain(
+            'import { Progress as ProgressPrimitive } from "radix-ui";',
+        );
+        expect(progressPrimitive).toContain('variant?: ProgressVariant');
+        expect(progressPrimitive).toContain('"systemBanner"');
+        expect(progressPrimitive).toContain("sbn-sweep");
     });
 });

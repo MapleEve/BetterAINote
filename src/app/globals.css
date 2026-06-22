@@ -75,6 +75,102 @@
     --signal-danger: oklch(0.585 0.18 25);
     --signal-info: rgb(65 134 164);
     --signal-info: oklch(0.62 0.09 224);
+    --system-banner-neutral-icon-bg: rgb(132 145 153 / 0.12);
+    --system-banner-neutral-icon-bg: color-mix(
+        in srgb,
+        var(--fg-tertiary) 12%,
+        transparent
+    );
+    --system-banner-offline-bg: rgb(245 241 234);
+    --system-banner-offline-bg: color-mix(
+        in srgb,
+        var(--signal-warning) 8%,
+        var(--bg-elevated)
+    );
+    --system-banner-offline-border: rgb(184 130 27 / 0.28);
+    --system-banner-offline-border: color-mix(
+        in srgb,
+        var(--signal-warning) 28%,
+        transparent
+    );
+    --system-banner-offline-icon-bg: rgb(184 130 27 / 0.16);
+    --system-banner-offline-icon-bg: color-mix(
+        in srgb,
+        var(--signal-warning) 16%,
+        transparent
+    );
+    --system-banner-danger-bg: rgb(247 236 236);
+    --system-banner-danger-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 8%,
+        var(--bg-elevated)
+    );
+    --system-banner-danger-border: rgb(210 65 53 / 0.28);
+    --system-banner-danger-border: color-mix(
+        in srgb,
+        var(--signal-danger) 28%,
+        transparent
+    );
+    --system-banner-danger-icon-bg: rgb(210 65 53 / 0.14);
+    --system-banner-danger-icon-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 14%,
+        transparent
+    );
+    --system-banner-update-bg: rgb(233 240 244);
+    --system-banner-update-bg: color-mix(
+        in srgb,
+        var(--signal-info) 9%,
+        var(--bg-elevated)
+    );
+    --system-banner-update-border: rgb(65 134 164 / 0.28);
+    --system-banner-update-border: color-mix(
+        in srgb,
+        var(--signal-info) 28%,
+        transparent
+    );
+    --system-banner-update-icon-bg: rgb(65 134 164 / 0.16);
+    --system-banner-update-icon-bg: color-mix(
+        in srgb,
+        var(--signal-info) 16%,
+        transparent
+    );
+    --system-banner-progress-bg: rgb(239 244 247);
+    --system-banner-progress-bg: color-mix(
+        in srgb,
+        var(--signal-info) 6%,
+        var(--bg-elevated)
+    );
+    --system-banner-progress-border: rgb(65 134 164 / 0.22);
+    --system-banner-progress-border: color-mix(
+        in srgb,
+        var(--signal-info) 22%,
+        transparent
+    );
+    --system-banner-progress-icon-bg: rgb(65 134 164 / 0.14);
+    --system-banner-progress-icon-bg: color-mix(
+        in srgb,
+        var(--signal-info) 14%,
+        transparent
+    );
+    --system-banner-progress-track: rgb(132 145 153 / 0.14);
+    --system-banner-progress-track: color-mix(
+        in srgb,
+        var(--fg-tertiary) 14%,
+        transparent
+    );
+    --system-banner-progress-indeterminate-track: rgb(65 134 164 / 0.12);
+    --system-banner-progress-indeterminate-track: color-mix(
+        in srgb,
+        var(--signal-info) 12%,
+        transparent
+    );
+    --system-banner-progress-indeterminate-bg: linear-gradient(
+        90deg,
+        transparent,
+        var(--signal-info) 50%,
+        transparent
+    );
     --source-provider-card-hover: rgb(34 42 50 / 0.05);
     --source-provider-card-hover: color-mix(
         in srgb,
@@ -5475,258 +5571,10 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 
 /* ============================================================
-   SystemBanner — surface-level, app-wide message bar.
-   Covers: offline, permission-denied, db-locked, update-available,
-   import-progress, export-progress.
+   SystemBanner — primitive-owned surface.
    ============================================================ */
-[data-sot-panel="system-banner"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--line-hairline);
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-    box-shadow: var(--shadow-xs);
-    font-size: var(--text-body-sm);
-    line-height: var(--lh-body-sm);
-}
 [data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
     margin-top: 8px;
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-icon"] {
-    flex: none;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-sm);
-    display: inline-grid;
-    place-items: center;
-    background: color-mix(in srgb, var(--fg-tertiary) 12%, transparent);
-    color: var(--fg-secondary);
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-icon"] svg {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-body"] {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-title"] {
-    display: block;
-    min-height: auto;
-    overflow: visible;
-    -webkit-line-clamp: none;
-    -webkit-box-orient: horizontal;
-    letter-spacing: normal;
-    font-weight: var(--weight-semibold);
-    color: var(--fg-primary);
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-description"] {
-    display: block;
-    justify-items: normal;
-    gap: normal;
-    font: 500 12px / 1.45 var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="system-banner"]
-    [data-sot-part="system-banner-description"][data-sot-format="mono"] {
-    font-family: var(--font-mono);
-}
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-actions"] {
-    display: flex;
-    gap: 6px;
-    flex: none;
-}
-[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: normal;
-    gap: 7px;
-    width: auto;
-    height: 26px;
-    padding: 0 10px;
-    border: 1px solid var(--line-hairline);
-    border-color: transparent;
-    border-radius: 7px;
-    background: transparent;
-    box-shadow: none;
-    color: var(--fg-secondary);
-    font: 600 12px var(--font-sans);
-    cursor: pointer;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        transform var(--duration-fast) var(--ease-out);
-}
-[data-sot-panel="system-banner"] [data-sot-control^="system-banner-"] svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-panel="system-banner"][data-kind="update-available"][data-layout="single"]
-    [data-sot-control="system-banner-primary-action"] {
-    background: var(--glass-tint-base);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    border-color: var(--line-hairline);
-    box-shadow: var(--shadow-xs);
-    color: var(--fg-primary);
-}
-
-/* Variants — pull tint from semantic signal tokens (light + dark both). */
-[data-sot-panel="system-banner"][data-kind="offline"] {
-    background: color-mix(
-        in srgb,
-        var(--signal-warning) 8%,
-        var(--bg-elevated)
-    );
-    border-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
-}
-[data-sot-panel="system-banner"][data-kind="offline"]
-    [data-sot-part="system-banner-icon"] {
-    background: color-mix(in srgb, var(--signal-warning) 16%, transparent);
-    color: var(--signal-warning);
-}
-
-[data-sot-panel="system-banner"][data-kind="permission-denied"],
-[data-sot-panel="system-banner"][data-kind="db-locked"] {
-    background: color-mix(in srgb, var(--signal-danger) 8%, var(--bg-elevated));
-    border-color: color-mix(in srgb, var(--signal-danger) 28%, transparent);
-}
-[data-sot-panel="system-banner"][data-kind="permission-denied"]
-    [data-sot-part="system-banner-icon"],
-[data-sot-panel="system-banner"][data-kind="db-locked"]
-    [data-sot-part="system-banner-icon"] {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
-}
-
-[data-sot-panel="system-banner"][data-kind="update-available"] {
-    background: color-mix(in srgb, var(--signal-info) 9%, var(--bg-elevated));
-    border-color: color-mix(in srgb, var(--signal-info) 28%, transparent);
-}
-[data-sot-panel="system-banner"][data-kind="update-available"]
-    [data-sot-part="system-banner-icon"] {
-    background: color-mix(in srgb, var(--signal-info) 16%, transparent);
-    color: var(--signal-info);
-}
-
-[data-sot-panel="system-banner"][data-kind="import-progress"],
-[data-sot-panel="system-banner"][data-kind="export-progress"] {
-    background: color-mix(in srgb, var(--signal-info) 6%, var(--bg-elevated));
-    border-color: color-mix(in srgb, var(--signal-info) 22%, transparent);
-}
-[data-sot-panel="system-banner"][data-kind="import-progress"]
-    [data-sot-part="system-banner-icon"],
-[data-sot-panel="system-banner"][data-kind="export-progress"]
-    [data-sot-part="system-banner-icon"] {
-    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
-    color: var(--signal-info);
-}
-
-/* Inline progress bar inside a SystemBanner. Percent controlled via
-   data-pct="0|5|10|...|95|100" — no inline style writes needed. */
-[data-sot-panel="system-banner"] [data-sot-part="system-banner-progress"] {
-    position: relative;
-    height: 6px;
-    flex: 1;
-    min-width: 120px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--fg-tertiary) 14%, transparent);
-    overflow: hidden;
-}
-[data-sot-panel="system-banner"]
-    [data-sot-part="system-banner-progress"]
-    [data-sot-part="system-banner-progress-bar"] {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 0%;
-    background: var(--signal-info);
-    border-radius: inherit;
-    transition: width var(--duration-base) var(--ease-out);
-}
-[data-sot-panel="system-banner"][data-kind="import-progress"]
-    [data-sot-part="system-banner-progress-bar"],
-[data-sot-panel="system-banner"][data-kind="export-progress"]
-    [data-sot-part="system-banner-progress-bar"] {
-    background: var(--signal-info);
-}
-
-/* Static width hooks — keep the CSS-driven contract. */
-[data-sot-panel="system-banner"][data-pct="0"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 0%;
-}
-[data-sot-panel="system-banner"][data-pct="10"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 10%;
-}
-[data-sot-panel="system-banner"][data-pct="20"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 20%;
-}
-[data-sot-panel="system-banner"][data-pct="30"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 30%;
-}
-[data-sot-panel="system-banner"][data-pct="40"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 40%;
-}
-[data-sot-panel="system-banner"][data-pct="50"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 50%;
-}
-[data-sot-panel="system-banner"][data-pct="60"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 60%;
-}
-[data-sot-panel="system-banner"][data-pct="70"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 70%;
-}
-[data-sot-panel="system-banner"][data-pct="80"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 80%;
-}
-[data-sot-panel="system-banner"][data-pct="90"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 90%;
-}
-[data-sot-panel="system-banner"][data-pct="100"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 100%;
-}
-
-/* Indeterminate sweep — used by indexing / queued / db-locked retry. */
-[data-sot-panel="system-banner"]
-    [data-sot-part="system-banner-progress"][data-sot-state="indeterminate"] {
-    background: color-mix(in srgb, var(--signal-info) 12%, transparent);
-}
-[data-sot-panel="system-banner"]
-    [data-sot-part="system-banner-progress"][data-sot-state="indeterminate"]
-    [data-sot-part="system-banner-progress-bar"] {
-    width: 32%;
-    animation: sbn-sweep 1.4s linear infinite;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        var(--signal-info) 50%,
-        transparent
-    );
 }
 @keyframes sbn-sweep {
     0% {
