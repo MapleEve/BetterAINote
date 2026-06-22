@@ -478,6 +478,7 @@ describe("dashboard SOT foundation", () => {
 
     it("keeps the dashboard recording player composed through shadcn slots instead of CSS primitive repaints", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const globals = readSource("app/globals.css");
         const playerSurfaceIndex = workstation.indexOf(
@@ -495,6 +496,11 @@ describe("dashboard SOT foundation", () => {
         expect(playerStart).toBeGreaterThanOrEqual(0);
         expect(transcriptShellIndex).toBeGreaterThan(playerSurfaceIndex);
         const player = workstation.slice(playerStart, transcriptShellIndex);
+        const statusBadge = extractOpeningElement(
+            player,
+            'data-sot-control="player-status"',
+            "Badge",
+        );
 
         expect(player).toContain("<Card");
         expect(player).toContain(
@@ -541,14 +547,16 @@ describe("dashboard SOT foundation", () => {
         expect(player).not.toContain('size="player"');
         expect(player).not.toContain('size="player-lg"');
         expect(player).not.toContain('size="player-sm"');
+        expect(badge).toContain("playerSource:");
+        expect(badge).toContain("playerStatus:");
         expect(player).toContain("<Badge");
-        expect(player).toContain('variant="ghost"');
-        expect(player).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
-        expect(player).toContain('"ml-auto"');
-        expect(player).toContain('data-sot-control="player-status"');
-        expect(player).toMatch(
+        expect(statusBadge).toContain('variant="playerStatus"');
+        expect(statusBadge).toContain('className="ml-auto"');
+        expect(statusBadge).toContain('data-sot-control="player-status"');
+        expect(statusBadge).toMatch(
             /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
+        expect(player).not.toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
         expect(player).toContain('data-sot-part="status-dot"');
         expect(player).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',

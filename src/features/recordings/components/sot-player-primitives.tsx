@@ -41,12 +41,6 @@ const SOT_SOURCE_BADGES = {
     },
 } as const;
 
-export const SOT_PLAYER_SOURCE_BADGE_CLASS =
-    "h-[22px] justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]";
-
-export const SOT_PLAYER_STATUS_BADGE_CLASS =
-    "h-[20px] min-w-[65.171875px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none";
-
 function pad2(value: number) {
     return String(value).padStart(2, "0");
 }
@@ -89,8 +83,7 @@ export function SotPlayerSourceTag({
 
     return (
         <Badge
-            variant="ghost"
-            className={SOT_PLAYER_SOURCE_BADGE_CLASS}
+            variant="playerSource"
             data-sot-control="player-source-tag"
             data-sot-provider={provider}
         >
@@ -233,8 +226,7 @@ export function SotPlayerStatusBadge({
 }) {
     return (
         <Badge
-            variant="ghost"
-            className={SOT_PLAYER_STATUS_BADGE_CLASS}
+            variant="playerStatus"
             data-sot-control="player-status"
             data-sot-tone={tone}
         >

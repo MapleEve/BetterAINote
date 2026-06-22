@@ -157,6 +157,50 @@ describe("dashboard recording player regressions", () => {
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
+    it("keeps player badge styling on Badge variants instead of feature constants", () => {
+        const badgePrimitive = readFileSync(
+            path.join(process.cwd(), "src/components/ui/badge.tsx"),
+            "utf8",
+        );
+        const sotPlayerPrimitives = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/recordings/components/sot-player-primitives.tsx",
+            ),
+            "utf8",
+        );
+        const sourceBadge = extractOpeningElement(
+            sotPlayerPrimitives,
+            'data-sot-control="player-source-tag"',
+            "Badge",
+        );
+        const statusBadge = extractOpeningElement(
+            sotPlayerPrimitives,
+            'data-sot-control="player-status"',
+            "Badge",
+        );
+
+        expect(badgePrimitive).toContain("playerSource:");
+        expect(badgePrimitive).toContain("playerStatus:");
+        expect(sotPlayerPrimitives).toContain(
+            'import { Badge } from "@/components/ui/badge";',
+        );
+        expect(sourceBadge).toContain('variant="playerSource"');
+        expect(sourceBadge).toContain(
+            'data-sot-control="player-source-tag"',
+        );
+        expect(sourceBadge).not.toContain("className=");
+        expect(statusBadge).toContain('variant="playerStatus"');
+        expect(statusBadge).toContain('data-sot-control="player-status"');
+        expect(statusBadge).not.toContain("className=");
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_STATUS_BADGE_CLASS",
+        );
+    });
+
     it("keeps SOT player controls without dropping tag or speed behavior", () => {
         const source = readFileSync(
             path.join(
