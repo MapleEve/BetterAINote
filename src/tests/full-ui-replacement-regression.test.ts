@@ -4956,9 +4956,31 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="recording-transcription-skeleton-line"',
         );
         expect(transcriptionSkeletons).toContain(
-            "const skeletonLineClassNames",
+            'variant="recordingTranscription"',
         );
         expect(transcriptionSkeletons).toContain(
+            "size={transcriptionPlaceholderSizes[size]}",
+        );
+        expect(skeletonPrimitive).toContain("recordingTranscription:");
+        expect(skeletonPrimitive).toContain(
+            "recordingTranscriptionAction:",
+        );
+        expect(skeletonPrimitive).toContain(
+            "recordingTranscriptionDescription:",
+        );
+        expect(skeletonPrimitive).toContain(
+            "recordingTranscriptionLineLong:",
+        );
+        expect(transcriptionSkeletons).toContain(
+            "const transcriptionPlaceholderSizes",
+        );
+        expect(transcriptionSkeletons).not.toContain(
+            "type SkeletonLineSize",
+        );
+        expect(transcriptionSkeletons).not.toContain(
+            "const skeletonLineClassNames",
+        );
+        expect(transcriptionSkeletons).not.toContain(
             "className={skeletonLineClassNames[size]}",
         );
         expect(transcriptionSkeletons).not.toContain(

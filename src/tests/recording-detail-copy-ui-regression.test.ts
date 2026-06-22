@@ -273,6 +273,10 @@ describe("recording detail copy and title action UI regressions", () => {
         const sourceReport = readSource(
             "features/recordings/components/source-report-panel.tsx",
         );
+        const transcriptionSkeletons = readSource(
+            "features/recordings/components/transcription-skeletons.tsx",
+        );
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
         const sourceReportButtonControls = [
             'data-sot-control="copy-source-transcript"',
@@ -341,6 +345,26 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReport).toContain(
             "size={sourceReportSegmentSkeletonSize(size)}",
+        );
+        expect(transcriptionSkeletons).toContain(
+            'variant="recordingTranscription"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            "size={transcriptionPlaceholderSizes[size]}",
+        );
+        expect(skeletonPrimitive).toContain("recordingTranscription:");
+        expect(skeletonPrimitive).toContain(
+            "recordingTranscriptionLineLong:",
+        );
+        expect(skeletonPrimitive).toContain(
+            "recordingTranscriptionFieldControl:",
+        );
+        expect(transcriptionSkeletons).not.toContain("type SkeletonLineSize");
+        expect(transcriptionSkeletons).not.toContain(
+            "const skeletonLineClassNames",
+        );
+        expect(transcriptionSkeletons).not.toContain(
+            "className={skeletonLineClassNames[size]}",
         );
         expect(sourceReport).toContain(
             'data-sot-part="source-report-segment-skeleton"',
