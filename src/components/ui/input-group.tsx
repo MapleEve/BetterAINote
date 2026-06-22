@@ -1,6 +1,6 @@
 import type * as React from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,11 @@ type InputGroupButtonSize =
     | "sm"
     | "icon-xs"
     | "icon-sm"
-    | "icon-compact";
+    | "icon-compact"
+    | "speakerReviewMappingClear";
+type InputGroupButtonVariant =
+    | NonNullable<ButtonProps["variant"]>
+    | "speakerReviewMappingClear";
 
 const inputGroupVariantClassNames: Record<InputGroupVariant, string> = {
     default: "h-9 rounded-md border border-input bg-background shadow-xs",
@@ -29,6 +33,21 @@ const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
     compact:
         "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
 };
+
+const inputGroupButtonVariantClassNames: Partial<
+    Record<InputGroupButtonVariant, string>
+> = {
+    speakerReviewMappingClear:
+        "text-[var(--fg-secondary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+};
+
+function resolveInputGroupButtonVariant(
+    variant: InputGroupButtonVariant,
+): ButtonProps["variant"] {
+    return variant === "speakerReviewMappingClear"
+        ? "speakerReviewGhostAction"
+        : variant;
+}
 
 function InputGroup({
     className,
@@ -87,13 +106,16 @@ function InputGroupAddon({
 
 function inputGroupButtonClassName({
     size,
+    variant,
     className,
 }: {
     size: InputGroupButtonSize;
+    variant: InputGroupButtonVariant;
     className?: string;
 }) {
     return cn(
         "flex items-center gap-2 text-sm shadow-none",
+        inputGroupButtonVariantClassNames[variant],
         size === "xs" &&
             "h-6 gap-1 rounded-[calc(var(--radius-md)-5px)] px-2 has-[>svg]:px-2 [&>svg:not([class*='size-'])]:size-3.5",
         size === "sm" && "h-8 gap-1.5 rounded-md px-2.5 has-[>svg]:px-2.5",
@@ -102,6 +124,8 @@ function inputGroupButtonClassName({
         size === "icon-sm" && "size-8 p-0 has-[>svg]:p-0",
         size === "icon-compact" &&
             "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-[14px]",
+        size === "speakerReviewMappingClear" &&
+            "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3",
         className,
     );
 }
@@ -112,15 +136,21 @@ function InputGroupButton({
     variant = "ghost",
     size = "xs",
     ...props
-}: Omit<React.ComponentProps<typeof Button>, "size"> & {
+}: Omit<ButtonProps, "size" | "variant"> & {
     size?: InputGroupButtonSize;
+    variant?: InputGroupButtonVariant;
 }) {
     return (
         <Button
             type={type}
             data-size={size}
-            variant={variant}
-            className={inputGroupButtonClassName({ size, className })}
+            data-input-group-variant={variant}
+            variant={resolveInputGroupButtonVariant(variant)}
+            className={inputGroupButtonClassName({
+                size,
+                variant,
+                className,
+            })}
             {...props}
         />
     );

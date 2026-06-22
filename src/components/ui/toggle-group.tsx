@@ -6,6 +6,20 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+type ToggleGroupLayout = "default" | "iconGrid" | "speakerReviewMode";
+type ToggleGroupSemanticSpacing = "speakerReviewMode";
+type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
+
+const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
+    speakerReviewMode: 1,
+};
+
+function resolveToggleGroupSpacing(spacing: ToggleGroupSpacing) {
+    return typeof spacing === "number"
+        ? spacing
+        : toggleGroupSpacingValues[spacing];
+}
+
 const toggleGroupItemVariants = cva(
     "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&>svg]:pointer-events-none [&>svg]:size-4",
     {
@@ -14,6 +28,7 @@ const toggleGroupItemVariants = cva(
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
                 sotSegmented: "border border-input bg-background shadow-xs",
+                speakerReviewMode: "",
                 swatch:
                     "group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent bg-[var(--toggle-swatch-color)] p-0 text-[13.3333px] font-normal leading-[0] text-[var(--fg-primary)] shadow-none hover:bg-[var(--toggle-swatch-color)] hover:text-[var(--fg-primary)] data-[state=on]:border-[var(--toggle-swatch-selected-border)] data-[state=on]:bg-[var(--toggle-swatch-color)] data-[state=on]:text-[var(--fg-primary)] data-[state=on]:shadow-[var(--toggle-swatch-selected-shadow)]",
             },
@@ -30,6 +45,7 @@ const toggleGroupItemVariants = cva(
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
                 sotSegmentedSm: "h-8 px-2",
+                speakerReviewModeItem: "h-8 px-2.5",
                 swatch: "size-[18px] min-w-0 p-0",
                 iconPicker: "size-7 min-w-0 shrink-0 p-0",
                 lg: "h-10 px-4",
@@ -44,7 +60,8 @@ const toggleGroupItemVariants = cva(
 );
 
 type ToggleGroupContextValue = VariantProps<typeof toggleGroupItemVariants> & {
-    spacing: number;
+    spacing: ToggleGroupSpacing;
+    spacingValue: number;
 };
 
 const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({
@@ -52,12 +69,13 @@ const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({
     size: "default",
     tone: "default",
     spacing: 0,
+    spacingValue: 0,
 });
 
 type ToggleGroupProps = React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
     VariantProps<typeof toggleGroupItemVariants> & {
-        layout?: "default" | "iconGrid";
-        spacing?: number;
+        layout?: ToggleGroupLayout;
+        spacing?: ToggleGroupSpacing;
     };
 
 function ToggleGroup({
@@ -71,9 +89,10 @@ function ToggleGroup({
     style,
     ...props
 }: ToggleGroupProps) {
+    const spacingValue = resolveToggleGroupSpacing(spacing);
     const contextValue = React.useMemo(
-        () => ({ variant, size, tone, spacing }),
-        [variant, size, tone, spacing],
+        () => ({ variant, size, tone, spacing, spacingValue }),
+        [variant, size, tone, spacing, spacingValue],
     );
 
     return (
@@ -83,10 +102,12 @@ function ToggleGroup({
             data-size={size}
             data-layout={layout}
             data-spacing={spacing}
-            style={{ gap: `${spacing * 0.25}rem`, ...style }}
+            data-spacing-value={spacingValue}
+            style={{ gap: `${spacingValue * 0.25}rem`, ...style }}
             className={cn(
                 "group/toggle-group flex w-fit items-center rounded-md",
                 layout === "iconGrid" && "grid grid-cols-6",
+                layout === "speakerReviewMode" && "flex-nowrap",
                 className,
             )}
             {...props}
@@ -128,7 +149,7 @@ function ToggleGroupItem({
                     tone: itemTone,
                     size: itemSize,
                 }),
-                context.spacing === 0 &&
+                context.spacingValue === 0 &&
                     "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l data-[variant=sotSegmented]:border-l-0 first:data-[variant=sotSegmented]:border-l",
                 className,
             )}

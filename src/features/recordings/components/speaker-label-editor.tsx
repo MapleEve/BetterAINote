@@ -754,9 +754,10 @@ export function SpeakerLabelEditor({
                         <ToggleGroup
                             type="single"
                             value={reviewMode}
-                            size="sm"
-                            spacing={1}
-                            className="flex-nowrap"
+                            variant="speakerReviewMode"
+                            size="speakerReviewModeItem"
+                            layout="speakerReviewMode"
+                            spacing="speakerReviewMode"
                             aria-label={t("speakerReview.title")}
                             data-sot-control="speaker-review-mode"
                             onValueChange={(value) => {
@@ -767,14 +768,12 @@ export function SpeakerLabelEditor({
                         >
                             <ToggleGroupItem
                                 value="speaker"
-                                className="px-2.5"
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.speakerNamesMode")}
                             </ToggleGroupItem>
                             <ToggleGroupItem
                                 value="raw"
-                                className="px-2.5"
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.rawLabelsMode")}
@@ -873,24 +872,24 @@ export function SpeakerLabelEditor({
                                 </CardHeader>
                                 <CardContent variant="speakerReviewMergePopover">
                                     <Empty
-                                        variant="compact"
+                                        variant="speakerReviewMerge"
                                         data-sot-part="speaker-review-merge-empty"
                                     >
-                                        <EmptyHeader className="max-w-none gap-0">
+                                        <EmptyHeader variant="speakerReviewMerge">
                                             <EmptyMedia
-                                                variant="subtleIcon"
+                                                variant="speakerReviewMergeIcon"
                                                 data-sot-part="speaker-review-merge-empty-icon"
                                             >
                                                 <Check strokeWidth={1.8} />
                                             </EmptyMedia>
                                             <EmptyTitle
-                                                variant="compact"
+                                                variant="speakerReviewMerge"
                                                 data-sot-part="speaker-review-merge-empty-title"
                                             >
                                                 当前没有可合并的相似说话人
                                             </EmptyTitle>
                                             <EmptyDescription
-                                                variant="compact"
+                                                variant="speakerReviewMerge"
                                                 data-sot-part="speaker-review-merge-empty-description"
                                             >
                                                 如果两位说话人声纹接近，会出现在这里供你确认。
@@ -1020,12 +1019,12 @@ export function SpeakerLabelEditor({
                 </Alert>
             ) : speakers.length === 0 ? (
                 <Empty
-                    className="py-6"
+                    variant="speakerReviewDetected"
                     data-sot-part="speaker-review-empty"
                     data-sot-state="no-detected-speakers"
                 >
-                    <EmptyHeader>
-                        <EmptyTitle>
+                    <EmptyHeader variant="speakerReviewState">
+                        <EmptyTitle variant="speakerReviewState">
                             {t("speakerReview.noDetectedSpeakers")}
                         </EmptyTitle>
                     </EmptyHeader>
@@ -1446,12 +1445,12 @@ export function SpeakerLabelEditor({
                                                 </div>
                                             ) : (
                                                 <Empty
-                                                    className="py-4 md:p-4"
+                                                    variant="speakerReviewInline"
                                                     data-sot-part="speaker-review-empty"
                                                     data-sot-state="no-samples"
                                                 >
-                                                    <EmptyHeader>
-                                                        <EmptyTitle>
+                                                    <EmptyHeader variant="speakerReviewState">
+                                                        <EmptyTitle variant="speakerReviewState">
                                                             {t(
                                                                 "speakerReview.noTimedSamples",
                                                             )}
@@ -1565,8 +1564,8 @@ export function SpeakerLabelEditor({
                                                         <InputGroupAddon align="inline-end">
                                                             <InputGroupButton
                                                                 type="button"
-                                                                size="icon-xs"
-                                                                variant="ghost"
+                                                                size="speakerReviewMappingClear"
+                                                                variant="speakerReviewMappingClear"
                                                                 aria-label={t(
                                                                     "speakerReview.clearSelectedSpeaker",
                                                                 )}
@@ -1728,12 +1727,12 @@ export function SpeakerLabelEditor({
                                                 profiles.length === 0 &&
                                                 !normalizedQuery ? (
                                                     <Empty
-                                                        className="py-4 md:p-4"
+                                                        variant="speakerReviewInline"
                                                         data-sot-part="speaker-review-empty"
                                                         data-sot-state="no-saved-speakers"
                                                     >
-                                                        <EmptyHeader>
-                                                            <EmptyTitle>
+                                                        <EmptyHeader variant="speakerReviewState">
+                                                            <EmptyTitle variant="speakerReviewState">
                                                                 {t(
                                                                     "speakerReview.noSavedSpeakers",
                                                                 )}
@@ -1875,12 +1874,12 @@ export function SpeakerLabelEditor({
                                                             0 &&
                                                         !normalizedQuery ? (
                                                             <Empty
-                                                                className="py-4 md:p-4"
+                                                                variant="speakerReviewInline"
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-saved-speakers"
                                                             >
-                                                                <EmptyHeader>
-                                                                    <EmptyTitle>
+                                                                <EmptyHeader variant="speakerReviewState">
+                                                                    <EmptyTitle variant="speakerReviewState">
                                                                         {t(
                                                                             "speakerReview.noSavedSpeakers",
                                                                         )}
@@ -1893,12 +1892,12 @@ export function SpeakerLabelEditor({
                                                         normalizedQuery &&
                                                         hasLiveNoMatch ? (
                                                             <Empty
-                                                                className="py-4 md:p-4"
+                                                                variant="speakerReviewInline"
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-matching-speakers"
                                                             >
-                                                                <EmptyHeader>
-                                                                    <EmptyTitle>
+                                                                <EmptyHeader variant="speakerReviewState">
+                                                                    <EmptyTitle variant="speakerReviewState">
                                                                         {t(
                                                                             "speakerReview.noMatchingSpeakers",
                                                                         )}

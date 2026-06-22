@@ -4759,7 +4759,12 @@ describe("full UI replacement regression coverage", () => {
         const button = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const badge = readSource("components/ui/badge.tsx");
+        const emptyPrimitive = readSource("components/ui/empty.tsx");
+        const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
         const globals = readSource("app/globals.css");
 
         expect(settings).toContain('data-sot-surface="settings-data-sources"');
@@ -4833,6 +4838,18 @@ describe("full UI replacement regression coverage", () => {
             "speakerReviewActions",
         ]) {
             expect(cardPrimitive).toContain(`${speakerReviewCardVariant}:`);
+        }
+        expect(toggleGroupPrimitive).toContain("speakerReviewMode:");
+        expect(toggleGroupPrimitive).toContain("speakerReviewModeItem:");
+        expect(inputGroupPrimitive).toContain("speakerReviewMappingClear:");
+        for (const speakerReviewEmptyVariant of [
+            "speakerReviewMerge",
+            "speakerReviewDetected",
+            "speakerReviewInline",
+            "speakerReviewState",
+            "speakerReviewMergeIcon",
+        ]) {
+            expect(emptyPrimitive).toContain(`${speakerReviewEmptyVariant}:`);
         }
         expect(badge).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
@@ -4952,6 +4969,40 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).toContain(
             "data-sot-speaker-label={speaker.rawLabel}",
         );
+        const speakerReviewModeToggle = extractElementSlice(
+            speakerReview,
+            'data-sot-control="speaker-review-mode"',
+            "ToggleGroup",
+        );
+        expect(speakerReviewModeToggle).toContain(
+            'variant="speakerReviewMode"',
+        );
+        expect(speakerReviewModeToggle).toContain(
+            'size="speakerReviewModeItem"',
+        );
+        expect(speakerReviewModeToggle).toContain(
+            'layout="speakerReviewMode"',
+        );
+        expect(speakerReviewModeToggle).toContain(
+            'spacing="speakerReviewMode"',
+        );
+        expect(speakerReviewModeToggle).not.toContain('size="sm"');
+        expect(speakerReviewModeToggle).not.toContain("spacing={1}");
+        expect(speakerReviewModeToggle).not.toContain(
+            'className="flex-nowrap"',
+        );
+        const speakerReviewModeOptions = collectOpeningElements(
+            speakerReview,
+            "ToggleGroupItem",
+        ).filter((opening) =>
+            opening.includes(
+                'data-sot-control="speaker-review-mode-option"',
+            ),
+        );
+        expect(speakerReviewModeOptions).toHaveLength(2);
+        for (const opening of speakerReviewModeOptions) {
+            expect(opening).not.toContain('className="px-2.5"');
+        }
         const speakerReviewMappingInputIndex = speakerReview.indexOf(
             'data-sot-control="speaker-review-mapping-input"',
         );
@@ -4967,6 +5018,23 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReviewMappingInput).toContain(
             'data-sot-control="speaker-review-mapping-clear"',
         );
+        const speakerReviewMappingClear = collectOpeningElements(
+            speakerReview,
+            "InputGroupButton",
+        ).find((opening) =>
+            opening.includes(
+                'data-sot-control="speaker-review-mapping-clear"',
+            ),
+        );
+        expect(speakerReviewMappingClear).toBeDefined();
+        expect(speakerReviewMappingClear).toContain(
+            'size="speakerReviewMappingClear"',
+        );
+        expect(speakerReviewMappingClear).toContain(
+            'variant="speakerReviewMappingClear"',
+        );
+        expect(speakerReviewMappingClear).not.toContain('size="icon-xs"');
+        expect(speakerReviewMappingClear).not.toContain('variant="ghost"');
         expect(speakerReviewMappingInput).toContain("aria-busy={");
         expect(speakerReviewMappingInput).toContain("onFocus={() =>");
         expect(speakerReviewMappingInput).toContain("onBlur={() =>");
@@ -4991,21 +5059,23 @@ describe("full UI replacement regression coverage", () => {
             "Empty",
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
+            /<Empty\s+variant="speakerReviewMerge"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
         );
         expect(speakerReviewMergeEmpty).toContain(
-            '<EmptyHeader className="max-w-none gap-0">',
+            '<EmptyHeader variant="speakerReviewMerge">',
         );
         expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
-        expect(speakerReviewMergeEmpty).toContain('variant="subtleIcon"');
+        expect(speakerReviewMergeEmpty).toContain(
+            'variant="speakerReviewMergeIcon"',
+        );
         expect(speakerReviewMergeEmpty).toContain(
             "<Check strokeWidth={1.8} />",
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
+            /<EmptyTitle\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
+            /<EmptyDescription\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
         );
         const speakerReviewNoSamplesEmpty = extractElementSlice(
             speakerReview,
@@ -5015,8 +5085,37 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReviewNoSamplesEmpty).toContain(
             'data-sot-part="speaker-review-empty"',
         );
-        expect(speakerReviewNoSamplesEmpty).toContain("<EmptyHeader>");
-        expect(speakerReviewNoSamplesEmpty).toContain("<EmptyTitle>");
+        expect(speakerReviewNoSamplesEmpty).toContain(
+            'variant="speakerReviewInline"',
+        );
+        expect(speakerReviewNoSamplesEmpty).toContain(
+            '<EmptyHeader variant="speakerReviewState">',
+        );
+        expect(speakerReviewNoSamplesEmpty).toContain(
+            '<EmptyTitle variant="speakerReviewState">',
+        );
+        for (const state of [
+            "no-detected-speakers",
+            "no-saved-speakers",
+            "no-matching-speakers",
+        ]) {
+            const emptyState = extractElementSlice(
+                speakerReview,
+                `data-sot-state="${state}"`,
+                "Empty",
+            );
+            expect(emptyState).toContain(
+                state === "no-detected-speakers"
+                    ? 'variant="speakerReviewDetected"'
+                    : 'variant="speakerReviewInline"',
+            );
+            expect(emptyState).toContain(
+                '<EmptyHeader variant="speakerReviewState">',
+            );
+            expect(emptyState).toContain(
+                '<EmptyTitle variant="speakerReviewState">',
+            );
+        }
         for (const selector of [
             '[data-sot-control="speaker-review-inline-name"][data-slot="input"]',
             '[data-sot-control="speaker-review-mapping-input"][data-slot="input"]',
@@ -5111,6 +5210,23 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReview).not.toContain(
             'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
         );
+        for (const retiredSpeakerReviewSliceToken of [
+            'size="sm"',
+            "spacing={1}",
+            'className="flex-nowrap"',
+            'className="px-2.5"',
+            'size="icon-xs"',
+            'variant="ghost"',
+            'variant="compact"',
+            'variant="subtleIcon"',
+            'className="max-w-none gap-0"',
+            'className="py-6"',
+            'className="py-4 md:p-4"',
+        ]) {
+            expect(speakerReview).not.toContain(
+                retiredSpeakerReviewSliceToken,
+            );
+        }
         expect(speakerReview).not.toContain('className="sp-head"');
         expect(speakerReview).not.toContain(
             'className="sp-rows sp-rows-review"',

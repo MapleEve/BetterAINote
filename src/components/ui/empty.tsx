@@ -14,6 +14,12 @@ const emptyVariants = cva(
                     "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
                 popover:
                     "rounded-none px-[10px] pb-[4px] pt-[14px] md:px-[10px] md:pb-[4px] md:pt-[14px]",
+                speakerReviewMerge:
+                    "flex flex-none flex-col items-center justify-center gap-0 rounded-none px-[16px] pb-[20.5px] pt-[22px] md:px-[16px] md:pb-[20.5px] md:pt-[22px]",
+                speakerReviewDetected:
+                    "flex flex-1 flex-col items-center justify-center gap-6 px-6 py-6 md:p-12",
+                speakerReviewInline:
+                    "flex flex-1 flex-col items-center justify-center gap-6 px-6 py-4 md:p-4",
             },
         },
         defaultVariants: {
@@ -41,6 +47,10 @@ const emptyHeaderVariants = cva("", {
         variant: {
             default: "flex max-w-sm flex-col items-center gap-2 text-center",
             popover: "flex max-w-none flex-col items-center gap-0 text-center",
+            speakerReviewMerge:
+                "flex max-w-none flex-col items-center gap-0 text-center",
+            speakerReviewState:
+                "flex max-w-sm flex-col items-center gap-2 text-center",
         },
     },
     defaultVariants: {
@@ -72,6 +82,8 @@ const emptyMediaVariants = cva(
                 icon: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-6",
                 subtleIcon:
                     "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
+                speakerReviewMergeIcon:
+                    "mb-[6px] flex size-[32px] shrink-0 items-center justify-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-muted-foreground [&_svg:not([class*='size-'])]:size-[14px]",
             },
         },
         defaultVariants: {
@@ -88,6 +100,9 @@ const emptyTitleVariants = cva("", {
                 "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
             popover:
                 "m-0 mb-[4px] text-[13px] leading-[1.35] font-semibold tracking-normal text-[var(--fg-primary)]",
+            speakerReviewMerge:
+                "mb-[1px] text-[12px] leading-normal font-semibold tracking-normal",
+            speakerReviewState: "text-lg font-medium tracking-tight",
         },
     },
     defaultVariants: {
@@ -104,6 +119,8 @@ const emptyDescriptionVariants = cva("", {
                 "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
             popover:
                 "m-0 text-[12px] leading-[1.5] font-medium text-[var(--fg-tertiary)] [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+            speakerReviewMerge:
+                "m-0 text-[11.5px] leading-normal font-medium text-muted-foreground [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
         },
     },
     defaultVariants: {
