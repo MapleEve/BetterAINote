@@ -10,11 +10,15 @@ type ToggleGroupLayout =
     | "default"
     | "iconGrid"
     | "speakerReviewMode"
-    | "librarySearchScope";
-type ToggleGroupSemanticSpacing = "speakerReviewMode";
+    | "librarySearchScope"
+    | "dashboardRecordingTimeFilter";
+type ToggleGroupSemanticSpacing =
+    | "speakerReviewMode"
+    | "dashboardRecordingTimeFilter";
 type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
+    dashboardRecordingTimeFilter: 1,
     speakerReviewMode: 1,
 };
 
@@ -33,6 +37,8 @@ const toggleGroupItemVariants = cva(
                 outline: "border border-input bg-background shadow-xs",
                 librarySearchScopeItem:
                     "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
+                dashboardRecordingTimeFilter:
+                    "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary [&_[data-sot-part=dashboard-recording-time-filter-count]]:rounded-[4px] [&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-bg)] [&_[data-sot-part=dashboard-recording-time-filter-count]]:px-1 [&_[data-sot-part=dashboard-recording-time-filter-count]]:font-mono [&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[10px] [&_[data-sot-part=dashboard-recording-time-filter-count]]:font-medium [&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--fg-tertiary)] [&_[data-sot-part=dashboard-recording-time-filter-count]]:opacity-70 data-[state=on]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-selected-bg)] data-[state=on]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--accent)] data-[sot-state=selected]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-selected-bg)] data-[sot-state=selected]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--accent)]",
                 sotSegmented: "border border-input bg-background shadow-xs",
                 speakerReviewMode: "",
                 swatch:
@@ -52,6 +58,7 @@ const toggleGroupItemVariants = cva(
                 sm: "h-8 px-2",
                 librarySearchScopeItem:
                     "h-6 rounded-full px-2.5 text-xs",
+                dashboardRecordingTimeFilter: "h-8 px-2",
                 sotSegmentedSm: "h-8 px-2",
                 speakerReviewModeItem: "h-8 px-2.5",
                 swatch: "size-[18px] min-w-0 p-0",
@@ -118,6 +125,8 @@ function ToggleGroup({
                 layout === "speakerReviewMode" && "flex-nowrap",
                 layout === "librarySearchScope" &&
                     "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
+                layout === "dashboardRecordingTimeFilter" &&
+                    "mt-2.5 flex-wrap",
                 className,
             )}
             {...props}

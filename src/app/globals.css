@@ -281,6 +281,36 @@
     --badge-pill-height: 22px;
     --badge-check-bg: rgb(80 161 191 / 0.7);
     --badge-check-bg: color-mix(in srgb, var(--accent) 70%, transparent);
+    --dashboard-recording-time-filter-count-bg: rgb(213 219 223 / 0.35);
+    --dashboard-recording-time-filter-count-bg: color-mix(
+        in srgb,
+        var(--graphite-300) 35%,
+        transparent
+    );
+    --dashboard-recording-time-filter-count-selected-bg: rgb(50 126 154 / 0.18);
+    --dashboard-recording-time-filter-count-selected-bg: color-mix(
+        in srgb,
+        var(--accent) 18%,
+        transparent
+    );
+    --dashboard-recording-tag-chip-bg: rgb(244 246 248);
+    --dashboard-recording-tag-chip-bg: color-mix(
+        in srgb,
+        var(--tag-c) 12%,
+        var(--bg-elevated)
+    );
+    --dashboard-recording-tag-chip-border: rgb(126 135 143 / 0.32);
+    --dashboard-recording-tag-chip-border: color-mix(
+        in srgb,
+        var(--tag-c) 32%,
+        transparent
+    );
+    --dashboard-recording-tag-chip-fg: rgb(75 85 99);
+    --dashboard-recording-tag-chip-fg: color-mix(
+        in srgb,
+        var(--tag-c) 72%,
+        var(--fg-primary)
+    );
     --swatch-selection-dot-bg: rgb(255 255 255);
     --button-pill-height: 24px;
     --button-compact-height: 26px;
@@ -693,6 +723,31 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-on: rgb(11 16 22);
     --accent-on: oklch(0.11 0.004 250);
+    --dashboard-recording-time-filter-count-bg: rgb(255 255 255 / 0.06);
+    --dashboard-recording-time-filter-count-selected-bg: rgb(92 168 198 / 0.22);
+    --dashboard-recording-time-filter-count-selected-bg: color-mix(
+        in srgb,
+        var(--accent) 22%,
+        transparent
+    );
+    --dashboard-recording-tag-chip-bg: rgb(126 135 143 / 0.18);
+    --dashboard-recording-tag-chip-bg: color-mix(
+        in srgb,
+        var(--tag-c) 18%,
+        transparent
+    );
+    --dashboard-recording-tag-chip-border: rgb(126 135 143 / 0.36);
+    --dashboard-recording-tag-chip-border: color-mix(
+        in srgb,
+        var(--tag-c) 36%,
+        transparent
+    );
+    --dashboard-recording-tag-chip-fg: rgb(244 246 248);
+    --dashboard-recording-tag-chip-fg: color-mix(
+        in srgb,
+        var(--tag-c) 30%,
+        var(--fg-primary)
+    );
     --button-player-hover-bg: rgb(255 255 255 / 0.08);
     --source-report-metric-bg: rgb(255 255 255 / 0.03);
     --source-report-metric-border: var(--glass-border-soft);
@@ -1334,29 +1389,6 @@ button:not([data-slot]) {
     background: transparent;
     border-bottom-color: var(--glass-border-soft);
 }
-[data-sot-part="dashboard-recording-time-filter-count"] {
-    font: 500 10px var(--font-mono);
-    color: var(--fg-tertiary);
-    opacity: 0.7;
-    padding: 0 4px;
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--graphite-300) 35%, transparent);
-}
-[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]
-    [data-sot-part="dashboard-recording-time-filter-count"] {
-    background: color-mix(in srgb, var(--accent) 18%, transparent);
-    color: var(--accent);
-}
-[data-theme="dark"] [data-sot-part="dashboard-recording-time-filter-count"] {
-    background: rgb(255 255 255 / 0.06);
-}
-[data-theme="dark"]
-    [data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]
-    [data-sot-part="dashboard-recording-time-filter-count"] {
-    background: color-mix(in srgb, var(--accent) 22%, transparent);
-    color: var(--accent);
-}
-
 [data-sot-list="dashboard-recording-list-scroll"] {
     flex: 1;
     overflow-y: auto;
@@ -2441,7 +2473,7 @@ body[data-time-style="abs"]
     border-color: var(--glass-border);
 }
 
-[data-recording-tag-chip] {
+[data-recording-tag-chip][data-variant="outline"] {
     --tag-c: var(--graphite-500);
     display: inline-flex;
     align-items: center;
@@ -2459,7 +2491,7 @@ body[data-time-style="abs"]
     white-space: nowrap;
     transition: none;
 }
-[data-recording-tag-chip] svg {
+[data-recording-tag-chip][data-variant="outline"] svg {
     width: 11px;
     height: 11px;
     flex: none;
@@ -2469,25 +2501,25 @@ body[data-time-style="abs"]
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-[data-recording-tag-chip][data-sot-tag-color="blue"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="blue"] {
     --tag-c: var(--tag-blue);
 }
-[data-recording-tag-chip][data-sot-tag-color="purple"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="purple"] {
     --tag-c: var(--tag-violet);
 }
-[data-recording-tag-chip][data-sot-tag-color="red"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="red"] {
     --tag-c: var(--tag-rose);
 }
-[data-recording-tag-chip][data-sot-tag-color="orange"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="orange"] {
     --tag-c: var(--tag-amber);
 }
-[data-recording-tag-chip][data-sot-tag-color="green"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="green"] {
     --tag-c: var(--tag-green);
 }
-[data-recording-tag-chip][data-sot-tag-color="slate"] {
+[data-recording-tag-chip][data-variant="outline"][data-sot-tag-color="slate"] {
     --tag-c: var(--tag-slate);
 }
-[data-theme="dark"] [data-recording-tag-chip] {
+[data-theme="dark"] [data-recording-tag-chip][data-variant="outline"] {
     background: color-mix(in srgb, var(--tag-c) 18%, transparent);
     color: color-mix(in srgb, var(--tag-c) 30%, var(--fg-primary));
     border-color: color-mix(in srgb, var(--tag-c) 36%, transparent);
@@ -6695,14 +6727,10 @@ select::-ms-expand {
 .cl-wide-card {
     grid-column: 1 / -1;
 }
-[data-sot-control="dashboard-recording-time-filter"].is-hover-demo {
-    background: rgba(0, 0, 0, 0.04);
-}
 [data-sot-control="dashboard-recording-row"].is-hover-demo {
     background: rgba(0, 0, 0, 0.03);
 }
 
-[data-sot-control="dashboard-recording-time-filter"].is-focus-demo,
 [data-sot-control="dashboard-recording-row"].is-focus-demo {
     outline: 2px solid
         color-mix(in srgb, var(--accent, #5b6470) 70%, transparent);

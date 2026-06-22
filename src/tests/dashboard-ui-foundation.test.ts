@@ -101,6 +101,7 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
     "dashboardRecordingRow",
     "recordingListChipClear",
+    "sourceFilterClear",
     "sourceFilterAction",
     "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
@@ -113,6 +114,7 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "dashboardRecordingRow",
     "recordingListChipClear",
+    "sourceFilterClear",
     "sourceFilterAction",
     "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
@@ -1005,9 +1007,13 @@ describe("dashboard SOT foundation", () => {
     it("keeps source rows, stacked filters, list modes, and detail tabs wired in the workstation", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const badgePrimitive = readSource("components/ui/badge.tsx");
+        const buttonPrimitive = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const globals = readSource("app/globals.css");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
 
         for (const provider of [
             "dingtalk-a1",
@@ -1077,16 +1083,13 @@ describe("dashboard SOT foundation", () => {
             expect(workstation).not.toContain(removedListHeaderClass);
         }
         expect(workstation).toContain('data-sot-control="source-filter-widen"');
-        for (const control of [
-            "source-filter-clear",
-            "library-search-filter-clear",
-        ]) {
-            expect(workstation).toMatch(
-                new RegExp(
-                    `<Button\\s+variant="recordingListChipClear"\\s+size="recordingListChipClear"[\\s\\S]*data-sot-control="${control}"`,
-                ),
-            );
-        }
+        expect(buttonPrimitive).toContain("sourceFilterClear:");
+        expect(workstation).toMatch(
+            /<Button\s+variant="sourceFilterClear"\s+size="sourceFilterClear"[\s\S]*data-sot-control="source-filter-clear"/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="library-search-filter-clear"/,
+        );
         for (const control of [
             "source-filter-retry-sync",
             "source-filter-widen",
@@ -1109,6 +1112,23 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-recording-time-filter"',
         );
+        const recordingTimeFilter = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-recording-time-filter"',
+            "ToggleGroup",
+        );
+        for (const semanticToken of [
+            'spacing="dashboardRecordingTimeFilter"',
+            'layout="dashboardRecordingTimeFilter"',
+            'variant="dashboardRecordingTimeFilter"',
+            'size="dashboardRecordingTimeFilter"',
+        ]) {
+            expect(recordingTimeFilter).toContain(semanticToken);
+        }
+        expect(recordingTimeFilter).not.toContain('variant="outline"');
+        expect(recordingTimeFilter).not.toContain('size="sm"');
+        expect(recordingTimeFilter).not.toContain("className=");
+        expect(toggleGroupPrimitive).toContain("dashboardRecordingTimeFilter");
         expect(workstation).toContain("data-tag-filter-trigger");
         expect(workstation).toContain("data-tag-filter-list");
         expect(workstation).toContain('role="listbox"');
@@ -1136,6 +1156,22 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain("entry.displayTag ??");
         expect(workstation).toContain("<Badge");
         expect(workstation).toContain("data-recording-tag-chip");
+        const dashboardRecordingTagChip = extractOpeningElement(
+            workstation,
+            "data-recording-tag-chip",
+            "Badge",
+        );
+        expect(dashboardRecordingTagChip).toContain(
+            'variant="recordingTagChip"',
+        );
+        expect(dashboardRecordingTagChip).not.toContain('variant="outline"');
+        expect(badgePrimitive).toContain("recordingTagChip:");
+        expect(globals).not.toContain(
+            '[data-recording-tag-chip][data-variant="recordingTagChip"]',
+        );
+        expect(globals).toContain(
+            '[data-recording-tag-chip][data-variant="outline"]',
+        );
         expect(workstation).toContain("<RecordingTagIconGlyph");
         expect(workstation).toContain("data-rec={");
         expect(workstation).not.toContain("function tagClass(");
@@ -1264,6 +1300,17 @@ describe("dashboard SOT foundation", () => {
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
+        const transcriptLanguageBadge = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-language"',
+            "Badge",
+        );
+        expect(transcriptLanguageBadge).toContain(
+            'variant="dashboardTranscriptLanguage"',
+        );
+        expect(transcriptLanguageBadge).not.toContain('variant="outline"');
+        expect(transcriptLanguageBadge).not.toContain("className=");
+        expect(badgePrimitive).toContain("dashboardTranscriptLanguage:");
         for (const legacyClassName of DASHBOARD_DETAIL_PANE_LEGACY_CLASS_NAMES) {
             expect(workstation).not.toContain(legacyClassName);
         }

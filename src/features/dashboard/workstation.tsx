@@ -4996,8 +4996,8 @@ export function Workstation({
                                                 )}
                                             </span>
                                             <Button
-                                                variant="recordingListChipClear"
-                                                size="recordingListChipClear"
+                                                variant="sourceFilterClear"
+                                                size="sourceFilterClear"
                                                 type="button"
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
@@ -5181,10 +5181,10 @@ export function Workstation({
                                 <ToggleGroup
                                     type="single"
                                     value={timelineFilter}
-                                    spacing={1}
-                                    variant="outline"
-                                    size="sm"
-                                    className="mt-2.5 flex-wrap"
+                                    spacing="dashboardRecordingTimeFilter"
+                                    layout="dashboardRecordingTimeFilter"
+                                    variant="dashboardRecordingTimeFilter"
+                                    size="dashboardRecordingTimeFilter"
                                     aria-label={t(
                                         "recordingList.timelineTitle",
                                     )}
@@ -5471,7 +5471,7 @@ export function Workstation({
                                                             {primaryTag ? (
                                                                 <div data-sot-part="dashboard-recording-row-actions">
                                                                     <Badge
-                                                                        variant="outline"
+                                                                        variant="recordingTagChip"
                                                                         data-recording-tag-chip=""
                                                                         data-sot-tag-color={
                                                                             primaryTag.color
@@ -6493,8 +6493,7 @@ export function Workstation({
                                     {detailTab === "transcript" &&
                                     selectedTranscription?.language ? (
                                         <Badge
-                                            variant="outline"
-                                            className="gap-1.5"
+                                            variant="dashboardTranscriptLanguage"
                                             data-sot-part="dashboard-transcript-language"
                                         >
                                             <Globe2 data-icon="inline-start" />

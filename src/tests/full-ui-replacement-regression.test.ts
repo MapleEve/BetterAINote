@@ -424,7 +424,6 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-row-body"]',
     '[data-sot-part="dashboard-recording-row-title"]',
     '[data-sot-part="dashboard-recording-row-meta"]',
-    "[data-recording-tag-chip]",
     '[data-sot-part="dashboard-sidebar-footer"]',
     "[data-sot-card]",
     '[data-sot-card="auth"]',
@@ -570,6 +569,7 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
     "dashboardRecordingRow",
     "recordingListChipClear",
+    "sourceFilterClear",
     "sourceFilterAction",
     "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
@@ -582,6 +582,7 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "dashboardRecordingRow",
     "recordingListChipClear",
+    "sourceFilterClear",
     "sourceFilterAction",
     "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
@@ -726,9 +727,14 @@ const DASHBOARD_TIME_FILTER_LEGACY_PRODUCT_CSS_SELECTOR_RE =
 
 const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+];
+
+const DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-recording-time-filter-count"]',
     '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
-];
+    '[data-sot-control="dashboard-recording-time-filter"].is-hover-demo',
+    '[data-sot-control="dashboard-recording-time-filter"].is-focus-demo',
+] as const;
 
 const DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-recording-time-filter"][data-slot="toggle-group"]',
@@ -2565,6 +2571,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        for (const selector of DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         for (const selector of DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
@@ -3182,6 +3191,9 @@ describe("full UI replacement regression coverage", () => {
         const sourceReportSkeletonPrimitive = readSource(
             "components/ui/skeleton.tsx",
         );
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
         const globals = readSource("app/globals.css");
 
         expect(workstation).toContain(
@@ -3312,8 +3324,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceFilterStack).toContain('data-sot-action="retry"');
         expect(sourceFilterStack).toContain('data-sot-action="widen"');
         expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
+        expect(button).toContain("sourceFilterClear:");
         expect(sourceFilterStack).toMatch(
-            /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="source-filter-clear"/,
+            /<Button\s+variant="sourceFilterClear"\s+size="sourceFilterClear"[\s\S]*data-sot-control="source-filter-clear"/,
         );
         for (const control of [
             "source-filter-retry-sync",
@@ -3528,6 +3541,23 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-time-filter-count"',
         );
+        const recordingTimeFilter = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-recording-time-filter"',
+            "ToggleGroup",
+        );
+        for (const semanticToken of [
+            'spacing="dashboardRecordingTimeFilter"',
+            'layout="dashboardRecordingTimeFilter"',
+            'variant="dashboardRecordingTimeFilter"',
+            'size="dashboardRecordingTimeFilter"',
+        ]) {
+            expect(recordingTimeFilter).toContain(semanticToken);
+        }
+        expect(recordingTimeFilter).not.toContain('variant="outline"');
+        expect(recordingTimeFilter).not.toContain('size="sm"');
+        expect(recordingTimeFilter).not.toContain("className=");
+        expect(toggleGroupPrimitive).toContain("dashboardRecordingTimeFilter");
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-body"',
         );
@@ -3536,6 +3566,22 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-actions"',
+        );
+        const dashboardRecordingTagChip = extractOpeningElement(
+            workstation,
+            "data-recording-tag-chip",
+            "Badge",
+        );
+        expect(dashboardRecordingTagChip).toContain(
+            'variant="recordingTagChip"',
+        );
+        expect(dashboardRecordingTagChip).not.toContain('variant="outline"');
+        expect(sourceReportBadgePrimitive).toContain("recordingTagChip:");
+        expect(globals).not.toContain(
+            '[data-recording-tag-chip][data-variant="recordingTagChip"]',
+        );
+        expect(globals).toContain(
+            '[data-recording-tag-chip][data-variant="outline"]',
         );
         expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
         expect(workstation).toMatch(
@@ -3623,6 +3669,19 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain("sotPlayerSeekRangeStyle");
         expect(workstation).not.toContain("sotPlayerSeekThumbStyle");
         expect(workstation).not.toContain("SotPlayerSliderTrackStyle");
+        const transcriptLanguageBadge = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-language"',
+            "Badge",
+        );
+        expect(transcriptLanguageBadge).toContain(
+            'variant="dashboardTranscriptLanguage"',
+        );
+        expect(transcriptLanguageBadge).not.toContain('variant="outline"');
+        expect(transcriptLanguageBadge).not.toContain("className=");
+        expect(sourceReportBadgePrimitive).toContain(
+            "dashboardTranscriptLanguage:",
+        );
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
                 workstation,

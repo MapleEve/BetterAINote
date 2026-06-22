@@ -124,6 +124,8 @@ const buttonVariants = cva(
                     "grid w-full grid-cols-[1fr_auto] items-center gap-[14px] whitespace-normal border border-transparent bg-transparent text-left text-[13.3333px] font-normal shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--accent-soft)]",
                 recordingListChipClear:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+                sourceFilterClear:
+                    "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 sourceFilterAction:
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)]",
                 sourceFilterClearAll:
@@ -234,6 +236,8 @@ const buttonVariants = cva(
                 dashboardRecordingRow:
                     "h-auto rounded-[10px] px-3 py-[11px] text-[13.3333px] leading-normal has-[>svg]:px-3",
                 recordingListChipClear:
+                    "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
+                sourceFilterClear:
                     "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceFilterAction:
                     "ml-[6px] h-[22px] flex-none gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-none whitespace-nowrap has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-[11px]",

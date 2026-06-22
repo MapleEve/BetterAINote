@@ -27,6 +27,8 @@ const badgeVariants = cva(
                     "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-[var(--badge-check-bg)] p-0 text-[11.5px] font-semibold leading-none text-[var(--accent-on)] [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
                 librarySearchTag:
                     "w-fit justify-normal gap-1.5 border-primary/25 bg-primary/10 text-primary [a&]:hover:bg-primary/10 [&>svg]:size-3",
+                recordingTagChip:
+                    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--dashboard-recording-tag-chip-border)] bg-[var(--dashboard-recording-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [--tag-c:var(--graphite-500)] [font:600_11.5px_var(--font-sans)] text-[var(--dashboard-recording-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2",
                 dashboardActivityCount:
                     "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-[var(--fg-tertiary)] [a&]:hover:bg-transparent",
                 sourceProviderStatus:
@@ -51,6 +53,8 @@ const badgeVariants = cva(
                     "min-w-[56px] justify-start bg-secondary text-secondary-foreground uppercase tracking-[0.04em] [a&]:hover:bg-secondary/90",
                 transcriptionMeta:
                     "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3",
+                dashboardTranscriptLanguage:
+                    "gap-1.5 border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 [a&]:hover:underline",
             },
         },
