@@ -12,13 +12,7 @@ function readSource(relativePath: string) {
 function expectOnlyAllowedGlobalSlotSelectors(globals: string) {
     const slotSelectors = globals
         .split("\n")
-        .filter((line) => line.includes('[data-slot="'))
-        .filter(
-            (line) =>
-                !line.includes(
-                    '[data-slot="toggle-group-item"][data-variant="swatch"]',
-                ),
-        );
+        .filter((line) => line.includes('[data-slot="'));
 
     expect(slotSelectors).toEqual([]);
 }

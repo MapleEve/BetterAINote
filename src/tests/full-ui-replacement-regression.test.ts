@@ -314,7 +314,7 @@ const LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE =
     /#tweaks-(?:panel|close)|--(?:ds-only-accent|todo-marker-bg|z-tweaks)\b|(^|[,\s>{])\.(?:design-todo|ds-only-(?:badge|mark|note)|ds-trigger-chip|tw-[\w-]+|src-item|src-hint(?:-email)?|cl-tweaks-mock|cl-tm-[\w-]+)(?![\w-])/m;
 
 const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
-    /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
+    /(^|[,\s>{(:])\.(?!(?:dark|toggle-group-swatch(?:-tone-(?:blue|green|orange|purple|red|slate))?)(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
@@ -1678,44 +1678,43 @@ describe("full UI replacement regression coverage", () => {
         const globalSlotSelectors = globals
             .split("\n")
             .filter((line) => line.includes('[data-slot="'));
-        expect(globalSlotSelectors.length).toBeGreaterThan(0);
-        for (const line of globalSlotSelectors) {
-            expect(
-                line.includes(
-                    '[data-slot="toggle-group-item"][data-variant="swatch"]',
-                ),
-                `${line.trim()} should be scoped to the ToggleGroup swatch primitive`,
-            ).toBe(true);
-        }
-        const swatchPrimitiveBlock = extractCssBlock(
-            globals,
+        expect(globalSlotSelectors).toEqual([]);
+        expect(globals).not.toContain(
             '[data-slot="toggle-group-item"][data-variant="swatch"]',
         );
-        expect(swatchPrimitiveBlock).toContain(
-            "--toggle-swatch-color: var(--tag-slate);",
+        expect(globals).not.toContain("--toggle-swatch-");
+        expect(toggleGroup).not.toContain("[--toggle-swatch");
+        expect(toggleGroup).not.toMatch(
+            /--tag-(blue|green|amber|violet|rose|slate)/,
         );
-        expect(swatchPrimitiveBlock).toContain(
-            "--toggle-swatch-selected-border: var(--fg-primary);",
-        );
-        expect(swatchPrimitiveBlock).toContain("display: grid;");
-        expect(swatchPrimitiveBlock).toContain("place-items: center;");
-        expect(swatchPrimitiveBlock).toContain("border-radius: 50%;");
-        expect(swatchPrimitiveBlock).toContain("color: var(--fg-primary);");
-        expect(swatchPrimitiveBlock).toContain("font-size: 13.3333px;");
-        expect(swatchPrimitiveBlock).toContain("font-weight: 400;");
-        expect(swatchPrimitiveBlock).toContain("line-height: 0;");
-        const swatchSelectedBlocks = collectExactCssRuleBlocks(
-            globals,
-            '[data-slot="toggle-group-item"][data-variant="swatch"][data-state="on"]',
-        )
-            .map((block) => block.declarations)
-            .join("\n");
-        expect(swatchSelectedBlocks).toContain(
-            "background-color: var(--toggle-swatch-color);",
-        );
-        expect(swatchSelectedBlocks).toContain(
-            "border-color: var(--toggle-swatch-selected-border);",
-        );
+        expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
+        expect(toggleGroup).toContain("[display:grid]");
+        expect(toggleGroup).toContain("place-items-center");
+        expect(toggleGroup).toContain("rounded-[50%]");
+        expect(toggleGroup).toContain("text-[13.3333px]");
+        expect(toggleGroup).toContain("font-normal");
+        expect(toggleGroup).toContain("leading-[0]");
+        const swatchBlock = extractCssBlock(globals, ".toggle-group-swatch");
+        expect(swatchBlock).toContain("color: var(--fg-primary);");
+        expect(swatchBlock).toContain("background: var(--tag-slate);");
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '.toggle-group-swatch[data-state="on"]',
+            ).some(({ declarations }) =>
+                declarations.includes("border-color: var(--fg-primary);") &&
+                declarations.includes(
+                    "box-shadow: inset 0 0 0 2px var(--bg-elevated);",
+                ),
+            ),
+        ).toBe(true);
+        expect(
+            collectCssRuleBlocks(globals, ".toggle-group-swatch").every(
+                ({ prelude }) =>
+                    !prelude.includes("[data-slot=") &&
+                    !prelude.includes("[data-sot-"),
+            ),
+        ).toBe(true);
         for (const [tone, token] of [
             ["blue", "--tag-blue"],
             ["green", "--tag-green"],
@@ -1724,13 +1723,42 @@ describe("full UI replacement regression coverage", () => {
             ["red", "--tag-rose"],
             ["slate", "--tag-slate"],
         ]) {
-            expect(globals).toContain(
-                `[data-slot="toggle-group-item"][data-variant="swatch"][data-tone="${tone}"]`,
-            );
-            expect(globals).toContain(
-                `--toggle-swatch-color: var(${token});`,
-            );
+            const toneClass = `toggle-group-swatch-tone-${tone}`;
+            expect(toggleGroup).toContain(toneClass);
+            expect(
+                collectCssRuleBlocks(globals, `.${toneClass}`).some(
+                    ({ declarations, prelude }) =>
+                        !prelude.includes("[data-sot-") &&
+                        declarations.includes(`background: var(${token});`),
+                ),
+            ).toBe(true);
         }
+        const allowedSwatchToneNames = new Set([
+            "blue",
+            "green",
+            "orange",
+            "purple",
+            "red",
+            "slate",
+        ]);
+        const unexpectedSwatchToneSelectors = Array.from(
+            stripCssComments(globals).matchAll(
+                /\.toggle-group-swatch-tone-([A-Za-z][\w-]*)/g,
+            ),
+            ([selector, tone]) => ({ selector, tone }),
+        ).filter(({ tone }) => !allowedSwatchToneNames.has(tone));
+        expect(unexpectedSwatchToneSelectors).toEqual([]);
+        expect(
+            collectCssRuleBlocks(
+                globals,
+                '[data-slot="toggle-group-item"][data-variant="swatch"]',
+            ),
+        ).toEqual([]);
+        expect(
+            collectCssRuleBlocks(globals, ".toggle-group-swatch").some(
+                ({ declarations }) => declarations.includes("--toggle-swatch-"),
+            ),
+        ).toBe(false);
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -2349,16 +2377,21 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("settingsSourceAuthMode:");
         expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
         expect(toggleGroup).toContain('swatch:');
+        expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-blue");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-green");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-orange");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-purple");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-red");
+        expect(toggleGroup).toContain("toggle-group-swatch-tone-slate");
         expect(toggleGroup).toContain("[display:grid]");
         expect(toggleGroup).toContain("rounded-[50%]");
         expect(toggleGroup).toContain("text-[13.3333px]");
         expect(toggleGroup).toContain("font-normal");
         expect(toggleGroup).toContain("leading-[0]");
-        expect(toggleGroup).toContain(
-            'data-[state=on]:bg-[var(--toggle-swatch-color)]',
-        );
-        expect(toggleGroup).not.toContain(
-            "[--toggle-swatch-color:var(--tag-",
+        expect(toggleGroup).not.toContain("[--toggle-swatch");
+        expect(toggleGroup).not.toMatch(
+            /--tag-(blue|green|amber|violet|rose|slate)/,
         );
         expect(toaster).toContain(
             'import { Toaster as Sonner, type ToasterProps } from "sonner";',

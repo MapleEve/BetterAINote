@@ -69,16 +69,16 @@ const toggleGroupItemVariants = cva(
                 sotSegmented: "border border-input bg-background shadow-xs",
                 speakerReviewMode: "",
                 swatch:
-                    "group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent bg-[var(--toggle-swatch-color)] p-0 text-[13.3333px] font-normal leading-[0] text-[var(--fg-primary)] shadow-none hover:bg-[var(--toggle-swatch-color)] hover:text-[var(--fg-primary)] data-[state=on]:border-[var(--toggle-swatch-selected-border)] data-[state=on]:bg-[var(--toggle-swatch-color)] data-[state=on]:text-[var(--fg-primary)] data-[state=on]:shadow-[var(--toggle-swatch-selected-shadow)]",
+                    "toggle-group-swatch group/swatch [display:grid] place-items-center rounded-[50%] border-2 border-transparent p-0 text-[13.3333px] font-normal leading-[0] shadow-none",
             },
             tone: {
                 default: "",
-                blue: "",
-                green: "",
-                orange: "",
-                purple: "",
-                red: "",
-                slate: "",
+                blue: "toggle-group-swatch-tone-blue",
+                green: "toggle-group-swatch-tone-green",
+                orange: "toggle-group-swatch-tone-orange",
+                purple: "toggle-group-swatch-tone-purple",
+                red: "toggle-group-swatch-tone-red",
+                slate: "toggle-group-swatch-tone-slate",
             },
             size: {
                 default: "h-9 px-3",
