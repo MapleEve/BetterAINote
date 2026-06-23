@@ -3757,6 +3757,7 @@ export function Workstation({
 
     return (
         <div
+            className="group/dashboard-workstation"
             data-sot-shell="dashboard-workstation"
             data-hydrated={hydrated ? "true" : "false"}
             data-playback-auto-next={

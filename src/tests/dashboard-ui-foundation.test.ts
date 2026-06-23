@@ -881,6 +881,34 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(buttonVariantBlock).toContain(copyStateClass);
         }
+        for (const sourceProviderActionClass of [
+            "group/source-provider",
+            "ml-[6px]",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-elevated)]",
+            "focus-visible:outline-[var(--accent)]",
+            "disabled:cursor-not-allowed",
+            "data-[sot-action=retry]:hidden",
+            "data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)]",
+            "data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)]",
+            "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
+            "data-[sot-action=connect]:border-[var(--source-provider-primary-border)]",
+            "data-[sot-action=connect]:bg-[var(--accent-soft)]",
+            "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
+            "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+            "dark:bg-[rgb(255_255_255_/_0.05)]",
+            "[&_svg]:stroke-current",
+        ]) {
+            expect(buttonVariantBlock).toContain(sourceProviderActionClass);
+        }
+        for (const sourceProviderActionSizeClass of [
+            "leading-none",
+            "whitespace-nowrap",
+            "[&_svg:not([class*='size-'])]:size-[11px]",
+        ]) {
+            expect(buttonSizeBlock).toContain(sourceProviderActionSizeClass);
+        }
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
         }
@@ -1134,6 +1162,9 @@ describe("dashboard SOT foundation", () => {
         }
         expect(workstation).toContain('data-sot-list="dashboard-sources"');
         expect(workstation).toContain(
+            'className="group/dashboard-workstation"',
+        );
+        expect(workstation).toContain(
             'data-sot-control="dashboard-source-clear"',
         );
         expect(workstation).toContain(
@@ -1149,6 +1180,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('data-sot-part="source-provider-action"');
         expect(workstation).toContain("data-sot-action={actionKind}");
         expect(workstation).toContain('? "retry-sync"');
+        expect(globals).not.toContain("source-provider-action");
         expect(workstation).not.toContain('className="src-action is-busy"');
         expect(workstation).toContain("data-sot-status={item.status}");
         expect(workstation).toContain("sourceNeedsSettings(");

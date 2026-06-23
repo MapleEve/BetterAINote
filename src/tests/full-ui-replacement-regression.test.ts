@@ -636,6 +636,37 @@ const SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
     "[&_svg:not([class*='size-'])]:size-[11px]",
 ] as const;
 
+const DASHBOARD_SOURCE_PROVIDER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
+    "dashboardSourceAction:",
+    "group/source-provider",
+    "ml-[6px]",
+    "flex-none",
+    "cursor-pointer",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
+    "font-sans",
+    "text-[var(--fg-secondary)]",
+    "hover:bg-[var(--bg-elevated)]",
+    "hover:text-[var(--fg-primary)]",
+    "focus-visible:outline-[var(--accent)]",
+    "focus-visible:ring-0",
+    "disabled:cursor-not-allowed",
+    "data-[sot-action=retry]:hidden",
+    "data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)]",
+    "data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)]",
+    "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
+    "data-[sot-action=connect]:border-[var(--source-provider-primary-border)]",
+    "data-[sot-action=connect]:bg-[var(--accent-soft)]",
+    "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
+    "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
+    "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+    "dark:bg-[rgb(255_255_255_/_0.05)]",
+    "[&_svg]:stroke-current",
+    "leading-none",
+    "whitespace-nowrap",
+    "[&_svg:not([class*='size-'])]:size-[11px]",
+] as const;
+
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-active"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="connected-idle"]',
@@ -3487,6 +3518,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
+        expect(workstation).toContain(
+            'className="group/dashboard-workstation"',
+        );
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
         }
@@ -3576,6 +3610,9 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderRows).toMatch(
             /<Button\s+asChild\s+variant="dashboardSourceAction"\s+size="dashboardSourceAction"[\s\S]*data-sot-part="source-provider-action"/,
         );
+        for (const token of DASHBOARD_SOURCE_PROVIDER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
+            expect(button).toContain(token);
+        }
         expect(sourceProviderRows).not.toContain(
             "SOT defines source row action as span[role=button]",
         );
@@ -3641,9 +3678,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-part="source-provider-mark"][data-sot-variant="letter"]',
         );
-        expect(globals).toContain(
-            '[data-sot-part="source-provider-action"][data-sot-action="retry"]',
-        );
+        expect(globals).not.toContain("source-provider-action");
         expect(
             collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
         ).toEqual([]);
