@@ -20,6 +20,16 @@ const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
     '[data-sot-card="onboarding"]',
 ] as const;
 
+const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
+    "speakerSettings",
+    "speakerState",
+    "speakerSettingsRow",
+    "speakerSettingsRowFieldClassName",
+    "speakerSettingsAction",
+    "speakerSettingsDangerAction",
+    "speakerAvatarFallbackClassName",
+] as const;
+
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
@@ -9613,40 +9623,84 @@ describe("full UI replacement regression coverage", () => {
             ) ?? "";
         const speakerAvatarFallbacks =
             speakerProfiles.match(/<AvatarFallback\b[^>]*>/g) ?? [];
+        const speakerStateBadges =
+            speakerProfiles.match(/<Badge\b[^>]*>/g) ?? [];
+        const speakerRowFields =
+            speakerProfiles.match(
+                /<Field(?!Content|Description|Label|Title)\b[^>]*>/g,
+            ) ?? [];
+        const speakerStateBadgeOpenings = speakerStateBadges.filter(
+            (stateBadge) =>
+                stateBadge.includes('data-sot-badge="speaker-state"'),
+        );
+        const expectSpeakerFeatureOwnedSnippets = (
+            label: string,
+            snippets: readonly string[],
+        ) => {
+            for (const snippet of snippets) {
+                expect(
+                    speakerProfiles,
+                    `${label} should keep ${snippet} in the speaker profiles feature owner`,
+                ).toContain(snippet);
+            }
+        };
         expect(speakerProfiles).toContain(
             'import { Avatar, AvatarFallback } from "@/components/ui/avatar";',
         );
+        for (const primitiveSource of [
+            avatarPrimitive,
+            badge,
+            button,
+            fieldPrimitive,
+        ]) {
+            expectPrimitiveToExcludeBusinessTokens(
+                primitiveSource,
+                SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS,
+            );
+        }
         expect(speakerProfiles).toContain("<Avatar");
         expect(speakerProfiles).toContain("<AvatarFallback");
         expect(speakerAvatarFallbacks).toHaveLength(2);
+        expectSpeakerFeatureOwnedSnippets("speaker avatar fallback", [
+            "bg-accent",
+            "text-[11px]",
+            "font-bold",
+            "text-primary",
+        ]);
         for (const fallback of speakerAvatarFallbacks) {
-            expect(fallback).toContain('variant="speakerSettings"');
-            expect(fallback).not.toContain("className=");
-            expect(fallback).not.toContain("speakerAvatarFallbackClassName");
+            expect(fallback).toContain("className=");
+            expect(fallback).not.toContain('variant="speakerSettings"');
         }
-        expect(speakerProfiles).not.toContain("speakerAvatarFallbackClassName");
-        expect(speakerProfiles).not.toContain("bg-accent text-primary");
-        expect(speakerProfiles).not.toContain("text-[11px] font-bold");
-        expect(avatarPrimitive).toContain("speakerSettings:");
-        expect(avatarPrimitive).toContain("bg-accent");
-        expect(avatarPrimitive).toContain("text-primary");
-        expect(avatarPrimitive).toContain("text-[11px]");
-        expect(avatarPrimitive).toContain("font-bold");
         expect(speakerProfiles).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(speakerProfiles).toContain("<Badge");
-        expect(speakerProfiles).toContain('variant="speakerState"');
-        expect(speakerProfiles).not.toContain('variant="outline"');
         expect(speakerProfiles).toContain('data-sot-badge="speaker-state"');
         expect(speakerProfiles).toContain("data-sot-tone={tone}");
-        expect(badge).toContain("speakerState:");
-        expect(speakerProfiles).toContain('variant="speakerSettingsRow"');
-        expect(speakerProfiles).not.toContain(
-            'className="border-b border-border py-3"',
-        );
-        expect(fieldPrimitive).toContain('"speakerSettingsRow"');
-        expect(fieldPrimitive).toContain("speakerSettingsRowFieldClassName");
+        expectSpeakerFeatureOwnedSnippets("speaker state badge", [
+            "h-5",
+            "gap-1",
+            "rounded-full",
+            "border",
+            "text-[10.5px]",
+            "font-semibold",
+            "data-[sot-tone=success]",
+            "data-[sot-tone=warning]",
+            "data-[sot-tone=neutral]",
+        ]);
+        expect(speakerStateBadgeOpenings).toHaveLength(1);
+        for (const stateBadge of speakerStateBadgeOpenings) {
+            expect(stateBadge).toContain("className=");
+            expect(stateBadge).not.toContain('variant="speakerState"');
+        }
+        expectSpeakerFeatureOwnedSnippets("speaker settings rows", [
+            "border-b border-border py-3",
+        ]);
+        expect(speakerRowFields.length).toBeGreaterThanOrEqual(3);
+        for (const field of speakerRowFields) {
+            expect(field).toContain("className=");
+            expect(field).not.toContain('variant="speakerSettingsRow"');
+        }
         for (const control of [
             "speaker-profiles-refresh",
             "speaker-profile-create",
@@ -9659,11 +9713,13 @@ describe("full UI replacement regression coverage", () => {
             const opening = findSpeakerProfileButton(control);
 
             expect(opening).toContain(`data-sot-control="${control}"`);
-            expect(opening).toContain('variant="speakerSettingsAction"');
-            expect(opening).toContain('size="speakerSettingsAction"');
-            expect(opening).not.toContain('variant="secondary"');
-            expect(opening).not.toContain('variant="destructive"');
-            expect(opening).not.toContain('size="sm"');
+            expect(opening).toContain('variant="outline"');
+            expect(opening).toContain('size="sm"');
+            expect(opening).not.toContain('variant="speakerSettingsAction"');
+            expect(opening).not.toContain(
+                'variant="speakerSettingsDangerAction"',
+            );
+            expect(opening).not.toContain('size="speakerSettingsAction"');
         }
         for (const control of [
             "speaker-profile-delete",
@@ -9672,17 +9728,14 @@ describe("full UI replacement regression coverage", () => {
             const opening = findSpeakerProfileButton(control);
 
             expect(opening).toContain(`data-sot-control="${control}"`);
-            expect(opening).toContain('variant="speakerSettingsDangerAction"');
-            expect(opening).toContain('size="speakerSettingsAction"');
-            expect(opening).not.toContain('variant="secondary"');
-            expect(opening).not.toContain('variant="destructive"');
-            expect(opening).not.toContain('size="sm"');
+            expect(opening).toContain('variant="destructive"');
+            expect(opening).toContain('size="sm"');
+            expect(opening).not.toContain('variant="speakerSettingsAction"');
+            expect(opening).not.toContain(
+                'variant="speakerSettingsDangerAction"',
+            );
+            expect(opening).not.toContain('size="speakerSettingsAction"');
         }
-        expect(speakerProfiles).not.toContain('variant="secondary"');
-        expect(speakerProfiles).not.toContain('variant="destructive"');
-        expect(speakerProfiles).not.toContain('size="sm"');
-        expect(button).toContain("speakerSettingsAction:");
-        expect(button).toContain("speakerSettingsDangerAction:");
         expect(speakerProfiles).not.toContain("sot-speaker-pill");
         expect(globals).not.toContain(
             '[data-sot-part="speaker-profile-avatar"] [data-slot="avatar-fallback"]',

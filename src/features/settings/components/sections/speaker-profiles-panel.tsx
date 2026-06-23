@@ -55,16 +55,24 @@ function formatTimestamp(value: string | null, locale: string) {
     );
 }
 
+const speakerAvatarFallbackClassName =
+    "bg-accent text-[11px] font-bold text-primary";
+
+const speakerStateBadgeClassName =
+    "h-5 gap-1 rounded-full border px-2 py-0 text-[10.5px] font-semibold data-[sot-tone=success]:border-[var(--source-provider-status-success-border)] data-[sot-tone=success]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=success]:text-[var(--signal-success)] data-[sot-tone=warning]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warning]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warning]:text-[var(--signal-warning-strong)] data-[sot-tone=danger]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=danger]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=danger]:text-[var(--signal-danger)] data-[sot-tone=neutral]:border-[var(--line-hairline)] data-[sot-tone=neutral]:bg-[var(--bg-recessed)] data-[sot-tone=neutral]:text-[var(--fg-secondary)]";
+
+const speakerSettingsRowClassName = "border-b border-border py-3";
+
 function StatePill({
     children,
     tone = "neutral",
 }: {
     children: ReactNode;
-    tone?: "success" | "neutral" | "warning";
+    tone?: "success" | "neutral" | "warning" | "danger";
 }) {
     return (
         <Badge
-            variant="speakerState"
+            className={speakerStateBadgeClassName}
             data-sot-badge="speaker-state"
             data-sot-tone={tone}
         >
@@ -490,7 +498,10 @@ export function SpeakerProfilesPanel() {
                 data-sot-section-group
                 data-sot-state={profilesState}
             >
-                <Field orientation="horizontal" variant="speakerSettingsRow">
+                <Field
+                    orientation="horizontal"
+                    className={speakerSettingsRowClassName}
+                >
                     <FieldContent>
                         <FieldTitle>
                             {isZh ? "已保存的说话人" : "Saved Speakers"}
@@ -503,8 +514,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="speakerSettingsAction"
-                        variant="speakerSettingsAction"
+                        size="sm"
+                        variant="outline"
                         onClick={() => void refreshProfiles()}
                         disabled={isProfilesLoading}
                         aria-busy={isProfilesLoading}
@@ -521,7 +532,10 @@ export function SpeakerProfilesPanel() {
                     </Button>
                 </Field>
 
-                <Field orientation="horizontal" variant="speakerSettingsRow">
+                <Field
+                    orientation="horizontal"
+                    className={speakerSettingsRowClassName}
+                >
                     <FieldContent className="min-w-0">
                         <FieldLabel htmlFor="new-speaker-name">
                             {isZh ? "说话人名称" : "Speaker name"}
@@ -537,8 +551,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="speakerSettingsAction"
-                        variant="speakerSettingsAction"
+                        size="sm"
+                        variant="outline"
                         onClick={handleCreate}
                         disabled={localSavingId === "new"}
                         aria-busy={localSavingId === "new"}
@@ -565,8 +579,8 @@ export function SpeakerProfilesPanel() {
                         action={
                             <Button
                                 type="button"
-                                size="speakerSettingsAction"
-                                variant="speakerSettingsAction"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => void refreshProfiles()}
                                 data-sot-control="speaker-profiles-retry"
                                 data-sot-state="idle"
@@ -603,7 +617,11 @@ export function SpeakerProfilesPanel() {
                                     }
                                 >
                                     <Avatar data-sot-part="speaker-profile-avatar">
-                                        <AvatarFallback variant="speakerSettings">
+                                        <AvatarFallback
+                                            className={
+                                                speakerAvatarFallbackClassName
+                                            }
+                                        >
                                             {profile.displayName
                                                 .trim()
                                                 .slice(0, 1)
@@ -673,8 +691,8 @@ export function SpeakerProfilesPanel() {
                                     </div>
                                     <Button
                                         type="button"
-                                        size="speakerSettingsAction"
-                                        variant="speakerSettingsAction"
+                                        size="sm"
+                                        variant="outline"
                                         onClick={() => handleUpdate(profile)}
                                         disabled={isProfileSaving}
                                         aria-busy={isProfileSaving}
@@ -688,8 +706,8 @@ export function SpeakerProfilesPanel() {
                                     </Button>
                                     <Button
                                         type="button"
-                                        size="speakerSettingsAction"
-                                        variant="speakerSettingsDangerAction"
+                                        size="sm"
+                                        variant="destructive"
                                         onClick={() => handleDelete(profile)}
                                         disabled={isProfileSaving}
                                         data-sot-control="speaker-profile-delete"
@@ -714,7 +732,10 @@ export function SpeakerProfilesPanel() {
                 data-sot-section-group
                 data-sot-state={voiceprintsState}
             >
-                <Field orientation="horizontal" variant="speakerSettingsRow">
+                <Field
+                    orientation="horizontal"
+                    className={speakerSettingsRowClassName}
+                >
                     <FieldContent>
                         <FieldTitle>
                             {isZh ? "声纹库" : "Voiceprints"}
@@ -727,8 +748,8 @@ export function SpeakerProfilesPanel() {
                     </FieldContent>
                     <Button
                         type="button"
-                        size="speakerSettingsAction"
-                        variant="speakerSettingsAction"
+                        size="sm"
+                        variant="outline"
                         onClick={() => void refreshVoiceprints()}
                         disabled={isVoiceprintsLoading}
                         aria-busy={isVoiceprintsLoading}
@@ -757,8 +778,8 @@ export function SpeakerProfilesPanel() {
                         action={
                             <Button
                                 type="button"
-                                size="speakerSettingsAction"
-                                variant="speakerSettingsAction"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => void refreshVoiceprints()}
                                 data-sot-control="speaker-voiceprints-retry"
                                 data-sot-state="idle"
@@ -808,7 +829,11 @@ export function SpeakerProfilesPanel() {
                                     data-sot-voiceprint-row=""
                                 >
                                     <Avatar data-sot-part="speaker-voiceprint-avatar">
-                                        <AvatarFallback variant="speakerSettings">
+                                        <AvatarFallback
+                                            className={
+                                                speakerAvatarFallbackClassName
+                                            }
+                                        >
                                             {voiceprint.displayName
                                                 .trim()
                                                 .slice(0, 1)
@@ -887,8 +912,8 @@ export function SpeakerProfilesPanel() {
 
                                     <Button
                                         type="button"
-                                        size="speakerSettingsAction"
-                                        variant="speakerSettingsAction"
+                                        size="sm"
+                                        variant="outline"
                                         onClick={() =>
                                             handleRenameVoiceprint(voiceprint)
                                         }
@@ -906,8 +931,8 @@ export function SpeakerProfilesPanel() {
                                     </Button>
                                     <Button
                                         type="button"
-                                        size="speakerSettingsAction"
-                                        variant="speakerSettingsDangerAction"
+                                        size="sm"
+                                        variant="destructive"
                                         onClick={() =>
                                             handleDeleteVoiceprint(voiceprint)
                                         }

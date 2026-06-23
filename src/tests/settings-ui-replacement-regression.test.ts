@@ -286,6 +286,16 @@ const AUTH_FIELD_PRIMITIVE_FORBIDDEN_TOKENS = [
     "authCompact",
 ] as const;
 
+const SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS = [
+    "speakerSettings",
+    "speakerState",
+    "speakerSettingsRow",
+    "speakerSettingsRowFieldClassName",
+    "speakerSettingsAction",
+    "speakerSettingsDangerAction",
+    "speakerAvatarFallbackClassName",
+] as const;
+
 const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
@@ -1621,7 +1631,6 @@ describe("settings SOT interaction regressions", () => {
     | "default"
     | "onboardingSourceField"
     | "settingsRow"
-    | "speakerSettingsRow"
     | "sourceProviderDetail";`,
         );
         expectPrimitiveToExcludeBusinessTokens(
@@ -2469,33 +2478,56 @@ describe("settings SOT interaction regressions", () => {
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const avatarFallbacks =
             speakers.match(/<AvatarFallback\b[^>]*>/g) ?? [];
+        const speakerStateBadges = speakers.match(/<Badge\b[^>]*>/g) ?? [];
+        const speakerRowFields =
+            speakers.match(
+                /<Field(?!Content|Description|Label|Title)\b[^>]*>/g,
+            ) ?? [];
+        const speakerStateBadgeOpenings = speakerStateBadges.filter((badge) =>
+            badge.includes('data-sot-badge="speaker-state"'),
+        );
         const speakerButtons =
             speakers.match(/<Button\b[\s\S]*?<\/Button>/g) ?? [];
         const findButtonByControl = (control: string) =>
             speakerButtons.find((button) =>
                 button.includes(`data-sot-control="${control}"`),
             ) ?? "";
-        const expectNeutralButtonVariant = (control: string) => {
+        const expectFeatureOwnedSnippets = (
+            label: string,
+            snippets: readonly string[],
+        ) => {
+            for (const snippet of snippets) {
+                expect(
+                    speakers,
+                    `${label} should keep ${snippet} in the speaker profiles feature owner`,
+                ).toContain(snippet);
+            }
+        };
+        const expectNeutralButtonContract = (control: string) => {
             const button = findButtonByControl(control);
 
             expect(button).toContain(`data-sot-control="${control}"`);
-            expect(button).toContain('variant="speakerSettingsAction"');
-            expect(button).toContain('size="speakerSettingsAction"');
-            expect(button).not.toContain('variant="secondary"');
-            expect(button).not.toContain('variant="destructive"');
-            expect(button).not.toContain('size="sm"');
+            expect(button).toContain('variant="outline"');
+            expect(button).toContain('size="sm"');
+            expect(button).not.toContain('variant="speakerSettingsAction"');
+            expect(button).not.toContain(
+                'variant="speakerSettingsDangerAction"',
+            );
+            expect(button).not.toContain('size="speakerSettingsAction"');
             expect(button).not.toContain('className="btn"');
             expect(button).not.toContain('className="btn danger"');
         };
-        const expectDangerButtonVariant = (control: string) => {
+        const expectDangerButtonContract = (control: string) => {
             const button = findButtonByControl(control);
 
             expect(button).toContain(`data-sot-control="${control}"`);
-            expect(button).toContain('variant="speakerSettingsDangerAction"');
-            expect(button).toContain('size="speakerSettingsAction"');
-            expect(button).not.toContain('variant="secondary"');
-            expect(button).not.toContain('variant="destructive"');
-            expect(button).not.toContain('size="sm"');
+            expect(button).toContain('variant="destructive"');
+            expect(button).toContain('size="sm"');
+            expect(button).not.toContain('variant="speakerSettingsAction"');
+            expect(button).not.toContain(
+                'variant="speakerSettingsDangerAction"',
+            );
+            expect(button).not.toContain('size="speakerSettingsAction"');
             expect(button).not.toContain('className="btn"');
             expect(button).not.toContain('className="btn danger"');
         };
@@ -2512,45 +2544,63 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toMatch(
             /import\s*\{[\s\S]*Field,[\s\S]*FieldContent,[\s\S]*FieldDescription,[\s\S]*FieldLabel,[\s\S]*FieldTitle[\s\S]*\}\s*from "@\/components\/ui\/field";/,
         );
+        for (const primitiveSource of [
+            avatarPrimitive,
+            badgePrimitive,
+            buttonPrimitive,
+            fieldPrimitive,
+        ]) {
+            expectPrimitiveToExcludeBusinessTokens(
+                primitiveSource,
+                SPEAKER_PROFILE_PRIMITIVE_BUSINESS_TOKENS,
+            );
+        }
         expect(speakers).toContain("<Avatar");
         expect(speakers).toContain("<AvatarFallback");
         expect(avatarFallbacks).toHaveLength(2);
+        expectFeatureOwnedSnippets("speaker avatar fallback", [
+            "bg-accent",
+            "text-[11px]",
+            "font-bold",
+            "text-primary",
+        ]);
         for (const fallback of avatarFallbacks) {
-            expect(fallback).toContain('variant="speakerSettings"');
-            expect(fallback).not.toContain("className=");
-            expect(fallback).not.toContain("speakerAvatarFallbackClassName");
+            expect(fallback).toContain("className=");
+            expect(fallback).not.toContain('variant="speakerSettings"');
         }
-        expect(speakers).not.toContain("speakerAvatarFallbackClassName");
-        expect(speakers).not.toContain("bg-accent text-primary");
-        expect(speakers).not.toContain("text-[11px] font-bold");
-        expect(avatarPrimitive).toContain("speakerSettings:");
-        expect(avatarPrimitive).toContain("bg-accent");
-        expect(avatarPrimitive).toContain("text-primary");
-        expect(avatarPrimitive).toContain("text-[11px]");
-        expect(avatarPrimitive).toContain("font-bold");
         expect(speakers).toContain("<Button");
         expect(speakers).toContain("<Badge");
-        expect(speakers).toContain('variant="speakerState"');
-        expect(speakers).not.toContain('variant="outline"');
         expect(speakers).toContain('data-sot-badge="speaker-state"');
         expect(speakers).toContain("data-sot-tone={tone}");
-        expect(badgePrimitive).toContain("speakerState:");
+        expectFeatureOwnedSnippets("speaker state badge", [
+            "h-5",
+            "gap-1",
+            "rounded-full",
+            "border",
+            "text-[10.5px]",
+            "font-semibold",
+            "data-[sot-tone=success]",
+            "data-[sot-tone=warning]",
+            "data-[sot-tone=neutral]",
+        ]);
+        expect(speakerStateBadgeOpenings).toHaveLength(1);
+        for (const badge of speakerStateBadgeOpenings) {
+            expect(badge).toContain("className=");
+            expect(badge).not.toContain('variant="speakerState"');
+        }
         expect(speakers).toContain("<Field");
-        expect(speakers).toContain('variant="speakerSettingsRow"');
-        expect(speakers).not.toContain(
-            'className="border-b border-border py-3"',
-        );
-        expect(fieldPrimitive).toContain('"speakerSettingsRow"');
-        expect(fieldPrimitive).toContain("speakerSettingsRowFieldClassName");
+        expectFeatureOwnedSnippets("speaker settings rows", [
+            "border-b border-border py-3",
+        ]);
+        expect(speakerRowFields.length).toBeGreaterThanOrEqual(3);
+        for (const field of speakerRowFields) {
+            expect(field).toContain("className=");
+            expect(field).not.toContain('variant="speakerSettingsRow"');
+        }
         expect(speakers).toContain("<FieldContent");
         expect(speakers).toContain("<FieldTitle>");
         expect(speakers).toContain("<FieldLabel");
         expect(speakers).toContain("<FieldDescription>");
-        expect(speakers).not.toContain('variant="secondary"');
-        expect(speakers).not.toContain('variant="destructive"');
-        expect(speakers).not.toContain('size="sm"');
-        expect(buttonPrimitive).toContain("speakerSettingsAction:");
-        expect(buttonPrimitive).toContain("speakerSettingsDangerAction:");
         expect(speakers).toContain('"settingsBanner"');
         expect(speakers).toContain('"settingsBannerError"');
         expect(speakers).toContain('density="settingsBanner"');
@@ -2642,13 +2692,13 @@ describe("settings SOT interaction regressions", () => {
             "speaker-voiceprints-retry",
             "speaker-voiceprint-rename",
         ]) {
-            expectNeutralButtonVariant(control);
+            expectNeutralButtonContract(control);
         }
         for (const control of [
             "speaker-profile-delete",
             "speaker-voiceprint-delete",
         ]) {
-            expectDangerButtonVariant(control);
+            expectDangerButtonContract(control);
         }
         expect(speakers).not.toMatch(OLD_UI_RE);
     });
