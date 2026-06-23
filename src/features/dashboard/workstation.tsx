@@ -87,7 +87,7 @@ import {
     SotPlayerBackIcon,
     SotPlayerControlButton,
     SotPlayerForwardIcon,
-    SotPlayerNoAudioIcon,
+    SotPlayerNoAudioAlert,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
     SotPlayerPrimaryButton,
@@ -6341,41 +6341,14 @@ export function Workstation({
                             }
                             data-sot-surface="dashboard-recording-player"
                         >
-                            <Alert
-                                variant="playerNoAudio"
-                                density="playerNoAudio"
-                                layout="playerNoAudio"
-                                data-sot-part="dashboard-recording-player-no-audio"
-                                data-sot-state={
-                                    playbackDisabled ? "visible" : "hidden"
-                                }
-                                hidden={!playbackDisabled}
-                                role="status"
-                            >
-                                <span
-                                    data-icon="inline-start"
-                                    data-sot-part="dashboard-recording-player-no-audio-icon"
-                                >
-                                    <SotPlayerNoAudioIcon />
-                                </span>
-                                <span
-                                    data-player-no-audio-text=""
-                                    data-sot-part="dashboard-recording-player-no-audio-text"
-                                >
-                                    <AlertTitle
-                                        density="playerNoAudio"
-                                        data-sot-part="dashboard-recording-player-no-audio-title"
-                                    >
-                                        来源仅同步转写与报告
-                                    </AlertTitle>
-                                    <AlertDescription
-                                        density="playerNoAudio"
-                                        data-sot-part="dashboard-recording-player-no-audio-description"
-                                    >
-                                        这条录音没有本地音频，无法播放或运行私有重转写。
-                                    </AlertDescription>
-                                </span>
-                            </Alert>
+                            <SotPlayerNoAudioAlert
+                                part="dashboard-recording-player-no-audio"
+                                iconPart="dashboard-recording-player-no-audio-icon"
+                                textPart="dashboard-recording-player-no-audio-text"
+                                titlePart="dashboard-recording-player-no-audio-title"
+                                descriptionPart="dashboard-recording-player-no-audio-description"
+                                playbackDisabled={playbackDisabled}
+                            />
                             <CardHeader
                                 className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"
                                 data-sot-part="dashboard-recording-player-meta"

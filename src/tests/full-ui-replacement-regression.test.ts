@@ -4900,18 +4900,8 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardNoAudioAlert = extractOpeningElement(
             dashboardPlayer,
-            'data-sot-part="dashboard-recording-player-no-audio"',
-            "Alert",
-        );
-        const dashboardNoAudioTitle = extractOpeningElement(
-            dashboardPlayer,
-            'data-sot-part="dashboard-recording-player-no-audio-title"',
-            "AlertTitle",
-        );
-        const dashboardNoAudioDescription = extractOpeningElement(
-            dashboardPlayer,
-            'data-sot-part="dashboard-recording-player-no-audio-description"',
-            "AlertDescription",
+            'part="dashboard-recording-player-no-audio"',
+            "SotPlayerNoAudioAlert",
         );
         const dashboardVolumeMuteControl = extractOpeningElement(
             dashboardPlayer,
@@ -4954,30 +4944,51 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
         );
-        expect(dashboardPlayer).toContain("<Alert");
-        expect(alertPrimitive).toContain("playerNoAudio:");
-        expect(dashboardNoAudioAlert).toContain('variant="playerNoAudio"');
-        expect(dashboardNoAudioAlert).toContain('density="playerNoAudio"');
-        expect(dashboardNoAudioAlert).toContain('layout="playerNoAudio"');
-        expect(dashboardNoAudioAlert).not.toContain("className=");
-        expect(alertPrimitive).toContain("data-player-no-audio-text");
-        expect(alertPrimitive).not.toContain(
-            "dashboard-recording-player-no-audio-text",
+        expect(dashboardPlayer).toContain("<SotPlayerNoAudioAlert");
+        expect(alertPrimitive).not.toContain("playerNoAudio");
+        expect(alertPrimitive).not.toContain("data-player-no-audio-text");
+        expect(dashboardNoAudioAlert).toContain(
+            'part="dashboard-recording-player-no-audio"',
         );
-        expect(alertPrimitive).not.toContain("recording-player-no-audio-text");
-        expect(dashboardPlayer).toContain("<SotPlayerNoAudioIcon");
+        expect(dashboardNoAudioAlert).toContain(
+            'iconPart="dashboard-recording-player-no-audio-icon"',
+        );
+        expect(dashboardNoAudioAlert).toContain(
+            'textPart="dashboard-recording-player-no-audio-text"',
+        );
+        expect(dashboardNoAudioAlert).toContain(
+            'titlePart="dashboard-recording-player-no-audio-title"',
+        );
+        expect(dashboardNoAudioAlert).toContain(
+            'descriptionPart="dashboard-recording-player-no-audio-description"',
+        );
+        expect(dashboardNoAudioAlert).toContain(
+            "playbackDisabled={playbackDisabled}",
+        );
+        expect(dashboardNoAudioAlert).not.toContain("variant=");
+        expect(dashboardNoAudioAlert).not.toContain("density=");
+        expect(dashboardNoAudioAlert).not.toContain("layout=");
+        expect(dashboardNoAudioAlert).not.toContain("className=");
+        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
+        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
+        expect(sotPlayerPrimitives).toContain('role="status"');
+        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(dashboardPlayer).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
         );
-        expect(dashboardPlayer).toContain("data-player-no-audio-text");
-        expect(dashboardPlayer).toContain("<AlertTitle");
-        expect(dashboardNoAudioTitle).toContain('density="playerNoAudio"');
-        expect(dashboardPlayer).toContain("<AlertDescription");
-        expect(dashboardNoAudioDescription).toContain(
-            'density="playerNoAudio"',
-        );
         expect(dashboardPlayer).toContain(
-            'data-sot-part="dashboard-recording-player-no-audio"',
+            'textPart="dashboard-recording-player-no-audio-text"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "这条录音没有本地音频，无法播放或运行私有重转写。",
         );
         expect(dashboardPlayer).toContain("<CardHeader");
         expect(dashboardPlayer).toContain(
@@ -7743,18 +7754,8 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).not.toContain('className="b ok"');
         const playerNoAudioAlert = extractOpeningElement(
             player,
-            'data-sot-part="recording-player-no-audio"',
-            "Alert",
-        );
-        const playerNoAudioTitle = extractOpeningElement(
-            player,
-            'data-sot-part="recording-player-no-audio-title"',
-            "AlertTitle",
-        );
-        const playerNoAudioDescription = extractOpeningElement(
-            player,
-            'data-sot-part="recording-player-no-audio-description"',
-            "AlertDescription",
+            'part="recording-player-no-audio"',
+            "SotPlayerNoAudioAlert",
         );
         const playerBackControl = extractOpeningElement(
             player,
@@ -7790,7 +7791,7 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("data-sot-state=");
         expect(player).toContain("aria-label={");
         expect(player).toContain('title="Click to cycle playback speed"');
-        expect(player).toContain(
+        expect(player).not.toContain(
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(player).toContain(
@@ -7799,9 +7800,10 @@ describe("full UI replacement regression coverage", () => {
         expect(player).not.toContain(
             'import { Button } from "@/components/ui/button";',
         );
-        expect(player).toContain("<Alert");
-        expect(player).toContain("<AlertTitle");
-        expect(player).toContain("<AlertDescription");
+        expect(player).toContain("<SotPlayerNoAudioAlert");
+        expect(player).not.toContain("<Alert");
+        expect(player).not.toContain("<AlertTitle");
+        expect(player).not.toContain("<AlertDescription");
         expect(player).toContain("<Card");
         expect(player).toContain("hasNoPadding");
         expect(player).toContain("<CardHeader");
@@ -7845,23 +7847,45 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(player).not.toContain(legacyControlToken);
         }
-        expect(player).toContain('data-sot-part="recording-player-no-audio"');
-        expect(alertPrimitive).toContain("playerNoAudio:");
-        expect(playerNoAudioAlert).toContain('variant="playerNoAudio"');
-        expect(playerNoAudioAlert).toContain('density="playerNoAudio"');
-        expect(playerNoAudioAlert).toContain('layout="playerNoAudio"');
-        expect(playerNoAudioAlert).not.toContain("className=");
-        expect(alertPrimitive).toContain("data-player-no-audio-text");
-        expect(alertPrimitive).not.toContain(
-            "dashboard-recording-player-no-audio-text",
+        expect(playerNoAudioAlert).toContain(
+            'part="recording-player-no-audio"',
         );
-        expect(alertPrimitive).not.toContain("recording-player-no-audio-text");
-        expect(player).toContain("<SotPlayerNoAudioIcon");
+        expect(playerNoAudioAlert).toContain(
+            'iconPart="recording-player-no-audio-icon"',
+        );
+        expect(playerNoAudioAlert).toContain(
+            'textPart="recording-player-no-audio-text"',
+        );
+        expect(playerNoAudioAlert).toContain(
+            'titlePart="recording-player-no-audio-title"',
+        );
+        expect(playerNoAudioAlert).toContain(
+            'descriptionPart="recording-player-no-audio-description"',
+        );
+        expect(playerNoAudioAlert).toContain(
+            "playbackDisabled={playbackDisabled}",
+        );
+        expect(alertPrimitive).not.toContain("playerNoAudio");
+        expect(playerNoAudioAlert).not.toContain("variant=");
+        expect(playerNoAudioAlert).not.toContain("density=");
+        expect(playerNoAudioAlert).not.toContain("layout=");
+        expect(playerNoAudioAlert).not.toContain("className=");
+        expect(alertPrimitive).not.toContain("data-player-no-audio-text");
+        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
+        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
+        expect(sotPlayerPrimitives).toContain('role="status"');
+        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(player).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
         );
-        expect(playerNoAudioTitle).toContain('density="playerNoAudio"');
-        expect(playerNoAudioDescription).toContain('density="playerNoAudio"');
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
         expect(player).toContain(

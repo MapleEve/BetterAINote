@@ -151,49 +151,67 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/components/ui/alert.tsx"),
             "utf8",
         );
+        const sotPlayerPrimitives = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/recordings/components/sot-player-primitives.tsx",
+            ),
+            "utf8",
+        );
         const noAudioAlert = extractOpeningElement(
             source,
-            'data-sot-part="recording-player-no-audio"',
-            "Alert",
-        );
-        const noAudioTitle = extractOpeningElement(
-            source,
-            'data-sot-part="recording-player-no-audio-title"',
-            "AlertTitle",
-        );
-        const noAudioDescription = extractOpeningElement(
-            source,
-            'data-sot-part="recording-player-no-audio-description"',
-            "AlertDescription",
+            'part="recording-player-no-audio"',
+            "SotPlayerNoAudioAlert",
         );
 
-        expect(alertPrimitive).toContain("playerNoAudio:");
-        expect(alertPrimitive).toContain('| "playerNoAudio"');
-        expect(source).toContain('data-sot-part="recording-player-no-audio"');
-        expect(source).toContain("<Alert");
-        expect(noAudioAlert).toContain('variant="playerNoAudio"');
-        expect(noAudioAlert).toContain('density="playerNoAudio"');
-        expect(noAudioAlert).toContain('layout="playerNoAudio"');
-        expect(noAudioAlert).not.toContain("className=");
-        expect(alertPrimitive).toContain("data-player-no-audio-text");
-        expect(alertPrimitive).not.toContain(
-            "dashboard-recording-player-no-audio-text",
+        expect(alertPrimitive).not.toContain("playerNoAudio");
+        expect(alertPrimitive).not.toContain("data-player-no-audio-text");
+        expect(source).toContain("<SotPlayerNoAudioAlert");
+        expect(noAudioAlert).toContain('part="recording-player-no-audio"');
+        expect(noAudioAlert).toContain(
+            'iconPart="recording-player-no-audio-icon"',
         );
-        expect(alertPrimitive).not.toContain("recording-player-no-audio-text");
-        expect(source).toContain("<SotPlayerNoAudioIcon");
+        expect(noAudioAlert).toContain(
+            'textPart="recording-player-no-audio-text"',
+        );
+        expect(noAudioAlert).toContain(
+            'titlePart="recording-player-no-audio-title"',
+        );
+        expect(noAudioAlert).toContain(
+            'descriptionPart="recording-player-no-audio-description"',
+        );
+        expect(noAudioAlert).toContain(
+            "playbackDisabled={playbackDisabled}",
+        );
+        expect(noAudioAlert).not.toContain("variant=");
+        expect(noAudioAlert).not.toContain("density=");
+        expect(noAudioAlert).not.toContain("layout=");
+        expect(noAudioAlert).not.toContain("className=");
+        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
+        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
+        expect(sotPlayerPrimitives).toContain('role="status"');
+        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
+        );
+        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
+        expect(sotPlayerPrimitives).toContain("<AlertTitle");
+        expect(sotPlayerPrimitives).toContain("<AlertDescription");
+        expect(sotPlayerPrimitives).toContain(
+            "这条录音没有本地音频，无法播放或运行私有重转写。",
+        );
         expect(source).not.toContain(
             'className="col-start-1 row-span-2 place-self-center"',
         );
         expect(source).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
-        );
-        expect(source).toContain("<AlertTitle");
-        expect(noAudioTitle).toContain('density="playerNoAudio"');
-        expect(source).toContain("<AlertDescription");
-        expect(noAudioDescription).toContain('density="playerNoAudio"');
-        expect(source).toContain('role="status"');
-        expect(source).toContain(
-            "这条录音没有本地音频，无法播放或运行私有重转写。",
         );
         expect(source).not.toContain(
             'className="mb-3 grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px px-3 py-2.5"',

@@ -719,18 +719,8 @@ describe("dashboard SOT foundation", () => {
         );
         const noAudioAlert = extractOpeningElement(
             player,
-            'data-sot-part="dashboard-recording-player-no-audio"',
-            "Alert",
-        );
-        const noAudioTitle = extractOpeningElement(
-            player,
-            'data-sot-part="dashboard-recording-player-no-audio-title"',
-            "AlertTitle",
-        );
-        const noAudioDescription = extractOpeningElement(
-            player,
-            'data-sot-part="dashboard-recording-player-no-audio-description"',
-            "AlertDescription",
+            'part="dashboard-recording-player-no-audio"',
+            "SotPlayerNoAudioAlert",
         );
         const volumeMuteControl = extractOpeningElement(
             player,
@@ -757,25 +747,46 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(card).toContain(token);
         }
-        expect(player).toContain("<Alert");
-        expect(alert).toContain("playerNoAudio:");
-        expect(noAudioAlert).toContain('variant="playerNoAudio"');
-        expect(noAudioAlert).toContain('density="playerNoAudio"');
-        expect(noAudioAlert).toContain('layout="playerNoAudio"');
+        expect(player).toContain("<SotPlayerNoAudioAlert");
+        expect(alert).not.toContain("playerNoAudio");
+        expect(alert).not.toContain("data-player-no-audio-text");
+        expect(noAudioAlert).toContain(
+            'part="dashboard-recording-player-no-audio"',
+        );
+        expect(noAudioAlert).toContain(
+            'iconPart="dashboard-recording-player-no-audio-icon"',
+        );
+        expect(noAudioAlert).toContain(
+            'textPart="dashboard-recording-player-no-audio-text"',
+        );
+        expect(noAudioAlert).toContain(
+            'titlePart="dashboard-recording-player-no-audio-title"',
+        );
+        expect(noAudioAlert).toContain(
+            'descriptionPart="dashboard-recording-player-no-audio-description"',
+        );
+        expect(noAudioAlert).toContain(
+            "playbackDisabled={playbackDisabled}",
+        );
+        expect(noAudioAlert).not.toContain("variant=");
+        expect(noAudioAlert).not.toContain("density=");
+        expect(noAudioAlert).not.toContain("layout=");
         expect(noAudioAlert).not.toContain("className=");
-        expect(alert).toContain("data-player-no-audio-text");
-        expect(alert).not.toContain("dashboard-recording-player-no-audio-text");
-        expect(alert).not.toContain("recording-player-no-audio-text");
-        expect(player).toContain("<SotPlayerNoAudioIcon");
+        expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
+        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
+        expect(sotPlayerPrimitives).toContain('role="status"');
+        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(player).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
         );
-        expect(player).toContain("data-player-no-audio-text");
         expect(player).toContain(
-            'data-sot-part="dashboard-recording-player-no-audio-text"',
+            'textPart="dashboard-recording-player-no-audio-text"',
         );
-        expect(noAudioTitle).toContain('density="playerNoAudio"');
-        expect(noAudioDescription).toContain('density="playerNoAudio"');
         expect(player).toContain("<CardHeader");
         expect(player).toContain(
             'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',

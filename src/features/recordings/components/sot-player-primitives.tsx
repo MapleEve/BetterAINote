@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import type * as React from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { PopoverContent } from "@/components/ui/popover";
@@ -527,5 +528,80 @@ export function SotPlayerNoAudioIcon({
             <line x1="23" y1="9" x2="17" y2="15" />
             <line x1="17" y1="9" x2="23" y2="15" />
         </svg>
+    );
+}
+
+const SOT_PLAYER_NO_AUDIO_ALERT_CLASS =
+    "mb-3 grid w-full grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px rounded-[10px] border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)]";
+
+const SOT_PLAYER_NO_AUDIO_ICON_CLASS =
+    "col-start-1 row-span-2 inline-grid size-[26px] place-self-center place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]";
+
+const SOT_PLAYER_NO_AUDIO_TEXT_CLASS =
+    "col-start-2 flex min-w-0 flex-col gap-px";
+
+const SOT_PLAYER_NO_AUDIO_TITLE_CLASS =
+    "min-h-0 font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)]";
+
+const SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS =
+    "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]";
+
+type SotPlayerNoAudioAlertProps = Omit<
+    React.ComponentProps<typeof Alert>,
+    "children" | "density" | "layout" | "variant"
+> & {
+    descriptionPart: string;
+    iconPart: string;
+    part: string;
+    playbackDisabled: boolean;
+    textPart: string;
+    titlePart: string;
+};
+
+export function SotPlayerNoAudioAlert({
+    className,
+    descriptionPart,
+    iconPart,
+    part,
+    playbackDisabled,
+    textPart,
+    titlePart,
+    ...props
+}: SotPlayerNoAudioAlertProps) {
+    return (
+        <Alert
+            {...props}
+            className={cn(SOT_PLAYER_NO_AUDIO_ALERT_CLASS, className)}
+            data-sot-part={part}
+            data-sot-state={playbackDisabled ? "visible" : "hidden"}
+            hidden={!playbackDisabled}
+            role="status"
+        >
+            <span
+                className={SOT_PLAYER_NO_AUDIO_ICON_CLASS}
+                data-icon="inline-start"
+                data-sot-part={iconPart}
+            >
+                <SotPlayerNoAudioIcon />
+            </span>
+            <span
+                className={SOT_PLAYER_NO_AUDIO_TEXT_CLASS}
+                data-player-no-audio-text=""
+                data-sot-part={textPart}
+            >
+                <AlertTitle
+                    className={SOT_PLAYER_NO_AUDIO_TITLE_CLASS}
+                    data-sot-part={titlePart}
+                >
+                    来源仅同步转写与报告
+                </AlertTitle>
+                <AlertDescription
+                    className={SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS}
+                    data-sot-part={descriptionPart}
+                >
+                    这条录音没有本地音频，无法播放或运行私有重转写。
+                </AlertDescription>
+            </span>
+        </Alert>
     );
 }

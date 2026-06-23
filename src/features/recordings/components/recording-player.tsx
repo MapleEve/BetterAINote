@@ -3,7 +3,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
@@ -15,7 +14,7 @@ import {
     SotPlayerBackIcon,
     SotPlayerControlButton,
     SotPlayerForwardIcon,
-    SotPlayerNoAudioIcon,
+    SotPlayerNoAudioAlert,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
     SotPlayerPrimaryButton,
@@ -123,34 +122,14 @@ export function RecordingPlayer({
             data-sot-surface="recording-player"
             style={sotPlayerFontVariables}
         >
-            <Alert
-                variant="playerNoAudio"
-                density="playerNoAudio"
-                layout="playerNoAudio"
-                data-sot-part="recording-player-no-audio"
-                data-sot-state={playbackDisabled ? "visible" : "hidden"}
-                hidden={!playbackDisabled}
-                role="status"
-            >
-                <span
-                    data-icon="inline-start"
-                    data-sot-part="recording-player-no-audio-icon"
-                >
-                    <SotPlayerNoAudioIcon />
-                </span>
-                <AlertTitle
-                    density="playerNoAudio"
-                    data-sot-part="recording-player-no-audio-title"
-                >
-                    来源仅同步转写与报告
-                </AlertTitle>
-                <AlertDescription
-                    density="playerNoAudio"
-                    data-sot-part="recording-player-no-audio-description"
-                >
-                    这条录音没有本地音频，无法播放或运行私有重转写。
-                </AlertDescription>
-            </Alert>
+            <SotPlayerNoAudioAlert
+                part="recording-player-no-audio"
+                iconPart="recording-player-no-audio-icon"
+                textPart="recording-player-no-audio-text"
+                titlePart="recording-player-no-audio-title"
+                descriptionPart="recording-player-no-audio-description"
+                playbackDisabled={playbackDisabled}
+            />
 
             <CardHeader data-sot-part="recording-player-meta">
                 <span
