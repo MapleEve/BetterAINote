@@ -1908,32 +1908,7 @@ button:not([data-slot]) {
     color: var(--fg-tertiary);
 }
 
-/* ======== System reference cards / auth / onboarding ======== */
-[data-sot-card]:not([data-sot-card="source-report-metric"]) {
-    display: block;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    border-radius: 14px;
-    overflow: visible;
-    padding: 18px;
-    box-shadow: var(--shadow-xs);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-[data-sot-card]:not([data-sot-card="source-report-metric"])
-    + [data-sot-card]:not([data-sot-card="source-report-metric"]) {
-    margin-top: 14px;
-}
-[data-sot-part="card-heading"] {
-    font: 600 13px var(--font-sans);
-    color: var(--fg-primary);
-    margin: 0 0 4px;
-}
-[data-sot-part="card-heading"] + [data-sot-part="card-sub"] {
-    font: 12px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-    margin: 0 0 14px;
-}
+/* ======== System reference frames / auth / onboarding ======== */
 [data-sot-frame] {
     background: var(--bg-canvas);
     border: 1px solid var(--line-hairline);
@@ -1960,10 +1935,6 @@ button:not([data-slot]) {
     padding: 28px 32px 80px;
     background: var(--bg-canvas);
     color: var(--fg-primary);
-}
-[data-sot-card="auth"] {
-    width: min(420px, 100%);
-    min-height: 389px;
 }
 [data-sot-frame="auth"] {
     padding: 28px;
@@ -1994,9 +1965,6 @@ button:not([data-slot]) {
     font: 12px var(--font-sans);
     color: var(--fg-disabled);
     margin-top: 14px;
-}
-[data-sot-card="onboarding"] {
-    width: min(420px, 100%);
 }
 [data-sot-frame="onboarding"] {
     padding: 18px;

@@ -11,6 +11,15 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
 ] as const;
 
+const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])',
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
+    '[data-sot-part="card-heading"]',
+    '[data-sot-part="card-heading"] + [data-sot-part="card-sub"]',
+    '[data-sot-card="auth"]',
+    '[data-sot-card="onboarding"]',
+] as const;
+
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
@@ -442,14 +451,9 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-row-title"]',
     '[data-sot-part="dashboard-recording-row-meta"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
-    "[data-sot-card]",
-    '[data-sot-card="auth"]',
-    '[data-sot-card="onboarding"]',
     "[data-sot-frame]",
     '[data-sot-frame="auth"]',
     '[data-sot-frame="onboarding"]',
-    '[data-sot-part="card-heading"]',
-    '[data-sot-part="card-sub"]',
     '[data-sot-part="recording-list-state"]',
     '[data-sot-panel="recording-list-pagination"]',
     '[data-sot-part="recording-list-state-icon"]',
@@ -1148,11 +1152,6 @@ const SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS = [
 const SOURCE_REPORT_METRIC_GENERIC_CARD_SELECTORS = [
     "[data-sot-card]",
     "[data-sot-card] + [data-sot-card]",
-];
-
-const SOURCE_REPORT_METRIC_GENERIC_CARD_EXCLUSIONS = [
-    '[data-sot-card]:not([data-sot-card="source-report-metric"])',
-    '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
 ];
 
 const SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS = [
@@ -4513,8 +4512,8 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_METRIC_GENERIC_CARD_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        for (const selector of SOURCE_REPORT_METRIC_GENERIC_CARD_EXCLUSIONS) {
-            expect(globals).toContain(selector);
+        for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
         for (const selector of SOURCE_REPORT_METRIC_REMOVED_CARD_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);

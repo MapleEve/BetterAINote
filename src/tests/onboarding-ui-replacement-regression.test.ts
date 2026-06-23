@@ -105,6 +105,15 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"][data-sot-state="disabled"]',
 ] as const;
 
+const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])',
+    '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
+    '[data-sot-part="card-heading"]',
+    '[data-sot-part="card-heading"] + [data-sot-part="card-sub"]',
+    '[data-sot-card="auth"]',
+    '[data-sot-card="onboarding"]',
+] as const;
+
 describe("onboarding UI replacement regression", () => {
     it("keeps onboarding as a four-step SOT workstation surface", () => {
         const source = readSource(
@@ -175,6 +184,7 @@ describe("onboarding UI replacement regression", () => {
             '? "onboardingSourceField"',
         );
         expect(source).toContain('variant="onboardingSurface"');
+        expect(source).toContain('data-sot-card="onboarding"');
         expect(source).toContain('variant="onboardingProviderCard"');
         expect(source).toContain('size="onboardingProviderCard"');
         expect(source).toContain('variant="onboardingDefaultSource"');
@@ -342,6 +352,9 @@ describe("onboarding UI replacement regression", () => {
         expect(globals).toContain(
             '[data-sot-list="onboarding-default-sources"]',
         );
+        for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }

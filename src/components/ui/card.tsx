@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 
 const cardVariants = {
     default: "",
-    authSurface: "gap-0",
-    onboardingSurface: "min-h-[375px] gap-0",
+    authSurface:
+        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+    onboardingSurface:
+        "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
     onboardingSpeakerDraft:
         "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     elevated:
@@ -57,9 +59,11 @@ const cardHeaderVariants = {
 
 const cardTitleVariants = {
     default: "leading-none font-semibold",
-    authHeaderTitle: "",
+    authHeaderTitle:
+        "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
     authFrameTitle: "",
-    onboardingHeading: "leading-none font-semibold",
+    onboardingHeading:
+        "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
     onboardingStepTitle: "leading-none font-semibold",
     onboardingProviderName: "leading-none font-semibold",
     detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate",
@@ -117,9 +121,11 @@ const cardFooterVariants = {
 
 const cardDescriptionVariants = {
     default: "text-sm text-muted-foreground",
-    authHeaderDescription: "",
+    authHeaderDescription:
+        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
     authFrameDescription: "",
-    onboardingSub: "text-sm text-muted-foreground",
+    onboardingSub:
+        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
     onboardingStepDescription: "text-sm text-muted-foreground",
     onboardingProviderHint: "text-sm text-muted-foreground",
     aiRenamePreview:
