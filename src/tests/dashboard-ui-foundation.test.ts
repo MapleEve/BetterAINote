@@ -21,6 +21,22 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractVariantDefinition(source: string, variantName: string) {
+    const marker = `${variantName}:\n`;
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.indexOf('"', markerIndex);
+    expect(start).toBeGreaterThan(markerIndex);
+
+    for (let index = start + 1; index < source.length; index += 1) {
+        if (source[index] === '"' && source[index - 1] !== "\\") {
+            return source.slice(markerIndex, index + 1);
+        }
+    }
+
+    throw new Error(`Unclosed variant definition: ${variantName}`);
+}
+
 function extractOpeningElement(source: string, marker: string, tagName: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -106,6 +122,9 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
     "SIDEBAR_COLLAPSE",
     "SETTINGS_AVATAR",
 ].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
+
+const SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE =
+    /dark:[^"']*rgb\(|(?:bg|border)-\[rgb/;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
     "dashboardRecordingRow",
@@ -1224,6 +1243,98 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('size="dashboardSource"');
         expect(workstation).toContain('data-sot-part="source-provider-label"');
         expect(workstation).toContain('data-sot-part="source-provider-status"');
+        const sourceProviderRows = extractBoundedSlice(
+            workstation,
+            "{sourceRows.map((item) => {",
+            'data-sot-panel="dashboard-sync"',
+        );
+        const sourceProviderStatusBadge = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-part="source-provider-status"',
+            "Badge",
+        );
+        const sourceProviderCountBadge = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-part="source-provider-count"',
+            "Badge",
+        );
+        const dashboardSourceButtonVariant = extractVariantDefinition(
+            buttonPrimitive,
+            "dashboardSource",
+        );
+        const dashboardSourceStatusVariant = extractVariantDefinition(
+            badgePrimitive,
+            "dashboardSourceStatus",
+        );
+        const dashboardSourceCountVariant = extractVariantDefinition(
+            badgePrimitive,
+            "dashboardSourceCount",
+        );
+        expect(sourceProviderRows).toContain("sourceProviderStatusTone(");
+        expect(sourceProviderRows).toContain("sourceProviderCountTone(");
+        expect(sourceProviderRows).toContain("sourceRowCollapsed");
+        expect(sourceProviderRows).toContain(
+            '"justify-center gap-0 px-0 py-2"',
+        );
+        expect(sourceProviderRows).toContain('"absolute bottom-1 right-1"');
+        expect(sourceProviderStatusBadge).toContain(
+            'variant="dashboardSourceStatus"',
+        );
+        expect(sourceProviderStatusBadge).toContain(
+            "data-sot-tone={sourceStatusTone}",
+        );
+        expect(sourceProviderCountBadge).toContain(
+            'variant="dashboardSourceCount"',
+        );
+        expect(sourceProviderCountBadge).toContain(
+            "data-sot-tone={sourceCountTone}",
+        );
+        for (const dashboardSourceMarkToken of [
+            "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
+            "[&_[data-sot-part=source-provider-mark]]:rounded-[4px]",
+            "[&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)]",
+            "[&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)]",
+            "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
+            "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+            "dark:[&_[data-sot-part=source-provider-mark]]:bg-[var(--glass-tint-subtle)]",
+            "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65]",
+            "data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale",
+            "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7]",
+        ]) {
+            expect(buttonPrimitive).toContain(dashboardSourceMarkToken);
+        }
+        for (const dashboardSourceBadgeToken of [
+            "dashboardSourceStatus:",
+            "data-[sot-tone=ok]:bg-[var(--signal-success)]",
+            "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
+            "data-[sot-tone=err]:shadow-[0_0_0_2px_var(--source-provider-status-danger-bg)]",
+            "dashboardSourceCount:",
+            "dark:bg-[var(--glass-tint-subtle)]",
+            "data-[sot-tone=active]:bg-[var(--bg-elevated)]",
+            "data-[sot-tone=empty]:line-through",
+            "data-[sot-tone=err]:text-[var(--signal-danger)]",
+        ]) {
+            expect(badgePrimitive).toContain(dashboardSourceBadgeToken);
+        }
+        for (const repairedVariant of [
+            dashboardSourceButtonVariant,
+            dashboardSourceStatusVariant,
+            dashboardSourceCountVariant,
+        ]) {
+            expect(repairedVariant).not.toMatch(
+                SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE,
+            );
+        }
+        for (const migratedSourceProviderSelector of [
+            '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
+            '[data-sot-part="source-provider-mark"]',
+            '[data-sot-part="source-provider-status"]',
+            '[data-sot-part="source-provider-count"]',
+        ]) {
+            expect(
+                collectCssRuleBlocks(globals, migratedSourceProviderSelector),
+            ).toEqual([]);
+        }
         expect(workstation).toContain("sourceRowDisabled(");
         expect(workstation).toContain("sourceActionKind(");
         expect(workstation).toContain("disabled={disabledSourceRow}");

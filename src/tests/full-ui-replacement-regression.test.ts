@@ -46,6 +46,22 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractVariantDefinition(source: string, variantName: string) {
+    const marker = `${variantName}:\n`;
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.indexOf('"', markerIndex);
+    expect(start).toBeGreaterThan(markerIndex);
+
+    for (let index = start + 1; index < source.length; index += 1) {
+        if (source[index] === '"' && source[index - 1] !== "\\") {
+            return source.slice(markerIndex, index + 1);
+        }
+    }
+
+    throw new Error(`Unclosed variant definition: ${variantName}`);
+}
+
 function extractElementSlice(source: string, marker: string, tagName: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -563,13 +579,17 @@ const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
     '[data-sot-panel="library-search"]',
 ] as const;
 
-const DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS = [
+const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"]',
     '[data-sot-part="source-provider-mark"]',
     '[data-sot-part="source-provider-status"]',
+    '[data-sot-part="source-provider-count"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="syncing"]',
     '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
 ];
+
+const SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE =
+    /dark:[^"']*rgb\(|(?:bg|border)-\[rgb/;
 
 const DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS = [
     '[data-sot-control="sidebar-collapse"][data-slot="button"]',
@@ -2727,7 +2747,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps dashboard topbar source/status atoms on data-sot product CSS selectors", () => {
+    it("keeps dashboard topbar globals while source-provider atoms are primitive-owned", () => {
         const globals = readSource("app/globals.css");
         const productCss = readProductCss(globals);
         const legacySelectorLines = globals
@@ -2744,8 +2764,8 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
-        for (const selector of DASHBOARD_TOPBAR_SOURCE_STATUS_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
     });
 
@@ -3765,6 +3785,47 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-label"',
         );
+        const sourceProviderStatusBadge = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-part="source-provider-status"',
+            "Badge",
+        );
+        const sourceProviderCountBadge = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-part="source-provider-count"',
+            "Badge",
+        );
+        const dashboardSourceButtonVariant = extractVariantDefinition(
+            button,
+            "dashboardSource",
+        );
+        const dashboardSourceStatusVariant = extractVariantDefinition(
+            sourceReportBadgePrimitive,
+            "dashboardSourceStatus",
+        );
+        const dashboardSourceCountVariant = extractVariantDefinition(
+            sourceReportBadgePrimitive,
+            "dashboardSourceCount",
+        );
+        expect(sourceProviderRows).toContain("sourceProviderStatusTone(");
+        expect(sourceProviderRows).toContain("sourceProviderCountTone(");
+        expect(sourceProviderRows).toContain("sourceRowCollapsed");
+        expect(sourceProviderRows).toContain(
+            '"justify-center gap-0 px-0 py-2"',
+        );
+        expect(sourceProviderRows).toContain('"absolute bottom-1 right-1"');
+        expect(sourceProviderStatusBadge).toContain(
+            'variant="dashboardSourceStatus"',
+        );
+        expect(sourceProviderStatusBadge).toContain(
+            "data-sot-tone={sourceStatusTone}",
+        );
+        expect(sourceProviderCountBadge).toContain(
+            'variant="dashboardSourceCount"',
+        );
+        expect(sourceProviderCountBadge).toContain(
+            "data-sot-tone={sourceCountTone}",
+        );
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-action"',
         );
@@ -3773,6 +3834,44 @@ describe("full UI replacement regression coverage", () => {
         );
         for (const token of DASHBOARD_SOURCE_PROVIDER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
             expect(button).toContain(token);
+        }
+        for (const dashboardSourceMarkToken of [
+            "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
+            "[&_[data-sot-part=source-provider-mark]]:rounded-[4px]",
+            "[&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)]",
+            "[&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)]",
+            "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
+            "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+            "dark:[&_[data-sot-part=source-provider-mark]]:bg-[var(--glass-tint-subtle)]",
+            "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65]",
+            "data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale",
+            "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7]",
+        ]) {
+            expect(button).toContain(dashboardSourceMarkToken);
+        }
+        for (const dashboardSourceBadgeToken of [
+            "dashboardSourceStatus:",
+            "data-[sot-tone=ok]:bg-[var(--signal-success)]",
+            "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
+            "data-[sot-tone=err]:shadow-[0_0_0_2px_var(--source-provider-status-danger-bg)]",
+            "dashboardSourceCount:",
+            "dark:bg-[var(--glass-tint-subtle)]",
+            "data-[sot-tone=active]:bg-[var(--bg-elevated)]",
+            "data-[sot-tone=empty]:line-through",
+            "data-[sot-tone=err]:text-[var(--signal-danger)]",
+        ]) {
+            expect(sourceReportBadgePrimitive).toContain(
+                dashboardSourceBadgeToken,
+            );
+        }
+        for (const repairedVariant of [
+            dashboardSourceButtonVariant,
+            dashboardSourceStatusVariant,
+            dashboardSourceCountVariant,
+        ]) {
+            expect(repairedVariant).not.toMatch(
+                SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE,
+            );
         }
         expect(sourceProviderRows).not.toContain(
             "SOT defines source row action as span[role=button]",
@@ -3822,9 +3921,6 @@ describe("full UI replacement regression coverage", () => {
             legacySourceFilterActionClassNamePattern,
         );
         expect(sourceFilterStack).not.toMatch(legacySourceAttributePattern);
-        expect(globals).toContain(
-            '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
-        );
         for (const selector of DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -3836,9 +3932,9 @@ describe("full UI replacement regression coverage", () => {
 
             expect(directStateBlocks).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-part="source-provider-mark"][data-sot-variant="letter"]',
-        );
+        for (const selector of DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(globals).not.toContain("source-provider-action");
         expect(
             collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),

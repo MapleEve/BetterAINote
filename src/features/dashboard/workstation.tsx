@@ -1091,6 +1091,40 @@ function sourceActionKind(status: SourceStatus) {
     return null;
 }
 
+type SourceRowState = ReturnType<typeof getSourceRowState>;
+
+function sourceProviderStatusTone(sourceRowState: SourceRowState) {
+    switch (sourceRowState) {
+        case "connected-active":
+        case "connected-idle":
+            return "ok";
+        case "syncing":
+            return "syncing";
+        case "sync-error":
+            return "err";
+        case "expired":
+        case "no-results":
+            return "warn";
+        case "disabled":
+            return "disabled";
+        case "needs-setup":
+            return "neu";
+    }
+}
+
+function sourceProviderCountTone(sourceRowState: SourceRowState) {
+    switch (sourceRowState) {
+        case "connected-active":
+            return "active";
+        case "sync-error":
+            return "err";
+        case "no-results":
+            return "empty";
+        default:
+            return "neutral";
+    }
+}
+
 function getFavoriteLabel(value: Favorite, t: Translator) {
     switch (value) {
         case "all":
@@ -3891,6 +3925,12 @@ export function Workstation({
                                 item.status,
                                 item.active,
                             );
+                            const sourceRowCollapsed =
+                                collapsed && !drawerOpen;
+                            const sourceStatusTone =
+                                sourceProviderStatusTone(sourceRowState);
+                            const sourceCountTone =
+                                sourceProviderCountTone(sourceRowState);
                             const actionLabel =
                                 actionKind === "retry"
                                     ? t("activityOverlay.actions.retry")
@@ -3917,6 +3957,10 @@ export function Workstation({
                                     variant="dashboardSource"
                                     size="dashboardSource"
                                     type="button"
+                                    className={cn(
+                                        sourceRowCollapsed &&
+                                            "justify-center gap-0 px-0 py-2",
+                                    )}
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
                                     }
@@ -3972,14 +4016,29 @@ export function Workstation({
                                         </span>
                                     )}
                                     <span
-                                        className="min-w-0 flex-1 truncate"
+                                        className={cn(
+                                            "min-w-0 flex-1 truncate",
+                                            sourceRowCollapsed && "hidden",
+                                        )}
                                         data-sot-part="source-provider-label"
                                     >
                                         {item.label}
                                     </span>
-                                    <span
+                                    <Badge
                                         aria-hidden="true"
+                                        variant="dashboardSourceStatus"
+                                        className={cn(
+                                            sourceRowCollapsed &&
+                                                "absolute bottom-1 right-1",
+                                        )}
+                                        data-sot-effect={
+                                            sourceRowState === "expired"
+                                                ? "ring"
+                                                : undefined
+                                        }
                                         data-sot-part="source-provider-status"
+                                        data-sot-state={sourceRowState}
+                                        data-sot-tone={sourceStatusTone}
                                     />
                                     {actionKind ? (
                                         <Button
@@ -4049,12 +4108,18 @@ export function Workstation({
                                             </span>
                                         </Button>
                                     ) : (
-                                        <span
+                                        <Badge
+                                            variant="dashboardSourceCount"
+                                            className={cn(
+                                                sourceRowCollapsed && "hidden",
+                                            )}
                                             data-count={`src:${item.key}`}
                                             data-sot-part="source-provider-count"
+                                            data-sot-state={sourceRowState}
+                                            data-sot-tone={sourceCountTone}
                                         >
                                             {visibleCount}
-                                        </span>
+                                        </Badge>
                                     )}
                                 </Button>
                             );
