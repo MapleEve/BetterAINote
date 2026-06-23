@@ -146,10 +146,6 @@ const buttonVariants = cva(
                     "border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
                 recordingListChipClear:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
-                recordingListTagFilterTrigger:
-                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
-                recordingListTagFilterOption:
-                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:hover:bg-accent/50",
                 recordingListStatePrimary:
                     "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
                 recordingListStateAction:
@@ -247,10 +243,6 @@ const buttonVariants = cva(
                     "size-[30px] rounded-full text-xs font-semibold",
                 recordingListChipClear:
                     "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
-                recordingListTagFilterTrigger:
-                    "h-8 w-full justify-start gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-                recordingListTagFilterOption:
-                    "h-8 w-full justify-start gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 recordingListStateAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 recordingListPagination:

@@ -898,8 +898,6 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
     "recordingListChipClear",
-    "recordingListTagFilterTrigger",
-    "recordingListTagFilterOption",
     "recordingListStatePrimary",
     "recordingListStateAction",
     "recordingListPagination",
@@ -907,10 +905,13 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "recordingListChipClear",
-    "recordingListTagFilterTrigger",
-    "recordingListTagFilterOption",
     "recordingListStateAction",
     "recordingListPagination",
+] as const;
+
+const DASHBOARD_RECORDING_LIST_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "recordingListTagFilterTrigger",
+    "recordingListTagFilterOption",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
@@ -925,6 +926,18 @@ const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
 const DASHBOARD_SOURCE_FILTER_BADGE_PRIMITIVE_FORBIDDEN_TOKENS = [
     "dashboardSourceStatus",
     "dashboardSourceCount",
+] as const;
+
+const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
+    "trigger:",
+    "w-full justify-start",
+    "text-[var(--fg-primary)]",
+    "option:",
+    "border border-transparent",
+    "bg-transparent",
+    "text-[var(--fg-secondary)]",
+    "data-[sot-state=selected]:bg-secondary",
+    "data-[sot-state=selected]:text-secondary-foreground",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
@@ -2409,6 +2422,10 @@ describe("full UI replacement regression coverage", () => {
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
             expect(buttonSizeBlock).toContain(`${size}:`);
         }
+        expectPrimitiveToExcludeBusinessTokens(
+            button,
+            DASHBOARD_RECORDING_LIST_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
+        );
         expect(button).toContain(
             'default:\n                    "bg-primary text-primary-foreground hover:bg-primary/90"',
         );
@@ -5014,11 +5031,22 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
         );
+        const tagFilterStyles = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingTagFilterStyles = {",
+            "} as const;",
+        );
+        for (const snippet of DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS) {
+            expect(tagFilterStyles).toContain(snippet);
+        }
         expect(workstation).toMatch(
-            /<Button\s+variant="recordingListTagFilterTrigger"\s+size="recordingListTagFilterTrigger"[\s\S]*data-sot-control="recording-list-tag-filter-trigger"/,
+            /<div[\s\S]*role="listbox"[\s\S]*data-tag-filter-list=""[\s\S]*data-sot-list="recording-list-tag-filter-list"/,
         );
         expect(workstation).toMatch(
-            /<Button\s+variant="recordingListTagFilterOption"\s+size="recordingListTagFilterOption"[\s\S]*role="option"[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}/,
+            /<Button\s+variant="outline"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.trigger\s*\}[\s\S]*type="button"[\s\S]*aria-haspopup="listbox"[\s\S]*aria-expanded=\{\s*tagFilterOpen\s*\}[\s\S]*data-tag-filter-trigger=""[\s\S]*data-sot-control="recording-list-tag-filter-trigger"[\s\S]*onClick=\{\(\) =>\s*setTagFilterOpen\(\(open\) => !open\)\s*\}/,
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="ghost"\s+size="sm"\s+className=\{\s*dashboardRecordingTagFilterStyles\.option\s*\}[\s\S]*type="button"[\s\S]*role="option"[\s\S]*data-tag-value=\{\s*option\.value\s*\}[\s\S]*aria-selected=\{\s*active\s*\}[\s\S]*data-sot-control="recording-list-tag-filter"[\s\S]*data-sot-state=\{\s*active\s*\?\s*"selected"\s*:\s*"idle"\s*\}[\s\S]*onClick=\{\(\) => \{[\s\S]*setSelectedTagFilter\(\s*option\.value,?\s*\);[\s\S]*setTagFilterOpen\(false\);[\s\S]*\}\}/,
         );
         expect(workstation).not.toMatch(
             /variant=\{\s*active\s*\?\s*"secondary"\s*:\s*"ghost"\s*\}/,

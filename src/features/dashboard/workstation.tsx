@@ -455,6 +455,12 @@ const dashboardRecordingTimeFilterStyles = {
     countSelected: "bg-primary/10 text-primary",
 } as const;
 
+const dashboardRecordingTagFilterStyles = {
+    trigger: "w-full justify-start text-[var(--fg-primary)]",
+    option:
+        "w-full justify-start border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
+} as const;
+
 const dashboardSearchActivityClassNames = {
     dashboardSearchTrigger:
         "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-4",
@@ -5515,8 +5521,11 @@ export function Workstation({
                                     ref={tagFilterRef}
                                 >
                                     <Button
-                                        variant="recordingListTagFilterTrigger"
-                                        size="recordingListTagFilterTrigger"
+                                        variant="outline"
+                                        size="sm"
+                                        className={
+                                            dashboardRecordingTagFilterStyles.trigger
+                                        }
                                         type="button"
                                         aria-haspopup="listbox"
                                         aria-expanded={tagFilterOpen}
@@ -5556,8 +5565,11 @@ export function Workstation({
                                                 selectedTagFilter;
                                             return (
                                                 <Button
-                                                    variant="recordingListTagFilterOption"
-                                                    size="recordingListTagFilterOption"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={
+                                                        dashboardRecordingTagFilterStyles.option
+                                                    }
                                                     type="button"
                                                     role="option"
                                                     data-tag-value={
