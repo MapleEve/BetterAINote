@@ -4,6 +4,8 @@ import { Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PopoverContent } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import type { RecordingTag } from "@/lib/recording-tags";
 import { cn } from "@/lib/utils";
 import { RecordingTagIconGlyph } from "./recording-tag-visuals";
@@ -67,6 +69,82 @@ export function formatSotPlayerTime(value: number) {
 
 export function formatSotPlaybackSpeed(value: number) {
     return `${Number.isInteger(value) ? value.toFixed(1) : value}×`;
+}
+
+type SotPlayerSliderProps = Omit<
+    React.ComponentProps<typeof Slider>,
+    "variant"
+>;
+
+type SotPlayerVolumePopoverContentProps = Omit<
+    React.ComponentProps<typeof PopoverContent>,
+    "variant"
+>;
+
+const SOT_PLAYER_SEEK_SLIDER_CLASS =
+    "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:bg-[rgb(224_227_230)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]";
+
+const SOT_PLAYER_SEEK_RANGE_CLASS =
+    "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]";
+
+const SOT_PLAYER_SEEK_THUMB_CLASS =
+    "size-[14px] border-0 bg-white p-0 shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]";
+
+const SOT_PLAYER_VOLUME_SLIDER_CLASS =
+    "h-[18px] min-w-[110px] flex-1";
+
+const SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS =
+    "w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2";
+
+export function SotPlayerSeekSlider({
+    className,
+    rangeProps,
+    thumbProps,
+    ...props
+}: SotPlayerSliderProps) {
+    const { className: rangeClassName, ...rangePrimitiveProps } =
+        rangeProps ?? {};
+    const { className: thumbClassName, ...thumbPrimitiveProps } =
+        thumbProps ?? {};
+
+    return (
+        <Slider
+            {...props}
+            className={cn(SOT_PLAYER_SEEK_SLIDER_CLASS, className)}
+            rangeProps={{
+                ...rangePrimitiveProps,
+                className: cn(SOT_PLAYER_SEEK_RANGE_CLASS, rangeClassName),
+            }}
+            thumbProps={{
+                ...thumbPrimitiveProps,
+                className: cn(SOT_PLAYER_SEEK_THUMB_CLASS, thumbClassName),
+            }}
+        />
+    );
+}
+
+export function SotPlayerVolumeSlider({
+    className,
+    ...props
+}: SotPlayerSliderProps) {
+    return (
+        <Slider
+            {...props}
+            className={cn(SOT_PLAYER_VOLUME_SLIDER_CLASS, className)}
+        />
+    );
+}
+
+export function SotPlayerVolumePopoverContent({
+    className,
+    ...props
+}: SotPlayerVolumePopoverContentProps) {
+    return (
+        <PopoverContent
+            {...props}
+            className={cn(SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS, className)}
+        />
+    );
 }
 
 const SOT_PLAYER_SOURCE_BADGE_CLASS =

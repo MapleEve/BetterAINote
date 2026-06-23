@@ -6,12 +6,7 @@ import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
 import type { Recording } from "@/types/recording";
@@ -23,10 +18,13 @@ import {
     SotPlayerNoAudioIcon,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
+    SotPlayerSeekSlider,
     SotPlayerSourceTag,
     SotPlayerStatusBadge,
     SotPlayerTagChip,
+    SotPlayerVolumePopoverContent,
     SotPlayerVolumeIcon,
+    SotPlayerVolumeSlider,
     sotPlayerVolumeLevel,
 } from "./sot-player-primitives";
 
@@ -261,7 +259,7 @@ export function RecordingPlayer({
                     {formatSotPlayerTime(currentTime)}
                 </span>
 
-                <Slider
+                <SotPlayerSeekSlider
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
@@ -315,7 +313,6 @@ export function RecordingPlayer({
                         "data-pct": playerProgressPct,
                     }}
                     value={[progress]}
-                    variant="playerSeek"
                 />
 
                 <span data-sot-part="recording-player-duration">
@@ -383,7 +380,7 @@ export function RecordingPlayer({
                                 </span>
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent
+                        <SotPlayerVolumePopoverContent
                             align="end"
                             side="top"
                             sideOffset={8}
@@ -395,7 +392,6 @@ export function RecordingPlayer({
                             aria-label={
                                 language === "zh-CN" ? "音量" : "Volume"
                             }
-                            variant="playerVolume"
                         >
                             <div
                                 className="flex items-center gap-2"
@@ -427,7 +423,7 @@ export function RecordingPlayer({
                                         <SotPlayerVolumeIcon volume={volume} />
                                     </span>
                                 </Button>
-                                <Slider
+                                <SotPlayerVolumeSlider
                                     min={0}
                                     max={100}
                                     step={1}
@@ -443,7 +439,6 @@ export function RecordingPlayer({
                                     onValueChange={(nextValue) =>
                                         setVolume(nextValue[0] ?? volume)
                                     }
-                                    variant="playerVolume"
                                 />
                                 <span
                                     className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
@@ -452,7 +447,7 @@ export function RecordingPlayer({
                                     {volume}
                                 </span>
                             </div>
-                        </PopoverContent>
+                        </SotPlayerVolumePopoverContent>
                     </div>
                 </Popover>
             </CardContent>

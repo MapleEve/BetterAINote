@@ -15,7 +15,7 @@ type SliderRangeProps = React.ComponentProps<typeof SliderPrimitive.Range> &
     SliderDataAttributes;
 type SliderThumbProps = React.ComponentProps<typeof SliderPrimitive.Thumb> &
     SliderDataAttributes;
-type SliderVariant = "default" | "playerSeek" | "playerVolume";
+type SliderVariant = "default";
 
 type SliderProps = SliderRootProps & {
     inputClassName?: string;
@@ -30,33 +30,21 @@ const SLIDER_ROOT_CLASS =
     "relative flex touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col";
 const SLIDER_ROOT_VARIANT_CLASS: Record<SliderVariant, string> = {
     default: "w-full",
-    playerSeek:
-        "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default",
-    playerVolume: "h-[18px] min-w-[110px] flex-1",
 };
 const SLIDER_TRACK_CLASS =
     "relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5";
 const SLIDER_TRACK_VARIANT_CLASS: Record<SliderVariant, string> = {
     default: "bg-muted",
-    playerSeek:
-        "bg-[rgb(224_227_230)] shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
-    playerVolume: "bg-muted",
 };
 const SLIDER_RANGE_CLASS =
     "absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full";
 const SLIDER_RANGE_VARIANT_CLASS: Record<SliderVariant, string> = {
     default: "bg-primary",
-    playerSeek:
-        "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]",
-    playerVolume: "bg-primary",
 };
 const SLIDER_THUMB_CLASS =
     "block shrink-0 rounded-full ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50";
 const SLIDER_THUMB_VARIANT_CLASS: Record<SliderVariant, string> = {
     default: "size-4 border border-primary bg-white shadow-sm",
-    playerSeek:
-        "size-[14px] border-0 bg-white p-0 shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]",
-    playerVolume: "size-4 border border-primary bg-white shadow-sm",
 };
 
 function Slider({

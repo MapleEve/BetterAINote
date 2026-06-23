@@ -903,7 +903,7 @@ describe("dashboard SOT foundation", () => {
             'data-sot-panel="dashboard-recording-player-controls"',
         );
         expect(player).toContain('data-sot-control="dashboard-player-seek"');
-        expect(player).toContain('variant="playerSeek"');
+        expect(player).toContain("<SotPlayerSeekSlider");
         expect(player).toContain('className="flex-none"');
         expect(player).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
         expect(player).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
@@ -917,14 +917,25 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain('data-sot-control="dashboard-player-volume"');
         expect(player).toContain("<Popover");
         expect(player).toContain("<PopoverTrigger asChild>");
-        expect(player).toContain("<PopoverContent");
-        expect(player).toContain('variant="playerVolume"');
+        expect(player).toContain("<SotPlayerVolumePopoverContent");
+        expect(player).toContain("<SotPlayerVolumeSlider");
+        expect(player).not.toContain(`variant="${"player"}Seek"`);
+        expect(player).not.toContain(`variant="${"player"}Volume"`);
         expect(player).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(player).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
         expect(player).toContain('side="top"');
         expect(player).toContain('align="end"');
+        for (const wrapperToken of [
+            "SOT_PLAYER_SEEK_SLIDER_CLASS",
+            "SOT_PLAYER_SEEK_RANGE_CLASS",
+            "SOT_PLAYER_SEEK_THUMB_CLASS",
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
+            "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(wrapperToken);
+        }
 
         expect(globals).not.toContain(
             '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
@@ -2232,12 +2243,13 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(workstation).toContain(
-            'import { Slider } from "@/components/ui/slider";',
-        );
         expect(workstation).toContain("<Button");
         expect(workstation).toContain("<Skeleton");
-        expect(workstation).toContain("<Slider");
+        expect(workstation).not.toContain(
+            'import { Slider } from "@/components/ui/slider";',
+        );
+        expect(workstation).toContain("<SotPlayerSeekSlider");
+        expect(workstation).toContain("<SotPlayerVolumeSlider");
         expect(cardPrimitive).toContain("sourceReportMetric:");
         expect(cardPrimitive).toContain(
             "border-[var(--source-report-metric-border)]",

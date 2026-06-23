@@ -69,18 +69,13 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import {
     type SegmentedTabItem,
     SegmentedTabs,
 } from "@/components/ui/segmented-tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
@@ -94,11 +89,14 @@ import {
     SotPlayerNoAudioIcon,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
+    SotPlayerSeekSlider,
     SotPlayerSourceTag,
     SotPlayerStatusBadge,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
+    SotPlayerVolumePopoverContent,
     SotPlayerVolumeIcon,
+    SotPlayerVolumeSlider,
     sotPlayerVolumeLevel,
 } from "@/features/recordings/components/sot-player-primitives";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
@@ -6517,7 +6515,7 @@ export function Workstation({
                                     className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"
                                     data-sot-part="dashboard-player-seek-shell"
                                 >
-                                    <Slider
+                                    <SotPlayerSeekSlider
                                         aria-disabled={
                                             playbackDisabled
                                                 ? "true"
@@ -6539,7 +6537,6 @@ export function Workstation({
                                             "data-pct": playerProgressPct,
                                         }}
                                         value={[progress]}
-                                        variant="playerSeek"
                                         onValueChange={(values) =>
                                             seekDashboardPlayerToPercent(
                                                 values[0] ?? 0,
@@ -6608,11 +6605,10 @@ export function Workstation({
                                                 </span>
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent
+                                        <SotPlayerVolumePopoverContent
                                             align="end"
                                             side="top"
                                             sideOffset={8}
-                                            variant="playerVolume"
                                             data-open={
                                                 volumePopoverOpen
                                                     ? "true"
@@ -6660,12 +6656,11 @@ export function Workstation({
                                                         />
                                                     </span>
                                                 </Button>
-                                                <Slider
+                                                <SotPlayerVolumeSlider
                                                     min={0}
                                                     max={100}
                                                     step={1}
                                                     value={[volume]}
-                                                    variant="playerVolume"
                                                     disabled={playbackDisabled}
                                                     data-sot-control="dashboard-player-volume-slider"
                                                     data-sot-state={
@@ -6688,7 +6683,7 @@ export function Workstation({
                                                     {volume}
                                                 </span>
                                             </div>
-                                        </PopoverContent>
+                                        </SotPlayerVolumePopoverContent>
                                     </div>
                                 </Popover>
                             </CardContent>

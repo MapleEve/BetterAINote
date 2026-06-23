@@ -5046,7 +5046,7 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-control="dashboard-player-play"]',
             ),
         ).not.toContain("background:");
-        expect(dashboardPlayer).toContain("<Slider");
+        expect(dashboardPlayer).toContain("<SotPlayerSeekSlider");
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-current-time"',
         );
@@ -5059,7 +5059,6 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardSeekShell).toContain(
             'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
         );
-        expect(dashboardPlayer).toContain('variant="playerSeek"');
         expect(dashboardPlayer).toContain('className="flex-none"');
         expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
         expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
@@ -5081,16 +5080,27 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-panel="dashboard-player-volume-popover"',
         );
-        expect(dashboardPlayer).toContain('variant="playerVolume"');
+        expect(dashboardPlayer).toContain("<SotPlayerVolumePopoverContent");
+        expect(dashboardPlayer).toContain("<SotPlayerVolumeSlider");
+        expect(dashboardPlayer).not.toContain(`variant="${"player"}Seek"`);
+        expect(dashboardPlayer).not.toContain(`variant="${"player"}Volume"`);
         expect(dashboardPlayer).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(dashboardPlayer).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
         expect(dashboardPlayer).toContain("<Popover");
         expect(dashboardPlayer).toContain("<PopoverTrigger asChild>");
-        expect(dashboardPlayer).toContain("<PopoverContent");
         expect(dashboardPlayer).toContain('side="top"');
         expect(dashboardPlayer).toContain('align="end"');
+        for (const wrapperToken of [
+            "SOT_PLAYER_SEEK_SLIDER_CLASS",
+            "SOT_PLAYER_SEEK_RANGE_CLASS",
+            "SOT_PLAYER_SEEK_THUMB_CLASS",
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
+            "SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(wrapperToken);
+        }
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-volume-mute"',
         );
@@ -7809,19 +7819,21 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
         expect(player).toContain("data-player-control-icon");
-        expect(player).toContain('variant="playerVolume"');
+        expect(player).toContain("<SotPlayerVolumePopoverContent");
+        expect(player).toContain("<SotPlayerVolumeSlider");
         expect(player).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
         expect(player).toContain("<Popover");
         expect(player).toContain("<PopoverTrigger asChild>");
-        expect(player).toContain("<PopoverContent");
         expect(player).toContain('side="top"');
         expect(player).toContain('align="end"');
         expect(player).toContain(
             'data-sot-control="recording-player-volume-slider"',
         );
-        expect(player).toContain('variant="playerSeek"');
+        expect(player).toContain("<SotPlayerSeekSlider");
+        expect(player).not.toContain(`variant="${"player"}Seek"`);
+        expect(player).not.toContain(`variant="${"player"}Volume"`);
         for (const hook of RECORDING_PLAYER_BUTTON_CONTROL_HOOKS) {
             expect(player).toContain(`data-sot-control="${hook}"`);
         }

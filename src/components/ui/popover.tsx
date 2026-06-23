@@ -5,13 +5,12 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type PopoverContentVariant = "default" | "playerVolume";
+type PopoverContentVariant = "default";
 
 const POPOVER_CONTENT_CLASS =
     "z-50 origin-(--radix-popover-content-transform-origin) rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95";
 const POPOVER_CONTENT_VARIANT_CLASS: Record<PopoverContentVariant, string> = {
     default: "w-72 p-4",
-    playerVolume: "w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2",
 };
 
 function Popover({
