@@ -464,19 +464,47 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             "size={sourceReportSegmentSkeletonSize(size)}",
         );
+        expect(transcriptionSkeletons).toContain('variant="default"');
+        expect(transcriptionSkeletons).toContain('size="default"');
         expect(transcriptionSkeletons).toContain(
-            'variant="recordingTranscription"',
+            "className={transcriptionSkeletonClassNames[size]}",
         );
         expect(transcriptionSkeletons).toContain(
-            "size={transcriptionPlaceholderSizes[size]}",
+            "const transcriptionSkeletonClassNames",
         );
-        expect(skeletonPrimitive).toContain("recordingTranscription:");
+        expect(transcriptionSkeletons).toContain(
+            'action: "h-[26px] w-[72px]"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            'description: "h-[13px] w-full max-w-[220px]"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            '"line-long": "h-[13px] w-[92%]"',
+        );
+        expect(transcriptionSkeletons).toContain(
+            '"field-control": "h-[13px] w-[132px]"',
+        );
         expect(skeletonPrimitive).toContain(
-            "recordingTranscriptionLineLong:",
+            '"animate-pulse rounded-md bg-accent"',
         );
-        expect(skeletonPrimitive).toContain(
-            "recordingTranscriptionFieldControl:",
-        );
+        for (const removedRecordingTranscriptionPrimitiveToken of [
+            "recordingTranscription:",
+            "recordingTranscriptionAction",
+            "recordingTranscriptionDescription",
+            "recordingTranscriptionFieldControl",
+            "recordingTranscriptionFieldLabel",
+            "recordingTranscriptionLineLong",
+            "recordingTranscriptionLineMedium",
+            "recordingTranscriptionLineShort",
+            "recordingTranscriptionSpeaker",
+            "recordingTranscriptionStatus",
+            "recordingTranscriptionTime",
+            "recordingTranscriptionTitle",
+        ]) {
+            expect(skeletonPrimitive).not.toContain(
+                removedRecordingTranscriptionPrimitiveToken,
+            );
+        }
         expect(transcriptionSkeletons).not.toContain("type SkeletonLineSize");
         expect(transcriptionSkeletons).not.toContain(
             "const skeletonLineClassNames",

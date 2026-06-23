@@ -9,7 +9,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldContent, FieldTitle } from "@/components/ui/field";
-import { Skeleton, type SkeletonSize } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type TranscriptionPlaceholderSize =
     | "action"
@@ -24,19 +24,19 @@ type TranscriptionPlaceholderSize =
     | "time"
     | "title";
 
-const transcriptionPlaceholderSizes = {
-    action: "recordingTranscriptionAction",
-    description: "recordingTranscriptionDescription",
-    "field-control": "recordingTranscriptionFieldControl",
-    "field-label": "recordingTranscriptionFieldLabel",
-    "line-long": "recordingTranscriptionLineLong",
-    "line-medium": "recordingTranscriptionLineMedium",
-    "line-short": "recordingTranscriptionLineShort",
-    speaker: "recordingTranscriptionSpeaker",
-    status: "recordingTranscriptionStatus",
-    time: "recordingTranscriptionTime",
-    title: "recordingTranscriptionTitle",
-} satisfies Record<TranscriptionPlaceholderSize, SkeletonSize>;
+const transcriptionSkeletonClassNames = {
+    action: "h-[26px] w-[72px]",
+    description: "h-[13px] w-full max-w-[220px]",
+    "field-control": "h-[13px] w-[132px]",
+    "field-label": "h-[13px] w-24",
+    "line-long": "h-[13px] w-[92%]",
+    "line-medium": "h-[13px] w-3/4",
+    "line-short": "h-[13px] w-3/5",
+    speaker: "h-[13px] w-24",
+    status: "h-[13px] w-[76px]",
+    time: "h-[13px] w-16",
+    title: "h-4 w-32",
+} satisfies Record<TranscriptionPlaceholderSize, string>;
 
 function SkeletonLine({
     size = "line-medium",
@@ -47,8 +47,9 @@ function SkeletonLine({
         <Skeleton
             data-sot-part="recording-transcription-skeleton-line"
             data-sot-size={size}
-            size={transcriptionPlaceholderSizes[size]}
-            variant="recordingTranscription"
+            className={transcriptionSkeletonClassNames[size]}
+            size="default"
+            variant="default"
         />
     );
 }

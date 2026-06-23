@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 
 const skeletonVariants = {
     default: "animate-pulse rounded-md bg-accent",
-    recordingTranscription: "animate-pulse rounded-md bg-accent",
     sourceReportCard: "animate-pulse inline-block align-middle rounded-[6px] bg-accent",
     sourceReportSegment:
         "animate-pulse inline-block align-middle rounded-[4px] bg-accent",
@@ -22,17 +21,6 @@ const skeletonSizes = {
     recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
     recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
     recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
-    recordingTranscriptionAction: "h-[26px] w-[72px]",
-    recordingTranscriptionDescription: "h-[13px] w-full max-w-[220px]",
-    recordingTranscriptionFieldControl: "h-[13px] w-[132px]",
-    recordingTranscriptionFieldLabel: "h-[13px] w-24",
-    recordingTranscriptionLineLong: "h-[13px] w-[92%]",
-    recordingTranscriptionLineMedium: "h-[13px] w-3/4",
-    recordingTranscriptionLineShort: "h-[13px] w-3/5",
-    recordingTranscriptionSpeaker: "h-[13px] w-24",
-    recordingTranscriptionStatus: "h-[13px] w-[76px]",
-    recordingTranscriptionTime: "h-[13px] w-16",
-    recordingTranscriptionTitle: "h-4 w-32",
     sourceReportCardCount: "!h-[18px] w-12",
     sourceReportCardSource: "!h-[18px] w-[120px]",
     sourceReportCardStatus: "!h-[18px] w-20",
