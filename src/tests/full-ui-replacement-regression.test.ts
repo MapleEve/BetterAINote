@@ -4721,6 +4721,16 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="dashboard-player-volume-mute"',
             "Button",
         );
+        const dashboardSeekShell = extractOpeningElement(
+            dashboardPlayer,
+            'data-sot-part="dashboard-player-seek-shell"',
+            "span",
+        );
+        const dashboardVolumeAnchor = extractOpeningElement(
+            dashboardPlayer,
+            'data-sot-part="dashboard-player-volume-anchor"',
+            "div",
+        );
         expect(dashboardPlayer).toContain("<Card");
         expect(dashboardPlayer).toContain("hasNoPadding");
         expect(dashboardPlayer).toContain(
@@ -4849,6 +4859,9 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-seek"',
         );
+        expect(dashboardSeekShell).toContain(
+            'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
+        );
         expect(dashboardPlayer).toContain('variant="playerSeek"');
         expect(dashboardPlayer).toContain('className="flex-none"');
         expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
@@ -4864,6 +4877,9 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-player-volume-anchor"',
+        );
+        expect(dashboardVolumeAnchor).toContain(
+            'className="relative ml-0 inline-flex"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-panel="dashboard-player-volume-popover"',
@@ -4916,11 +4932,14 @@ describe("full UI replacement regression coverage", () => {
 
         expect(volumeLegacySelectorLines).toEqual([]);
         for (const selector of [
+            '[data-sot-part="dashboard-player-seek-shell"]',
             '[data-sot-part="dashboard-player-volume-anchor"]',
-            '[data-sot-part="recording-player-volume-anchor"]',
         ]) {
-            expect(globals).toContain(selector);
+            expect(globals).not.toContain(selector);
         }
+        expect(globals).toContain(
+            '[data-sot-part="recording-player-volume-anchor"]',
+        );
         for (const [
             surface,
             selector,

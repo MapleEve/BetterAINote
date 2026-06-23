@@ -6514,7 +6514,10 @@ export function Workstation({
                                 <span data-sot-part="dashboard-player-current-time">
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
-                                <span data-sot-part="dashboard-player-seek-shell">
+                                <span
+                                    className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"
+                                    data-sot-part="dashboard-player-seek-shell"
+                                >
                                     <Slider
                                         aria-disabled={
                                             playbackDisabled
@@ -6564,7 +6567,10 @@ export function Workstation({
                                     open={volumePopoverOpen}
                                     onOpenChange={(open) => setVolumeOpen(open)}
                                 >
-                                    <div data-sot-part="dashboard-player-volume-anchor">
+                                    <div
+                                        className="relative ml-0 inline-flex"
+                                        data-sot-part="dashboard-player-volume-anchor"
+                                    >
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant="playerControl"

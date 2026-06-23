@@ -1454,21 +1454,6 @@ button:not([data-slot]) {
     [data-sot-part="dashboard-player-duration"] {
     transform: translateX(-0.109375px);
 }
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-seek-shell"] {
-    position: relative;
-    display: block;
-    flex: 0 0 168px;
-    width: 168px;
-    min-width: 168px;
-    height: 14px;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-volume-anchor"] {
-    position: relative;
-    display: inline-flex;
-    margin-left: 0;
-}
 [data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
     [data-sot-control="dashboard-player-back"],
 [data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
