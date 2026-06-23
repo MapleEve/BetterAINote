@@ -221,6 +221,88 @@ function extractObjectStringProperty(source: string, propertyName: string) {
     throw new Error(`Unclosed string property: ${propertyName}`);
 }
 
+function findBalancedBlockEnd(source: string, openBraceIndex: number) {
+    let depth = 0;
+    let quote: '"' | "'" | "`" | null = null;
+
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+        const character = source[index];
+        const previous = source[index - 1];
+
+        if (quote) {
+            if (character === quote && previous !== "\\") {
+                quote = null;
+            }
+            continue;
+        }
+
+        if (
+            character === '"' ||
+            character === "'" ||
+            character === "`"
+        ) {
+            quote = character;
+            continue;
+        }
+
+        if (character === "{") {
+            depth += 1;
+            continue;
+        }
+
+        if (character === "}") {
+            depth -= 1;
+            if (depth === 0) {
+                return index + 1;
+            }
+        }
+    }
+
+    throw new Error("Unclosed class helper block");
+}
+
+function collectFeatureOwnerClassSource(source: string) {
+    const slices: string[] = [];
+    const declarationRe =
+        /\b(?:const\s+\w*(?:ClassName|ClassNames|Classes|Styles)\s*=|function\s+\w*ClassName\s*\()/g;
+
+    for (
+        let match = declarationRe.exec(source);
+        match;
+        match = declarationRe.exec(source)
+    ) {
+        if (match[0].startsWith("function")) {
+            const openBraceIndex = source.indexOf("{", match.index);
+            expect(openBraceIndex).toBeGreaterThan(match.index);
+            slices.push(
+                source.slice(
+                    match.index,
+                    findBalancedBlockEnd(source, openBraceIndex),
+                ),
+            );
+            continue;
+        }
+
+        const end = source.indexOf(";", match.index);
+        expect(end).toBeGreaterThan(match.index);
+        slices.push(source.slice(match.index, end + 1));
+    }
+
+    return slices.join("\n");
+}
+
+function expectPrimitiveToExcludeBusinessTokens(
+    source: string,
+    tokens: readonly string[],
+) {
+    for (const token of tokens) {
+        const escapedToken = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        expect(source).not.toMatch(
+            new RegExp(`(^|[^A-Za-z0-9_])${escapedToken}([^A-Za-z0-9_]|$)`),
+        );
+    }
+}
+
 function extractVariantDefinition(source: string, variantName: string) {
     const marker = `${variantName}:\n`;
     const markerIndex = source.indexOf(marker);
@@ -795,9 +877,6 @@ const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-control="dashboard-source-provider"][data-sot-state="sync-error"]',
 ];
 
-const SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE =
-    /dark:[^"']*rgb\(|(?:bg|border)-\[rgb/;
-
 const DASHBOARD_SHELL_NAV_PRIMITIVE_REPAINT_SELECTORS = [
     '[data-sot-control="sidebar-collapse"][data-slot="button"]',
     '[data-sot-control="dashboard-favorite"][data-slot="button"]',
@@ -819,9 +898,6 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
     "recordingListChipClear",
-    "sourceFilterClear",
-    "sourceFilterAction",
-    "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
     "recordingListTagFilterOption",
     "recordingListStatePrimary",
@@ -831,17 +907,60 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "recordingListChipClear",
-    "sourceFilterClear",
-    "sourceFilterAction",
-    "sourceFilterClearAll",
     "recordingListTagFilterTrigger",
     "recordingListTagFilterOption",
     "recordingListStateAction",
     "recordingListPagination",
 ] as const;
 
-const SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
-    "sourceFilterAction:",
+const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "dashboardSource",
+    "dashboardSourceClear",
+    "dashboardSourceAction",
+    "sourceFilterClear",
+    "sourceFilterAction",
+    "sourceFilterClearAll",
+] as const;
+
+const DASHBOARD_SOURCE_FILTER_BADGE_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "dashboardSourceStatus",
+    "dashboardSourceCount",
+] as const;
+
+const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
+    "group/source-provider",
+    "data-[sot-state=connected-active]:border-[var(--line-hairline)]",
+    "data-[sot-state=connected-active]:bg-[var(--bg-elevated)]",
+    "data-[sot-state=sync-error]:text-[var(--fg-primary)]",
+    "data-[sot-state=disabled]:opacity-[0.55]",
+    "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
+    "[&_[data-sot-part=source-provider-mark]]:rounded-[4px]",
+    "[&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)]",
+    "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
+    "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+    "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65]",
+    "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7]",
+    "size-1.5",
+    "data-[sot-tone=err]:bg-[var(--signal-danger)]",
+    "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
+    "min-w-[22px]",
+    "font-mono text-[11px]",
+    "data-[sot-tone=active]:bg-[var(--bg-elevated)]",
+    "data-[sot-tone=empty]:line-through",
+    "data-[sot-tone=err]:text-[var(--signal-danger)]",
+    "ml-[6px]",
+    "h-[22px]",
+    "rounded-full",
+    "data-[sot-action=retry]:hidden",
+    "data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)]",
+    "data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)]",
+    "data-[sot-action=connect]:border-[var(--source-provider-primary-border)]",
+    "data-[sot-action=connect]:bg-[var(--accent-soft)]",
+    "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
+    "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
+    "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+    "size-4",
+    "[&_svg:not([class*='size-'])]:size-[11px]",
     "cursor-pointer",
     "border-[var(--line-hairline)]",
     "bg-[var(--bg-elevated)]",
@@ -853,43 +972,12 @@ const SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
     "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
     "data-[sot-action=widen]:bg-[var(--accent-soft)]",
     "data-[sot-action=open-settings]:bg-[var(--accent-soft)]",
-    "dark:bg-[rgb(255_255_255_/_0.05)]",
     "[&_svg]:stroke-current",
     "font-sans",
-    "h-[22px]",
-    "ml-[6px]",
-    "[&_svg:not([class*='size-'])]:size-[11px]",
-] as const;
-
-const DASHBOARD_SOURCE_PROVIDER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
-    "dashboardSourceAction:",
-    "group/source-provider",
-    "ml-[6px]",
-    "flex-none",
-    "cursor-pointer",
-    "border-[var(--line-hairline)]",
-    "bg-[var(--bg-elevated)]",
-    "font-sans",
-    "text-[var(--fg-secondary)]",
-    "hover:bg-[var(--bg-elevated)]",
-    "hover:text-[var(--fg-primary)]",
-    "focus-visible:outline-[var(--accent)]",
-    "focus-visible:ring-0",
-    "disabled:cursor-not-allowed",
-    "data-[sot-action=retry]:hidden",
-    "data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)]",
-    "data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)]",
-    "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
-    "data-[sot-action=connect]:border-[var(--source-provider-primary-border)]",
-    "data-[sot-action=connect]:bg-[var(--accent-soft)]",
-    "group-hover/source-provider:data-[sot-action=retry]:inline-flex",
-    "group-focus-within/source-provider:data-[sot-action=retry]:inline-flex",
-    "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
-    "dark:bg-[rgb(255_255_255_/_0.05)]",
-    "[&_svg]:stroke-current",
-    "leading-none",
-    "whitespace-nowrap",
-    "[&_svg:not([class*='size-'])]:size-[11px]",
+    "clearAll:",
+    "h-6",
+    "rounded-md",
+    "px-2",
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
@@ -2296,9 +2384,7 @@ describe("full UI replacement regression coverage", () => {
             "settingsClose",
             "settingsNav",
             "dashboardNav",
-            "dashboardSource",
             "dashboardSync",
-            "dashboardSourceAction",
             "dashboardCopy",
             "dashboardCompactAction",
             "dashboardDrawerTrigger",
@@ -2388,9 +2474,7 @@ describe("full UI replacement regression coverage", () => {
         }
         for (const dashboardSize of [
             "dashboardNav",
-            "dashboardSource",
             "dashboardSync",
-            "dashboardSourceAction",
             "dashboardCopy",
             "dashboardCompactAction",
             "dashboardDrawerTrigger",
@@ -4070,19 +4154,20 @@ describe("full UI replacement regression coverage", () => {
             expect(workstation).not.toContain(removedConstant);
         }
         expect(workstation).toContain('variant="dashboardNav"');
-        expect(workstation).toContain('variant="dashboardSource"');
-        expect(workstation).toContain('variant="dashboardSourceClear"');
-        expect(workstation).toContain('variant="dashboardSourceAction"');
         expect(workstation).toContain('variant="dashboardSync"');
         expect(workstation).toContain('variant="dashboardSidebarCollapse"');
         expect(workstation).toContain('variant="dashboardSettingsAvatar"');
-        expect(button).toContain("dashboardSourceClear:");
         expect(button).toContain("dashboardSpeakersMerge:");
         expect(workstation).toMatch(
             /<Button\s+variant="dashboardNav"\s+size="dashboardNav"[\s\S]*data-sot-control="dashboard-favorite"/,
         );
+        const dashboardSourceClearButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="dashboard-source-clear"',
+            "Button",
+        );
         expect(workstation).toMatch(
-            /<Button\s+variant="dashboardSourceClear"\s+size="dashboardSourceClear"[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+            /<Button[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
         expect(workstation).toMatch(
             /<Button\s+variant="dashboardSync"\s+size="dashboardSync"[\s\S]*data-sot-control="dashboard-sync"/,
@@ -4135,8 +4220,6 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceProviderRows).toContain(
             'data-sot-control="dashboard-source-provider"',
         );
-        expect(sourceProviderRows).toContain('variant="dashboardSource"');
-        expect(sourceProviderRows).toContain('size="dashboardSource"');
         expect(sourceProviderRows).toContain(
             'data-sot-part="source-provider-mark"',
         );
@@ -4159,33 +4242,74 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="source-provider-count"',
             "Badge",
         );
-        const dashboardSourceButtonVariant = extractVariantDefinition(
+        const sourceProviderRowButton = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-control="dashboard-source-provider"',
+            "Button",
+        );
+        const sourceProviderActionButton = extractOpeningElement(
+            sourceProviderRows,
+            'data-sot-part="source-provider-action"',
+            "Button",
+        );
+        const featureOwnerClassSource =
+            collectFeatureOwnerClassSource(workstation);
+        const sourceProviderToneHelpers = extractBoundedSlice(
+            workstation,
+            "function sourceProviderStatusTone",
+            "const syncButtonState",
+        );
+        expectPrimitiveToExcludeBusinessTokens(
             button,
-            "dashboardSource",
+            DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
         );
-        const dashboardSourceStatusVariant = extractVariantDefinition(
+        expectPrimitiveToExcludeBusinessTokens(
             sourceReportBadgePrimitive,
-            "dashboardSourceStatus",
+            DASHBOARD_SOURCE_FILTER_BADGE_PRIMITIVE_FORBIDDEN_TOKENS,
         );
-        const dashboardSourceCountVariant = extractVariantDefinition(
-            sourceReportBadgePrimitive,
-            "dashboardSourceCount",
+        for (const snippet of DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS) {
+            expect(featureOwnerClassSource).toContain(snippet);
+        }
+        expect(dashboardSourceClearButton).toMatch(
+            /className=\{\s*dashboardSourceClassNames\.clear\s*\}/,
+        );
+        expect(sourceProviderRowButton).toMatch(
+            /className=\{\s*dashboardSourceButtonClassName\(\s*sourceRowCollapsed,?\s*\)\s*\}/,
+        );
+        expect(sourceProviderStatusBadge).toMatch(
+            /className=\{cn\(\s*dashboardSourceClassNames\.status\b/,
+        );
+        expect(sourceProviderActionButton).toMatch(
+            /className=\{\s*dashboardSourceClassNames\.action\s*\}/,
+        );
+        expect(sourceProviderCountBadge).toMatch(
+            /className=\{cn\(\s*dashboardSourceClassNames\.count\b/,
         );
         expect(sourceProviderRows).toContain("sourceProviderStatusTone(");
         expect(sourceProviderRows).toContain("sourceProviderCountTone(");
+        for (const mappingSnippet of [
+            'case "connected-active":',
+            'case "connected-idle":',
+            'return "ok";',
+            'case "syncing":',
+            'return "syncing";',
+            'case "sync-error":',
+            'return "err";',
+            'case "disabled":',
+            'return "disabled";',
+            'return "active";',
+            'return "empty";',
+            'return "neutral";',
+        ]) {
+            expect(sourceProviderToneHelpers).toContain(mappingSnippet);
+        }
         expect(sourceProviderRows).toContain("sourceRowCollapsed");
-        expect(sourceProviderRows).toContain(
+        expect(featureOwnerClassSource).toContain(
             '"justify-center gap-0 px-0 py-2"',
         );
         expect(sourceProviderRows).toContain('"absolute bottom-1 right-1"');
         expect(sourceProviderStatusBadge).toContain(
-            'variant="dashboardSourceStatus"',
-        );
-        expect(sourceProviderStatusBadge).toContain(
             "data-sot-tone={sourceStatusTone}",
-        );
-        expect(sourceProviderCountBadge).toContain(
-            'variant="dashboardSourceCount"',
         );
         expect(sourceProviderCountBadge).toContain(
             "data-sot-tone={sourceCountTone}",
@@ -4194,56 +4318,25 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="source-provider-action"',
         );
         expect(sourceProviderRows).toMatch(
-            /<Button\s+asChild\s+variant="dashboardSourceAction"\s+size="dashboardSourceAction"[\s\S]*data-sot-part="source-provider-action"/,
+            /<Button[\s\S]*data-sot-part="source-provider-action"/,
         );
-        for (const token of DASHBOARD_SOURCE_PROVIDER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
-            expect(button).toContain(token);
-        }
-        for (const dashboardSourceMarkToken of [
-            "[&_[data-sot-part=source-provider-mark]]:size-[18px]",
-            "[&_[data-sot-part=source-provider-mark]]:rounded-[4px]",
-            "[&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)]",
-            "[&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)]",
-            "[&_[data-sot-part=source-provider-mark]_img]:object-contain",
-            "[&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
-            "dark:[&_[data-sot-part=source-provider-mark]]:bg-[var(--glass-tint-subtle)]",
-            "data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65]",
-            "data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale",
-            "data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7]",
-        ]) {
-            expect(button).toContain(dashboardSourceMarkToken);
-        }
-        for (const dashboardSourceBadgeToken of [
-            "dashboardSourceStatus:",
-            "data-[sot-tone=ok]:bg-[var(--signal-success)]",
-            "data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite]",
-            "data-[sot-tone=err]:shadow-[0_0_0_2px_var(--source-provider-status-danger-bg)]",
-            "dashboardSourceCount:",
-            "dark:bg-[var(--glass-tint-subtle)]",
-            "data-[sot-tone=active]:bg-[var(--bg-elevated)]",
-            "data-[sot-tone=empty]:line-through",
-            "data-[sot-tone=err]:text-[var(--signal-danger)]",
-        ]) {
-            expect(sourceReportBadgePrimitive).toContain(
-                dashboardSourceBadgeToken,
-            );
-        }
-        for (const repairedVariant of [
-            dashboardSourceButtonVariant,
-            dashboardSourceStatusVariant,
-            dashboardSourceCountVariant,
-        ]) {
-            expect(repairedVariant).not.toMatch(
-                SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE,
-            );
-        }
         expect(sourceProviderRows).not.toContain(
             "SOT defines source row action as span[role=button]",
         );
         expect(sourceProviderRows).toContain("data-sot-action={actionKind}");
         expect(sourceProviderRows).toContain("data-state={sourceRowState}");
+        expect(sourceProviderRows).toContain("aria-label={actionAriaLabel}");
+        expect(sourceProviderRows).toContain("event.stopPropagation();");
+        expect(sourceProviderRows).toContain("event.preventDefault();");
+        expect(sourceProviderRows).toContain("void runManualSync();");
         expect(sourceProviderRows).not.toMatch(legacySourceRowClassNamePattern);
         expect(sourceProviderRows).not.toMatch(legacySourceAttributePattern);
+        expect(workstation).toContain("const sourceFilterStackState =");
+        expect(workstation).toContain("document.body.dataset.sourceFilter");
+        expect(workstation).toContain("document.body.dataset.sourceStatus");
+        expect(workstation).toMatch(
+            /<output\s+aria-live="polite"[\s\S]*data-sot-panel="dashboard-source-filter-stack"[\s\S]*data-state=\{sourceFilterStackState\}/,
+        );
         expect(sourceFilterStack).toContain(
             "data-state={sourceFilterStackState}",
         );
@@ -4253,30 +4346,50 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceFilterStack).toContain('data-sot-action="retry"');
         expect(sourceFilterStack).toContain('data-sot-action="widen"');
         expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
-        expect(button).toContain("sourceFilterClear:");
+        const sourceFilterClearButton = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-control="source-filter-clear"',
+            "Button",
+        );
+        const sourceFilterClearAllButton = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-control="source-filter-clear-all"',
+            "Button",
+        );
         expect(sourceFilterStack).toMatch(
-            /<Button\s+variant="sourceFilterClear"\s+size="sourceFilterClear"[\s\S]*data-sot-control="source-filter-clear"/,
+            /<Button[\s\S]*data-sot-control="source-filter-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+        );
+        expect(sourceFilterClearButton).toMatch(
+            /className=\{\s*sourceFilterClassNames\.clear\s*\}/,
         );
         for (const control of [
             "source-filter-retry-sync",
             "source-filter-widen",
             "source-filter-open-settings",
         ]) {
+            const sourceFilterActionButton = extractOpeningElement(
+                sourceFilterStack,
+                `data-sot-control="${control}"`,
+                "Button",
+            );
+            expect(sourceFilterActionButton).toMatch(
+                /className=\{\s*sourceFilterClassNames\.action\s*\}/,
+            );
             expect(sourceFilterStack).toMatch(
                 new RegExp(
-                    `<Button\\s+variant="sourceFilterAction"\\s+size="sourceFilterAction"[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
+                    `<Button[\\s\\S]*data-sot-control="${control}"[\\s\\S]*data-sot-part="source-filter-action"`,
                 ),
             );
-        }
-        for (const token of SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
-            expect(button).toContain(token);
         }
         expect(globals).not.toContain('[data-sot-action="source-filter-action"]');
         expect(
             collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
         ).toEqual([]);
         expect(sourceFilterStack).toMatch(
-            /<Button\s+variant="sourceFilterClearAll"\s+size="sourceFilterClearAll"[\s\S]*data-sot-control="source-filter-clear-all"/,
+            /<Button[\s\S]*data-sot-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
+        );
+        expect(sourceFilterClearAllButton).toMatch(
+            /className=\{\s*sourceFilterClassNames\.clearAll\s*\}/,
         );
         expect(workstation).toMatch(
             /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="library-search-filter-clear"/,

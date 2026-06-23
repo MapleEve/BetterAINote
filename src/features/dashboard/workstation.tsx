@@ -497,6 +497,28 @@ const dashboardSearchActivityClassNames = {
         "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
 } as const;
 
+const dashboardSourceClassNames = {
+    root: "group/source-provider relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs data-[sot-state=connected-active]:border-[var(--line-hairline)] data-[sot-state=connected-active]:bg-[var(--bg-elevated)] data-[sot-state=connected-active]:text-[var(--fg-primary)] data-[sot-state=connected-active]:shadow-xs data-[sot-state=connected-idle]:text-[var(--fg-secondary)] data-[sot-state=syncing]:text-[var(--fg-secondary)] data-[sot-state=expired]:text-[var(--fg-secondary)] data-[sot-state=sync-error]:text-[var(--fg-primary)] data-[sot-state=no-results]:text-[var(--fg-tertiary)] data-[sot-state=needs-setup]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:text-[var(--fg-tertiary)] data-[sot-state=disabled]:opacity-[0.55] dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[var(--glass-tint-strong)] dark:data-[sot-state=selected]:shadow-none dark:data-[sot-state=connected-active]:border-[var(--glass-border)] dark:data-[sot-state=connected-active]:bg-[var(--glass-tint-strong)] dark:data-[sot-state=connected-active]:shadow-none has-[>svg]:px-2.5 [&_[data-sot-part=source-provider-mark]]:inline-flex [&_[data-sot-part=source-provider-mark]]:size-[18px] [&_[data-sot-part=source-provider-mark]]:flex-none [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[4px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)] [&_[data-sot-part=source-provider-mark]]:bg-background dark:[&_[data-sot-part=source-provider-mark]]:border-[var(--glass-border)] dark:[&_[data-sot-part=source-provider-mark]]:bg-[var(--glass-tint-subtle)] data-[sot-state=no-results]:[&_[data-sot-part=source-provider-mark]]:opacity-[0.65] data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:opacity-60 data-[sot-state=needs-setup]:[&_[data-sot-part=source-provider-mark]]:grayscale data-[sot-state=disabled]:[&_[data-sot-part=source-provider-mark]]:grayscale-[0.7] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:[font:700_9px_var(--font-sans)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:text-[var(--fg-secondary)] [&_[data-sot-part=source-provider-mark][data-sot-variant=letter]]:bg-[var(--bg-recessed)] [&_[data-sot-part=source-provider-mark]_img]:block [&_[data-sot-part=source-provider-mark]_img]:size-[18px] [&_[data-sot-part=source-provider-mark]_img]:max-w-none [&_[data-sot-part=source-provider-mark]_img]:object-contain [&_[data-sot-part=source-provider-mark]_img]:align-baseline [&_[data-sot-part=source-provider-mark][data-sot-provider-cover=true]_img]:object-cover",
+    clear: "h-[22px] w-fit gap-1 rounded-full border border-transparent bg-transparent px-[9px] text-[11px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-3",
+    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[9px] font-sans text-[11px] font-semibold leading-none text-[var(--fg-secondary)] whitespace-nowrap shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=retry]:hidden data-[sot-action=retry]:border-[var(--source-provider-status-danger-border)] data-[sot-action=retry]:bg-[var(--source-provider-status-danger-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=connect]:border-[var(--source-provider-primary-border)] data-[sot-action=connect]:bg-[var(--accent-soft)] data-[sot-action=connect]:text-[var(--accent)] group-hover/source-provider:data-[sot-action=retry]:inline-flex group-focus-within/source-provider:data-[sot-action=retry]:inline-flex group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)] has-[>svg]:px-[9px] [&_svg]:inline [&_svg]:align-baseline [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[11px]",
+    status: "ml-0.5 size-1.5 min-w-1.5 self-center rounded-full border-0 bg-transparent p-0 data-[sot-effect=ring]:shadow-[0_0_0_2px_var(--source-provider-status-warning-bg)] data-[sot-tone=disabled]:bg-[var(--graphite-400)] data-[sot-tone=err]:bg-[var(--signal-danger)] data-[sot-tone=err]:shadow-[0_0_0_2px_var(--source-provider-status-danger-bg)] data-[sot-tone=ok]:bg-[var(--signal-success)] data-[sot-tone=syncing]:animate-[bpulse_1.2s_ease-in-out_infinite] data-[sot-tone=syncing]:bg-[var(--signal-info)] data-[sot-tone=syncing]:shadow-[0_0_0_2px_var(--source-provider-status-info-bg)] data-[sot-tone=warn]:bg-[var(--signal-warning)]",
+    count: "min-w-[22px] rounded-[5px] border border-transparent bg-[var(--bg-recessed)] px-[6px] py-px text-center font-mono text-[11px] font-medium leading-[1.45] text-[var(--fg-tertiary)] dark:border-[var(--glass-border-soft)] dark:bg-[var(--glass-tint-subtle)] dark:text-[var(--fg-tertiary)] data-[sot-tone=active]:border-[var(--line-hairline)] data-[sot-tone=active]:bg-[var(--bg-elevated)] data-[sot-tone=active]:text-[var(--fg-primary)] data-[sot-tone=empty]:border-[var(--line-hairline)] data-[sot-tone=empty]:bg-transparent data-[sot-tone=empty]:text-[var(--fg-disabled)] data-[sot-tone=empty]:line-through data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)]",
+} as const;
+
+const sourceFilterClassNames = {
+    clear: "size-4 rounded-full border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[11px]",
+    action: "ml-[6px] h-[22px] flex-none cursor-pointer gap-1 rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-[9px] font-sans text-[11px] font-semibold leading-none text-[var(--fg-secondary)] whitespace-nowrap shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)] has-[>svg]:px-[9px] [&_svg]:inline [&_svg]:align-baseline [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-[11px]",
+    clearAll:
+        "h-6 rounded-md bg-transparent px-2 text-sm text-primary underline-offset-4 shadow-none hover:bg-transparent hover:text-primary hover:underline has-[>svg]:px-2",
+} as const;
+
+function dashboardSourceButtonClassName(collapsed: boolean) {
+    return cn(
+        dashboardSourceClassNames.root,
+        collapsed && "justify-center gap-0 px-0 py-2",
+    );
+}
+
 function dashboardRecordingTimeFilterCountClassName(active: boolean) {
     return cn(
         dashboardRecordingTimeFilterStyles.count,
@@ -3995,9 +4017,10 @@ export function Workstation({
                     >
                         {source !== "all" ? (
                             <Button
-                                variant="dashboardSourceClear"
-                                size="dashboardSourceClear"
+                                variant="ghost"
+                                size="sm"
                                 type="button"
+                                className={dashboardSourceClassNames.clear}
                                 data-sot-control="dashboard-source-clear"
                                 onClick={() => setSource("all")}
                             >
@@ -4053,12 +4076,11 @@ export function Workstation({
                                     : item.count;
                             return (
                                 <Button
-                                    variant="dashboardSource"
-                                    size="dashboardSource"
+                                    variant="ghost"
+                                    size="sm"
                                     type="button"
-                                    className={cn(
-                                        sourceRowCollapsed &&
-                                            "justify-center gap-0 px-0 py-2",
+                                    className={dashboardSourceButtonClassName(
+                                        sourceRowCollapsed,
                                     )}
                                     aria-disabled={
                                         disabledSourceRow ? "true" : undefined
@@ -4125,8 +4147,9 @@ export function Workstation({
                                     </span>
                                     <Badge
                                         aria-hidden="true"
-                                        variant="dashboardSourceStatus"
+                                        variant="ghost"
                                         className={cn(
+                                            dashboardSourceClassNames.status,
                                             sourceRowCollapsed &&
                                                 "absolute bottom-1 right-1",
                                         )}
@@ -4142,8 +4165,11 @@ export function Workstation({
                                     {actionKind ? (
                                         <Button
                                             asChild
-                                            variant="dashboardSourceAction"
-                                            size="dashboardSourceAction"
+                                            variant="outline"
+                                            size="sm"
+                                            className={
+                                                dashboardSourceClassNames.action
+                                            }
                                         >
                                             {/* biome-ignore lint/a11y/useSemanticElements: shadcn Button is applied with asChild here to avoid nesting a native button inside the provider row button. */}
                                             <span
@@ -4208,8 +4234,9 @@ export function Workstation({
                                         </Button>
                                     ) : (
                                         <Badge
-                                            variant="dashboardSourceCount"
+                                            variant="ghost"
                                             className={cn(
+                                                dashboardSourceClassNames.count,
                                                 sourceRowCollapsed && "hidden",
                                             )}
                                             data-count={`src:${item.key}`}
@@ -5223,9 +5250,12 @@ export function Workstation({
                                                 )}
                                             </span>
                                             <Button
-                                                variant="sourceFilterClear"
-                                                size="sourceFilterClear"
+                                                variant="ghost"
+                                                size="icon"
                                                 type="button"
+                                                className={
+                                                    sourceFilterClassNames.clear
+                                                }
                                                 aria-label={t(
                                                     "sourceFilterStack.clearSourceFilter",
                                                 )}
@@ -5252,9 +5282,12 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "sync-error" ? (
                                             <Button
-                                                variant="sourceFilterAction"
-                                                size="sourceFilterAction"
+                                                variant="outline"
+                                                size="sm"
                                                 type="button"
+                                                className={
+                                                    sourceFilterClassNames.action
+                                                }
                                                 data-sot-control="source-filter-retry-sync"
                                                 data-sot-action="retry"
                                                 data-sot-part="source-filter-action"
@@ -5271,9 +5304,12 @@ export function Workstation({
                                         {sourceFilterStackState ===
                                         "no-results" ? (
                                             <Button
-                                                variant="sourceFilterAction"
-                                                size="sourceFilterAction"
+                                                variant="outline"
+                                                size="sm"
                                                 type="button"
+                                                className={
+                                                    sourceFilterClassNames.action
+                                                }
                                                 data-sot-control="source-filter-widen"
                                                 data-sot-action="widen"
                                                 data-sot-part="source-filter-action"
@@ -5295,9 +5331,12 @@ export function Workstation({
                                             selectedSourceRow.status,
                                         ) ? (
                                             <Button
-                                                variant="sourceFilterAction"
-                                                size="sourceFilterAction"
+                                                variant="outline"
+                                                size="sm"
                                                 type="button"
+                                                className={
+                                                    sourceFilterClassNames.action
+                                                }
                                                 data-sot-control="source-filter-open-settings"
                                                 data-sot-action="open-settings"
                                                 data-sot-part="source-filter-action"
@@ -5317,9 +5356,12 @@ export function Workstation({
                                             </Button>
                                         ) : null}
                                         <Button
-                                            variant="sourceFilterClearAll"
-                                            size="sourceFilterClearAll"
+                                            variant="link"
+                                            size="sm"
                                             type="button"
+                                            className={
+                                                sourceFilterClassNames.clearAll
+                                            }
                                             data-sot-control="source-filter-clear-all"
                                             onClick={() => setSource("all")}
                                         >
