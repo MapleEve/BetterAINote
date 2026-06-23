@@ -153,9 +153,9 @@ const buttonVariants = cva(
                 dashboardActivityDismiss:
                     "border border-transparent bg-transparent text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current",
                 detailHeaderIconAction:
-                    "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+                    "border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
                 detailHeaderAction:
-                    "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
+                    "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] font-sans font-semibold text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
                 recordingRoutePrimaryAction:
                     "bg-primary text-primary-foreground hover:bg-primary/90",
                 recordingRouteGhostAction:
@@ -316,7 +316,7 @@ const buttonVariants = cva(
                     "size-[22px] rounded-[6px] p-px has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-[11px]",
                 detailHeaderIconAction: "size-[32px]",
                 detailHeaderAction:
-                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
+                    "h-8 gap-[7px] rounded-[9px] px-3 text-[12.5px] leading-normal has-[>svg]:px-3 [&_svg:not([class*='size-'])]:size-4",
                 recordingRouteAction: "h-9 px-4 py-2 has-[>svg]:px-3",
                 recordingDetailBack:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",

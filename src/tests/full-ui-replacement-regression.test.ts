@@ -4934,7 +4934,18 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain("detailHeaderStatus:");
         expect(button).toContain("detailHeaderIconAction:");
         expect(button).toContain("detailHeaderAction:");
+        expect(button).toContain(
+            "detailHeaderIconAction:\n                    \"border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none",
+        );
+        expect(button).toContain(
+            "detailHeaderAction:\n                    \"border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] font-sans font-semibold text-[var(--fg-primary)] shadow-[var(--shadow-xs)]",
+        );
         expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
+        expect(button).toContain(
+            'detailHeaderAction:\n                    "h-8 gap-[7px] rounded-[9px] px-3 text-[12.5px] leading-normal',
+        );
+        expect(button).toContain("has-[>svg]:px-3");
+        expect(button).toContain("[&_svg:not([class*='size-'])]:size-4");
         expect(input).toContain("detailHeaderTitle:");
         expect(input).toContain(
             '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
@@ -5040,6 +5051,13 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toMatch(
             /\[data-sot-part="detail-header-title-input"\]\[data-slot="input"\]\s*{[^}]*\b(?:height|padding|border-radius|background|border|font|color|box-shadow)\s*:/,
         );
+        for (const selector of [
+            'data-sot-control="rename-recording-title"',
+            'data-sot-control="recording-more-actions"',
+            'data-sot-control="ai-rename"',
+        ]) {
+            expect(globals).not.toContain(selector);
+        }
         const dashboardDetailHeaderLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
