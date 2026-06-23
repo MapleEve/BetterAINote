@@ -226,7 +226,8 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-sub"',
 ];
 
-const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
+const DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS = [
+    "dashboardTranscript:",
     "dashboardTranscriptAvatar",
     "dashboardTranscriptLine60",
     "dashboardTranscriptLine70",
@@ -240,6 +241,12 @@ const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
     "dashboardTranscriptSpeaker130",
     "dashboardTranscriptSpeaker140",
     "dashboardTranscriptTime",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const dashboardTranscriptSkeletonClassNames",
+    'avatar: "size-6 flex-none rounded-full"',
+    '"speaker-120": "h-[13px] w-[120px] flex-none"',
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
@@ -2134,9 +2141,8 @@ describe("dashboard SOT foundation", () => {
         expect(badgePrimitive).toContain("data-[sot-tone=ok]");
         expect(badgePrimitive).toContain("data-[sot-tone=warn]");
         expect(badgePrimitive).toContain("data-[sot-tone=err]");
-        expect(skeletonPrimitive).toContain("dashboardTranscript:");
-        for (const size of DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES) {
-            expect(skeletonPrimitive).toContain(size);
+        for (const token of DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
         }
         expect(skeletonPrimitive).toContain("sourceReportCard:");
         expect(skeletonPrimitive).toContain("sourceReportSegment:");
@@ -2144,11 +2150,28 @@ describe("dashboard SOT foundation", () => {
         expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong");
         expect(workstation).toContain('variant="sourceReportMetric"');
         expect(workstation).toContain('variant="sourceReportStatus"');
-        expect(workstation).toContain('variant="dashboardTranscript"');
-        expect(workstation).toContain(
-            "size={dashboardTranscriptSkeletonSize(size)}",
+        expect(workstation).toContain("function DashboardTranscriptSkeleton");
+        for (const token of DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(workstation).toContain(token);
+        }
+        const dashboardTranscriptSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-skeleton"',
+            "Skeleton",
         );
-        expect(workstation).toContain('variant="sourceReportCard"');
+        expect(dashboardTranscriptSkeleton).toContain('variant="default"');
+        expect(dashboardTranscriptSkeleton).toContain('size="default"');
+        expect(dashboardTranscriptSkeleton).toContain(
+            "className={dashboardTranscriptSkeletonClassNames[size]}",
+        );
+        expect(dashboardTranscriptSkeleton).toContain(
+            'data-sot-part="dashboard-transcript-skeleton"',
+        );
+        expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
+        expect(workstation).not.toContain('variant="dashboardTranscript"');
+        expect(workstation).toContain(
+            'variant="sourceReportCard"',
+        );
         expect(workstation).toContain('variant="sourceReportSegment"');
         expect(workstation).toContain(
             "size={sourceReportCardSkeletonSize(size)}",
@@ -2161,12 +2184,8 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );
-        expect(workstation).not.toContain(
-            "const dashboardTranscriptSkeletonClassNames",
-        );
-        expect(workstation).not.toContain(
-            "className={dashboardTranscriptSkeletonClassNames[size]}",
-        );
+        expect(workstation).not.toContain("dashboardTranscriptSkeletonSize");
+        expect(workstation).not.toContain("dashboardTranscriptAvatar");
         expect(workstation).not.toContain(
             "const sotSourceReportCardSkeletonClassNames",
         );

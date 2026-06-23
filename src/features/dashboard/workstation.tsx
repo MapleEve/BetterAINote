@@ -303,6 +303,7 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
 type DashboardTranscriptSkeletonSize =
     | "avatar"
     | "line-60"
@@ -318,28 +319,21 @@ type DashboardTranscriptSkeletonSize =
     | "speaker-140"
     | "time";
 
-const dashboardTranscriptSkeletonSizes = {
-    avatar: "dashboardTranscriptAvatar",
-    "line-60": "dashboardTranscriptLine60",
-    "line-70": "dashboardTranscriptLine70",
-    "line-78": "dashboardTranscriptLine78",
-    "line-82": "dashboardTranscriptLine82",
-    "line-88": "dashboardTranscriptLine88",
-    "line-92": "dashboardTranscriptLine92",
-    "line-94": "dashboardTranscriptLine94",
-    "line-96": "dashboardTranscriptLine96",
-    "speaker-120": "dashboardTranscriptSpeaker120",
-    "speaker-130": "dashboardTranscriptSpeaker130",
-    "speaker-140": "dashboardTranscriptSpeaker140",
-    time: "dashboardTranscriptTime",
-} as const satisfies Record<
-    DashboardTranscriptSkeletonSize,
-    `dashboardTranscript${string}`
->;
-
-function dashboardTranscriptSkeletonSize(size: DashboardTranscriptSkeletonSize) {
-    return dashboardTranscriptSkeletonSizes[size];
-}
+const dashboardTranscriptSkeletonClassNames = {
+    avatar: "size-6 flex-none rounded-full",
+    "line-60": "mt-1.5 h-3.5 w-3/5",
+    "line-70": "mt-1.5 h-3.5 w-[70%]",
+    "line-78": "mt-1.5 h-3.5 w-[78%]",
+    "line-82": "mt-1.5 h-3.5 w-[82%]",
+    "line-88": "mt-1.5 h-3.5 w-[88%]",
+    "line-92": "mt-1 h-3.5 w-[92%]",
+    "line-94": "mt-1 h-3.5 w-[94%]",
+    "line-96": "mt-1 h-3.5 w-[96%]",
+    "speaker-120": "h-[13px] w-[120px] flex-none",
+    "speaker-130": "h-[13px] w-[130px] flex-none",
+    "speaker-140": "h-[13px] w-[140px] flex-none",
+    time: "h-[11px] w-20 flex-none",
+} as const satisfies Record<DashboardTranscriptSkeletonSize, string>;
 
 const TRANSCRIPT_LOADING_SKELETON_ROWS = [
     {
@@ -379,8 +373,9 @@ function DashboardTranscriptSkeleton({
     return (
         <Skeleton
             aria-hidden="true"
-            variant="dashboardTranscript"
-            size={dashboardTranscriptSkeletonSize(size)}
+            variant="default"
+            size="default"
+            className={dashboardTranscriptSkeletonClassNames[size]}
             data-sot-part="dashboard-transcript-skeleton"
             data-sot-size={size}
         />

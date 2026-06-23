@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 
 const skeletonVariants = {
     default: "animate-pulse rounded-md bg-accent",
-    dashboardTranscript: "animate-pulse rounded-md bg-accent",
     recordingTranscription: "animate-pulse rounded-md bg-accent",
     sourceReportCard: "animate-pulse inline-block align-middle rounded-[6px] bg-accent",
     sourceReportSegment:
@@ -23,19 +22,6 @@ const skeletonSizes = {
     recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
     recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
     recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
-    dashboardTranscriptAvatar: "size-6 flex-none rounded-full",
-    dashboardTranscriptLine60: "mt-1.5 h-3.5 w-3/5",
-    dashboardTranscriptLine70: "mt-1.5 h-3.5 w-[70%]",
-    dashboardTranscriptLine78: "mt-1.5 h-3.5 w-[78%]",
-    dashboardTranscriptLine82: "mt-1.5 h-3.5 w-[82%]",
-    dashboardTranscriptLine88: "mt-1.5 h-3.5 w-[88%]",
-    dashboardTranscriptLine92: "mt-1 h-3.5 w-[92%]",
-    dashboardTranscriptLine94: "mt-1 h-3.5 w-[94%]",
-    dashboardTranscriptLine96: "mt-1 h-3.5 w-[96%]",
-    dashboardTranscriptSpeaker120: "h-[13px] w-[120px] flex-none",
-    dashboardTranscriptSpeaker130: "h-[13px] w-[130px] flex-none",
-    dashboardTranscriptSpeaker140: "h-[13px] w-[140px] flex-none",
-    dashboardTranscriptTime: "h-[11px] w-20 flex-none",
     recordingTranscriptionAction: "h-[26px] w-[72px]",
     recordingTranscriptionDescription: "h-[13px] w-full max-w-[220px]",
     recordingTranscriptionFieldControl: "h-[13px] w-[132px]",

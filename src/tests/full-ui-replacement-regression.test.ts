@@ -1190,7 +1190,8 @@ const DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS = [
     'data-sot-part="dashboard-transcript-empty-sub"',
 ];
 
-const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
+const DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS = [
+    "dashboardTranscript:",
     "dashboardTranscriptAvatar",
     "dashboardTranscriptLine60",
     "dashboardTranscriptLine70",
@@ -1204,6 +1205,12 @@ const DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES = [
     "dashboardTranscriptSpeaker130",
     "dashboardTranscriptSpeaker140",
     "dashboardTranscriptTime",
+] as const;
+
+const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const dashboardTranscriptSkeletonClassNames",
+    'avatar: "size-6 flex-none rounded-full"',
+    '"speaker-120": "h-[13px] w-[120px] flex-none"',
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
@@ -5771,26 +5778,36 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardTranscriptLoadingTurn).toContain(
             'data-sot-state="loading"',
         );
-        expect(workstation).not.toContain(
-            "const dashboardTranscriptSkeletonClassNames",
-        );
+        for (const token of DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(workstation).toContain(token);
+        }
         expect(workstation).toContain("function DashboardTranscriptSkeleton");
         expect(dashboardTranscriptLoadingTurn).toContain(
             "<DashboardTranscriptSkeleton",
         );
         expect(dashboardTranscriptLoadingTurn).not.toContain("<Skeleton");
-        expect(skeletonPrimitive).toContain("dashboardTranscript:");
-        for (const size of DASHBOARD_TRANSCRIPT_SKELETON_PRIMITIVE_SIZES) {
-            expect(skeletonPrimitive).toContain(size);
+        for (const token of DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
         }
-        expect(workstation).toContain('variant="dashboardTranscript"');
-        expect(workstation).toContain(
-            "size={dashboardTranscriptSkeletonSize(size)}",
+        const dashboardTranscriptSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-transcript-skeleton"',
+            "Skeleton",
         );
-        expect(workstation).not.toContain(
+        expect(dashboardTranscriptSkeleton).toContain('variant="default"');
+        expect(dashboardTranscriptSkeleton).toContain('size="default"');
+        expect(dashboardTranscriptSkeleton).toContain(
             "className={dashboardTranscriptSkeletonClassNames[size]}",
         );
-        expect(workstation).toContain('data-sot-size={size}');
+        expect(dashboardTranscriptSkeleton).toContain(
+            'data-sot-part="dashboard-transcript-skeleton"',
+        );
+        expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
+        expect(workstation).not.toContain('variant="dashboardTranscript"');
+        expect(workstation).not.toContain(
+            "dashboardTranscriptSkeletonSize",
+        );
+        expect(workstation).not.toContain("dashboardTranscriptAvatar");
         expect(globals).not.toContain(
             '[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
         );
