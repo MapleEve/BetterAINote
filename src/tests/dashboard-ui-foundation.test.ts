@@ -132,6 +132,27 @@ const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "recordingListPagination",
 ] as const;
 
+const SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
+    "sourceFilterAction:",
+    "cursor-pointer",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
+    "hover:text-[var(--fg-primary)]",
+    "focus-visible:outline-[var(--accent)]",
+    "focus-visible:ring-0",
+    "disabled:cursor-not-allowed",
+    "data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)]",
+    "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
+    "data-[sot-action=widen]:bg-[var(--accent-soft)]",
+    "data-[sot-action=open-settings]:bg-[var(--accent-soft)]",
+    "dark:bg-[rgb(255_255_255_/_0.05)]",
+    "[&_svg]:stroke-current",
+    "font-sans",
+    "h-[22px]",
+    "ml-[6px]",
+    "[&_svg:not([class*='size-'])]:size-[11px]",
+] as const;
+
 const DASHBOARD_TRANSCRIPT_COPY_CONTROLS = [
     "copy-source-transcript",
     "copy-source-report",
@@ -328,6 +349,9 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"]:hover',
     '[data-sot-control="dashboard-recording-time-filter"][data-slot="toggle-group-item"][data-sot-state="selected"]',
     '[data-sot-control="source-filter-clear"][data-slot="button"]',
+    '[data-sot-part="source-filter-action"]',
+    '[data-sot-part="source-filter-action"]:focus-visible',
+    '[data-sot-part="source-filter-action"][disabled]',
     '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
     '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
     '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
@@ -336,7 +360,7 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
-    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-panel="dashboard-recording-time-filter"\]\[data-slot="toggle-group"\]|\[data-sot-control="dashboard-recording-time-filter"\]\[data-slot="toggle-group-item"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-panel="dashboard-recording-time-filter"\]\[data-slot="toggle-group"\]|\[data-sot-control="dashboard-recording-time-filter"\]\[data-slot="toggle-group-item"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -1167,6 +1191,13 @@ describe("dashboard SOT foundation", () => {
                 ),
             );
         }
+        for (const token of SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
+            expect(buttonPrimitive).toContain(token);
+        }
+        expect(globals).not.toContain('[data-sot-action="source-filter-action"]');
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
+        ).toEqual([]);
         expect(workstation).toMatch(
             /<Button\s+variant="sourceFilterClearAll"\s+size="sourceFilterClearAll"[\s\S]*data-sot-control="source-filter-clear-all"/,
         );

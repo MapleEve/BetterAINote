@@ -3596,83 +3596,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     gap: 6px;
     margin-top: 6px;
 }
-[data-theme="dark"]
-    [data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 9px;
-    border-radius: 999px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    font: 600 11px var(--font-sans);
-    color: var(--fg-secondary);
-    cursor: pointer;
-    margin-left: 6px;
-    flex: 0 0 auto;
-    white-space: nowrap;
-    line-height: 1;
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"]
-    svg {
-    display: inline;
-    width: 11px;
-    height: 11px;
-    vertical-align: baseline;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"]:not(:disabled):hover {
-    background: var(--bg-elevated);
-    color: var(--fg-primary);
-}
-[data-theme="dark"]
-    [data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"] {
-    background: rgb(255 255 255 / 0.05);
-    border-color: var(--glass-border);
-}
-[data-theme="dark"]
-    [data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"]:not(:disabled):hover {
-    background: rgb(255 255 255 / 0.1);
-    color: var(--fg-primary);
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"][data-sot-action="retry"] {
-    background: color-mix(
-        in srgb,
-        var(--signal-danger) 12%,
-        var(--bg-elevated)
-    );
-    border-color: color-mix(in srgb, var(--signal-danger) 30%, transparent);
-    color: var(--signal-danger);
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"][data-sot-action="retry"]:not(
-        :disabled
-    ):hover {
-    background: color-mix(
-        in srgb,
-        var(--signal-danger) 18%,
-        var(--bg-elevated)
-    );
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"][data-sot-action="widen"],
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"][data-sot-action="open-settings"] {
-    background: var(--accent-soft);
-    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-    color: var(--accent);
-}
 [data-sot-panel="dashboard-sidebar"]
     [data-sot-control="dashboard-source-provider"]
     [data-sot-part="source-provider-status"] {
@@ -4773,9 +4696,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 
 /* ---------- Sidebar source-state dot/action stretch fix ---------- */
 [data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-status"],
-[data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-action"],
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-action"] {
+[data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-action"] {
     flex: none;
 }
 [data-sot-panel="dashboard-sidebar"] [data-sot-part="source-provider-status"] {
@@ -4878,7 +4799,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-control="dashboard-recording-row"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
 [data-sot-part="source-provider-action"]:focus-visible,
-[data-sot-part="source-filter-action"]:focus-visible,
 [data-sot-control="dashboard-activity-dismiss"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
     outline-offset: 2px;
@@ -4887,8 +4807,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 /* Consistent disabled state for actionable buttons so every
    surface dims the same way. Component-specific disabled rules
    still take precedence where they exist. */
-[data-sot-part="source-provider-action"][disabled],
-[data-sot-part="source-filter-action"][disabled] {
+[data-sot-part="source-provider-action"][disabled] {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;

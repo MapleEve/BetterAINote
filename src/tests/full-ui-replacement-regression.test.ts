@@ -470,6 +470,9 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-surface="dashboard-recording-list"][data-slot="card"]',
     '[data-sot-part="dashboard-recording-list-content"][data-slot="card-content"]',
     '[data-sot-control="source-filter-clear"][data-slot="button"]',
+    '[data-sot-part="source-filter-action"]',
+    '[data-sot-part="source-filter-action"]:focus-visible',
+    '[data-sot-part="source-filter-action"][disabled]',
     '[data-sot-control="source-filter-clear-all"][data-slot="button"]',
     '[data-sot-control="library-search-filter-clear"][data-slot="button"]',
     '[data-sot-control="recording-list-tag-filter-trigger"][data-slot="button"]',
@@ -479,7 +482,7 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
-    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+    /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
 
 const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES = [
     "ls-anchor",
@@ -610,6 +613,27 @@ const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
     "recordingListTagFilterOption",
     "recordingListStateAction",
     "recordingListPagination",
+] as const;
+
+const SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS = [
+    "sourceFilterAction:",
+    "cursor-pointer",
+    "border-[var(--line-hairline)]",
+    "bg-[var(--bg-elevated)]",
+    "hover:text-[var(--fg-primary)]",
+    "focus-visible:outline-[var(--accent)]",
+    "focus-visible:ring-0",
+    "disabled:cursor-not-allowed",
+    "data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)]",
+    "data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)]",
+    "data-[sot-action=widen]:bg-[var(--accent-soft)]",
+    "data-[sot-action=open-settings]:bg-[var(--accent-soft)]",
+    "dark:bg-[rgb(255_255_255_/_0.05)]",
+    "[&_svg]:stroke-current",
+    "font-sans",
+    "h-[22px]",
+    "ml-[6px]",
+    "[&_svg:not([class*='size-'])]:size-[11px]",
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
@@ -3583,6 +3607,13 @@ describe("full UI replacement regression coverage", () => {
                 ),
             );
         }
+        for (const token of SOURCE_FILTER_ACTION_BUTTON_PRIMITIVE_TOKENS) {
+            expect(button).toContain(token);
+        }
+        expect(globals).not.toContain('[data-sot-action="source-filter-action"]');
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
+        ).toEqual([]);
         expect(sourceFilterStack).toMatch(
             /<Button\s+variant="sourceFilterClearAll"\s+size="sourceFilterClearAll"[\s\S]*data-sot-control="source-filter-clear-all"/,
         );
@@ -3613,9 +3644,9 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).toContain(
             '[data-sot-part="source-provider-action"][data-sot-action="retry"]',
         );
-        expect(globals).toMatch(
-            /\[data-sot-panel="dashboard-source-filter-stack"\]\s+\[data-sot-part="source-filter-action"\]\[data-sot-action="widen"\]/,
-        );
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
+        ).toEqual([]);
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-panel="library-search"');
         expect(workstation).toContain('data-sot-list="library-search-results"');

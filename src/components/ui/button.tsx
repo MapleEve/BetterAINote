@@ -181,7 +181,7 @@ const buttonVariants = cva(
                 sourceFilterClear:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 sourceFilterAction:
-                    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)]",
+                    "cursor-pointer border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[sot-action=open-settings]:border-[var(--source-provider-primary-border)] data-[sot-action=open-settings]:bg-[var(--accent-soft)] data-[sot-action=open-settings]:text-[var(--accent)] data-[sot-action=retry]:border-[var(--alert-destructive-soft-border)] data-[sot-action=retry]:bg-[var(--alert-destructive-soft-bg)] data-[sot-action=retry]:text-[var(--signal-danger)] data-[sot-action=retry]:hover:bg-[var(--alert-destructive-soft-strong-bg)] data-[sot-action=widen]:border-[var(--source-provider-primary-border)] data-[sot-action=widen]:bg-[var(--accent-soft)] data-[sot-action=widen]:text-[var(--accent)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.05)] dark:hover:bg-[rgb(255_255_255_/_0.1)] [&_svg]:inline [&_svg]:align-baseline [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
                 sourceFilterClearAll:
                     "bg-transparent text-primary shadow-none underline-offset-4 hover:bg-transparent hover:text-primary hover:underline",
                 systemBannerAction:
@@ -334,7 +334,7 @@ const buttonVariants = cva(
                 sourceFilterClear:
                     "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceFilterAction:
-                    "ml-[6px] h-[22px] flex-none gap-1 rounded-full px-[9px] text-[11px] font-semibold leading-none whitespace-nowrap has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-[11px]",
+                    "ml-[6px] h-[22px] flex-none gap-1 rounded-full px-[9px] font-sans text-[11px] font-semibold leading-none whitespace-nowrap has-[>svg]:px-[9px] [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceFilterClearAll:
                     "h-6 rounded-md px-2 text-sm has-[>svg]:px-2",
                 systemBannerAction:
