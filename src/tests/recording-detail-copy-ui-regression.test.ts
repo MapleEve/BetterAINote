@@ -28,6 +28,11 @@ const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
+const ROUTE_LOADING_SURFACE_CLASS_VALUE =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
+    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+
 const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
     "components/ui/alert.tsx",
     "components/ui/badge.tsx",
@@ -1732,6 +1737,20 @@ describe("recording detail copy and title action UI regressions", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeLoadingSurfaceClassName = extractBoundedSlice(
+            loading,
+            "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const recordingRouteLoadingDetailCard = extractCardSlice(
+            loading,
+            'data-sot-panel="recording-route-loading-detail"',
+        );
+        const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+            loading,
+            'data-sot-panel="recording-route-loading-detail"',
+            "Card",
+        );
 
         for (const source of [loading, notFound, error]) {
             expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
@@ -1813,8 +1832,28 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain("<Card");
-        expect(loading).toContain('variant="routeLoadingSurface"');
-        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        expect(routeLoadingSurfaceClassName).toContain(
+            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
+        );
+        for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
+            expect(routeLoadingSurfaceClassName).toContain(token);
+        }
+        expect(recordingRouteLoadingDetailCard).toContain('variant="default"');
+        expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
+        expect(recordingRouteLoadingDetailCard).not.toContain(
+            'variant="routeLoadingSurface"',
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "className={cn(",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "routeLoadingSurfaceClassName,",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            '"flex min-h-0 flex-col gap-4"',
+        );
+        expect(loading).not.toContain('variant="routeLoadingSurface"');
+        expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const detailLoadingSize of [
             "recordingDetailLoadingAvatar",
             "recordingDetailLoadingBar",
@@ -1829,6 +1868,7 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(loading).not.toContain(`size="${detailLoadingSize}"`);
         }
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('aria-hidden="true"');
         expect(loading).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );

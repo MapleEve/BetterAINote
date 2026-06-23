@@ -1,5 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
+const routeLoadingSurfaceClassName =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 
 const recordingListLoadingSkeletonClassNames = {
     recordingListLoadingDayLabel: "h-[11px] w-[100px]",
@@ -41,8 +45,9 @@ export default function DashboardLoading() {
                 <div data-sot-panel="route-workspace">
                     <Card
                         data-sot-panel="dashboard-loading-list"
-                        variant="routeLoadingSurface"
+                        variant="default"
                         hasNoPadding
+                        className={routeLoadingSurfaceClassName}
                     >
                         <div
                             data-sot-panel="recording-list-loading"
@@ -168,9 +173,12 @@ export default function DashboardLoading() {
                     </Card>
                     <Card
                         data-sot-panel="dashboard-loading-detail"
-                        variant="routeLoadingSurface"
+                        variant="default"
                         hasNoPadding
-                        className="flex min-h-0 flex-col gap-4"
+                        className={cn(
+                            routeLoadingSurfaceClassName,
+                            "flex min-h-0 flex-col gap-4",
+                        )}
                     >
                         <div
                             data-sot-panel="recording-detail-loading"

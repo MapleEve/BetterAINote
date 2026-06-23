@@ -26,6 +26,11 @@ const RECORDING_PLAYER_LEGACY_CLASS_TOKENS = [
     'className="vol-num mono"',
 ];
 
+const ROUTE_LOADING_SURFACE_CLASS_VALUE =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
+    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -91,6 +96,16 @@ function extractOpeningElement(source: string, marker: string, tagName: string) 
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(markerIndex);
     return source.slice(start, end + 1);
+}
+
+function extractElementSlice(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(`</${tagName}>`, markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + tagName.length + 3);
 }
 
 function extractBoundedSlice(
@@ -788,6 +803,21 @@ describe("dashboard recording player regressions", () => {
             ),
             "utf8",
         );
+        const routeLoadingSurfaceClassName = extractBoundedSlice(
+            recordingLoading,
+            "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const recordingRouteLoadingDetailCard = extractElementSlice(
+            recordingLoading,
+            'data-sot-panel="recording-route-loading-detail"',
+            "Card",
+        );
+        const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+            recordingLoading,
+            'data-sot-panel="recording-route-loading-detail"',
+            "Card",
+        );
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -810,7 +840,29 @@ describe("dashboard recording player regressions", () => {
         expect(recordingLoading).toContain(
             'data-sot-panel="recording-detail-loading"',
         );
-        expect(recordingLoading).toContain('variant="routeLoadingSurface"');
+        expect(recordingLoading).toContain("<Card");
+        expect(routeLoadingSurfaceClassName).toContain(
+            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
+        );
+        for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
+            expect(routeLoadingSurfaceClassName).toContain(token);
+        }
+        expect(recordingRouteLoadingDetailCard).toContain('variant="default"');
+        expect(recordingRouteLoadingDetailCard).toContain("hasNoPadding");
+        expect(recordingRouteLoadingDetailCard).not.toContain(
+            'variant="routeLoadingSurface"',
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "className={cn(",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            "routeLoadingSurfaceClassName,",
+        );
+        expect(recordingRouteLoadingDetailCardOpening).toContain(
+            '"flex min-h-0 flex-col gap-4"',
+        );
+        expect(recordingLoading).toContain('aria-hidden="true"');
+        expect(recordingLoading).not.toContain('variant="routeLoadingSurface"');
         expect(recordingLoading).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );

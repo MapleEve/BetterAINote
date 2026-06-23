@@ -1,5 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
+const routeLoadingSurfaceClassName =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 
 const recordingDetailLoadingSkeletonClassNames = {
     recordingDetailLoadingAvatar: "size-8 rounded-full",
@@ -22,9 +26,12 @@ export default function RecordingLoading() {
                 </header>
                 <Card
                     data-sot-panel="recording-route-loading-detail"
-                    variant="routeLoadingSurface"
+                    variant="default"
                     hasNoPadding
-                    className="flex min-h-0 flex-col gap-4"
+                    className={cn(
+                        routeLoadingSurfaceClassName,
+                        "flex min-h-0 flex-col gap-4",
+                    )}
                 >
                     <div
                         data-sot-panel="recording-detail-loading"

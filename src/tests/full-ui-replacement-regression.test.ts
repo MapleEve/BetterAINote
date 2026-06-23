@@ -34,6 +34,11 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+const ROUTE_LOADING_SURFACE_CLASS_VALUE =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
+    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+
 function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -3250,6 +3255,81 @@ describe("full UI replacement regression coverage", () => {
             ...recordingListLoadingSizeTokens,
             ...recordingDetailLoadingSizeTokens,
         ];
+        const dashboardRouteLoadingSurfaceClassName = extractBoundedSlice(
+            dashboardLoading,
+            "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const recordingRouteLoadingSurfaceClassName = extractBoundedSlice(
+            recordingLoading,
+            "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const dashboardLoadingListCard = extractCardSlice(
+            dashboardLoading,
+            'data-sot-panel="dashboard-loading-list"',
+        );
+        const dashboardLoadingListCardOpening = extractOpeningElement(
+            dashboardLoading,
+            'data-sot-panel="dashboard-loading-list"',
+            "Card",
+        );
+        const dashboardLoadingDetailCard = extractCardSlice(
+            dashboardLoading,
+            'data-sot-panel="dashboard-loading-detail"',
+        );
+        const dashboardLoadingDetailCardOpening = extractOpeningElement(
+            dashboardLoading,
+            'data-sot-panel="dashboard-loading-detail"',
+            "Card",
+        );
+        const recordingRouteLoadingDetailCard = extractCardSlice(
+            recordingLoading,
+            'data-sot-panel="recording-route-loading-detail"',
+        );
+        const recordingRouteLoadingDetailCardOpening = extractOpeningElement(
+            recordingLoading,
+            'data-sot-panel="recording-route-loading-detail"',
+            "Card",
+        );
+
+        for (const routeLoadingSurfaceClassName of [
+            dashboardRouteLoadingSurfaceClassName,
+            recordingRouteLoadingSurfaceClassName,
+        ]) {
+            expect(routeLoadingSurfaceClassName).toContain(
+                `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
+            );
+            for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
+                expect(routeLoadingSurfaceClassName).toContain(token);
+            }
+        }
+        for (const [label, card] of [
+            ["dashboard-loading-list", dashboardLoadingListCard],
+            ["dashboard-loading-detail", dashboardLoadingDetailCard],
+            ["recording-route-loading-detail", recordingRouteLoadingDetailCard],
+        ] as const) {
+            expect(card, label).toContain('variant="default"');
+            expect(card, label).toContain("hasNoPadding");
+            expect(card, label).not.toContain(
+                'variant="routeLoadingSurface"',
+            );
+        }
+        expect(dashboardLoadingListCardOpening).toContain(
+            "className={routeLoadingSurfaceClassName}",
+        );
+        for (const detailCardOpening of [
+            dashboardLoadingDetailCardOpening,
+            recordingRouteLoadingDetailCardOpening,
+        ]) {
+            expect(detailCardOpening).toContain("className={cn(");
+            expect(detailCardOpening).toContain(
+                "routeLoadingSurfaceClassName,",
+            );
+            expect(detailCardOpening).toContain(
+                '"flex min-h-0 flex-col gap-4"',
+            );
+        }
 
         for (const loading of [dashboardLoading, recordingLoading]) {
             expect(loading).toContain(
@@ -3258,7 +3338,8 @@ describe("full UI replacement regression coverage", () => {
             expect(loading).toContain(
                 'import { Skeleton } from "@/components/ui/skeleton";',
             );
-            expect(loading).toContain('variant="routeLoadingSurface"');
+            expect(loading).toContain('aria-hidden="true"');
+            expect(loading).not.toContain('variant="routeLoadingSurface"');
             expect(loading).toContain("<Skeleton");
             expect(loading).toContain(
                 'data-sot-panel="recording-detail-loading"',
@@ -3304,12 +3385,9 @@ describe("full UI replacement regression coverage", () => {
         expect(recordingLoading).toContain(
             'data-sot-panel="recording-route-loading-detail"',
         );
-        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const sizeToken of routeLoadingSizeTokens) {
             expect(skeletonPrimitive).not.toContain(sizeToken);
-        }
-        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
-            expect(skeletonPrimitive).not.toContain(token);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);

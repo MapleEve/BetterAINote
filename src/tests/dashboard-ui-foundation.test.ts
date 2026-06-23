@@ -791,12 +791,42 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
+const ROUTE_LOADING_SURFACE_CLASS_VALUE =
+    "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
+const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
+    ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const routeLoadingSurfaceClassName = extractBoundedSlice(
+            loading,
+            "const routeLoadingSurfaceClassName =",
+            ";",
+        );
+        const dashboardLoadingListCard = extractElementSlice(
+            loading,
+            'data-sot-panel="dashboard-loading-list"',
+            "Card",
+        );
+        const dashboardLoadingListCardOpening = extractOpeningElement(
+            loading,
+            'data-sot-panel="dashboard-loading-list"',
+            "Card",
+        );
+        const dashboardLoadingDetailCard = extractElementSlice(
+            loading,
+            'data-sot-panel="dashboard-loading-detail"',
+            "Card",
+        );
+        const dashboardLoadingDetailCardOpening = extractOpeningElement(
+            loading,
+            'data-sot-panel="dashboard-loading-detail"',
+            "Card",
+        );
 
         expect(loading).toContain(
             'import { Card } from "@/components/ui/card";',
@@ -806,8 +836,34 @@ describe("dashboard SOT foundation", () => {
         );
         expect(loading).toContain('aria-busy="true"');
         expect(loading).toContain("<Card");
-        expect(loading).toContain('variant="routeLoadingSurface"');
-        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        expect(routeLoadingSurfaceClassName).toContain(
+            `"${ROUTE_LOADING_SURFACE_CLASS_VALUE}"`,
+        );
+        for (const token of ROUTE_LOADING_SURFACE_CLASS_TOKENS) {
+            expect(routeLoadingSurfaceClassName).toContain(token);
+        }
+        for (const [label, card] of [
+            ["dashboard-loading-list", dashboardLoadingListCard],
+            ["dashboard-loading-detail", dashboardLoadingDetailCard],
+        ] as const) {
+            expect(card, label).toContain('variant="default"');
+            expect(card, label).toContain("hasNoPadding");
+            expect(card, label).not.toContain(
+                'variant="routeLoadingSurface"',
+            );
+        }
+        expect(dashboardLoadingListCardOpening).toContain(
+            "className={routeLoadingSurfaceClassName}",
+        );
+        expect(dashboardLoadingDetailCardOpening).toContain("className={cn(");
+        expect(dashboardLoadingDetailCardOpening).toContain(
+            "routeLoadingSurfaceClassName,",
+        );
+        expect(dashboardLoadingDetailCardOpening).toContain(
+            '"flex min-h-0 flex-col gap-4"',
+        );
+        expect(loading).not.toContain('variant="routeLoadingSurface"');
+        expect(cardPrimitive).not.toContain("routeLoadingSurface");
         for (const loadingSkeletonSize of [
             "recordingListLoadingDayLabel",
             "recordingListLoadingTitle",
@@ -826,6 +882,7 @@ describe("dashboard SOT foundation", () => {
             expect(loading).not.toContain(`size="${loadingSkeletonSize}"`);
         }
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain('aria-hidden="true"');
         expect(loading).toContain(
             "const recordingListLoadingSkeletonClassNames",
         );
