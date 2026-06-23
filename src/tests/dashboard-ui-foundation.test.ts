@@ -899,9 +899,13 @@ describe("dashboard SOT foundation", () => {
                 ),
             ).toEqual([]);
         }
-        expect(globals).toContain(
+        for (const selector of [
             '[data-sot-part="dashboard-player-seek-shell"]',
-        );
+            '[data-sot-part="dashboard-player-volume-anchor"]',
+        ]) {
+            expect(player).toContain(selector.replace(/\[|\]/g, ""));
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(player).not.toContain(
             'data-sot-part="dashboard-player-seek-thumb"',
         );

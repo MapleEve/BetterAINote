@@ -2747,6 +2747,53 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
+    it("keeps dashboard sidebar collapse on the runtime root without the body bridge", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const globals = readSource("app/globals.css");
+        const productCss = readProductCss(globals);
+        const bodyDatasetKeys = [
+            ...new Set(
+                [...workstation.matchAll(/document\.body\.dataset\.([A-Za-z0-9_]+)/g)]
+                    .map(([, key]) => key)
+                    .sort(),
+            ),
+        ];
+        const bodySidebarBridgeBlocks = collectCssRuleBlocks(
+            productCss,
+            'body[data-sidebar="collapsed"]',
+        ).filter(({ prelude }) =>
+            /dashboard-(?:workstation|sidebar|brand|sync)|sidebar-collapse/.test(
+                prelude,
+            ),
+        );
+
+        expect(workstation).toContain(
+            'data-sidebar-collapsed={collapsed ? "true" : "false"}',
+        );
+        expect(bodyDatasetKeys).toEqual([
+            "drawer",
+            "sourceFilter",
+            "sourceStatus",
+            "timeStyle",
+        ]);
+        expect(workstation).not.toMatch(
+            /document\.body\.dataset\.(?:sidebar|collapsed)\b/,
+        );
+        expect(productCss).toContain(
+            '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]',
+        );
+        expect(productCss).toContain(
+            '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]\n    [data-sot-panel="dashboard-sidebar"]',
+        );
+        expect(productCss).toContain(
+            '[data-sidebar="collapsed"]\n    [data-sot-panel="dashboard-sidebar"]\n    [data-sot-part="dashboard-nav-section-label"]',
+        );
+        expect(productCss).not.toContain(
+            'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
+        );
+        expect(bodySidebarBridgeBlocks).toEqual([]);
+    });
+
     it("keeps library search product CSS on data-sot selectors", () => {
         const globals = readSource("app/globals.css");
         const legacySelectorLines = globals

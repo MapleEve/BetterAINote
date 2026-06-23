@@ -4210,39 +4210,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 
 /* ============================================================
-   Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]
-   to the data-sot runtime shell.
-   ============================================================ */
-@media (min-width: 861px) {
-    body[data-sidebar="collapsed"] [data-sot-shell="dashboard-workstation"] {
-        grid-template-columns: 56px 1fr;
-    }
-    body[data-sidebar="collapsed"] [data-sot-panel="dashboard-sidebar"] {
-        padding: 16px 6px 12px;
-    }
-    body[data-sidebar="collapsed"] [data-sot-part="dashboard-brand-text"],
-    body[data-sidebar="collapsed"]
-        [data-sot-part="dashboard-nav-section-label"],
-    body[data-sidebar="collapsed"] [data-sot-part="dashboard-sync-text"],
-    body[data-sidebar="collapsed"]
-        [data-sot-panel="dashboard-sync"]
-        [data-sot-control="dashboard-sync"] {
-        display: none;
-    }
-    body[data-sidebar="collapsed"] [data-sot-part="dashboard-brand"] {
-        justify-content: center;
-        padding: 4px 0 16px;
-    }
-    body[data-sidebar="collapsed"] [data-sot-panel="dashboard-sync"] {
-        justify-content: center;
-        padding: 8px 0;
-    }
-    body[data-sidebar="collapsed"] [data-sot-control="sidebar-collapse"] svg {
-        transform: rotate(180deg);
-    }
-}
-
-/* ============================================================
    SystemBanner — primitive-owned surface.
    ============================================================ */
 [data-sot-panel="system-banner"] + [data-sot-panel="system-banner"] {
