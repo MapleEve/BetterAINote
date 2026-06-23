@@ -281,6 +281,11 @@ const SETTINGS_DATA_SOURCE_PRIMITIVE_REPAINT_TARGETS = [
     },
 ] as const;
 
+const AUTH_FIELD_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "authAction",
+    "authCompact",
+] as const;
+
 const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
@@ -353,6 +358,18 @@ function expectNoLegacySettingsFieldPatterns(
                 `${filePath} should not use legacy ${label}`,
             ).not.toMatch(pattern);
         }
+    }
+}
+
+function expectPrimitiveToExcludeBusinessTokens(
+    source: string,
+    tokens: readonly string[],
+) {
+    for (const token of tokens) {
+        const escapedToken = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        expect(source).not.toMatch(
+            new RegExp(`(^|[^A-Za-z0-9_])${escapedToken}([^A-Za-z0-9_]|$)`),
+        );
     }
 }
 
@@ -1602,11 +1619,14 @@ describe("settings SOT interaction regressions", () => {
         expect(fieldPrimitive).toContain(
             `type FieldVariant =
     | "default"
-    | "authAction"
     | "onboardingSourceField"
     | "settingsRow"
     | "speakerSettingsRow"
     | "sourceProviderDetail";`,
+        );
+        expectPrimitiveToExcludeBusinessTokens(
+            fieldPrimitive,
+            AUTH_FIELD_PRIMITIVE_FORBIDDEN_TOKENS,
         );
         expect(fieldPrimitive).toContain(
             `type FieldContentVariant =

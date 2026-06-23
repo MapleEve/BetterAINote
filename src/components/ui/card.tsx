@@ -4,8 +4,6 @@ import { cn } from "@/lib/utils";
 
 const cardVariants = {
     default: "",
-    authSurface:
-        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
     onboardingSurface:
         "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
     onboardingSpeakerDraft:
@@ -35,7 +33,6 @@ const cardVariants = {
 const cardHeaderVariants = {
     default:
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
-    authHeader: "grid auto-rows-min gap-0 p-0",
     onboardingHeader: "grid auto-rows-min gap-0 p-0",
     onboardingStepHeader: "grid auto-rows-min gap-0 p-0",
     onboardingProviderMeta: "grid auto-rows-min gap-0 p-0",
@@ -57,9 +54,6 @@ const cardHeaderVariants = {
 
 const cardTitleVariants = {
     default: "leading-none font-semibold",
-    authHeaderTitle:
-        "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-    authFrameTitle: "",
     onboardingHeading:
         "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
     onboardingStepTitle: "leading-none font-semibold",
@@ -78,7 +72,6 @@ const cardTitleVariants = {
 
 const cardContentVariants = {
     default: "px-6",
-    authFrame: "p-0",
     onboardingStepBody: "gap-0 p-0",
     aiRenamePreview:
         "flex min-h-20 flex-col px-4 py-4 [&_[data-slot=card-state]]:flex [&_[data-slot=card-state]]:flex-col [&_[data-slot=card-state]]:gap-2 [&_[data-slot=card-state-label]]:text-[10.5px] [&_[data-slot=card-state-label]]:font-semibold [&_[data-slot=card-state-label]]:uppercase [&_[data-slot=card-state-label]]:tracking-[0.08em] [&_[data-slot=card-state-label]]:text-muted-foreground [&_[data-slot=card-message]]:m-0 [&_[data-slot=card-message]]:break-words [&_[data-slot=card-message]]:text-sm [&_[data-slot=card-message]]:leading-6 [&_[data-slot=card-message]]:text-muted-foreground [&_[data-slot=card-hint]]:m-0 [&_[data-slot=card-hint]]:break-words [&_[data-slot=card-hint]]:text-sm [&_[data-slot=card-hint]]:leading-6 [&_[data-slot=card-hint]]:text-muted-foreground [&_[data-slot=card-review-row]]:my-1.5 [&_[data-slot=card-review-row]]:flex [&_[data-slot=card-review-row]]:flex-col [&_[data-slot=card-review-row]]:gap-1.5 [&_[data-slot=card-review-line]]:flex [&_[data-slot=card-review-line]]:min-w-0 [&_[data-slot=card-review-line]]:items-baseline [&_[data-slot=card-review-line]]:gap-2 [&_[data-slot=card-review-line]]:rounded-lg [&_[data-slot=card-review-line]]:border [&_[data-slot=card-review-line]]:border-border [&_[data-slot=card-review-line]]:bg-muted/50 [&_[data-slot=card-review-line]]:px-2.5 [&_[data-slot=card-review-line]]:py-2 [&_[data-slot=card-review-value]]:min-w-0 [&_[data-slot=card-review-value]]:break-words [&_[data-slot=card-review-value]]:text-sm [&_[data-slot=card-review-value]]:font-semibold [&_[data-slot=card-review-value]]:leading-relaxed [&_[data-review-tone=old]]:line-through [&_[data-review-tone=old]]:text-muted-foreground [&_[data-review-tone=new]]:text-foreground [&_[data-slot=card-preview-title]]:min-w-0 [&_[data-slot=card-preview-title]]:rounded-lg [&_[data-slot=card-preview-title]]:border [&_[data-slot=card-preview-title]]:border-border [&_[data-slot=card-preview-title]]:bg-muted/50 [&_[data-slot=card-preview-title]]:px-2.5 [&_[data-slot=card-preview-title]]:py-2 [&_[data-slot=card-preview-title]]:text-sm [&_[data-slot=card-preview-title]]:font-semibold [&_[data-slot=card-preview-title]]:leading-relaxed [&_[data-slot=card-preview-title]]:text-foreground",
@@ -119,9 +112,6 @@ const cardFooterVariants = {
 
 const cardDescriptionVariants = {
     default: "text-sm text-muted-foreground",
-    authHeaderDescription:
-        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
-    authFrameDescription: "",
     onboardingSub:
         "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
     onboardingStepDescription: "text-sm text-muted-foreground",
@@ -152,7 +142,6 @@ function Card({
     variant?: keyof typeof cardVariants;
 }) {
     const hasSemanticNoPadding = [
-        "authSurface",
         "onboardingSurface",
         "onboardingSpeakerDraft",
     ].includes(variant);

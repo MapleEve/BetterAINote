@@ -24,6 +24,28 @@ import {
     useBrowserRouteController,
 } from "@/lib/platform/browser-router";
 
+const authLoginClassNames = {
+    surface:
+        "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+    header: "grid auto-rows-min gap-0 p-0",
+    headerTitle:
+        "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]",
+    headerDescription:
+        "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+    frame: "p-0",
+    frameTitle: "",
+    frameDescription: "",
+    fieldGroup: "mx-auto max-w-[280px] gap-[10px]",
+    field: "flex flex-col gap-0 [&>*]:w-full",
+    actionField: "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto",
+    emailInput:
+        "h-[36px] rounded-[9px] border-primary bg-[var(--bg-elevated)] focus-visible:border-primary aria-invalid:border-destructive",
+    submitButton:
+        "h-[38px] w-full bg-[var(--accent)] text-white focus-visible:border-primary",
+    footer: "mt-[14px] text-[12px] text-[var(--fg-disabled)]",
+    inlineLink: "h-auto min-h-0 rounded-none p-0 text-[var(--accent)] underline",
+} as const;
+
 export function LoginForm({
     intent = "login",
     registrationOpen = false,
@@ -119,47 +141,52 @@ export function LoginForm({
             data-sot-surface={`${intent}-workstation`}
         >
             <Card
-                variant="authSurface"
+                hasNoPadding
+                className={authLoginClassNames.surface}
                 data-sot-card="auth"
                 data-sot-surface={surfaceName}
                 data-sot-ready={isMounted ? "true" : "false"}
                 data-sot-state={surfaceState}
             >
                 <form onSubmit={handleSubmit}>
-                    <CardHeader variant="authHeader">
+                    <CardHeader className={authLoginClassNames.header}>
                         <CardTitle
-                            variant="authHeaderTitle"
+                            className={authLoginClassNames.headerTitle}
                             data-sot-part="card-heading"
                         >
                             {cardHeading}
                         </CardTitle>
                         <CardDescription
-                            variant="authHeaderDescription"
+                            className={authLoginClassNames.headerDescription}
                             data-sot-part="card-sub"
                         >
                             邮箱 + 链接 · 不要密码
                         </CardDescription>
                     </CardHeader>
-                    <CardContent variant="authFrame" data-sot-frame="auth">
+                    <CardContent
+                        className={authLoginClassNames.frame}
+                        data-sot-frame="auth"
+                    >
                         <img
                             data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
                         />{" "}
                         <CardTitle
-                            variant="authFrameTitle"
+                            className={authLoginClassNames.frameTitle}
                             data-sot-part="auth-heading"
                         >
                             {title}
                         </CardTitle>
                         <CardDescription
-                            variant="authFrameDescription"
+                            className={authLoginClassNames.frameDescription}
                             data-sot-part="auth-description"
                         >
                             {subtitle}
                         </CardDescription>
-                        <FieldGroup variant="authCompact">
+                        <FieldGroup className={authLoginClassNames.fieldGroup}>
                             <Field
+                                className={authLoginClassNames.field}
                                 data-disabled={
                                     !isMounted || isLoading ? "true" : undefined
                                 }
@@ -177,8 +204,9 @@ export function LoginForm({
                                     disabled={!isMounted || isLoading}
                                     autoComplete="email"
                                     aria-invalid={invalid}
-                                    variant="authEmail"
-                                    controlSize="authEmail"
+                                    variant="accent"
+                                    controlSize="compact"
+                                    className={authLoginClassNames.emailInput}
                                     data-sot-control="auth-email"
                                     data-sot-state={
                                         invalid
@@ -209,25 +237,30 @@ export function LoginForm({
                                     </FieldDescription>
                                 ) : null}
                             </Field>
-                            <Field variant="authAction">
+                            <Field className={authLoginClassNames.actionField}>
                                 <Button
                                     type="submit"
                                     disabled={!isMounted || isLoading}
                                     aria-busy={isLoading}
-                                    size="authSubmit"
-                                    variant="authSubmit"
+                                    size="form-submit"
+                                    variant="accent"
+                                    className={authLoginClassNames.submitButton}
                                     data-sot-control="send-login-link"
                                 >
                                     {isLoading ? "发送中..." : "发送登录链接"}
                                 </Button>
-                                <FieldDescription data-sot-part="auth-local-choice">
+                                <FieldDescription
+                                    className={authLoginClassNames.footer}
+                                    data-sot-part="auth-local-choice"
+                                >
                                     或{" "}
                                     <Button
                                         type="button"
-                                        size="authInlineLink"
+                                        size="inline-link"
                                         disabled={!isMounted || isLocalLoading}
                                         aria-busy={isLocalLoading}
-                                        variant="authInlineLink"
+                                        variant="accentLink"
+                                        className={authLoginClassNames.inlineLink}
                                         data-sot-control="local-only"
                                         data-sot-state={
                                             isLocalLoading ? "loading" : "ready"

@@ -7,12 +7,11 @@ import { cn } from "@/lib/utils";
 type FieldOrientation = "vertical" | "horizontal" | "responsive";
 type FieldVariant =
     | "default"
-    | "authAction"
     | "onboardingSourceField"
     | "settingsRow"
     | "speakerSettingsRow"
     | "sourceProviderDetail";
-type FieldGroupVariant = "default" | "authCompact" | "onboardingSourceField";
+type FieldGroupVariant = "default" | "onboardingSourceField";
 type FieldContentVariant =
     | "default"
     | "settingsContent"
@@ -74,8 +73,6 @@ const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
 
 const sourceProviderDetailFieldClassName =
     "grid grid-cols-[1fr_auto] items-center gap-[18px] border-b border-[var(--line-hairline)] py-[12px] last:border-b-0";
-const authActionFieldClassName =
-    "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto";
 const onboardingSourceFieldClassName =
     "flex flex-col gap-3 border-b border-border py-3 last:border-b-0 @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-4 [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto";
 const settingsRowFieldClassName =
@@ -84,7 +81,6 @@ const speakerSettingsRowFieldClassName = "border-b border-border py-3";
 
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
     default: "",
-    authCompact: "mx-auto max-w-[280px] gap-[10px]",
     onboardingSourceField: "gap-0",
 };
 
@@ -178,9 +174,7 @@ function fieldClassName({
         "group/field w-full data-[invalid=true]:text-destructive",
         variant === "sourceProviderDetail"
             ? sourceProviderDetailFieldClassName
-            : variant === "authAction"
-              ? authActionFieldClassName
-              : variant === "onboardingSourceField"
+            : variant === "onboardingSourceField"
                 ? onboardingSourceFieldClassName
                 : [
                   "flex gap-3",

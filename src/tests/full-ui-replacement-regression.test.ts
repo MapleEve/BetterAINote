@@ -431,6 +431,18 @@ function collectOpeningElements(source: string, tagName: string) {
     return openings;
 }
 
+function expectOpeningElementUsesFeatureOwnedClassName(
+    openingElement: string,
+    label: string,
+) {
+    expect(
+        openingElement,
+        `${label} should use a feature-owned class helper through className`,
+    ).toMatch(
+        /className=\{[\s\S]*(?:ClassName|ClassNames|Classes|Styles)\b/,
+    );
+}
+
 function collectSourceFiles(directory: string): string[] {
     return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
         const entryPath = path.join(directory, entry.name);
@@ -964,6 +976,120 @@ const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
 const DASHBOARD_SOURCE_FILTER_BADGE_PRIMITIVE_FORBIDDEN_TOKENS = [
     "dashboardSourceStatus",
     "dashboardSourceCount",
+] as const;
+
+const AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "authSurface",
+    "authHeader",
+    "authHeaderTitle",
+    "authHeaderDescription",
+    "authFrame",
+    "authFrameTitle",
+    "authFrameDescription",
+] as const;
+
+const AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "authSubmit",
+    "authInlineLink",
+] as const;
+
+const AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS = ["authEmail"] as const;
+
+const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
+    {
+        label: "surface",
+        snippets: [
+            "w-[min(420px,100%)]",
+            "min-h-[389px]",
+            "rounded-[14px]",
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-elevated)]",
+            "p-[18px]",
+        ],
+    },
+    {
+        label: "header",
+        snippets: ["grid auto-rows-min", "gap-0", "p-0"],
+    },
+    {
+        label: "title",
+        snippets: [
+            "mb-1",
+            "font-sans",
+            "text-[13px]",
+            "font-semibold",
+            "text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        label: "description",
+        snippets: [
+            "mb-[14px]",
+            "font-sans",
+            "text-[12px]",
+            "leading-[1.5]",
+            "text-[var(--fg-tertiary)]",
+        ],
+    },
+    {
+        label: "frame",
+        snippets: ["p-0"],
+    },
+    {
+        label: "content",
+        snippets: ["mx-auto", "max-w-[280px]", "gap-[10px]"],
+    },
+    {
+        label: "footer",
+        snippets: ["mt-[14px]", "text-[12px]", "text-[var(--fg-disabled)]"],
+    },
+    {
+        label: "field",
+        snippets: ["flex flex-col", "gap-0", "[&>*]:w-full"],
+    },
+    {
+        label: "email",
+        snippets: [
+            "h-[36px]",
+            "rounded-[9px]",
+            "border-primary",
+            "bg-[var(--bg-elevated)]",
+            "focus-visible:border-primary",
+            "aria-invalid:border-destructive",
+        ],
+    },
+    {
+        label: "submit",
+        snippets: [
+            "h-[38px]",
+            "w-full",
+            "bg-[var(--accent)]",
+            "text-white",
+            "focus-visible:border-primary",
+        ],
+    },
+    {
+        label: "inline link",
+        snippets: [
+            "h-auto",
+            "min-h-0",
+            "rounded-none",
+            "p-0",
+            "text-[var(--accent)]",
+            "underline",
+        ],
+    },
+] as const;
+
+const AUTH_LOGIN_COPY_STRINGS = [
+    "发送中...",
+    "发送登录链接",
+    "启动中...",
+    "仅本地使用",
+    "登录链接发送失败",
+    "登录链接已发送",
+    "本地工作空间启动失败",
+    "已进入本地工作空间",
 ] as const;
 
 const DASHBOARD_RECORDING_TAG_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
@@ -2292,29 +2418,26 @@ describe("full UI replacement regression coverage", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
-        expect(card).toContain("authSurface:");
         expect(card).toContain("onboardingSurface:");
         expect(card).toContain("onboardingSpeakerDraft:");
-        expect(card).toContain("authHeader:");
         expect(card).toContain("onboardingHeader:");
         expect(card).toContain("onboardingStepHeader:");
         expect(card).toContain("onboardingProviderMeta:");
-        expect(card).toContain("authHeaderTitle:");
         expect(card).toContain("onboardingHeading:");
         expect(card).toContain("onboardingStepTitle:");
         expect(card).toContain("onboardingProviderName:");
-        expect(card).toContain("authHeaderDescription:");
         expect(card).toContain("onboardingSub:");
         expect(card).toContain("onboardingStepDescription:");
         expect(card).toContain("onboardingProviderHint:");
-        expect(card).toContain("authFrame:");
         expect(card).toContain("onboardingStepBody:");
-        expect(card).toContain("authFrameTitle:");
-        expect(card).toContain("authFrameDescription:");
         expect(card).toContain("detailHeader:");
         expect(card).toContain("data-[sot-state=saving]:py-0");
         expect(card).toContain(
             'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        );
+        expectPrimitiveToExcludeBusinessTokens(
+            card,
+            AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
         );
         expect(panel).toContain('data-slot="card"');
         expect(panel).toContain("bg-card text-card-foreground");
@@ -2428,10 +2551,8 @@ describe("full UI replacement regression coverage", () => {
             "secondary",
             "ghost",
             "accent",
-            "authSubmit",
             "quietOutline",
             "accentLink",
-            "authInlineLink",
             "settingsClose",
             "settingsNav",
             "dashboardNav",
@@ -2514,9 +2635,11 @@ describe("full UI replacement regression coverage", () => {
         expect(buttonSizeBlock).toContain("onboardingDefaultSource:");
         expect(buttonSizeBlock).toContain("onboardingAction:");
         expect(button).toContain('"form-submit":');
-        expect(button).toContain("authSubmit:");
         expect(button).toContain('"inline-link":');
-        expect(button).toContain("authInlineLink:");
+        expectPrimitiveToExcludeBusinessTokens(
+            button,
+            AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
+        );
         for (const removedPlayerButtonToken of [
             "playerControl:",
             "playerPrimary:",
@@ -2699,11 +2822,14 @@ describe("full UI replacement regression coverage", () => {
         expect(input).toContain("data-size={controlSize}");
         expect(input).toContain("controlSize:");
         expect(input).toContain("accent:");
-        expect(input).toContain("authEmail:");
         expect(input).toContain("compact:");
         expect(input).toContain("detailHeaderTitle:");
         expect(input).toContain("onboardingSourceField:");
         expect(input).toContain("onboardingSourceUrl:");
+        expectPrimitiveToExcludeBusinessTokens(
+            input,
+            AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
+        );
         expect(input).toContain(
             '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
         );
@@ -3718,13 +3844,15 @@ describe("full UI replacement regression coverage", () => {
             "features/onboarding/components/onboarding-form.tsx",
         );
         const globals = readSource("app/globals.css");
+        const fieldPrimitive = readSource("components/ui/field.tsx");
+        const authFeatureOwnerClassSource =
+            collectFeatureOwnerClassSource(login);
 
         expect(login).toContain('data-sot-layout="auth-workstation"');
         expect(login).toMatch(
             /import\s*\{[\s\S]*Card,[\s\S]*CardContent,[\s\S]*CardDescription,[\s\S]*CardHeader,[\s\S]*CardTitle[\s\S]*\}\s*from "@\/components\/ui\/card";/,
         );
         expect(login).toContain("<Card");
-        expect(login).toContain('variant="authSurface"');
         expect(login).toContain('data-sot-card="auth"');
         expect(login).toContain("data-sot-surface={surfaceName}");
         expect(login).toContain("data-sot-state={surfaceState}");
@@ -3766,13 +3894,70 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="send-login-link"');
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
-        expect(login).toMatch(
-            /<CardHeader\s+variant="authHeader">[\s\S]*<CardTitle(?=[^>]*\bvariant="authHeaderTitle")(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="authHeaderDescription")(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
+        expect(authFeatureOwnerClassSource.trim()).not.toBe("");
+        for (const { label, snippets } of AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS) {
+            for (const snippet of snippets) {
+                expect(
+                    authFeatureOwnerClassSource,
+                    `login ${label} helper should contain ${snippet}`,
+                ).toContain(snippet);
+            }
+        }
+        expectPrimitiveToExcludeBusinessTokens(login, [
+            ...AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
+            ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
+            ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
+        ]);
+        const authCard = extractOpeningElement(
+            login,
+            'data-sot-card="auth"',
+            "Card",
         );
-        expect(login).toMatch(
-            /<CardContent(?=[^>]*\bvariant="authFrame")(?=[^>]*\bdata-sot-frame="auth")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="authFrameTitle")(?=[^>]*\bdata-sot-part="auth-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="authFrameDescription")(?=[^>]*\bdata-sot-part="auth-description")[^>]*>/,
+        const authHeader = extractOpeningElement(
+            login,
+            "<CardHeader",
+            "CardHeader",
         );
-        expect(login).toContain('<FieldGroup variant="authCompact">');
+        const authHeaderTitle = extractOpeningElement(
+            login,
+            'data-sot-part="card-heading"',
+            "CardTitle",
+        );
+        const authHeaderDescription = extractOpeningElement(
+            login,
+            'data-sot-part="card-sub"',
+            "CardDescription",
+        );
+        const authFrame = extractOpeningElement(
+            login,
+            'data-sot-frame="auth"',
+            "CardContent",
+        );
+        const authFrameTitle = extractOpeningElement(
+            login,
+            'data-sot-part="auth-heading"',
+            "CardTitle",
+        );
+        const authFrameDescription = extractOpeningElement(
+            login,
+            'data-sot-part="auth-description"',
+            "CardDescription",
+        );
+        const authFieldGroup = extractOpeningElement(
+            login,
+            "<FieldGroup",
+            "FieldGroup",
+        );
+        const authEmailField = extractOpeningElement(
+            login,
+            "data-invalid={invalid",
+            "Field",
+        );
+        const authActionField = extractOpeningElement(
+            login,
+            'data-sot-control="send-login-link"',
+            "Field",
+        );
         const authEmailInput = extractOpeningElement(
             login,
             'data-sot-control="auth-email"',
@@ -3788,38 +3973,52 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="local-only"',
             "Button",
         );
-        expect(authEmailInput).toContain('variant="authEmail"');
-        expect(authEmailInput).toContain('controlSize="authEmail"');
-        expect(authEmailInput).not.toContain("className=");
-        expect(authSubmitButton).toContain('variant="authSubmit"');
-        expect(authSubmitButton).toContain('size="authSubmit"');
-        expect(authSubmitButton).not.toContain("className=");
-        expect(authLocalButton).toContain('variant="authInlineLink"');
-        expect(authLocalButton).toContain('size="authInlineLink"');
-        expect(authLocalButton).not.toContain("className=");
-        expect(login).not.toContain("hasNoPadding");
-        expect(login).not.toContain('variant="accent"');
-        expect(login).not.toContain('variant="accentLink"');
-        expect(login).not.toContain('controlSize="compact"');
-        expect(login).not.toContain('size="form-submit"');
-        expect(login).not.toContain('size="inline-link"');
-        for (const removedAuthPrimitiveRepaintClass of [
-            "h-[36px]",
-            "h-[38px]",
-            "rounded-[9px]",
-            "!text-[13px]",
-            "md:!text-[13px]",
-            "!border",
-            "!bg-[var(--accent)]",
-            "hover:!bg-[var(--accent)]",
-            "!text-white",
-            "!font-normal",
-            "!leading-[normal]",
-            "!text-[var(--accent)]",
-            "!underline-offset-auto",
-        ]) {
-            expect(login).not.toContain(removedAuthPrimitiveRepaintClass);
+        const authLocalChoice = extractOpeningElement(
+            login,
+            'data-sot-part="auth-local-choice"',
+            "FieldDescription",
+        );
+        for (const [label, openingElement] of [
+            ["surface", authCard],
+            ["header", authHeader],
+            ["header title", authHeaderTitle],
+            ["header description", authHeaderDescription],
+            ["frame", authFrame],
+            ["frame title", authFrameTitle],
+            ["frame description", authFrameDescription],
+            ["content", authFieldGroup],
+            ["field", authEmailField],
+            ["action field", authActionField],
+            ["email", authEmailInput],
+            ["submit", authSubmitButton],
+            ["footer", authLocalChoice],
+            ["inline link", authLocalButton],
+        ] as const) {
+            expectOpeningElementUsesFeatureOwnedClassName(
+                openingElement,
+                label,
+            );
+            expectPrimitiveToExcludeBusinessTokens(openingElement, [
+                ...AUTH_CARD_PRIMITIVE_FORBIDDEN_TOKENS,
+                ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
+                ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
+            ]);
         }
+        expect(authCard).toContain('data-sot-card="auth"');
+        expect(authCard).toContain("data-sot-state={surfaceState}");
+        expect(authFrame).toContain('data-sot-frame="auth"');
+        expect(authEmailInput).toContain('data-sot-control="auth-email"');
+        expect(authEmailInput).toContain("data-sot-state={");
+        expect(authSubmitButton).toContain(
+            'data-sot-control="send-login-link"',
+        );
+        expect(authLocalButton).toContain('data-sot-control="local-only"');
+        expect(authEmailInput).toContain('variant="accent"');
+        expect(authEmailInput).toContain('controlSize="compact"');
+        expect(authSubmitButton).toContain('variant="accent"');
+        expect(authSubmitButton).toContain('size="form-submit"');
+        expect(authLocalButton).toContain('variant="accentLink"');
+        expect(authLocalButton).toContain('size="inline-link"');
         expect(login).toContain("aria-invalid={invalid}");
         expect(login).toContain("aria-busy={isLoading}");
         expect(login).toContain("aria-busy={isLocalLoading}");
@@ -3827,6 +4026,29 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain("disabled={!isMounted || isLocalLoading}");
         expect(login).toContain("data-sot-state={formState.kind}");
         expect(login).toContain("data-auth-form-state");
+        expect(login).toContain("<FieldError");
+        expect(fieldPrimitive).toContain('role="alert"');
+        expect(login).toContain('role="status"');
+        const magicLinkCall = extractBoundedSlice(
+            login,
+            "await signIn.magicLink({",
+            "});",
+        );
+        expect(magicLinkCall).toContain('callbackURL: "/dashboard"');
+        expect(magicLinkCall).toContain('newUserCallbackURL: "/onboarding"');
+        expect(magicLinkCall).toContain('errorCallbackURL: "/login"');
+        const localUseHandler = extractBoundedSlice(
+            login,
+            "async function handleLocalUse()",
+            "const surfaceState",
+        );
+        expect(localUseHandler).toContain("signIn.anonymous()");
+        expect(localUseHandler).toMatch(
+            /navigate(?:AndRefresh)?BrowserRoute\(router, "\/dashboard"\)/,
+        );
+        for (const copyString of AUTH_LOGIN_COPY_STRINGS) {
+            expect(login).toContain(copyString);
+        }
         expect(login).not.toContain('"inp"');
         expect(login).not.toContain('className="btn primary"');
         expect(login).not.toContain('"btn primary"');
