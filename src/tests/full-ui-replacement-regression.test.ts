@@ -758,7 +758,7 @@ const SYSTEM_BANNER_PROGRESS_PRIMITIVE_TOKENS = [
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /\.(?:more-anchor|more-head|more-action(?:-[\w-]+)?|more-menu(?:-(?:item(?:-shortcut)?|sep|label|hint))?)(?![\w-])/;
 
-const MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS = [
+const MORE_ACTIONS_MENU_RETIRED_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-menu="recording-more-actions"]',
     '[data-sot-menu="recording-more-actions"][data-open="true"]',
     '[data-sot-menu="recording-more-actions"][data-state="open"]',
@@ -773,6 +773,25 @@ const MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS = [
     "[data-sot-menu-item] [data-sot-menu-hint]",
     "[data-sot-menu-separator]",
     "[data-sot-menu-label]",
+];
+
+const MORE_ACTIONS_MENU_PRIMITIVE_TOKENS = [
+    "dropdownMenuContentVariants",
+    "glass:",
+    "dropdownMenuItemDensities",
+    "compact:",
+    "dropdownMenuSeparatorDensities",
+    "dropdownMenuShortcutVariants",
+    "hint:",
+    "data-[variant=destructive]",
+];
+
+const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
+    'variant="glass"',
+    'density="compact"',
+    'variant="destructive"',
+    "<DropdownMenuShortcut",
+    'variant="hint"',
 ];
 
 const SOT_SCROLLBAR_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2718,8 +2737,15 @@ describe("full UI replacement regression coverage", () => {
         );
     });
 
-    it("keeps more actions menus product CSS on data-sot selectors", () => {
+    it("keeps more actions menu styling owned by DropdownMenu primitives", () => {
         const globals = readSource("app/globals.css");
+        const dropdownMenu = readSource("components/ui/dropdown-menu.tsx");
+        const dashboardWorkstation = readSource(
+            "features/dashboard/workstation.tsx",
+        );
+        const recordingDetailWorkstation = readSource(
+            "features/recordings/workstation.tsx",
+        );
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2728,8 +2754,15 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of MORE_ACTIONS_MENU_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of MORE_ACTIONS_MENU_RETIRED_DATA_SOT_CSS_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        for (const primitiveToken of MORE_ACTIONS_MENU_PRIMITIVE_TOKENS) {
+            expect(dropdownMenu).toContain(primitiveToken);
+        }
+        for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
+            expect(dashboardWorkstation).toContain(compositionToken);
+            expect(recordingDetailWorkstation).toContain(compositionToken);
         }
     });
 
@@ -5284,6 +5317,9 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain("<DropdownMenuSeparator");
         expect(workstation).toContain('data-sot-menu-separator="delete"');
         expect(workstation).toContain("data-sot-menu-hint");
+        for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
+            expect(workstation).toContain(compositionToken);
+        }
         expect(workstation).not.toContain('className="more-menu"');
         expect(workstation).not.toContain('className="more-menu-item"');
         expect(workstation).not.toContain('className="more-menu-sep"');
@@ -6772,6 +6808,9 @@ describe("full UI replacement regression coverage", () => {
         expect(detail).toContain("<DropdownMenuSeparator");
         expect(detail).toContain('data-sot-menu-separator="delete"');
         expect(detail).toContain("data-sot-menu-hint");
+        for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
+            expect(detail).toContain(compositionToken);
+        }
         expect(detail).not.toContain('className="more-menu"');
         expect(detail).not.toContain('className="more-menu-item"');
         expect(detail).not.toContain('className="more-menu-sep"');

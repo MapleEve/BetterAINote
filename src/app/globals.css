@@ -3343,9 +3343,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    misc (toast, empty, list-state-block).
    ============================================================ */
 
-/* ---------- Generic popover surface (reused by topbar, activity, more, vol-pop) ---------- */
-[data-sot-panel="dashboard-activity"],
-[data-sot-menu="recording-more-actions"] {
+/* ---------- Generic popover surface (reused by topbar, activity, vol-pop) ---------- */
+[data-sot-panel="dashboard-activity"] {
     /* SOLID surface — no transparency, no color-mix alpha, no backdrop-filter
      dependence. The panel itself carries the layer; whatever is behind it
      must be completely unreadable through it. */
@@ -3362,8 +3361,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         opacity 180ms var(--ease-out),
         transform 180ms var(--ease-out);
 }
-[data-theme="dark"] [data-sot-panel="dashboard-activity"],
-[data-theme="dark"] [data-sot-menu="recording-more-actions"] {
+[data-theme="dark"] [data-sot-panel="dashboard-activity"] {
     /* Dark theme: fully opaque graphite. Previous 92% color-mix produced
      ~8% transparency — that was the source of the "panel competes with
      detail content" bleed-through called out in QA. */
@@ -3374,9 +3372,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         0 12px 32px -8px rgb(0 0 0 / 0.55),
         0 24px 64px -12px rgb(0 0 0 / 0.6);
 }
-[data-sot-panel="dashboard-activity"][data-open="true"],
-[data-sot-menu="recording-more-actions"][data-open="true"],
-[data-sot-menu="recording-more-actions"][data-state="open"] {
+[data-sot-panel="dashboard-activity"][data-open="true"] {
     opacity: 1;
     transform: translateY(0) scale(1);
 }
@@ -4305,12 +4301,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     height: 12px;
 }
 
-/* ---------- More-actions menu ---------- */
-[data-sot-menu="recording-more-actions"] {
-    width: 220px;
-    padding: 4px;
-}
-
 /* ---------- Detail empty ---------- */
 [data-sot-panel="recording-route-empty"] {
     flex-direction: column;
@@ -4718,13 +4708,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    anchor or, when body-mounted (tag manager), at a fixed slot.
    ============================================================ */
 
-/* More-actions menu — Radix positions the product menu; keep size and layer here. */
-[data-sot-menu="recording-more-actions"] {
-    width: 296px;
-    max-width: calc(100vw - 24px);
-    z-index: var(--z-context-menu);
-}
-
 /* Tag-manager panel — body-mounted, fixed preset (top-right
    of the workspace, just below the topbar). */
 [data-sot-panel="recording-tag-manager"] {
@@ -5019,147 +5002,6 @@ select::-ms-expand {
 /* ============================================================
    3) Missing visual classes used in the component library
    ============================================================ */
-
-/* ---- MoreActionsMenu (BetterAINote compact glass) ---- */
-[data-sot-menu="recording-more-actions"] {
-    font-family: var(--font-sans);
-    padding: 6px;
-    border-radius: var(--radius-md);
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-md);
-}
-[data-theme="dark"] [data-sot-menu="recording-more-actions"] {
-    background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
-    border-color: var(--glass-border);
-    box-shadow: 0 12px 32px rgb(0 0 0 / 0.42);
-}
-[data-sot-menu-item] {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 32px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    text-align: left;
-    font: 500 13px / 1 var(--font-sans);
-    color: var(--fg-primary);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    transition:
-        background var(--duration-fast) var(--ease-out),
-        color var(--duration-fast) var(--ease-out);
-}
-[data-sot-menu-item]:hover,
-[data-sot-menu-item]:focus-visible,
-[data-sot-menu-item][data-highlighted] {
-    background: var(--bg-recessed);
-    color: var(--fg-primary);
-    outline: none;
-}
-[data-sot-menu-item]:focus-visible {
-    box-shadow: inset 0 0 0 2px
-        color-mix(in srgb, var(--accent) 50%, transparent);
-}
-[data-sot-menu-item]:active {
-    background: color-mix(in srgb, var(--fg-tertiary) 14%, transparent);
-}
-[data-sot-menu-item] svg {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    color: var(--fg-tertiary);
-}
-[data-sot-menu-item]:hover svg,
-[data-sot-menu-item][data-highlighted] svg {
-    color: var(--fg-secondary);
-}
-
-/* Defensive SVG fallback — catches any inline <svg> in a More menu
-   whose host class rules didn't load (cache or specificity quirk).
-   Prevents the "giant black glyph" failure mode where an unsized
-   inline SVG defaults to 300x150 with native black fill. */
-[data-sot-menu="recording-more-actions"] svg {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-[data-sot-menu-item][disabled],
-[data-sot-menu-item][aria-disabled="true"],
-[data-sot-menu-item][data-disabled] {
-    color: var(--fg-disabled);
-    cursor: not-allowed;
-    pointer-events: none;
-    background: transparent;
-}
-[data-sot-menu-item][disabled] svg,
-[data-sot-menu-item][aria-disabled="true"] svg,
-[data-sot-menu-item][data-disabled] svg {
-    color: var(--fg-disabled);
-}
-[data-sot-menu-item][data-sot-tone="danger"] {
-    color: var(--signal-danger);
-}
-[data-sot-menu-item][data-sot-tone="danger"] svg {
-    color: var(--signal-danger);
-}
-[data-sot-menu-item][disabled],
-[data-sot-menu-item][data-disabled],
-[data-sot-menu-item][data-sot-tone="danger"]:hover,
-[data-sot-menu-item][data-sot-tone="danger"]:focus-visible,
-[data-sot-menu-item][data-sot-tone="danger"][data-highlighted] {
-    background: color-mix(in srgb, var(--signal-danger) 12%, transparent);
-    color: var(--signal-danger);
-}
-[data-sot-menu-item][data-sot-tone="success"] {
-    color: var(--signal-success);
-}
-[data-sot-menu-item][data-sot-tone="success"] svg {
-    color: var(--signal-success);
-}
-[data-sot-menu-item] [data-sot-menu-hint] {
-    margin-left: auto;
-    font: 500 11px / 1 var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.02em;
-}
-[data-sot-menu-item][disabled] [data-sot-menu-hint],
-[data-sot-menu-item][aria-disabled="true"] [data-sot-menu-hint],
-[data-sot-menu-item][data-disabled] [data-sot-menu-hint] {
-    color: var(--fg-disabled);
-}
-[data-sot-menu-item][data-sot-tone="danger"][data-disabled]
-    [data-sot-menu-hint] {
-    margin-right: 0.25px;
-}
-[data-sot-menu-separator] {
-    height: 1px;
-    background: var(--line-hairline);
-    margin: 4px 2px;
-}
-[data-theme="dark"] [data-sot-menu-separator] {
-    background: var(--glass-border-soft);
-}
-[data-sot-menu-label] {
-    font: 600 10.5px / 1 var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-tertiary);
-    padding: 8px 10px 4px;
-}
 
 /* ---- Notification item SOT labels (title/body/meta) ---- */
 [data-sot-part="dashboard-activity-item-title"] {
@@ -5630,7 +5472,6 @@ select::-ms-expand {
     font-family: inherit;
 }
 
-.cl-shell [data-sot-menu-item]:focus-visible,
 .cl-shell [data-sot-control="recording-tag-toggle"]:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
@@ -6120,7 +5961,6 @@ select::-ms-expand {
 }
 .cl-pop-host > [data-sot-panel="library-search"],
 .cl-pop-host > [data-sot-panel="recording-tag-manager"],
-.cl-pop-host > [data-sot-menu="recording-more-actions"],
 .cl-pop-host > [data-sot-panel="ai-rename-preview"] {
     position: static !important;
     display: block !important;

@@ -23,6 +23,7 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuSeparator,
+    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -1086,6 +1087,7 @@ export function RecordingWorkstation({
                                         <DropdownMenuContent
                                             align="end"
                                             sideOffset={6}
+                                            variant="glass"
                                             id="recording-detail-more-menu"
                                             aria-label={t(
                                                 "dashboardChrome.moreActions",
@@ -1104,6 +1106,7 @@ export function RecordingWorkstation({
                                         >
                                             <DropdownMenuGroup>
                                                 <DropdownMenuItem
+                                                    density="compact"
                                                     data-sot-menu-item="rename"
                                                     onSelect={handleMoreRename}
                                                 >
@@ -1119,6 +1122,7 @@ export function RecordingWorkstation({
                                                     重命名
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
+                                                    density="compact"
                                                     data-sot-menu-item="ai-rename"
                                                     onSelect={
                                                         handleMoreAutoRename
@@ -1139,6 +1143,7 @@ export function RecordingWorkstation({
                                                 </DropdownMenuItem>
                                                 {moreActionsShowRetranscribe ? (
                                                     <DropdownMenuItem
+                                                        density="compact"
                                                         data-sot-menu-item="retranscribe"
                                                         onSelect={() =>
                                                             void handleMoreRetranscribe()
@@ -1160,9 +1165,14 @@ export function RecordingWorkstation({
                                                     </DropdownMenuItem>
                                                 ) : null}
                                                 {moreActionsShowSeparator ? (
-                                                    <DropdownMenuSeparator data-sot-menu-separator="delete" />
+                                                    <DropdownMenuSeparator
+                                                        density="compact"
+                                                        data-sot-menu-separator="delete"
+                                                    />
                                                 ) : null}
                                                 <DropdownMenuItem
+                                                    density="compact"
+                                                    variant="destructive"
                                                     data-sot-menu-item="delete-local"
                                                     data-sot-tone="danger"
                                                     disabled={
@@ -1195,11 +1205,14 @@ export function RecordingWorkstation({
                                                     ) : null}
                                                     删除本地副本
                                                     {recording.sourceProvider ? (
-                                                        <span data-sot-menu-hint="">
+                                                        <DropdownMenuShortcut
+                                                            variant="hint"
+                                                            data-sot-menu-hint=""
+                                                        >
                                                             {recording.upstreamDeleted
                                                                 ? "上游已删除"
                                                                 : "来源持有正本"}
-                                                        </span>
+                                                        </DropdownMenuShortcut>
                                                     ) : null}
                                                 </DropdownMenuItem>
                                             </DropdownMenuGroup>

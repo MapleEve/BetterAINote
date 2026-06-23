@@ -6,6 +6,39 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+const dropdownMenuContentVariants = {
+    default: "",
+    glass: "w-[296px] max-w-[calc(100vw-24px)] rounded-[var(--radius-md)] border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-1.5 font-sans shadow-[var(--shadow-md)] dark:border-[var(--glass-border)] dark:bg-[var(--graphite-900)] dark:shadow-[0_12px_32px_rgb(0_0_0_/_0.42)]",
+} as const;
+
+const dropdownMenuItemDensities = {
+    default: "",
+    compact:
+        "min-h-8 w-full gap-2.5 rounded-[var(--radius-sm)] px-2.5 py-1.5 font-sans text-[13px] font-medium leading-none text-[var(--fg-primary)] transition-[background,color] duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus:bg-[var(--bg-recessed)] focus:text-[var(--fg-primary)] focus-visible:bg-[var(--bg-recessed)] focus-visible:text-[var(--fg-primary)] focus-visible:shadow-[inset_0_0_0_2px_var(--accent)] data-[highlighted]:bg-[var(--bg-recessed)] data-[highlighted]:text-[var(--fg-primary)] active:bg-[var(--bg-recessed)] data-[disabled]:cursor-not-allowed data-[disabled]:bg-transparent data-[disabled]:text-[var(--fg-disabled)] data-[disabled]:opacity-100 data-[disabled]:[&_[data-slot=dropdown-menu-shortcut]]:text-[var(--fg-disabled)] data-[disabled]:[&_svg]:text-[var(--fg-disabled)] data-[variant=destructive]:text-[var(--signal-danger)] data-[variant=destructive]:hover:bg-[var(--alert-destructive-soft-bg)] data-[variant=destructive]:hover:text-[var(--signal-danger)] data-[variant=destructive]:focus:bg-[var(--alert-destructive-soft-bg)] data-[variant=destructive]:focus:text-[var(--signal-danger)] data-[variant=destructive]:data-[highlighted]:bg-[var(--alert-destructive-soft-bg)] data-[variant=destructive]:data-[highlighted]:text-[var(--signal-danger)] data-[variant=destructive]:[&_svg]:text-[var(--signal-danger)] [&_svg]:size-4 [&_svg]:fill-none [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='text-'])]:text-[var(--fg-tertiary)] hover:[&_svg]:text-[var(--fg-secondary)] data-[highlighted]:[&_svg]:text-[var(--fg-secondary)]",
+} as const;
+
+const dropdownMenuLabelDensities = {
+    default: "",
+    compact:
+        "px-2.5 pb-1 pt-2 font-mono text-[10.5px] font-semibold uppercase leading-none tracking-[0.08em] text-[var(--fg-tertiary)]",
+} as const;
+
+const dropdownMenuSeparatorDensities = {
+    default: "",
+    compact: "mx-0.5 my-1 bg-[var(--line-hairline)] dark:bg-[var(--glass-border-soft)]",
+} as const;
+
+const dropdownMenuShortcutVariants = {
+    default: "",
+    hint: "font-mono text-[11px] font-medium leading-none tracking-[0.02em] text-[var(--fg-tertiary)]",
+} as const;
+
+type DropdownMenuContentVariant = keyof typeof dropdownMenuContentVariants;
+type DropdownMenuItemDensity = keyof typeof dropdownMenuItemDensities;
+type DropdownMenuLabelDensity = keyof typeof dropdownMenuLabelDensities;
+type DropdownMenuSeparatorDensity = keyof typeof dropdownMenuSeparatorDensities;
+type DropdownMenuShortcutVariant = keyof typeof dropdownMenuShortcutVariants;
+
 function DropdownMenu({
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
@@ -37,8 +70,11 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
     className,
     sideOffset = 4,
+    variant = "default",
     ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & {
+    variant?: DropdownMenuContentVariant;
+}) {
     return (
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
@@ -46,6 +82,7 @@ function DropdownMenuContent({
                 sideOffset={sideOffset}
                 className={cn(
                     "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+                    dropdownMenuContentVariants[variant],
                     className,
                 )}
                 {...props}
@@ -67,10 +104,12 @@ function DropdownMenuGroup({
 
 function DropdownMenuItem({
     className,
+    density = "default",
     inset,
     variant = "default",
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
+    density?: DropdownMenuItemDensity;
     inset?: boolean;
     variant?: "default" | "destructive";
 }) {
@@ -81,6 +120,7 @@ function DropdownMenuItem({
             data-variant={variant}
             className={cn(
                 "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+                dropdownMenuItemDensities[density],
                 className,
             )}
             {...props}
@@ -151,9 +191,11 @@ function DropdownMenuRadioItem({
 
 function DropdownMenuLabel({
     className,
+    density = "default",
     inset,
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
+    density?: DropdownMenuLabelDensity;
     inset?: boolean;
 }) {
     return (
@@ -162,6 +204,7 @@ function DropdownMenuLabel({
             data-inset={inset}
             className={cn(
                 "px-2 py-1.5 text-sm font-medium data-[inset]:pl-8",
+                dropdownMenuLabelDensities[density],
                 className,
             )}
             {...props}
@@ -172,25 +215,37 @@ function DropdownMenuLabel({
 function DropdownMenuSeparator({
     className,
     ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Separator> & {
+    density?: DropdownMenuSeparatorDensity;
+}) {
+    const { density = "default", ...separatorProps } = props;
+
     return (
         <DropdownMenuPrimitive.Separator
             data-slot="dropdown-menu-separator"
-            className={cn("-mx-1 my-1 h-px bg-border", className)}
-            {...props}
+            className={cn(
+                "-mx-1 my-1 h-px bg-border",
+                dropdownMenuSeparatorDensities[density],
+                className,
+            )}
+            {...separatorProps}
         />
     );
 }
 
 function DropdownMenuShortcut({
     className,
+    variant = "default",
     ...props
-}: React.ComponentProps<"span">) {
+}: React.ComponentProps<"span"> & {
+    variant?: DropdownMenuShortcutVariant;
+}) {
     return (
         <span
             data-slot="dropdown-menu-shortcut"
             className={cn(
                 "ml-auto text-xs tracking-widest text-muted-foreground",
+                dropdownMenuShortcutVariants[variant],
                 className,
             )}
             {...props}

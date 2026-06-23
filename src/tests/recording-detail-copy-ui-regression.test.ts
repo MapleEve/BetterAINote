@@ -94,6 +94,31 @@ const OLD_UI_CONTRACT_RE =
 const DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE =
     /className=["']btn(?:\s+(?:ghost|primary|glass))?\b|track-fill|track-thumb|sk _is|_is-/;
 
+const MORE_ACTIONS_MENU_RETIRED_GLOBALS_SELECTORS = [
+    '[data-sot-menu="recording-more-actions"]',
+    '[data-sot-menu="recording-more-actions"][data-open="true"]',
+    '[data-sot-menu="recording-more-actions"][data-state="open"]',
+    '[data-sot-menu="recording-more-actions"] svg',
+    "[data-sot-menu-item]",
+    "[data-sot-menu-item]:hover",
+    "[data-sot-menu-item]:focus-visible",
+    "[data-sot-menu-item]:active",
+    "[data-sot-menu-item] svg",
+    '[data-sot-menu-item][data-sot-tone="danger"]',
+    '[data-sot-menu-item][data-sot-tone="success"]',
+    "[data-sot-menu-item] [data-sot-menu-hint]",
+    "[data-sot-menu-separator]",
+    "[data-sot-menu-label]",
+] as const;
+
+const MORE_ACTIONS_MENU_COMPOSITION_TOKENS = [
+    'variant="glass"',
+    'density="compact"',
+    'variant="destructive"',
+    "<DropdownMenuShortcut",
+    'variant="hint"',
+] as const;
+
 const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="recording-detail-list"][data-slot="card"]',
     '[data-sot-panel="recording-detail-metadata"][data-slot="card"]',
@@ -566,6 +591,9 @@ describe("recording detail copy and title action UI regressions", () => {
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
+        const dropdownMenuPrimitive = readSource(
+            "components/ui/dropdown-menu.tsx",
+        );
         const input = readSource("components/ui/input.tsx");
         const listPanelIndex = detailWorkstation.indexOf(
             'data-sot-panel="recording-detail-list"',
@@ -1029,6 +1057,15 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("<DropdownMenuSeparator");
         expect(detailWorkstation).toContain('data-sot-menu-separator="delete"');
         expect(detailWorkstation).toContain("data-sot-menu-hint");
+        for (const selector of MORE_ACTIONS_MENU_RETIRED_GLOBALS_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
+            expect(detailWorkstation).toContain(compositionToken);
+        }
+        expect(dropdownMenuPrimitive).toContain("dropdownMenuContentVariants");
+        expect(dropdownMenuPrimitive).toContain("dropdownMenuItemDensities");
+        expect(dropdownMenuPrimitive).toContain("dropdownMenuShortcutVariants");
         expect(detailWorkstation).not.toContain('className="more-menu"');
         expect(detailWorkstation).not.toContain('className="more-menu-item"');
         expect(detailWorkstation).not.toContain('className="more-menu-sep"');
@@ -1571,6 +1608,10 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-menu-separator="delete"',
         );
         expect(dashboardWorkstation).toContain("data-sot-menu-hint");
+        for (const compositionToken of MORE_ACTIONS_MENU_COMPOSITION_TOKENS) {
+            expect(detailWorkstation).toContain(compositionToken);
+            expect(dashboardWorkstation).toContain(compositionToken);
+        }
         expect(dashboardWorkstation).not.toContain('className="more-menu"');
         expect(dashboardWorkstation).not.toContain(
             'className="more-menu-item"',
