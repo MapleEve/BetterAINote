@@ -220,6 +220,13 @@ const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
     '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg',
 ] as const;
 
+const REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS = [
+    '[data-tenant="single"]',
+    "[data-tenant-single]",
+    "[data-tenant-multi]",
+    '[data-sot-control="settings-nav"][data-sot-section="account"]',
+] as const;
+
 const FORBIDDEN_CONFIRM_BUTTON_PRIMITIVE_REPAINT_DECLARATION =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
 
@@ -436,9 +443,9 @@ describe("settings SOT interaction regressions", () => {
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-control="settings-nav"][data-sot-section="account"]',
-        );
+        for (const selector of REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         expect(settingsCloseButton).toContain(
             'data-sot-control="settings-close"',
         );

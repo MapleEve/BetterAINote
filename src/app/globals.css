@@ -2528,16 +2528,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-part="settings-user-avatar"] {
     display: grid;
 }
-[data-tenant="single"] [data-tenant-multi] {
-    display: none !important;
-}
-[data-tenant="single"] [data-tenant-single] {
-    display: flex !important;
-}
-[data-tenant="single"]
-    [data-sot-control="settings-nav"][data-sot-section="account"] {
-    display: none;
-}
 [data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
     display: flex;
 }

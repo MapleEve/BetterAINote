@@ -357,6 +357,13 @@ const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
     '[data-sot-panel="settings-rail"] [data-sot-control="settings-nav"] svg',
 ] as const;
 
+const REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS = [
+    '[data-tenant="single"]',
+    "[data-tenant-single]",
+    "[data-tenant-multi]",
+    '[data-sot-control="settings-nav"][data-sot-section="account"]',
+] as const;
+
 const DIALOG_SLOT_GLOBAL_SELECTORS = [
     '[data-slot="dialog-header"]',
     '[data-slot="dialog-title"]',
@@ -6051,9 +6058,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-control="settings-nav"][data-sot-section="account"]',
-        );
+        for (const selector of REMOVED_SETTINGS_DEAD_TENANT_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         for (const settingsControlButton of [
             settingsCloseButton,
             settingsNavButton,
