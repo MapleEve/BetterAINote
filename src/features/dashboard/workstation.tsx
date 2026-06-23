@@ -95,6 +95,7 @@ import {
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
     SotPlayerSourceTag,
+    SotPlayerStatusBadge,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
     SotPlayerVolumeIcon,
@@ -6404,19 +6405,11 @@ export function Workstation({
                                     />
                                 ) : null}
                                 {selectedPlayerStatus ? (
-                                    <Badge
-                                        variant="playerStatus"
+                                    <SotPlayerStatusBadge
+                                        label={selectedPlayerStatus.label}
+                                        tone={selectedPlayerStatus.tone}
                                         className="ml-auto"
-                                        data-sot-control="player-status"
-                                        data-sot-tone={
-                                            selectedPlayerStatus.tone
-                                        }
-                                    >
-                                        <span data-sot-part="status-dot" />
-                                        <span data-sot-part="status-label">
-                                            {selectedPlayerStatus.label}
-                                        </span>
-                                    </Badge>
+                                    />
                                 ) : null}
                             </CardHeader>
                             <CardContent

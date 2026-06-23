@@ -203,7 +203,7 @@ describe("dashboard recording player regressions", () => {
         expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
     });
 
-    it("keeps player badge styling on Badge variants instead of feature constants", () => {
+    it("keeps player status styling in the feature wrapper instead of Badge variants", () => {
         const badgePrimitive = readFileSync(
             path.join(process.cwd(), "src/components/ui/badge.tsx"),
             "utf8",
@@ -238,10 +238,23 @@ describe("dashboard recording player regressions", () => {
             "export function SotPlayerTagChip",
             "export type SotPlayerStatusTone",
         );
+        const legacyPlayerStatusVariantKey = `${"player"}Status:`;
 
         expect(badgePrimitive).toContain("playerSource:");
-        expect(badgePrimitive).toContain("playerStatus:");
+        expect(badgePrimitive).not.toContain(legacyPlayerStatusVariantKey);
+        expect(badgePrimitive).not.toContain("min-w-[65.171875px]");
+        expect(badgePrimitive).not.toContain(
+            "[&_[data-sot-part=status-dot]]",
+        );
+        expect(badgePrimitive).not.toContain(
+            "[&_[data-sot-part=status-label]]",
+        );
         for (const playerStatusToken of [
+            "h-[20px]",
+            "min-w-[65.171875px]",
+            "justify-normal",
+            "gap-[5px]",
+            "tracking-[0.005em]",
             "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
             "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
@@ -263,7 +276,7 @@ describe("dashboard recording player regressions", () => {
             "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
             "[&_[data-sot-part=status-label]]:ml-[4px]",
         ]) {
-            expect(badgePrimitive).toContain(playerStatusToken);
+            expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
         expect(badgePrimitive).toContain("playerTagChip:");
         expect(badgePrimitive).toContain("playerTagOverflow:");
@@ -278,17 +291,27 @@ describe("dashboard recording player regressions", () => {
             'data-sot-control="player-source-tag"',
         );
         expect(sourceBadge).not.toContain("className=");
-        expect(statusBadge).toContain('variant="playerStatus"');
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_STATUS_BADGE_CLASS",
+        );
+        expect(statusBadge).toContain('variant="ghost"');
+        expect(statusBadge).toContain(
+            "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
+        );
         expect(statusBadge).toContain('data-sot-control="player-status"');
-        expect(statusBadge).not.toContain("className=");
+        expect(statusBadge).toContain("data-sot-tone={tone}");
+        expect(sotPlayerPrimitives).toContain("className?: string;");
+        expect(sotPlayerPrimitives).toContain(
+            '<span data-sot-part="status-dot" />',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            '<span data-sot-part="status-label">{label}</span>',
+        );
         expect(
             collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
         ).toEqual([]);
         expect(sotPlayerPrimitives).not.toContain(
             "SOT_PLAYER_SOURCE_BADGE_CLASS",
-        );
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
         );
         expect(tagChipPrimitive).toContain('variant="playerTagAdd"');
         expect(tagChipPrimitive).toContain('size="playerTagAdd"');

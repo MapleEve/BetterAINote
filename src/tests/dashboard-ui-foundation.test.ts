@@ -693,6 +693,9 @@ describe("dashboard SOT foundation", () => {
         const badge = readSource("components/ui/badge.tsx");
         const button = readSource("components/ui/button.tsx");
         const card = readSource("components/ui/card.tsx");
+        const sotPlayerPrimitives = readSource(
+            "features/recordings/components/sot-player-primitives.tsx",
+        );
         const globals = readSource("app/globals.css");
         const playerSurfaceIndex = workstation.indexOf(
             'data-sot-surface="dashboard-recording-player"',
@@ -711,8 +714,8 @@ describe("dashboard SOT foundation", () => {
         const player = workstation.slice(playerStart, transcriptShellIndex);
         const statusBadge = extractOpeningElement(
             player,
-            'data-sot-control="player-status"',
-            "Badge",
+            "selectedPlayerStatus.label",
+            "SotPlayerStatusBadge",
         );
         const noAudioAlert = extractOpeningElement(
             player,
@@ -820,8 +823,16 @@ describe("dashboard SOT foundation", () => {
         expect(player).not.toContain('size="player-lg"');
         expect(player).not.toContain('size="player-sm"');
         expect(badge).toContain("playerSource:");
-        expect(badge).toContain("playerStatus:");
+        expect(badge).not.toContain(`${"player"}Status:`);
+        expect(badge).not.toContain("min-w-[65.171875px]");
+        expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
+        expect(badge).not.toContain("[&_[data-sot-part=status-label]]");
         for (const playerStatusToken of [
+            "h-[20px]",
+            "min-w-[65.171875px]",
+            "justify-normal",
+            "gap-[5px]",
+            "tracking-[0.005em]",
             "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
             "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
             "data-[sot-tone=ok]:text-[var(--signal-success)]",
@@ -843,19 +854,33 @@ describe("dashboard SOT foundation", () => {
             "data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
             "[&_[data-sot-part=status-label]]:ml-[4px]",
         ]) {
-            expect(badge).toContain(playerStatusToken);
+            expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
         expect(badge).toContain("playerTagChip:");
         expect(badge).toContain("playerTagOverflow:");
-        expect(player).toContain("<Badge");
-        expect(statusBadge).toContain('variant="playerStatus"');
-        expect(statusBadge).toContain('className="ml-auto"');
-        expect(statusBadge).toContain('data-sot-control="player-status"');
+        expect(player).toContain("<SotPlayerStatusBadge");
+        expect(statusBadge).toContain("label={selectedPlayerStatus.label}");
         expect(statusBadge).toMatch(
-            /data-sot-tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
+            /tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
-        expect(player).not.toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
-        expect(player).toContain('data-sot-part="status-dot"');
+        expect(statusBadge).toContain('className="ml-auto"');
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_STATUS_BADGE_CLASS",
+        );
+        expect(sotPlayerPrimitives).toContain('variant="ghost"');
+        expect(sotPlayerPrimitives).toContain(
+            "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-control="player-status"',
+        );
+        expect(sotPlayerPrimitives).toContain("data-sot-tone={tone}");
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-part="status-dot"',
+        );
+        expect(sotPlayerPrimitives).toContain(
+            'data-sot-part="status-label"',
+        );
         expect(player).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',
         );

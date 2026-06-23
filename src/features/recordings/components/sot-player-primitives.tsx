@@ -217,16 +217,22 @@ export function SotPlayerTagChip({
 
 export type SotPlayerStatusTone = "ok" | "warn" | "err" | "info" | "neu";
 
+const SOT_PLAYER_STATUS_BADGE_CLASS =
+    "h-[20px] min-w-[65.171875px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=status-dot]]:size-[5px] [&_[data-sot-part=status-dot]]:rounded-full [&_[data-sot-part=status-dot]]:bg-current data-[sot-tone=warn]:[&_[data-sot-part=status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite] [&_[data-sot-part=status-label]]:ml-[4px]";
+
 export function SotPlayerStatusBadge({
+    className,
     label = "已更新",
     tone = "ok",
 }: {
+    className?: string;
     label?: string;
     tone?: SotPlayerStatusTone;
 }) {
     return (
         <Badge
-            variant="playerStatus"
+            variant="ghost"
+            className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}
             data-sot-control="player-status"
             data-sot-tone={tone}
         >
