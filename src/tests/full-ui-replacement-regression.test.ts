@@ -775,7 +775,7 @@ const RETIRED_SYSTEM_BANNER_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="system-banner"][data-pct="100"]',
 ];
 
-const SYSTEM_BANNER_ALERT_PRIMITIVE_TOKENS = [
+const SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS = [
     "systemBanner",
     "data-[kind=offline]",
     "data-[kind=permission-denied]",
@@ -788,7 +788,7 @@ const SYSTEM_BANNER_ALERT_PRIMITIVE_TOKENS = [
     "[&_[data-sot-part=system-banner-actions]]",
 ];
 
-const SYSTEM_BANNER_BUTTON_PRIMITIVE_TOKENS = [
+const SYSTEM_BANNER_BUTTON_PRIMITIVE_RETIRED_TOKENS = [
     "systemBannerAction",
     "systemBannerPrimaryAction",
     "systemBannerDismissAction",
@@ -796,13 +796,30 @@ const SYSTEM_BANNER_BUTTON_PRIMITIVE_TOKENS = [
     "systemBannerDismissAction:",
 ];
 
-const SYSTEM_BANNER_PROGRESS_PRIMITIVE_TOKENS = [
-    'import { Progress as ProgressPrimitive } from "radix-ui";',
+const SYSTEM_BANNER_PROGRESS_PRIMITIVE_RETIRED_TOKENS = [
+    "type ProgressVariant",
+    "progressRootClassNames",
+    "progressIndicatorClassNames",
     "systemBanner",
     '"system-banner-progress"',
     '"system-banner-progress-bar"',
-    "data-sot-state={dataSotState}",
     "sbn-sweep",
+];
+
+const SYSTEM_BANNER_FEATURE_LOCAL_TOKENS = [
+    "const systemBannerAlertClassNames",
+    "const systemBannerButtonClassNames",
+    "const systemBannerProgressClassNames",
+    "function SystemBannerAlert",
+    "function SystemBannerButton",
+    "function SystemBannerProgress",
+    "systemBannerAlertClassNames.root",
+    "systemBannerButtonClassNames.primaryAction",
+    "systemBannerProgressClassNames.indeterminateIndicator",
+    'data-sot-panel="system-banner"',
+    'data-sot-part="system-banner-progress"',
+    '"data-sot-part": "system-banner-progress-bar"',
+    "animate-[sbn-sweep_1.4s_linear_infinite]",
 ];
 
 const MORE_ACTIONS_MENU_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -2925,11 +2942,14 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain('[data-idx="');
     });
 
-    it("moves system banner surface styling into shadcn primitives", () => {
+    it("keeps system banner shared primitives free of feature business tokens", () => {
         const globals = readSource("app/globals.css");
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const progressPrimitive = readSource("components/ui/progress.tsx");
+        const banner = readSource(
+            "features/dashboard/components/system-banner.tsx",
+        );
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2962,15 +2982,21 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             "[data-sot-panel=\"system-banner\"] [data-slot=\"button\"]",
         );
-        for (const token of SYSTEM_BANNER_ALERT_PRIMITIVE_TOKENS) {
-            expect(alertPrimitive).toContain(token);
+        for (const token of SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS) {
+            expect(alertPrimitive).not.toContain(token);
         }
-        for (const token of SYSTEM_BANNER_BUTTON_PRIMITIVE_TOKENS) {
-            expect(buttonPrimitive).toContain(token);
+        for (const token of SYSTEM_BANNER_BUTTON_PRIMITIVE_RETIRED_TOKENS) {
+            expect(buttonPrimitive).not.toContain(token);
         }
-        for (const token of SYSTEM_BANNER_PROGRESS_PRIMITIVE_TOKENS) {
-            expect(progressPrimitive).toContain(token);
+        for (const token of SYSTEM_BANNER_PROGRESS_PRIMITIVE_RETIRED_TOKENS) {
+            expect(progressPrimitive).not.toContain(token);
         }
+        for (const token of SYSTEM_BANNER_FEATURE_LOCAL_TOKENS) {
+            expect(banner).toContain(token);
+        }
+        expect(progressPrimitive).toContain(
+            'import { Progress as ProgressPrimitive } from "radix-ui";',
+        );
     });
 
     it("composes system banners with shadcn Alert, Button, and Progress primitives", () => {
@@ -2982,27 +3008,30 @@ describe("full UI replacement regression coverage", () => {
             'import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";',
         );
         expect(banner).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(banner).toContain(
             'import { Progress } from "@/components/ui/progress";',
         );
+        expect(banner).toContain("function SystemBannerAlert");
+        expect(banner).toContain("function SystemBannerButton");
+        expect(banner).toContain("function SystemBannerProgress");
         expect(banner).toMatch(/<Alert[\s\S]*data-sot-panel="system-banner"/);
-        expect(banner).toContain('variant="systemBanner"');
-        expect(banner).toContain('density="systemBanner"');
-        expect(banner).toContain('layout="systemBanner"');
+        expect(banner).not.toContain('variant="systemBanner"');
+        expect(banner).not.toContain('density="systemBanner"');
+        expect(banner).not.toContain('layout="systemBanner"');
         expect(banner).toContain("<AlertTitle");
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
         expect(banner).toContain("<Button");
         expect(banner).toContain("<Progress");
         expect(banner).toContain("value={progress ?? 0}");
-        expect(banner).toContain('size="systemBannerAction"');
-        expect(banner).toContain('size="systemBannerDismissAction"');
-        expect(banner).toContain('variant="systemBannerAction"');
-        expect(banner).toContain('variant="systemBannerDismissAction"');
-        expect(banner).toContain("variant={primaryActionVariant}");
-        expect(banner).toContain('"systemBannerPrimaryAction"');
+        expect(banner).not.toContain('size="systemBannerAction"');
+        expect(banner).not.toContain('size="systemBannerDismissAction"');
+        expect(banner).not.toContain('variant="systemBannerAction"');
+        expect(banner).not.toContain('variant="systemBannerDismissAction"');
+        expect(banner).not.toContain("variant={primaryActionVariant}");
+        expect(banner).toContain('"primary"');
         expect(banner).not.toContain('size="sm"');
         expect(banner).not.toContain('size="icon-sm"');
         expect(banner).not.toContain('variant="ghost"');

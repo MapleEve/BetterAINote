@@ -1,11 +1,12 @@
 "use client";
 
-import { type SVGProps, useEffect, useState } from "react";
+import { type ReactNode, type SVGProps, useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { hasBrowserWindow } from "@/lib/platform/runtime";
+import { cn } from "@/lib/utils";
 
 type SystemBannerState =
     | "offline"
@@ -42,6 +43,7 @@ interface SystemBannerDefaultActions {
 }
 
 type SystemBannerActionRole = "primary" | "secondary";
+type SystemBannerButtonTone = "action" | "primary" | "dismiss";
 
 interface SystemBannerItemProps {
     banner: VisibleSystemBanner;
@@ -50,6 +52,54 @@ interface SystemBannerItemProps {
     isZh: boolean;
     onDismiss: (banner: VisibleSystemBanner) => void;
 }
+
+interface SystemBannerAlertProps {
+    a11y: ReturnType<typeof getBannerA11y>;
+    banner: VisibleSystemBanner;
+    children: ReactNode;
+    className?: string;
+    isStacked: boolean;
+    progress: number | null;
+}
+
+type SystemBannerButtonProps = Omit<ButtonProps, "size" | "variant"> & {
+    tone?: SystemBannerButtonTone;
+};
+
+interface SystemBannerProgressProps {
+    indeterminate: boolean | undefined;
+    value: number;
+}
+
+const systemBannerAlertClassNames = {
+    root: "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] flex w-full items-center gap-3 rounded-[var(--radius-md)] bg-[var(--system-banner-bg)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] text-[var(--fg-primary)] [border-color:var(--system-banner-border)] shadow-[var(--shadow-xs)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
+    icon: "inline-grid size-7 flex-none place-items-center rounded-[var(--radius-sm)] bg-[var(--system-banner-icon-bg)] text-[var(--system-banner-icon-color)] [&_svg]:size-[14px] [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-2 [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    body: "flex min-w-0 flex-1 flex-col gap-0.5",
+    title: "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-[var(--fg-primary)]",
+    description:
+        "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-[var(--fg-tertiary)] data-[sot-format=mono]:font-mono",
+    actions: "flex flex-none gap-1.5",
+} as const;
+
+const systemBannerButtonClassNames = {
+    action: "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+    primaryAction:
+        "cursor-pointer border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] backdrop-blur-[14px] backdrop-saturate-[140%] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)]",
+    dismissAction:
+        "cursor-pointer border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+    actionSize:
+        "h-[26px] w-auto gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
+    dismissSize:
+        "size-[26px] rounded-[7px] p-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:stroke-[1.8]",
+} as const;
+
+const systemBannerProgressClassNames = {
+    root: "relative h-1.5 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[var(--system-banner-progress-track)] data-[sot-state=indeterminate]:bg-[var(--system-banner-progress-indeterminate-track)]",
+    indicator:
+        "h-full w-full flex-1 rounded-[inherit] bg-[var(--signal-info)] transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)]",
+    indeterminateIndicator:
+        "w-[32%] animate-[sbn-sweep_1.4s_linear_infinite] bg-[image:var(--system-banner-progress-indeterminate-bg)]",
+} as const;
 
 function getDefaultCopy(state: SystemBannerState, isZh: boolean) {
     switch (state) {
@@ -327,6 +377,76 @@ function CloseIcon(props: SVGProps<SVGSVGElement>) {
     );
 }
 
+function SystemBannerAlert({
+    a11y,
+    banner,
+    children,
+    className,
+    isStacked,
+    progress,
+}: SystemBannerAlertProps) {
+    return (
+        <Alert
+            aria-live={a11y["aria-live"]}
+            role={a11y.role}
+            className={cn(systemBannerAlertClassNames.root, className)}
+            data-sot-panel="system-banner"
+            data-kind={banner.state}
+            data-layout={isStacked ? "stacked" : "single"}
+            data-pct={progress ?? undefined}
+        >
+            {children}
+        </Alert>
+    );
+}
+
+function SystemBannerButton({
+    className,
+    tone = "action",
+    ...props
+}: SystemBannerButtonProps) {
+    return (
+        <Button
+            className={cn(
+                tone === "primary"
+                    ? systemBannerButtonClassNames.primaryAction
+                    : tone === "dismiss"
+                      ? systemBannerButtonClassNames.dismissAction
+                      : systemBannerButtonClassNames.action,
+                tone === "dismiss"
+                    ? systemBannerButtonClassNames.dismissSize
+                    : systemBannerButtonClassNames.actionSize,
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SystemBannerProgress({
+    indeterminate,
+    value,
+}: SystemBannerProgressProps) {
+    return (
+        <Progress
+            aria-hidden="true"
+            className={systemBannerProgressClassNames.root}
+            data-sot-part="system-banner-progress"
+            data-sot-state={indeterminate ? "indeterminate" : "ready"}
+            indicatorClassName={cn(
+                systemBannerProgressClassNames.indicator,
+                indeterminate
+                    ? systemBannerProgressClassNames.indeterminateIndicator
+                    : null,
+            )}
+            indicatorProps={{
+                "data-sot-part": "system-banner-progress-bar",
+            }}
+            value={value}
+        />
+    );
+}
+
 function getRenderedActions(
     banner: VisibleSystemBanner,
     defaultActions: SystemBannerDefaultActions,
@@ -446,10 +566,10 @@ function SystemBannerItem({
     const { dismissLabel, primaryLabel, primaryRole, secondaryLabel } =
         getRenderedActions(banner, defaultActions, isStacked, isZh);
     const bannerA11y = getBannerA11y(banner.state);
-    const primaryActionVariant =
+    const primaryActionTone =
         banner.state === "update-available" && !isStacked
-            ? "systemBannerPrimaryAction"
-            : "systemBannerAction";
+            ? "primary"
+            : "action";
     const handleAction = (role: SystemBannerActionRole) => {
         dispatchSystemBannerAction(banner, role);
 
@@ -466,53 +586,54 @@ function SystemBannerItem({
     };
 
     return (
-        <Alert
-            aria-live={bannerA11y["aria-live"]}
-            role={bannerA11y.role}
+        <SystemBannerAlert
+            a11y={bannerA11y}
+            banner={banner}
             className={className}
-            density="systemBanner"
-            layout="systemBanner"
-            variant="systemBanner"
-            data-sot-panel="system-banner"
-            data-kind={banner.state}
-            data-layout={isStacked ? "stacked" : "single"}
-            data-pct={progress ?? undefined}
+            isStacked={isStacked}
+            progress={progress}
         >
-            <span data-sot-part="system-banner-icon" aria-hidden="true">
+            <span
+                className={systemBannerAlertClassNames.icon}
+                data-sot-part="system-banner-icon"
+                aria-hidden="true"
+            >
                 <SystemBannerIcon
                     isStacked={isStacked}
                     indeterminate={banner.indeterminate}
                     state={banner.state}
                 />
             </span>
-            <div data-sot-part="system-banner-body">
+            <div
+                className={systemBannerAlertClassNames.body}
+                data-sot-part="system-banner-body"
+            >
                 <AlertTitle
+                    className={systemBannerAlertClassNames.title}
                     data-sot-part="system-banner-title"
-                    density="systemBanner"
                 >
                     {banner.title ?? defaultCopy.title}
                 </AlertTitle>
                 <AlertDescription
+                    className={systemBannerAlertClassNames.description}
                     data-sot-part="system-banner-description"
                     data-sot-format={hasProgress ? "mono" : undefined}
-                    density="systemBanner"
                 >
                     {banner.message ?? defaultCopy.message}
                 </AlertDescription>
                 {hasProgress ? (
-                    <Progress
-                        aria-hidden="true"
-                        data-sot-state={
-                            banner.indeterminate ? "indeterminate" : "ready"
-                        }
+                    <SystemBannerProgress
+                        indeterminate={banner.indeterminate}
                         value={progress ?? 0}
-                        variant="systemBanner"
                     />
                 ) : null}
             </div>
-            <div data-sot-part="system-banner-actions">
+            <div
+                className={systemBannerAlertClassNames.actions}
+                data-sot-part="system-banner-actions"
+            >
                 {primaryLabel ? (
-                    <Button
+                    <SystemBannerButton
                         aria-busy={
                             banner.indeterminate &&
                             banner.state === "import-progress"
@@ -524,42 +645,38 @@ function SystemBannerItem({
                             banner.state === "import-progress"
                         }
                         onClick={() => handleAction(primaryRole)}
-                        size="systemBannerAction"
                         data-sot-control="system-banner-primary-action"
-                        variant={primaryActionVariant}
+                        tone={primaryActionTone}
                         type="button"
                     >
                         {primaryLabel}
-                    </Button>
+                    </SystemBannerButton>
                 ) : null}
                 {secondaryLabel ? (
-                    <Button
+                    <SystemBannerButton
                         onClick={() => handleAction("secondary")}
-                        size="systemBannerAction"
                         data-sot-control="system-banner-secondary-action"
-                        variant="systemBannerAction"
                         type="button"
                     >
                         {secondaryLabel}
-                    </Button>
+                    </SystemBannerButton>
                 ) : null}
                 {dismissLabel ? (
-                    <Button
+                    <SystemBannerButton
                         aria-label={dismissLabel}
                         onClick={() => onDismiss(banner)}
-                        size="systemBannerDismissAction"
                         data-sot-control="system-banner-dismiss-action"
-                        variant="systemBannerDismissAction"
+                        tone="dismiss"
                         type="button"
                     >
                         <CloseIcon
                             data-icon="inline-start"
                             aria-hidden="true"
                         />
-                    </Button>
+                    </SystemBannerButton>
                 ) : null}
             </div>
-        </Alert>
+        </SystemBannerAlert>
     );
 }
 

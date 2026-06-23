@@ -18,7 +18,6 @@ type AlertVariant =
     | "settingsLoadError"
     | "settingsVoScriptWarning"
     | "speakerReviewError"
-    | "systemBanner"
     | "aiRenamePreviewError"
     | "aiRenamePreviewUnavailable";
 type AlertDensity =
@@ -32,7 +31,6 @@ type AlertDensity =
     | "sourceReportError"
     | "settingsBanner"
     | "speakerReviewError"
-    | "systemBanner"
     | "aiRenamePreview";
 type AlertLayout =
     | "default"
@@ -44,15 +42,13 @@ type AlertLayout =
     | "settingsBanner"
     | "settingsBannerAction"
     | "speakerReviewError"
-    | "systemBanner"
     | "aiRenamePreview";
 type AlertTitleDensity =
     | "default"
     | "librarySearchError"
     | "playerNoAudio"
     | "settingsBanner"
-    | "speakerReviewError"
-    | "systemBanner";
+    | "speakerReviewError";
 type AlertDescriptionDensity =
     | "default"
     | "compact"
@@ -62,7 +58,6 @@ type AlertDescriptionDensity =
     | "recordingTagError"
     | "settingsBanner"
     | "speakerReviewError"
-    | "systemBanner"
     | "aiRenamePreview";
 
 const settingsBannerIconSlotClassName =
@@ -97,8 +92,6 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
     settingsVoScriptWarning: `${settingsBannerBaseVariantClassName} [--settings-banner-icon-color:var(--signal-warning)] data-[sot-state=test-error]:[--settings-banner-icon-color:var(--signal-danger)] ${settingsBannerIconSlotClassName}`,
     speakerReviewError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    systemBanner:
-        "[--system-banner-bg:var(--bg-elevated)] [--system-banner-border:var(--line-hairline)] [--system-banner-icon-bg:var(--system-banner-neutral-icon-bg)] [--system-banner-icon-color:var(--fg-secondary)] bg-[var(--system-banner-bg)] text-[var(--fg-primary)] [border-color:var(--system-banner-border)] data-[kind=offline]:[--system-banner-bg:var(--system-banner-offline-bg)] data-[kind=offline]:[--system-banner-border:var(--system-banner-offline-border)] data-[kind=offline]:[--system-banner-icon-bg:var(--system-banner-offline-icon-bg)] data-[kind=offline]:[--system-banner-icon-color:var(--signal-warning)] data-[kind=permission-denied]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=permission-denied]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=permission-denied]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=permission-denied]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=db-locked]:[--system-banner-bg:var(--system-banner-danger-bg)] data-[kind=db-locked]:[--system-banner-border:var(--system-banner-danger-border)] data-[kind=db-locked]:[--system-banner-icon-bg:var(--system-banner-danger-icon-bg)] data-[kind=db-locked]:[--system-banner-icon-color:var(--signal-danger)] data-[kind=update-available]:[--system-banner-bg:var(--system-banner-update-bg)] data-[kind=update-available]:[--system-banner-border:var(--system-banner-update-border)] data-[kind=update-available]:[--system-banner-icon-bg:var(--system-banner-update-icon-bg)] data-[kind=update-available]:[--system-banner-icon-color:var(--signal-info)] data-[kind=import-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=import-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=import-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=import-progress]:[--system-banner-icon-color:var(--signal-info)] data-[kind=export-progress]:[--system-banner-bg:var(--system-banner-progress-bg)] data-[kind=export-progress]:[--system-banner-border:var(--system-banner-progress-border)] data-[kind=export-progress]:[--system-banner-icon-bg:var(--system-banner-progress-icon-bg)] data-[kind=export-progress]:[--system-banner-icon-color:var(--signal-info)]",
     aiRenamePreviewError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
     aiRenamePreviewUnavailable:
@@ -124,8 +117,6 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
     settingsBanner: "mb-4 rounded-lg px-3.5 py-3 text-sm",
     speakerReviewError:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
-    systemBanner:
-        "rounded-[var(--radius-md)] px-3.5 py-2.5 text-[length:var(--text-body-sm)] leading-[var(--lh-body-sm)] shadow-[var(--shadow-xs)]",
     aiRenamePreview:
         "rounded-lg px-4 py-3 text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-8 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
 };
@@ -147,8 +138,6 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
         "grid w-full grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start",
     speakerReviewError:
         "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
-    systemBanner:
-        "flex w-full items-center gap-3 [&_[data-sot-part=system-banner-actions]]:flex [&_[data-sot-part=system-banner-actions]]:flex-none [&_[data-sot-part=system-banner-actions]]:gap-1.5 [&_[data-sot-part=system-banner-body]]:flex [&_[data-sot-part=system-banner-body]]:min-w-0 [&_[data-sot-part=system-banner-body]]:flex-1 [&_[data-sot-part=system-banner-body]]:flex-col [&_[data-sot-part=system-banner-body]]:gap-0.5 [&_[data-sot-part=system-banner-icon]]:inline-grid [&_[data-sot-part=system-banner-icon]]:size-7 [&_[data-sot-part=system-banner-icon]]:flex-none [&_[data-sot-part=system-banner-icon]]:place-items-center [&_[data-sot-part=system-banner-icon]]:rounded-[var(--radius-sm)] [&_[data-sot-part=system-banner-icon]]:bg-[var(--system-banner-icon-bg)] [&_[data-sot-part=system-banner-icon]]:text-[var(--system-banner-icon-color)] [&_[data-sot-part=system-banner-icon]_svg]:size-[14px] [&_[data-sot-part=system-banner-icon]_svg]:fill-none [&_[data-sot-part=system-banner-icon]_svg]:stroke-current [&_[data-sot-part=system-banner-icon]_svg]:stroke-2 [&_[data-sot-part=system-banner-icon]_svg]:[stroke-linecap:round] [&_[data-sot-part=system-banner-icon]_svg]:[stroke-linejoin:round]",
     aiRenamePreview: "flex w-full items-start gap-3",
 };
 
@@ -161,8 +150,6 @@ const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
         "col-start-2 min-h-0 font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)]",
     settingsBanner: "font-medium leading-none",
     speakerReviewError: "min-h-0 font-medium leading-normal tracking-normal",
-    systemBanner:
-        "block [min-height:auto] overflow-visible [-webkit-line-clamp:unset] [-webkit-box-orient:horizontal] font-semibold tracking-normal text-[var(--fg-primary)]",
 };
 
 const alertDescriptionDensityClassNames: Record<
@@ -184,8 +171,6 @@ const alertDescriptionDensityClassNames: Record<
     settingsBanner: "mt-1 block text-sm text-muted-foreground",
     speakerReviewError:
         "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal",
-    systemBanner:
-        "block [justify-items:normal] [gap:normal] font-sans text-[12px] leading-[1.45] font-medium text-[var(--fg-tertiary)] data-[sot-format=mono]:font-mono",
     aiRenamePreview:
         "grid min-w-0 gap-1 text-left [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:text-sm [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-6 [&_[data-slot=alert-message]]:text-foreground [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:text-sm [&_[data-slot=alert-hint]]:leading-6 [&_[data-slot=alert-hint]]:text-muted-foreground",
 };

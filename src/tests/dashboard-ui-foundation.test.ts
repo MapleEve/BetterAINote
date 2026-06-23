@@ -2368,12 +2368,18 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain(
             'import { Progress } from "@/components/ui/progress";',
         );
+        expect(banner).toContain("const systemBannerAlertClassNames");
+        expect(banner).toContain("const systemBannerButtonClassNames");
+        expect(banner).toContain("const systemBannerProgressClassNames");
+        expect(banner).toContain("function SystemBannerAlert");
+        expect(banner).toContain("function SystemBannerButton");
+        expect(banner).toContain("function SystemBannerProgress");
         expect(banner).toMatch(/<Alert\s/);
-        expect(banner).toContain('variant="systemBanner"');
-        expect(banner).toContain('density="systemBanner"');
-        expect(banner).toContain('layout="systemBanner"');
+        expect(banner).not.toContain('variant="systemBanner"');
+        expect(banner).not.toContain('density="systemBanner"');
+        expect(banner).not.toContain('layout="systemBanner"');
         expect(banner).toContain("<AlertTitle");
-        expect(banner).toContain("density=\"systemBanner\"");
+        expect(banner).not.toContain("density=\"systemBanner\"");
         expect(banner).toContain("<AlertDescription");
         expect(banner).toContain("</Alert>");
         expect(banner).not.toMatch(/<section[\s>]/);
@@ -2383,16 +2389,16 @@ describe("dashboard SOT foundation", () => {
         expect(banner).toContain('data-sot-part="system-banner-body"');
         expect(banner).toContain('data-sot-part="system-banner-title"');
         expect(banner).toContain('data-sot-part="system-banner-description"');
-        expect(progressPrimitive).toContain(
+        expect(banner).toContain(
             '"system-banner-progress"',
         );
-        expect(progressPrimitive).toContain(
+        expect(banner).toContain(
             '"system-banner-progress-bar"',
         );
         expect(banner).toContain('data-sot-part="system-banner-actions"');
         expect(banner).toContain('data-sot-format={hasProgress ? "mono"');
         expect(banner).toContain("<Progress");
-        expect(banner).toContain('variant="systemBanner"');
+        expect(banner).not.toContain('variant="systemBanner"');
         expect(banner).toContain("value={progress ?? 0}");
         expect(banner).not.toMatch(
             /<div[\s\S]*data-sot-part="system-banner-progress"/,
@@ -2407,21 +2413,21 @@ describe("dashboard SOT foundation", () => {
         );
         expect(banner).not.toContain('"sbn-progress"');
         expect(banner).not.toContain('"sbn-bar"');
-        expect(banner).not.toContain("sbn-");
+        expect(banner).toContain("animate-[sbn-sweep_1.4s_linear_infinite]");
         expect(banner).not.toContain('className="mono"');
         expect(banner).toContain("getBannerA11y(banner.state)");
         expect(banner).toContain("data-kind={banner.state}");
         expect(banner).toContain("data-pct={progress ?? undefined}");
         expect(banner).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(banner).toContain("<Button");
-        expect(banner).toContain('size="systemBannerAction"');
-        expect(banner).toContain('size="systemBannerDismissAction"');
-        expect(banner).toContain('variant="systemBannerAction"');
-        expect(banner).toContain('variant="systemBannerDismissAction"');
-        expect(banner).toContain("variant={primaryActionVariant}");
-        expect(banner).toContain('"systemBannerPrimaryAction"');
+        expect(banner).not.toContain('size="systemBannerAction"');
+        expect(banner).not.toContain('size="systemBannerDismissAction"');
+        expect(banner).not.toContain('variant="systemBannerAction"');
+        expect(banner).not.toContain('variant="systemBannerDismissAction"');
+        expect(banner).not.toContain("variant={primaryActionVariant}");
+        expect(banner).toContain('"primary"');
         expect(banner).not.toContain('size="sm"');
         expect(banner).not.toContain('size="icon-sm"');
         expect(banner).not.toContain('variant="ghost"');
@@ -2437,16 +2443,29 @@ describe("dashboard SOT foundation", () => {
         expect(banner).not.toContain("lucide-react");
         expect(banner).not.toContain("data-system-banner");
         expect(banner).not.toMatch(OLD_UI_RE);
-        expect(alertPrimitive).toContain('"systemBanner"');
-        expect(alertPrimitive).toContain("data-[kind=offline]");
-        expect(buttonPrimitive).toContain("systemBannerAction");
-        expect(buttonPrimitive).toContain("systemBannerPrimaryAction");
-        expect(buttonPrimitive).toContain("systemBannerDismissAction");
+        expect(alertPrimitive).not.toContain('"systemBanner"');
+        expect(alertPrimitive).not.toContain("data-[kind=offline]");
+        expect(alertPrimitive).not.toContain(
+            "[&_[data-sot-part=system-banner-icon]]",
+        );
+        expect(alertPrimitive).not.toContain(
+            "[&_[data-sot-part=system-banner-body]]",
+        );
+        expect(alertPrimitive).not.toContain(
+            "[&_[data-sot-part=system-banner-actions]]",
+        );
+        expect(buttonPrimitive).not.toContain("systemBannerAction");
+        expect(buttonPrimitive).not.toContain("systemBannerPrimaryAction");
+        expect(buttonPrimitive).not.toContain("systemBannerDismissAction");
         expect(progressPrimitive).toContain(
             'import { Progress as ProgressPrimitive } from "radix-ui";',
         );
-        expect(progressPrimitive).toContain('variant?: ProgressVariant');
-        expect(progressPrimitive).toContain('"systemBanner"');
-        expect(progressPrimitive).toContain("sbn-sweep");
+        expect(progressPrimitive).not.toContain('variant?: ProgressVariant');
+        expect(progressPrimitive).not.toContain('"systemBanner"');
+        expect(progressPrimitive).not.toContain('"system-banner-progress"');
+        expect(progressPrimitive).not.toContain(
+            '"system-banner-progress-bar"',
+        );
+        expect(progressPrimitive).not.toContain("sbn-sweep");
     });
 });
