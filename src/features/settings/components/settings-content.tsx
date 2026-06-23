@@ -206,6 +206,9 @@ const SOURCE_ACTION_STATUS_BADGE_CLASS =
 const SOURCE_ACTION_STATUS_INDICATOR_CLASS =
     "size-2 rounded-full bg-secondary-foreground/45";
 
+const SOURCE_AUTH_MODE_BADGE_CLASS =
+    "px-1.5 data-[sot-tone=recommended]:bg-secondary data-[sot-tone=recommended]:text-secondary-foreground data-[sot-tone=personal]:border-border data-[sot-tone=personal]:text-foreground";
+
 function SourceActionButton({
     className,
     tone,
@@ -1367,7 +1370,10 @@ function DataSourcesSettingsPanel({
                                                         data-sot-tone={
                                                             modeBadge.tone
                                                         }
-                                                        variant="sourceAuthModeBadge"
+                                                        variant="ghost"
+                                                        className={
+                                                            SOURCE_AUTH_MODE_BADGE_CLASS
+                                                        }
                                                     >
                                                         {modeBadge.label}
                                                     </Badge>

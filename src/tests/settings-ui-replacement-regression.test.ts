@@ -1031,7 +1031,8 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceAuthModeControl).toContain(
             'spacing="settingsSourceAuthMode"',
         );
-        expect(sourceAuthModeControl).toContain(
+        expect(sourceAuthModeControl).toContain('variant="ghost"');
+        expect(sourceAuthModeControl).not.toContain(
             'variant="sourceAuthModeBadge"',
         );
         expect(sourceAuthModeControl).not.toContain('variant="outline"');
@@ -1044,15 +1045,40 @@ describe("settings SOT interaction regressions", () => {
         expect(sourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
+        expect(sourceAuthModeControl).toContain(
+            'data-sot-control="source-auth-mode"',
+        );
         expect(content).toContain("data-sot-auth-mode={mode}");
+        expect(content).toContain("data-sot-state={");
         expect(content).toContain('data-sot-part="source-auth-mode-title"');
         expect(content).toContain(
             'data-sot-part="source-auth-mode-description"',
         );
         expect(content).toContain('data-sot-badge="source-auth-mode"');
-        expect(content).toContain("data-sot-tone={");
+        expect(content).toMatch(
+            /data-sot-tone=\{\s*modeBadge\.tone\s*\}/,
+        );
+        expect(content).toContain("{modeBadge.label}");
         expect(content).toContain('tone: "recommended"');
         expect(content).toContain('tone: "personal"');
+        expect(content).toMatch(
+            /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
+        );
+        const sourceAuthModeBadgeClass =
+            content.match(/const SOURCE_AUTH_MODE_BADGE_CLASS[\s\S]*?;/)?.[0] ??
+            "";
+        expect(sourceAuthModeBadgeClass).toContain(
+            "SOURCE_AUTH_MODE_BADGE_CLASS",
+        );
+        for (const snippet of [
+            "px-1.5",
+            "data-[sot-tone=recommended]:bg-secondary",
+            "data-[sot-tone=recommended]:text-secondary-foreground",
+            "data-[sot-tone=personal]:border-border",
+            "data-[sot-tone=personal]:text-foreground",
+        ]) {
+            expect(sourceAuthModeBadgeClass).toContain(snippet);
+        }
         expect(content).toContain("<Badge");
         expect(content).toContain("authMode: mode");
         expect(content).not.toContain('className="path-picker"');
@@ -1457,14 +1483,15 @@ describe("settings SOT interaction regressions", () => {
         expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
         expect(badge).toContain("sourceProviderStatus:");
         expect(badge).toContain("sourceProviderDetailStatus:");
-        expect(badge).toContain("sourceAuthModeBadge:");
+        expect(badge).not.toContain("sourceAuthModeBadge");
+        expect(badge).not.toContain("SOURCE_AUTH_MODE_BADGE_CLASS");
         expect(badge).not.toContain("sourceActionStatus:");
         expect(badge).toContain("data-[sot-tone=ok]");
         expect(badge).toContain("data-[sot-tone=warn]");
         expect(badge).toContain("data-[sot-tone=err]");
         expect(badge).toContain("data-[sot-tone=neu]");
-        expect(badge).toContain("data-[sot-tone=recommended]");
-        expect(badge).toContain("data-[sot-tone=personal]");
+        expect(badge).not.toContain("data-[sot-tone=recommended]");
+        expect(badge).not.toContain("data-[sot-tone=personal]");
         expect(badge).toContain("[&_[data-sot-provider-status-dot]]:size-[4px]");
         expect(badge).toContain(
             "[&_[data-sot-provider-status-dot]]:rounded-full",

@@ -1997,11 +1997,17 @@ const SOURCE_AUTH_MODE_LEGACY_CSS_SELECTOR_RE =
 const SOURCE_AUTH_MODE_DATA_SOT_SOURCE_HOOKS = [
     'data-sot-list="source-auth-modes"',
     'data-sot-control="source-auth-mode"',
+    "data-sot-auth-mode={mode}",
+    "data-sot-state={",
     'data-sot-part="source-auth-mode-title"',
     'data-sot-part="source-auth-mode-description"',
     'data-sot-badge="source-auth-mode"',
     "data-sot-tone={",
     'tone: "recommended"',
+    'tone: "personal"',
+    "value={selectedSource.authMode}",
+    "authMode: mode",
+    "{modeBadge.label}",
 ] as const;
 
 const SOURCE_AUTH_MODE_REMOVED_GLOBAL_SELECTORS = [
@@ -7189,7 +7195,8 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).toContain(
             'spacing="settingsSourceAuthMode"',
         );
-        expect(settingsSourceAuthModeControl).toContain(
+        expect(settingsSourceAuthModeControl).toContain('variant="ghost"');
+        expect(settingsSourceAuthModeControl).not.toContain(
             'variant="sourceAuthModeBadge"',
         );
         expect(settingsSourceAuthModeControl).not.toContain('variant="outline"');
@@ -7204,6 +7211,26 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
+        expect(settings).toMatch(
+            /data-sot-tone=\{\s*modeBadge\.tone\s*\}/,
+        );
+        expect(settings).toMatch(
+            /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
+        );
+        const sourceAuthModeBadgeClass = extractBoundedSlice(
+            settings,
+            "const SOURCE_AUTH_MODE_BADGE_CLASS =",
+            ";",
+        );
+        for (const snippet of [
+            "px-1.5",
+            "data-[sot-tone=recommended]:bg-secondary",
+            "data-[sot-tone=recommended]:text-secondary-foreground",
+            "data-[sot-tone=personal]:border-border",
+            "data-[sot-tone=personal]:text-foreground",
+        ]) {
+            expect(sourceAuthModeBadgeClass).toContain(snippet);
+        }
         const settingsSourceActionStatus = extractElementSlice(
             settings,
             'data-sot-part="source-action-status"',
@@ -7309,13 +7336,14 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).toContain(
             "[&_[data-sot-part=settings-save-status-indicator]]",
         );
-        expect(badge).toContain("sourceAuthModeBadge:");
+        expect(badge).not.toContain("sourceAuthModeBadge");
+        expect(badge).not.toContain("SOURCE_AUTH_MODE_BADGE_CLASS");
         expect(badge).not.toContain("sourceActionStatus:");
         expect(button).not.toContain("sourceProviderAction:");
         expect(button).not.toContain("sourceProviderActionPrimary:");
         expect(button).not.toContain("sourceProviderActionDanger:");
-        expect(badge).toContain("data-[sot-tone=recommended]");
-        expect(badge).toContain("data-[sot-tone=personal]");
+        expect(badge).not.toContain("data-[sot-tone=recommended]");
+        expect(badge).not.toContain("data-[sot-tone=personal]");
         expect(settings).toContain("SOURCE_ACTION_STATUS_BADGE_CLASS");
         expect(settings).toContain("SOURCE_ACTION_STATUS_INDICATOR_CLASS");
         expect(badge).not.toContain("source:");
