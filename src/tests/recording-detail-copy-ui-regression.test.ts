@@ -5,6 +5,29 @@ import { serializeRecordingDetailTranscriptionJob } from "@/server/modules/recor
 
 const ROOT = path.join(process.cwd(), "src");
 
+const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
+    "sourceReportCard:",
+    "sourceReportSegment:",
+    "sourceReportCardCount",
+    "sourceReportCardSource",
+    "sourceReportCardStatus",
+    "sourceReportSegmentLineLong",
+    "sourceReportSegmentLineMedium",
+    "sourceReportSegmentLineShort",
+    "sourceReportSegmentLineWide",
+    "sourceReportSegmentSpeaker",
+    "sourceReportSegmentTime",
+] as const;
+
+const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const sourceReportCardSkeletonClassNames",
+    "const sourceReportSegmentSkeletonClassNames",
+    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
+    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+] as const;
+
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
@@ -29,6 +52,20 @@ function extractBoundedSlice(
     const end = source.indexOf(endMarker, start);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end);
+}
+
+function extractOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(">", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 1);
 }
 
 function extractCssBlock(source: string, marker: string) {
@@ -431,8 +468,6 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReport).toContain('variant="sourceReportMetric"');
         expect(sourceReport).toContain('variant="sourceReportStatus"');
-        expect(sourceReport).toContain('variant="sourceReportCard"');
-        expect(sourceReport).toContain('variant="sourceReportSegment"');
         expect(alertPrimitive).toContain("sourceReportError:");
         expect(buttonPrimitive).toContain("sourceReportAction:");
         expect(buttonPrimitive).toContain("sourceReportGhostAction:");
@@ -458,12 +493,40 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["size"]',
         );
-        expect(sourceReport).toContain(
-            "size={sourceReportCardSkeletonSize(size)}",
+        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
+        }
+        for (const token of RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(sourceReport).toContain(token);
+        }
+        const sourceReportCardSkeleton = extractOpeningElement(
+            sourceReport,
+            'data-sot-part="source-report-card-skeleton"',
+            "Skeleton",
         );
-        expect(sourceReport).toContain(
-            "size={sourceReportSegmentSkeletonSize(size)}",
+        expect(sourceReportCardSkeleton).toContain('variant="default"');
+        expect(sourceReportCardSkeleton).toContain('size="default"');
+        expect(sourceReportCardSkeleton).toContain(
+            "className={sourceReportCardSkeletonClassNames[size]}",
         );
+        expect(sourceReportCardSkeleton).toContain('aria-hidden="true"');
+        expect(sourceReportCardSkeleton).toContain("data-sot-size={size}");
+        const sourceReportSegmentSkeleton = extractOpeningElement(
+            sourceReport,
+            'data-sot-part="source-report-segment-skeleton"',
+            "Skeleton",
+        );
+        expect(sourceReportSegmentSkeleton).toContain('variant="default"');
+        expect(sourceReportSegmentSkeleton).toContain('size="default"');
+        expect(sourceReportSegmentSkeleton).toContain(
+            "className={sourceReportSegmentSkeletonClassNames[size]}",
+        );
+        expect(sourceReportSegmentSkeleton).toContain('aria-hidden="true"');
+        expect(sourceReportSegmentSkeleton).toContain("data-sot-size={size}");
+        expect(sourceReport).not.toContain('variant="sourceReportCard"');
+        expect(sourceReport).not.toContain('variant="sourceReportSegment"');
+        expect(sourceReport).not.toContain("sourceReportCardSkeletonSize");
+        expect(sourceReport).not.toContain("sourceReportSegmentSkeletonSize");
         expect(transcriptionSkeletons).toContain('variant="default"');
         expect(transcriptionSkeletons).toContain('size="default"');
         expect(transcriptionSkeletons).toContain(
@@ -574,8 +637,6 @@ describe("recording detail copy and title action UI regressions", () => {
             "SOURCE_REPORT_METRIC_CARD_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
-            "sourceReportCardSkeletonClassNames",
-            "sourceReportSegmentSkeletonClassNames",
             "sourceReportStatusBadgeVariant",
         ]) {
             expect(sourceReport).not.toContain(

@@ -249,6 +249,29 @@ const DASHBOARD_TRANSCRIPT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     '"speaker-120": "h-[13px] w-[120px] flex-none"',
 ] as const;
 
+const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
+    "sourceReportCard:",
+    "sourceReportSegment:",
+    "sourceReportCardCount",
+    "sourceReportCardSource",
+    "sourceReportCardStatus",
+    "sourceReportSegmentLineLong",
+    "sourceReportSegmentLineMedium",
+    "sourceReportSegmentLineShort",
+    "sourceReportSegmentLineWide",
+    "sourceReportSegmentSpeaker",
+    "sourceReportSegmentTime",
+] as const;
+
+const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const sotSourceReportCardSkeletonClassNames",
+    "const sotSourceReportSegmentSkeletonClassNames",
+    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
+    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+] as const;
+
 const DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS = [
     'data-sot-part="dashboard-source-report-status-dot"',
     "data-sot-source-report-segment-time",
@@ -2154,10 +2177,9 @@ describe("dashboard SOT foundation", () => {
         for (const token of DASHBOARD_TRANSCRIPT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }
-        expect(skeletonPrimitive).toContain("sourceReportCard:");
-        expect(skeletonPrimitive).toContain("sourceReportSegment:");
-        expect(skeletonPrimitive).toContain("sourceReportCardSource");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong");
+        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
+        }
         expect(workstation).toContain('variant="sourceReportMetric"');
         expect(workstation).toContain('variant="sourceReportStatus"');
         expect(workstation).toContain("function DashboardTranscriptSkeleton");
@@ -2179,16 +2201,51 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
         expect(workstation).not.toContain('variant="dashboardTranscript"');
-        expect(workstation).toContain(
-            'variant="sourceReportCard"',
+        for (const token of DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(workstation).toContain(token);
+        }
+        const dashboardSourceReportCardSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="source-report-card-skeleton"',
+            "Skeleton",
         );
-        expect(workstation).toContain('variant="sourceReportSegment"');
-        expect(workstation).toContain(
-            "size={sourceReportCardSkeletonSize(size)}",
+        expect(dashboardSourceReportCardSkeleton).toContain(
+            'variant="default"',
         );
-        expect(workstation).toContain(
-            "size={sourceReportSegmentSkeletonSize(size)}",
+        expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
+        expect(dashboardSourceReportCardSkeleton).toContain(
+            "className={sotSourceReportCardSkeletonClassNames[size]}",
         );
+        expect(dashboardSourceReportCardSkeleton).toContain(
+            'data-sot-part="source-report-card-skeleton"',
+        );
+        expect(dashboardSourceReportCardSkeleton).toContain(
+            "data-sot-size={size}",
+        );
+        const dashboardSourceReportSegmentSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="source-report-segment-skeleton"',
+            "Skeleton",
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            'variant="default"',
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            'size="default"',
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            "className={sotSourceReportSegmentSkeletonClassNames[size]}",
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            'data-sot-part="source-report-segment-skeleton"',
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            "data-sot-size={size}",
+        );
+        expect(workstation).not.toContain('variant="sourceReportCard"');
+        expect(workstation).not.toContain('variant="sourceReportSegment"');
+        expect(workstation).not.toContain("sourceReportCardSkeletonSize");
+        expect(workstation).not.toContain("sourceReportSegmentSkeletonSize");
         expect(workstation).not.toContain("SOURCE_REPORT_METRIC_CARD_CLASS");
         expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
         expect(workstation).not.toContain(
@@ -2197,19 +2254,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).not.toContain("dashboardTranscriptSkeletonSize");
         expect(workstation).not.toContain("dashboardTranscriptAvatar");
         expect(workstation).not.toContain(
-            "const sotSourceReportCardSkeletonClassNames",
-        );
-        expect(workstation).not.toContain(
-            "const sotSourceReportSegmentSkeletonClassNames",
-        );
-        expect(workstation).not.toContain(
             "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
-        );
-        expect(workstation).not.toContain(
-            "className={sotSourceReportCardSkeletonClassNames[size]}",
-        );
-        expect(workstation).not.toContain(
-            "className={sotSourceReportSegmentSkeletonClassNames[size]}",
         );
         expect(workstation).not.toMatch(
             DASHBOARD_WORKSTATION_LEGACY_CONTROL_RE,

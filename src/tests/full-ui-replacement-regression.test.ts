@@ -1247,6 +1247,44 @@ const SOURCE_REPORT_SKELETON_PRIMITIVE_SELECTORS = [
     '[data-sot-part="source-report-segment-skeleton"][data-sot-size="line-short"]',
 ];
 
+const SOURCE_REPORT_SKELETON_GLOBAL_CSS_SELECTOR_FRAGMENTS = [
+    '[data-sot-part="source-report-card-skeleton"]',
+    '[data-sot-part="source-report-segment-skeleton"]',
+    '[data-sot-part="source-report-card-value"][data-sot-value="skeleton"]',
+] as const;
+
+const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
+    "sourceReportCard:",
+    "sourceReportSegment:",
+    "sourceReportCardCount",
+    "sourceReportCardSource",
+    "sourceReportCardStatus",
+    "sourceReportSegmentLineLong",
+    "sourceReportSegmentLineMedium",
+    "sourceReportSegmentLineShort",
+    "sourceReportSegmentLineWide",
+    "sourceReportSegmentSpeaker",
+    "sourceReportSegmentTime",
+] as const;
+
+const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const sotSourceReportCardSkeletonClassNames",
+    "const sotSourceReportSegmentSkeletonClassNames",
+    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
+    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+] as const;
+
+const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
+    "const sourceReportCardSkeletonClassNames",
+    "const sourceReportSegmentSkeletonClassNames",
+    'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
+    'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
+    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
+] as const;
+
 const SOURCE_REPORT_EMPTY_LEGACY_CSS_SELECTOR_RE =
     /\.(?:sr-empty(?:-(?:ico|title|sub|actions))?)(?![\w-])/;
 
@@ -2650,10 +2688,11 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="recording-route-loading-detail"',
         );
         expect(cardPrimitive).toContain("routeLoadingSurface:");
-        expect(skeletonPrimitive).toContain("sourceReportCard:");
-        expect(skeletonPrimitive).toContain("sourceReportSegment:");
         for (const sizeToken of routeLoadingSizeTokens) {
             expect(skeletonPrimitive).not.toContain(sizeToken);
+        }
+        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -5108,42 +5147,51 @@ describe("full UI replacement regression coverage", () => {
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
                 SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE.test(text),
-            );
+        );
 
         expect(sourceReportSkeletonLegacySelectorLines).toEqual([]);
+        for (const selectorFragment of SOURCE_REPORT_SKELETON_GLOBAL_CSS_SELECTOR_FRAGMENTS) {
+            expect(collectCssRuleBlocks(globals, selectorFragment)).toEqual([]);
+        }
         for (const selector of SOURCE_REPORT_SKELETON_PRIMITIVE_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(sourceReportSkeletonPrimitive).toContain("sourceReportCard:");
-        expect(sourceReportSkeletonPrimitive).toContain(
-            "sourceReportSegment:",
+        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
+            expect(sourceReportSkeletonPrimitive).not.toContain(token);
+        }
+        for (const token of DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(workstation).toContain(token);
+        }
+        const dashboardSourceReportCardSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="source-report-card-skeleton"',
+            "Skeleton",
         );
-        expect(sourceReportSkeletonPrimitive).toContain(
-            "sourceReportCardSource",
+        expect(dashboardSourceReportCardSkeleton).toContain(
+            'variant="default"',
         );
-        expect(sourceReportSkeletonPrimitive).toContain(
-            "sourceReportSegmentLineLong",
-        );
-        expect(workstation).toContain('variant="sourceReportCard"');
-        expect(workstation).toContain('variant="sourceReportSegment"');
-        expect(workstation).toContain(
-            "size={sourceReportCardSkeletonSize(size)}",
-        );
-        expect(workstation).toContain(
-            "size={sourceReportSegmentSkeletonSize(size)}",
-        );
-        expect(workstation).not.toContain(
-            "const sotSourceReportCardSkeletonClassNames",
-        );
-        expect(workstation).not.toContain(
-            "const sotSourceReportSegmentSkeletonClassNames",
-        );
-        expect(workstation).not.toContain(
+        expect(dashboardSourceReportCardSkeleton).toContain('size="default"');
+        expect(dashboardSourceReportCardSkeleton).toContain(
             "className={sotSourceReportCardSkeletonClassNames[size]}",
         );
-        expect(workstation).not.toContain(
+        const dashboardSourceReportSegmentSkeleton = extractOpeningElement(
+            workstation,
+            'data-sot-part="source-report-segment-skeleton"',
+            "Skeleton",
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            'variant="default"',
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
+            'size="default"',
+        );
+        expect(dashboardSourceReportSegmentSkeleton).toContain(
             "className={sotSourceReportSegmentSkeletonClassNames[size]}",
         );
+        expect(workstation).not.toContain('variant="sourceReportCard"');
+        expect(workstation).not.toContain('variant="sourceReportSegment"');
+        expect(workstation).not.toContain("sourceReportCardSkeletonSize");
+        expect(workstation).not.toContain("sourceReportSegmentSkeletonSize");
         const sourceReportEmptyPrimitive = readSource(
             "components/ui/empty.tsx",
         );
@@ -8267,25 +8315,36 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["size"]',
         );
-        expect(skeletonPrimitive).toContain("sourceReportCard:");
-        expect(skeletonPrimitive).toContain("sourceReportSegment:");
-        expect(skeletonPrimitive).toContain("sourceReportCardCount:");
-        expect(skeletonPrimitive).toContain("sourceReportCardSource:");
-        expect(skeletonPrimitive).toContain("sourceReportCardStatus:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentLineLong:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentLineMedium:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentLineShort:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentLineWide:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentSpeaker:");
-        expect(skeletonPrimitive).toContain("sourceReportSegmentTime:");
-        expect(sourceReport).toContain('variant="sourceReportCard"');
-        expect(sourceReport).toContain('variant="sourceReportSegment"');
-        expect(sourceReport).toContain(
-            "size={sourceReportCardSkeletonSize(size)}",
+        for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
+            expect(skeletonPrimitive).not.toContain(token);
+        }
+        for (const token of RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS) {
+            expect(sourceReport).toContain(token);
+        }
+        const sourceReportCardSkeleton = extractOpeningElement(
+            sourceReport,
+            'data-sot-part="source-report-card-skeleton"',
+            "Skeleton",
         );
-        expect(sourceReport).toContain(
-            "size={sourceReportSegmentSkeletonSize(size)}",
+        expect(sourceReportCardSkeleton).toContain('variant="default"');
+        expect(sourceReportCardSkeleton).toContain('size="default"');
+        expect(sourceReportCardSkeleton).toContain(
+            "className={sourceReportCardSkeletonClassNames[size]}",
         );
+        const sourceReportSegmentSkeleton = extractOpeningElement(
+            sourceReport,
+            'data-sot-part="source-report-segment-skeleton"',
+            "Skeleton",
+        );
+        expect(sourceReportSegmentSkeleton).toContain('variant="default"');
+        expect(sourceReportSegmentSkeleton).toContain('size="default"');
+        expect(sourceReportSegmentSkeleton).toContain(
+            "className={sourceReportSegmentSkeletonClassNames[size]}",
+        );
+        expect(sourceReport).not.toContain('variant="sourceReportCard"');
+        expect(sourceReport).not.toContain('variant="sourceReportSegment"');
+        expect(sourceReport).not.toContain("sourceReportCardSkeletonSize");
+        expect(sourceReport).not.toContain("sourceReportSegmentSkeletonSize");
         expect(sourceReport).toContain("data-sot-source-report-header-actions");
         for (const control of [
             'data-sot-control="copy-source-transcript"',
@@ -8365,8 +8424,6 @@ describe("full UI replacement regression coverage", () => {
             "SOURCE_REPORT_METRIC_CARD_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
-            "sourceReportCardSkeletonClassNames",
-            "sourceReportSegmentSkeletonClassNames",
             "sourceReportStatusBadgeVariant",
         ]) {
             expect(sourceReport).not.toContain(

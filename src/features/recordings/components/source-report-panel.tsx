@@ -386,35 +386,20 @@ type SourceReportSegmentSkeletonSize =
     | "speaker"
     | "time";
 
-function sourceReportCardSkeletonSize(size: SourceReportCardSkeletonSize) {
-    switch (size) {
-        case "count":
-            return "sourceReportCardCount";
-        case "source":
-            return "sourceReportCardSource";
-        case "status":
-            return "sourceReportCardStatus";
-    }
-}
+const sourceReportCardSkeletonClassNames = {
+    count: "inline-block h-[18px] w-12 align-middle rounded-[6px]",
+    source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]",
+    status: "inline-block h-[18px] w-20 align-middle rounded-[6px]",
+} as const satisfies Record<SourceReportCardSkeletonSize, string>;
 
-function sourceReportSegmentSkeletonSize(
-    size: SourceReportSegmentSkeletonSize,
-) {
-    switch (size) {
-        case "line-long":
-            return "sourceReportSegmentLineLong";
-        case "line-medium":
-            return "sourceReportSegmentLineMedium";
-        case "line-short":
-            return "sourceReportSegmentLineShort";
-        case "line-wide":
-            return "sourceReportSegmentLineWide";
-        case "speaker":
-            return "sourceReportSegmentSpeaker";
-        case "time":
-            return "sourceReportSegmentTime";
-    }
-}
+const sourceReportSegmentSkeletonClassNames = {
+    "line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
+    "line-medium": "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
+    "line-short": "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
+    "line-wide": "mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
+    speaker: "inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
+    time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
+} as const satisfies Record<SourceReportSegmentSkeletonSize, string>;
 
 function sourceReportReadinessTone(label: string): SourceReportTone {
     const normalized = label.toLowerCase();
@@ -551,8 +536,9 @@ function SourceReportSegmentSkeleton({
 }) {
     return (
         <Skeleton
-            variant="sourceReportSegment"
-            size={sourceReportSegmentSkeletonSize(size)}
+            variant="default"
+            size="default"
+            className={sourceReportSegmentSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-segment-skeleton"
             data-sot-size={size}
@@ -656,8 +642,9 @@ function SourceReportCardSkeleton({
 }) {
     return (
         <Skeleton
-            variant="sourceReportCard"
-            size={sourceReportCardSkeletonSize(size)}
+            variant="default"
+            size="default"
+            className={sourceReportCardSkeletonClassNames[size]}
             aria-hidden="true"
             data-sot-part="source-report-card-skeleton"
             data-sot-size={size}
