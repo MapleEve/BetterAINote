@@ -311,10 +311,13 @@ const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-content="confirm-dialog"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
     '[data-sot-content="confirm-dialog"][data-state="closed"]',
-    '[data-sot-part="dialog-icon"]',
     '[data-sot-part="confirm-head"]',
     '[data-sot-part="confirm-body"]',
     '[data-sot-part="confirm-foot"]',
+] as const;
+
+const REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="dialog-icon"]',
 ] as const;
 
 const DIALOG_SLOT_GLOBAL_SELECTORS = [
@@ -565,6 +568,9 @@ describe("settings SOT interaction regressions", () => {
         expect(productCss).not.toMatch(LEGACY_MODAL_SHELL_CSS_SELECTOR_RE);
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
+        }
+        for (const selector of REMOVED_MODAL_SHELL_DEAD_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).not.toContain(selector);
         }
         expect(
             readCssBlock(productCss, '[data-sot-panel="confirm-dialog"]'),
@@ -931,7 +937,7 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(content).toContain('data-sot-list="source-fields"');
         expect(content).toContain('data-sot-panel="source-provider-fields"');
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
         );
         expect(globals).not.toMatch(/(^|\n|,)\s*\.field-empty\b/);

@@ -1967,26 +1967,6 @@ button:not([data-slot]) {
 [data-sot-content="confirm-dialog"][data-state="closed"] {
     opacity: 0;
 }
-[data-sot-part="dialog-icon"] {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--signal-warning) 16%, transparent);
-    color: var(--signal-warning-strong);
-    margin-bottom: 12px;
-}
-[data-sot-part="dialog-icon"] svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
 @keyframes bpulse {
     0%,
     100% {
@@ -2206,11 +2186,6 @@ button:not([data-slot]) {
 [data-sot-panel="source-provider-detail"] [data-sot-list="source-fields"] {
     display: flex;
     flex-direction: column;
-}
-[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"] {
-    color: var(--fg-tertiary);
-    font-family: var(--font-sans);
-    font-style: italic;
 }
 [data-sot-panel="source-provider-detail"] [data-sot-section-divider] {
     height: 1px;
@@ -4126,32 +4101,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     background: rgb(255 255 255 / 0.06);
     border-color: var(--glass-border);
 }
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-icon"] {
-    display: inline-flex;
-    flex: 0 0 14px;
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    border: 1px solid var(--line-hairline);
-    overflow: hidden;
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-icon"]
-    img {
-    display: block;
-    width: 14px;
-    height: 14px;
-    object-fit: contain;
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-icon"][data-sot-provider-cover="true"]
-    img {
-    object-fit: cover;
-}
 [data-sot-panel="dashboard-source-filter-stack"] [data-stack-label] {
     white-space: nowrap;
 }
@@ -4327,10 +4276,6 @@ select::-ms-expand {
     background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
     border-color: var(--glass-border);
     box-shadow: 0 22px 56px rgb(0 0 0 / 0.5);
-}
-[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"] {
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
 }
 [data-sot-part="confirm-head"] {
     padding: 16px 20px 4px;

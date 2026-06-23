@@ -340,10 +340,15 @@ const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-content="confirm-dialog"]',
     '[data-sot-surface="settings-shell"][data-state="closed"]',
     '[data-sot-content="confirm-dialog"][data-state="closed"]',
-    '[data-sot-part="dialog-icon"]',
     '[data-sot-part="confirm-head"]',
     '[data-sot-part="confirm-body"]',
     '[data-sot-part="confirm-foot"]',
+] as const;
+
+const REMOVED_DEAD_SOT_GLOBAL_SELECTORS = [
+    '[data-sot-part="dialog-icon"]',
+    '[data-sot-panel="source-provider-detail"] [data-sot-part="field-empty"]',
+    '[data-sot-part="source-filter-icon"]',
 ] as const;
 
 const REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS = [
@@ -375,7 +380,6 @@ const DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:del-modal-icon|del-modal-name)(?![\w-])/m;
 
 const DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS = [
-    '[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"]',
     '[data-sot-part="confirm-extra"]',
     '[data-sot-item="confirm-dialog-detail"]',
     '[data-sot-part="confirm-warning"]',
@@ -1888,6 +1892,9 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of MODAL_SHELL_DATA_SOT_CSS_SELECTORS) {
             expect(productCss).toContain(selector);
         }
+        for (const selector of REMOVED_DEAD_SOT_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         expect(
             extractCssBlock(productCss, '[data-sot-panel="confirm-dialog"]'),
         ).toContain("z-index: calc(var(--z-modal) + 2);");
@@ -1916,12 +1923,6 @@ describe("full UI replacement regression coverage", () => {
                 CONFIRM_DIALOG_BUTTON_PRIMITIVE_REPAINT_DECLARATION_RE,
             );
         }
-        expect(
-            extractCssBlock(
-                productCss,
-                '[data-sot-content="confirm-dialog"] [data-sot-part="dialog-icon"]',
-            ),
-        ).toContain("var(--signal-danger)");
         expect(
             extractCssBlock(productCss, '[data-sot-part="confirm-extra"]'),
         ).toContain("display: flex;");
