@@ -1,6 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const recordingDetailLoadingSkeletonClassNames = {
+    recordingDetailLoadingAvatar: "size-8 rounded-full",
+    recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
+    recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
+    recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
+} as const;
+
 export default function RecordingLoading() {
     return (
         <div data-sot-shell="recording-route-loading" aria-busy="true">
@@ -30,11 +37,19 @@ export default function RecordingLoading() {
                         >
                             <Skeleton
                                 data-sot-part="detail-avatar"
-                                size="recordingDetailLoadingAvatar"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar
+                                }
                             />
                             <Skeleton
                                 data-sot-part="detail-bar"
-                                size="recordingDetailLoadingBar"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                }
                             />
                         </div>
                         <div
@@ -43,12 +58,20 @@ export default function RecordingLoading() {
                         >
                             <Skeleton
                                 data-sot-part="detail-bar"
-                                size="recordingDetailLoadingBar"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                }
                             />
                             <Skeleton
                                 data-sot-part="detail-bar"
                                 data-sot-size="60"
-                                size="recordingDetailLoadingBar60"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar60
+                                }
                             />
                         </div>
                         <div
@@ -57,7 +80,11 @@ export default function RecordingLoading() {
                         >
                             <Skeleton
                                 data-sot-part="detail-bar"
-                                size="recordingDetailLoadingBar"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                }
                             />
                         </div>
                         <div
@@ -67,7 +94,11 @@ export default function RecordingLoading() {
                             <Skeleton
                                 data-sot-part="detail-bar"
                                 data-sot-size="90"
-                                size="recordingDetailLoadingBar90"
+                                variant="default"
+                                size="default"
+                                className={
+                                    recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar90
+                                }
                             />
                         </div>
                     </div>

@@ -2568,7 +2568,7 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps recording route loading skeleton styling on Card and Skeleton primitives", () => {
+    it("keeps recording route loading skeleton sizing route-local and off the Skeleton primitive", () => {
         const dashboardLoading = readSource("app/(app)/dashboard/loading.tsx");
         const recordingLoading = readSource(
             "app/(app)/recordings/[id]/loading.tsx",
@@ -2576,6 +2576,25 @@ describe("full UI replacement regression coverage", () => {
         const cardPrimitive = readSource("components/ui/card.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
+        const recordingListLoadingSizeTokens = [
+            "recordingListLoadingDayLabel",
+            "recordingListLoadingTitle",
+            "recordingListLoadingTitle80",
+            "recordingListLoadingMetaTime",
+            "recordingListLoadingMetaTag",
+            "recordingListLoadingMetaPill",
+            "recordingListLoadingTag",
+        ];
+        const recordingDetailLoadingSizeTokens = [
+            "recordingDetailLoadingAvatar",
+            "recordingDetailLoadingBar",
+            "recordingDetailLoadingBar60",
+            "recordingDetailLoadingBar90",
+        ];
+        const routeLoadingSizeTokens = [
+            ...recordingListLoadingSizeTokens,
+            ...recordingDetailLoadingSizeTokens,
+        ];
 
         for (const loading of [dashboardLoading, recordingLoading]) {
             expect(loading).toContain(
@@ -2593,47 +2612,48 @@ describe("full UI replacement regression coverage", () => {
             expect(loading).toContain('data-sot-part="detail-player-controls"');
             expect(loading).toContain('data-sot-part="detail-transcript-head"');
             expect(loading).toContain('data-sot-part="detail-transcript"');
-            expect(loading).toContain('size="recordingDetailLoadingAvatar"');
-            expect(loading).toContain('size="recordingDetailLoadingBar"');
-            expect(loading).toContain('size="recordingDetailLoadingBar60"');
-            expect(loading).toContain('size="recordingDetailLoadingBar90"');
+            expect(loading).toContain(
+                "const recordingDetailLoadingSkeletonClassNames",
+            );
+            for (const sizeToken of recordingDetailLoadingSizeTokens) {
+                expect(loading).toContain(`${sizeToken}:`);
+                expect(loading).toContain(
+                    `recordingDetailLoadingSkeletonClassNames.${sizeToken}`,
+                );
+                expect(loading).not.toContain(`size="${sizeToken}"`);
+            }
+            const skeletonOpenings = collectOpeningElements(
+                loading,
+                "Skeleton",
+            );
+            expect(skeletonOpenings.length).toBeGreaterThan(0);
+            for (const skeletonOpening of skeletonOpenings) {
+                expect(skeletonOpening).toContain('variant="default"');
+                expect(skeletonOpening).toContain('size="default"');
+                expect(skeletonOpening).toContain("className={");
+            }
         }
         expect(dashboardLoading).toContain(
             'data-sot-panel="recording-list-loading"',
         );
         expect(dashboardLoading).toContain(
-            'size="recordingListLoadingDayLabel"',
+            "const recordingListLoadingSkeletonClassNames",
         );
-        expect(dashboardLoading).toContain('size="recordingListLoadingTitle"');
-        expect(dashboardLoading).toContain('size="recordingListLoadingTitle80"');
-        expect(dashboardLoading).toContain(
-            'size="recordingListLoadingMetaTime"',
-        );
-        expect(dashboardLoading).toContain(
-            'size="recordingListLoadingMetaTag"',
-        );
-        expect(dashboardLoading).toContain(
-            'size="recordingListLoadingMetaPill"',
-        );
-        expect(dashboardLoading).toContain('size="recordingListLoadingTag"');
+        for (const sizeToken of recordingListLoadingSizeTokens) {
+            expect(dashboardLoading).toContain(`${sizeToken}:`);
+            expect(dashboardLoading).toContain(
+                `recordingListLoadingSkeletonClassNames.${sizeToken}`,
+            );
+            expect(dashboardLoading).not.toContain(`size="${sizeToken}"`);
+        }
         expect(recordingLoading).toContain(
             'data-sot-panel="recording-route-loading-detail"',
         );
         expect(cardPrimitive).toContain("routeLoadingSurface:");
-        for (const sizeToken of [
-            "recordingListLoadingDayLabel",
-            "recordingListLoadingTitle",
-            "recordingListLoadingTitle80",
-            "recordingListLoadingMetaTime",
-            "recordingListLoadingMetaTag",
-            "recordingListLoadingMetaPill",
-            "recordingListLoadingTag",
-            "recordingDetailLoadingAvatar",
-            "recordingDetailLoadingBar",
-            "recordingDetailLoadingBar60",
-            "recordingDetailLoadingBar90",
-        ]) {
-            expect(skeletonPrimitive).toContain(`${sizeToken}:`);
+        expect(skeletonPrimitive).toContain("sourceReportCard:");
+        expect(skeletonPrimitive).toContain("sourceReportSegment:");
+        for (const sizeToken of routeLoadingSizeTokens) {
+            expect(skeletonPrimitive).not.toContain(sizeToken);
         }
         for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);

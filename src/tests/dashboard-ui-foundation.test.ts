@@ -463,10 +463,20 @@ describe("dashboard SOT foundation", () => {
             "recordingDetailLoadingBar60",
             "recordingDetailLoadingBar90",
         ]) {
-            expect(skeletonPrimitive).toContain(`${loadingSkeletonSize}:`);
-            expect(loading).toContain(`size="${loadingSkeletonSize}"`);
+            expect(skeletonPrimitive).not.toContain(loadingSkeletonSize);
+            expect(loading).toContain(`${loadingSkeletonSize}:`);
+            expect(loading).not.toContain(`size="${loadingSkeletonSize}"`);
         }
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain(
+            "const recordingListLoadingSkeletonClassNames",
+        );
+        expect(loading).toContain(
+            "const recordingDetailLoadingSkeletonClassNames",
+        );
+        expect(loading).toContain('variant="default"');
+        expect(loading).toContain('size="default"');
+        expect(loading).toContain("className={");
         expect(loading).toContain('data-sot-shell="dashboard-loading"');
         expect(loading).toContain('data-sot-panel="route-sidebar"');
         expect(loading).toContain('data-sot-panel="route-main"');

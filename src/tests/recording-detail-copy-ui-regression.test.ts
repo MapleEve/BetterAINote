@@ -1552,10 +1552,20 @@ describe("recording detail copy and title action UI regressions", () => {
             "recordingDetailLoadingBar60",
             "recordingDetailLoadingBar90",
         ]) {
-            expect(skeletonPrimitive).toContain(`${detailLoadingSize}:`);
-            expect(loading).toContain(`size="${detailLoadingSize}"`);
+            expect(skeletonPrimitive).not.toContain(detailLoadingSize);
+            expect(loading).toContain(`${detailLoadingSize}:`);
+            expect(loading).toContain(
+                `recordingDetailLoadingSkeletonClassNames.${detailLoadingSize}`,
+            );
+            expect(loading).not.toContain(`size="${detailLoadingSize}"`);
         }
         expect(loading).toContain("<Skeleton");
+        expect(loading).toContain(
+            "const recordingDetailLoadingSkeletonClassNames",
+        );
+        expect(loading).toContain('variant="default"');
+        expect(loading).toContain('size="default"');
+        expect(loading).toContain("className={");
         expect(loading).toContain('data-sot-shell="recording-route-loading"');
         expect(loading).toContain(
             'data-sot-panel="recording-route-loading-detail"',

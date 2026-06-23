@@ -647,9 +647,26 @@ describe("dashboard recording player regressions", () => {
         );
         expect(recordingLoading).toContain('variant="routeLoadingSurface"');
         expect(recordingLoading).toContain(
+            "const recordingDetailLoadingSkeletonClassNames",
+        );
+        expect(recordingLoading).toContain(
+            "recordingDetailLoadingAvatar:",
+        );
+        expect(recordingLoading).toContain("recordingDetailLoadingBar:");
+        expect(recordingLoading).toContain(
+            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",
+        );
+        expect(recordingLoading).toContain(
+            "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar",
+        );
+        expect(recordingLoading).toContain('variant="default"');
+        expect(recordingLoading).toContain('size="default"');
+        expect(recordingLoading).not.toContain(
             'size="recordingDetailLoadingAvatar"',
         );
-        expect(recordingLoading).toContain('size="recordingDetailLoadingBar"');
+        expect(recordingLoading).not.toContain(
+            'size="recordingDetailLoadingBar"',
+        );
         for (const [surface, selector] of [
             [
                 '[data-sot-surface="dashboard-recording-player"]',

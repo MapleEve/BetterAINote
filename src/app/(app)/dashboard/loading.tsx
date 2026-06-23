@@ -1,6 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const recordingListLoadingSkeletonClassNames = {
+    recordingListLoadingDayLabel: "h-[11px] w-[100px]",
+    recordingListLoadingMetaPill: "h-[18px] w-16 rounded-full",
+    recordingListLoadingMetaTag: "h-[18px] w-16 rounded-[6px]",
+    recordingListLoadingMetaTime: "h-[11px] w-20",
+    recordingListLoadingTag: "h-[22px] w-20 rounded-[6px]",
+    recordingListLoadingTitle: "h-[13px] w-full",
+    recordingListLoadingTitle80: "h-[13px] w-4/5",
+} as const;
+
+const recordingDetailLoadingSkeletonClassNames = {
+    recordingDetailLoadingAvatar: "size-8 rounded-full",
+    recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
+    recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
+    recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
+} as const;
+
 export default function DashboardLoading() {
     return (
         <div data-sot-shell="dashboard-loading" aria-busy="true">
@@ -38,7 +55,11 @@ export default function DashboardLoading() {
                             >
                                 <Skeleton
                                     data-sot-part="skeleton-day-label"
-                                    size="recordingListLoadingDayLabel"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingListLoadingSkeletonClassNames.recordingListLoadingDayLabel
+                                    }
                                 />
                                 <span
                                     data-sot-part="skeleton-day-line"
@@ -55,7 +76,11 @@ export default function DashboardLoading() {
                                 >
                                     <Skeleton
                                         data-sot-part="skeleton-title"
-                                        size="recordingListLoadingTitle"
+                                        variant="default"
+                                        size="default"
+                                        className={
+                                            recordingListLoadingSkeletonClassNames.recordingListLoadingTitle
+                                        }
                                     />
                                     <div
                                         data-sot-part="skeleton-meta"
@@ -63,18 +88,30 @@ export default function DashboardLoading() {
                                     >
                                         <Skeleton
                                             data-sot-part="skeleton-meta-time"
-                                            size="recordingListLoadingMetaTime"
+                                            variant="default"
+                                            size="default"
+                                            className={
+                                                recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTime
+                                            }
                                         />
                                         <Skeleton
                                             data-sot-part="skeleton-meta-tag"
-                                            size="recordingListLoadingMetaTag"
+                                            variant="default"
+                                            size="default"
+                                            className={
+                                                recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTag
+                                            }
                                         />
                                     </div>
                                 </div>
                                 <div data-sot-part="skeleton-row-tail">
                                     <Skeleton
                                         data-sot-part="skeleton-tag"
-                                        size="recordingListLoadingTag"
+                                        variant="default"
+                                        size="default"
+                                        className={
+                                            recordingListLoadingSkeletonClassNames.recordingListLoadingTag
+                                        }
                                     />
                                 </div>
                             </div>
@@ -89,7 +126,11 @@ export default function DashboardLoading() {
                                     <Skeleton
                                         data-sot-part="skeleton-title"
                                         data-sot-size="80"
-                                        size="recordingListLoadingTitle80"
+                                        variant="default"
+                                        size="default"
+                                        className={
+                                            recordingListLoadingSkeletonClassNames.recordingListLoadingTitle80
+                                        }
                                     />
                                     <div
                                         data-sot-part="skeleton-meta"
@@ -97,15 +138,27 @@ export default function DashboardLoading() {
                                     >
                                         <Skeleton
                                             data-sot-part="skeleton-meta-time"
-                                            size="recordingListLoadingMetaTime"
+                                            variant="default"
+                                            size="default"
+                                            className={
+                                                recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTime
+                                            }
                                         />
                                         <Skeleton
                                             data-sot-part="skeleton-meta-tag"
-                                            size="recordingListLoadingMetaTag"
+                                            variant="default"
+                                            size="default"
+                                            className={
+                                                recordingListLoadingSkeletonClassNames.recordingListLoadingMetaTag
+                                            }
                                         />
                                         <Skeleton
                                             data-sot-part="skeleton-meta-pill"
-                                            size="recordingListLoadingMetaPill"
+                                            variant="default"
+                                            size="default"
+                                            className={
+                                                recordingListLoadingSkeletonClassNames.recordingListLoadingMetaPill
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -130,11 +183,19 @@ export default function DashboardLoading() {
                             >
                                 <Skeleton
                                     data-sot-part="detail-avatar"
-                                    size="recordingDetailLoadingAvatar"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar
+                                    }
                                 />
                                 <Skeleton
                                     data-sot-part="detail-bar"
-                                    size="recordingDetailLoadingBar"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                    }
                                 />
                             </div>
                             <div
@@ -143,12 +204,20 @@ export default function DashboardLoading() {
                             >
                                 <Skeleton
                                     data-sot-part="detail-bar"
-                                    size="recordingDetailLoadingBar"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                    }
                                 />
                                 <Skeleton
                                     data-sot-part="detail-bar"
                                     data-sot-size="60"
-                                    size="recordingDetailLoadingBar60"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar60
+                                    }
                                 />
                             </div>
                             <div
@@ -157,7 +226,11 @@ export default function DashboardLoading() {
                             >
                                 <Skeleton
                                     data-sot-part="detail-bar"
-                                    size="recordingDetailLoadingBar"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar
+                                    }
                                 />
                             </div>
                             <div
@@ -167,7 +240,11 @@ export default function DashboardLoading() {
                                 <Skeleton
                                     data-sot-part="detail-bar"
                                     data-sot-size="90"
-                                    size="recordingDetailLoadingBar90"
+                                    variant="default"
+                                    size="default"
+                                    className={
+                                        recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingBar90
+                                    }
                                 />
                             </div>
                         </div>
