@@ -1073,6 +1073,34 @@ function getRecordingListStatus(
     };
 }
 
+const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =
+    "h-[20px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 [font:600_11px_var(--font-sans)] tracking-[0.005em] shadow-none data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] [&_[data-sot-part=dashboard-recording-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-recording-status-dot]]:rounded-full [&_[data-sot-part=dashboard-recording-status-dot]]:bg-current data-[sot-tone=neu]:[&_[data-sot-part=dashboard-recording-status-dot]]:bg-[var(--fg-tertiary)] data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]";
+
+function SotDashboardRecordingStatusBadge({
+    className,
+    label,
+    tone,
+}: {
+    className?: string;
+    label: string;
+    tone: SotPlayerStatusTone;
+}) {
+    return (
+        <Badge
+            variant="ghost"
+            className={cn(
+                SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS,
+                className,
+            )}
+            data-sot-part="dashboard-recording-status"
+            data-sot-tone={tone}
+        >
+            <span data-sot-part="dashboard-recording-status-dot" />
+            {label}
+        </Badge>
+    );
+}
+
 function getRetxStateFromActiveJob(
     job: TranscriptionJobData | null | undefined,
 ): Extract<RetxState, "queued" | "running"> | null {
@@ -5660,18 +5688,14 @@ export function Workstation({
                                                                                 )}
                                                                             </span>
                                                                         </span>
-                                                                        <Badge
-                                                                            variant="dashboardRecordingStatus"
-                                                                            data-sot-part="dashboard-recording-status"
-                                                                            data-sot-tone={
-                                                                                rowStatus.tone
-                                                                            }
-                                                                        >
-                                                                            <span data-sot-part="dashboard-recording-status-dot" />
-                                                                            {
+                                                                        <SotDashboardRecordingStatusBadge
+                                                                            label={
                                                                                 rowStatus.label
                                                                             }
-                                                                        </Badge>
+                                                                            tone={
+                                                                                rowStatus.tone
+                                                                            }
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                                 {primaryTag ? (

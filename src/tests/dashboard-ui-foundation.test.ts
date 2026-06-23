@@ -1921,18 +1921,47 @@ describe("dashboard SOT foundation", () => {
             );
         }
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status"',
-        );
-        expect(workstation).toMatch(
-            /<Badge\s+variant="dashboardRecordingStatus"[\s\S]*data-sot-part="dashboard-recording-status"[\s\S]*data-sot-tone=\{\s*rowStatus\.tone\s*\}/,
-        );
-        expect(workstation).not.toMatch(
-            /<span\s+data-sot-part="dashboard-recording-status"/,
+            "const SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS =",
         );
         expect(workstation).toContain(
-            'data-sot-part="dashboard-recording-status-dot"',
+            "function SotDashboardRecordingStatusBadge",
         );
-        expect(badgePrimitive).toContain("dashboardRecordingStatus:");
+        const dashboardRecordingStatusBadge = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-status"',
+            "Badge",
+        );
+        expect(dashboardRecordingStatusBadge).toContain('variant="ghost"');
+        expect(dashboardRecordingStatusBadge).toContain(
+            "SOT_DASHBOARD_RECORDING_STATUS_BADGE_CLASS",
+        );
+        expect(dashboardRecordingStatusBadge).toContain("className");
+        expect(dashboardRecordingStatusBadge).toContain(
+            'data-sot-part="dashboard-recording-status"',
+        );
+        expect(dashboardRecordingStatusBadge).toContain(
+            "data-sot-tone={tone}",
+        );
+        expect(workstation).toMatch(
+            /<span data-sot-part="dashboard-recording-status-dot" \/>/,
+        );
+        expect(workstation).toMatch(
+            /<SotDashboardRecordingStatusBadge[\s\S]*label=\{\s*rowStatus\.label\s*\}[\s\S]*tone=\{\s*rowStatus\.tone\s*\}/,
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-status"',
+        );
+        expect(workstation).not.toContain(
+            'variant="dashboardRecording' + 'Status"',
+        );
+        expect(badgePrimitive).not.toContain(
+            "dashboardRecording" + "Status:",
+        );
+        expect(badgePrimitive).not.toContain(
+            'variant="dashboardRecording' + 'Status"',
+        );
+        expect(badgePrimitive).not.toContain("dashboard-recording-status");
+        expect(badgePrimitive).not.toContain("dashboard-recording-status-dot");
         for (const dashboardStatusToken of [
             "data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)]",
             "data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)]",
@@ -1955,7 +1984,7 @@ describe("dashboard SOT foundation", () => {
             "[&_[data-sot-part=dashboard-recording-status-dot]]:bg-current",
             "data-[sot-tone=warn]:[&_[data-sot-part=dashboard-recording-status-dot]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
         ]) {
-            expect(badgePrimitive).toContain(dashboardStatusToken);
+            expect(workstation).toContain(dashboardStatusToken);
         }
         expect(
             collectCssRuleBlocks(
