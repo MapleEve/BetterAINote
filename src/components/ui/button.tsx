@@ -118,8 +118,6 @@ const buttonVariants = cva(
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 recordingDetailBack:
                     "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
-                sourceRecordCopyAction:
-                    "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 transcriptionAction:
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 transcriptionPrimaryAction:
@@ -208,8 +206,6 @@ const buttonVariants = cva(
                 recordingRouteAction: "h-9 px-4 py-2 has-[>svg]:px-3",
                 recordingDetailBack:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
-                sourceRecordCopyAction:
-                    "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 transcriptionAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 dashboardSidebarCollapse: "size-[22px] rounded-full",

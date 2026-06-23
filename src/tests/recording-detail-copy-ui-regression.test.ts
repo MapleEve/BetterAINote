@@ -1255,11 +1255,24 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain("<SourceReportPanel");
         expect(detailWorkstation).toContain("onAvailabilityChange");
         expect(detailWorkstation).toContain("autoLoad");
-        expect(button).toContain("sourceRecordCopyAction:");
+        expect(button).not.toContain("sourceRecordCopyAction:");
+        expect(button).not.toContain('variant="sourceRecordCopyAction"');
+        expect(button).not.toContain('size="sourceRecordCopyAction"');
         expect(detailWorkstation).toContain(
             'data-sot-part="recording-source-record-actions"',
         );
         expect(detailWorkstation).not.toContain('className="t-actions"');
+        expect(sourceRecordPanel).toContain("handleCopyLocalTranscript");
+        expect(sourceRecordPanel).toContain("handleCopyRawTranscript");
+        expect(sourceRecordPanel).toContain("!localTranscriptCopyText.trim()");
+        expect(sourceRecordPanel).toContain("!transcription?.text?.trim()");
+        expect(sourceRecordPanel).toContain('t("common.copying")');
+        expect(sourceRecordPanel).toMatch(
+            /t\(\s*"transcription\.copyTranscript",?\s*\)/,
+        );
+        expect(sourceRecordPanel).toMatch(
+            /t\(\s*"speakerReview\.copyRawTranscript",?\s*\)/,
+        );
         for (const marker of [
             "handleCopyLocalTranscript",
             "handleCopyRawTranscript",
@@ -1272,12 +1285,14 @@ describe("recording detail copy and title action UI regressions", () => {
             );
 
             expect(copyButtonSource).toContain("<Button");
-            expect(copyButtonSource).toContain(
+            expect(copyButtonSource).toContain('variant="outline"');
+            expect(copyButtonSource).toContain('size="sm"');
+            expect(copyButtonSource).not.toContain(
                 'variant="sourceRecordCopyAction"',
             );
-            expect(copyButtonSource).toContain('size="sourceRecordCopyAction"');
-            expect(copyButtonSource).not.toContain('variant="outline"');
-            expect(copyButtonSource).not.toContain('size="sm"');
+            expect(copyButtonSource).not.toContain(
+                'size="sourceRecordCopyAction"',
+            );
             expect(copyButtonSource).toContain(
                 '<Copy data-icon="inline-start" />',
             );
