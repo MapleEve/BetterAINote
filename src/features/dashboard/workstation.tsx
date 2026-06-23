@@ -451,6 +451,20 @@ const TIMELINE_FILTERS: {
     { value: "earlier", labelKey: "recordingList.timeline.earlier" },
 ];
 
+const dashboardRecordingTimeFilterStyles = {
+    root: "mt-2.5 flex-wrap",
+    item: "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary",
+    count: "rounded-[4px] bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground/70",
+    countSelected: "bg-primary/10 text-primary",
+} as const;
+
+function dashboardRecordingTimeFilterCountClassName(active: boolean) {
+    return cn(
+        dashboardRecordingTimeFilterStyles.count,
+        active && dashboardRecordingTimeFilterStyles.countSelected,
+    );
+}
+
 const dashboardRecordingRowStyles = {
     rows: "flex flex-col gap-0.5 p-1",
     group: "flex flex-col gap-0.5 px-1 py-1.5",
@@ -5280,10 +5294,12 @@ export function Workstation({
                                 <ToggleGroup
                                     type="single"
                                     value={timelineFilter}
-                                    spacing="dashboardRecordingTimeFilter"
-                                    layout="dashboardRecordingTimeFilter"
-                                    variant="dashboardRecordingTimeFilter"
-                                    size="dashboardRecordingTimeFilter"
+                                    spacing={1}
+                                    variant="outline"
+                                    size="sm"
+                                    className={
+                                        dashboardRecordingTimeFilterStyles.root
+                                    }
                                     aria-label={t(
                                         "recordingList.timelineTitle",
                                     )}
@@ -5314,11 +5330,19 @@ export function Workstation({
                                                 data-sot-state={
                                                     active ? "selected" : "idle"
                                                 }
+                                                className={
+                                                    dashboardRecordingTimeFilterStyles.item
+                                                }
                                                 key={item.value}
                                                 value={item.value}
                                             >
                                                 {t(item.labelKey)}
-                                                <span data-sot-part="dashboard-recording-time-filter-count">
+                                                <span
+                                                    className={dashboardRecordingTimeFilterCountClassName(
+                                                        active,
+                                                    )}
+                                                    data-sot-part="dashboard-recording-time-filter-count"
+                                                >
                                                     {timelineCounts[item.value]}
                                                 </span>
                                             </ToggleGroupItem>

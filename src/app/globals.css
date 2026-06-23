@@ -281,18 +281,6 @@
     --badge-pill-height: 22px;
     --badge-check-bg: rgb(80 161 191 / 0.7);
     --badge-check-bg: color-mix(in srgb, var(--accent) 70%, transparent);
-    --dashboard-recording-time-filter-count-bg: rgb(213 219 223 / 0.35);
-    --dashboard-recording-time-filter-count-bg: color-mix(
-        in srgb,
-        var(--graphite-300) 35%,
-        transparent
-    );
-    --dashboard-recording-time-filter-count-selected-bg: rgb(50 126 154 / 0.18);
-    --dashboard-recording-time-filter-count-selected-bg: color-mix(
-        in srgb,
-        var(--accent) 18%,
-        transparent
-    );
     --dashboard-recording-tag-chip-bg: rgb(244 246 248);
     --dashboard-recording-tag-chip-bg: color-mix(
         in srgb,
@@ -723,13 +711,6 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-on: rgb(11 16 22);
     --accent-on: oklch(0.11 0.004 250);
-    --dashboard-recording-time-filter-count-bg: rgb(255 255 255 / 0.06);
-    --dashboard-recording-time-filter-count-selected-bg: rgb(92 168 198 / 0.22);
-    --dashboard-recording-time-filter-count-selected-bg: color-mix(
-        in srgb,
-        var(--accent) 22%,
-        transparent
-    );
     --dashboard-recording-tag-chip-bg: rgb(126 135 143 / 0.18);
     --dashboard-recording-tag-chip-bg: color-mix(
         in srgb,

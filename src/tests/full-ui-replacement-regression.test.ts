@@ -864,6 +864,8 @@ const DASHBOARD_TIME_FILTER_DATA_SOT_CSS_SELECTORS = [
 ];
 
 const DASHBOARD_TIME_FILTER_RETIRED_GLOBAL_SELECTORS = [
+    "--dashboard-recording-time-filter-count-bg",
+    "--dashboard-recording-time-filter-count-selected-bg",
     '[data-sot-part="dashboard-recording-time-filter-count"]',
     '[data-sot-control="dashboard-recording-time-filter"][data-sot-state="selected"]',
     '[data-sot-control="dashboard-recording-time-filter"].is-hover-demo',
@@ -2960,8 +2962,9 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
-    it("keeps dashboard time filters product CSS on data-sot selectors", () => {
+    it("keeps dashboard time filter presentation out of product globals", () => {
         const globals = readSource("app/globals.css");
+        const workstation = readSource("features/dashboard/workstation.tsx");
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -2979,6 +2982,18 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_TIME_FILTER_PRIMITIVE_REPAINT_CSS_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
+        expect(workstation).toContain(
+            "const dashboardRecordingTimeFilterStyles = {",
+        );
+        expect(workstation).toContain(
+            "function dashboardRecordingTimeFilterCountClassName(active: boolean)",
+        );
+        expect(workstation).toContain(
+            'hidden={listMode !== "timeline"}',
+        );
+        expect(workstation).toContain(
+            'data-sot-part="dashboard-recording-time-filter-count"',
+        );
     });
 
     it("keeps copy icon product CSS scoped to data-sot hooks", () => {
@@ -4320,23 +4335,78 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-time-filter-count"',
         );
+        expect(workstation).toContain(
+            "const dashboardRecordingTimeFilterStyles = {",
+        );
+        expect(workstation).toContain(
+            "function dashboardRecordingTimeFilterCountClassName(active: boolean)",
+        );
         const recordingTimeFilter = extractOpeningElement(
             workstation,
             'data-sot-panel="dashboard-recording-time-filter"',
             "ToggleGroup",
         );
-        for (const semanticToken of [
-            'spacing="dashboardRecordingTimeFilter"',
-            'layout="dashboardRecordingTimeFilter"',
-            'variant="dashboardRecordingTimeFilter"',
-            'size="dashboardRecordingTimeFilter"',
-        ]) {
-            expect(recordingTimeFilter).toContain(semanticToken);
-        }
-        expect(recordingTimeFilter).not.toContain('variant="outline"');
-        expect(recordingTimeFilter).not.toContain('size="sm"');
-        expect(recordingTimeFilter).not.toContain("className=");
-        expect(toggleGroupPrimitive).toContain("dashboardRecordingTimeFilter");
+        expect(recordingTimeFilter).toContain("value={timelineFilter}");
+        expect(recordingTimeFilter).toContain("spacing={1}");
+        expect(recordingTimeFilter).toContain('variant="outline"');
+        expect(recordingTimeFilter).toContain('size="sm"');
+        expect(recordingTimeFilter).toContain(
+            "dashboardRecordingTimeFilterStyles.root",
+        );
+        expect(recordingTimeFilter).toContain(
+            'hidden={listMode !== "timeline"}',
+        );
+        expect(recordingTimeFilter).toContain(
+            "listMode !== \"timeline\"\n                                            ? true",
+        );
+        expect(workstation).toContain("setTimelineFilter(");
+        expect(recordingTimeFilter).not.toContain("layout=");
+        expect(recordingTimeFilter).not.toContain(
+            "dashboardRecordingTimeFilter\"",
+        );
+        const recordingTimeFilterItem = extractOpeningElement(
+            workstation,
+            'data-sot-control="dashboard-recording-time-filter"',
+            "ToggleGroupItem",
+        );
+        expect(recordingTimeFilterItem).toContain("aria-pressed={active}");
+        expect(recordingTimeFilterItem).toContain("data-tf={item.value}");
+        expect(recordingTimeFilterItem).toContain(
+            "data-sot-filter={item.value}",
+        );
+        expect(recordingTimeFilterItem).toContain(
+            "dashboardRecordingTimeFilterStyles.item",
+        );
+        const recordingTimeFilterCount = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-time-filter-count"',
+            "span",
+        );
+        expect(recordingTimeFilterCount).toContain(
+            "dashboardRecordingTimeFilterCountClassName(",
+        );
+        expect(workstation).toContain("{timelineCounts[item.value]}");
+        expect(workstation).toContain(
+            "dashboardRecordingTimeFilterStyles.countSelected",
+        );
+        expect(toggleGroupPrimitive).not.toContain(
+            "dashboardRecordingTimeFilter",
+        );
+        expect(toggleGroupPrimitive).not.toContain(
+            "data-sot-part=dashboard-recording-time-filter-count",
+        );
+        expect(toggleGroupPrimitive).not.toContain(
+            "dashboard-recording-time-filter-count",
+        );
+        expect(globals).not.toContain(
+            "--dashboard-recording-time-filter-count-bg",
+        );
+        expect(globals).not.toContain(
+            "--dashboard-recording-time-filter-count-selected-bg",
+        );
+        expect(globals).toContain(
+            '[data-sot-panel="dashboard-recording-time-filter"][hidden]',
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-body"',
         );

@@ -15,8 +15,7 @@ type ToggleGroupLayout =
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
     | "speakerReviewMode"
-    | "librarySearchScope"
-    | "dashboardRecordingTimeFilter";
+    | "librarySearchScope";
 type ToggleGroupSemanticSpacing =
     | "onboardingSourceAuthMode"
     | "settingsSegmentSpacing"
@@ -24,12 +23,10 @@ type ToggleGroupSemanticSpacing =
     | "recordingTagColorPicker"
     | "recordingTagQuickColorPicker"
     | "recordingTagIconPicker"
-    | "speakerReviewMode"
-    | "dashboardRecordingTimeFilter";
+    | "speakerReviewMode";
 type ToggleGroupSpacing = number | ToggleGroupSemanticSpacing;
 
 const toggleGroupSpacingValues: Record<ToggleGroupSemanticSpacing, number> = {
-    dashboardRecordingTimeFilter: 1,
     onboardingSourceAuthMode: 2,
     settingsSegmentSpacing: 1,
     settingsSourceAuthMode: 2,
@@ -60,8 +57,6 @@ const toggleGroupItemVariants = cva(
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 librarySearchScopeItem:
                     "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
-                dashboardRecordingTimeFilter:
-                    "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-primary/10 data-[sot-state=selected]:text-primary [&_[data-sot-part=dashboard-recording-time-filter-count]]:rounded-[4px] [&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-bg)] [&_[data-sot-part=dashboard-recording-time-filter-count]]:px-1 [&_[data-sot-part=dashboard-recording-time-filter-count]]:font-mono [&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[10px] [&_[data-sot-part=dashboard-recording-time-filter-count]]:font-medium [&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--fg-tertiary)] [&_[data-sot-part=dashboard-recording-time-filter-count]]:opacity-70 data-[state=on]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-selected-bg)] data-[state=on]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--accent)] data-[sot-state=selected]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:bg-[var(--dashboard-recording-time-filter-count-selected-bg)] data-[sot-state=selected]:[&_[data-sot-part=dashboard-recording-time-filter-count]]:text-[var(--accent)]",
                 recordingTagColorPicker: "",
                 recordingTagIconPicker: "",
                 recordingTagIconOption:
@@ -88,7 +83,6 @@ const toggleGroupItemVariants = cva(
                 settingsSourceAuthModeOption: "",
                 librarySearchScopeItem:
                     "h-6 rounded-full px-2.5 text-xs",
-                dashboardRecordingTimeFilter: "h-8 px-2",
                 recordingTagColorPicker: "h-8 px-2",
                 recordingTagIconPicker: "h-8 px-2",
                 recordingTagIconOption: "size-7 min-w-0 shrink-0 p-0",
@@ -165,8 +159,6 @@ function ToggleGroup({
                 layout === "speakerReviewMode" && "flex-nowrap",
                 layout === "librarySearchScope" &&
                     "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
-                layout === "dashboardRecordingTimeFilter" &&
-                    "mt-2.5 flex-wrap",
                 className,
             )}
             {...props}
