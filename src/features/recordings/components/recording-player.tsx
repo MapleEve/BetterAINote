@@ -4,7 +4,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
@@ -14,12 +13,15 @@ import {
     formatSotPlayerDate,
     formatSotPlayerTime,
     SotPlayerBackIcon,
+    SotPlayerControlButton,
     SotPlayerForwardIcon,
     SotPlayerNoAudioIcon,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
+    SotPlayerPrimaryButton,
     SotPlayerSeekSlider,
     SotPlayerSourceTag,
+    SotPlayerSpeedButton,
     SotPlayerStatusBadge,
     SotPlayerTagChip,
     SotPlayerVolumePopoverContent,
@@ -178,9 +180,7 @@ export function RecordingPlayer({
                 data-sot-panel="recording-player-controls"
                 data-sot-state={controlsState}
             >
-                <Button
-                    variant="playerControl"
-                    size="playerControl"
+                <SotPlayerControlButton
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "后退 5 秒" : "Back 5 seconds"
@@ -196,11 +196,9 @@ export function RecordingPlayer({
                     >
                         <SotPlayerBackIcon />
                     </span>
-                </Button>
+                </SotPlayerControlButton>
 
-                <Button
-                    variant="playerPrimary"
-                    size="playerControlLg"
+                <SotPlayerPrimaryButton
                     type="button"
                     onClick={togglePlayPause}
                     data-sot-control="recording-player-play"
@@ -233,11 +231,9 @@ export function RecordingPlayer({
                             <SotPlayerPlayIcon />
                         )}
                     </span>
-                </Button>
+                </SotPlayerPrimaryButton>
 
-                <Button
-                    variant="playerControl"
-                    size="playerControl"
+                <SotPlayerControlButton
                     type="button"
                     aria-label={
                         language === "zh-CN" ? "前进 5 秒" : "Forward 5 seconds"
@@ -253,7 +249,7 @@ export function RecordingPlayer({
                     >
                         <SotPlayerForwardIcon />
                     </span>
-                </Button>
+                </SotPlayerControlButton>
 
                 <span data-sot-part="recording-player-current-time">
                     {formatSotPlayerTime(currentTime)}
@@ -319,11 +315,9 @@ export function RecordingPlayer({
                     {formatSotPlayerTime(playerDurationValue)}
                 </span>
 
-                <Button
+                <SotPlayerSpeedButton
                     type="button"
                     onClick={cyclePlaybackSpeed}
-                    variant="playerSpeed"
-                    size="playerSpeed"
                     title="Click to cycle playback speed"
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
@@ -335,7 +329,7 @@ export function RecordingPlayer({
                     }
                 >
                     {playbackSpeedLabel}
-                </Button>
+                </SotPlayerSpeedButton>
 
                 <Popover
                     open={volumePopoverOpen}
@@ -343,9 +337,8 @@ export function RecordingPlayer({
                 >
                     <div data-sot-part="recording-player-volume-anchor">
                         <PopoverTrigger asChild>
-                            <Button
-                                variant="playerControl"
-                                size="playerControlSm"
+                            <SotPlayerControlButton
+                                controlSize="sm"
                                 type="button"
                                 aria-label={
                                     language === "zh-CN"
@@ -378,7 +371,7 @@ export function RecordingPlayer({
                                 >
                                     <SotPlayerVolumeIcon volume={volume} />
                                 </span>
-                            </Button>
+                            </SotPlayerControlButton>
                         </PopoverTrigger>
                         <SotPlayerVolumePopoverContent
                             align="end"
@@ -397,9 +390,8 @@ export function RecordingPlayer({
                                 className="flex items-center gap-2"
                                 data-sot-part="recording-player-volume-row"
                             >
-                                <Button
-                                    variant="playerControl"
-                                    size="playerControlSm"
+                                <SotPlayerControlButton
+                                    controlSize="sm"
                                     type="button"
                                     aria-label={
                                         language === "zh-CN"
@@ -422,7 +414,7 @@ export function RecordingPlayer({
                                     >
                                         <SotPlayerVolumeIcon volume={volume} />
                                     </span>
-                                </Button>
+                                </SotPlayerControlButton>
                                 <SotPlayerVolumeSlider
                                     min={0}
                                     max={100}

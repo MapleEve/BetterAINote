@@ -2131,9 +2131,6 @@ describe("full UI replacement regression coverage", () => {
             "detailHeaderAction",
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
-            "playerControl",
-            "playerPrimary",
-            "playerSpeed",
             "onboardingProviderCard",
             "onboardingDefaultSource",
             "onboardingSecondaryAction",
@@ -2204,8 +2201,16 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain("authSubmit:");
         expect(button).toContain('"inline-link":');
         expect(button).toContain("authInlineLink:");
-        expect(button).toContain("playerControlSm:");
-        expect(button).toContain("playerControlLg:");
+        for (const removedPlayerButtonToken of [
+            "playerControl:",
+            "playerPrimary:",
+            "playerSpeed:",
+            "playerControlSm:",
+            "playerControlLg:",
+            "data-player-control-icon",
+        ]) {
+            expect(button).not.toContain(removedPlayerButtonToken);
+        }
         for (const dashboardSize of [
             "dashboardNav",
             "dashboardSource",
@@ -2249,10 +2254,10 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(button).toContain(dashboardTranscriptActionClass);
         }
-        expect(button).toContain("size-[36px]");
-        expect(button).toContain("size-[30px]");
-        expect(button).toContain("size-[44px]");
-        expect(button).toContain("min-w-[50px]");
+        expect(button).not.toContain("size-[36px] rounded-[50%]");
+        expect(button).not.toContain("size-[30px] rounded-[50%]");
+        expect(button).not.toContain("size-[44px] rounded-[50%]");
+        expect(button).not.toContain("min-w-[50px] justify-center");
         expect(button).toContain("chipRemove:");
         expect(button).toContain("[&_svg]:invisible");
         expect(button).not.toContain("accentSelf");
@@ -4757,13 +4762,21 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('size="dashboardSearchTrigger"');
         expect(workstation).toContain('variant="dashboardActivityTrigger"');
         expect(workstation).toContain('size="dashboardActivityTrigger"');
-        expect(workstation).toContain('variant="playerControl"');
-        expect(workstation).toContain('size="playerControl"');
-        expect(workstation).toContain('variant="playerPrimary"');
-        expect(workstation).toContain('size="playerControlLg"');
-        expect(workstation).toContain('variant="playerSpeed"');
-        expect(workstation).toContain('size="playerSpeed"');
-        expect(workstation).toContain('size="playerControlSm"');
+        expect(workstation).toContain("<SotPlayerControlButton");
+        expect(workstation).toContain("<SotPlayerPrimaryButton");
+        expect(workstation).toContain("<SotPlayerSpeedButton");
+        expect(workstation).toContain('controlSize="sm"');
+        for (const removedPlayerProp of [
+            `variant="${"playerControl"}"`,
+            `size="${"playerControl"}"`,
+            `variant="${"playerPrimary"}"`,
+            `size="${"playerControlLg"}"`,
+            `variant="${"playerSpeed"}"`,
+            `size="${"playerSpeed"}"`,
+            `size="${"playerControlSm"}"`,
+        ]) {
+            expect(workstation).not.toContain(removedPlayerProp);
+        }
         expect(workstation).not.toContain("SOT_PLAYER_BUTTON_CLASS");
         expect(workstation).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
         expect(workstation).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
@@ -4903,7 +4916,7 @@ describe("full UI replacement regression coverage", () => {
         const dashboardVolumeMuteControl = extractOpeningElement(
             dashboardPlayer,
             'data-sot-control="dashboard-player-volume-mute"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const dashboardSeekShell = extractOpeningElement(
             dashboardPlayer,
@@ -5005,21 +5018,52 @@ describe("full UI replacement regression coverage", () => {
         expect(sotPlayerPrimitives).toContain(
             'data-sot-part="status-label"',
         );
-        expect(dashboardPlayer).toContain("<Button");
+        expect(sotPlayerPrimitives).toContain(
+            'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
+        );
+        for (const playerButtonPrimitiveToken of [
+            "export function SotPlayerControlButton",
+            "export function SotPlayerPrimaryButton",
+            "export function SotPlayerSpeedButton",
+            "SOT_PLAYER_CONTROL_BUTTON_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
+            "size-[36px]",
+            "size-[30px]",
+            "size-[44px]",
+            "min-w-[50px]",
+            "tabular-nums",
+            "data-player-control-icon",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(playerButtonPrimitiveToken);
+        }
+        expect(dashboardPlayer).toContain("<SotPlayerControlButton");
+        expect(dashboardPlayer).toContain("<SotPlayerPrimaryButton");
+        expect(dashboardPlayer).toContain("<SotPlayerSpeedButton");
         expect(dashboardPlayer).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(dashboardPlayer).toContain('variant="playerControl"');
-        expect(dashboardPlayer).toContain('size="playerControl"');
-        expect(dashboardPlayer).toContain('variant="playerPrimary"');
-        expect(dashboardPlayer).toContain('size="playerControlLg"');
-        expect(dashboardPlayer).toContain('variant="playerSpeed"');
-        expect(dashboardPlayer).toContain('size="playerSpeed"');
-        expect(dashboardPlayer).toContain('size="playerControlSm"');
-        expect(dashboardVolumeMuteControl).toContain('variant="playerControl"');
-        expect(dashboardVolumeMuteControl).toContain('size="playerControlSm"');
+        expect(dashboardPlayer).toContain('controlSize="sm"');
+        for (const removedPlayerProp of [
+            `variant="${"playerControl"}"`,
+            `size="${"playerControl"}"`,
+            `variant="${"playerPrimary"}"`,
+            `size="${"playerControlLg"}"`,
+            `variant="${"playerSpeed"}"`,
+            `size="${"playerSpeed"}"`,
+            `size="${"playerControlSm"}"`,
+        ]) {
+            expect(dashboardPlayer).not.toContain(removedPlayerProp);
+        }
+        expect(dashboardVolumeMuteControl).toContain('controlSize="sm"');
+        expect(dashboardVolumeMuteControl).not.toContain("variant=");
+        expect(dashboardVolumeMuteControl).not.toContain("size=");
         expect(dashboardVolumeMuteControl).not.toContain("className=");
-        expect(button).toContain("data-player-control-icon");
+        expect(button).not.toContain("data-player-control-icon");
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
         expect(dashboardPlayer).toContain("data-player-control-icon");
@@ -7715,32 +7759,32 @@ describe("full UI replacement regression coverage", () => {
         const playerBackControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-back"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const playerPlayControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-play"',
-            "Button",
+            "SotPlayerPrimaryButton",
         );
         const playerForwardControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-forward"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const playerSpeedControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-speed"',
-            "Button",
+            "SotPlayerSpeedButton",
         );
         const playerVolumeControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-volume"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const playerVolumeMuteControl = extractOpeningElement(
             player,
             'data-sot-control="recording-player-volume-mute"',
-            "Button",
+            "SotPlayerControlButton",
         );
         expect(player).toContain('data-sot-surface="recording-player"');
         expect(player).toContain("data-sot-state=");
@@ -7752,7 +7796,7 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'import { Card, CardContent, CardHeader } from "@/components/ui/card";',
         );
-        expect(player).toContain(
+        expect(player).not.toContain(
             'import { Button } from "@/components/ui/button";',
         );
         expect(player).toContain("<Alert");
@@ -7762,21 +7806,29 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain("hasNoPadding");
         expect(player).toContain("<CardHeader");
         expect(player).toContain("<CardContent");
-        expect(player).toContain("<Button");
+        expect(player).toContain("<SotPlayerControlButton");
+        expect(player).toContain("<SotPlayerPrimaryButton");
+        expect(player).toContain("<SotPlayerSpeedButton");
         for (const control of [playerBackControl, playerForwardControl]) {
-            expect(control).toContain('variant="playerControl"');
-            expect(control).toContain('size="playerControl"');
+            expect(control).toContain("<SotPlayerControlButton");
+            expect(control).not.toContain("controlSize=");
+            expect(control).not.toContain("variant=");
+            expect(control).not.toContain("size=");
             expect(control).not.toContain("className=");
         }
-        expect(playerPlayControl).toContain('variant="playerPrimary"');
-        expect(playerPlayControl).toContain('size="playerControlLg"');
+        expect(playerPlayControl).toContain("<SotPlayerPrimaryButton");
+        expect(playerPlayControl).not.toContain("variant=");
+        expect(playerPlayControl).not.toContain("size=");
         expect(playerPlayControl).not.toContain("className=");
-        expect(playerSpeedControl).toContain('variant="playerSpeed"');
-        expect(playerSpeedControl).toContain('size="playerSpeed"');
+        expect(playerSpeedControl).toContain("<SotPlayerSpeedButton");
+        expect(playerSpeedControl).not.toContain("variant=");
+        expect(playerSpeedControl).not.toContain("size=");
         expect(playerSpeedControl).not.toContain("className=");
         for (const control of [playerVolumeControl, playerVolumeMuteControl]) {
-            expect(control).toContain('variant="playerControl"');
-            expect(control).toContain('size="playerControlSm"');
+            expect(control).toContain("<SotPlayerControlButton");
+            expect(control).toContain('controlSize="sm"');
+            expect(control).not.toContain("variant=");
+            expect(control).not.toContain("size=");
             expect(control).not.toContain("className=");
         }
         for (const legacyControlToken of [
@@ -7815,7 +7867,8 @@ describe("full UI replacement regression coverage", () => {
         expect(player).toContain(
             'data-sot-panel="recording-player-volume-popover"',
         );
-        expect(button).toContain("data-player-control-icon");
+        expect(button).not.toContain("data-player-control-icon");
+        expect(sotPlayerPrimitives).toContain("data-player-control-icon");
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
         expect(player).toContain("data-player-control-icon");
@@ -8564,7 +8617,7 @@ describe("full UI replacement regression coverage", () => {
             "export type SotPlayerStatusTone",
         );
         expect(sotPlayerPrimitives).toContain(
-            'import { Button } from "@/components/ui/button";',
+            'import { Button, type ButtonProps } from "@/components/ui/button";',
         );
         expect(sotPlayerPrimitives).toContain(
             'import { cn } from "@/lib/utils";',

@@ -85,12 +85,15 @@ import {
     formatSotPlayerDate,
     formatSotPlayerTime,
     SotPlayerBackIcon,
+    SotPlayerControlButton,
     SotPlayerForwardIcon,
     SotPlayerNoAudioIcon,
     SotPlayerPauseIcon,
     SotPlayerPlayIcon,
+    SotPlayerPrimaryButton,
     SotPlayerSeekSlider,
     SotPlayerSourceTag,
+    SotPlayerSpeedButton,
     SotPlayerStatusBadge,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
@@ -6442,9 +6445,7 @@ export function Workstation({
                                 data-sot-panel="dashboard-recording-player-controls"
                                 data-sot-state={playerControlsState}
                             >
-                                <Button
-                                    variant="playerControl"
-                                    size="playerControl"
+                                <SotPlayerControlButton
                                     type="button"
                                     aria-label="后退 5 秒"
                                     data-sot-control="dashboard-player-back"
@@ -6460,10 +6461,8 @@ export function Workstation({
                                     >
                                         <SotPlayerBackIcon />
                                     </span>
-                                </Button>
-                                <Button
-                                    variant="playerPrimary"
-                                    size="playerControlLg"
+                                </SotPlayerControlButton>
+                                <SotPlayerPrimaryButton
                                     type="button"
                                     aria-label={isPlaying ? "暂停" : "播放"}
                                     data-playing={isPlaying ? "true" : "false"}
@@ -6488,10 +6487,8 @@ export function Workstation({
                                             <SotPlayerPlayIcon />
                                         )}
                                     </span>
-                                </Button>
-                                <Button
-                                    variant="playerControl"
-                                    size="playerControl"
+                                </SotPlayerPrimaryButton>
+                                <SotPlayerControlButton
                                     type="button"
                                     aria-label="前进 5 秒"
                                     data-sot-control="dashboard-player-forward"
@@ -6507,7 +6504,7 @@ export function Workstation({
                                     >
                                         <SotPlayerForwardIcon />
                                     </span>
-                                </Button>
+                                </SotPlayerControlButton>
                                 <span data-sot-part="dashboard-player-current-time">
                                     {formatSotPlayerTime(currentTime)}
                                 </span>
@@ -6547,10 +6544,8 @@ export function Workstation({
                                 <span data-sot-part="dashboard-player-duration">
                                     {formatSotPlayerTime(playerDurationValue)}
                                 </span>
-                                <Button
+                                <SotPlayerSpeedButton
                                     type="button"
-                                    variant="playerSpeed"
-                                    size="playerSpeed"
                                     disabled={playbackDisabled}
                                     aria-label="切换播放倍速"
                                     data-sot-control="dashboard-player-speed"
@@ -6558,7 +6553,7 @@ export function Workstation({
                                     onClick={cyclePlaybackSpeed}
                                 >
                                     {playbackSpeedLabel}
-                                </Button>
+                                </SotPlayerSpeedButton>
                                 <Popover
                                     open={volumePopoverOpen}
                                     onOpenChange={(open) => setVolumeOpen(open)}
@@ -6568,9 +6563,8 @@ export function Workstation({
                                         data-sot-part="dashboard-player-volume-anchor"
                                     >
                                         <PopoverTrigger asChild>
-                                            <Button
-                                                variant="playerControl"
-                                                size="playerControlSm"
+                                            <SotPlayerControlButton
+                                                controlSize="sm"
                                                 type="button"
                                                 aria-label={`音量 ${volume}`}
                                                 aria-expanded={
@@ -6603,7 +6597,7 @@ export function Workstation({
                                                         volume={volume}
                                                     />
                                                 </span>
-                                            </Button>
+                                            </SotPlayerControlButton>
                                         </PopoverTrigger>
                                         <SotPlayerVolumePopoverContent
                                             align="end"
@@ -6626,9 +6620,8 @@ export function Workstation({
                                                 className="flex items-center gap-2"
                                                 data-sot-part="dashboard-player-volume-row"
                                             >
-                                                <Button
-                                                    variant="playerControl"
-                                                    size="playerControlSm"
+                                                <SotPlayerControlButton
+                                                    controlSize="sm"
                                                     type="button"
                                                     aria-label="静音切换"
                                                     data-sot-control="dashboard-player-volume-mute"
@@ -6655,7 +6648,7 @@ export function Workstation({
                                                             volume={volume}
                                                         />
                                                     </span>
-                                                </Button>
+                                                </SotPlayerControlButton>
                                                 <SotPlayerVolumeSlider
                                                     min={0}
                                                     max={100}

@@ -186,12 +186,6 @@ const buttonVariants = cva(
                     "bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 recordingListPagination:
                     "bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                playerControl:
-                    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] shadow-[var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]",
-                playerPrimary:
-                    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] text-white shadow-[var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]",
-                playerSpeed:
-                    "border border-transparent bg-transparent font-mono font-semibold leading-normal tabular-nums text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]",
                 pill: "relative inline-flex rounded-[999px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] disabled:opacity-100 [&_svg]:size-[11px] [&_svg]:stroke-2",
                 link: "text-primary underline-offset-4 hover:underline",
             },
@@ -321,14 +315,6 @@ const buttonVariants = cva(
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
                 recordingListPagination:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-                playerControl:
-                    "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal",
-                playerControlSm:
-                    "size-[30px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal",
-                playerControlLg:
-                    "size-[44px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal",
-                playerSpeed:
-                    "h-[32px] min-w-[50px] justify-center rounded-[9px] px-[12px] text-[12.5px]",
                 lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
                 icon: "size-9",
                 "icon-2xs": "size-[var(--icon-compact-size)] rounded-[6px]",

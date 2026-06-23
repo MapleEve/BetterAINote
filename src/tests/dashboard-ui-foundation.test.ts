@@ -735,7 +735,7 @@ describe("dashboard SOT foundation", () => {
         const volumeMuteControl = extractOpeningElement(
             player,
             'data-sot-control="dashboard-player-volume-mute"',
-            "Button",
+            "SotPlayerControlButton",
         );
 
         expect(player).toContain("<Card");
@@ -784,27 +784,50 @@ describe("dashboard SOT foundation", () => {
         expect(player).toContain(
             'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
-        expect(button).toContain("playerControl:");
-        expect(button).toContain("playerPrimary:");
-        expect(button).toContain("playerSpeed:");
-        expect(button).toContain("playerControlSm:");
-        expect(button).toContain("playerControlLg:");
-        expect(button).toContain("size-[36px]");
-        expect(button).toContain("size-[30px]");
-        expect(button).toContain("size-[44px]");
-        expect(button).toContain("min-w-[50px]");
-        expect(button).toContain("data-player-control-icon");
+        expect(button).not.toContain("playerControl:");
+        expect(button).not.toContain("playerPrimary:");
+        expect(button).not.toContain("playerSpeed:");
+        expect(button).not.toContain("playerControlSm:");
+        expect(button).not.toContain("playerControlLg:");
+        for (const playerButtonClassToken of [
+            "SOT_PLAYER_CONTROL_BUTTON_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
+            "size-[36px]",
+            "size-[30px]",
+            "size-[44px]",
+            "min-w-[50px]",
+            "data-player-control-icon",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(playerButtonClassToken);
+        }
+        expect(sotPlayerPrimitives).toContain(
+            'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
+        );
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
-        expect(player).toContain('variant="playerControl"');
-        expect(player).toContain('size="playerControl"');
-        expect(player).toContain('variant="playerPrimary"');
-        expect(player).toContain('size="playerControlLg"');
-        expect(player).toContain('variant="playerSpeed"');
-        expect(player).toContain('size="playerSpeed"');
-        expect(player).toContain('size="playerControlSm"');
-        expect(volumeMuteControl).toContain('variant="playerControl"');
-        expect(volumeMuteControl).toContain('size="playerControlSm"');
+        expect(player).toContain("<SotPlayerControlButton");
+        expect(player).toContain("<SotPlayerPrimaryButton");
+        expect(player).toContain("<SotPlayerSpeedButton");
+        expect(player).toContain('controlSize="sm"');
+        for (const removedPlayerProp of [
+            `variant="${"playerControl"}"`,
+            `size="${"playerControl"}"`,
+            `variant="${"playerPrimary"}"`,
+            `size="${"playerControlLg"}"`,
+            `variant="${"playerSpeed"}"`,
+            `size="${"playerSpeed"}"`,
+            `size="${"playerControlSm"}"`,
+        ]) {
+            expect(player).not.toContain(removedPlayerProp);
+        }
+        expect(volumeMuteControl).toContain('controlSize="sm"');
+        expect(volumeMuteControl).not.toContain("variant=");
+        expect(volumeMuteControl).not.toContain("size=");
         expect(volumeMuteControl).not.toContain("className=");
         expect(player).toContain("data-player-control-icon");
         expect(player).not.toContain("SOT_PLAYER_BUTTON_CLASS");

@@ -411,16 +411,47 @@ describe("dashboard recording player regressions", () => {
         );
         expect(buttonSource).toContain('data-slot="button"');
         expect(buttonSource).toContain("buttonVariants");
-        expect(buttonSource).toContain("playerControl:");
-        expect(buttonSource).toContain("playerPrimary:");
-        expect(buttonSource).toContain("playerSpeed:");
-        expect(buttonSource).toContain("playerControlSm:");
-        expect(buttonSource).toContain("playerControlLg:");
-        expect(buttonSource).toContain("tabular-nums");
-        expect(buttonSource).toContain("data-player-control-icon");
+        expect(buttonSource).not.toContain("playerControl:");
+        expect(buttonSource).not.toContain("playerPrimary:");
+        expect(buttonSource).not.toContain("playerSpeed:");
+        expect(buttonSource).not.toContain("playerControlSm:");
+        expect(buttonSource).not.toContain("playerControlLg:");
+        expect(buttonSource).not.toContain("data-player-control-icon");
+        expect(sotPlayerPrimitives).toContain(
+            'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
+        );
+        for (const wrapperExport of [
+            "export function SotPlayerControlButton",
+            "export function SotPlayerPrimaryButton",
+            "export function SotPlayerSpeedButton",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(wrapperExport);
+        }
+        for (const playerButtonClassToken of [
+            "SOT_PLAYER_CONTROL_BUTTON_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
+            "SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_CLASS",
+            "SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS",
+            "size-[36px]",
+            "size-[30px]",
+            "size-[44px]",
+            "min-w-[50px]",
+            "tabular-nums",
+            "data-player-control-icon",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(playerButtonClassToken);
+        }
         expect(buttonSource).not.toContain("dashboard-player-volume-icon");
         expect(buttonSource).not.toContain("recording-player-volume-icon");
-        expect(source).toContain("<Button");
+        expect(source).not.toContain(
+            'import { Button } from "@/components/ui/button";',
+        );
+        expect(source).toContain("<SotPlayerControlButton");
+        expect(source).toContain("<SotPlayerPrimaryButton");
+        expect(source).toContain("<SotPlayerSpeedButton");
         expect(source).toContain(
             'import { Popover, PopoverTrigger } from "@/components/ui/popover";',
         );
@@ -430,48 +461,54 @@ describe("dashboard recording player regressions", () => {
         const backControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-back"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const playControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-play"',
-            "Button",
+            "SotPlayerPrimaryButton",
         );
         const forwardControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-forward"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const speedControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-speed"',
-            "Button",
+            "SotPlayerSpeedButton",
         );
         const volumeControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-volume"',
-            "Button",
+            "SotPlayerControlButton",
         );
         const volumeMuteControl = extractOpeningElement(
             source,
             'data-sot-control="recording-player-volume-mute"',
-            "Button",
+            "SotPlayerControlButton",
         );
 
         for (const control of [backControl, forwardControl]) {
-            expect(control).toContain('variant="playerControl"');
-            expect(control).toContain('size="playerControl"');
+            expect(control).toContain("<SotPlayerControlButton");
+            expect(control).not.toContain("controlSize=");
+            expect(control).not.toContain("variant=");
+            expect(control).not.toContain("size=");
             expect(control).not.toContain("className=");
         }
-        expect(playControl).toContain('variant="playerPrimary"');
-        expect(playControl).toContain('size="playerControlLg"');
+        expect(playControl).toContain("<SotPlayerPrimaryButton");
+        expect(playControl).not.toContain("variant=");
+        expect(playControl).not.toContain("size=");
         expect(playControl).not.toContain("className=");
-        expect(speedControl).toContain('variant="playerSpeed"');
-        expect(speedControl).toContain('size="playerSpeed"');
+        expect(speedControl).toContain("<SotPlayerSpeedButton");
+        expect(speedControl).not.toContain("variant=");
+        expect(speedControl).not.toContain("size=");
         expect(speedControl).not.toContain("className=");
         for (const control of [volumeControl, volumeMuteControl]) {
-            expect(control).toContain('variant="playerControl"');
-            expect(control).toContain('size="playerControlSm"');
+            expect(control).toContain("<SotPlayerControlButton");
+            expect(control).toContain('controlSize="sm"');
+            expect(control).not.toContain("variant=");
+            expect(control).not.toContain("size=");
             expect(control).not.toContain("className=");
         }
         expect(source).toContain("data-player-control-icon");
@@ -679,14 +716,14 @@ describe("dashboard recording player regressions", () => {
         expect(source).toContain('"Cycle playback speed"');
         expect(source).toContain("cyclePlaybackSpeed");
         expect(source).toContain("playbackSpeedLabel");
-        expect(source).toContain(
+        expect(source).not.toContain(
             'import { Button } from "@/components/ui/button";',
         );
         const speedControlIndex = source.indexOf(
             'data-sot-control="recording-player-speed"',
         );
         expect(speedControlIndex).toBeGreaterThanOrEqual(0);
-        expect(speedControl).toContain("<Button");
+        expect(speedControl).toContain("<SotPlayerSpeedButton");
         expect(speedControl).toContain(
             'data-sot-control="recording-player-speed"',
         );

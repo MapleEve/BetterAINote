@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { PopoverContent } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import type { RecordingTag } from "@/lib/recording-tags";
@@ -80,6 +80,90 @@ type SotPlayerVolumePopoverContentProps = Omit<
     React.ComponentProps<typeof PopoverContent>,
     "variant"
 >;
+
+type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">;
+
+type SotPlayerControlButtonProps = SotPlayerButtonProps & {
+    controlSize?: "default" | "sm";
+};
+
+const SOT_PLAYER_CONTROL_BUTTON_CLASS =
+    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] shadow-[var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
+
+const SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS =
+    "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
+
+const SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS =
+    "size-[30px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
+
+const SOT_PLAYER_PRIMARY_BUTTON_CLASS =
+    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] text-white shadow-[var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
+
+const SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS =
+    "size-[44px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
+
+const SOT_PLAYER_SPEED_BUTTON_CLASS =
+    "border border-transparent bg-transparent font-mono font-semibold leading-normal tabular-nums text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]";
+
+const SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS =
+    "h-[32px] min-w-[50px] justify-center rounded-[9px] px-[12px] text-[12.5px]";
+
+export function SotPlayerControlButton({
+    className,
+    controlSize = "default",
+    ...props
+}: SotPlayerControlButtonProps) {
+    return (
+        <Button
+            {...props}
+            variant="ghost"
+            size="icon"
+            className={cn(
+                SOT_PLAYER_CONTROL_BUTTON_CLASS,
+                controlSize === "sm"
+                    ? SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS
+                    : SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS,
+                className,
+            )}
+        />
+    );
+}
+
+export function SotPlayerPrimaryButton({
+    className,
+    ...props
+}: SotPlayerButtonProps) {
+    return (
+        <Button
+            {...props}
+            variant="ghost"
+            size="icon"
+            className={cn(
+                SOT_PLAYER_PRIMARY_BUTTON_CLASS,
+                SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS,
+                className,
+            )}
+        />
+    );
+}
+
+export function SotPlayerSpeedButton({
+    className,
+    ...props
+}: SotPlayerButtonProps) {
+    return (
+        <Button
+            {...props}
+            variant="ghost"
+            size="sm"
+            className={cn(
+                SOT_PLAYER_SPEED_BUTTON_CLASS,
+                SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS,
+                className,
+            )}
+        />
+    );
+}
 
 const SOT_PLAYER_SEEK_SLIDER_CLASS =
     "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:bg-[rgb(224_227_230)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]";
