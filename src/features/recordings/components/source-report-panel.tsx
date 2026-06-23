@@ -467,6 +467,8 @@ const SOURCE_REPORT_COPY_BUTTON_VARIANT =
     "sourceReportCopyAction" satisfies ButtonProps["variant"];
 const SOURCE_REPORT_COPY_BUTTON_SIZE =
     "sourceReportCopyAction" satisfies ButtonProps["size"];
+const SOURCE_REPORT_ERROR_ICON_CLASS_NAME =
+    "mb-0 size-10 rounded-full border border-border bg-background text-muted-foreground [&_svg:not([class*='size-'])]:size-5";
 
 function SourceReportStatusDot() {
     return <span data-sot-part="source-report-status-dot" aria-hidden="true" />;
@@ -1262,7 +1264,7 @@ export function SourceReportPanel({
                         data-sot-tone="err"
                     >
                         <EmptyMedia
-                            variant="sourceReportErrorIcon"
+                            className={SOURCE_REPORT_ERROR_ICON_CLASS_NAME}
                             data-sot-source-report-empty-icon
                             aria-hidden="true"
                         >

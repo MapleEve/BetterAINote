@@ -610,15 +610,70 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(buttonPrimitive).toContain("sourceReportAction:");
         expect(buttonPrimitive).toContain("sourceReportGhostAction:");
         expect(buttonPrimitive).toContain("sourceReportCopyAction:");
-        expect(emptyPrimitive).toContain("sourceReportErrorIcon:");
-        expect(sourceReport).toContain('density="sourceReportError"');
-        expect(sourceReport).toContain('layout="sourceReportError"');
-        expect(sourceReport).toContain('variant="sourceReportErrorIcon"');
-        expect(sourceReport).toContain(
+        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
+        expect(emptyPrimitive).not.toContain(
+            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        );
+        const sourceReportErrorState = extractBoundedSlice(
+            sourceReport,
+            '<SourceReportState sotState="error" state="error" error={error}>',
+            "</SourceReportState>",
+        );
+        const sourceReportErrorIcon = extractOpeningElement(
+            sourceReportErrorState,
+            "data-sot-source-report-empty-icon",
+            "EmptyMedia",
+        );
+        const sourceReportUsesErrorIconOwnerConstant = sourceReport.includes(
+            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        );
+        const sourceReportErrorIconOwnerClassTarget =
+            sourceReportUsesErrorIconOwnerConstant
+                ? sourceReport
+                : sourceReportErrorIcon;
+        for (const sourceReportErrorIconOwnerClassSnippet of [
+            "mb-0",
+            "size-10",
+            "rounded-full",
+            "border border-border",
+            "bg-background",
+            "text-muted-foreground",
+            "[&_svg:not([class*='size-'])]:size-5",
+        ] as const) {
+            expect(sourceReportErrorIconOwnerClassTarget).toContain(
+                sourceReportErrorIconOwnerClassSnippet,
+            );
+        }
+        if (sourceReportUsesErrorIconOwnerConstant) {
+            expect(sourceReport).toContain(
+                "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+            );
+            expect(sourceReportErrorIcon).toContain(
+                "className={SOURCE_REPORT_ERROR_ICON_CLASS_NAME}",
+            );
+        } else {
+            expect(sourceReportErrorIcon).toContain("className=");
+        }
+        expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
+        expect(sourceReportErrorState).toContain("<EmptyMedia");
+        expect(sourceReportErrorState).toContain('density="sourceReportError"');
+        expect(sourceReportErrorState).toContain('layout="sourceReportError"');
+        expect(sourceReportErrorState).toContain(
+            "data-sot-source-report-empty",
+        );
+        expect(sourceReportErrorState).toContain('data-sot-tone="err"');
+        expect(sourceReportErrorIcon).toContain(
             "data-sot-source-report-empty-icon",
         );
-        expect(sourceReport).toContain("aria-hidden=\"true\"");
-        expect(sourceReport).toContain("<SourceReportAlertGlyph />");
+        expect(sourceReportErrorIcon).toContain("aria-hidden=\"true\"");
+        expect(sourceReportErrorState).toContain("<SourceReportAlertGlyph />");
+        expect(sourceReportErrorState).toContain("无法读取来源详情");
+        expect(sourceReportErrorState).toContain("sourceProviderSentenceName");
+        expect(sourceReportErrorState).toContain(
+            "返回了一个错误，可能是网络抖动或来源临时不可用。",
+        );
+        expect(sourceReportErrorState).toContain("重试");
+        expect(sourceReportErrorState).toContain("查看同步日志");
         expect(sourceReport).not.toContain(
             'className="flex flex-col items-center gap-2 px-4 py-8 text-center"',
         );
