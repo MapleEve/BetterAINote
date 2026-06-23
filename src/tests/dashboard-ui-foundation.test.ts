@@ -127,7 +127,6 @@ const SOURCE_PROVIDER_REPAIRED_RAW_DARK_RGB_RE =
     /dark:[^"']*rgb\(|(?:bg|border)-\[rgb/;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
-    "dashboardRecordingRow",
     "recordingListChipClear",
     "sourceFilterClear",
     "sourceFilterAction",
@@ -140,7 +139,6 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
-    "dashboardRecordingRow",
     "recordingListChipClear",
     "sourceFilterClear",
     "sourceFilterAction",
@@ -380,6 +378,35 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
     /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-panel="dashboard-recording-time-filter"\]\[data-slot="toggle-group"\]|\[data-sot-control="dashboard-recording-time-filter"\]\[data-slot="toggle-group-item"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+
+const DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-recording-rows"]',
+    '[data-sot-part="dashboard-recording-list-group"]',
+    '[data-sot-part="dashboard-recording-list-group-heading"]',
+    '[data-sot-part="dashboard-recording-list-group-label"]',
+    '[data-sot-part="dashboard-recording-list-group-count"]',
+    '[data-sot-part="dashboard-recording-list-group-divider"]',
+    '[data-sot-control="dashboard-recording-row"]',
+    '[data-sot-control="dashboard-recording-row"]:focus-visible',
+    '[data-sot-control="dashboard-recording-row"].is-hover-demo',
+    '[data-sot-control="dashboard-recording-row"].is-focus-demo',
+    '[data-sot-part="dashboard-recording-row-body"]',
+    '[data-sot-part="dashboard-recording-row-title"]',
+    '[data-sot-part="dashboard-recording-row-meta"]',
+    '[data-sot-part="dashboard-recording-row-secondary"]',
+    '[data-sot-part="dashboard-recording-row-actions"]',
+] as const;
+
+const DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-duration"]',
+    '[data-sot-part="dashboard-recording-timestamp"]',
+    '[data-sot-part="dashboard-recording-timestamp-absolute"]',
+    '[data-sot-part="dashboard-recording-timestamp-relative"]',
+    '[data-sot-part="dashboard-recording-source-mark"]',
+    '[data-sot-part="dashboard-recording-source-mark"] img',
+    '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
+    '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -1543,18 +1570,160 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain(
             'data-sot-list="dashboard-recording-rows"',
         );
-        expect(buttonPrimitive).toContain("dashboardRecordingRow:");
-        expect(buttonPrimitive).toContain(
-            "data-[sot-state=selected]:border-[color-mix(in_srgb,var(--accent)_38%,transparent)]",
+        const dashboardRecordingRows = extractOpeningElement(
+            workstation,
+            'data-sot-list="dashboard-recording-rows"',
+            "div",
         );
-        for (const removedRecordingRowSelector of [
-            '[data-sot-control="dashboard-recording-row"]',
-            '[data-sot-control="dashboard-recording-row"]:hover',
-            '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
+        const dashboardRecordingListGroup = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group"',
+            "div",
+        );
+        const dashboardRecordingListGroupSeparator = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-separator"',
+            "Separator",
+        );
+        const dashboardRecordingListHeading = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-heading"',
+            "div",
+        );
+        const dashboardRecordingListLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-label"',
+            "span",
+        );
+        const dashboardRecordingListCount = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-count"',
+            "span",
+        );
+        const dashboardRecordingListDivider = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-divider"',
+            "Separator",
+        );
+        const dashboardRecordingRowBody = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-body"',
+            "div",
+        );
+        const dashboardRecordingRowTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-title"',
+            "div",
+        );
+        const dashboardRecordingRowMeta = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-meta"',
+            "div",
+        );
+        const dashboardRecordingRowSecondary = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-secondary"',
+            "div",
+        );
+        const dashboardRecordingRowActions = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-actions"',
+            "div",
+        );
+
+        const dashboardRecordingRowStyleHelper = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingRowStyles = {",
+            "function tagFilterValue",
+        );
+        for (const rowStyleSlot of [
+            "rows:",
+            "group:",
+            "groupSeparator:",
+            "groupHeading:",
+            "groupLabel:",
+            "groupCount:",
+            "groupDivider:",
+            "row:",
+            "body:",
+            "title:",
+            "meta:",
+            "secondary:",
+            "actions:",
         ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
+        }
+        for (const rowStateToken of [
+            "data-[sot-state=selected]:",
+            "[&.is-hover-demo]:",
+            "[&.is-focus-demo]:",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
+        }
+        expect(dashboardRecordingRows).toContain(
+            "dashboardRecordingRowStyles.rows",
+        );
+        expect(dashboardRecordingListGroup).toContain(
+            "dashboardRecordingRowStyles.group",
+        );
+        expect(workstation).not.toContain("border-t border-border");
+        expect(dashboardRecordingListGroup).not.toContain("border-t");
+        expect(dashboardRecordingListGroup).not.toContain("border-border");
+        expect(workstation).toContain("groupIndex > 0 ? (");
+        expect(dashboardRecordingListGroupSeparator).toContain(
+            "dashboardRecordingRowStyles.groupSeparator",
+        );
+        expect(dashboardRecordingListHeading).toContain(
+            "dashboardRecordingRowStyles.groupHeading",
+        );
+        expect(dashboardRecordingListLabel).toContain(
+            "dashboardRecordingRowStyles.groupLabel",
+        );
+        expect(dashboardRecordingListCount).toContain(
+            "dashboardRecordingRowStyles.groupCount",
+        );
+        expect(dashboardRecordingListDivider).toContain(
+            "dashboardRecordingRowStyles.groupDivider",
+        );
+        expect(dashboardRecordingRowBody).toContain(
+            "dashboardRecordingRowStyles.body",
+        );
+        expect(dashboardRecordingRowTitle).toContain(
+            "dashboardRecordingRowStyles.title",
+        );
+        expect(dashboardRecordingRowMeta).toContain(
+            "dashboardRecordingRowStyles.meta",
+        );
+        expect(dashboardRecordingRowSecondary).toContain(
+            "dashboardRecordingRowStyles.secondary",
+        );
+        expect(dashboardRecordingRowActions).toContain(
+            "dashboardRecordingRowStyles.actions",
+        );
+        expect(workstation).toMatch(
+            /<Button\s+variant="ghostNeutral"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
+        );
+        for (const rowPrimitiveLeak of [
+            "dashboardRecordingRow",
+            "dashboard-recording-row",
+            "dashboard-recording-list-group",
+            "is-hover-demo",
+            "is-focus-demo",
+        ]) {
+            expect(buttonPrimitive).not.toContain(rowPrimitiveLeak);
+        }
+        for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
             expect(
-                collectExactCssRuleBlocks(globals, removedRecordingRowSelector),
+                collectCssRuleBlocks(globals, migratedSelector),
             ).toEqual([]);
+        }
+        expect([
+            ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
+        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        for (const followUpSelector of DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, followUpSelector),
+            ).not.toEqual([]);
         }
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',

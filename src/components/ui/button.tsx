@@ -174,8 +174,6 @@ const buttonVariants = cva(
                     "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
                 dashboardSettingsAvatar:
                     "border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
-                dashboardRecordingRow:
-                    "grid w-full grid-cols-[1fr_auto] items-center gap-[14px] whitespace-normal border border-transparent bg-transparent text-left text-[13.3333px] font-normal shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-[color-mix(in_srgb,var(--accent)_38%,transparent)] data-[sot-state=selected]:bg-[var(--accent-soft)]",
                 recordingListChipClear:
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
                 sourceFilterClear:
@@ -327,8 +325,6 @@ const buttonVariants = cva(
                 dashboardSidebarCollapse: "size-[22px] rounded-full",
                 dashboardSettingsAvatar:
                     "size-[30px] rounded-full text-xs font-semibold",
-                dashboardRecordingRow:
-                    "h-auto rounded-[10px] px-3 py-[11px] text-[13.3333px] leading-normal has-[>svg]:px-3",
                 recordingListChipClear:
                     "size-4 rounded-full p-0 [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceFilterClear:

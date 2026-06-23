@@ -305,8 +305,6 @@ type ColorDeclarationFinding = {
 };
 
 const MODERN_COLOR_RE = /\b(oklch|color-mix)\(/;
-const DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN =
-    "data-[sot-state=selected]:border-[color-mix(in_srgb,var(--accent)_38%,transparent)]";
 
 const CSS_SUPPORTED_PATH_COLOR_PROPERTIES = new Set([
     "background",
@@ -456,16 +454,6 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-list-title"]',
     '[data-sot-part="dashboard-recording-list-count"]',
     '[data-sot-list="dashboard-recording-list-scroll"]',
-    '[data-sot-list="dashboard-recording-rows"]',
-    '[data-sot-part="dashboard-recording-list-group"]',
-    '[data-sot-part="dashboard-recording-list-group-heading"]',
-    '[data-sot-part="dashboard-recording-list-group-label"]',
-    '[data-sot-part="dashboard-recording-list-group-count"]',
-    '[data-sot-part="dashboard-recording-list-group-divider"]',
-    '[data-sot-part="dashboard-recording-source-mark"]',
-    '[data-sot-part="dashboard-recording-row-body"]',
-    '[data-sot-part="dashboard-recording-row-title"]',
-    '[data-sot-part="dashboard-recording-row-meta"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
     "[data-sot-frame]",
     '[data-sot-frame="auth"]',
@@ -499,6 +487,35 @@ const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_SELECTORS = [
 
 const DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE =
     /\[data-sot-surface="dashboard-recording-list"\]\[data-slot="card"\]|\[data-sot-part="dashboard-recording-list-content"\]\[data-slot="card-content"\]|\[data-sot-part="source-filter-action"\]|\[data-sot-control="(?:source-filter-clear|source-filter-clear-all|library-search-filter-clear|recording-list-tag-filter-trigger|recording-list-tag-filter)"\]\[data-slot="button"\]|\[data-sot-panel="recording-list-pagination"\][\s\S]{0,80}\[data-slot="button"\]/;
+
+const DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-list="dashboard-recording-rows"]',
+    '[data-sot-part="dashboard-recording-list-group"]',
+    '[data-sot-part="dashboard-recording-list-group-heading"]',
+    '[data-sot-part="dashboard-recording-list-group-label"]',
+    '[data-sot-part="dashboard-recording-list-group-count"]',
+    '[data-sot-part="dashboard-recording-list-group-divider"]',
+    '[data-sot-control="dashboard-recording-row"]',
+    '[data-sot-control="dashboard-recording-row"]:focus-visible',
+    '[data-sot-control="dashboard-recording-row"].is-hover-demo',
+    '[data-sot-control="dashboard-recording-row"].is-focus-demo',
+    '[data-sot-part="dashboard-recording-row-body"]',
+    '[data-sot-part="dashboard-recording-row-title"]',
+    '[data-sot-part="dashboard-recording-row-meta"]',
+    '[data-sot-part="dashboard-recording-row-secondary"]',
+    '[data-sot-part="dashboard-recording-row-actions"]',
+] as const;
+
+const DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS = [
+    '[data-sot-part="dashboard-recording-duration"]',
+    '[data-sot-part="dashboard-recording-timestamp"]',
+    '[data-sot-part="dashboard-recording-timestamp-absolute"]',
+    '[data-sot-part="dashboard-recording-timestamp-relative"]',
+    '[data-sot-part="dashboard-recording-source-mark"]',
+    '[data-sot-part="dashboard-recording-source-mark"] img',
+    '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
+    '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+] as const;
 
 const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES = [
     "ls-anchor",
@@ -611,7 +628,6 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 ].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
-    "dashboardRecordingRow",
     "recordingListChipClear",
     "sourceFilterClear",
     "sourceFilterAction",
@@ -624,7 +640,6 @@ const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
-    "dashboardRecordingRow",
     "recordingListChipClear",
     "sourceFilterClear",
     "sourceFilterAction",
@@ -1090,11 +1105,6 @@ function collectInlineModernColorFindings() {
             );
             if (relativePath === tagVisualsPath && catalogMatch) {
                 catalogSwatches.push(catalogMatch[1]);
-            } else if (
-                relativePath === "components/ui/button.tsx" &&
-                line.includes(DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN)
-            ) {
-                continue;
             } else {
                 unexpectedModernColorLines.push({
                     file: `src/${relativePath}`,
@@ -1811,7 +1821,7 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             ':where([data-slot="button"], [data-slot="popover-trigger"])',
         );
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-control="dashboard-recording-row"]:focus-visible',
         );
         expect(productCss).not.toMatch(
@@ -2712,14 +2722,18 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        for (const removedRecordingRowSelector of [
-            '[data-sot-control="dashboard-recording-row"]',
-            '[data-sot-control="dashboard-recording-row"]:hover',
-            '[data-sot-control="dashboard-recording-row"][data-sot-state="selected"]',
-        ]) {
+        for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
             expect(
-                collectExactCssRuleBlocks(globals, removedRecordingRowSelector),
+                collectCssRuleBlocks(globals, migratedSelector),
             ).toEqual([]);
+        }
+        expect([
+            ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
+        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        for (const followUpSelector of DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, followUpSelector),
+            ).not.toEqual([]);
         }
         expect(globals).not.toMatch(
             DASHBOARD_RECORDING_LIST_PRIMITIVE_REPAINT_CSS_RE,
@@ -4047,6 +4061,95 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-list="dashboard-recording-rows"',
         );
+        const dashboardRecordingRows = extractOpeningElement(
+            workstation,
+            'data-sot-list="dashboard-recording-rows"',
+            "div",
+        );
+        const dashboardRecordingListGroup = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group"',
+            "div",
+        );
+        const dashboardRecordingListGroupSeparator = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-separator"',
+            "Separator",
+        );
+        const dashboardRecordingListHeading = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-heading"',
+            "div",
+        );
+        const dashboardRecordingListLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-label"',
+            "span",
+        );
+        const dashboardRecordingListCount = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-count"',
+            "span",
+        );
+        const dashboardRecordingListDivider = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-list-group-divider"',
+            "Separator",
+        );
+        const dashboardRecordingRowStyleHelper = extractBoundedSlice(
+            workstation,
+            "const dashboardRecordingRowStyles = {",
+            "function tagFilterValue",
+        );
+        for (const rowStyleSlot of [
+            "rows:",
+            "group:",
+            "groupSeparator:",
+            "groupHeading:",
+            "groupLabel:",
+            "groupCount:",
+            "groupDivider:",
+            "row:",
+            "body:",
+            "title:",
+            "meta:",
+            "secondary:",
+            "actions:",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
+        }
+        for (const rowStateToken of [
+            "data-[sot-state=selected]:",
+            "[&.is-hover-demo]:",
+            "[&.is-focus-demo]:",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(rowStateToken);
+        }
+        expect(dashboardRecordingRows).toContain(
+            "dashboardRecordingRowStyles.rows",
+        );
+        expect(dashboardRecordingListGroup).toContain(
+            "dashboardRecordingRowStyles.group",
+        );
+        expect(workstation).not.toContain("border-t border-border");
+        expect(dashboardRecordingListGroup).not.toContain("border-t");
+        expect(dashboardRecordingListGroup).not.toContain("border-border");
+        expect(workstation).toContain("groupIndex > 0 ? (");
+        expect(dashboardRecordingListGroupSeparator).toContain(
+            "dashboardRecordingRowStyles.groupSeparator",
+        );
+        expect(dashboardRecordingListHeading).toContain(
+            "dashboardRecordingRowStyles.groupHeading",
+        );
+        expect(dashboardRecordingListLabel).toContain(
+            "dashboardRecordingRowStyles.groupLabel",
+        );
+        expect(dashboardRecordingListCount).toContain(
+            "dashboardRecordingRowStyles.groupCount",
+        );
+        expect(dashboardRecordingListDivider).toContain(
+            "dashboardRecordingRowStyles.groupDivider",
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
@@ -4105,7 +4208,19 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain('className="detail-empty-ico"');
         expect(workstation).not.toContain('className="detail-empty-title"');
         expect(workstation).not.toContain('className="detail-empty-sub"');
-        expect(globals).toContain('[data-sot-list="dashboard-recording-rows"]');
+        for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual(
+                [],
+            );
+        }
+        expect([
+            ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
+        ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
+        for (const followUpSelector of DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS) {
+            expect(
+                collectCssRuleBlocks(globals, followUpSelector),
+            ).not.toEqual([]);
+        }
         const recordingRowIndex = workstation.indexOf(
             'data-sot-control="dashboard-recording-row"',
         );
@@ -4167,11 +4282,51 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-body"',
         );
+        const dashboardRecordingRowBody = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-body"',
+            "div",
+        );
+        expect(dashboardRecordingRowBody).toContain(
+            "dashboardRecordingRowStyles.body",
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-title"',
         );
+        const dashboardRecordingRowTitle = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-title"',
+            "div",
+        );
+        expect(dashboardRecordingRowTitle).toContain(
+            "dashboardRecordingRowStyles.title",
+        );
+        const dashboardRecordingRowMeta = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-meta"',
+            "div",
+        );
+        expect(dashboardRecordingRowMeta).toContain(
+            "dashboardRecordingRowStyles.meta",
+        );
+        const dashboardRecordingRowSecondary = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-secondary"',
+            "div",
+        );
+        expect(dashboardRecordingRowSecondary).toContain(
+            "dashboardRecordingRowStyles.secondary",
+        );
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-row-actions"',
+        );
+        const dashboardRecordingRowActions = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-recording-row-actions"',
+            "div",
+        );
+        expect(dashboardRecordingRowActions).toContain(
+            "dashboardRecordingRowStyles.actions",
         );
         const dashboardRecordingTagChip = extractOpeningElement(
             workstation,
@@ -4202,12 +4357,17 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
         expect(workstation).toMatch(
-            /<Button\s+variant="dashboardRecordingRow"\s+size="dashboardRecordingRow"[\s\S]*data-sot-control="dashboard-recording-row"/,
+            /<Button\s+variant="ghostNeutral"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
-        expect(button).toContain("dashboardRecordingRow:");
-        expect(button).toContain(
-            DASHBOARD_RECORDING_ROW_SELECTED_BORDER_TOKEN,
-        );
+        for (const rowPrimitiveLeak of [
+            "dashboardRecordingRow",
+            "dashboard-recording-row",
+            "dashboard-recording-list-group",
+            "is-hover-demo",
+            "is-focus-demo",
+        ]) {
+            expect(button).not.toContain(rowPrimitiveLeak);
+        }
         expect(workstation).not.toMatch(
             /<button[\s\S]{0,260}data-sot-control="dashboard-recording-row"/,
         );
@@ -4257,15 +4417,13 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain('className="meta"');
         expect(workstation).not.toContain('className="dur"');
         expect(workstation).not.toContain('className="right"');
-        expect(globals).toContain(
-            '[data-sot-part="dashboard-recording-source-mark"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
-        );
+        for (const followUpSelector of DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS.filter(
+            (selector) => selector.includes("dashboard-recording-source-mark"),
+        )) {
+            expect(
+                collectCssRuleBlocks(globals, followUpSelector),
+            ).not.toEqual([]);
+        }
         expect(workstation).toContain("<Button");
         expect(workstation).toContain('variant="dashboardSearchTrigger"');
         expect(workstation).toContain('size="dashboardSearchTrigger"');

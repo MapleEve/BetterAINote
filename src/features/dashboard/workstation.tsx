@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import {
     type CSSProperties,
+    Fragment,
     type KeyboardEvent as ReactKeyboardEvent,
     type ReactNode,
     useCallback,
@@ -449,6 +450,24 @@ const TIMELINE_FILTERS: {
     { value: "yesterday", labelKey: "recordingList.timeline.yesterday" },
     { value: "earlier", labelKey: "recordingList.timeline.earlier" },
 ];
+
+const dashboardRecordingRowStyles = {
+    rows: "flex flex-col gap-0.5 p-1",
+    group: "flex flex-col gap-0.5 px-1 py-1.5",
+    groupSeparator: "mx-1 my-1",
+    groupHeading: "flex items-baseline gap-2.5 px-2.5 pb-1.5 pt-3.5",
+    groupLabel:
+        "font-mono text-[11px] font-semibold uppercase text-muted-foreground",
+    groupCount: "font-mono text-[11px] font-medium text-muted-foreground/60",
+    groupDivider: "ml-1 min-w-0 flex-1",
+    row: "grid h-auto w-full grid-cols-[1fr_auto] items-center gap-[14px] whitespace-normal rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left text-[13.3333px] font-normal leading-normal shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=selected]:border-primary/30 data-[sot-state=selected]:bg-[var(--accent-soft)] [&.is-hover-demo]:bg-[var(--bg-recessed)] [&.is-hover-demo]:text-[var(--fg-primary)] [&.is-focus-demo]:border-ring [&.is-focus-demo]:ring-[3px] [&.is-focus-demo]:ring-ring/50",
+    body: "flex min-w-0 flex-col gap-[5px]",
+    title: "truncate font-sans text-[13.5px] font-semibold text-foreground",
+    meta: "flex flex-wrap items-center gap-2",
+    secondary:
+        "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
+    actions: "flex items-center gap-2",
+} as const;
 
 function tagFilterValue(tagId: string): TagFilterValue {
     return `tag:${tagId}`;
@@ -5386,184 +5405,256 @@ export function Workstation({
                                 {listState === "loading" ? (
                                     <SotRecordingListSkeleton />
                                 ) : listState === "ready" ? (
-                                    <div data-sot-list="dashboard-recording-rows">
-                                        {groupedListEntries.map((group) => (
-                                            <div
-                                                data-sot-group-id={group.id}
-                                                data-sot-group="recording-list"
-                                                data-sot-part="dashboard-recording-list-group"
-                                                data-sot-mode={listMode}
-                                                key={group.id}
-                                            >
-                                                <div data-sot-part="dashboard-recording-list-group-heading">
-                                                    <span data-sot-part="dashboard-recording-list-group-label">
-                                                        {group.label}
-                                                    </span>
-                                                    <span data-sot-part="dashboard-recording-list-group-count">
-                                                        {group.entries.length}
-                                                    </span>
-                                                    <span data-sot-part="dashboard-recording-list-group-divider" />
-                                                </div>
-                                                {group.entries.map((entry) => {
-                                                    const { recording } = entry;
-                                                    const active =
-                                                        recording.id ===
-                                                        selectedRecording?.id;
-                                                    const sourceMeta =
-                                                        SOURCE_ORDER.find(
-                                                            (item) =>
-                                                                item.key ===
-                                                                recording.sourceProvider,
-                                                        );
-                                                    const job = liveJobs.get(
-                                                        recording.id,
-                                                    );
-                                                    const transcription =
-                                                        liveTranscriptions.get(
-                                                            recording.id,
-                                                        );
-                                                    const rowStatus =
-                                                        getRecordingListStatus(
-                                                            recording,
-                                                            transcription,
-                                                            job,
-                                                            t,
-                                                        );
-                                                    const primaryTag =
-                                                        entry.displayTag ??
-                                                        recording.tags[0];
-                                                    return (
-                                                        <Button
-                                                            variant="dashboardRecordingRow"
-                                                            size="dashboardRecordingRow"
-                                                            aria-current={
-                                                                active
-                                                                    ? "true"
-                                                                    : undefined
+                                    <div
+                                        className={
+                                            dashboardRecordingRowStyles.rows
+                                        }
+                                        data-sot-list="dashboard-recording-rows"
+                                    >
+                                        {groupedListEntries.map((group, groupIndex) => (
+                                            <Fragment key={group.id}>
+                                                {groupIndex > 0 ? (
+                                                    <Separator
+                                                        className={
+                                                            dashboardRecordingRowStyles.groupSeparator
+                                                        }
+                                                        data-sot-part="dashboard-recording-list-group-separator"
+                                                    />
+                                                ) : null}
+                                                <div
+                                                    className={
+                                                        dashboardRecordingRowStyles.group
+                                                    }
+                                                    data-sot-group-id={group.id}
+                                                    data-sot-group="recording-list"
+                                                    data-sot-part="dashboard-recording-list-group"
+                                                    data-sot-mode={listMode}
+                                                >
+                                                    <div
+                                                        className={
+                                                            dashboardRecordingRowStyles.groupHeading
+                                                        }
+                                                        data-sot-part="dashboard-recording-list-group-heading"
+                                                    >
+                                                        <span
+                                                            className={
+                                                                dashboardRecordingRowStyles.groupLabel
                                                             }
-                                                            key={recording.id}
-                                                            type="button"
-                                                            data-recording-id={
-                                                                recording.id
-                                                            }
-                                                            data-rec={
-                                                                recording.id
-                                                            }
-                                                            data-sot-control="dashboard-recording-row"
-                                                            data-sot-recording-id={
-                                                                recording.id
-                                                            }
-                                                            data-sot-state={
-                                                                active
-                                                                    ? "selected"
-                                                                    : "idle"
-                                                            }
-                                                            onClick={() =>
-                                                                selectRecording(
-                                                                    recording.id,
-                                                                )
-                                                            }
+                                                            data-sot-part="dashboard-recording-list-group-label"
                                                         >
-                                                            <div data-sot-part="dashboard-recording-row-body">
-                                                                <div data-sot-part="dashboard-recording-row-title">
-                                                                    {
-                                                                        recording.filename
+                                                            {group.label}
+                                                        </span>
+                                                        <span
+                                                            className={
+                                                                dashboardRecordingRowStyles.groupCount
+                                                            }
+                                                            data-sot-part="dashboard-recording-list-group-count"
+                                                        >
+                                                            {
+                                                                group.entries
+                                                                    .length
+                                                            }
+                                                        </span>
+                                                        <Separator
+                                                            className={
+                                                                dashboardRecordingRowStyles.groupDivider
+                                                            }
+                                                            data-sot-part="dashboard-recording-list-group-divider"
+                                                        />
+                                                    </div>
+                                                    {group.entries.map((entry) => {
+                                                        const { recording } =
+                                                            entry;
+                                                        const active =
+                                                            recording.id ===
+                                                            selectedRecording?.id;
+                                                        const sourceMeta =
+                                                            SOURCE_ORDER.find(
+                                                                (item) =>
+                                                                    item.key ===
+                                                                    recording.sourceProvider,
+                                                            );
+                                                        const job =
+                                                            liveJobs.get(
+                                                                recording.id,
+                                                            );
+                                                        const transcription =
+                                                            liveTranscriptions.get(
+                                                                recording.id,
+                                                            );
+                                                        const rowStatus =
+                                                            getRecordingListStatus(
+                                                                recording,
+                                                                transcription,
+                                                                job,
+                                                                t,
+                                                            );
+                                                        const primaryTag =
+                                                            entry.displayTag ??
+                                                            recording.tags[0];
+                                                        return (
+                                                            <Button
+                                                                variant="ghostNeutral"
+                                                                size="default"
+                                                                className={
+                                                                    dashboardRecordingRowStyles.row
+                                                                }
+                                                                aria-current={
+                                                                    active
+                                                                        ? "true"
+                                                                        : undefined
+                                                                }
+                                                                key={
+                                                                    recording.id
+                                                                }
+                                                                type="button"
+                                                                data-recording-id={
+                                                                    recording.id
+                                                                }
+                                                                data-rec={
+                                                                    recording.id
+                                                                }
+                                                                data-sot-control="dashboard-recording-row"
+                                                                data-sot-recording-id={
+                                                                    recording.id
+                                                                }
+                                                                data-sot-state={
+                                                                    active
+                                                                        ? "selected"
+                                                                        : "idle"
+                                                                }
+                                                                onClick={() =>
+                                                                    selectRecording(
+                                                                        recording.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <div
+                                                                    className={
+                                                                        dashboardRecordingRowStyles.body
                                                                     }
-                                                                </div>
-                                                                <div data-sot-part="dashboard-recording-row-meta">
-                                                                    {sourceMeta?.icon ? (
-                                                                        <span
-                                                                            data-sot-part="dashboard-recording-source-mark"
-                                                                            data-sot-provider-cover={
-                                                                                sourceMeta.cover
-                                                                                    ? "true"
-                                                                                    : "false"
-                                                                            }
-                                                                            data-sot-variant="image"
-                                                                            title={
-                                                                                sourceMeta.label
-                                                                            }
-                                                                        >
-                                                                            <img
-                                                                                src={
-                                                                                    sourceMeta.icon
-                                                                                }
-                                                                                alt=""
-                                                                            />
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span
-                                                                            data-sot-part="dashboard-recording-source-mark"
-                                                                            data-sot-provider-cover="false"
-                                                                            data-sot-variant="letter"
-                                                                            title={providerLabel(
-                                                                                recording.sourceProvider,
-                                                                                language,
-                                                                            )}
-                                                                        >
-                                                                            讯
-                                                                        </span>
-                                                                    )}
-                                                                    <span data-sot-part="dashboard-recording-duration">
-                                                                        {formatDuration(
-                                                                            recording.duration,
-                                                                        )}
-                                                                    </span>
-                                                                </div>
-                                                                <div data-sot-part="dashboard-recording-row-secondary">
-                                                                    <span data-sot-part="dashboard-recording-timestamp">
-                                                                        <span data-sot-part="dashboard-recording-timestamp-absolute">
-                                                                            {formatAbsoluteDate(
-                                                                                recording.startTime,
-                                                                            )}
-                                                                        </span>
-                                                                        <span data-sot-part="dashboard-recording-timestamp-relative">
-                                                                            {formatRelativeDate(
-                                                                                recording.startTime,
-                                                                            )}
-                                                                        </span>
-                                                                    </span>
-                                                                    <Badge
-                                                                        variant="dashboardRecordingStatus"
-                                                                        data-sot-part="dashboard-recording-status"
-                                                                        data-sot-tone={
-                                                                            rowStatus.tone
+                                                                    data-sot-part="dashboard-recording-row-body"
+                                                                >
+                                                                    <div
+                                                                        className={
+                                                                            dashboardRecordingRowStyles.title
                                                                         }
+                                                                        data-sot-part="dashboard-recording-row-title"
                                                                     >
-                                                                        <span data-sot-part="dashboard-recording-status-dot" />
                                                                         {
-                                                                            rowStatus.label
+                                                                            recording.filename
                                                                         }
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-                                                            {primaryTag ? (
-                                                                <div data-sot-part="dashboard-recording-row-actions">
-                                                                    <Badge
-                                                                        variant="recordingTagChip"
-                                                                        data-recording-tag-chip=""
-                                                                        data-sot-tag-color={
-                                                                            primaryTag.color
+                                                                    </div>
+                                                                    <div
+                                                                        className={
+                                                                            dashboardRecordingRowStyles.meta
                                                                         }
-                                                                        data-sot-tag-icon={
-                                                                            primaryTag.icon
-                                                                        }
+                                                                        data-sot-part="dashboard-recording-row-meta"
                                                                     >
-                                                                        <RecordingTagIconGlyph
-                                                                            icon={
+                                                                        {sourceMeta?.icon ? (
+                                                                            <span
+                                                                                data-sot-part="dashboard-recording-source-mark"
+                                                                                data-sot-provider-cover={
+                                                                                    sourceMeta.cover
+                                                                                        ? "true"
+                                                                                        : "false"
+                                                                                }
+                                                                                data-sot-variant="image"
+                                                                                title={
+                                                                                    sourceMeta.label
+                                                                                }
+                                                                            >
+                                                                                <img
+                                                                                    src={
+                                                                                        sourceMeta.icon
+                                                                                    }
+                                                                                    alt=""
+                                                                                />
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span
+                                                                                data-sot-part="dashboard-recording-source-mark"
+                                                                                data-sot-provider-cover="false"
+                                                                                data-sot-variant="letter"
+                                                                                title={providerLabel(
+                                                                                    recording.sourceProvider,
+                                                                                    language,
+                                                                                )}
+                                                                            >
+                                                                                讯
+                                                                            </span>
+                                                                        )}
+                                                                        <span data-sot-part="dashboard-recording-duration">
+                                                                            {formatDuration(
+                                                                                recording.duration,
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div
+                                                                        className={
+                                                                            dashboardRecordingRowStyles.secondary
+                                                                        }
+                                                                        data-sot-part="dashboard-recording-row-secondary"
+                                                                    >
+                                                                        <span data-sot-part="dashboard-recording-timestamp">
+                                                                            <span data-sot-part="dashboard-recording-timestamp-absolute">
+                                                                                {formatAbsoluteDate(
+                                                                                    recording.startTime,
+                                                                                )}
+                                                                            </span>
+                                                                            <span data-sot-part="dashboard-recording-timestamp-relative">
+                                                                                {formatRelativeDate(
+                                                                                    recording.startTime,
+                                                                                )}
+                                                                            </span>
+                                                                        </span>
+                                                                        <Badge
+                                                                            variant="dashboardRecordingStatus"
+                                                                            data-sot-part="dashboard-recording-status"
+                                                                            data-sot-tone={
+                                                                                rowStatus.tone
+                                                                            }
+                                                                        >
+                                                                            <span data-sot-part="dashboard-recording-status-dot" />
+                                                                            {
+                                                                                rowStatus.label
+                                                                            }
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                                {primaryTag ? (
+                                                                    <div
+                                                                        className={
+                                                                            dashboardRecordingRowStyles.actions
+                                                                        }
+                                                                        data-sot-part="dashboard-recording-row-actions"
+                                                                    >
+                                                                        <Badge
+                                                                            variant="recordingTagChip"
+                                                                            data-recording-tag-chip=""
+                                                                            data-sot-tag-color={
+                                                                                primaryTag.color
+                                                                            }
+                                                                            data-sot-tag-icon={
                                                                                 primaryTag.icon
                                                                             }
-                                                                        />
-                                                                        {
-                                                                            primaryTag.name
-                                                                        }
-                                                                    </Badge>
-                                                                </div>
-                                                            ) : null}
-                                                        </Button>
-                                                    );
-                                                })}
-                                            </div>
+                                                                        >
+                                                                            <RecordingTagIconGlyph
+                                                                                icon={
+                                                                                    primaryTag.icon
+                                                                                }
+                                                                            />
+                                                                            {
+                                                                                primaryTag.name
+                                                                            }
+                                                                        </Badge>
+                                                                    </div>
+                                                                ) : null}
+                                                            </Button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </Fragment>
                                         ))}
                                     </div>
                                 ) : (

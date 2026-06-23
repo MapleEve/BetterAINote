@@ -2021,69 +2021,10 @@ button:not([data-slot]) {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-/* ===========================================================
-   New rich list (preview/15) — data-sot recording list
-   =========================================================== */
-[data-sot-list="dashboard-recording-rows"] {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 4px;
-}
-[data-sot-part="dashboard-recording-list-group-heading"] {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    padding: 14px 10px 6px 10px;
-}
-[data-sot-part="dashboard-recording-list-group-label"] {
-    font: 600 11px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-[data-sot-part="dashboard-recording-list-group-count"] {
-    font: 500 11px var(--font-mono);
-    color: var(--fg-disabled);
-}
-[data-sot-part="dashboard-recording-list-group-divider"] {
-    flex: 1;
-    height: 1px;
-    background: var(--line-hairline);
-    margin-left: 4px;
-}
-
-[data-sot-part="dashboard-recording-row-body"] {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-[data-sot-part="dashboard-recording-row-title"] {
-    font: 600 13.5px var(--font-sans);
-    color: var(--fg-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: -0.005em;
-}
-[data-sot-part="dashboard-recording-row-meta"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
 [data-sot-part="dashboard-recording-duration"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-secondary);
     letter-spacing: 0.02em;
-}
-[data-sot-part="dashboard-recording-row-secondary"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font: 500 11px var(--font-mono);
-    color: var(--fg-tertiary);
 }
 [data-sot-part="dashboard-recording-timestamp"] {
     letter-spacing: 0.015em;
@@ -2101,11 +2042,6 @@ body[data-time-style="abs"]
 body[data-time-style="abs"]
     [data-sot-part="dashboard-recording-timestamp-relative"] {
     display: none;
-}
-[data-sot-part="dashboard-recording-row-actions"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 @keyframes bpulse {
@@ -4204,7 +4140,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    click). Uses the accent ring already proven on inputs so the
    look stays consistent across surfaces.
    ============================================================ */
-[data-sot-control="dashboard-recording-row"]:focus-visible,
 [data-sot-provider-card]:focus-visible,
 [data-sot-control="dashboard-activity-dismiss"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
@@ -4631,24 +4566,6 @@ select::-ms-expand {
     padding: 8px 12px;
 }
 
-[data-sot-part="dashboard-recording-list-group"] {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px 4px;
-}
-[data-sot-part="dashboard-recording-list-group"]
-    + [data-sot-part="dashboard-recording-list-group"] {
-    border-top: 1px solid var(--line-hairline);
-    padding-top: 8px;
-    margin-top: 4px;
-}
-[data-theme="dark"]
-    [data-sot-part="dashboard-recording-list-group"]
-    + [data-sot-part="dashboard-recording-list-group"] {
-    border-top-color: var(--glass-border-soft);
-}
-
 /* ---- Search popover runtime: positioning, scroll, and SOT state layout ---- */
 [data-sot-part="library-search-anchor"] {
     position: relative;
@@ -4815,12 +4732,6 @@ select::-ms-expand {
 /* ============================================================
    5) Sidebar collapsed-state non-button focus hooks
    ============================================================ */
-[data-sot-shell] [data-sot-control="dashboard-recording-row"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
-    outline-offset: 2px;
-    box-shadow: none;
-}
-
 /* ============================================================
    7) State-matrix extensions
    ----
@@ -5440,15 +5351,6 @@ select::-ms-expand {
 /* For long components rendered in their own row */
 .cl-wide-card {
     grid-column: 1 / -1;
-}
-[data-sot-control="dashboard-recording-row"].is-hover-demo {
-    background: rgba(0, 0, 0, 0.03);
-}
-
-[data-sot-control="dashboard-recording-row"].is-focus-demo {
-    outline: 2px solid
-        color-mix(in srgb, var(--accent, #5b6470) 70%, transparent);
-    outline-offset: 2px;
 }
 /* Transcript skeleton for component-library docs only. */
 .cl-transcript-skel {
