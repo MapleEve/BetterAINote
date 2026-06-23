@@ -154,6 +154,44 @@ function extractOpeningElement(source: string, marker: string, tagName: string) 
     return source.slice(start, end + 1);
 }
 
+function extractElementSlice(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(`</${tagName}>`, markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + tagName.length + 3);
+}
+
+function extractFeatureClassHelperSource(
+    source: string,
+    openingElement: string,
+) {
+    const match = openingElement.match(
+        /className=\{\s*([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?\s*\}/,
+    );
+    expect(match).not.toBeNull();
+    const helperName = match?.[1] ?? "";
+    const propertyName = match?.[2];
+
+    if (propertyName) {
+        const helperBlock = extractBoundedSlice(
+            source,
+            `const ${helperName} = {`,
+            "} as const;",
+        );
+        return extractObjectStringProperty(helperBlock, propertyName);
+    }
+
+    const marker = `const ${helperName} =`;
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(";", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + 1);
+}
+
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -231,21 +269,31 @@ const DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS = [
 ].map((buttonName) => `DASHBOARD_${buttonName}_BUTTON_CLASS`);
 
 const DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS = [
-    "recordingListChipClear",
     "recordingListStatePrimary",
     "recordingListStateAction",
     "recordingListPagination",
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_SIZES = [
-    "recordingListChipClear",
     "recordingListStateAction",
     "recordingListPagination",
 ] as const;
 
 const DASHBOARD_RECORDING_LIST_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
+    "recordingListChipClear",
     "recordingListTagFilterTrigger",
     "recordingListTagFilterOption",
+] as const;
+
+const RECORDING_LIST_CHIP_CLEAR_FEATURE_OWNER_CLASS_SNIPPETS = [
+    "size-4",
+    "rounded-full",
+    "border border-transparent",
+    "bg-transparent",
+    "text-[var(--fg-tertiary)]",
+    "hover:bg-[var(--bg-recessed)]",
+    "hover:text-[var(--fg-primary)]",
+    "[&_svg:not([class*='size-'])]:size-[11px]",
 ] as const;
 
 const DASHBOARD_SOURCE_FILTER_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
@@ -1839,9 +1887,45 @@ describe("dashboard SOT foundation", () => {
         expect(sourceFilterClearButton).toMatch(
             /className=\{\s*sourceFilterClassNames\.clear\s*\}/,
         );
-        expect(workstation).toMatch(
-            /<Button\s+variant="recordingListChipClear"\s+size="recordingListChipClear"[\s\S]*data-sot-control="library-search-filter-clear"/,
+        const librarySearchFilterClearButton = extractOpeningElement(
+            workstation,
+            'data-sot-control="library-search-filter-clear"',
+            "Button",
         );
+        const librarySearchFilterClearElement = extractElementSlice(
+            workstation,
+            'data-sot-control="library-search-filter-clear"',
+            "Button",
+        );
+        const librarySearchFilterClearClassHelper =
+            extractFeatureClassHelperSource(
+                workstation,
+                librarySearchFilterClearButton,
+            );
+        expect(librarySearchFilterClearButton).toContain('variant="ghost"');
+        expect(librarySearchFilterClearButton).toContain('size="icon"');
+        expect(librarySearchFilterClearButton).toContain('type="button"');
+        expect(librarySearchFilterClearButton).not.toContain(
+            "recordingListChipClear",
+        );
+        expect(librarySearchFilterClearButton).toMatch(
+            /className=\{\s*[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?\s*\}/,
+        );
+        expect(librarySearchFilterClearButton).toContain(
+            'data-sot-control="library-search-filter-clear"',
+        );
+        expect(librarySearchFilterClearButton).toMatch(
+            /aria-label=\{t\([\s\S]*"dashboardChrome\.clear"[\s\S]*\)\}/,
+        );
+        expect(librarySearchFilterClearElement).toMatch(
+            /onClick=\{\(\) =>\s*setLibrarySearchFilter\(null\)\s*\}/,
+        );
+        expect(librarySearchFilterClearElement).toMatch(
+            /<X\s+data-icon="inline-start"\s*\/>/,
+        );
+        for (const snippet of RECORDING_LIST_CHIP_CLEAR_FEATURE_OWNER_CLASS_SNIPPETS) {
+            expect(librarySearchFilterClearClassHelper).toContain(snippet);
+        }
         for (const control of [
             "source-filter-retry-sync",
             "source-filter-widen",
