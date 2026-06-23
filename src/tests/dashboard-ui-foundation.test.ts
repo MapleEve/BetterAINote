@@ -1021,7 +1021,7 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(buttonVariantBlock).toContain(copyStateClass);
         }
-        for (const sourceProviderActionClass of [
+        for (const dashboardSourceActionClass of [
             "group/source-provider",
             "ml-[6px]",
             "border-[var(--line-hairline)]",
@@ -1040,14 +1040,14 @@ describe("dashboard SOT foundation", () => {
             "dark:bg-[rgb(255_255_255_/_0.05)]",
             "[&_svg]:stroke-current",
         ]) {
-            expect(buttonVariantBlock).toContain(sourceProviderActionClass);
+            expect(buttonVariantBlock).toContain(dashboardSourceActionClass);
         }
-        for (const sourceProviderActionSizeClass of [
+        for (const dashboardSourceActionSizeClass of [
             "leading-none",
             "whitespace-nowrap",
             "[&_svg:not([class*='size-'])]:size-[11px]",
         ]) {
-            expect(buttonSizeBlock).toContain(sourceProviderActionSizeClass);
+            expect(buttonSizeBlock).toContain(dashboardSourceActionSizeClass);
         }
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);

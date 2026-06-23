@@ -6275,15 +6275,40 @@ describe("full UI replacement regression coverage", () => {
         const settingsSourceActionStatus = extractElementSlice(
             settings,
             'data-sot-part="source-action-status"',
-            "Badge",
+            "SourceActionStatusBadge",
         );
+        const sourceActionButtonWrapper =
+            settings.match(
+                /function SourceActionButton[\s\S]*?function SourceActionStatusBadge/,
+            )?.[0] ?? "";
+        const sourceActionStatusWrapper =
+            settings.match(
+                /function SourceActionStatusBadge[\s\S]*?function hasSavedSetup/,
+            )?.[0] ?? "";
         expect(settingsSourceActionStatus).toContain(
-            'variant="sourceActionStatus"',
+            "<SourceActionStatusBadge",
         );
+        expect(settingsSourceActionStatus).not.toContain("sourceActionStatus");
         expect(settingsSourceActionStatus).not.toContain('variant="secondary"');
         expect(settingsSourceActionStatus).not.toContain("className=");
-        expect(settingsSourceActionStatus).toContain(
+        expect(sourceActionButtonWrapper).toContain("<Button");
+        expect(sourceActionButtonWrapper).toContain(
+            "variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}",
+        );
+        expect(sourceActionButtonWrapper).toContain('size="xs"');
+        expect(sourceActionButtonWrapper).toContain(
+            "SOURCE_ACTION_BUTTON_CLASS_BY_TONE[tone]",
+        );
+        expect(sourceActionStatusWrapper).toContain("<Badge");
+        expect(sourceActionStatusWrapper).toContain('variant="ghost"');
+        expect(sourceActionStatusWrapper).toContain(
+            "SOURCE_ACTION_STATUS_BADGE_CLASS",
+        );
+        expect(sourceActionStatusWrapper).toContain(
             'data-sot-part="source-action-status-indicator"',
+        );
+        expect(sourceActionStatusWrapper).toContain(
+            "SOURCE_ACTION_STATUS_INDICATOR_CLASS",
         );
         const settingsRow =
             settings.match(
@@ -6353,12 +6378,14 @@ describe("full UI replacement regression coverage", () => {
             "[&_[data-sot-part=settings-save-status-indicator]]",
         );
         expect(badge).toContain("sourceAuthModeBadge:");
-        expect(badge).toContain("sourceActionStatus:");
+        expect(badge).not.toContain("sourceActionStatus:");
+        expect(button).not.toContain("sourceProviderAction:");
+        expect(button).not.toContain("sourceProviderActionPrimary:");
+        expect(button).not.toContain("sourceProviderActionDanger:");
         expect(badge).toContain("data-[sot-tone=recommended]");
         expect(badge).toContain("data-[sot-tone=personal]");
-        expect(badge).toContain(
-            "[&_[data-sot-part=source-action-status-indicator]]",
-        );
+        expect(settings).toContain("SOURCE_ACTION_STATUS_BADGE_CLASS");
+        expect(settings).toContain("SOURCE_ACTION_STATUS_INDICATOR_CLASS");
         expect(badge).not.toContain("source:");
         expect(badge).toContain("playerSource:");
         expect(badge).toContain("playerStatus:");

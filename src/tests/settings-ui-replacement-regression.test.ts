@@ -1263,7 +1263,7 @@ describe("settings SOT interaction regressions", () => {
         expect(detailHeader).toContain("data-sot-state={status.state}");
     });
 
-    it("keeps provider Button and Badge primitive skin in shadcn variants", () => {
+    it("keeps provider primitive skins and owns source action composition locally", () => {
         const content = readSource(
             "features/settings/components/settings-content.tsx",
         );
@@ -1287,6 +1287,34 @@ describe("settings SOT interaction regressions", () => {
             content.match(
                 /<footer[\s\S]*?data-sot-panel="source-actions"[\s\S]*?data-sot-part="source-disconnect-row"[\s\S]*?<\/Field>/,
             )?.[0] ?? "";
+        const sourceActionButtonWrapper =
+            content.match(
+                /function SourceActionButton[\s\S]*?function SourceActionStatusBadge/,
+            )?.[0] ?? "";
+        const sourceActionStatusWrapper =
+            content.match(
+                /function SourceActionStatusBadge[\s\S]*?function hasSavedSetup/,
+            )?.[0] ?? "";
+        const sourceTestAction = collectElementSlices(
+            sourceActionArea,
+            'data-sot-control="source-test"',
+            "SourceActionButton",
+        )[0];
+        const sourceSaveAction = collectElementSlices(
+            sourceActionArea,
+            'data-sot-control="source-save"',
+            "SourceActionButton",
+        )[0];
+        const sourceReconnectAction = collectElementSlices(
+            sourceActionArea,
+            'data-sot-control="source-reconnect"',
+            "SourceActionButton",
+        )[0];
+        const sourceDisconnectAction = collectElementSlices(
+            sourceActionArea,
+            'data-sot-control="source-disconnect"',
+            "SourceActionButton",
+        )[0];
 
         expect(content).not.toContain("getProviderTileVariant");
         expect(content).not.toContain("getProviderStatusBadgeVariant");
@@ -1351,39 +1379,65 @@ describe("settings SOT interaction regressions", () => {
         expect(button).toContain(
             "[&_[data-sot-provider-hint]]:text-[11.5px]",
         );
-        expect(sourceActionArea).toContain('variant="sourceProviderAction"');
-        expect(sourceActionArea).toContain(
-            'variant="sourceProviderActionPrimary"',
-        );
-        expect(sourceActionArea).toContain(
-            'variant="sourceProviderActionDanger"',
-        );
-        expect(sourceActionArea).toContain('size="sourceProviderAction"');
+        expect(sourceActionArea).toContain("<SourceActionStatusBadge");
+        expect(sourceActionArea).toContain("<SourceActionButton");
+        expect(sourceTestAction).toContain('tone="neutral"');
+        expect(sourceTestAction).toContain('data-sot-action="test"');
+        expect(sourceSaveAction).toContain('tone="primary"');
+        expect(sourceSaveAction).toContain('data-sot-action="save"');
+        expect(sourceReconnectAction).toContain('tone="neutral"');
+        expect(sourceDisconnectAction).toContain('tone="danger"');
+        expect(sourceActionArea).not.toContain("sourceProviderAction");
         expect(sourceActionArea).not.toContain("SOURCE_PROVIDER_");
         expect(sourceActionArea).not.toMatch(/![a-z\[]/);
+        expect(sourceActionButtonWrapper).toContain("<Button");
+        expect(sourceActionButtonWrapper).toContain(
+            "variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}",
+        );
+        expect(sourceActionButtonWrapper).toContain('size="xs"');
+        expect(sourceActionButtonWrapper).toContain(
+            "SOURCE_ACTION_BUTTON_SIZE_CLASS",
+        );
+        expect(sourceActionButtonWrapper).toContain(
+            "SOURCE_ACTION_BUTTON_CLASS_BY_TONE[tone]",
+        );
+        expect(sourceActionStatusWrapper).toContain("<Badge");
+        expect(sourceActionStatusWrapper).toContain('variant="ghost"');
+        expect(sourceActionStatusWrapper).toContain(
+            "SOURCE_ACTION_STATUS_BADGE_CLASS",
+        );
+        expect(sourceActionStatusWrapper).toContain(
+            'data-sot-part="source-action-status-indicator"',
+        );
+        expect(sourceActionStatusWrapper).toContain(
+            "SOURCE_ACTION_STATUS_INDICATOR_CLASS",
+        );
+        expect(content).toContain("SOURCE_ACTION_BUTTON_CLASS_BY_TONE");
+        expect(content).toContain("SOURCE_ACTION_STATUS_BADGE_CLASS");
+        expect(content).toContain("SOURCE_ACTION_STATUS_INDICATOR_CLASS");
+        expect(content).toContain("data-[sot-state=error]:text-destructive");
+        expect(content).toContain("data-[sot-state=success]:text-primary");
+        expect(content).toContain(
+            "data-[sot-state=saving]:[&_[data-sot-part=source-action-status-indicator]]:animate-pulse",
+        );
         expect(button).toContain("sourceProviderTile:");
-        expect(button).toContain("sourceProviderAction:");
-        expect(button).toContain("sourceProviderActionPrimary:");
-        expect(button).toContain("sourceProviderActionDanger:");
+        expect(button).not.toContain("sourceProviderAction:");
+        expect(button).not.toContain("sourceProviderActionPrimary:");
+        expect(button).not.toContain("sourceProviderActionDanger:");
         expect(button).toContain("data-[state=selected]");
         expect(button).toContain("data-[sot-dimmed=true]");
-        expect(button).toContain("data-[sot-state=error]:text-destructive");
-        expect(button).toContain("data-[sot-state=success]:text-primary");
         expect(toggleGroup).toContain("settingsSourceAuthMode:");
         expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
         expect(badge).toContain("sourceProviderStatus:");
         expect(badge).toContain("sourceProviderDetailStatus:");
         expect(badge).toContain("sourceAuthModeBadge:");
-        expect(badge).toContain("sourceActionStatus:");
+        expect(badge).not.toContain("sourceActionStatus:");
         expect(badge).toContain("data-[sot-tone=ok]");
         expect(badge).toContain("data-[sot-tone=warn]");
         expect(badge).toContain("data-[sot-tone=err]");
         expect(badge).toContain("data-[sot-tone=neu]");
         expect(badge).toContain("data-[sot-tone=recommended]");
         expect(badge).toContain("data-[sot-tone=personal]");
-        expect(badge).toContain(
-            "[&_[data-sot-part=source-action-status-indicator]]",
-        );
         expect(badge).toContain("[&_[data-sot-provider-status-dot]]:size-[4px]");
         expect(badge).toContain(
             "[&_[data-sot-provider-status-dot]]:rounded-full",
@@ -1798,12 +1852,13 @@ describe("settings SOT interaction regressions", () => {
         const sourceActionStatus = collectElementSlices(
             actionFooter,
             'data-sot-part="source-action-status"',
-            "Badge",
+            "SourceActionStatusBadge",
         )[0];
-        expect(sourceActionStatus).toContain('variant="sourceActionStatus"');
+        expect(sourceActionStatus).toContain("<SourceActionStatusBadge");
+        expect(sourceActionStatus).not.toContain("sourceActionStatus");
         expect(sourceActionStatus).not.toContain('variant="secondary"');
         expect(sourceActionStatus).not.toContain("className=");
-        expect(sourceActionStatus).toContain(
+        expect(content).toContain(
             'data-sot-part="source-action-status-indicator"',
         );
         expect(actionFooter).not.toContain("data-save-actions");

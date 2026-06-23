@@ -60,12 +60,6 @@ const buttonVariants = cva(
                     "border border-transparent bg-transparent p-0 text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[11px] [&_svg]:stroke-2",
                 sourceProviderTile:
                     "group/source-provider border border-solid border-transparent bg-transparent text-left shadow-none [box-shadow:none] data-[sot-dimmed=true]:opacity-[0.55] data-[state=idle]:hover:bg-[var(--source-provider-card-hover)] data-[state=selected]:border-[var(--line-hairline)] data-[state=selected]:bg-[var(--bg-elevated)] data-[state=selected]:shadow-xs dark:data-[state=selected]:border-[var(--glass-border)] dark:data-[state=selected]:bg-[rgb(255_255_255_/_0.06)] dark:data-[state=selected]:shadow-none dark:data-[state=selected]:[box-shadow:none] [&_[data-sot-part=source-provider-mark]]:flex [&_[data-sot-part=source-provider-mark]]:size-7 [&_[data-sot-part=source-provider-mark]]:shrink-0 [&_[data-sot-part=source-provider-mark]]:items-center [&_[data-sot-part=source-provider-mark]]:justify-center [&_[data-sot-part=source-provider-mark]]:overflow-hidden [&_[data-sot-part=source-provider-mark]]:rounded-[7px] [&_[data-sot-part=source-provider-mark]]:border [&_[data-sot-part=source-provider-mark]]:border-[var(--line-hairline)] [&_[data-sot-part=source-provider-mark]]:bg-white [&_[data-sot-part=source-provider-meta]]:flex [&_[data-sot-part=source-provider-meta]]:min-w-0 [&_[data-sot-part=source-provider-meta]]:flex-col [&_[data-sot-part=source-provider-meta]]:gap-[2px] [&_[data-sot-provider-name]]:truncate [&_[data-sot-provider-name]]:font-sans [&_[data-sot-provider-name]]:text-[13px] [&_[data-sot-provider-name]]:font-semibold [&_[data-sot-provider-name]]:leading-[normal] [&_[data-sot-provider-name]]:text-[var(--fg-primary)] [&_[data-sot-provider-hint]]:truncate [&_[data-sot-provider-hint]]:font-mono [&_[data-sot-provider-hint]]:text-[11.5px] [&_[data-sot-provider-hint]]:font-medium [&_[data-sot-provider-hint]]:leading-[normal] [&_[data-sot-provider-hint]]:text-[var(--fg-tertiary)]",
-                sourceProviderAction:
-                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
-                sourceProviderActionPrimary:
-                    "border border-[var(--source-provider-primary-border)] bg-[image:var(--source-provider-primary-bg)] text-[var(--accent-on)] shadow-[var(--source-provider-primary-shadow)] data-[sot-state=error]:text-[var(--signal-danger)]",
-                sourceProviderActionDanger:
-                    "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
                 sourceReportAction:
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 sourceReportPrimaryAction:
@@ -237,8 +231,6 @@ const buttonVariants = cva(
                     "size-[var(--icon-compact-size)] rounded-[6px]",
                 sourceProviderTile:
                     "grid h-auto w-full grid-cols-[28px_1fr_auto] items-center justify-start gap-[10px] rounded-[10px] p-[10px] whitespace-normal has-[>svg]:px-[10px]",
-                sourceProviderAction:
-                    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]",
                 sourceReportAction:
                     "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
                 sourceReportCopyAction:

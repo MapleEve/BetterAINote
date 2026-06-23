@@ -12,11 +12,18 @@ import {
     RotateCw,
     XCircle,
 } from "lucide-react";
-import { type Ref, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type ComponentProps,
+    type Ref,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import {
     Empty,
     EmptyDescription,
@@ -150,6 +157,93 @@ interface ProviderStatus {
     label: string;
     state: string;
     tone: ProviderTone;
+}
+
+type SourceActionButtonTone = "neutral" | "primary" | "danger";
+
+type SourceActionButtonProps = Omit<
+    ButtonProps,
+    "className" | "size" | "variant"
+> & {
+    className?: string;
+    tone: SourceActionButtonTone;
+};
+
+type SourceActionStatusBadgeProps = Omit<
+    ComponentProps<typeof Badge>,
+    "className" | "variant"
+> & {
+    className?: string;
+};
+
+const SOURCE_ACTION_BUTTON_SIZE_CLASS =
+    "h-[26px] gap-[7px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-[normal] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[11px]";
+
+const SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE: Record<
+    SourceActionButtonTone,
+    ButtonProps["variant"]
+> = {
+    danger: "ghost",
+    neutral: "ghost",
+    primary: "default",
+};
+
+const SOURCE_ACTION_BUTTON_CLASS_BY_TONE: Record<
+    SourceActionButtonTone,
+    string
+> = {
+    danger:
+        "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
+    neutral:
+        "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
+    primary:
+        "border border-[var(--source-provider-primary-border)] bg-[image:var(--source-provider-primary-bg)] text-[var(--accent-on)] shadow-[var(--source-provider-primary-shadow)] hover:bg-[image:var(--source-provider-primary-hover-bg)] data-[sot-state=error]:text-[var(--signal-danger)]",
+};
+
+const SOURCE_ACTION_STATUS_BADGE_CLASS =
+    "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive data-[sot-state=saved]:[&_[data-sot-part=source-action-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=source-action-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=source-action-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=source-action-status-indicator]]:bg-destructive";
+
+const SOURCE_ACTION_STATUS_INDICATOR_CLASS =
+    "size-2 rounded-full bg-secondary-foreground/45";
+
+function SourceActionButton({
+    className,
+    tone,
+    ...props
+}: SourceActionButtonProps) {
+    return (
+        <Button
+            variant={SOURCE_ACTION_BUTTON_PRIMITIVE_VARIANT_BY_TONE[tone]}
+            size="xs"
+            className={cn(
+                SOURCE_ACTION_BUTTON_SIZE_CLASS,
+                SOURCE_ACTION_BUTTON_CLASS_BY_TONE[tone],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SourceActionStatusBadge({
+    className,
+    children,
+    ...props
+}: SourceActionStatusBadgeProps) {
+    return (
+        <Badge
+            variant="ghost"
+            className={cn(SOURCE_ACTION_STATUS_BADGE_CLASS, className)}
+            {...props}
+        >
+            <span
+                aria-hidden="true"
+                data-sot-part="source-action-status-indicator"
+                className={SOURCE_ACTION_STATUS_INDICATOR_CLASS}
+            />
+            {children}
+        </Badge>
+    );
 }
 
 function hasSavedSetup(source: DataSourceDisplayState) {
@@ -1585,21 +1679,15 @@ function DataSourcesSettingsPanel({
                             data-sot-provider={selectedSource.provider}
                             data-sot-state={sourceSaveState}
                         >
-                            <Badge
-                                variant="sourceActionStatus"
+                            <SourceActionStatusBadge
                                 data-sot-part="source-action-status"
                                 data-sot-state={sourceSaveState}
                             >
-                                <span
-                                    aria-hidden="true"
-                                    data-sot-part="source-action-status-indicator"
-                                />
                                 {actionMessage?.title ?? ""}
-                            </Badge>
-                            <Button
+                            </SourceActionStatusBadge>
+                            <SourceActionButton
                                 type="button"
-                                variant="sourceProviderAction"
-                                size="sourceProviderAction"
+                                tone="neutral"
                                 data-sot-action="test"
                                 data-sot-control="source-test"
                                 data-sot-provider={selectedSource.provider}
@@ -1628,11 +1716,10 @@ function DataSourcesSettingsPanel({
                                       : isZh
                                         ? "测试连接"
                                         : "Test"}
-                            </Button>
-                            <Button
+                            </SourceActionButton>
+                            <SourceActionButton
                                 type="button"
-                                variant="sourceProviderActionPrimary"
-                                size="sourceProviderAction"
+                                tone="primary"
                                 data-sot-action="save"
                                 data-sot-control="source-save"
                                 data-sot-provider={selectedSource.provider}
@@ -1661,7 +1748,7 @@ function DataSourcesSettingsPanel({
                                       : isZh
                                         ? "保存"
                                         : "Save"}
-                            </Button>
+                            </SourceActionButton>
                         </footer>
 
                         <Field
@@ -1685,10 +1772,9 @@ function DataSourcesSettingsPanel({
                                 </FieldDescription>
                             </FieldContent>
                             <FieldControl variant="sourceProviderDetail">
-                                <Button
+                                <SourceActionButton
                                     type="button"
-                                    variant="sourceProviderAction"
-                                    size="sourceProviderAction"
+                                    tone="neutral"
                                     data-sot-control="source-reconnect"
                                     data-sot-state={sourceReconnectState}
                                     disabled={interactionDisabled}
@@ -1710,7 +1796,7 @@ function DataSourcesSettingsPanel({
                                           : isZh
                                             ? "重新连接"
                                             : "Reconnect"}
-                                </Button>
+                                </SourceActionButton>
                             </FieldControl>
                         </Field>
 
@@ -1735,10 +1821,9 @@ function DataSourcesSettingsPanel({
                                 </FieldDescription>
                             </FieldContent>
                             <FieldControl variant="sourceProviderDetail">
-                                <Button
+                                <SourceActionButton
                                     type="button"
-                                    variant="sourceProviderActionDanger"
-                                    size="sourceProviderAction"
+                                    tone="danger"
                                     data-sot-control="source-disconnect"
                                     data-sot-state={sourceDisconnectState}
                                     disabled={interactionDisabled}
@@ -1760,7 +1845,7 @@ function DataSourcesSettingsPanel({
                                           : isZh
                                             ? "断开连接"
                                             : "Disconnect"}
-                                </Button>
+                                </SourceActionButton>
                             </FieldControl>
                         </Field>
                     </>
