@@ -28,8 +28,111 @@ const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
+const AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES = [
+    "components/ui/alert.tsx",
+    "components/ui/badge.tsx",
+    "components/ui/button.tsx",
+    "components/ui/card.tsx",
+] as const;
+
+const AI_RENAME_PREVIEW_BUSINESS_TOKENS = [
+    "aiRenamePreview",
+    "aiRenamePreviewClose",
+    "aiRenamePreviewAction",
+    "aiRenamePreviewPrimaryAction",
+    "aiRenamePreviewOldTag",
+    "aiRenamePreviewNewTag",
+    "aiRenamePreviewError",
+    "aiRenamePreviewUnavailable",
+] as const;
+
+const AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS = [
+    {
+        label: "panel",
+        snippets: ["w-[min(360px,calc(100vw-32px))]", "gap-0"],
+    },
+    {
+        label: "header",
+        snippets: [
+            "grid-cols-[1fr_auto]",
+            "border-b border-border",
+            "[&_[data-slot=card-head-copy]]:min-w-0",
+        ],
+    },
+    {
+        label: "body",
+        snippets: [
+            "min-h-20",
+            "px-4 py-4",
+            "[&_[data-slot=card-preview-title]]:text-foreground",
+        ],
+    },
+    {
+        label: "state",
+        snippets: [
+            "[&_[data-slot=card-state-label]]:uppercase",
+            "[&_[data-slot=card-message]]:break-words",
+            "[&_[data-slot=card-hint]]:text-muted-foreground",
+        ],
+    },
+    {
+        label: "review",
+        snippets: [
+            "[&_[data-slot=card-review-row]]:flex",
+            "[&_[data-slot=card-review-line]]:rounded-lg",
+            "[&_[data-review-tone=old]]:line-through",
+            "[&_[data-review-tone=new]]:text-foreground",
+        ],
+    },
+    {
+        label: "actions",
+        snippets: ["gap-1.5 px-4 py-3"],
+    },
+    {
+        label: "alert",
+        snippets: [
+            "border-[var(--alert-destructive-soft-border)]",
+            "[&_[data-slot=alert-icon]]:size-8",
+            "[&_[data-slot=alert-message]]:break-words",
+        ],
+    },
+    {
+        label: "badge",
+        snippets: ["min-w-[56px]", "uppercase tracking-[0.04em]"],
+    },
+    {
+        label: "button",
+        snippets: [
+            "size-6 rounded-md",
+            "p-0",
+            "h-6 shrink-0 gap-1",
+            "bg-primary",
+            "text-primary-foreground",
+        ],
+    },
+] as const;
+
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
+}
+
+function escapeRegExp(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function hasExactBusinessToken(source: string, token: string) {
+    return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(
+        source,
+    );
+}
+
+function collectAiRenamePrimitiveBusinessTokens() {
+    return AI_RENAME_PREVIEW_SHARED_PRIMITIVE_FILES.flatMap((file) => {
+        const source = readSource(file);
+        return AI_RENAME_PREVIEW_BUSINESS_TOKENS.filter((token) =>
+            hasExactBusinessToken(source, token),
+        ).map((token) => `${file}:${token}`);
+    });
 }
 
 function extractCardSlice(source: string, marker: string) {
@@ -66,6 +169,41 @@ function extractOpeningElement(
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(markerIndex);
     return source.slice(start, end + 1);
+}
+
+function extractExactOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const tagPattern = new RegExp(`<${tagName}(?=\\s|>)`, "g");
+    let start = -1;
+    let match: RegExpExecArray | null;
+
+    while ((match = tagPattern.exec(source)) && match.index <= markerIndex) {
+        start = match.index;
+    }
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf(">", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + 1);
+}
+
+function expectAiRenameGenericPrimitiveCall(
+    source: string,
+    marker: string,
+    tagName: "Alert" | "Badge" | "Button" | "Card",
+) {
+    const openingElement = extractExactOpeningElement(source, marker, tagName);
+
+    expect(openingElement).toContain("className=");
+    expect(openingElement).not.toMatch(
+        /\b(?:variant|size|density|layout)="aiRenamePreview[A-Za-z0-9_]*"/,
+    );
+    return openingElement;
 }
 
 function extractCssBlock(source: string, marker: string) {
@@ -1676,8 +1814,6 @@ describe("recording detail copy and title action UI regressions", () => {
         const aiRenamePreview = readSource(
             "features/recordings/components/ai-rename-preview-card.tsx",
         );
-        const buttonPrimitive = readSource("components/ui/button.tsx");
-        const spinnerPrimitive = readSource("components/ui/spinner.tsx");
 
         expect(detailWorkstation).toContain("SegmentedTabs");
         const sourceRecordSegmentedTabs = extractBoundedSlice(
@@ -1724,28 +1860,92 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("previewAutoRename");
         expect(dashboardWorkstation).toContain("applyAiRename");
         expect(dashboardWorkstation).toContain("/rename/auto");
+        expect(collectAiRenamePrimitiveBusinessTokens()).toEqual([]);
         expect(aiRenamePreview).toContain(
             'data-sot-panel="ai-rename-preview"',
         );
-        expect(aiRenamePreview).toContain('variant="aiRenamePreviewClose"');
-        expect(aiRenamePreview).toContain('size="aiRenamePreviewClose"');
-        expect(aiRenamePreview).toContain('variant="aiRenamePreviewAction"');
-        expect(aiRenamePreview).toContain(
-            'variant="aiRenamePreviewPrimaryAction"',
+        expect(aiRenamePreview).toContain("data-sot-state={state}");
+        expect(aiRenamePreview).toContain('role="dialog"');
+        expect(aiRenamePreview).toContain("aria-label={title}");
+        expect(aiRenamePreview).toMatch(
+            /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
         );
-        expect(aiRenamePreview).toContain('size="aiRenamePreviewAction"');
-        expect(aiRenamePreview).toContain('placement="centeredBlock"');
-        expect(aiRenamePreview).toContain('variant="aiRenamePreviewOldTag"');
-        expect(aiRenamePreview).toContain('variant="aiRenamePreviewNewTag"');
-        expect(buttonPrimitive).toContain("aiRenamePreviewPrimaryAction:");
-        expect(spinnerPrimitive).toContain("centeredBlock:");
+        for (const { snippets } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
+            for (const snippet of snippets) {
+                expect(aiRenamePreview).toContain(snippet);
+            }
+        }
+        expectAiRenameGenericPrimitiveCall(
+            aiRenamePreview,
+            'data-sot-panel="ai-rename-preview"',
+            "Card",
+        );
+        for (const primitiveCall of [
+            {
+                marker: 'data-sot-control="ai-rename-close"',
+                tagName: "Button" as const,
+            },
+            {
+                marker: 'data-sot-control="ai-rename-regenerate"',
+                tagName: "Button" as const,
+            },
+            {
+                marker: 'data-sot-control="ai-rename-cancel"',
+                tagName: "Button" as const,
+            },
+            {
+                marker: 'data-sot-control="ai-rename-apply"',
+                tagName: "Button" as const,
+            },
+            {
+                marker: 'data-sot-review-field="old"',
+                tagName: "Badge" as const,
+            },
+            {
+                marker: 'data-sot-review-field="new"',
+                tagName: "Badge" as const,
+            },
+            {
+                marker: 'data-sot-part="state-description"',
+                tagName: "Alert" as const,
+            },
+        ]) {
+            expectAiRenameGenericPrimitiveCall(
+                aiRenamePreview,
+                primitiveCall.marker,
+                primitiveCall.tagName,
+            );
+        }
+        for (const dataSotToken of [
+            'data-sot-part="head"',
+            'data-sot-part="body"',
+            'data-sot-part="state"',
+            'data-sot-part="review-row"',
+            'data-sot-part="review-line"',
+            'data-sot-part="review-tag"',
+            'data-sot-part="review-old"',
+            'data-sot-part="review-new"',
+            'data-sot-part="actions"',
+            'data-sot-control="ai-rename-close"',
+            'data-sot-control="ai-rename-regenerate"',
+            'data-sot-control="ai-rename-cancel"',
+            'data-sot-control="ai-rename-apply"',
+        ]) {
+            expect(aiRenamePreview).toContain(dataSotToken);
+        }
+        expect(aiRenamePreview).toContain("onClick={onCancel}");
+        expect(aiRenamePreview).toContain("onClick={onRegenerate}");
+        expect(aiRenamePreview).toContain("onClick={onApply}");
+        expect(aiRenamePreview).toContain("aria-busy={isRegenerating}");
+        expect(aiRenamePreview).toContain("aria-busy={isApplying}");
+        expect(aiRenamePreview).toContain("disabled={isApplying}");
+        expect(aiRenamePreview).toContain("disabled={isBusy || !canAct}");
+        expect(detailWorkstation).toContain("onApply={handleAutoRenamePreviewApply}");
+        expect(detailWorkstation).toContain("onCancel={handleAutoRenamePreviewCancel}");
+        expect(detailWorkstation).toContain("onRegenerate={handleAutoRename}");
+        expect(dashboardWorkstation).toContain("onApply={applyAiRename}");
+        expect(dashboardWorkstation).toContain("onRegenerate={previewAutoRename}");
         for (const retiredAiRenameToken of [
-            'variant="ghost"',
-            'variant="default"',
-            'variant="outline"',
-            'variant="secondary"',
-            'size="icon-xs"',
-            'size="xs"',
             "animate-spin rounded-full border-2 border-border border-t-current",
         ]) {
             expect(aiRenamePreview).not.toContain(retiredAiRenameToken);

@@ -100,12 +100,6 @@ const buttonVariants = cva(
                     "border border-input bg-background text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50",
                 speakerSettingsDangerAction:
                     "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
-                aiRenamePreviewClose:
-                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                aiRenamePreviewAction:
-                    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-                aiRenamePreviewPrimaryAction:
-                    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
                 dashboardNav:
                     "relative border border-transparent bg-transparent text-left text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none",
                 dashboardSync:
@@ -203,10 +197,6 @@ const buttonVariants = cva(
                 speakerReviewIcon: "size-[32px]",
                 speakerSettingsAction:
                     "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-                aiRenamePreviewClose:
-                    "size-6 rounded-md p-0 [&_svg:not([class*='size-'])]:size-3",
-                aiRenamePreviewAction:
-                    "h-6 shrink-0 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
                 dashboardNav:
                     "h-auto w-full justify-start gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium has-[>svg]:px-2.5",
                 dashboardSync: "size-[32px]",

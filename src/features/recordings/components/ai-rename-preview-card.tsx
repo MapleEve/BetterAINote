@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
 interface AiRenamePreviewCardProps {
     title: string;
@@ -57,6 +58,45 @@ function AiRenameErrorIcon(props: SVGProps<SVGSVGElement>) {
     );
 }
 
+const aiRenamePreviewClassNames = {
+    card: {
+        root: "w-[min(360px,calc(100vw-32px))] gap-0",
+        header:
+            "grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-3 [&_[data-slot=card-head-copy]]:min-w-0",
+        title: "break-words text-xs font-semibold leading-none text-foreground",
+        content:
+            "flex min-h-20 flex-col px-4 py-4 [&_[data-slot=card-state]]:flex [&_[data-slot=card-state]]:flex-col [&_[data-slot=card-state]]:gap-2 [&_[data-slot=card-state-label]]:text-[10.5px] [&_[data-slot=card-state-label]]:font-semibold [&_[data-slot=card-state-label]]:uppercase [&_[data-slot=card-state-label]]:tracking-[0.08em] [&_[data-slot=card-state-label]]:text-muted-foreground [&_[data-slot=card-message]]:m-0 [&_[data-slot=card-message]]:break-words [&_[data-slot=card-message]]:text-sm [&_[data-slot=card-message]]:leading-6 [&_[data-slot=card-message]]:text-muted-foreground [&_[data-slot=card-hint]]:m-0 [&_[data-slot=card-hint]]:break-words [&_[data-slot=card-hint]]:text-sm [&_[data-slot=card-hint]]:leading-6 [&_[data-slot=card-hint]]:text-muted-foreground [&_[data-slot=card-review-row]]:my-1.5 [&_[data-slot=card-review-row]]:flex [&_[data-slot=card-review-row]]:flex-col [&_[data-slot=card-review-row]]:gap-1.5 [&_[data-slot=card-review-line]]:flex [&_[data-slot=card-review-line]]:min-w-0 [&_[data-slot=card-review-line]]:items-baseline [&_[data-slot=card-review-line]]:gap-2 [&_[data-slot=card-review-line]]:rounded-lg [&_[data-slot=card-review-line]]:border [&_[data-slot=card-review-line]]:border-border [&_[data-slot=card-review-line]]:bg-muted/50 [&_[data-slot=card-review-line]]:px-2.5 [&_[data-slot=card-review-line]]:py-2 [&_[data-slot=card-review-value]]:min-w-0 [&_[data-slot=card-review-value]]:break-words [&_[data-slot=card-review-value]]:text-sm [&_[data-slot=card-review-value]]:font-semibold [&_[data-slot=card-review-value]]:leading-relaxed [&_[data-review-tone=old]]:line-through [&_[data-review-tone=old]]:text-muted-foreground [&_[data-review-tone=new]]:text-foreground [&_[data-slot=card-preview-title]]:min-w-0 [&_[data-slot=card-preview-title]]:rounded-lg [&_[data-slot=card-preview-title]]:border [&_[data-slot=card-preview-title]]:border-border [&_[data-slot=card-preview-title]]:bg-muted/50 [&_[data-slot=card-preview-title]]:px-2.5 [&_[data-slot=card-preview-title]]:py-2 [&_[data-slot=card-preview-title]]:text-sm [&_[data-slot=card-preview-title]]:font-semibold [&_[data-slot=card-preview-title]]:leading-relaxed [&_[data-slot=card-preview-title]]:text-foreground",
+        footer: "gap-1.5 px-4 py-3",
+        description:
+            "break-words text-xs font-medium leading-snug text-muted-foreground",
+        action: "shrink-0",
+    },
+    button: {
+        close:
+            "size-6 rounded-md border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg:not([class*='size-'])]:size-3",
+        action:
+            "h-6 shrink-0 gap-1 rounded-md border border-transparent bg-transparent px-2 text-xs text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground has-[>svg]:px-1.5 dark:hover:bg-accent/50 [&_svg:not([class*='size-'])]:size-3",
+        primaryAction:
+            "h-6 shrink-0 gap-1 rounded-md bg-primary px-2 text-xs text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+    },
+    badge: {
+        oldTag:
+            "min-w-[56px] justify-start border-border text-foreground uppercase tracking-[0.04em] [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        newTag:
+            "min-w-[56px] justify-start bg-secondary text-secondary-foreground uppercase tracking-[0.04em] [a&]:hover:bg-secondary/90",
+    },
+    alert: {
+        root:
+            "flex w-full items-start gap-3 rounded-lg px-4 py-3 text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-8 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
+        error:
+            "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
+        unavailable:
+            "bg-card text-card-foreground *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-muted [&_[data-slot=alert-icon]]:text-muted-foreground",
+        description:
+            "grid min-w-0 gap-1 text-left [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:text-sm [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-6 [&_[data-slot=alert-message]]:text-foreground [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:text-sm [&_[data-slot=alert-hint]]:leading-6 [&_[data-slot=alert-hint]]:text-muted-foreground",
+    },
+} as const;
+
 export function AiRenamePreviewCard({
     applyLabel,
     bodyLabel,
@@ -92,8 +132,7 @@ export function AiRenamePreviewCard({
     return (
         <Card
             hasNoPadding
-            variant="aiRenamePreview"
-            className={className}
+            className={cn(aiRenamePreviewClassNames.card.root, className)}
             data-open="true"
             data-sot-panel="ai-rename-preview"
             data-sot-state={state}
@@ -101,18 +140,18 @@ export function AiRenamePreviewCard({
             aria-label={title}
         >
             <CardHeader
-                variant="aiRenamePreview"
+                className={aiRenamePreviewClassNames.card.header}
                 data-sot-part="head"
             >
                 <div data-slot="card-head-copy" data-sot-part="head-copy">
                     <CardTitle
-                        variant="aiRenamePreview"
+                        className={aiRenamePreviewClassNames.card.title}
                         data-sot-part="eyebrow"
                     >
                         {title}
                     </CardTitle>
                     <CardDescription
-                        variant="aiRenamePreview"
+                        className={aiRenamePreviewClassNames.card.description}
                         data-sot-part="subtitle"
                     >
                         {subtitle ?? ""}
@@ -120,13 +159,14 @@ export function AiRenamePreviewCard({
                 </div>
                 {onCancel ? (
                     <CardAction
-                        variant="aiRenamePreview"
+                        className={aiRenamePreviewClassNames.card.action}
                         data-sot-part="head-action"
                     >
                         <Button
                             type="button"
-                            variant="aiRenamePreviewClose"
-                            size="aiRenamePreviewClose"
+                            variant="ghost"
+                            size="icon-xs"
+                            className={aiRenamePreviewClassNames.button.close}
                             onClick={onCancel}
                             disabled={isApplying}
                             aria-label={closeLabel ?? cancelLabel}
@@ -141,7 +181,7 @@ export function AiRenamePreviewCard({
             </CardHeader>
 
             <CardContent
-                variant="aiRenamePreview"
+                className={aiRenamePreviewClassNames.card.content}
                 data-sot-part="body"
             >
                 {state === "loading" ? (
@@ -164,13 +204,12 @@ export function AiRenamePreviewCard({
                     </div>
                 ) : isErrorState ? (
                     <Alert
-                        variant={
+                        className={cn(
+                            aiRenamePreviewClassNames.alert.root,
                             state === "error"
-                                ? "aiRenamePreviewError"
-                                : "aiRenamePreviewUnavailable"
-                        }
-                        density="aiRenamePreview"
-                        layout="aiRenamePreview"
+                                ? aiRenamePreviewClassNames.alert.error
+                                : aiRenamePreviewClassNames.alert.unavailable,
+                        )}
                         data-sot-part="state"
                         data-sot-state={state}
                     >
@@ -183,7 +222,9 @@ export function AiRenamePreviewCard({
                         </span>
                         <AlertTitle className="sr-only">{title}</AlertTitle>
                         <AlertDescription
-                            density="aiRenamePreview"
+                            className={
+                                aiRenamePreviewClassNames.alert.description
+                            }
                             data-sot-part="state-description"
                         >
                             <p
@@ -224,7 +265,11 @@ export function AiRenamePreviewCard({
                                     data-sot-part="review-line"
                                 >
                                     <Badge
-                                        variant="aiRenamePreviewOldTag"
+                                        variant="outline"
+                                        className={
+                                            aiRenamePreviewClassNames.badge
+                                                .oldTag
+                                        }
                                         data-sot-part="review-tag"
                                         data-sot-review-field="old"
                                     >
@@ -244,7 +289,11 @@ export function AiRenamePreviewCard({
                                     data-sot-part="review-line"
                                 >
                                     <Badge
-                                        variant="aiRenamePreviewNewTag"
+                                        variant="secondary"
+                                        className={
+                                            aiRenamePreviewClassNames.badge
+                                                .newTag
+                                        }
                                         data-sot-part="review-tag"
                                         data-sot-review-field="new"
                                     >
@@ -284,14 +333,17 @@ export function AiRenamePreviewCard({
                 <>
                     <Separator className="mx-4" />
                     <CardFooter
-                        variant="aiRenamePreview"
+                        className={aiRenamePreviewClassNames.card.footer}
                         data-sot-part="actions"
                     >
                         {showRegenerate ? (
                             <Button
                                 type="button"
-                                variant="aiRenamePreviewAction"
-                                size="aiRenamePreviewAction"
+                                variant="ghost"
+                                size="xs"
+                                className={
+                                    aiRenamePreviewClassNames.button.action
+                                }
                                 onClick={onRegenerate}
                                 disabled={isBusy || state === "unavailable"}
                                 aria-busy={isRegenerating}
@@ -321,8 +373,11 @@ export function AiRenamePreviewCard({
                         {showCancel ? (
                             <Button
                                 type="button"
-                                variant="aiRenamePreviewAction"
-                                size="aiRenamePreviewAction"
+                                variant="ghost"
+                                size="xs"
+                                className={
+                                    aiRenamePreviewClassNames.button.action
+                                }
                                 onClick={onCancel}
                                 disabled={isApplying}
                                 aria-label={cancelLabel}
@@ -336,8 +391,11 @@ export function AiRenamePreviewCard({
                         {showApply ? (
                             <Button
                                 type="button"
-                                variant="aiRenamePreviewPrimaryAction"
-                                size="aiRenamePreviewAction"
+                                size="xs"
+                                className={
+                                    aiRenamePreviewClassNames.button
+                                        .primaryAction
+                                }
                                 onClick={onApply}
                                 disabled={isBusy || !canAct}
                                 aria-disabled={

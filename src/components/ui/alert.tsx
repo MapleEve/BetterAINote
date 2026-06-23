@@ -15,9 +15,7 @@ type AlertVariant =
     | "settingsBannerError"
     | "settingsLoadError"
     | "settingsVoScriptWarning"
-    | "speakerReviewError"
-    | "aiRenamePreviewError"
-    | "aiRenamePreviewUnavailable";
+    | "speakerReviewError";
 type AlertDensity =
     | "default"
     | "compact"
@@ -26,8 +24,7 @@ type AlertDensity =
     | "recordingTagError"
     | "sourceReportError"
     | "settingsBanner"
-    | "speakerReviewError"
-    | "aiRenamePreview";
+    | "speakerReviewError";
 type AlertLayout =
     | "default"
     | "inline"
@@ -35,8 +32,7 @@ type AlertLayout =
     | "sourceReportError"
     | "settingsBanner"
     | "settingsBannerAction"
-    | "speakerReviewError"
-    | "aiRenamePreview";
+    | "speakerReviewError";
 type AlertTitleDensity =
     | "default"
     | "settingsBanner"
@@ -48,8 +44,7 @@ type AlertDescriptionDensity =
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
     | "settingsBanner"
-    | "speakerReviewError"
-    | "aiRenamePreview";
+    | "speakerReviewError";
 
 const settingsBannerIconSlotClassName =
     "[&_[data-sot-banner-icon]]:inline-flex [&_[data-sot-banner-icon]]:size-6 [&_[data-sot-banner-icon]]:flex-none [&_[data-sot-banner-icon]]:items-center [&_[data-sot-banner-icon]]:justify-center [&_[data-sot-banner-icon]]:rounded-md [&_[data-sot-banner-icon]]:border [&_[data-sot-banner-icon]]:border-[var(--settings-banner-icon-border)] [&_[data-sot-banner-icon]]:bg-[var(--settings-banner-icon-bg)] [&_[data-sot-banner-icon]]:text-[var(--settings-banner-icon-color)] [&_[data-sot-banner-icon]_svg]:size-3.5";
@@ -79,10 +74,6 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
     settingsVoScriptWarning: `${settingsBannerBaseVariantClassName} [--settings-banner-icon-color:var(--signal-warning)] data-[sot-state=test-error]:[--settings-banner-icon-color:var(--signal-danger)] ${settingsBannerIconSlotClassName}`,
     speakerReviewError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    aiRenamePreviewError:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-destructive/10 [&_[data-slot=alert-icon]]:text-destructive",
-    aiRenamePreviewUnavailable:
-        "bg-card text-card-foreground *:data-[slot=alert-description]:text-[var(--fg-primary)] [&_[data-slot=alert-icon]]:bg-muted [&_[data-slot=alert-icon]]:text-muted-foreground",
 };
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
@@ -100,8 +91,6 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
     settingsBanner: "mb-4 rounded-lg px-3.5 py-3 text-sm",
     speakerReviewError:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
-    aiRenamePreview:
-        "rounded-lg px-4 py-3 text-sm [&_[data-slot=alert-icon]]:flex [&_[data-slot=alert-icon]]:size-8 [&_[data-slot=alert-icon]]:shrink-0 [&_[data-slot=alert-icon]]:items-center [&_[data-slot=alert-icon]]:justify-center [&_[data-slot=alert-icon]]:rounded-full [&_[data-slot=alert-icon]_svg]:size-[14px]",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {
@@ -117,7 +106,6 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
         "grid w-full grid-cols-[auto_1fr_auto] items-start gap-3 [&_[data-sot-banner-body]]:min-w-0 [&_[data-slot=button]]:self-start",
     speakerReviewError:
         "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
-    aiRenamePreview: "flex w-full items-start gap-3",
 };
 
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
@@ -144,8 +132,6 @@ const alertDescriptionDensityClassNames: Record<
     settingsBanner: "mt-1 block text-sm text-muted-foreground",
     speakerReviewError:
         "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal",
-    aiRenamePreview:
-        "grid min-w-0 gap-1 text-left [&_[data-slot=alert-message]]:m-0 [&_[data-slot=alert-message]]:break-words [&_[data-slot=alert-message]]:text-sm [&_[data-slot=alert-message]]:font-medium [&_[data-slot=alert-message]]:leading-6 [&_[data-slot=alert-message]]:text-foreground [&_[data-slot=alert-hint]]:m-0 [&_[data-slot=alert-hint]]:break-words [&_[data-slot=alert-hint]]:text-sm [&_[data-slot=alert-hint]]:leading-6 [&_[data-slot=alert-hint]]:text-muted-foreground",
 };
 
 function Alert({
