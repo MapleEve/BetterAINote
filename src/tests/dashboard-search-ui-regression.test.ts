@@ -21,6 +21,31 @@ function extractBoundedSlice(
     return source.slice(start, end);
 }
 
+function extractDashboardSearchActivityClassNames(source: string) {
+    const marker = "const dashboardSearchActivityClassNames = {";
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("} as const;", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "} as const;".length);
+}
+
+function extractObjectStringProperty(source: string, propertyName: string) {
+    const marker = `${propertyName}:`;
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const valueStart = source.indexOf('"', markerIndex);
+    expect(valueStart).toBeGreaterThan(markerIndex);
+
+    for (let index = valueStart + 1; index < source.length; index += 1) {
+        if (source[index] === '"' && source[index - 1] !== "\\") {
+            return source.slice(markerIndex, index + 1);
+        }
+    }
+
+    throw new Error(`Unclosed string property: ${propertyName}`);
+}
+
 const OLD_UI_RE =
     /<LibrarySearch[\s/>]|<ActivityOverlay[\s/>]|<TopbarOverlayPortal[\s/>]|\.\/components\/library-search|\.\/components\/activity-overlay|\.\/components\/topbar-overlay-portal|uikit-|glass-surface|glass-control/;
 
@@ -76,35 +101,171 @@ const DASHBOARD_ACTIVITY_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-activity-dismiss"] svg',
 ];
 
-const SEARCH_ACTIVITY_OLD_GENERIC_TOKENS = [
-    'variant="ghost"',
-    'variant="outline"',
-    'variant="secondary"',
-    'size="icon-sm"',
-    'size="icon-xs"',
-    'size="xs"',
-    'size="sm"',
+const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
+    "components/ui/button.tsx",
+    "components/ui/badge.tsx",
+    "components/ui/card.tsx",
+    "components/ui/input-group.tsx",
+    "components/ui/toggle-group.tsx",
+    "components/ui/alert.tsx",
 ] as const;
 
-const SEARCH_ACTIVITY_OLD_VISUAL_CLASS_SNIPPETS = [
-    "border border-transparent text-muted-foreground data-[sot-state=open]",
-    "rounded-xl border-border bg-card text-card-foreground shadow-2xl",
-    "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border",
-    "p-0 text-muted-foreground",
-    "h-8 px-1 text-sm font-medium",
-    "text-muted-foreground hover:text-foreground",
-    "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
-    "h-6 rounded-full px-2.5 text-xs data-[state=on]",
-    "flex flex-col items-center gap-2 border-0 bg-transparent px-4 py-4 text-center",
-    "line-clamp-none min-h-0 text-center text-sm font-medium",
-    "h-auto min-h-[52px] w-full flex-col items-start justify-start",
-    "w-fit gap-1.5 border-primary/25 bg-primary/10 text-primary",
-    "text-sm font-semibold leading-snug text-foreground",
-    "font-mono text-[11.5px] font-medium leading-snug tracking-[0.02em] text-muted-foreground",
+const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
+    /\b(?:dashboardSearch|librarySearch|dashboardActivity)[A-Za-z0-9_]*/g;
+
+const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
+    {
+        propertyName: "dashboardSearchTrigger",
+        snippets: [
+            "relative size-[32px]",
+            "data-[sot-state=open]:border-border",
+            "data-[sot-state=open]:bg-accent",
+            "data-[sot-state=open]:text-accent-foreground",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityTrigger",
+        snippets: [
+            "relative size-[32px]",
+            "data-[sot-state=open]:border-border",
+            "data-[sot-state=open]:bg-accent",
+            "data-[sot-state=open]:text-accent-foreground",
+            "[&_[data-sot-part=dashboard-activity-badge]]:absolute",
+            "[&_[data-sot-part=dashboard-activity-badge]]:right-0.5",
+            "[&_[data-sot-part=dashboard-activity-badge]]:top-0.5",
+            "[&_[data-sot-part=dashboard-activity-badge]]:h-4",
+            "[&_[data-sot-part=dashboard-activity-badge]]:min-w-4",
+            "[&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)]",
+            "[&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchPanel",
+        snippets: [
+            "border-border",
+            "bg-card",
+            "text-card-foreground",
+            "shadow-2xl",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityPanel",
+        snippets: [
+            "border-[var(--line-hairline)]",
+            "bg-[var(--bg-elevated)]",
+            "shadow-[var(--shadow-lg)]",
+            "dark:border-[var(--glass-border)]",
+            "dark:bg-[var(--graphite-900)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchInputRow",
+        snippets: ["bg-transparent", "focus-within:ring-0"],
+    },
+    {
+        propertyName: "librarySearchInput",
+        snippets: ["h-8 px-1 text-sm font-medium md:text-sm"],
+    },
+    {
+        propertyName: "librarySearchScopeItem",
+        snippets: [
+            "data-[state=on]:border-primary/30",
+            "data-[state=on]:bg-primary/10",
+            "data-[state=on]:text-primary",
+        ],
+    },
+    {
+        propertyName: "librarySearchError",
+        snippets: [
+            "flex w-full flex-col items-center gap-2",
+            "px-4 py-4",
+            "*:data-[slot=alert-description]:text-[var(--signal-danger)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchErrorTitle",
+        snippets: ["line-clamp-none min-h-0", "tracking-normal"],
+    },
+    {
+        propertyName: "librarySearchResult",
+        snippets: [
+            "data-[active=true]:bg-accent",
+            "[&_[data-sot-part=library-search-result-meta]]:font-mono",
+            "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
+            "[&_[data-sot-part=library-search-result-title]]:font-semibold",
+            "[&_[data-sot-part=library-search-result-title]]:text-foreground",
+        ],
+    },
+    {
+        propertyName: "librarySearchTag",
+        snippets: [
+            "w-fit justify-normal gap-1.5",
+            "border-primary/25",
+            "bg-primary/10",
+            "[&>svg]:size-3",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityCount",
+        snippets: ["border-0 bg-transparent p-0", "font-mono text-[11px]"],
+    },
+    {
+        propertyName: "librarySearchClear",
+        snippets: ["size-6", "hover:bg-transparent", "hover:text-foreground"],
+    },
+    {
+        propertyName: "librarySearchRetry",
+        snippets: [
+            "h-6 gap-1",
+            "hover:bg-accent hover:text-accent-foreground",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityClose",
+        snippets: [
+            "size-[26px]",
+            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivitySync",
+        snippets: [
+            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "disabled:cursor-not-allowed",
+            "has-[>svg]:px-[10px]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityAction",
+        snippets: [
+            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "disabled:cursor-not-allowed",
+            "has-[>svg]:px-[10px]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityDismiss",
+        snippets: [
+            "size-[22px]",
+            "p-px",
+            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "[&_svg:not([class*='size-'])]:size-[11px]",
+        ],
+    },
+] as const;
+
+const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    'aria-expanded={searchOpen}',
+    'aria-expanded={activityOpen}',
+    'data-sot-state={searchOpen ? "open" : "idle"}',
+    'data-sot-state={activityOpen ? "open" : "idle"}',
+    "placeholder={t(",
+    '"librarySearch.shortPlaceholder"',
+    "dashboardSearchActivityClassNames.librarySearchInput",
 ] as const;
 
 describe("dashboard SOT search and activity interactions", () => {
-    it("keeps search inline in the SOT topbar with all query states", () => {
+    it("keeps search inline in the SOT topbar with feature-owned hooks and all query states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const searchSlice = extractBoundedSlice(
             workstation,
@@ -143,32 +304,21 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("<InputGroupButton");
         expect(workstation).toContain("<ToggleGroup");
         expect(workstation).toContain("<ToggleGroupItem");
-        for (const semanticToken of [
-            'variant="dashboardSearchTrigger"',
-            'size="dashboardSearchTrigger"',
-            'variant="librarySearchPanel"',
-            'variant="librarySearchInputRow"',
-            'variant="librarySearchClear"',
-            'size="librarySearchClear"',
-            'layout="librarySearchScope"',
-            'variant="librarySearchScopeItem"',
-            'size="librarySearchScopeItem"',
-            'variant="librarySearchError"',
-            'density="librarySearchError"',
-            'layout="librarySearchError"',
-            'variant="librarySearchRetry"',
-            'size="librarySearchRetry"',
-            'variant="librarySearchResult"',
-            'size="librarySearchResult"',
-            'variant="librarySearchTag"',
+        for (const compositionToken of [
+            "<Button",
+            "<Card",
+            "<CardContent",
+            "<InputGroup",
+            "<InputGroupAddon",
+            "<InputGroupInput",
+            "<InputGroupButton",
+            "<ToggleGroup",
+            "<ToggleGroupItem",
+            "<Alert",
+            "<AlertTitle",
+            "<Badge",
         ]) {
-            expect(searchSlice).toContain(semanticToken);
-        }
-        for (const oldToken of SEARCH_ACTIVITY_OLD_GENERIC_TOKENS) {
-            expect(searchSlice).not.toContain(oldToken);
-        }
-        for (const oldClass of SEARCH_ACTIVITY_OLD_VISUAL_CLASS_SNIPPETS) {
-            expect(searchSlice).not.toContain(oldClass);
+            expect(searchSlice).toContain(compositionToken);
         }
         expect(workstation).toContain('data-sot-panel="library-search"');
         expect(workstation).toContain(
@@ -329,7 +479,7 @@ describe("dashboard SOT search and activity interactions", () => {
         );
     });
 
-    it("keeps activity center inline with sync, settings, recording, dismiss, and empty states", () => {
+    it("keeps activity center inline with feature-owned hooks for sync, settings, recording, dismiss, and empty states", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
         const activitySlice = extractBoundedSlice(
             workstation,
@@ -363,24 +513,16 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain(
             'data-sot-control="dashboard-activity-close"',
         );
-        for (const semanticToken of [
-            'variant="dashboardActivityTrigger"',
-            'size="dashboardActivityTrigger"',
-            'variant="dashboardActivityPanel"',
-            'variant="dashboardActivityCount"',
-            'variant="dashboardActivityClose"',
-            'size="dashboardActivityClose"',
-            'variant="dashboardActivitySync"',
-            'size="dashboardActivitySync"',
-            'variant="dashboardActivityAction"',
-            'size="dashboardActivityAction"',
-            'variant="dashboardActivityDismiss"',
-            'size="dashboardActivityDismiss"',
+        for (const compositionToken of [
+            "<Button",
+            "<Card",
+            "<CardHeader",
+            "<CardTitle",
+            "<CardContent",
+            "<CardAction",
+            "<Badge",
         ]) {
-            expect(activitySlice).toContain(semanticToken);
-        }
-        for (const oldToken of SEARCH_ACTIVITY_OLD_GENERIC_TOKENS) {
-            expect(activitySlice).not.toContain(oldToken);
+            expect(activitySlice).toContain(compositionToken);
         }
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain(
@@ -439,35 +581,38 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).toContain("selectRecording(item.recordingId)");
     });
 
-    it("defines search and activity semantic primitives in the shadcn layer", () => {
-        const button = readSource("components/ui/button.tsx");
-        const badge = readSource("components/ui/badge.tsx");
-        const card = readSource("components/ui/card.tsx");
-        const inputGroup = readSource("components/ui/input-group.tsx");
-        const toggleGroup = readSource("components/ui/toggle-group.tsx");
-        const alert = readSource("components/ui/alert.tsx");
+    it("keeps migrated search and activity visual state snippets owned by the workstation", () => {
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const classNames =
+            extractDashboardSearchActivityClassNames(workstation);
 
-        for (const token of [
-            "dashboardSearchTrigger:",
-            "librarySearchClear:",
-            "librarySearchRetry:",
-            "librarySearchResult:",
-            "dashboardActivityTrigger:",
-            "dashboardActivityClose:",
-            "dashboardActivitySync:",
-            "dashboardActivityAction:",
-            "dashboardActivityDismiss:",
-        ]) {
-            expect(button).toContain(token);
+        for (const {
+            propertyName,
+            snippets,
+        } of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS) {
+            const property = extractObjectStringProperty(
+                classNames,
+                propertyName,
+            );
+
+            for (const snippet of snippets) {
+                expect(property).toContain(snippet);
+            }
         }
-        expect(badge).toContain("librarySearchTag:");
-        expect(badge).toContain("dashboardActivityCount:");
-        expect(card).toContain("librarySearchPanel:");
-        expect(card).toContain("dashboardActivityPanel:");
-        expect(inputGroup).toContain("librarySearchInputRow:");
-        expect(inputGroup).toContain('"librarySearchClear"');
-        expect(toggleGroup).toContain('"librarySearchScope"');
-        expect(toggleGroup).toContain("librarySearchScopeItem:");
-        expect(alert).toContain('"librarySearchError"');
+
+        for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
+            expect(workstation).toContain(snippet);
+        }
+    });
+
+    it("keeps search and activity business tokens out of shadcn primitives", () => {
+        const primitiveBusinessTokens = SEARCH_ACTIVITY_PRIMITIVE_FILES.flatMap(
+            (file) =>
+                (readSource(file).match(SEARCH_ACTIVITY_BUSINESS_TOKEN_RE) ?? [])
+                    .sort()
+                    .map((token) => `${file}:${token}`),
+        );
+
+        expect(primitiveBusinessTokens).toEqual([]);
     });
 });

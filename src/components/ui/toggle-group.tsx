@@ -14,8 +14,7 @@ type ToggleGroupLayout =
     | "settingsSourceAuthMode"
     | "recordingTagColorPicker"
     | "recordingTagIconPicker"
-    | "speakerReviewMode"
-    | "librarySearchScope";
+    | "speakerReviewMode";
 type ToggleGroupSemanticSpacing =
     | "onboardingSourceAuthMode"
     | "settingsSegmentSpacing"
@@ -55,8 +54,6 @@ const toggleGroupItemVariants = cva(
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
                 settingsSourceAuthModeOption:
                     "h-auto flex-col items-start justify-start whitespace-normal border border-input bg-background px-3.5 py-3 text-left shadow-xs",
-                librarySearchScopeItem:
-                    "border border-input bg-background shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
                 recordingTagColorPicker: "",
                 recordingTagIconPicker: "",
                 recordingTagIconOption:
@@ -81,8 +78,6 @@ const toggleGroupItemVariants = cva(
                 settingsSegmentOption: "h-8 px-2",
                 onboardingSourceAuthModeOption: "",
                 settingsSourceAuthModeOption: "",
-                librarySearchScopeItem:
-                    "h-6 rounded-full px-2.5 text-xs",
                 recordingTagColorPicker: "h-8 px-2",
                 recordingTagIconPicker: "h-8 px-2",
                 recordingTagIconOption: "size-7 min-w-0 shrink-0 p-0",
@@ -157,8 +152,6 @@ function ToggleGroup({
                 layout === "recordingTagColorPicker" && "flex-wrap",
                 layout === "recordingTagIconPicker" && "grid grid-cols-6",
                 layout === "speakerReviewMode" && "flex-nowrap",
-                layout === "librarySearchScope" &&
-                    "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
                 className,
             )}
             {...props}

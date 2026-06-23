@@ -455,6 +455,48 @@ const dashboardRecordingTimeFilterStyles = {
     countSelected: "bg-primary/10 text-primary",
 } as const;
 
+const dashboardSearchActivityClassNames = {
+    dashboardSearchTrigger:
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-4",
+    librarySearchPanel:
+        "gap-0 rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none",
+    librarySearchInputRow:
+        "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0",
+    librarySearchInputAddon: "p-0 has-[>button]:m-0",
+    librarySearchInput:
+        "h-8 px-1 text-sm font-medium md:text-sm",
+    librarySearchClear:
+        "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3 [&_svg:not([class*='size-'])]:size-3",
+    librarySearchScope:
+        "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
+    librarySearchScopeItem:
+        "h-6 rounded-full border border-input bg-background px-2.5 text-xs shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
+    librarySearchError:
+        "flex w-full flex-col items-center gap-2 rounded-none border-0 bg-transparent px-4 py-4 text-center text-sm text-[var(--signal-danger)] shadow-none *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
+    librarySearchErrorTitle:
+        "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
+    librarySearchRetry:
+        "h-6 gap-1 rounded-md border border-input bg-background px-2 text-xs text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50 has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+    librarySearchResult:
+        "h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 rounded-sm border border-transparent bg-transparent px-2.5 py-2 text-left whitespace-normal shadow-none hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground [&_[data-sot-part=library-search-result-meta]]:font-mono [&_[data-sot-part=library-search-result-meta]]:text-[11.5px] [&_[data-sot-part=library-search-result-meta]]:font-medium [&_[data-sot-part=library-search-result-meta]]:leading-snug [&_[data-sot-part=library-search-result-meta]]:tracking-[0.02em] [&_[data-sot-part=library-search-result-meta]]:text-muted-foreground [&_[data-sot-part=library-search-result-title]]:text-sm [&_[data-sot-part=library-search-result-title]]:font-semibold [&_[data-sot-part=library-search-result-title]]:leading-snug [&_[data-sot-part=library-search-result-title]]:text-foreground",
+    librarySearchTag:
+        "w-fit justify-normal gap-1.5 border-primary/25 bg-primary/10 text-primary [a&]:hover:bg-primary/10 [&>svg]:size-3",
+    dashboardActivityTrigger:
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-white [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
+    dashboardActivityPanel:
+        "gap-0 overflow-hidden rounded-[12px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-lg)] backdrop-blur-none dark:border-[var(--glass-border)] dark:bg-[var(--graphite-900)]",
+    dashboardActivityCount:
+        "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-[var(--fg-tertiary)] [a&]:hover:bg-transparent",
+    dashboardActivityClose:
+        "size-[26px] rounded-[7px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-3",
+    dashboardActivitySync:
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+    dashboardActivityAction:
+        "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+    dashboardActivityDismiss:
+        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
+} as const;
+
 function dashboardRecordingTimeFilterCountClassName(active: boolean) {
     return cn(
         dashboardRecordingTimeFilterStyles.count,
@@ -4285,8 +4327,11 @@ export function Workstation({
                         >
                             <Button
                                 ref={searchTriggerRef}
-                                variant="dashboardSearchTrigger"
-                                size="dashboardSearchTrigger"
+                                variant="ghost"
+                                size="icon-sm"
+                                className={
+                                    dashboardSearchActivityClassNames.dashboardSearchTrigger
+                                }
                                 type="button"
                                 aria-label={t("librarySearch.openSearch")}
                                 aria-expanded={searchOpen}
@@ -4305,7 +4350,10 @@ export function Workstation({
                             {searchOpen ? (
                                 <Card
                                     hasNoPadding
-                                    variant="librarySearchPanel"
+                                    variant="default"
+                                    className={
+                                        dashboardSearchActivityClassNames.librarySearchPanel
+                                    }
                                     data-open="true"
                                     data-state={searchPanelState}
                                     data-sot-panel="library-search"
@@ -4318,7 +4366,10 @@ export function Workstation({
                                     onKeyDown={handleLibrarySearchKeyDown}
                                 >
                                     <InputGroup
-                                        variant="librarySearchInputRow"
+                                        variant="default"
+                                        className={
+                                            dashboardSearchActivityClassNames.librarySearchInputRow
+                                        }
                                         data-sot-part="library-search-input-row"
                                         data-state={searchPanelState}
                                         data-disabled={String(
@@ -4327,11 +4378,17 @@ export function Workstation({
                                     >
                                         <InputGroupAddon
                                             align="inline-start"
+                                            className={
+                                                dashboardSearchActivityClassNames.librarySearchInputAddon
+                                            }
                                         >
                                             <Search data-icon="inline-start" />
                                         </InputGroupAddon>
                                         <InputGroupInput
-                                            variant="librarySearchInputRow"
+                                            variant="default"
+                                            className={
+                                                dashboardSearchActivityClassNames.librarySearchInput
+                                            }
                                             ref={searchInputRef}
                                             value={query}
                                             aria-disabled={
@@ -4360,8 +4417,11 @@ export function Workstation({
                                         searchPanelState !== "indexing" &&
                                         searchPanelState !== "error" ? (
                                             <InputGroupButton
-                                                variant="librarySearchClear"
-                                                size="librarySearchClear"
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchClear
+                                                }
                                                 aria-label={t(
                                                     "librarySearch.clearSearch",
                                                 )}
@@ -4387,9 +4447,12 @@ export function Workstation({
                                     </InputGroup>
                                     <ToggleGroup
                                         type="single"
-                                        layout="librarySearchScope"
-                                        variant="librarySearchScopeItem"
-                                        size="librarySearchScopeItem"
+                                        layout="default"
+                                        variant="outline"
+                                        size="sm"
+                                        className={
+                                            dashboardSearchActivityClassNames.librarySearchScope
+                                        }
                                         value={searchScope}
                                         spacing={1.5}
                                         aria-label={t(
@@ -4431,6 +4494,9 @@ export function Workstation({
                                                     item.value
                                                 }
                                                 data-search-scope={item.value}
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchScopeItem
+                                                }
                                                 disabled={
                                                     searchPanelState ===
                                                     "indexing"
@@ -4478,21 +4544,30 @@ export function Workstation({
                                             </div>
                                         ) : searchError ? (
                                             <Alert
-                                                variant="librarySearchError"
-                                                density="librarySearchError"
-                                                layout="librarySearchError"
+                                                variant="default"
+                                                density="default"
+                                                layout="default"
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchError
+                                                }
                                                 data-sot-part="library-search-error"
                                                 data-sot-state="error"
                                             >
                                                 <AlertTitle
-                                                    density="librarySearchError"
+                                                    density="default"
+                                                    className={
+                                                        dashboardSearchActivityClassNames.librarySearchErrorTitle
+                                                    }
                                                     data-sot-part="library-search-state-title"
                                                 >
                                                     {t("librarySearch.error")}
                                                 </AlertTitle>
                                                 <Button
-                                                    variant="librarySearchRetry"
-                                                    size="librarySearchRetry"
+                                                    variant="outline"
+                                                    size="xs"
+                                                    className={
+                                                        dashboardSearchActivityClassNames.librarySearchRetry
+                                                    }
                                                     type="button"
                                                     data-sot-control="library-search-retry"
                                                     onClick={() => {
@@ -4555,8 +4630,11 @@ export function Workstation({
                                                                         );
                                                                     return (
                                                                         <Button
-                                                                            variant="librarySearchResult"
-                                                                            size="librarySearchResult"
+                                                                            variant="ghost"
+                                                                            size="default"
+                                                                            className={
+                                                                                dashboardSearchActivityClassNames.librarySearchResult
+                                                                            }
                                                                             type="button"
                                                                             key={`${result.entityType}:${result.entityId}`}
                                                                             data-active={
@@ -4593,7 +4671,10 @@ export function Workstation({
                                                                             {result.entityType ===
                                                                             "tag" ? (
                                                                                 <Badge
-                                                                                    variant="librarySearchTag"
+                                                                                    variant="secondary"
+                                                                                    className={
+                                                                                        dashboardSearchActivityClassNames.librarySearchTag
+                                                                                    }
                                                                                     data-sot-part="library-search-tag-chip"
                                                                                 >
                                                                                     <Tags data-icon="inline-start" />
@@ -4677,8 +4758,11 @@ export function Workstation({
                         >
                             <Button
                                 ref={activityTriggerRef}
-                                variant="dashboardActivityTrigger"
-                                size="dashboardActivityTrigger"
+                                variant="ghost"
+                                size="icon-sm"
+                                className={
+                                    dashboardSearchActivityClassNames.dashboardActivityTrigger
+                                }
                                 type="button"
                                 aria-label={t("activityOverlay.open")}
                                 aria-expanded={activityOpen}
@@ -4706,7 +4790,10 @@ export function Workstation({
                             {activityOpen ? (
                                 <Card
                                     hasNoPadding
-                                    variant="dashboardActivityPanel"
+                                    variant="default"
+                                    className={
+                                        dashboardSearchActivityClassNames.dashboardActivityPanel
+                                    }
                                     data-open="true"
                                     data-state={activityPanelState}
                                     data-sot-panel="dashboard-activity"
@@ -4723,7 +4810,10 @@ export function Workstation({
                                                 {t("activityOverlay.title")}
                                             </CardTitle>
                                             <Badge
-                                                variant="dashboardActivityCount"
+                                                variant="ghost"
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityCount
+                                                }
                                                 data-sot-part="dashboard-activity-count"
                                             >
                                                 {t(
@@ -4736,8 +4826,11 @@ export function Workstation({
                                         </div>
                                         <CardAction data-sot-part="dashboard-activity-header-action">
                                             <Button
-                                                variant="dashboardActivityClose"
-                                                size="dashboardActivityClose"
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityClose
+                                                }
                                                 type="button"
                                                 aria-label={t(
                                                     "activityOverlay.close",
@@ -4776,8 +4869,11 @@ export function Workstation({
                                                 </div>
                                             </div>
                                             <Button
-                                                variant="dashboardActivitySync"
-                                                size="dashboardActivitySync"
+                                                variant="ghost"
+                                                size="control-xs"
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivitySync
+                                                }
                                                 type="button"
                                                 aria-busy={syncButtonBusy}
                                                 disabled={syncButtonBusy}
@@ -4935,8 +5031,11 @@ export function Workstation({
                                                             <div data-sot-part="dashboard-activity-item-actions">
                                                                 {item.action ? (
                                                                     <Button
-                                                                        variant="dashboardActivityAction"
-                                                                        size="dashboardActivityAction"
+                                                                        variant="ghost"
+                                                                        size="control-xs"
+                                                                        className={
+                                                                            dashboardSearchActivityClassNames.dashboardActivityAction
+                                                                        }
                                                                         type="button"
                                                                         data-action-state={
                                                                             item.action ===
@@ -4973,8 +5072,11 @@ export function Workstation({
                                                                     </Button>
                                                                 ) : null}
                                                                 <Button
-                                                                    variant="dashboardActivityDismiss"
-                                                                    size="dashboardActivityDismiss"
+                                                                    variant="ghost"
+                                                                    size="icon-2xs"
+                                                                    className={
+                                                                        dashboardSearchActivityClassNames.dashboardActivityDismiss
+                                                                    }
                                                                     type="button"
                                                                     aria-label={t(
                                                                         "activityOverlay.dismissItem",

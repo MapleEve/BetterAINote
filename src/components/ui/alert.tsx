@@ -8,7 +8,6 @@ type AlertVariant =
     | "destructiveSoft"
     | "destructiveSoftNeutral"
     | "statusError"
-    | "librarySearchError"
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
     | "sourceReportError"
@@ -23,7 +22,6 @@ type AlertDensity =
     | "default"
     | "compact"
     | "comfortable"
-    | "librarySearchError"
     | "recordingTagDeleteConfirm"
     | "recordingTagError"
     | "sourceReportError"
@@ -33,7 +31,6 @@ type AlertDensity =
 type AlertLayout =
     | "default"
     | "inline"
-    | "librarySearchError"
     | "recordingTagInline"
     | "sourceReportError"
     | "settingsBanner"
@@ -42,7 +39,6 @@ type AlertLayout =
     | "aiRenamePreview";
 type AlertTitleDensity =
     | "default"
-    | "librarySearchError"
     | "settingsBanner"
     | "speakerReviewError";
 type AlertDescriptionDensity =
@@ -71,8 +67,6 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
     statusError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    librarySearchError:
-        "border-0 bg-transparent text-[var(--signal-danger)] shadow-none *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     recordingTagDeleteConfirm:
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
     recordingTagError:
@@ -98,8 +92,6 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     comfortable:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
-    librarySearchError:
-        "px-4 py-4 text-center text-sm",
     recordingTagDeleteConfirm:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     recordingTagError:
@@ -116,8 +108,6 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
     default:
         "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current",
     inline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
-    librarySearchError:
-        "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
     recordingTagInline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
     sourceReportError:
         "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
@@ -133,8 +123,6 @@ const alertLayoutClassNames: Record<AlertLayout, string> = {
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
     default:
         "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-    librarySearchError:
-        "min-h-0 text-center text-sm font-medium tracking-normal",
     settingsBanner: "font-medium leading-none",
     speakerReviewError: "min-h-0 font-medium leading-normal tracking-normal",
 };

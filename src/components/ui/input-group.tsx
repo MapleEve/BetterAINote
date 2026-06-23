@@ -14,7 +14,6 @@ type InputGroupAddonAlign =
 type InputGroupVariant =
     | "default"
     | "compact"
-    | "librarySearchInputRow"
     | "recordingTagCreateRow"
     | "recordingTagNameInput";
 type InputGroupButtonSize =
@@ -23,18 +22,14 @@ type InputGroupButtonSize =
     | "icon-xs"
     | "icon-sm"
     | "icon-compact"
-    | "librarySearchClear"
     | "speakerReviewMappingClear";
 type InputGroupButtonVariant =
     | NonNullable<ButtonProps["variant"]>
-    | "librarySearchClear"
     | "speakerReviewMappingClear";
 
 const inputGroupVariantClassNames: Record<InputGroupVariant, string> = {
     default: "h-9 rounded-md border border-input bg-background shadow-xs",
     compact: "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
-    librarySearchInputRow:
-        "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0",
     recordingTagCreateRow:
         "h-[30px] gap-[6px] border-0 bg-transparent shadow-none",
     recordingTagNameInput:
@@ -45,8 +40,6 @@ const inputGroupInputVariantClassNames: Record<InputGroupVariant, string> = {
     default: "",
     compact:
         "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
-    librarySearchInputRow:
-        "h-8 px-1 text-sm font-medium md:text-sm",
     recordingTagCreateRow:
         "h-[30px] rounded-[7px] border border-[var(--input-compact-border)] bg-[var(--input-compact-bg)] px-[10px] py-0 font-mono text-[12px] font-medium text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[12px] dark:bg-[var(--input-compact-bg)]",
     recordingTagNameInput:
@@ -63,7 +56,6 @@ const inputGroupButtonVariantClassNames: Partial<
 function resolveInputGroupButtonVariant(
     variant: InputGroupButtonVariant,
 ): ButtonProps["variant"] {
-    if (variant === "librarySearchClear") return "librarySearchClear";
     return variant === "speakerReviewMappingClear"
         ? "speakerReviewGhostAction"
         : variant;
@@ -101,7 +93,6 @@ function inputGroupAddonClassName({
             "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem] group-data-[variant=compact]/input-group:pl-0 group-data-[variant=compact]/input-group:has-[>button]:ml-0 group-data-[variant=compact]/input-group:has-[>kbd]:ml-0 group-data-[variant=recordingTagCreateRow]/input-group:pl-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>button]:ml-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>kbd]:ml-0",
         align === "inline-end" &&
             "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem] group-data-[variant=compact]/input-group:pr-0 group-data-[variant=compact]/input-group:has-[>button]:mr-0 group-data-[variant=compact]/input-group:has-[>kbd]:mr-0 group-data-[variant=recordingTagCreateRow]/input-group:pr-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>button]:mr-0 group-data-[variant=recordingTagCreateRow]/input-group:has-[>kbd]:mr-0",
-        "group-data-[variant=librarySearchInputRow]/input-group:p-0 group-data-[variant=librarySearchInputRow]/input-group:has-[>button]:m-0",
         align === "block-start" &&
             "order-first w-full justify-start px-3 pt-3 [.border-b]:pb-3",
         align === "block-end" &&
@@ -145,8 +136,6 @@ function inputGroupButtonClassName({
         size === "icon-sm" && "size-8 p-0 has-[>svg]:p-0",
         size === "icon-compact" &&
             "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-[14px]",
-        size === "librarySearchClear" &&
-            "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3",
         size === "speakerReviewMappingClear" &&
             "size-6 rounded-[calc(var(--radius-md)-5px)] p-0 has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3",
         className,

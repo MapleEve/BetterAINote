@@ -24,6 +24,156 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+const SEARCH_ACTIVITY_PRIMITIVE_FILES = [
+    "components/ui/button.tsx",
+    "components/ui/badge.tsx",
+    "components/ui/card.tsx",
+    "components/ui/input-group.tsx",
+    "components/ui/toggle-group.tsx",
+    "components/ui/alert.tsx",
+] as const;
+
+const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
+    /\b(?:dashboardSearch|librarySearch|dashboardActivity)[A-Za-z0-9_]*/g;
+
+const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
+    {
+        propertyName: "dashboardSearchTrigger",
+        snippets: [
+            "data-[sot-state=open]:border-border",
+            "data-[sot-state=open]:bg-accent",
+            "data-[sot-state=open]:text-accent-foreground",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityTrigger",
+        snippets: [
+            "data-[sot-state=open]:border-border",
+            "[&_[data-sot-part=dashboard-activity-badge]]:absolute",
+            "[&_[data-sot-part=dashboard-activity-badge]]:right-0.5",
+            "[&_[data-sot-part=dashboard-activity-badge]]:top-0.5",
+            "[&_[data-sot-part=dashboard-activity-badge]]:min-w-4",
+            "[&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchPanel",
+        snippets: ["border-border", "bg-card", "shadow-2xl"],
+    },
+    {
+        propertyName: "dashboardActivityPanel",
+        snippets: [
+            "border-[var(--line-hairline)]",
+            "shadow-[var(--shadow-lg)]",
+            "dark:border-[var(--glass-border)]",
+            "dark:bg-[var(--graphite-900)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchInputRow",
+        snippets: ["bg-transparent", "focus-within:ring-0"],
+    },
+    {
+        propertyName: "librarySearchInput",
+        snippets: ["h-8 px-1 text-sm font-medium md:text-sm"],
+    },
+    {
+        propertyName: "librarySearchScopeItem",
+        snippets: [
+            "data-[state=on]:border-primary/30",
+            "data-[state=on]:bg-primary/10",
+            "data-[state=on]:text-primary",
+        ],
+    },
+    {
+        propertyName: "librarySearchError",
+        snippets: [
+            "flex w-full flex-col items-center gap-2",
+            "px-4 py-4",
+            "*:data-[slot=alert-description]:text-[var(--signal-danger)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchErrorTitle",
+        snippets: ["line-clamp-none min-h-0", "tracking-normal"],
+    },
+    {
+        propertyName: "librarySearchResult",
+        snippets: [
+            "[&_[data-sot-part=library-search-result-meta]]:font-mono",
+            "[&_[data-sot-part=library-search-result-title]]:font-semibold",
+            "[&_[data-sot-part=library-search-result-title]]:text-foreground",
+        ],
+    },
+    {
+        propertyName: "librarySearchTag",
+        snippets: [
+            "w-fit justify-normal gap-1.5",
+            "border-primary/25",
+            "bg-primary/10",
+            "[&>svg]:size-3",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityCount",
+        snippets: ["border-0 bg-transparent p-0", "font-mono text-[11px]"],
+    },
+    {
+        propertyName: "librarySearchClear",
+        snippets: ["size-6", "hover:bg-transparent"],
+    },
+    {
+        propertyName: "librarySearchRetry",
+        snippets: ["hover:bg-accent hover:text-accent-foreground"],
+    },
+    {
+        propertyName: "dashboardActivityClose",
+        snippets: [
+            "size-[26px]",
+            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivitySync",
+        snippets: [
+            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "disabled:cursor-not-allowed",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityAction",
+        snippets: [
+            "data-[action-state=error]:text-[var(--signal-danger)]",
+            "disabled:cursor-not-allowed",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityDismiss",
+        snippets: [
+            "size-[22px]",
+            "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "[&_svg:not([class*='size-'])]:size-[11px]",
+        ],
+    },
+] as const;
+
+const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
+    'aria-expanded={searchOpen}',
+    'aria-expanded={activityOpen}',
+    'data-sot-state={searchOpen ? "open" : "idle"}',
+    'data-sot-state={activityOpen ? "open" : "idle"}',
+    "placeholder={t(",
+    '"librarySearch.shortPlaceholder"',
+] as const;
+
+function collectSearchActivityPrimitiveBusinessTokens() {
+    return SEARCH_ACTIVITY_PRIMITIVE_FILES.flatMap((file) =>
+        (readSource(file).match(SEARCH_ACTIVITY_BUSINESS_TOKEN_RE) ?? [])
+            .sort()
+            .map((token) => `${file}:${token}`),
+    );
+}
+
 function extractCardSlice(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -44,6 +194,31 @@ function extractBoundedSlice(
     const end = source.indexOf(endMarker, start);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end);
+}
+
+function extractDashboardSearchActivityClassNames(source: string) {
+    const marker = "const dashboardSearchActivityClassNames = {";
+    const start = source.indexOf(marker);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf("} as const;", start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + "} as const;".length);
+}
+
+function extractObjectStringProperty(source: string, propertyName: string) {
+    const marker = `${propertyName}:`;
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const valueStart = source.indexOf('"', markerIndex);
+    expect(valueStart).toBeGreaterThan(markerIndex);
+
+    for (let index = valueStart + 1; index < source.length; index += 1) {
+        if (source[index] === '"' && source[index - 1] !== "\\") {
+            return source.slice(markerIndex, index + 1);
+        }
+    }
+
+    throw new Error(`Unclosed string property: ${propertyName}`);
 }
 
 function extractVariantDefinition(source: string, variantName: string) {
@@ -4133,35 +4308,37 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain('data-sot-list="library-search-results"');
         expect(workstation).toContain("groupedSearchResults.map");
         expect(workstation).toContain("group.results.map");
+        expect(collectSearchActivityPrimitiveBusinessTokens()).toEqual([]);
         const dashboardSearchSlice = extractBoundedSlice(
             workstation,
             'data-sot-part="library-search-anchor"',
             'data-sot-part="dashboard-activity-anchor"',
         );
-        for (const semanticToken of [
-            'variant="dashboardSearchTrigger"',
-            'size="dashboardSearchTrigger"',
-            'variant="librarySearchPanel"',
-            'variant="librarySearchInputRow"',
-            'variant="librarySearchClear"',
-            'layout="librarySearchScope"',
-            'variant="librarySearchScopeItem"',
-            'variant="librarySearchRetry"',
-            'variant="librarySearchResult"',
-            'variant="librarySearchTag"',
+        for (const featureHook of [
+            'data-sot-control="dashboard-search"',
+            'data-sot-panel="library-search"',
+            'data-sot-control="library-search-input"',
+            'data-sot-control="library-search-clear"',
+            'data-sot-part="library-search-scope"',
+            'data-sot-control="library-search-retry"',
+            'data-sot-control="library-search-result"',
+            'data-sot-part="library-search-tag-chip"',
         ]) {
-            expect(dashboardSearchSlice).toContain(semanticToken);
+            expect(dashboardSearchSlice).toContain(featureHook);
         }
-        for (const oldToken of [
-            'variant="ghost"',
-            'variant="outline"',
-            'variant="secondary"',
-            'size="icon-sm"',
-            'size="icon-xs"',
-            'size="xs"',
-            'size="sm"',
+        for (const compositionToken of [
+            "<Button",
+            "<Card",
+            "<CardContent",
+            "<InputGroup",
+            "<InputGroupInput",
+            "<InputGroupButton",
+            "<ToggleGroup",
+            "<ToggleGroupItem",
+            "<Alert",
+            "<Badge",
         ]) {
-            expect(dashboardSearchSlice).not.toContain(oldToken);
+            expect(dashboardSearchSlice).toContain(compositionToken);
         }
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
@@ -4177,28 +4354,46 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="dashboard-activity-anchor"',
             '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
         );
-        for (const semanticToken of [
-            'variant="dashboardActivityTrigger"',
-            'size="dashboardActivityTrigger"',
-            'variant="dashboardActivityPanel"',
-            'variant="dashboardActivityCount"',
-            'variant="dashboardActivityClose"',
-            'variant="dashboardActivitySync"',
-            'variant="dashboardActivityAction"',
-            'variant="dashboardActivityDismiss"',
+        for (const featureHook of [
+            'data-sot-control="dashboard-activity"',
+            'data-sot-panel="dashboard-activity"',
+            'data-sot-part="dashboard-activity-count"',
+            'data-sot-control="dashboard-activity-close"',
+            'data-sot-control="dashboard-activity-sync"',
+            'data-sot-control="dashboard-activity-action"',
+            'data-sot-control="dashboard-activity-dismiss"',
+            'data-sot-list="dashboard-activity-items"',
         ]) {
-            expect(dashboardActivitySlice).toContain(semanticToken);
+            expect(dashboardActivitySlice).toContain(featureHook);
         }
-        for (const oldToken of [
-            'variant="ghost"',
-            'variant="outline"',
-            'variant="secondary"',
-            'size="icon-sm"',
-            'size="icon-xs"',
-            'size="xs"',
-            'size="sm"',
+        for (const compositionToken of [
+            "<Button",
+            "<Card",
+            "<CardHeader",
+            "<CardTitle",
+            "<CardContent",
+            "<CardAction",
+            "<Badge",
         ]) {
-            expect(dashboardActivitySlice).not.toContain(oldToken);
+            expect(dashboardActivitySlice).toContain(compositionToken);
+        }
+        const dashboardSearchActivityClassNames =
+            extractDashboardSearchActivityClassNames(workstation);
+        for (const {
+            propertyName,
+            snippets,
+        } of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS) {
+            const property = extractObjectStringProperty(
+                dashboardSearchActivityClassNames,
+                propertyName,
+            );
+
+            for (const snippet of snippets) {
+                expect(property).toContain(snippet);
+            }
+        }
+        for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
+            expect(workstation).toContain(snippet);
         }
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
@@ -4758,10 +4953,14 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).not.toContain(migratedSelectorFragment);
         }
         expect(workstation).toContain("<Button");
-        expect(workstation).toContain('variant="dashboardSearchTrigger"');
-        expect(workstation).toContain('size="dashboardSearchTrigger"');
-        expect(workstation).toContain('variant="dashboardActivityTrigger"');
-        expect(workstation).toContain('size="dashboardActivityTrigger"');
+        expect(workstation).toContain('data-sot-control="dashboard-search"');
+        expect(workstation).toContain(
+            "dashboardSearchActivityClassNames.dashboardSearchTrigger",
+        );
+        expect(workstation).toContain('data-sot-control="dashboard-activity"');
+        expect(workstation).toContain(
+            "dashboardSearchActivityClassNames.dashboardActivityTrigger",
+        );
         expect(workstation).toContain("<SotPlayerControlButton");
         expect(workstation).toContain("<SotPlayerPrimaryButton");
         expect(workstation).toContain("<SotPlayerSpeedButton");
@@ -5262,10 +5461,10 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         expect(dashboardActivityDismissButton).toContain(
-            'variant="dashboardActivityDismiss"',
+            'data-sot-control="dashboard-activity-dismiss"',
         );
         expect(dashboardActivityDismissButton).toContain(
-            'size="dashboardActivityDismiss"',
+            "dashboardSearchActivityClassNames.dashboardActivityDismiss",
         );
         expect(dashboardActivityDismissButton).toContain(
             '<X data-icon="inline-start" />',
