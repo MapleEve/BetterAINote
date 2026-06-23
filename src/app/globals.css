@@ -2021,29 +2021,6 @@ button:not([data-slot]) {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-[data-sot-part="dashboard-recording-duration"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-secondary);
-    letter-spacing: 0.02em;
-}
-[data-sot-part="dashboard-recording-timestamp"] {
-    letter-spacing: 0.015em;
-}
-[data-sot-part="dashboard-recording-timestamp-absolute"] {
-    display: none;
-}
-[data-sot-part="dashboard-recording-timestamp-relative"] {
-    display: inline;
-}
-body[data-time-style="abs"]
-    [data-sot-part="dashboard-recording-timestamp-absolute"] {
-    display: inline;
-}
-body[data-time-style="abs"]
-    [data-sot-part="dashboard-recording-timestamp-relative"] {
-    display: none;
-}
-
 @keyframes bpulse {
     0%,
     100% {
@@ -2069,48 +2046,6 @@ body[data-time-style="abs"]
     font: 700 9px var(--font-sans);
     color: var(--fg-secondary);
     background: var(--bg-recessed);
-}
-
-/* Mini source mark (used inline in row meta — icon-only, neutral) */
-[data-sot-part="dashboard-recording-source-mark"] {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    flex: 0 0 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    opacity: 0.55;
-}
-[data-sot-part="dashboard-recording-source-mark"] img {
-    width: 14px !important;
-    height: 14px !important;
-    object-fit: contain;
-    display: block;
-    /* Desaturate colored logos to a neutral grayscale tone */
-    filter: grayscale(1) contrast(0.85);
-}
-[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]
-    img {
-    object-fit: cover;
-}
-[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"] {
-    font: 700 9px var(--font-sans);
-    color: var(--fg-tertiary);
-    background: var(--bg-recessed);
-    border: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"] {
-    opacity: 0.6;
-}
-[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"] img {
-    filter: grayscale(1) brightness(1.4) contrast(0.85);
-}
-[data-theme="dark"]
-    [data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"] {
-    background: rgb(255 255 255 / 0.06);
-    border-color: var(--glass-border);
 }
 
 /* sidebar source nav with logo */

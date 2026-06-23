@@ -464,8 +464,20 @@ const dashboardRecordingRowStyles = {
     body: "flex min-w-0 flex-col gap-[5px]",
     title: "truncate font-sans text-[13.5px] font-semibold text-foreground",
     meta: "flex flex-wrap items-center gap-2",
+    sourceMark:
+        "inline-flex size-[14px] flex-none items-center justify-center overflow-hidden rounded-[3px] opacity-[0.55] dark:opacity-60",
+    sourceMarkImage:
+        "block size-[14px] max-w-none object-contain align-baseline grayscale contrast-[0.85] dark:brightness-[1.4]",
+    sourceMarkImageCover: "object-cover",
+    sourceMarkLetter:
+        "border border-[var(--line-hairline)] bg-[var(--bg-recessed)] [font:700_9px_var(--font-sans)] text-[var(--fg-tertiary)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.06)]",
+    duration:
+        "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]",
     secondary:
         "flex items-center gap-2 font-mono text-[11px] font-medium text-muted-foreground",
+    timestamp: "tracking-[0.015em]",
+    timestampAbsolute: "hidden [body[data-time-style=abs]_&]:inline",
+    timestampRelative: "inline [body[data-time-style=abs]_&]:hidden",
     actions: "flex items-center gap-2",
 } as const;
 
@@ -5553,6 +5565,9 @@ export function Workstation({
                                                                     >
                                                                         {sourceMeta?.icon ? (
                                                                             <span
+                                                                                className={
+                                                                                    dashboardRecordingRowStyles.sourceMark
+                                                                                }
                                                                                 data-sot-part="dashboard-recording-source-mark"
                                                                                 data-sot-provider-cover={
                                                                                     sourceMeta.cover
@@ -5565,6 +5580,12 @@ export function Workstation({
                                                                                 }
                                                                             >
                                                                                 <img
+                                                                                    className={cn(
+                                                                                        dashboardRecordingRowStyles.sourceMarkImage,
+                                                                                        sourceMeta.cover
+                                                                                            ? dashboardRecordingRowStyles.sourceMarkImageCover
+                                                                                            : undefined,
+                                                                                    )}
                                                                                     src={
                                                                                         sourceMeta.icon
                                                                                     }
@@ -5573,6 +5594,10 @@ export function Workstation({
                                                                             </span>
                                                                         ) : (
                                                                             <span
+                                                                                className={cn(
+                                                                                    dashboardRecordingRowStyles.sourceMark,
+                                                                                    dashboardRecordingRowStyles.sourceMarkLetter,
+                                                                                )}
                                                                                 data-sot-part="dashboard-recording-source-mark"
                                                                                 data-sot-provider-cover="false"
                                                                                 data-sot-variant="letter"
@@ -5584,7 +5609,12 @@ export function Workstation({
                                                                                 讯
                                                                             </span>
                                                                         )}
-                                                                        <span data-sot-part="dashboard-recording-duration">
+                                                                        <span
+                                                                            className={
+                                                                                dashboardRecordingRowStyles.duration
+                                                                            }
+                                                                            data-sot-part="dashboard-recording-duration"
+                                                                        >
                                                                             {formatDuration(
                                                                                 recording.duration,
                                                                             )}
@@ -5596,13 +5626,28 @@ export function Workstation({
                                                                         }
                                                                         data-sot-part="dashboard-recording-row-secondary"
                                                                     >
-                                                                        <span data-sot-part="dashboard-recording-timestamp">
-                                                                            <span data-sot-part="dashboard-recording-timestamp-absolute">
+                                                                        <span
+                                                                            className={
+                                                                                dashboardRecordingRowStyles.timestamp
+                                                                            }
+                                                                            data-sot-part="dashboard-recording-timestamp"
+                                                                        >
+                                                                            <span
+                                                                                className={
+                                                                                    dashboardRecordingRowStyles.timestampAbsolute
+                                                                                }
+                                                                                data-sot-part="dashboard-recording-timestamp-absolute"
+                                                                            >
                                                                                 {formatAbsoluteDate(
                                                                                     recording.startTime,
                                                                                 )}
                                                                             </span>
-                                                                            <span data-sot-part="dashboard-recording-timestamp-relative">
+                                                                            <span
+                                                                                className={
+                                                                                    dashboardRecordingRowStyles.timestampRelative
+                                                                                }
+                                                                                data-sot-part="dashboard-recording-timestamp-relative"
+                                                                            >
                                                                                 {formatRelativeDate(
                                                                                     recording.startTime,
                                                                                 )}

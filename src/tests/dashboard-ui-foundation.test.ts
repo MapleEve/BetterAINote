@@ -397,15 +397,19 @@ const DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS = [
     '[data-sot-part="dashboard-recording-row-actions"]',
 ] as const;
 
-const DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS = [
+const DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS = [
     '[data-sot-part="dashboard-recording-duration"]',
     '[data-sot-part="dashboard-recording-timestamp"]',
     '[data-sot-part="dashboard-recording-timestamp-absolute"]',
     '[data-sot-part="dashboard-recording-timestamp-relative"]',
+    'body[data-time-style="abs"]',
     '[data-sot-part="dashboard-recording-source-mark"]',
     '[data-sot-part="dashboard-recording-source-mark"] img',
     '[data-sot-part="dashboard-recording-source-mark"][data-sot-provider-cover="true"]',
     '[data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"]',
+    '[data-theme="dark"] [data-sot-part="dashboard-recording-source-mark"] img',
+    '[data-theme="dark"]\n    [data-sot-part="dashboard-recording-source-mark"][data-sot-variant="letter"]',
 ] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
@@ -1648,7 +1652,15 @@ describe("dashboard SOT foundation", () => {
             "body:",
             "title:",
             "meta:",
+            "sourceMark:",
+            "sourceMarkImage:",
+            "sourceMarkImageCover:",
+            "sourceMarkLetter:",
+            "duration:",
             "secondary:",
+            "timestamp:",
+            "timestampAbsolute:",
+            "timestampRelative:",
             "actions:",
         ]) {
             expect(dashboardRecordingRowStyleHelper).toContain(rowStyleSlot);
@@ -1694,8 +1706,28 @@ describe("dashboard SOT foundation", () => {
         expect(dashboardRecordingRowMeta).toContain(
             "dashboardRecordingRowStyles.meta",
         );
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.sourceMark",
+        );
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.sourceMarkImage",
+        );
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.sourceMarkImageCover",
+        );
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.sourceMarkLetter",
+        );
+        expect(workstation).toContain("dashboardRecordingRowStyles.duration");
         expect(dashboardRecordingRowSecondary).toContain(
             "dashboardRecordingRowStyles.secondary",
+        );
+        expect(workstation).toContain("dashboardRecordingRowStyles.timestamp");
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.timestampAbsolute",
+        );
+        expect(workstation).toContain(
+            "dashboardRecordingRowStyles.timestampRelative",
         );
         expect(dashboardRecordingRowActions).toContain(
             "dashboardRecordingRowStyles.actions",
@@ -1712,6 +1744,15 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(buttonPrimitive).not.toContain(rowPrimitiveLeak);
         }
+        for (const sourceMarkPrimitiveLeak of [
+            "dashboardRecordingSourceMark",
+            "dashboard-recording-source-mark",
+            "dashboardRecordingRowStyles",
+            "sourceMarkImageCover",
+        ]) {
+            expect(buttonPrimitive).not.toContain(sourceMarkPrimitiveLeak);
+            expect(badgePrimitive).not.toContain(sourceMarkPrimitiveLeak);
+        }
         for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
             expect(
                 collectCssRuleBlocks(globals, migratedSelector),
@@ -1720,10 +1761,38 @@ describe("dashboard SOT foundation", () => {
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
         ]).not.toContain('[data-sot-part="dashboard-recording-source-mark"]');
-        for (const followUpSelector of DASHBOARD_RECORDING_ROW_FOLLOW_UP_GLOBAL_SELECTORS) {
-            expect(
-                collectCssRuleBlocks(globals, followUpSelector),
-            ).not.toEqual([]);
+        for (const migratedSelectorFragment of DASHBOARD_RECORDING_ROW_META_MIGRATED_GLOBAL_SELECTOR_FRAGMENTS) {
+            expect(globals).not.toContain(migratedSelectorFragment);
+        }
+        for (const migratedSelector of [
+            '[data-sot-part="dashboard-recording-duration"]',
+            '[data-sot-part="dashboard-recording-timestamp"]',
+            '[data-sot-part="dashboard-recording-timestamp-absolute"]',
+            '[data-sot-part="dashboard-recording-timestamp-relative"]',
+            '[data-sot-part="dashboard-recording-source-mark"]',
+        ]) {
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual(
+                [],
+            );
+        }
+        for (const rowMetaOwnershipToken of [
+            "font-mono",
+            "text-[11.5px]",
+            "tracking-[0.02em]",
+            "tracking-[0.015em]",
+            "[body[data-time-style=abs]_&]:inline",
+            "[body[data-time-style=abs]_&]:hidden",
+            "grayscale",
+            "contrast-[0.85]",
+            "dark:brightness-[1.4]",
+            "object-cover",
+            "dark:opacity-60",
+            "dark:bg-[rgb(255_255_255_/_0.06)]",
+            "dark:border-[var(--glass-border)]",
+        ]) {
+            expect(dashboardRecordingRowStyleHelper).toContain(
+                rowMetaOwnershipToken,
+            );
         }
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-status"',
