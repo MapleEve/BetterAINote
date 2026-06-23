@@ -6434,7 +6434,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settings).toContain("SOURCE_ACTION_STATUS_BADGE_CLASS");
         expect(settings).toContain("SOURCE_ACTION_STATUS_INDICATOR_CLASS");
         expect(badge).not.toContain("source:");
-        expect(badge).toContain("playerSource:");
+        expect(badge).not.toContain("playerSource:");
         expect(badge).not.toContain(`${"player"}Status:`);
         expect(badge).not.toContain("min-w-[65.171875px]");
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
@@ -6468,8 +6468,8 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
-        expect(badge).toContain("playerTagChip:");
-        expect(badge).toContain("playerTagOverflow:");
+        expect(badge).not.toContain("playerTagChip:");
+        expect(badge).not.toContain("playerTagOverflow:");
         expect(badge).not.toContain('"player-status":');
         expect(badge).toContain("sourceReportStatus:");
         expect(badge).toContain("transcriptionMeta:");
@@ -8559,19 +8559,42 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
         expect(sotPlayerPrimitives).toContain("data-recording-tag-add");
-        expect(button).toContain("playerTagAdd:");
-        expect(button).toContain("playerTagChip:");
-        expect(button).toContain("playerTagOverflow:");
-        expect(badge).toContain("playerTagChip:");
-        expect(badge).toContain("playerTagOverflow:");
-        expect(sotPlayerTagChip).toContain('variant="playerTagAdd"');
-        expect(sotPlayerTagChip).toContain('size="playerTagAdd"');
-        expect(sotPlayerTagChip).toContain('variant="playerTagChip"');
-        expect(sotPlayerTagChip).toContain('size="playerTagChip"');
-        expect(sotPlayerTagChip).toContain('variant="playerTagOverflow"');
-        expect(sotPlayerTagChip).toContain('size="playerTagOverflow"');
-        expect(sotPlayerTagChip).not.toContain('variant="outline"');
-        expect(sotPlayerTagChip).not.toContain('size="xs"');
+        expect(button).not.toContain("playerTagAdd:");
+        expect(button).not.toContain("playerTagChip:");
+        expect(button).not.toContain("playerTagOverflow:");
+        expect(badge).not.toContain("playerTagChip:");
+        expect(badge).not.toContain("playerTagOverflow:");
+        for (const sotPlayerTagClassConstant of [
+            "SOT_PLAYER_TAG_BADGE_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
+            "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_CHIP_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
+        }
+        for (const sotPlayerTagClassToken of [
+            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-state=open]:border-[var(--line-strong)]",
+            "border-dashed border-[var(--line-hairline)]",
+            "hover:border-[var(--line-strong)]",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassToken);
+        }
+        expect(sotPlayerTagChip).toContain('variant="ghost"');
+        expect(sotPlayerTagChip).toContain('size="xs"');
+        expect(sotPlayerTagChip).toContain(
+            "className={SOT_PLAYER_TAG_ADD_BUTTON_CLASS}",
+        );
+        expect(sotPlayerTagChip).toContain(
+            "className={SOT_PLAYER_TAG_BADGE_CLASS}",
+        );
+        expect(sotPlayerTagChip).toContain(
+            "className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}",
+        );
+        expect(sotPlayerTagChip).toContain(
+            "className={SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS}",
+        );
         expect(sotPlayerPrimitives).toMatch(
             /<Plus\s+data-icon="inline-start"\s+aria-hidden="true"\s*\/>/,
         );
@@ -8625,11 +8648,24 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="player-status"',
             "Badge",
         );
-        expect(sotPlayerPrimitives).not.toContain(
+        const sharedPlayerSourceBadge = extractOpeningElement(
+            sotPlayerPrimitives,
+            'data-sot-control="player-source-tag"',
+            "Badge",
+        );
+        const legacyPlayerSourceVariantUsage = `variant="${"player"}Source"`;
+
+        expect(sotPlayerPrimitives).toContain(
             "SOT_PLAYER_SOURCE_BADGE_CLASS",
         );
         expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
-        expect(sotPlayerPrimitives).toContain('variant="playerSource"');
+        expect(sotPlayerPrimitives).not.toContain(
+            legacyPlayerSourceVariantUsage,
+        );
+        expect(sharedPlayerSourceBadge).toContain('variant="ghost"');
+        expect(sharedPlayerSourceBadge).toContain(
+            "className={SOT_PLAYER_SOURCE_BADGE_CLASS}",
+        );
         expect(sharedPlayerStatusBadge).toContain('variant="ghost"');
         expect(sharedPlayerStatusBadge).toContain(
             "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",

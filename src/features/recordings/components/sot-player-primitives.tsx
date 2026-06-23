@@ -69,6 +69,24 @@ export function formatSotPlaybackSpeed(value: number) {
     return `${Number.isInteger(value) ? value.toFixed(1) : value}×`;
 }
 
+const SOT_PLAYER_SOURCE_BADGE_CLASS =
+    "h-[22px] justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]";
+
+const SOT_PLAYER_TAG_BADGE_CLASS =
+    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] [&>svg]:size-[11px] [&>svg]:stroke-2";
+
+const SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS =
+    "h-[22px] justify-normal gap-[4px] rounded-[6px] border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[8px] py-0 text-[11px] font-semibold text-[var(--fg-tertiary)] shadow-none [a&]:hover:border-[var(--line-strong)] [a&]:hover:bg-transparent [a&]:hover:text-[var(--fg-primary)]";
+
+const SOT_PLAYER_TAG_ADD_BUTTON_CLASS =
+    "border border-dashed border-[var(--line-hairline)] bg-transparent text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] [&_svg]:stroke-current h-[22px] gap-[5px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal has-[>svg]:px-[8px] [&_svg:not([class*='size-'])]:size-3";
+
+const SOT_PLAYER_TAG_CHIP_BUTTON_CLASS =
+    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] h-[22px] w-fit gap-[5px] rounded-[6px] py-0 pl-[7px] pr-[9px] text-[11.5px] font-semibold leading-normal [&_svg:not([class*='size-'])]:size-[11px] [&_svg]:stroke-2";
+
+const SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS =
+    "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] h-[22px] gap-[4px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal";
+
 export function SotPlayerSourceTag({
     label,
     provider,
@@ -83,7 +101,8 @@ export function SotPlayerSourceTag({
 
     return (
         <Badge
-            variant="playerSource"
+            variant="ghost"
+            className={SOT_PLAYER_SOURCE_BADGE_CLASS}
             data-sot-control="player-source-tag"
             data-sot-provider={provider}
         >
@@ -130,8 +149,9 @@ export function SotPlayerTagChip({
 
         return (
             <Button
-                variant="playerTagAdd"
-                size="playerTagAdd"
+                variant="ghost"
+                size="xs"
+                className={SOT_PLAYER_TAG_ADD_BUTTON_CLASS}
                 aria-expanded={trigger ? state === "open" : undefined}
                 data-recording-tag-add=""
                 data-sot-control={trigger ? "recording-tag-manager" : undefined}
@@ -150,7 +170,8 @@ export function SotPlayerTagChip({
         return (
             <>
                 <Badge
-                    variant="playerTagChip"
+                    variant="ghost"
+                    className={SOT_PLAYER_TAG_BADGE_CLASS}
                     data-recording-tag-chip=""
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
@@ -166,7 +187,8 @@ export function SotPlayerTagChip({
                 </Badge>
                 {count > 1 ? (
                     <Badge
-                        variant="playerTagOverflow"
+                        variant="ghost"
+                        className={SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS}
                         data-recording-tag-overflow=""
                         data-sot-part="recording-tag-overflow"
                     >
@@ -180,8 +202,9 @@ export function SotPlayerTagChip({
     return (
         <>
             <Button
-                variant="playerTagChip"
-                size="playerTagChip"
+                variant="ghost"
+                size="xs"
+                className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}
                 type="button"
                 data-tag-id={tag.id}
                 data-recording-tag-chip=""
@@ -200,8 +223,9 @@ export function SotPlayerTagChip({
             </Button>
             {count > 1 ? (
                 <Button
-                    variant="playerTagOverflow"
-                    size="playerTagOverflow"
+                    variant="ghost"
+                    size="xs"
+                    className={SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS}
                     type="button"
                     data-recording-tag-overflow=""
                     data-sot-part="recording-tag-overflow"

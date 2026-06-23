@@ -822,7 +822,7 @@ describe("dashboard SOT foundation", () => {
         expect(player).not.toContain('size="player"');
         expect(player).not.toContain('size="player-lg"');
         expect(player).not.toContain('size="player-sm"');
-        expect(badge).toContain("playerSource:");
+        expect(badge).not.toContain("playerSource:");
         expect(badge).not.toContain(`${"player"}Status:`);
         expect(badge).not.toContain("min-w-[65.171875px]");
         expect(badge).not.toContain("[&_[data-sot-part=status-dot]]");
@@ -856,8 +856,8 @@ describe("dashboard SOT foundation", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
-        expect(badge).toContain("playerTagChip:");
-        expect(badge).toContain("playerTagOverflow:");
+        expect(badge).not.toContain("playerTagChip:");
+        expect(badge).not.toContain("playerTagOverflow:");
         expect(player).toContain("<SotPlayerStatusBadge");
         expect(statusBadge).toContain("label={selectedPlayerStatus.label}");
         expect(statusBadge).toMatch(
@@ -881,6 +881,24 @@ describe("dashboard SOT foundation", () => {
         expect(sotPlayerPrimitives).toContain(
             'data-sot-part="status-label"',
         );
+        for (const sotPlayerTagClassConstant of [
+            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+            "SOT_PLAYER_TAG_BADGE_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
+            "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_CHIP_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassConstant);
+        }
+        for (const sotPlayerTagClassToken of [
+            "dark:bg-[rgb(255_255_255_/_0.04)]",
+            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-state=open]:border-[var(--line-strong)]",
+            "hover:border-[var(--line-strong)]",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagClassToken);
+        }
         expect(player).toContain(
             'data-sot-panel="dashboard-recording-player-controls"',
         );
@@ -1088,8 +1106,8 @@ describe("dashboard SOT foundation", () => {
             "playerTagChip",
             "playerTagOverflow",
         ]) {
-            expect(buttonVariantBlock).toContain(`${variant}:`);
-            expect(buttonSizeBlock).toContain(`${variant}:`);
+            expect(buttonVariantBlock).not.toContain(`${variant}:`);
+            expect(buttonSizeBlock).not.toContain(`${variant}:`);
         }
 
         for (const removed of [

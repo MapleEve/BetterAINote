@@ -239,8 +239,11 @@ describe("dashboard recording player regressions", () => {
             "export type SotPlayerStatusTone",
         );
         const legacyPlayerStatusVariantKey = `${"player"}Status:`;
+        const legacyPlayerSourceVariantUsage = `variant="${"player"}Source"`;
+        const legacyPlayerTagVariantUsagePrefix = `variant="${"player"}Tag`;
+        const legacyPlayerTagSizeUsagePrefix = `size="${"player"}Tag`;
 
-        expect(badgePrimitive).toContain("playerSource:");
+        expect(badgePrimitive).not.toContain("playerSource:");
         expect(badgePrimitive).not.toContain(legacyPlayerStatusVariantKey);
         expect(badgePrimitive).not.toContain("min-w-[65.171875px]");
         expect(badgePrimitive).not.toContain(
@@ -278,19 +281,27 @@ describe("dashboard recording player regressions", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerStatusToken);
         }
-        expect(badgePrimitive).toContain("playerTagChip:");
-        expect(badgePrimitive).toContain("playerTagOverflow:");
-        expect(buttonPrimitive).toContain("playerTagAdd:");
-        expect(buttonPrimitive).toContain("playerTagChip:");
-        expect(buttonPrimitive).toContain("playerTagOverflow:");
+        expect(badgePrimitive).not.toContain("playerTagChip:");
+        expect(badgePrimitive).not.toContain("playerTagOverflow:");
+        expect(buttonPrimitive).not.toContain("playerTagAdd:");
+        expect(buttonPrimitive).not.toContain("playerTagChip:");
+        expect(buttonPrimitive).not.toContain("playerTagOverflow:");
         expect(sotPlayerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expect(sourceBadge).toContain('variant="playerSource"');
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        );
+        expect(sourceBadge).toContain('variant="ghost"');
+        expect(sourceBadge).toContain(
+            "className={SOT_PLAYER_SOURCE_BADGE_CLASS}",
+        );
         expect(sourceBadge).toContain(
             'data-sot-control="player-source-tag"',
         );
-        expect(sourceBadge).not.toContain("className=");
+        expect(sotPlayerPrimitives).not.toContain(
+            legacyPlayerSourceVariantUsage,
+        );
         expect(sotPlayerPrimitives).toContain(
             "SOT_PLAYER_STATUS_BADGE_CLASS",
         );
@@ -310,17 +321,51 @@ describe("dashboard recording player regressions", () => {
         expect(
             collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
         ).toEqual([]);
-        expect(sotPlayerPrimitives).not.toContain(
-            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        for (const sourceBadgeToken of [
+            "h-[22px]",
+            "gap-[6px]",
+            "pl-[3px]",
+            "pr-[8px]",
+            "[font:600_11.5px_var(--font-sans)]",
+            "dark:bg-[rgb(255_255_255_/_0.04)]",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(sourceBadgeToken);
+        }
+        for (const tagClassConstant of [
+            "SOT_PLAYER_TAG_BADGE_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
+            "SOT_PLAYER_TAG_ADD_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_CHIP_BUTTON_CLASS",
+            "SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(tagClassConstant);
+        }
+        for (const tagClassToken of [
+            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
+            "data-[sot-state=open]:border-[var(--line-strong)]",
+            "border-dashed border-[var(--line-hairline)]",
+            "hover:border-[var(--line-strong)]",
+        ]) {
+            expect(sotPlayerPrimitives).toContain(tagClassToken);
+        }
+        expect(tagChipPrimitive).toContain('variant="ghost"');
+        expect(tagChipPrimitive).toContain('size="xs"');
+        expect(tagChipPrimitive).toContain(
+            "className={SOT_PLAYER_TAG_ADD_BUTTON_CLASS}",
         );
-        expect(tagChipPrimitive).toContain('variant="playerTagAdd"');
-        expect(tagChipPrimitive).toContain('size="playerTagAdd"');
-        expect(tagChipPrimitive).toContain('variant="playerTagChip"');
-        expect(tagChipPrimitive).toContain('size="playerTagChip"');
-        expect(tagChipPrimitive).toContain('variant="playerTagOverflow"');
-        expect(tagChipPrimitive).toContain('size="playerTagOverflow"');
-        expect(tagChipPrimitive).not.toContain('variant="outline"');
-        expect(tagChipPrimitive).not.toContain('size="xs"');
+        expect(tagChipPrimitive).toContain(
+            "className={SOT_PLAYER_TAG_BADGE_CLASS}",
+        );
+        expect(tagChipPrimitive).toContain(
+            "className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}",
+        );
+        expect(tagChipPrimitive).toContain(
+            "className={SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS}",
+        );
+        expect(tagChipPrimitive).not.toContain(
+            legacyPlayerTagVariantUsagePrefix,
+        );
+        expect(tagChipPrimitive).not.toContain(legacyPlayerTagSizeUsagePrefix);
     });
 
     it("keeps SOT player controls without dropping tag or speed behavior", () => {
