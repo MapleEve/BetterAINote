@@ -814,10 +814,16 @@ export function RecordingWorkstation({
                     </div>
                 </div>
                 <nav
+                    className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"
                     data-sot-list="recording-detail-nav"
                     aria-label="录音详情导航"
                 >
-                    <div data-sot-part="recording-detail-nav-label">录音</div>
+                    <div
+                        className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"
+                        data-sot-part="recording-detail-nav-label"
+                    >
+                        录音
+                    </div>
                     <Button
                         variant="recordingDetailBack"
                         size="recordingDetailBack"
@@ -868,17 +874,33 @@ export function RecordingWorkstation({
                             className="flex min-h-0 flex-col px-0"
                             data-sot-part="recording-detail-list-content"
                         >
-                            <div data-sot-list="recording-detail-list-rows">
+                            <div
+                                className="flex flex-col gap-0.5 p-1"
+                                data-sot-list="recording-detail-list-rows"
+                            >
                                 <div
+                                    className="grid w-full cursor-pointer grid-cols-[1fr_auto] items-center gap-[14px] rounded-[10px] border border-transparent bg-transparent px-3 py-[11px] text-left font-sans text-[13.3333px] font-normal transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-[var(--bg-recessed)] data-[sot-state=selected]:border-primary/40 data-[sot-state=selected]:bg-[var(--accent-soft)]"
                                     data-sot-item="recording-detail-list-row"
                                     data-sot-state="selected"
                                 >
-                                    <div data-sot-part="recording-detail-list-row-body">
-                                        <div data-sot-part="recording-detail-list-row-title">
+                                    <div
+                                        className="flex min-w-0 flex-col gap-[5px]"
+                                        data-sot-part="recording-detail-list-row-body"
+                                    >
+                                        <div
+                                            className="truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]"
+                                            data-sot-part="recording-detail-list-row-title"
+                                        >
                                             {filename}
                                         </div>
-                                        <div data-sot-part="recording-detail-list-row-meta">
-                                            <span data-sot-part="recording-detail-list-row-duration">
+                                        <div
+                                            className="flex flex-wrap items-center gap-2"
+                                            data-sot-part="recording-detail-list-row-meta"
+                                        >
+                                            <span
+                                                className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]"
+                                                data-sot-part="recording-detail-list-row-duration"
+                                            >
                                                 {durationLabel}
                                             </span>
                                             <SotPlayerSourceTag

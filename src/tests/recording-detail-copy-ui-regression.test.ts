@@ -88,6 +88,15 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
+function collectExactCssRuleBlocks(source: string, selector: string) {
+    return collectCssRuleBlocks(source, selector).filter(({ prelude }) =>
+        prelude
+            .split(",")
+            .map((selectorPart) => selectorPart.trim())
+            .includes(selector),
+    );
+}
+
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
@@ -141,6 +150,21 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
+
+const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-list="recording-detail-nav"]',
+    '[data-sot-part="recording-detail-nav-label"]',
+    '[data-sot-control="recording-detail-back"] svg',
+    '[data-sot-control="recording-detail-back"] > span',
+    '[data-sot-list="recording-detail-list-rows"]',
+    '[data-sot-item="recording-detail-list-row"]',
+    '[data-sot-item="recording-detail-list-row"]:hover',
+    '[data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
+    '[data-sot-part="recording-detail-list-row-body"]',
+    '[data-sot-part="recording-detail-list-row-title"]',
+    '[data-sot-part="recording-detail-list-row-meta"]',
+    '[data-sot-part="recording-detail-list-row-duration"]',
+] as const;
 
 describe("recording detail copy and title action UI regressions", () => {
     it("redacts failed transcription job errors before they reach recording detail UI", () => {
@@ -692,6 +716,15 @@ describe("recording detail copy and title action UI regressions", () => {
             '{t("recording.backToDashboard")}',
         );
         expect(detailBackControl).not.toContain('variant="ghost"');
+        expect(button).toContain("[&_span]:truncate");
+        expect(button).toContain("[&_svg]:stroke-[1.7]");
+        expect(button).toContain("[&_svg]:opacity-[0.85]");
+        expect(detailWorkstation).toContain(
+            'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
+        );
+        expect(detailWorkstation).toContain(
+            'className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"',
+        );
         expect(detailWorkstation).toContain('data-sot-state="selected"');
         expect(globals).toContain('[data-sot-shell="recording-workstation"]');
         expect(globals).toContain('[data-sot-panel="workstation-sidebar"]');
@@ -700,12 +733,6 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(globals).toContain('[data-sot-panel="workstation-workspace"]');
         expect(globals).toContain(
             '[data-sot-panel="recording-workstation-detail"]',
-        );
-        expect(globals).toContain(
-            '[data-sot-control="recording-detail-back"] svg',
-        );
-        expect(globals).toContain(
-            '[data-sot-control="recording-detail-back"] > span',
         );
         expect(globals).not.toContain(
             '[data-sot-control="recording-detail-back"][data-slot="button"]',
@@ -782,6 +809,27 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-row-duration"',
         );
+        expect(listPanel).toContain(
+            'className="flex flex-col gap-0.5 p-1"',
+        );
+        expect(listPanel).toContain(
+            "grid w-full cursor-pointer grid-cols-[1fr_auto]",
+        );
+        expect(listPanel).toContain(
+            "data-[sot-state=selected]:border-primary/40",
+        );
+        expect(listPanel).toContain(
+            'className="flex min-w-0 flex-col gap-[5px]"',
+        );
+        expect(listPanel).toContain(
+            'className="truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]"',
+        );
+        expect(listPanel).toContain(
+            'className="flex flex-wrap items-center gap-2"',
+        );
+        expect(listPanel).toContain(
+            'className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]"',
+        );
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");
         for (const legacyClass of [
@@ -810,9 +858,9 @@ describe("recording detail copy and title action UI regressions", () => {
 
             expect(repaintBlocks).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-list="recording-detail-list-rows"]',
-        );
+        for (const selector of RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);

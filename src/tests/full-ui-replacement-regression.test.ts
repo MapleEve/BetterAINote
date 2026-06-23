@@ -1560,6 +1560,21 @@ const RECORDING_DETAIL_CARD_PRIMITIVE_SELECTORS = [
 const RECORDING_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
     /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|line-height|padding|transition|width)\s*:|\b(?:color-mix|linear-gradient|oklch)\(/m;
 
+const RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-list="recording-detail-nav"]',
+    '[data-sot-part="recording-detail-nav-label"]',
+    '[data-sot-control="recording-detail-back"] svg',
+    '[data-sot-control="recording-detail-back"] > span',
+    '[data-sot-list="recording-detail-list-rows"]',
+    '[data-sot-item="recording-detail-list-row"]',
+    '[data-sot-item="recording-detail-list-row"]:hover',
+    '[data-sot-item="recording-detail-list-row"][data-sot-state="selected"]',
+    '[data-sot-part="recording-detail-list-row-body"]',
+    '[data-sot-part="recording-detail-list-row-title"]',
+    '[data-sot-part="recording-detail-list-row-meta"]',
+    '[data-sot-part="recording-detail-list-row-duration"]',
+] as const;
+
 const AI_RENAME_PREVIEW_FUNCTIONAL_CSS_SELECTORS = [
     '[data-sot-panel="ai-rename-preview"]',
     '[data-sot-panel="ai-rename-preview"][data-open="true"]',
@@ -5498,6 +5513,15 @@ describe("full UI replacement regression coverage", () => {
             '{t("recording.backToDashboard")}',
         );
         expect(detailBackButton).not.toContain('variant="ghost"');
+        expect(button).toContain("[&_span]:truncate");
+        expect(button).toContain("[&_svg]:stroke-[1.7]");
+        expect(button).toContain("[&_svg]:opacity-[0.85]");
+        expect(detail).toContain(
+            'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
+        );
+        expect(detail).toContain(
+            'className="px-2.5 pb-1.5 pt-3.5 font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--fg-tertiary)]"',
+        );
         expect(detail).not.toContain('className="app"');
         expect(detail).not.toContain('className="sidebar glass glass-strong"');
         expect(detail).not.toContain('className="workspace"');
@@ -6567,6 +6591,27 @@ describe("full UI replacement regression coverage", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-row-duration"',
         );
+        expect(listPanel).toContain(
+            'className="flex flex-col gap-0.5 p-1"',
+        );
+        expect(listPanel).toContain(
+            "grid w-full cursor-pointer grid-cols-[1fr_auto]",
+        );
+        expect(listPanel).toContain(
+            "data-[sot-state=selected]:border-primary/40",
+        );
+        expect(listPanel).toContain(
+            'className="flex min-w-0 flex-col gap-[5px]"',
+        );
+        expect(listPanel).toContain(
+            'className="truncate font-sans text-[13.5px] font-semibold tracking-normal text-[var(--fg-primary)]"',
+        );
+        expect(listPanel).toContain(
+            'className="flex flex-wrap items-center gap-2"',
+        );
+        expect(listPanel).toContain(
+            'className="font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-secondary)]"',
+        );
         expect(listPanel).toContain("<SotPlayerSourceTag");
         expect(listPanel).toContain("<SotPlayerStatusBadge");
         for (const legacyClass of [
@@ -6800,12 +6845,14 @@ describe("full UI replacement regression coverage", () => {
             expect(repaintBlocks).toEqual([]);
         }
         for (const selector of [
-            '[data-sot-list="recording-detail-list-rows"]',
             '[data-sot-part="recording-source-record-actions"]',
             '[data-sot-part="recording-source-record-tabs"]',
             '[data-sot-part="recording-source-record-hint"]',
         ]) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of RECORDING_DETAIL_NAV_AND_ROW_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
         expect(detail).toContain("data-rename-mode=");
         expect(detail).toContain('localDeleteAvailable ? "true" : "false"');
