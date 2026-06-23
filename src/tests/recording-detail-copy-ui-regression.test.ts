@@ -1432,6 +1432,8 @@ describe("recording detail copy and title action UI regressions", () => {
         const loading = readSource("app/(app)/recordings/[id]/loading.tsx");
         const notFound = readSource("app/(app)/recordings/[id]/not-found.tsx");
         const error = readSource("app/(app)/recordings/[id]/error.tsx");
+        const cardPrimitive = readSource("components/ui/card.tsx");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
 
         for (const source of [loading, notFound, error]) {
@@ -1508,8 +1510,23 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(error).toContain("重试");
         expect(loading).toContain('aria-busy="true"');
         expect(loading).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
+        expect(loading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
+        expect(loading).toContain("<Card");
+        expect(loading).toContain('variant="routeLoadingSurface"');
+        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        for (const detailLoadingSize of [
+            "recordingDetailLoadingAvatar",
+            "recordingDetailLoadingBar",
+            "recordingDetailLoadingBar60",
+            "recordingDetailLoadingBar90",
+        ]) {
+            expect(skeletonPrimitive).toContain(`${detailLoadingSize}:`);
+            expect(loading).toContain(`size="${detailLoadingSize}"`);
+        }
         expect(loading).toContain("<Skeleton");
         expect(loading).toContain('data-sot-shell="recording-route-loading"');
         expect(loading).toContain(
@@ -1524,6 +1541,13 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(globals).toContain(
             '[data-sot-panel="recording-route-empty-detail"]',
         );
+        for (const removedLoadingSelector of [
+            '[data-sot-panel="recording-route-loading-detail"]',
+            '[data-sot-panel="recording-list-loading"]',
+            '[data-sot-panel="recording-detail-loading"]',
+        ]) {
+            expect(globals).not.toContain(removedLoadingSelector);
+        }
         expect(loading).not.toContain('className="detail panel"');
         expect(loading).not.toContain('className="skel-detail"');
         expect(loading).not.toContain('className="sk sk-bar"');

@@ -383,12 +383,36 @@ const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_REPAINT_DECLARATION_RE =
 describe("dashboard SOT foundation", () => {
     it("keeps dashboard route loading skeleton on the shadcn primitive contract", () => {
         const loading = readSource("app/(app)/dashboard/loading.tsx");
+        const cardPrimitive = readSource("components/ui/card.tsx");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
 
+        expect(loading).toContain(
+            'import { Card } from "@/components/ui/card";',
+        );
         expect(loading).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
         expect(loading).toContain('aria-busy="true"');
+        expect(loading).toContain("<Card");
+        expect(loading).toContain('variant="routeLoadingSurface"');
+        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        for (const loadingSkeletonSize of [
+            "recordingListLoadingDayLabel",
+            "recordingListLoadingTitle",
+            "recordingListLoadingTitle80",
+            "recordingListLoadingMetaTime",
+            "recordingListLoadingMetaTag",
+            "recordingListLoadingMetaPill",
+            "recordingListLoadingTag",
+            "recordingDetailLoadingAvatar",
+            "recordingDetailLoadingBar",
+            "recordingDetailLoadingBar60",
+            "recordingDetailLoadingBar90",
+        ]) {
+            expect(skeletonPrimitive).toContain(`${loadingSkeletonSize}:`);
+            expect(loading).toContain(`size="${loadingSkeletonSize}"`);
+        }
         expect(loading).toContain("<Skeleton");
         expect(loading).toContain('data-sot-shell="dashboard-loading"');
         expect(loading).toContain('data-sot-panel="route-sidebar"');
@@ -409,6 +433,13 @@ describe("dashboard SOT foundation", () => {
         expect(globals).toContain('[data-sot-panel="route-main"]');
         expect(globals).toContain('[data-sot-panel="route-topbar"]');
         expect(globals).toContain('[data-sot-panel="route-workspace"]');
+        for (const removedLoadingSelector of [
+            '[data-sot-panel="recording-route-loading-detail"]',
+            '[data-sot-panel="recording-list-loading"]',
+            '[data-sot-panel="recording-detail-loading"]',
+        ]) {
+            expect(globals).not.toContain(removedLoadingSelector);
+        }
         expect(loading).not.toContain('className="app"');
         expect(loading).not.toContain('className="sidebar glass glass-strong"');
         expect(loading).not.toContain('className="main"');

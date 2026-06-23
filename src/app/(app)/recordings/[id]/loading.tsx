@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RecordingLoading() {
@@ -12,33 +13,65 @@ export default function RecordingLoading() {
                         </span>
                     </div>
                 </header>
-                <section data-sot-panel="recording-route-loading-detail">
+                <Card
+                    data-sot-panel="recording-route-loading-detail"
+                    variant="routeLoadingSurface"
+                    hasNoPadding
+                    className="flex min-h-0 flex-col gap-4"
+                >
                     <div
                         data-sot-panel="recording-detail-loading"
                         aria-hidden="true"
+                        className="flex min-h-0 flex-1 flex-col gap-3.5"
                     >
-                        <div data-sot-part="detail-player-meta">
-                            <Skeleton data-sot-part="detail-avatar" />
-                            <Skeleton data-sot-part="detail-bar" />
+                        <div
+                            data-sot-part="detail-player-meta"
+                            className="mb-3 flex items-center gap-2.5"
+                        >
+                            <Skeleton
+                                data-sot-part="detail-avatar"
+                                size="recordingDetailLoadingAvatar"
+                            />
+                            <Skeleton
+                                data-sot-part="detail-bar"
+                                size="recordingDetailLoadingBar"
+                            />
                         </div>
-                        <div data-sot-part="detail-player-controls">
-                            <Skeleton data-sot-part="detail-bar" />
+                        <div
+                            data-sot-part="detail-player-controls"
+                            className="flex items-center gap-3"
+                        >
+                            <Skeleton
+                                data-sot-part="detail-bar"
+                                size="recordingDetailLoadingBar"
+                            />
                             <Skeleton
                                 data-sot-part="detail-bar"
                                 data-sot-size="60"
+                                size="recordingDetailLoadingBar60"
                             />
                         </div>
-                        <div data-sot-part="detail-transcript-head">
-                            <Skeleton data-sot-part="detail-bar" />
+                        <div
+                            data-sot-part="detail-transcript-head"
+                            className="flex items-center border-b border-[var(--line-hairline)] px-3.5 py-3 dark:border-[var(--glass-border-soft)]"
+                        >
+                            <Skeleton
+                                data-sot-part="detail-bar"
+                                size="recordingDetailLoadingBar"
+                            />
                         </div>
-                        <div data-sot-part="detail-transcript">
+                        <div
+                            data-sot-part="detail-transcript"
+                            className="min-h-0 flex-1"
+                        >
                             <Skeleton
                                 data-sot-part="detail-bar"
                                 data-sot-size="90"
+                                size="recordingDetailLoadingBar90"
                             />
                         </div>
                     </div>
-                </section>
+                </Card>
             </main>
         </div>
     );

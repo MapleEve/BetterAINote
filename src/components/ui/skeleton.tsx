@@ -12,6 +12,17 @@ const skeletonVariants = {
 
 const skeletonSizes = {
     default: "",
+    recordingListLoadingDayLabel: "h-[11px] w-[100px]",
+    recordingListLoadingMetaPill: "h-[18px] w-16 rounded-full",
+    recordingListLoadingMetaTag: "h-[18px] w-16 rounded-[6px]",
+    recordingListLoadingMetaTime: "h-[11px] w-20",
+    recordingListLoadingTag: "h-[22px] w-20 rounded-[6px]",
+    recordingListLoadingTitle: "h-[13px] w-full",
+    recordingListLoadingTitle80: "h-[13px] w-4/5",
+    recordingDetailLoadingAvatar: "size-8 rounded-full",
+    recordingDetailLoadingBar: "h-2 w-20 rounded-[4px]",
+    recordingDetailLoadingBar60: "h-2 w-3/5 rounded-[4px]",
+    recordingDetailLoadingBar90: "h-2 w-[90%] rounded-[4px]",
     dashboardTranscriptAvatar: "size-6 flex-none rounded-full",
     dashboardTranscriptLine60: "mt-1.5 h-3.5 w-3/5",
     dashboardTranscriptLine70: "mt-1.5 h-3.5 w-[70%]",

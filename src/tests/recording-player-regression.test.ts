@@ -616,6 +616,13 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/app/globals.css"),
             "utf8",
         );
+        const recordingLoading = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/app/(app)/recordings/[id]/loading.tsx",
+            ),
+            "utf8",
+        );
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -629,10 +636,20 @@ describe("dashboard recording player regressions", () => {
         for (const selector of [
             '[data-sot-part="dashboard-recording-player-no-audio"][hidden]',
             '[data-sot-part="recording-player-no-audio"][hidden]',
-            '[data-sot-panel="recording-detail-loading"]',
         ]) {
             expect(globals).toContain(selector);
         }
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-detail-loading"]',
+        );
+        expect(recordingLoading).toContain(
+            'data-sot-panel="recording-detail-loading"',
+        );
+        expect(recordingLoading).toContain('variant="routeLoadingSurface"');
+        expect(recordingLoading).toContain(
+            'size="recordingDetailLoadingAvatar"',
+        );
+        expect(recordingLoading).toContain('size="recordingDetailLoadingBar"');
         for (const [surface, selector] of [
             [
                 '[data-sot-surface="dashboard-recording-player"]',

@@ -1351,7 +1351,6 @@ button:not([data-slot]) {
 
 [data-sot-panel="dashboard-loading-list"],
 [data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-loading-detail"],
 [data-sot-panel="recording-route-empty-detail"] {
     border-radius: 16px;
     border: 1px solid var(--line-hairline);
@@ -1364,7 +1363,6 @@ button:not([data-slot]) {
 }
 [data-theme="dark"] [data-sot-panel="dashboard-loading-list"],
 [data-theme="dark"] [data-sot-panel="dashboard-loading-detail"],
-[data-theme="dark"] [data-sot-panel="recording-route-loading-detail"],
 [data-theme="dark"] [data-sot-panel="recording-route-empty-detail"] {
     border-color: var(--glass-border);
 }
@@ -1425,7 +1423,6 @@ button:not([data-slot]) {
 /* ======== Detail panel ======== */
 [data-sot-panel="dashboard-detail"],
 [data-sot-panel="dashboard-loading-detail"],
-[data-sot-panel="recording-route-loading-detail"],
 [data-sot-panel="recording-route-empty-detail"],
 [data-sot-panel="recording-workstation-detail"],
 [data-sot-panel="recording-workstation-detail-body"] {
@@ -2287,138 +2284,6 @@ body[data-time-style="abs"]
     [data-sot-part="source-provider-mark"] {
     background: rgb(255 255 255 / 0.04);
     border-color: var(--glass-border);
-}
-
-[data-sot-panel="recording-list-loading"] {
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day"] {
-    padding: 14px 10px 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day-label"] {
-    width: 100px;
-    height: 11px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-day-line"] {
-    flex: 1;
-    height: 1px;
-    background: var(--line-hairline);
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-row"] {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 14px;
-    padding: 11px 12px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-row-body"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-title"] {
-    width: 100%;
-    height: 13px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-time"] {
-    width: 80px;
-    height: 11px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-tag"] {
-    width: 64px;
-    height: 18px;
-    border-radius: 6px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-meta-pill"] {
-    width: 64px;
-    height: 18px;
-    border-radius: 999px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-part="skeleton-tag"] {
-    width: 80px;
-    height: 22px;
-    border-radius: 6px;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-size="90"] {
-    width: 90%;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-size="85"] {
-    width: 85%;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-size="80"] {
-    width: 80%;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-size="70"] {
-    width: 70%;
-}
-[data-sot-panel="recording-list-loading"] [data-sot-size="40"] {
-    width: 40%;
-}
-
-[data-sot-panel="recording-detail-loading"] {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex: 1;
-    min-height: 0;
-}
-[data-sot-panel="recording-detail-loading"]
-    [data-sot-part="detail-player-meta"] {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-[data-sot-panel="recording-detail-loading"]
-    [data-sot-part="detail-player-controls"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-[data-sot-panel="recording-detail-loading"]
-    [data-sot-part="detail-transcript-head"] {
-    display: flex;
-    align-items: center;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--line-hairline);
-}
-[data-sot-panel="recording-detail-loading"]
-    [data-sot-part="detail-transcript"] {
-    flex: 1;
-    min-height: 0;
-}
-[data-theme="dark"]
-    [data-sot-panel="recording-detail-loading"]
-    [data-sot-part="detail-transcript-head"] {
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-panel="recording-detail-loading"] [data-sot-part="detail-avatar"] {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-}
-[data-sot-panel="recording-detail-loading"] [data-sot-part="detail-bar"] {
-    width: 80px;
-    height: 8px;
-    border-radius: 4px;
-}
-[data-sot-panel="recording-detail-loading"] [data-sot-size="90"] {
-    width: 90%;
-}
-[data-sot-panel="recording-detail-loading"] [data-sot-size="60"] {
-    width: 60%;
 }
 
 /* ===========================================================

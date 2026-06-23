@@ -1465,8 +1465,13 @@ const DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-retranscription-icon"]',
     '[data-sot-part="dashboard-retranscription-spinner"]',
     '[data-sot-part="dashboard-retranscription-refresh-marker"]',
-    '[data-sot-panel="recording-detail-loading"]',
 ];
+
+const RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="recording-route-loading-detail"]',
+    '[data-sot-panel="recording-list-loading"]',
+    '[data-sot-panel="recording-detail-loading"]',
+] as const;
 
 const DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS = [
     '[data-sot-panel="dashboard-transcript-shell"][data-slot="card"]',
@@ -2480,6 +2485,78 @@ describe("full UI replacement regression coverage", () => {
         }
     });
 
+    it("keeps recording route loading skeleton styling on Card and Skeleton primitives", () => {
+        const dashboardLoading = readSource("app/(app)/dashboard/loading.tsx");
+        const recordingLoading = readSource(
+            "app/(app)/recordings/[id]/loading.tsx",
+        );
+        const cardPrimitive = readSource("components/ui/card.tsx");
+        const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const globals = readSource("app/globals.css");
+
+        for (const loading of [dashboardLoading, recordingLoading]) {
+            expect(loading).toContain(
+                'import { Card } from "@/components/ui/card";',
+            );
+            expect(loading).toContain(
+                'import { Skeleton } from "@/components/ui/skeleton";',
+            );
+            expect(loading).toContain('variant="routeLoadingSurface"');
+            expect(loading).toContain("<Skeleton");
+            expect(loading).toContain(
+                'data-sot-panel="recording-detail-loading"',
+            );
+            expect(loading).toContain('data-sot-part="detail-player-meta"');
+            expect(loading).toContain('data-sot-part="detail-player-controls"');
+            expect(loading).toContain('data-sot-part="detail-transcript-head"');
+            expect(loading).toContain('data-sot-part="detail-transcript"');
+            expect(loading).toContain('size="recordingDetailLoadingAvatar"');
+            expect(loading).toContain('size="recordingDetailLoadingBar"');
+            expect(loading).toContain('size="recordingDetailLoadingBar60"');
+            expect(loading).toContain('size="recordingDetailLoadingBar90"');
+        }
+        expect(dashboardLoading).toContain(
+            'data-sot-panel="recording-list-loading"',
+        );
+        expect(dashboardLoading).toContain(
+            'size="recordingListLoadingDayLabel"',
+        );
+        expect(dashboardLoading).toContain('size="recordingListLoadingTitle"');
+        expect(dashboardLoading).toContain('size="recordingListLoadingTitle80"');
+        expect(dashboardLoading).toContain(
+            'size="recordingListLoadingMetaTime"',
+        );
+        expect(dashboardLoading).toContain(
+            'size="recordingListLoadingMetaTag"',
+        );
+        expect(dashboardLoading).toContain(
+            'size="recordingListLoadingMetaPill"',
+        );
+        expect(dashboardLoading).toContain('size="recordingListLoadingTag"');
+        expect(recordingLoading).toContain(
+            'data-sot-panel="recording-route-loading-detail"',
+        );
+        expect(cardPrimitive).toContain("routeLoadingSurface:");
+        for (const sizeToken of [
+            "recordingListLoadingDayLabel",
+            "recordingListLoadingTitle",
+            "recordingListLoadingTitle80",
+            "recordingListLoadingMetaTime",
+            "recordingListLoadingMetaTag",
+            "recordingListLoadingMetaPill",
+            "recordingListLoadingTag",
+            "recordingDetailLoadingAvatar",
+            "recordingDetailLoadingBar",
+            "recordingDetailLoadingBar60",
+            "recordingDetailLoadingBar90",
+        ]) {
+            expect(skeletonPrimitive).toContain(`${sizeToken}:`);
+        }
+        for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
+    });
+
     it("classifies non-token modern CSS colors without fallback-only leakage", () => {
         const globals = readSource("app/globals.css");
         const findings = collectGlobalColorFallbackFindings(globals);
@@ -2530,6 +2607,9 @@ describe("full UI replacement regression coverage", () => {
         expect(legacySelectorLines).toEqual([]);
         for (const selector of DASHBOARD_TRANSCRIPT_SOURCE_REPORT_RETX_ACTIVITY_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of RECORDING_LOADING_REMOVED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
         }
         for (const selector of DASHBOARD_TRANSCRIPT_DETAIL_PRIMITIVE_SELECTORS) {
             const repaintBlocks = collectCssRuleBlocks(
