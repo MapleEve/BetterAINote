@@ -363,6 +363,46 @@ function extractElementSlice(source: string, marker: string, tagName: string) {
     return source.slice(start, end + tagName.length + 3);
 }
 
+function expectSourceReportMetricCallsites(
+    source: string,
+    cardComponentName: string,
+    expectations: readonly {
+        metric: string;
+        snippets: readonly string[];
+        value?: string;
+    }[],
+) {
+    const metricCardCallsites =
+        source.match(new RegExp(`<${cardComponentName}(?=\\s|>)`, "g")) ?? [];
+    const expectedMetricCallsiteProps = [
+        'metric="source"',
+        'metric="transcript-status"',
+        'metric="summary-status"',
+        'metric="segment-count"',
+    ];
+    expect(metricCardCallsites).toHaveLength(4);
+    expect(expectations.map(({ metric }) => `metric="${metric}"`)).toEqual(
+        expectedMetricCallsiteProps,
+    );
+
+    for (const expectation of expectations) {
+        const metricCard = extractElementSlice(
+            source,
+            `metric="${expectation.metric}"`,
+            cardComponentName,
+        );
+
+        expect(metricCard).toContain(`<${cardComponentName}`);
+        expect(metricCard).toContain(`metric="${expectation.metric}"`);
+        if (expectation.value) {
+            expect(metricCard).toContain(`value="${expectation.value}"`);
+        }
+        for (const snippet of expectation.snippets) {
+            expect(metricCard).toContain(snippet);
+        }
+    }
+}
+
 function extractOpeningElement(source: string, marker: string, tagName: string) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
@@ -442,6 +482,23 @@ function extractFeatureClassHelperSource(
     const end = source.indexOf(";", start);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end + 1);
+}
+
+function expectExactStringConstInitializer(
+    source: string,
+    constName: string,
+    expected: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = source.match(
+        new RegExp(
+            `\\bconst\\s+${escapedConstName}\\s*=\\s*"((?:\\\\.|[^"\\\\])*)"\\s*;`,
+        ),
+    );
+
+    expect(match).not.toBeNull();
+    expect(match?.[1]).toBe(expected);
+    return match?.[1] ?? "";
 }
 
 function collectOpeningElements(source: string, tagName: string) {
@@ -1795,6 +1852,105 @@ const SOURCE_REPORT_SKELETON_SHARED_TOKENS = [
     "sourceReportSegmentLineWide",
     "sourceReportSegmentSpeaker",
     "sourceReportSegmentTime",
+] as const;
+
+const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
+    EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+
+const DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "skeleton",
+        snippets: ['<SotSourceReportCardSkeleton size="source" />'],
+    },
+    {
+        metric: "transcript-status",
+        value: "skeleton",
+        snippets: ['<SotSourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "summary-status",
+        value: "skeleton",
+        snippets: ['<SotSourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "segment-count",
+        value: "skeleton",
+        snippets: ['<SotSourceReportCardSkeleton size="count" />'],
+    },
+] as const;
+
+const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "source",
+        snippets: ["sourceReportProviderName"],
+    },
+    {
+        metric: "transcript-status",
+        snippets: [
+            "<SotSourceReportStatusBadge",
+            "sourceTranscriptStatusLabel",
+        ],
+    },
+    {
+        metric: "summary-status",
+        snippets: [
+            "<SotSourceReportStatusBadge",
+            "sourceSummaryStatusLabel",
+        ],
+    },
+    {
+        metric: "segment-count",
+        value: "number",
+        snippets: ["sourceReportSegmentCount"],
+    },
+] as const;
+
+const RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="source" />'],
+    },
+    {
+        metric: "transcript-status",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "summary-status",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "segment-count",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="count" />'],
+    },
+] as const;
+
+const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "source",
+        snippets: ["sourceProviderLabel"],
+    },
+    {
+        metric: "transcript-status",
+        snippets: ["<SourceReportStatusBadge", "sourceTranscriptStatusLabel"],
+    },
+    {
+        metric: "summary-status",
+        snippets: ["<SourceReportStatusBadge", "sourceSummaryStatusLabel"],
+    },
+    {
+        metric: "segment-count",
+        value: "number",
+        snippets: ["sourceReportSegmentCount"],
+    },
 ] as const;
 
 const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
@@ -6310,36 +6466,56 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOURCE_REPORT_METRIC_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
-        expect(sourceReportCardPrimitive).toContain("sourceReportMetric:");
-        expect(sourceReportCardPrimitive).toContain(
-            "border-[var(--source-report-metric-border)]",
+        const dashboardSourceReportLoadingMetrics = extractBoundedSlice(
+            workstation,
+            'sourceReportState === "loading" ? (',
+            'sourceReportState === "error" ? (',
         );
-        expect(sourceReportBadgePrimitive).toContain("sourceReportStatus:");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=ok]");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=warn]");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=err]");
-        for (const sourceReportStatusDotPrimitiveClass of [
-            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
-            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
-            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
-            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px]",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
-        ]) {
-            expect(sourceReportBadgePrimitive).toContain(
-                sourceReportStatusDotPrimitiveClass,
+        expectSourceReportMetricCallsites(
+            dashboardSourceReportLoadingMetrics,
+            "SotSourceReportMetricCard",
+            DASHBOARD_SOURCE_REPORT_LOADING_METRIC_CARDS,
+        );
+        expectPrimitiveToExcludeBusinessTokens(sourceReportCardPrimitive, [
+            "sourceReportMetric",
+        ]);
+        expect(workstation).toContain(
+            "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        );
+        const dashboardSourceReportMetricCard = extractOpeningElement(
+            workstation,
+            'data-sot-card="source-report-metric"',
+            "Card",
+        );
+        const dashboardSourceReportMetricCardBlock = extractElementSlice(
+            workstation,
+            'data-sot-card="source-report-metric"',
+            "Card",
+        );
+        expect(dashboardSourceReportMetricCard).toContain("hasNoPadding");
+        expect(dashboardSourceReportMetricCard).toContain(
+            "className={SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+        );
+        expect(dashboardSourceReportMetricCard).toContain(
+            'data-sot-card="source-report-metric"',
+        );
+        expect(dashboardSourceReportMetricCard).toContain(
+            "data-sot-metric={metric}",
+        );
+        expect(dashboardSourceReportMetricCardBlock).not.toContain(
+            'variant="sourceReportMetric"',
+        );
+        const dashboardSourceReportMetricCardClassName =
+            expectExactStringConstInitializer(
+                workstation,
+                "SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
+                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
             );
+        for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
+            expect(dashboardSourceReportMetricCardClassName).toContain(token);
         }
-        expect(workstation).toContain('variant="sourceReportMetric"');
-        expect(workstation).toContain('variant="sourceReportStatus"');
-        expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
-        expect(workstation).not.toContain("SOURCE_REPORT_METRIC_CARD_CLASS");
-        expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
-        expect(workstation).not.toContain(
-            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
-        );
+        expect(workstation).not.toContain('variant="sourceReportMetric"');
+        expect(workstation).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
         expect(workstation).not.toContain(
             "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
         );
@@ -6485,11 +6661,40 @@ describe("full UI replacement regression coverage", () => {
             'state="loaded"\n                                            subState={sourceReportSubState}',
             "data-sot-source-report-actions",
         );
+        expectSourceReportMetricCallsites(
+            dashboardSourceReportLoaded,
+            "SotSourceReportMetricCard",
+            DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS,
+        );
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(dashboardSourceReportLoaded).toContain(hook);
         }
+        expect(sourceReportBadgePrimitive).toContain("sourceReportStatus:");
+        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=ok]");
+        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=warn]");
+        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=err]");
+        for (const sourceReportStatusDotPrimitiveClass of [
+            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
+            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
+            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px]",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full",
+            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
+        ]) {
+            expect(sourceReportBadgePrimitive).toContain(
+                sourceReportStatusDotPrimitiveClass,
+            );
+        }
         expect(dashboardSourceReportLoaded).toContain(
             'variant="sourceReportStatus"',
+        );
+        expect(workstation).toContain('variant="sourceReportStatus"');
+        expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
+        expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
+        expect(workstation).not.toContain(
+            "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );
         for (const genericToken of [
             'variant="outline"',
@@ -9436,17 +9641,63 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain("Check");
         expect(sourceReport).toContain('data-sot-list="source-report-cards"');
         expect(sourceReport).toContain('data-sot-card="source-report-metric"');
-        expect(cardPrimitive).toContain("sourceReportMetric:");
-        expect(sourceReport).toContain('variant="sourceReportMetric"');
-        expect(sourceReport).toContain('data-sot-badge="source-report-status"');
-        expect(badge).toContain("sourceReportStatus:");
-        expect(sourceReport).toContain('variant="sourceReportStatus"');
-        expect(sourceReport).toContain('variant="sourceReportError"');
-        expect(alertPrimitive).toContain("sourceReportError:");
-        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
-        expect(emptyPrimitive).not.toContain(
-            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        const sourceReportLoadingMetrics = extractBoundedSlice(
+            sourceReport,
+            "isLoading && !data && !error ? (",
+            "</SourceReportMetricCards>\n                    <SourceReportSection",
         );
+        expectSourceReportMetricCallsites(
+            sourceReportLoadingMetrics,
+            "SourceReportMetricCard",
+            RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS,
+        );
+        const sourceReportLoadedMetrics = extractBoundedSlice(
+            sourceReport,
+            "{data && (",
+            "</SourceReportMetricCards>\n\n                    <SourceReportSection",
+        );
+        expectSourceReportMetricCallsites(
+            sourceReportLoadedMetrics,
+            "SourceReportMetricCard",
+            RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS,
+        );
+        expectPrimitiveToExcludeBusinessTokens(cardPrimitive, [
+            "sourceReportMetric",
+        ]);
+        expect(sourceReport).toContain(
+            "const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        );
+        const sourceReportMetricCard = extractOpeningElement(
+            sourceReport,
+            'data-sot-card="source-report-metric"',
+            "Card",
+        );
+        const sourceReportMetricCardBlock = extractElementSlice(
+            sourceReport,
+            'data-sot-card="source-report-metric"',
+            "Card",
+        );
+        expect(sourceReportMetricCard).toContain("hasNoPadding");
+        expect(sourceReportMetricCard).toContain(
+            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+        );
+        expect(sourceReportMetricCard).toContain(
+            'data-sot-card="source-report-metric"',
+        );
+        expect(sourceReportMetricCard).toContain("data-sot-metric={metric}");
+        expect(sourceReportMetricCardBlock).not.toContain(
+            'variant="sourceReportMetric"',
+        );
+        const sourceReportMetricCardClassName =
+            expectExactStringConstInitializer(
+                sourceReport,
+                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
+                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
+            );
+        for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
+            expect(sourceReportMetricCardClassName).toContain(token);
+        }
+        expect(sourceReport).not.toContain('variant="sourceReportMetric"');
         const sourceReportErrorState = extractBoundedSlice(
             sourceReport,
             '<SourceReportState sotState="error" state="error" error={error}>',
@@ -9512,6 +9763,15 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sourceReport).not.toContain(
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
+        );
+        expect(sourceReport).toContain('data-sot-badge="source-report-status"');
+        expect(badge).toContain("sourceReportStatus:");
+        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(sourceReport).toContain('variant="sourceReportError"');
+        expect(alertPrimitive).toContain("sourceReportError:");
+        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
+        expect(emptyPrimitive).not.toContain(
+            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
@@ -9624,8 +9884,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).not.toContain("className={className ? `panel");
         expect(sourceReport).not.toContain("sourceReportReadinessPillClass");
         expect(sourceReport).not.toContain("sourceReportSyncPillClass");
+        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
         for (const legacySourceReportPrimitiveClass of [
-            "SOURCE_REPORT_METRIC_CARD_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
             "sourceReportStatusBadgeVariant",

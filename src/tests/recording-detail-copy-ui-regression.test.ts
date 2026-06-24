@@ -28,6 +28,55 @@ const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
+const EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+const SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS =
+    EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME.split(" ");
+
+const RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="source" />'],
+    },
+    {
+        metric: "transcript-status",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "summary-status",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="status" />'],
+    },
+    {
+        metric: "segment-count",
+        value: "skeleton",
+        snippets: ['<SourceReportCardSkeleton size="count" />'],
+    },
+] as const;
+
+const RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS = [
+    {
+        metric: "source",
+        value: "source",
+        snippets: ["sourceProviderLabel"],
+    },
+    {
+        metric: "transcript-status",
+        snippets: ["<SourceReportStatusBadge", "sourceTranscriptStatusLabel"],
+    },
+    {
+        metric: "summary-status",
+        snippets: ["<SourceReportStatusBadge", "sourceSummaryStatusLabel"],
+    },
+    {
+        metric: "segment-count",
+        value: "number",
+        snippets: ["sourceReportSegmentCount"],
+    },
+] as const;
+
 const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
@@ -150,6 +199,16 @@ function extractCardSlice(source: string, marker: string) {
     return source.slice(start, end + "</Card>".length);
 }
 
+function extractElementSlice(source: string, marker: string, tagName: string) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf(`</${tagName}>`, markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + tagName.length + 3);
+}
+
 function extractBoundedSlice(
     source: string,
     startMarker: string,
@@ -160,6 +219,63 @@ function extractBoundedSlice(
     const end = source.indexOf(endMarker, start);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end);
+}
+
+function expectExactStringConstInitializer(
+    source: string,
+    constName: string,
+    expected: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = source.match(
+        new RegExp(
+            `\\bconst\\s+${escapedConstName}\\s*=\\s*"((?:\\\\.|[^"\\\\])*)"\\s*;`,
+        ),
+    );
+
+    expect(match).not.toBeNull();
+    expect(match?.[1]).toBe(expected);
+    return match?.[1] ?? "";
+}
+
+function expectSourceReportMetricCallsites(
+    source: string,
+    cardComponentName: string,
+    expectations: readonly {
+        metric: string;
+        snippets: readonly string[];
+        value?: string;
+    }[],
+) {
+    const metricCardCallsites =
+        source.match(new RegExp(`<${cardComponentName}(?=\\s|>)`, "g")) ?? [];
+    const expectedMetricCallsiteProps = [
+        'metric="source"',
+        'metric="transcript-status"',
+        'metric="summary-status"',
+        'metric="segment-count"',
+    ];
+    expect(metricCardCallsites).toHaveLength(4);
+    expect(expectations.map(({ metric }) => `metric="${metric}"`)).toEqual(
+        expectedMetricCallsiteProps,
+    );
+
+    for (const expectation of expectations) {
+        const metricCard = extractElementSlice(
+            source,
+            `metric="${expectation.metric}"`,
+            cardComponentName,
+        );
+
+        expect(metricCard).toContain(`<${cardComponentName}`);
+        expect(metricCard).toContain(`metric="${expectation.metric}"`);
+        if (expectation.value) {
+            expect(metricCard).toContain(`value="${expectation.value}"`);
+        }
+        for (const snippet of expectation.snippets) {
+            expect(metricCard).toContain(snippet);
+        }
+    }
 }
 
 function extractOpeningElement(
@@ -548,6 +664,7 @@ describe("recording detail copy and title action UI regressions", () => {
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const badgePrimitive = readSource("components/ui/badge.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
+        const cardPrimitive = readSource("components/ui/card.tsx");
         const emptyPrimitive = readSource("components/ui/empty.tsx");
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
         const globals = readSource("app/globals.css");
@@ -609,16 +726,60 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain(
             'import { Skeleton } from "@/components/ui/skeleton";',
         );
-        expect(sourceReport).toContain('variant="sourceReportMetric"');
-        expect(sourceReport).toContain('variant="sourceReportStatus"');
-        expect(alertPrimitive).toContain("sourceReportError:");
-        expect(buttonPrimitive).toContain("sourceReportAction:");
-        expect(buttonPrimitive).toContain("sourceReportGhostAction:");
-        expect(buttonPrimitive).toContain("sourceReportCopyAction:");
-        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
-        expect(emptyPrimitive).not.toContain(
-            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
+        const sourceReportLoadingMetrics = extractBoundedSlice(
+            sourceReport,
+            "isLoading && !data && !error ? (",
+            "</SourceReportMetricCards>\n                    <SourceReportSection",
         );
+        expectSourceReportMetricCallsites(
+            sourceReportLoadingMetrics,
+            "SourceReportMetricCard",
+            RECORDING_SOURCE_REPORT_LOADING_METRIC_CARDS,
+        );
+        const sourceReportLoadedMetrics = extractBoundedSlice(
+            sourceReport,
+            "{data && (",
+            "</SourceReportMetricCards>\n\n                    <SourceReportSection",
+        );
+        expectSourceReportMetricCallsites(
+            sourceReportLoadedMetrics,
+            "SourceReportMetricCard",
+            RECORDING_SOURCE_REPORT_LOADED_METRIC_CARDS,
+        );
+        expect(cardPrimitive).not.toContain("sourceReportMetric:");
+        expect(sourceReport).toContain(
+            "const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        );
+        const sourceReportMetricCard = extractOpeningElement(
+            sourceReport,
+            'data-sot-card="source-report-metric"',
+            "Card",
+        );
+        const sourceReportMetricCardBlock = extractCardSlice(
+            sourceReport,
+            'data-sot-card="source-report-metric"',
+        );
+        expect(sourceReportMetricCard).toContain("hasNoPadding");
+        expect(sourceReportMetricCard).toContain(
+            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+        );
+        expect(sourceReportMetricCard).toContain(
+            'data-sot-card="source-report-metric"',
+        );
+        expect(sourceReportMetricCard).toContain("data-sot-metric={metric}");
+        expect(sourceReportMetricCardBlock).not.toContain(
+            'variant="sourceReportMetric"',
+        );
+        const sourceReportMetricCardClassName =
+            expectExactStringConstInitializer(
+                sourceReport,
+                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
+                EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
+            );
+        for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
+            expect(sourceReportMetricCardClassName).toContain(token);
+        }
+        expect(sourceReport).not.toContain('variant="sourceReportMetric"');
         const sourceReportErrorState = extractBoundedSlice(
             sourceReport,
             '<SourceReportState sotState="error" state="error" error={error}>',
@@ -684,6 +845,15 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReport).not.toContain(
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
+        );
+        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(alertPrimitive).toContain("sourceReportError:");
+        expect(buttonPrimitive).toContain("sourceReportAction:");
+        expect(buttonPrimitive).toContain("sourceReportGhostAction:");
+        expect(buttonPrimitive).toContain("sourceReportCopyAction:");
+        expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
+        expect(emptyPrimitive).not.toContain(
+            "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).toContain(
             '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
@@ -831,8 +1001,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain('className="dot"');
         expect(sourceReport).not.toContain('className="mono"');
         expect(sourceReport).not.toContain('data-sot-panel="source-actions"');
+        expect(sourceReport).not.toMatch(/\bSOURCE_REPORT_METRIC_CARD_CLASS\b/);
         for (const legacySourceReportPrimitiveClass of [
-            "SOURCE_REPORT_METRIC_CARD_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_CLASS",
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
             "sourceReportStatusBadgeVariant",

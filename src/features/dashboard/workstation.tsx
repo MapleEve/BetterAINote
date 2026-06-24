@@ -900,6 +900,9 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
     return <div data-sot-list="source-report-cards">{children}</div>;
 }
 
+const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
+    "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+
 type SotSourceReportCardSkeletonSize = "count" | "source" | "status";
 type SotSourceReportSegmentSkeletonSize =
     | "line-long"
@@ -938,7 +941,7 @@ function SotSourceReportMetricCard({
     return (
         <Card
             hasNoPadding
-            variant="sourceReportMetric"
+            className={SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}
             data-sot-card="source-report-metric"
             data-sot-metric={metric}
         >

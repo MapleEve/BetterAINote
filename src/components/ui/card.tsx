@@ -16,8 +16,6 @@ const cardVariants = {
         "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none max-md:max-w-none",
     dashboardRecordingPlayer:
         "min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none",
-    sourceReportMetric:
-        "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none",
     speakerReviewTranscript: "gap-0",
     speakerReviewRow:
         "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
