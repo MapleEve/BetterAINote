@@ -30,6 +30,48 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        expected:
+            "mb-3 flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)] [&[hidden]]:hidden",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
+        expected:
+            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+        expected: "flex min-w-0 flex-col gap-px",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
+        expected:
+            "min-h-0 overflow-visible font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)] [display:block] [-webkit-box-orient:unset] [-webkit-line-clamp:unset]",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
+        expected:
+            "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
+    },
+] as const;
+const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        expected:
+            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
+    },
+    {
+        constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
+        expected:
+            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover",
+    },
+    {
+        constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+        expected: "block size-[16px] max-w-none object-contain",
+    },
+] as const;
 
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
@@ -88,7 +130,11 @@ function collectCssRuleBlocks(source: string, selectorFragment: string) {
     return blocks;
 }
 
-function extractOpeningElement(source: string, marker: string, tagName: string) {
+function extractOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     const start = source.lastIndexOf(`<${tagName}`, markerIndex);
@@ -118,6 +164,136 @@ function extractBoundedSlice(
     const end = source.indexOf(endMarker, start);
     expect(end).toBeGreaterThan(start);
     return source.slice(start, end);
+}
+
+function expectExactStringConstInitializer(
+    source: string,
+    constName: string,
+    expected: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = new RegExp(`\\bconst\\s+${escapedConstName}\\b`).exec(source);
+
+    expect(match).not.toBeNull();
+    const declarationStart = match?.index ?? -1;
+    const assignmentStart = source.indexOf("=", declarationStart);
+    const declarationEnd = source.indexOf(";", assignmentStart);
+    expect(assignmentStart).toBeGreaterThan(declarationStart);
+    expect(declarationEnd).toBeGreaterThan(assignmentStart);
+
+    const initializerExpression = source
+        .slice(assignmentStart + 1, declarationEnd)
+        .trim();
+    expect(initializerExpression).toBe(`"${expected}"`);
+    return expected;
+}
+
+function expectExactStringConstInitializers(
+    source: string,
+    initializers: readonly { constName: string; expected: string }[],
+) {
+    for (const { constName, expected } of initializers) {
+        expectExactStringConstInitializer(source, constName, expected);
+    }
+}
+
+function expectClassNameConstReference(
+    openingElement: string,
+    constName: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(openingElement).toMatch(
+        new RegExp(`className=\\{\\s*${escapedConstName}\\s*\\}`),
+    );
+    expect(openingElement).not.toContain('className="');
+}
+
+function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
+    const noAudioAlert = extractOpeningElement(
+        source,
+        "data-sot-state={playbackDisabled",
+        "Alert",
+    );
+    const noAudioIcon = extractOpeningElement(
+        source,
+        "data-sot-part={iconPart}",
+        "span",
+    );
+    const noAudioText = extractOpeningElement(
+        source,
+        "data-player-no-audio-text",
+        "span",
+    );
+    const noAudioTitle = extractOpeningElement(
+        source,
+        "data-sot-part={titlePart}",
+        "AlertTitle",
+    );
+    const noAudioDescription = extractOpeningElement(
+        source,
+        "data-sot-part={descriptionPart}",
+        "AlertDescription",
+    );
+
+    expect(noAudioAlert).toMatch(
+        /className=\{\s*cn\(\s*SOT_PLAYER_NO_AUDIO_ALERT_CLASS,\s*className\s*\)\s*\}/,
+    );
+    expect(noAudioAlert).toContain("data-sot-part={part}");
+    expect(noAudioAlert).toContain(
+        'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
+    );
+    expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
+    expect(noAudioAlert).toContain('role="status"');
+    expectClassNameConstReference(
+        noAudioIcon,
+        "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
+    );
+    expect(noAudioIcon).toContain("data-sot-part={iconPart}");
+    expectClassNameConstReference(
+        noAudioText,
+        "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+    );
+    expect(noAudioText).toContain("data-player-no-audio-text");
+    expect(noAudioText).toContain("data-sot-part={textPart}");
+    expectClassNameConstReference(
+        noAudioTitle,
+        "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
+    );
+    expectClassNameConstReference(
+        noAudioDescription,
+        "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
+    );
+}
+
+function expectSotPlayerSourcePrimitiveBindings(source: string) {
+    const sourceBadge = extractOpeningElement(
+        source,
+        'data-sot-control="player-source-tag"',
+        "Badge",
+    );
+    const sourceIcon = extractOpeningElement(
+        source,
+        'data-sot-part="source-icon"',
+        "span",
+    );
+    const sourceIconImage = extractOpeningElement(
+        source,
+        "src={badge.icon}",
+        "img",
+    );
+
+    expectClassNameConstReference(sourceBadge, "SOT_PLAYER_SOURCE_BADGE_CLASS");
+    expect(sourceBadge).toContain('variant="ghost"');
+    expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
+    expectClassNameConstReference(sourceIcon, "SOT_PLAYER_SOURCE_ICON_CLASS");
+    expect(sourceIcon).toContain('data-sot-part="source-icon"');
+    expect(sourceIcon).toContain(
+        'data-sot-source-icon={hasImage ? "image" : "letter"}',
+    );
+    expectClassNameConstReference(
+        sourceIconImage,
+        "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+    );
 }
 
 function extractSelfClosingElement(
@@ -195,27 +371,17 @@ describe("dashboard recording player regressions", () => {
         expect(noAudioAlert).toContain(
             'descriptionPart="recording-player-no-audio-description"',
         );
-        expect(noAudioAlert).toContain(
-            "playbackDisabled={playbackDisabled}",
-        );
+        expect(noAudioAlert).toContain("playbackDisabled={playbackDisabled}");
         expect(noAudioAlert).not.toContain("variant=");
         expect(noAudioAlert).not.toContain("density=");
         expect(noAudioAlert).not.toContain("layout=");
         expect(noAudioAlert).not.toContain("className=");
         expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        expectExactStringConstInitializers(
+            sotPlayerPrimitives,
+            SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
         );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
-        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
-        expect(sotPlayerPrimitives).toContain('role="status"');
-        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
-        );
+        expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
         expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(sotPlayerPrimitives).toContain("<AlertTitle");
         expect(sotPlayerPrimitives).toContain("<AlertDescription");
@@ -279,9 +445,7 @@ describe("dashboard recording player regressions", () => {
         expect(badgePrimitive).not.toContain("playerSource:");
         expect(badgePrimitive).not.toContain(legacyPlayerStatusVariantKey);
         expect(badgePrimitive).not.toContain("min-w-[65.171875px]");
-        expect(badgePrimitive).not.toContain(
-            "[&_[data-sot-part=status-dot]]",
-        );
+        expect(badgePrimitive).not.toContain("[&_[data-sot-part=status-dot]]");
         expect(badgePrimitive).not.toContain(
             "[&_[data-sot-part=status-label]]",
         );
@@ -322,22 +486,20 @@ describe("dashboard recording player regressions", () => {
         expect(sotPlayerPrimitives).toContain(
             'import { Badge } from "@/components/ui/badge";',
         );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        expectExactStringConstInitializers(
+            sotPlayerPrimitives,
+            SOT_PLAYER_SOURCE_CLASS_INITIALIZERS,
         );
+        expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
         expect(sourceBadge).toContain('variant="ghost"');
         expect(sourceBadge).toContain(
             "className={SOT_PLAYER_SOURCE_BADGE_CLASS}",
         );
-        expect(sourceBadge).toContain(
-            'data-sot-control="player-source-tag"',
-        );
+        expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
         expect(sotPlayerPrimitives).not.toContain(
             legacyPlayerSourceVariantUsage,
         );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
-        );
+        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
         expect(statusBadge).toContain('variant="ghost"');
         expect(statusBadge).toContain(
             "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
@@ -354,16 +516,6 @@ describe("dashboard recording player regressions", () => {
         expect(
             collectCssRuleBlocks(globals, '[data-sot-control="player-status"]'),
         ).toEqual([]);
-        for (const sourceBadgeToken of [
-            "h-[22px]",
-            "gap-[6px]",
-            "pl-[3px]",
-            "pr-[8px]",
-            "[font:600_11.5px_var(--font-sans)]",
-            "dark:bg-[rgb(255_255_255_/_0.04)]",
-        ]) {
-            expect(sotPlayerPrimitives).toContain(sourceBadgeToken);
-        }
         for (const tagClassConstant of [
             "SOT_PLAYER_TAG_BADGE_CLASS",
             "SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS",
@@ -381,6 +533,22 @@ describe("dashboard recording player regressions", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(tagClassToken);
         }
+        for (const sotPlayerTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+            "--sot-player-tag-chip-blue-bg",
+            "--sot-player-tag-chip-blue-border",
+            "--sot-player-tag-chip-blue-fg",
+        ]) {
+            expect(globals).toContain(sotPlayerTagChipToken);
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
+        }
+        expect(globals).not.toContain("dashboard-recording-tag-chip");
+        expect(badgePrimitive).not.toContain("dashboard-recording-tag-chip");
+        expect(sotPlayerPrimitives).not.toContain(
+            "dashboard-recording-tag-chip",
+        );
         expect(tagChipPrimitive).toContain('variant="ghost"');
         expect(tagChipPrimitive).toContain('size="xs"');
         expect(tagChipPrimitive).toContain(
@@ -613,7 +781,9 @@ describe("dashboard recording player regressions", () => {
         for (const wrapperClassToken of [
             "SOT_PLAYER_SEEK_SLIDER_CLASS",
             "h-[14px] min-w-0 flex-1 cursor-pointer",
-            "bg-[rgb(224_227_230)]",
+            "[&_[data-slot=slider-track]]:bg-[var(--graphite-200)]",
+            "[&_[data-slot=slider-track]]:rounded-[999px]",
+            "[&_[data-slot=slider-track]]:[box-shadow:inset_0_1px_1px_rgb(0_0_0_/_0.04)]",
             "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]",
             "shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]",
             "SOT_PLAYER_VOLUME_SLIDER_CLASS",
@@ -828,12 +998,22 @@ describe("dashboard recording player regressions", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of [
-            '[data-sot-part="dashboard-recording-player-no-audio"][hidden]',
+        expect(globals).toContain(
             '[data-sot-part="recording-player-no-audio"][hidden]',
-        ]) {
-            expect(globals).toContain(selector);
-        }
+        );
+        expect(globals).not.toContain("dashboard-recording-player");
+        expect(globals).not.toContain("dashboard-player-control-icon");
+        expect(globals).not.toContain(
+            'data-sot-control="dashboard-player-play"',
+        );
+        expect(globals).not.toContain("dashboard-player-current-time");
+        expect(globals).not.toContain("dashboard-player-duration");
+        expect(globals).not.toContain(
+            'data-sot-control="dashboard-player-speed"',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
+        );
         expect(globals).not.toContain(
             '[data-sot-panel="recording-detail-loading"]',
         );
@@ -866,9 +1046,7 @@ describe("dashboard recording player regressions", () => {
         expect(recordingLoading).toContain(
             "const recordingDetailLoadingSkeletonClassNames",
         );
-        expect(recordingLoading).toContain(
-            "recordingDetailLoadingAvatar:",
-        );
+        expect(recordingLoading).toContain("recordingDetailLoadingAvatar:");
         expect(recordingLoading).toContain("recordingDetailLoadingBar:");
         expect(recordingLoading).toContain(
             "recordingDetailLoadingSkeletonClassNames.recordingDetailLoadingAvatar",

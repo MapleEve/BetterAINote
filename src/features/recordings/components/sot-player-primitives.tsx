@@ -89,7 +89,7 @@ type SotPlayerControlButtonProps = SotPlayerButtonProps & {
 };
 
 const SOT_PLAYER_CONTROL_BUTTON_CLASS =
-    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] shadow-[var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
+    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] [box-shadow:var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
 
 const SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS =
     "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
@@ -98,16 +98,16 @@ const SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS =
     "size-[30px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
 
 const SOT_PLAYER_PRIMARY_BUTTON_CLASS =
-    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] text-white shadow-[var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
+    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] text-white [box-shadow:var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
 
 const SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS =
     "size-[44px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
 
 const SOT_PLAYER_SPEED_BUTTON_CLASS =
-    "border border-transparent bg-transparent font-mono font-semibold leading-normal tabular-nums text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]";
+    "border border-transparent bg-transparent [font:600_12.5px_var(--font-mono)] leading-[normal] tracking-normal [font-kerning:auto] [font-feature-settings:normal] tabular-nums text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] active:translate-y-[0.5px]";
 
 const SOT_PLAYER_SPEED_BUTTON_SIZE_CLASS =
-    "h-[32px] min-w-[50px] justify-center rounded-[9px] px-[12px] text-[12.5px]";
+    "h-[32px] min-w-[50px] justify-center rounded-[9px] px-[12px]";
 
 export function SotPlayerControlButton({
     className,
@@ -167,7 +167,7 @@ export function SotPlayerSpeedButton({
 }
 
 const SOT_PLAYER_SEEK_SLIDER_CLASS =
-    "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:bg-[rgb(224_227_230)] [&_[data-slot=slider-track]]:shadow-[inset_0_1px_1px_rgb(0_0_0_/_0.04)]";
+    "h-[14px] min-w-0 flex-1 cursor-pointer data-[disabled]:cursor-default [&_[data-slot=slider-track]]:bg-[var(--graphite-200)] [&_[data-slot=slider-track]]:rounded-[999px] [&_[data-slot=slider-track]]:[box-shadow:inset_0_1px_1px_rgb(0_0_0_/_0.04)] [&_[data-slot=slider-track][data-orientation=horizontal]]:h-[6px]";
 
 const SOT_PLAYER_SEEK_RANGE_CLASS =
     "bg-[image:linear-gradient(90deg,var(--steel-500),var(--accent))]";
@@ -175,8 +175,7 @@ const SOT_PLAYER_SEEK_RANGE_CLASS =
 const SOT_PLAYER_SEEK_THUMB_CLASS =
     "size-[14px] border-0 bg-white p-0 shadow-[0_1px_4px_rgb(0_0_0_/_0.15),0_0_0_1px_var(--line-hairline)]";
 
-const SOT_PLAYER_VOLUME_SLIDER_CLASS =
-    "h-[18px] min-w-[110px] flex-1";
+const SOT_PLAYER_VOLUME_SLIDER_CLASS = "h-[18px] min-w-[110px] flex-1";
 
 const SOT_PLAYER_VOLUME_POPOVER_CONTENT_CLASS =
     "w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2";
@@ -233,10 +232,16 @@ export function SotPlayerVolumePopoverContent({
 }
 
 const SOT_PLAYER_SOURCE_BADGE_CLASS =
-    "h-[22px] justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]";
+    "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]";
+
+const SOT_PLAYER_SOURCE_ICON_CLASS =
+    "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover";
+
+const SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS =
+    "block size-[16px] max-w-none object-contain";
 
 const SOT_PLAYER_TAG_BADGE_CLASS =
-    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] [&>svg]:size-[11px] [&>svg]:stroke-2";
+    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]";
 
 const SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS =
     "h-[22px] justify-normal gap-[4px] rounded-[6px] border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[8px] py-0 text-[11px] font-semibold text-[var(--fg-tertiary)] shadow-none [a&]:hover:border-[var(--line-strong)] [a&]:hover:bg-transparent [a&]:hover:text-[var(--fg-primary)]";
@@ -245,10 +250,69 @@ const SOT_PLAYER_TAG_ADD_BUTTON_CLASS =
     "border border-dashed border-[var(--line-hairline)] bg-transparent text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] [&_svg]:stroke-current h-[22px] gap-[5px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal has-[>svg]:px-[8px] [&_svg:not([class*='size-'])]:size-3";
 
 const SOT_PLAYER_TAG_CHIP_BUTTON_CLASS =
-    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] h-[22px] w-fit gap-[5px] rounded-[6px] py-0 pl-[7px] pr-[9px] text-[11.5px] font-semibold leading-normal [&_svg:not([class*='size-'])]:size-[11px] [&_svg]:stroke-2";
+    "justify-normal border border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none hover:bg-[var(--sot-player-tag-chip-bg)] hover:text-[var(--sot-player-tag-chip-fg)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] h-[22px] w-fit gap-[5px] rounded-[6px] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] [&_[data-icon=inline-start]]:inline-flex [&_[data-icon=inline-start]]:size-[11px] [&_[data-icon=inline-start]]:flex-none [&_[data-icon=inline-start]]:items-center [&_[data-icon=inline-start]]:justify-center [&_svg:not([class*='size-'])]:size-[11px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
 
 const SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS =
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] h-[22px] gap-[4px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal";
+
+const SOT_PLAYER_TAG_COLOR_TOKEN: Record<RecordingTag["color"], string> = {
+    blue: "var(--tag-blue)",
+    green: "var(--tag-green)",
+    orange: "var(--tag-amber)",
+    purple: "var(--tag-violet)",
+    red: "var(--tag-rose)",
+    slate: "var(--tag-slate)",
+};
+
+const SOT_PLAYER_TAG_CHIP_TOKENS: Record<
+    RecordingTag["color"],
+    { bg: string; border: string; fg: string }
+> = {
+    blue: {
+        bg: "var(--sot-player-tag-chip-blue-bg)",
+        border: "var(--sot-player-tag-chip-blue-border)",
+        fg: "var(--sot-player-tag-chip-blue-fg)",
+    },
+    green: {
+        bg: "var(--sot-player-tag-chip-green-bg)",
+        border: "var(--sot-player-tag-chip-green-border)",
+        fg: "var(--sot-player-tag-chip-green-fg)",
+    },
+    orange: {
+        bg: "var(--sot-player-tag-chip-orange-bg)",
+        border: "var(--sot-player-tag-chip-orange-border)",
+        fg: "var(--sot-player-tag-chip-orange-fg)",
+    },
+    purple: {
+        bg: "var(--sot-player-tag-chip-purple-bg)",
+        border: "var(--sot-player-tag-chip-purple-border)",
+        fg: "var(--sot-player-tag-chip-purple-fg)",
+    },
+    red: {
+        bg: "var(--sot-player-tag-chip-red-bg)",
+        border: "var(--sot-player-tag-chip-red-border)",
+        fg: "var(--sot-player-tag-chip-red-fg)",
+    },
+    slate: {
+        bg: "var(--sot-player-tag-chip-slate-bg)",
+        border: "var(--sot-player-tag-chip-slate-border)",
+        fg: "var(--sot-player-tag-chip-slate-fg)",
+    },
+};
+
+function sotPlayerTagChipStyle(
+    color: RecordingTag["color"],
+): React.CSSProperties & Record<"--tag-c", string> {
+    const tokens = SOT_PLAYER_TAG_CHIP_TOKENS[color];
+
+    return {
+        "--tag-c": SOT_PLAYER_TAG_COLOR_TOKEN[color],
+        background: tokens.bg,
+        borderColor: tokens.border,
+        boxShadow: "var(--shadow-xs)",
+        color: tokens.fg,
+    };
+}
 
 export function SotPlayerSourceTag({
     label,
@@ -270,7 +334,7 @@ export function SotPlayerSourceTag({
             data-sot-provider={provider}
         >
             <span
-                className="inline-flex size-[16px] shrink-0 items-center justify-center overflow-hidden rounded-[4px]"
+                className={SOT_PLAYER_SOURCE_ICON_CLASS}
                 data-sot-cover={badge?.cover ? "true" : "false"}
                 data-sot-part="source-icon"
                 data-sot-source-icon={hasImage ? "image" : "letter"}
@@ -278,7 +342,7 @@ export function SotPlayerSourceTag({
             >
                 {badge?.icon ? (
                     <img
-                        className="block size-[16px] max-w-none object-contain"
+                        className={SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS}
                         src={badge.icon}
                         alt=""
                     />
@@ -335,6 +399,7 @@ export function SotPlayerTagChip({
                 <Badge
                     variant="ghost"
                     className={SOT_PLAYER_TAG_BADGE_CLASS}
+                    style={sotPlayerTagChipStyle(tag.color)}
                     data-recording-tag-chip=""
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
@@ -368,6 +433,7 @@ export function SotPlayerTagChip({
                 variant="ghost"
                 size="xs"
                 className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}
+                style={sotPlayerTagChipStyle(tag.color)}
                 type="button"
                 data-tag-id={tag.id}
                 data-recording-tag-chip=""
@@ -431,7 +497,16 @@ export function SotPlayerStatusBadge({
 
 export function SotPlayerBackIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <path d="M19 20 9 12l10-8z" />
             <path d="M5 19V5" />
         </svg>
@@ -440,7 +515,16 @@ export function SotPlayerBackIcon() {
 
 export function SotPlayerForwardIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <path d="m5 4 10 8-10 8z" />
             <path d="M19 5v14" />
         </svg>
@@ -449,7 +533,17 @@ export function SotPlayerForwardIcon() {
 
 export function SotPlayerPlayIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            className="block size-[18px]"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <polygon points="5 3 19 12 5 21 5 3" />
         </svg>
     );
@@ -457,7 +551,17 @@ export function SotPlayerPlayIcon() {
 
 export function SotPlayerPauseIcon() {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+            className="block size-[18px]"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
             <rect x="6" y="4" width="4" height="16" />
             <rect x="14" y="4" width="4" height="16" />
         </svg>
@@ -487,6 +591,11 @@ export function SotPlayerVolumeIcon({
         <svg
             className={className}
             viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             aria-hidden="true"
             focusable="false"
         >
@@ -532,16 +641,15 @@ export function SotPlayerNoAudioIcon({
 }
 
 const SOT_PLAYER_NO_AUDIO_ALERT_CLASS =
-    "mb-3 grid w-full grid-cols-[26px_minmax(0,1fr)] items-center gap-x-2.5 gap-y-px rounded-[10px] border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)]";
+    "mb-3 flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)] [&[hidden]]:hidden";
 
 const SOT_PLAYER_NO_AUDIO_ICON_CLASS =
-    "col-start-1 row-span-2 inline-grid size-[26px] place-self-center place-items-center rounded-[50%] bg-[var(--system-banner-offline-icon-bg)] text-[var(--signal-warning)] [&_svg]:size-[14px]";
+    "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]";
 
-const SOT_PLAYER_NO_AUDIO_TEXT_CLASS =
-    "col-start-2 flex min-w-0 flex-col gap-px";
+const SOT_PLAYER_NO_AUDIO_TEXT_CLASS = "flex min-w-0 flex-col gap-px";
 
 const SOT_PLAYER_NO_AUDIO_TITLE_CLASS =
-    "min-h-0 font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)]";
+    "min-h-0 overflow-visible font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)] [display:block] [-webkit-box-orient:unset] [-webkit-line-clamp:unset]";
 
 const SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS =
     "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]";
@@ -564,6 +672,7 @@ export function SotPlayerNoAudioAlert({
     iconPart,
     part,
     playbackDisabled,
+    style,
     textPart,
     titlePart,
     ...props
@@ -576,6 +685,18 @@ export function SotPlayerNoAudioAlert({
             data-sot-state={playbackDisabled ? "visible" : "hidden"}
             hidden={!playbackDisabled}
             role="status"
+            style={{
+                alignItems: "center",
+                background: "var(--system-banner-offline-bg)",
+                border: "1px solid var(--system-banner-offline-border)",
+                boxSizing: "border-box",
+                display: "flex",
+                gap: "10px",
+                height: "57px",
+                marginBottom: "13px",
+                padding: "10px 12px",
+                ...style,
+            }}
         >
             <span
                 className={SOT_PLAYER_NO_AUDIO_ICON_CLASS}
@@ -592,12 +713,24 @@ export function SotPlayerNoAudioAlert({
                 <AlertTitle
                     className={SOT_PLAYER_NO_AUDIO_TITLE_CLASS}
                     data-sot-part={titlePart}
+                    style={{
+                        color: "var(--fg-primary)",
+                        display: "block",
+                        font: "600 12.5px var(--font-sans)",
+                        letterSpacing: "normal",
+                        minHeight: 0,
+                    }}
                 >
                     来源仅同步转写与报告
                 </AlertTitle>
                 <AlertDescription
                     className={SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS}
                     data-sot-part={descriptionPart}
+                    style={{
+                        color: "var(--fg-tertiary)",
+                        display: "block",
+                        font: "500 11.5px/1.5 var(--font-sans)",
+                    }}
                 >
                     这条录音没有本地音频，无法播放或运行私有重转写。
                 </AlertDescription>

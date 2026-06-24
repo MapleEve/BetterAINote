@@ -23,16 +23,8 @@ describe("dashboard speaker label editor regressions", () => {
         path.join(process.cwd(), "src/components/ui/alert.tsx"),
         "utf8",
     );
-    const badgePrimitiveSource = readFileSync(
-        path.join(process.cwd(), "src/components/ui/badge.tsx"),
-        "utf8",
-    );
     const buttonPrimitiveSource = readFileSync(
         path.join(process.cwd(), "src/components/ui/button.tsx"),
-        "utf8",
-    );
-    const cardPrimitiveSource = readFileSync(
-        path.join(process.cwd(), "src/components/ui/card.tsx"),
         "utf8",
     );
     const emptyPrimitiveSource = readFileSync(
@@ -74,7 +66,11 @@ describe("dashboard speaker label editor regressions", () => {
             let quote: '"' | "'" | "`" | null = null;
             let end = -1;
 
-            for (let index = start + tagName.length + 1; index < source.length; index += 1) {
+            for (
+                let index = start + tagName.length + 1;
+                index < source.length;
+                index += 1
+            ) {
                 const character = source[index];
                 const previous = source[index - 1];
 
@@ -118,6 +114,24 @@ describe("dashboard speaker label editor regressions", () => {
         return openings;
     }
 
+    function collectExactOpeningElements(tagName: string) {
+        const exactTagPattern = new RegExp(`^<${tagName}(?:\\s|>)`);
+
+        return collectOpeningElements(tagName).filter((opening) =>
+            exactTagPattern.test(opening),
+        );
+    }
+
+    function stripOwnerLocalSurfaceDefinitions(value: string) {
+        const start = value.indexOf("const SPEAKER_REVIEW_CARD_CLASS_NAMES =");
+        const end = value.indexOf("function formatSegmentWindow", start);
+
+        expect(start).toBeGreaterThanOrEqual(0);
+        expect(end).toBeGreaterThan(start);
+
+        return value.slice(0, start) + value.slice(end);
+    }
+
     function collectSpeakerReviewButtonOpenings() {
         return collectOpeningElements("Button").filter(
             (opening) =>
@@ -144,7 +158,9 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain("speakerReview.samplesTitle");
         expect(source).toContain("speakerReview.playSample");
         expect(source).not.toMatch(/\bbg-(background|card|muted)\b/);
-        expect(source).not.toMatch(OLD_UI_CONTRACT_RE);
+        expect(stripOwnerLocalSurfaceDefinitions(source)).not.toMatch(
+            OLD_UI_CONTRACT_RE,
+        );
     });
 
     it("uses the muted transcript preview surface during speaker review", () => {
@@ -387,27 +403,43 @@ describe("dashboard speaker label editor regressions", () => {
         ]) {
             expect(buttonPrimitiveSource).toContain(token);
         }
-        expect(badgePrimitiveSource).toContain("speakerReviewVoiceprint:");
-        expect(badgePrimitiveSource).toContain("data-[sot-tone=ready]");
-        expect(badgePrimitiveSource).toContain("data-[sot-tone=missing]");
-        expect(badgePrimitiveSource).toContain("data-[sot-tone=selected]");
         for (const token of [
-            "speakerReviewTranscript:",
-            "speakerReviewRow:",
-            "speakerReviewMergePopover:",
-            "speakerReviewConfirm:",
-            "speakerReviewTitle:",
-            "speakerReviewMergeTitle:",
-            "speakerReviewDescription:",
-            "speakerReviewActions:",
+            "const SPEAKER_REVIEW_CARD_CLASS_NAMES =",
+            "const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES =",
+            "const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES =",
+            "const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES =",
+            "const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =",
+            "const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =",
+            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =",
+            "function SpeakerReviewCard(",
+            "function SpeakerReviewCardHeader(",
+            "function SpeakerReviewCardTitle(",
+            "function SpeakerReviewCardDescription(",
+            "function SpeakerReviewCardAction(",
+            "function SpeakerReviewCardContent(",
+            "function SpeakerReviewVoiceprintBadge(",
+            "data-[sot-tone=ready]",
+            "data-[sot-tone=missing]",
+            "data-[sot-tone=selected]",
         ]) {
-            expect(cardPrimitiveSource).toContain(token);
+            expect(source).toContain(token);
+        }
+        for (const legacyVariant of [
+            "speakerReviewTranscript",
+            "speakerReviewRow",
+            "speakerReviewMergePopover",
+            "speakerReviewConfirm",
+            "speakerReviewTitle",
+            "speakerReviewMergeTitle",
+            "speakerReviewDescription",
+            "speakerReviewActions",
+            "speakerReviewVoiceprint",
+        ]) {
+            expect(source).not.toContain(`variant="${legacyVariant}"`);
         }
         expect(alertPrimitiveSource).toContain("speakerReviewError:");
         expect(toggleGroupPrimitiveSource).toContain("speakerReviewMode:");
-        expect(toggleGroupPrimitiveSource).toContain(
-            "speakerReviewModeItem:",
-        );
+        expect(toggleGroupPrimitiveSource).toContain("speakerReviewModeItem:");
         expect(inputGroupPrimitiveSource).toContain(
             "speakerReviewMappingClear:",
         );
@@ -422,7 +454,7 @@ describe("dashboard speaker label editor regressions", () => {
         }
     });
 
-    it("uses speaker review semantic primitive variants for this slice", () => {
+    it("uses speaker review owner-local surfaces for this slice", () => {
         const modeToggle = extractElementSlice(
             'data-sot-control="speaker-review-mode"',
             "ToggleGroup",
@@ -438,9 +470,7 @@ describe("dashboard speaker label editor regressions", () => {
         const modeOptionOpenings = collectOpeningElements(
             "ToggleGroupItem",
         ).filter((opening) =>
-            opening.includes(
-                'data-sot-control="speaker-review-mode-option"',
-            ),
+            opening.includes('data-sot-control="speaker-review-mode-option"'),
         );
         expect(modeOptionOpenings).toHaveLength(2);
         for (const opening of modeOptionOpenings) {
@@ -492,24 +522,24 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).toContain(size);
         }
 
-        const cardOpenings = collectOpeningElements("Card");
+        const cardOpenings = collectExactOpeningElements("SpeakerReviewCard");
         expect(
             cardOpenings.find((opening) =>
                 opening.includes(
                     'data-sot-part="speaker-review-transcript-card"',
                 ),
             ),
-        ).toContain('variant="speakerReviewTranscript"');
+        ).toContain('surface="transcript"');
         expect(
             cardOpenings.find((opening) =>
                 opening.includes('data-sot-item="speaker-review-row"'),
             ),
-        ).toContain('variant="speakerReviewRow"');
+        ).toContain('surface="row"');
         expect(
             cardOpenings.find((opening) =>
                 opening.includes('data-sot-panel="speaker-review-merge"'),
             ),
-        ).toContain('variant="speakerReviewMergePopover"');
+        ).toContain('surface="mergePopover"');
         const mergePopoverOpening = cardOpenings.find((opening) =>
             opening.includes('data-sot-panel="speaker-review-merge"'),
         );
@@ -525,26 +555,23 @@ describe("dashboard speaker label editor regressions", () => {
         expect(mergePopoverOpening).not.toContain(
             `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
         );
-        expect(cardPrimitiveSource).toContain(
-            SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT,
-        );
+        expect(source).toContain(SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT);
         expect(source).not.toContain(
             `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
         );
 
-        // The feature keeps only the relative anchor shell; Card owns popover placement.
-        const mergeAnchorOpening = collectOpeningElements("div").find((opening) =>
-            opening.includes(
-                'data-sot-part="speaker-review-merge-anchor"',
-            ),
+        // The feature keeps only the relative anchor shell; owner-local Card wrapper owns popover placement.
+        const mergeAnchorOpening = collectOpeningElements("div").find(
+            (opening) =>
+                opening.includes('data-sot-part="speaker-review-merge-anchor"'),
         );
-        expect(mergeAnchorOpening).toContain('className="relative inline-flex"');
+        expect(mergeAnchorOpening).toContain(
+            'className="relative inline-flex"',
+        );
         expect(mergeAnchorOpening).toContain("ref={mergeAnchorRef}");
         const mergeTriggerOpening = collectOpeningElements("Button").find(
             (opening) =>
-                opening.includes(
-                    'data-sot-control="speaker-review-merge"',
-                ),
+                opening.includes('data-sot-control="speaker-review-merge"'),
         );
         expect(mergeTriggerOpening).toContain("aria-controls={mergePopoverId}");
         expect(mergeTriggerOpening).toContain(
@@ -554,7 +581,7 @@ describe("dashboard speaker label editor regressions", () => {
             cardOpenings.find((opening) =>
                 opening.includes('data-sot-confirm="speaker-unlink"'),
             ),
-        ).toContain('variant="speakerReviewConfirm"');
+        ).toContain('surface="confirm"');
         for (const opening of cardOpenings.filter((element) =>
             /speaker-review|speaker-unlink/.test(element),
         )) {
@@ -571,8 +598,9 @@ describe("dashboard speaker label editor regressions", () => {
             'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
         );
 
-        const alertOpenings = collectOpeningElements("Alert").filter((opening) =>
-            opening.includes('data-sot-part="speaker-review-state"'),
+        const alertOpenings = collectOpeningElements("Alert").filter(
+            (opening) =>
+                opening.includes('data-sot-part="speaker-review-state"'),
         );
         expect(alertOpenings.length).toBeGreaterThan(0);
         for (const opening of alertOpenings) {
@@ -582,16 +610,14 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).not.toContain('variant="destructive"');
         }
 
-        const voiceprintBadges = collectOpeningElements("Badge").filter(
-            (opening) =>
-                opening.includes(
-                    'data-sot-part="speaker-review-voiceprint-pill"',
-                ),
+        const voiceprintBadges = collectExactOpeningElements(
+            "SpeakerReviewVoiceprintBadge",
+        ).filter((opening) =>
+            opening.includes('data-sot-part="speaker-review-voiceprint-pill"'),
         );
         expect(voiceprintBadges.length).toBeGreaterThan(0);
         for (const opening of voiceprintBadges) {
-            expect(opening).toContain('variant="speakerReviewVoiceprint"');
-            expect(opening).not.toContain('variant="outline"');
+            expect(opening).not.toContain("variant=");
         }
         expect(source).toContain('data-sot-tone="missing"');
         expect(source).toContain('? "selected"');
@@ -642,12 +668,8 @@ describe("dashboard speaker label editor regressions", () => {
                 ),
         );
         expect(mappingClear).toBeDefined();
-        expect(mappingClear).toContain(
-            'size="speakerReviewMappingClear"',
-        );
-        expect(mappingClear).toContain(
-            'variant="speakerReviewMappingClear"',
-        );
+        expect(mappingClear).toContain('size="speakerReviewMappingClear"');
+        expect(mappingClear).toContain('variant="speakerReviewMappingClear"');
         expect(mappingClear).not.toContain('size="icon-xs"');
         expect(mappingClear).not.toContain('variant="ghost"');
         expect(mappingSlice).toContain("aria-busy={");
@@ -848,10 +870,10 @@ describe("dashboard speaker label editor regressions", () => {
         const confirmStart = source.indexOf(
             'data-sot-confirm="speaker-unlink"',
         );
-        const confirmEnd = source.indexOf("</Card>", confirmStart);
+        const confirmEnd = source.indexOf("</SpeakerReviewCard>", confirmStart);
         const confirmSlice = source.slice(
             confirmStart,
-            confirmEnd + "</Card>".length,
+            confirmEnd + "</SpeakerReviewCard>".length,
         );
         const openConfirmIndex = source.indexOf(
             "setConfirmUnlinkFor(\n                                                                    speaker.rawLabel",

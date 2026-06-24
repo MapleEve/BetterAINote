@@ -41,10 +41,7 @@ import {
     InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
-import {
-    ToggleGroup,
-    ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
     MAX_RECORDING_TAG_NAME_LENGTH,
     RECORDING_TAG_COLORS,
@@ -85,6 +82,145 @@ const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
 );
 
 const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
+const RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT =
+    "recordingTagChipRemove" satisfies ComponentProps<typeof Button>["variant"];
+
+const recordingTagManagerCardClassNames = {
+    panel: "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none max-md:max-w-none",
+    header: "flex flex-row items-center justify-between border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pt-[10px] pb-[10px] [&>[data-slot=card-action]]:self-center",
+    title: "text-[12.5px] font-semibold leading-[17px] text-[var(--fg-primary)]",
+    footer: "min-h-[49px] gap-[6px] border-t border-[var(--card-popover-divider)] bg-[var(--card-popover-footer-bg)] px-[14px] py-[10px]",
+    toggleNote:
+        "max-h-[31px] overflow-hidden px-[14px] pt-[15px] pb-0 text-[11px] leading-[1.45] font-normal text-[var(--card-popover-note-fg)]",
+} as const;
+
+const recordingTagManagerContentClassNames = {
+    recordingTagManagerCompact:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerCreate:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerDefault:
+        "flex min-h-[234px] flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerDelete:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerEmpty:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerSaving:
+        "flex min-h-[52px] flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+    recordingTagManagerTight:
+        "flex flex-col gap-[14px] overflow-auto px-[14px] pb-[14px] pt-[12px]",
+} as const;
+
+const recordingTagManagerBadgeClassNames = {
+    pill: "h-[var(--badge-pill-height)] justify-normal gap-[5px] rounded-[999px] border-[var(--line-hairline)] bg-[var(--bg-recessed)] py-0 pl-[8px] pr-[4px] text-[11px] font-semibold text-[var(--fg-primary)] [&>svg]:size-[11px] [&>svg]:stroke-2",
+    checkDot:
+        "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-[var(--badge-check-bg)] p-0 text-[11.5px] font-semibold leading-none text-[var(--accent-on)] [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
+} as const;
+
+type RecordingTagManagerContentVariant =
+    keyof typeof recordingTagManagerContentClassNames;
+type RecordingTagManagerBadgeAppearance =
+    keyof typeof recordingTagManagerBadgeClassNames;
+
+function RecordingTagManagerPanelCard({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof Card>, "hasNoPadding" | "variant">) {
+    return (
+        <Card
+            hasNoPadding
+            className={cn(recordingTagManagerCardClassNames.panel, className)}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerHeader({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardHeader>, "variant">) {
+    return (
+        <CardHeader
+            className={cn(recordingTagManagerCardClassNames.header, className)}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerTitle({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardTitle>, "variant">) {
+    return (
+        <CardTitle
+            className={cn(recordingTagManagerCardClassNames.title, className)}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerContent({
+    className,
+    contentVariant,
+    ...props
+}: Omit<ComponentProps<typeof CardContent>, "variant"> & {
+    contentVariant: RecordingTagManagerContentVariant;
+}) {
+    return (
+        <CardContent
+            className={cn(
+                recordingTagManagerContentClassNames[contentVariant],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerFooter({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardFooter>, "variant">) {
+    return (
+        <CardFooter
+            className={cn(recordingTagManagerCardClassNames.footer, className)}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerToggleNote({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardDescription>, "variant">) {
+    return (
+        <CardDescription
+            className={cn(
+                recordingTagManagerCardClassNames.toggleNote,
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function RecordingTagManagerBadge({
+    appearance,
+    className,
+    ...props
+}: Omit<ComponentProps<typeof Badge>, "variant"> & {
+    appearance: RecordingTagManagerBadgeAppearance;
+}) {
+    return (
+        <Badge
+            className={cn(
+                recordingTagManagerBadgeClassNames[appearance],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
 
 function RecordingTagAlertIcon(props: ComponentProps<"svg">) {
     return (
@@ -446,13 +582,13 @@ export function RecordingTagManager({
             ) : null}
             {tag.name}
             {showCheck ? (
-                <Badge
-                    variant="checkDot"
+                <RecordingTagManagerBadge
+                    appearance="checkDot"
                     data-sot-part="tag-check"
                     aria-hidden="true"
                 >
                     <Check />
-                </Badge>
+                </RecordingTagManagerBadge>
             ) : null}
         </Button>
     );
@@ -643,20 +779,20 @@ export function RecordingTagManager({
     let panelContent: ReactNode;
     let panelAfterBody: ReactNode = null;
     let panelFooter: ReactNode = null;
-    const contentVariant =
+    const contentVariant: RecordingTagManagerContentVariant =
         hasNoTags && !isCreateMode
             ? "recordingTagManagerEmpty"
-            : Boolean(deleteTarget)
+            : deleteTarget
               ? "recordingTagManagerDelete"
               : isCreateMode
                 ? "recordingTagManagerCreate"
-            : shouldShowSavingState
-              ? "recordingTagManagerSaving"
-            : shouldShowErrorState
-              ? "recordingTagManagerTight"
-            : shouldShowToggleState
-              ? "recordingTagManagerCompact"
-              : "recordingTagManagerDefault";
+                : shouldShowSavingState
+                  ? "recordingTagManagerSaving"
+                  : shouldShowErrorState
+                    ? "recordingTagManagerTight"
+                    : shouldShowToggleState
+                      ? "recordingTagManagerCompact"
+                      : "recordingTagManagerDefault";
 
     if (shouldShowSavingState) {
         panelContent = (
@@ -720,13 +856,10 @@ export function RecordingTagManager({
             </div>
         );
         panelAfterBody = (
-            <CardDescription
-                variant="recordingTagToggleNote"
-                data-sot-part="toggle-note"
-            >
+            <RecordingTagManagerToggleNote data-sot-part="toggle-note">
                 aria-pressed=&quot;true&quot; → 标签已应用 ·
                 点击再次切换为「未应用」。
-            </CardDescription>
+            </RecordingTagManagerToggleNote>
         );
     } else if (deleteTarget) {
         panelContent = (
@@ -918,9 +1051,9 @@ export function RecordingTagManager({
                                         tagDetailsById.get(tag.id) ?? tag;
 
                                     return (
-                                        <Badge
+                                        <RecordingTagManagerBadge
                                             key={tag.id}
-                                            variant="pill"
+                                            appearance="pill"
                                             className="min-w-0 max-w-full"
                                             data-sot-part="selected-chip"
                                             data-sot-tag-color={tag.color}
@@ -937,7 +1070,9 @@ export function RecordingTagManager({
                                             </span>
                                             <Button
                                                 type="button"
-                                                variant="recordingTagChipRemove"
+                                                variant={
+                                                    RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT
+                                                }
                                                 size="recordingTagChipRemove"
                                                 className="shrink-0"
                                                 aria-label="移除"
@@ -958,7 +1093,7 @@ export function RecordingTagManager({
                                             >
                                                 <X aria-hidden="true" />
                                             </Button>
-                                        </Badge>
+                                        </RecordingTagManagerBadge>
                                     );
                                 })}
                             </div>
@@ -1028,9 +1163,7 @@ export function RecordingTagManager({
     }
 
     return (
-        <Card
-            hasNoPadding
-            variant="recordingTagManagerPanel"
+        <RecordingTagManagerPanelCard
             role="dialog"
             aria-label="管理标签"
             aria-busy={busy ? "true" : undefined}
@@ -1050,16 +1183,10 @@ export function RecordingTagManager({
             }
             data-sot-variant={variant}
         >
-            <CardHeader
-                variant="recordingTagManagerHeader"
-                data-sot-part="head"
-            >
-                <CardTitle
-                    variant="recordingTagManagerTitle"
-                    data-sot-part="title"
-                >
+            <RecordingTagManagerHeader data-sot-part="head">
+                <RecordingTagManagerTitle data-sot-part="title">
                     {title}
-                </CardTitle>
+                </RecordingTagManagerTitle>
                 {showCloseButton ? (
                     <CardAction data-sot-part="head-action">
                         <Button
@@ -1076,22 +1203,19 @@ export function RecordingTagManager({
                         </Button>
                     </CardAction>
                 ) : null}
-            </CardHeader>
-            <CardContent
-                variant={contentVariant}
+            </RecordingTagManagerHeader>
+            <RecordingTagManagerContent
+                contentVariant={contentVariant}
                 data-sot-part="body"
             >
                 {panelContent}
-            </CardContent>
+            </RecordingTagManagerContent>
             {panelAfterBody}
             {panelFooter ? (
-                <CardFooter
-                    variant="recordingTagManagerFooter"
-                    data-sot-part="footer"
-                >
+                <RecordingTagManagerFooter data-sot-part="footer">
                     {panelFooter}
-                </CardFooter>
+                </RecordingTagManagerFooter>
             ) : null}
-        </Card>
+        </RecordingTagManagerPanelCard>
     );
 }

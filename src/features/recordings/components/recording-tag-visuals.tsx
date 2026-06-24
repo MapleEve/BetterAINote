@@ -100,6 +100,9 @@ const recordingTagManagerIconPaths: Partial<
     clock: <circle cx="12" cy="12" r="10" />,
 };
 
+const recordingTagChipClassName =
+    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [--tag-c:var(--graphite-500)] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]";
+
 export function RecordingTagIconGlyph({
     icon,
     variant = "full",
@@ -121,7 +124,7 @@ export function RecordingTagIconGlyph({
 export function RecordingTagChip({ tag }: { tag: RecordingTag }) {
     return (
         <Badge
-            variant="recordingTagChip"
+            className={recordingTagChipClassName}
             data-recording-tag-chip=""
             data-sot-tag-color={tag.color}
             data-sot-tag-icon={tag.icon}

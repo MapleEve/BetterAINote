@@ -5,6 +5,60 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
+    {
+        property: "surface",
+        expected:
+            "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+    },
+    {
+        property: "speakerDraft",
+        expected:
+            "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
+    },
+    {
+        property: "header",
+        expected: "grid auto-rows-min gap-0 p-0",
+    },
+    {
+        property: "stepHeader",
+        expected: "grid auto-rows-min gap-0 p-0",
+    },
+    {
+        property: "providerMeta",
+        expected: "grid auto-rows-min gap-0 p-0",
+    },
+    {
+        property: "heading",
+        expected:
+            "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    },
+    {
+        property: "sub",
+        expected:
+            "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+    },
+    {
+        property: "stepBody",
+        expected: "gap-0 p-0",
+    },
+] as const;
+
+const REMOVED_ONBOARDING_CARD_BUSINESS_VARIANTS = [
+    "Surface",
+    "SpeakerDraft",
+    "Header",
+    "StepHeader",
+    "ProviderMeta",
+    "Heading",
+    "Sub",
+    "StepBody",
+    "StepTitle",
+    "ProviderName",
+    "StepDescription",
+    "ProviderHint",
+].map((suffix) => ["onboarding", suffix].join(""));
+
 function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
@@ -75,7 +129,11 @@ function collectExactCssRuleBlocks(source: string, selector: string) {
     );
 }
 
-function extractOpeningElement(source: string, marker: string, tagName: string) {
+function extractOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     return extractOpeningElementAt(source, markerIndex, tagName);
@@ -124,7 +182,9 @@ describe("onboarding UI replacement regression", () => {
         );
         const fieldPrimitive = readSource("components/ui/field.tsx");
         const inputPrimitive = readSource("components/ui/input.tsx");
-        const toggleGroupPrimitive = readSource("components/ui/toggle-group.tsx");
+        const toggleGroupPrimitive = readSource(
+            "components/ui/toggle-group.tsx",
+        );
         const globals = readSource("app/globals.css");
 
         expect(source).toContain('data-sot-layout="onboarding-workstation"');
@@ -180,10 +240,25 @@ describe("onboarding UI replacement regression", () => {
         expect(dataSourceFieldControl).toContain(
             '<FieldGroup variant="onboardingSourceField">',
         );
-        expect(dataSourceFieldControl).toContain(
-            '? "onboardingSourceField"',
+        expect(dataSourceFieldControl).toContain('? "onboardingSourceField"');
+        expect(source).toContain("const onboardingCardClassNames = {");
+        for (const initializer of EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS) {
+            expect(source).toContain(`${initializer.property}:`);
+            expect(source).toContain(`"${initializer.expected}"`);
+        }
+        for (const removedVariant of REMOVED_ONBOARDING_CARD_BUSINESS_VARIANTS) {
+            expect(source).not.toContain(`variant="${removedVariant}"`);
+        }
+        const onboardingCard = extractOpeningElement(
+            source,
+            'data-sot-card="onboarding"',
+            "Card",
         );
-        expect(source).toContain('variant="onboardingSurface"');
+        expect(onboardingCard).toContain("hasNoPadding");
+        expect(onboardingCard).toContain(
+            "className={onboardingCardClassNames.surface}",
+        );
+        expect(onboardingCard).not.toContain("variant=");
         expect(source).toContain('data-sot-card="onboarding"');
         expect(source).toContain('variant="onboardingProviderCard"');
         expect(source).toContain('size="onboardingProviderCard"');
@@ -277,8 +352,9 @@ describe("onboarding UI replacement regression", () => {
             'className="grid w-full grid-cols-2 items-stretch"',
         );
         const onboardingDataSourceFieldControl =
-            source.match(/\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/)?.[0] ??
-            "";
+            source.match(
+                /\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/,
+            )?.[0] ?? "";
         expect(onboardingDataSourceFieldControl).toContain(
             "<DataSourceFieldControl",
         );
@@ -291,23 +367,32 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain(
             'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );
-        expect(source).toContain('variant="onboardingSpeakerDraft"');
         expect(source).toContain("CardContent,");
         expect(source).toContain("CardDescription,");
         expect(source).toContain("CardHeader,");
         expect(source).toContain("CardTitle,");
         expect(source).toMatch(
-            /<CardHeader(?=[^>]*\bvariant="onboardingHeader")(?=[^>]*\bdata-sot-part="onboarding-card-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingHeading")(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingSub")(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
+            /<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.header\})(?=[^>]*\bdata-sot-part="onboarding-card-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bclassName=\{onboardingCardClassNames\.heading\})(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bclassName=\{onboardingCardClassNames\.sub\})(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
         );
         expect(source).toMatch(
-            /<CardHeader(?=[^>]*\bvariant="onboardingStepHeader")(?=[^>]*\bdata-sot-part="onboarding-step-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingStepTitle")(?=[^>]*\bdata-sot-part="onboarding-step-title")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingStepDescription")(?=[^>]*\bdata-sot-part="onboarding-step-description")[^>]*>/,
+            /<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepHeader\})(?=[^>]*\bdata-sot-part="onboarding-step-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="onboarding-step-title")(?![^>]*\b(?:variant|className)=)[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="onboarding-step-description")(?![^>]*\b(?:variant|className)=)[^>]*>/,
         );
         expect(source).toMatch(
-            /<CardContent(?=[^>]*\bvariant="onboardingStepBody")(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
+            /<CardContent(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepBody\})(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
         );
         expect(source).toMatch(
-            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bvariant="onboardingProviderMeta")(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingProviderName")(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingProviderHint")(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
+            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="provider-name")(?![^>]*\b(?:variant|className)=)[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="provider-hint")(?![^>]*\b(?:variant|className)=)[^>]*>/,
         );
+        const speakerDraftCard = extractOpeningElement(
+            source,
+            'data-sot-control="speaker-profile-draft"',
+            "Card",
+        );
+        expect(speakerDraftCard).toContain("hasNoPadding");
+        expect(speakerDraftCard).toContain(
+            "className={onboardingCardClassNames.speakerDraft}",
+        );
+        expect(speakerDraftCard).not.toContain("variant=");
         expect(source).toContain('data-sot-control="provider-card"');
         expect(source).toContain('data-sot-list="provider-cards"');
         expect(source).toContain(
@@ -332,7 +417,7 @@ describe("onboarding UI replacement regression", () => {
         expect(defaultSourceButton).toContain(
             "disabled={isSaving || !option.connected}",
         );
-        expect(source).not.toContain("role=\"button\"");
+        expect(source).not.toContain('role="button"');
         expect(source).not.toContain("onKeyDown={(event) =>");
         expect(source).toContain('data-sot-control="speaker-profile-draft"');
         expect(source).toContain('data-sot-list="speaker-profiles"');
@@ -344,7 +429,6 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toContain('className="onboarding-step-sub"');
         expect(source).not.toContain('className="onboarding-step-body"');
         expect(source).not.toContain('className="gap-0 p-0"');
-        expect(source).not.toContain("hasNoPadding");
         expect(source).not.toContain('className="src-list"');
         expect(source).not.toMatch(
             /className="onboarding-default-source-(step|list|row|swatch)"/,

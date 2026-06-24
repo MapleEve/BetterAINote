@@ -38,6 +38,112 @@ const ROUTE_LOADING_SURFACE_CLASS_VALUE =
     "min-h-0 gap-0 overflow-hidden rounded-[16px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-sm)] backdrop-blur-none dark:border-[var(--glass-border)]";
 const ROUTE_LOADING_SURFACE_CLASS_TOKENS =
     ROUTE_LOADING_SURFACE_CLASS_VALUE.split(" ");
+const EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+const DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME",
+        expected: EXPECTED_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME,
+    },
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        expected:
+            "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0",
+    },
+    {
+        constName: "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+        expected:
+            "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-tertiary)]",
+    },
+] as const;
+const DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS = [
+    {
+        constName: "DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_TIME_CLASS_NAME",
+        expected:
+            "min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
+        expected:
+            "min-w-11 translate-x-[-0.109375px] text-center font-mono text-xs font-medium tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        expected:
+            "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        expected: "disabled:cursor-not-allowed disabled:opacity-[0.42]",
+    },
+    {
+        constName: "DASHBOARD_PLAYER_SPEED_CLASS_NAME",
+        expected:
+            "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0",
+    },
+] as const;
+const SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        expected:
+            "mb-3 flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--system-banner-offline-border)] bg-[var(--system-banner-offline-bg)] px-3 py-2.5 text-[12.5px] leading-normal text-[var(--fg-primary)] [&[hidden]]:hidden",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
+        expected:
+            "inline-grid size-[26px] flex-none place-items-center rounded-[50%] bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] text-[var(--signal-warning)] [&_svg]:size-[14px]",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+        expected: "flex min-w-0 flex-col gap-px",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
+        expected:
+            "min-h-0 overflow-visible font-sans text-[12.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)] [display:block] [-webkit-box-orient:unset] [-webkit-line-clamp:unset]",
+    },
+    {
+        constName: "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
+        expected:
+            "block font-sans text-[11.5px] font-medium leading-[1.5] text-[var(--fg-tertiary)] [&_p]:leading-[1.5]",
+    },
+] as const;
+const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
+    {
+        constName: "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        expected:
+            "h-[22px] flex-none justify-normal gap-[6px] rounded-[6px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-[3px] pr-[8px] [font:600_11.5px_var(--font-sans)] text-[var(--fg-secondary)] shadow-[var(--shadow-xs)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.04)] dark:text-[var(--fg-primary)]",
+    },
+    {
+        constName: "SOT_PLAYER_SOURCE_ICON_CLASS",
+        expected:
+            "inline-flex size-[16px] flex-none shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-[var(--line-hairline)] bg-white data-[sot-source-icon=letter]:bg-[var(--bg-recessed)] data-[sot-source-icon=letter]:[font:700_9px_var(--font-sans)] data-[sot-source-icon=letter]:text-[var(--fg-secondary)] [&[data-sot-cover=true]_img]:object-cover",
+    },
+    {
+        constName: "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+        expected: "block size-[16px] max-w-none object-contain",
+    },
+] as const;
+const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
+    "dashboard-recording-player",
+    "dashboard-player-control-icon",
+    'data-sot-control="dashboard-player-play"',
+    "dashboard-player-current-time",
+    "dashboard-player-duration",
+    'data-sot-control="dashboard-player-speed"',
+    '[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]',
+    '[data-sot-part="dashboard-recording-player-meta"]',
+] as const;
 
 function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -177,8 +283,8 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
 ] as const;
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS = [
-    'aria-expanded={searchOpen}',
-    'aria-expanded={activityOpen}',
+    "aria-expanded={searchOpen}",
+    "aria-expanded={activityOpen}",
     'data-sot-state={searchOpen ? "open" : "idle"}',
     'data-sot-state={activityOpen ? "open" : "idle"}',
     "placeholder={t(",
@@ -194,9 +300,7 @@ function collectSearchActivityPrimitiveBusinessTokens() {
 }
 
 function hasExactBusinessToken(source: string, token: string) {
-    return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(
-        source,
-    );
+    return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(source);
 }
 
 function collectAiRenamePrimitiveBusinessTokens() {
@@ -270,11 +374,7 @@ function findBalancedBlockEnd(source: string, openBraceIndex: number) {
             continue;
         }
 
-        if (
-            character === '"' ||
-            character === "'" ||
-            character === "`"
-        ) {
+        if (character === '"' || character === "'" || character === "`") {
             quote = character;
             continue;
         }
@@ -298,7 +398,7 @@ function findBalancedBlockEnd(source: string, openBraceIndex: number) {
 function collectFeatureOwnerClassSource(source: string) {
     const slices: string[] = [];
     const declarationRe =
-        /\b(?:const\s+\w*(?:ClassName|ClassNames|Classes|Styles)\s*=|function\s+\w*ClassName\s*\()/g;
+        /\b(?:const\s+\w*(?:ClassName|ClassNames|Classes|Styles|CLASS_NAME|CLASS_NAMES|CLASSES|STYLES)\s*=|function\s+\w*ClassName\s*\()/g;
 
     for (
         let match = declarationRe.exec(source);
@@ -337,20 +437,13 @@ function expectPrimitiveToExcludeBusinessTokens(
     }
 }
 
-function extractVariantDefinition(source: string, variantName: string) {
-    const marker = `${variantName}:\n`;
-    const markerIndex = source.indexOf(marker);
-    expect(markerIndex).toBeGreaterThanOrEqual(0);
-    const start = source.indexOf('"', markerIndex);
-    expect(start).toBeGreaterThan(markerIndex);
-
-    for (let index = start + 1; index < source.length; index += 1) {
-        if (source[index] === '"' && source[index - 1] !== "\\") {
-            return source.slice(markerIndex, index + 1);
-        }
+function expectSourceToExcludeForbiddenSubstrings(
+    source: string,
+    tokens: readonly string[],
+) {
+    for (const token of tokens) {
+        expect(source).not.toContain(token);
     }
-
-    throw new Error(`Unclosed variant definition: ${variantName}`);
 }
 
 function extractElementSlice(source: string, marker: string, tagName: string) {
@@ -403,7 +496,11 @@ function expectSourceReportMetricCallsites(
     }
 }
 
-function extractOpeningElement(source: string, marker: string, tagName: string) {
+function extractOpeningElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
     const markerIndex = source.indexOf(marker);
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     return extractOpeningElementAt(source, markerIndex, tagName);
@@ -430,10 +527,11 @@ function extractExactOpeningElement(
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     const tagPattern = new RegExp(`<${tagName}(?=\\s|>)`, "g");
     let start = -1;
-    let match: RegExpExecArray | null;
+    let match = tagPattern.exec(source);
 
-    while ((match = tagPattern.exec(source)) && match.index <= markerIndex) {
+    while (match && match.index <= markerIndex) {
         start = match.index;
+        match = tagPattern.exec(source);
     }
 
     expect(start).toBeGreaterThanOrEqual(0);
@@ -490,15 +588,153 @@ function expectExactStringConstInitializer(
     expected: string,
 ) {
     const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const match = source.match(
-        new RegExp(
-            `\\bconst\\s+${escapedConstName}\\s*=\\s*"((?:\\\\.|[^"\\\\])*)"\\s*;`,
-        ),
-    );
+    const match = new RegExp(`\\bconst\\s+${escapedConstName}\\b`).exec(source);
 
     expect(match).not.toBeNull();
-    expect(match?.[1]).toBe(expected);
-    return match?.[1] ?? "";
+    const declarationStart = match?.index ?? -1;
+    const assignmentStart = source.indexOf("=", declarationStart);
+    const declarationEnd = source.indexOf(";", assignmentStart);
+    expect(assignmentStart).toBeGreaterThan(declarationStart);
+    expect(declarationEnd).toBeGreaterThan(assignmentStart);
+
+    const initializerExpression = source
+        .slice(assignmentStart + 1, declarationEnd)
+        .trim();
+    expect(initializerExpression).toBe(`"${expected}"`);
+    return expected;
+}
+
+function expectExactStringConstInitializers(
+    source: string,
+    initializers: readonly { constName: string; expected: string }[],
+) {
+    for (const { constName, expected } of initializers) {
+        expectExactStringConstInitializer(source, constName, expected);
+    }
+}
+
+function expectClassNameConstReference(
+    openingElement: string,
+    constName: string,
+) {
+    const escapedConstName = constName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    expect(openingElement).toMatch(
+        new RegExp(`className=\\{\\s*${escapedConstName}\\s*\\}`),
+    );
+    expect(openingElement).not.toContain('className="');
+}
+
+function expectCnClassNameReferences(
+    openingElement: string,
+    snippets: readonly string[],
+) {
+    expect(openingElement).toMatch(/className=\{\s*cn\(/);
+    for (const snippet of snippets) {
+        expect(openingElement).toContain(snippet);
+    }
+    expect(openingElement).not.toContain('className="');
+}
+
+function expectSotPlayerNoAudioPrimitiveBindings(source: string) {
+    const noAudioAlert = extractOpeningElement(
+        source,
+        "data-sot-state={playbackDisabled",
+        "Alert",
+    );
+    const noAudioIcon = extractOpeningElement(
+        source,
+        "data-sot-part={iconPart}",
+        "span",
+    );
+    const noAudioText = extractOpeningElement(
+        source,
+        "data-player-no-audio-text",
+        "span",
+    );
+    const noAudioTitle = extractOpeningElement(
+        source,
+        "data-sot-part={titlePart}",
+        "AlertTitle",
+    );
+    const noAudioDescription = extractOpeningElement(
+        source,
+        "data-sot-part={descriptionPart}",
+        "AlertDescription",
+    );
+
+    expect(noAudioAlert).toMatch(
+        /className=\{\s*cn\(\s*SOT_PLAYER_NO_AUDIO_ALERT_CLASS,\s*className\s*\)\s*\}/,
+    );
+    expect(noAudioAlert).toContain("data-sot-part={part}");
+    expect(noAudioAlert).toContain(
+        'data-sot-state={playbackDisabled ? "visible" : "hidden"}',
+    );
+    expect(noAudioAlert).toContain("hidden={!playbackDisabled}");
+    expect(noAudioAlert).toContain('role="status"');
+    expectClassNameConstReference(
+        noAudioIcon,
+        "SOT_PLAYER_NO_AUDIO_ICON_CLASS",
+    );
+    expect(noAudioIcon).toContain("data-sot-part={iconPart}");
+    expectClassNameConstReference(
+        noAudioText,
+        "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
+    );
+    expect(noAudioText).toContain("data-player-no-audio-text");
+    expect(noAudioText).toContain("data-sot-part={textPart}");
+    expectClassNameConstReference(
+        noAudioTitle,
+        "SOT_PLAYER_NO_AUDIO_TITLE_CLASS",
+    );
+    expectClassNameConstReference(
+        noAudioDescription,
+        "SOT_PLAYER_NO_AUDIO_DESCRIPTION_CLASS",
+    );
+}
+
+function expectSotPlayerSourcePrimitiveBindings(source: string) {
+    const sourceBadge = extractOpeningElement(
+        source,
+        'data-sot-control="player-source-tag"',
+        "Badge",
+    );
+    const sourceIcon = extractOpeningElement(
+        source,
+        'data-sot-part="source-icon"',
+        "span",
+    );
+    const sourceIconImage = extractOpeningElement(
+        source,
+        "src={badge.icon}",
+        "img",
+    );
+
+    expectClassNameConstReference(sourceBadge, "SOT_PLAYER_SOURCE_BADGE_CLASS");
+    expect(sourceBadge).toContain('variant="ghost"');
+    expect(sourceBadge).toContain('data-sot-control="player-source-tag"');
+    expectClassNameConstReference(sourceIcon, "SOT_PLAYER_SOURCE_ICON_CLASS");
+    expect(sourceIcon).toContain('data-sot-part="source-icon"');
+    expect(sourceIcon).toContain(
+        'data-sot-source-icon={hasImage ? "image" : "letter"}',
+    );
+    expectClassNameConstReference(
+        sourceIconImage,
+        "SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS",
+    );
+}
+
+function extractSelfClosingElement(
+    source: string,
+    marker: string,
+    tagName: string,
+) {
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThanOrEqual(0);
+    const start = source.lastIndexOf(`<${tagName}`, markerIndex);
+    const end = source.indexOf("/>", markerIndex);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(markerIndex);
+    return source.slice(start, end + 2);
 }
 
 function collectOpeningElements(source: string, tagName: string) {
@@ -513,7 +749,11 @@ function collectOpeningElements(source: string, tagName: string) {
         let quote: '"' | "'" | "`" | null = null;
         let end = -1;
 
-        for (let index = start + tagName.length + 1; index < source.length; index += 1) {
+        for (
+            let index = start + tagName.length + 1;
+            index < source.length;
+            index += 1
+        ) {
             const character = source[index];
             const previous = source[index - 1];
 
@@ -524,11 +764,7 @@ function collectOpeningElements(source: string, tagName: string) {
                 continue;
             }
 
-            if (
-                character === '"' ||
-                character === "'" ||
-                character === "`"
-            ) {
+            if (character === '"' || character === "'" || character === "`") {
                 quote = character;
                 continue;
             }
@@ -564,9 +800,7 @@ function expectOpeningElementUsesFeatureOwnedClassName(
     expect(
         openingElement,
         `${label} should use a feature-owned class helper through className`,
-    ).toMatch(
-        /className=\{[\s\S]*(?:ClassName|ClassNames|Classes|Styles)\b/,
-    );
+    ).toMatch(/className=\{[\s\S]*(?:ClassName|ClassNames|Classes|Styles)\b/);
 }
 
 function collectSourceFiles(directory: string): string[] {
@@ -869,7 +1103,6 @@ const DASHBOARD_RECORDING_LIST_REPLACEMENT_HOOKS = [
     'data-sot-part="dashboard-recording-row-body"',
     'data-sot-part="dashboard-recording-row-title"',
     'data-sot-part="dashboard-recording-row-meta"',
-    "data-recording-tag-chip",
     'data-sot-part="recording-list-state-icon"',
     'data-sot-part="recording-list-state-title"',
     'data-sot-part="recording-list-state-description"',
@@ -1120,6 +1353,40 @@ const AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS = [
 ] as const;
 
 const AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS = ["authEmail"] as const;
+
+const BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
+    "detailHeaderLocal",
+    "detailHeaderStatus",
+    "pill",
+    "checkDot",
+    "recordingTagChip",
+    "sourceProviderStatus",
+    "sourceProviderDetailStatus",
+    "settingsSaveStatus",
+    "sourceReportStatus",
+    "speakerReviewVoiceprint",
+    "transcriptionMeta",
+    "dashboardTranscriptLanguage",
+    "data-[sot-",
+    "source-provider-status",
+    "source-report-status",
+    "dashboard-recording-tag-chip",
+] as const;
+
+const EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+
+const EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
+    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+
+const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
+    "onboarding",
+    "detailHeader",
+    "recordingTagManager",
+    "speakerReview",
+    "popover",
+    "popoverNote",
+    "elevated",
+] as const;
 
 const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
@@ -1700,6 +1967,14 @@ function collectInlineModernColorFindings() {
         for (const [index, line] of lines.entries()) {
             if (!MODERN_COLOR_RE.test(line)) continue;
 
+            const sharedNoAudioPrimitiveColor =
+                relativePath ===
+                    "features/recordings/components/sot-player-primitives.tsx" &&
+                line.includes(
+                    "bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)]",
+                );
+            if (sharedNoAudioPrimitiveColor) continue;
+
             const catalogMatch = line.match(
                 /^\s*(red|orange|green|blue|purple|slate): tagSwatchStyle\("oklch\([^)]+\)"\),$/,
             );
@@ -1897,10 +2172,7 @@ const DASHBOARD_SOURCE_REPORT_LOADED_METRIC_CARDS = [
     },
     {
         metric: "summary-status",
-        snippets: [
-            "<SotSourceReportStatusBadge",
-            "sourceSummaryStatusLabel",
-        ],
+        snippets: ["<SotSourceReportStatusBadge", "sourceSummaryStatusLabel"],
     },
     {
         metric: "segment-count",
@@ -1958,7 +2230,8 @@ const DASHBOARD_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sotSourceReportSegmentSkeletonClassNames",
     'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
     'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    '"line-long":',
+    '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
@@ -1967,7 +2240,8 @@ const RECORDING_SOURCE_REPORT_SKELETON_LOCAL_COMPOSITION_TOKENS = [
     "const sourceReportSegmentSkeletonClassNames",
     'count: "inline-block h-[18px] w-12 align-middle rounded-[6px]"',
     'source: "inline-block h-[18px] w-[120px] align-middle rounded-[6px]"',
-    '"line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
+    '"line-long":',
+    '"mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]"',
     'time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]"',
 ] as const;
 
@@ -2565,11 +2839,12 @@ describe("full UI replacement regression coverage", () => {
             collectCssRuleBlocks(
                 globals,
                 '.toggle-group-swatch[data-state="on"]',
-            ).some(({ declarations }) =>
-                declarations.includes("border-color: var(--fg-primary);") &&
-                declarations.includes(
-                    "box-shadow: inset 0 0 0 2px var(--bg-elevated);",
-                ),
+            ).some(
+                ({ declarations }) =>
+                    declarations.includes("border-color: var(--fg-primary);") &&
+                    declarations.includes(
+                        "box-shadow: inset 0 0 0 2px var(--bg-elevated);",
+                    ),
             ),
         ).toBe(true);
         expect(
@@ -2733,22 +3008,9 @@ describe("full UI replacement regression coverage", () => {
             expect(card).toContain(`data-slot="${slot}"`);
         }
         expect(card).toContain("bg-card text-card-foreground");
-        expect(card).toContain("onboardingSurface:");
-        expect(card).toContain("onboardingSpeakerDraft:");
-        expect(card).toContain("onboardingHeader:");
-        expect(card).toContain("onboardingStepHeader:");
-        expect(card).toContain("onboardingProviderMeta:");
-        expect(card).toContain("onboardingHeading:");
-        expect(card).toContain("onboardingStepTitle:");
-        expect(card).toContain("onboardingProviderName:");
-        expect(card).toContain("onboardingSub:");
-        expect(card).toContain("onboardingStepDescription:");
-        expect(card).toContain("onboardingProviderHint:");
-        expect(card).toContain("onboardingStepBody:");
-        expect(card).toContain("detailHeader:");
-        expect(card).toContain("data-[sot-state=saving]:py-0");
-        expect(card).toContain(
-            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        expectSourceToExcludeForbiddenSubstrings(
+            card,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expectPrimitiveToExcludeBusinessTokens(
             card,
@@ -2933,7 +3195,9 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagChipRemove",
             "recordingTagPanelClose",
         ]) {
-            expect(buttonVariantBlock).toContain(`${recordingTagButtonVariant}:`);
+            expect(buttonVariantBlock).toContain(
+                `${recordingTagButtonVariant}:`,
+            );
         }
         for (const recordingTagButtonSize of [
             "recordingTagAction",
@@ -3242,7 +3506,7 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("onboardingSourceAuthModeOption:");
         expect(toggleGroup).toContain("settingsSourceAuthMode:");
         expect(toggleGroup).toContain("settingsSourceAuthModeOption:");
-        expect(toggleGroup).toContain('swatch:');
+        expect(toggleGroup).toContain("swatch:");
         expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
         expect(toggleGroup).toContain("toggle-group-swatch-tone-blue");
         expect(toggleGroup).toContain("toggle-group-swatch-tone-green");
@@ -3361,9 +3625,7 @@ describe("full UI replacement regression coverage", () => {
             'variant="recordingRoutePrimaryAction"',
             "</Button>",
         );
-        expect(notFoundPrimaryAction).toContain(
-            'size="recordingRouteAction"',
-        );
+        expect(notFoundPrimaryAction).toContain('size="recordingRouteAction"');
 
         const errorPrimaryAction = extractBoundedSlice(
             error,
@@ -3467,9 +3729,7 @@ describe("full UI replacement regression coverage", () => {
         ] as const) {
             expect(card, label).toContain('variant="default"');
             expect(card, label).toContain("hasNoPadding");
-            expect(card, label).not.toContain(
-                'variant="routeLoadingSurface"',
-            );
+            expect(card, label).not.toContain('variant="routeLoadingSurface"');
         }
         expect(dashboardLoadingListCardOpening).toContain(
             "className={routeLoadingSurfaceClassName}",
@@ -3653,9 +3913,7 @@ describe("full UI replacement regression coverage", () => {
             expect(globals).toContain(selector);
         }
         for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
-            expect(
-                collectCssRuleBlocks(globals, migratedSelector),
-            ).toEqual([]);
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
@@ -3677,7 +3935,11 @@ describe("full UI replacement regression coverage", () => {
         const productCss = readProductCss(globals);
         const bodyDatasetKeys = [
             ...new Set(
-                [...workstation.matchAll(/document\.body\.dataset\.([A-Za-z0-9_]+)/g)]
+                [
+                    ...workstation.matchAll(
+                        /document\.body\.dataset\.([A-Za-z0-9_]+)/g,
+                    ),
+                ]
                     .map(([, key]) => key)
                     .sort(),
             ),
@@ -3802,8 +4064,7 @@ describe("full UI replacement regression coverage", () => {
             collectCssRuleBlocks(globals, '[data-sot-panel="system-banner"]')
                 .map(({ prelude }) => prelude.trim())
                 .filter(
-                    (prelude) =>
-                        prelude === '[data-sot-panel="system-banner"]',
+                    (prelude) => prelude === '[data-sot-panel="system-banner"]',
                 ),
         ).toEqual([]);
         expect(
@@ -3813,7 +4074,7 @@ describe("full UI replacement regression coverage", () => {
             ).filter(({ prelude }) => prelude.includes('[data-slot="button"]')),
         ).toEqual([]);
         expect(globals).not.toContain(
-            "[data-sot-panel=\"system-banner\"] [data-slot=\"button\"]",
+            '[data-sot-panel="system-banner"] [data-slot="button"]',
         );
         for (const token of SYSTEM_BANNER_ALERT_PRIMITIVE_RETIRED_TOKENS) {
             expect(alertPrimitive).not.toContain(token);
@@ -3971,9 +4232,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "function dashboardRecordingTimeFilterCountClassName(active: boolean)",
         );
-        expect(workstation).toContain(
-            'hidden={listMode !== "timeline"}',
-        );
+        expect(workstation).toContain('hidden={listMode !== "timeline"}');
         expect(workstation).toContain(
             'data-sot-part="dashboard-recording-time-filter-count"',
         );
@@ -4283,7 +4542,10 @@ describe("full UI replacement regression coverage", () => {
         expect(login).toContain('data-sot-control="auth-email"');
         expect(login).toContain('data-sot-control="local-only"');
         expect(authFeatureOwnerClassSource.trim()).not.toBe("");
-        for (const { label, snippets } of AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS) {
+        for (const {
+            label,
+            snippets,
+        } of AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS) {
             for (const snippet of snippets) {
                 expect(
                     authFeatureOwnerClassSource,
@@ -4484,8 +4746,17 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-card="onboarding"');
         expect(onboarding).toContain('data-sot-frame="onboarding"');
         expect(onboarding).toContain('data-sot-part="card-heading"');
+        expect(onboarding).toContain("const onboardingCardClassNames = {");
+        expect(onboarding).toContain("surface:");
+        expect(onboarding).toContain("speakerDraft:");
+        expect(onboarding).toContain("header:");
+        expect(onboarding).toContain("stepHeader:");
+        expect(onboarding).toContain("providerMeta:");
+        expect(onboarding).toContain("heading:");
+        expect(onboarding).toContain("sub:");
+        expect(onboarding).toContain("stepBody:");
         expect(onboarding).toMatch(
-            /<CardHeader(?=[^>]*\bvariant="onboardingHeader")(?=[^>]*\bdata-sot-part="onboarding-card-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingHeading")(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingSub")(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
+            /<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.header\})(?=[^>]*\bdata-sot-part="onboarding-card-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bclassName=\{onboardingCardClassNames\.heading\})(?=[^>]*\bdata-sot-part="card-heading")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bclassName=\{onboardingCardClassNames\.sub\})(?=[^>]*\bdata-sot-part="card-sub")[^>]*>/,
         );
         expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
         expect(onboarding).not.toContain('className="card"');
@@ -4503,10 +4774,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(onboarding).toContain('data-sot-part="onboarding-step-body"');
         expect(onboarding).toMatch(
-            /<CardHeader(?=[^>]*\bvariant="onboardingStepHeader")(?=[^>]*\bdata-sot-part="onboarding-step-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingStepTitle")(?=[^>]*\bdata-sot-part="onboarding-step-title")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingStepDescription")(?=[^>]*\bdata-sot-part="onboarding-step-description")[^>]*>/,
+            /<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepHeader\})(?=[^>]*\bdata-sot-part="onboarding-step-header")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="onboarding-step-title")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="onboarding-step-description")[^>]*>/,
         );
         expect(onboarding).toMatch(
-            /<CardContent(?=[^>]*\bvariant="onboardingStepBody")(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
+            /<CardContent(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepBody\})(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
         );
         expect(onboarding).toContain('data-sot-part="onboarding-error"');
         expect(onboarding).toContain('data-sot-part="onboarding-actions"');
@@ -4541,7 +4812,7 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="speaker-profile-draft"',
         );
         expect(onboarding).toMatch(
-            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bvariant="onboardingProviderMeta")(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bvariant="onboardingProviderName")(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bvariant="onboardingProviderHint")(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
+            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
         );
         expect(onboarding).toContain('data-sot-list="speaker-profiles"');
         expect(onboarding).toContain('data-sot-list="finish-summary"');
@@ -4551,14 +4822,18 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(onboarding).toContain('layout="onboardingSourceAuthMode"');
-        expect(onboarding).toContain('variant="onboardingSourceAuthModeOption"');
+        expect(onboarding).toContain(
+            'variant="onboardingSourceAuthModeOption"',
+        );
         expect(onboarding).toContain('size="onboardingSourceAuthModeOption"');
         expect(onboarding).toContain('spacing="onboardingSourceAuthMode"');
         expect(onboarding).toContain('data-sot-control="source-base-url"');
         expect(onboarding).toContain('variant="onboardingSourceUrl"');
         expect(onboarding).toContain('controlSize="onboardingSourceUrl"');
         expect(onboarding).toContain('variant="onboarding"');
-        expect(onboarding).toContain('variant="onboardingSurface"');
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.surface}",
+        );
         expect(onboarding).toContain('variant="onboardingProviderCard"');
         expect(onboarding).toContain('size="onboardingProviderCard"');
         expect(onboarding).toContain('variant="onboardingDefaultSource"');
@@ -4629,7 +4904,25 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain(
             'className="grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5"',
         );
-        expect(onboarding).toContain('variant="onboardingSpeakerDraft"');
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.speakerDraft}",
+        );
+        for (const removedOnboardingCardVariant of [
+            'variant="onboardingSurface"',
+            'variant="onboardingSpeakerDraft"',
+            'variant="onboardingHeader"',
+            'variant="onboardingStepHeader"',
+            'variant="onboardingProviderMeta"',
+            'variant="onboardingHeading"',
+            'variant="onboardingStepTitle"',
+            'variant="onboardingProviderName"',
+            'variant="onboardingSub"',
+            'variant="onboardingStepDescription"',
+            'variant="onboardingProviderHint"',
+            'variant="onboardingStepBody"',
+        ]) {
+            expect(onboarding).not.toContain(removedOnboardingCardVariant);
+        }
         expect(onboarding).toContain("CardContent,");
         expect(onboarding).toContain("CardDescription,");
         expect(onboarding).toContain("CardHeader,");
@@ -4665,8 +4958,9 @@ describe("full UI replacement regression coverage", () => {
             'className="grid w-full grid-cols-2 items-stretch"',
         );
         const onboardingDataSourceFieldControl =
-            onboarding.match(/\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/)?.[0] ??
-            "";
+            onboarding.match(
+                /\{providerFields\.map\(\(field\) => \([\s\S]*?\)\)\}/,
+            )?.[0] ?? "";
         expect(onboardingDataSourceFieldControl).toContain(
             "<DataSourceFieldControl",
         );
@@ -4688,7 +4982,6 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-step-sub"');
         expect(onboarding).not.toContain('className="onboarding-step-body"');
         expect(onboarding).not.toContain('className="gap-0 p-0"');
-        expect(onboarding).not.toContain("hasNoPadding");
         expect(onboarding).not.toContain('className="src-list"');
         expect(onboarding).not.toContain(
             'className="onboarding-progress-segment"',
@@ -4700,7 +4993,7 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="onboarding-actions"');
         expect(onboarding).not.toContain('className="sr-meta-row"');
         expect(onboarding).not.toContain('className="sm"');
-        expect(onboarding).not.toContain("role=\"button\"");
+        expect(onboarding).not.toContain('role="button"');
         expect(onboarding).not.toContain("onKeyDown={(event) =>");
         expect(globals).toContain('[data-sot-layout="onboarding-workstation"]');
         expect(globals).toContain('[data-sot-panel="onboarding-steps"]');
@@ -4757,6 +5050,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard source, search, activity, list, and settings SOT entries", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const dashboardRecordingPlayerControls = readSource(
+            "features/dashboard/components/dashboard-recording-player-controls.tsx",
+        );
         const alertPrimitive = readSource("components/ui/alert.tsx");
         const button = readSource("components/ui/button.tsx");
         const sourceReportPanel = readSource(
@@ -5046,9 +5342,14 @@ describe("full UI replacement regression coverage", () => {
                 ),
             );
         }
-        expect(globals).not.toContain('[data-sot-action="source-filter-action"]');
+        expect(globals).not.toContain(
+            '[data-sot-action="source-filter-action"]',
+        );
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="source-filter-action"]',
+            ),
         ).toEqual([]);
         expect(sourceFilterStack).toMatch(
             /<Button[\s\S]*data-sot-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
@@ -5115,7 +5416,10 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(globals).not.toContain("source-provider-action");
         expect(
-            collectCssRuleBlocks(globals, '[data-sot-part="source-filter-action"]'),
+            collectCssRuleBlocks(
+                globals,
+                '[data-sot-part="source-filter-action"]',
+            ),
         ).toEqual([]);
         expect(workstation).toContain('data-sot-control="dashboard-search"');
         expect(workstation).toContain('data-sot-panel="library-search"');
@@ -5361,9 +5665,7 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardRecordingStatusBadge).toContain(
             'data-sot-part="dashboard-recording-status"',
         );
-        expect(dashboardRecordingStatusBadge).toContain(
-            "data-sot-tone={tone}",
-        );
+        expect(dashboardRecordingStatusBadge).toContain("data-sot-tone={tone}");
         expect(workstation).toMatch(
             /<span data-sot-part="dashboard-recording-status-dot" \/>/,
         );
@@ -5432,9 +5734,7 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain('className="detail-empty-title"');
         expect(workstation).not.toContain('className="detail-empty-sub"');
         for (const migratedSelector of DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS) {
-            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual(
-                [],
-            );
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         expect([
             ...DASHBOARD_RECORDING_ROW_MIGRATED_GLOBAL_SELECTORS,
@@ -5449,9 +5749,7 @@ describe("full UI replacement regression coverage", () => {
             '[data-sot-part="dashboard-recording-timestamp-relative"]',
             '[data-sot-part="dashboard-recording-source-mark"]',
         ]) {
-            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual(
-                [],
-            );
+            expect(collectCssRuleBlocks(globals, migratedSelector)).toEqual([]);
         }
         for (const rowMetaOwnershipToken of [
             "font-mono",
@@ -5555,12 +5853,12 @@ describe("full UI replacement regression coverage", () => {
             'hidden={listMode !== "timeline"}',
         );
         expect(recordingTimeFilter).toContain(
-            "listMode !== \"timeline\"\n                                            ? true",
+            'listMode !== "timeline"\n                                            ? true',
         );
         expect(workstation).toContain("setTimelineFilter(");
         expect(recordingTimeFilter).not.toContain("layout=");
         expect(recordingTimeFilter).not.toContain(
-            "dashboardRecordingTimeFilter\"",
+            'dashboardRecordingTimeFilter"',
         );
         const recordingTimeFilterItem = extractOpeningElement(
             workstation,
@@ -5663,32 +5961,26 @@ describe("full UI replacement regression coverage", () => {
         );
         const dashboardRecordingTagChip = extractOpeningElement(
             workstation,
-            "data-recording-tag-chip",
-            "Badge",
+            "<SotPlayerTagChip",
+            "SotPlayerTagChip",
         );
-        expect(dashboardRecordingTagChip).toContain(
-            'variant="recordingTagChip"',
+        expect(dashboardRecordingTagChip).toMatch(/tag=\{\s*primaryTag\s*\}/);
+        expect(dashboardRecordingTagChip).not.toContain("variant=");
+        expect(dashboardRecordingTagChip).not.toContain("className=");
+        expect(sotPlayerPrimitives).toContain("data-recording-tag-chip");
+        expectSourceToExcludeForbiddenSubstrings(
+            sourceReportBadgePrimitive,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
-        expect(dashboardRecordingTagChip).not.toContain('variant="outline"');
-        expect(sourceReportBadgePrimitive).toContain("recordingTagChip:");
-        for (const tagColorRule of [
-            "data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)]",
-            "data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)]",
-            "data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)]",
-            "data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)]",
-            "data-[sot-tag-color=green]:[--tag-c:var(--tag-green)]",
-            "data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)]",
-        ]) {
-            expect(sourceReportBadgePrimitive).toContain(tagColorRule);
-        }
-        expect(sourceReportBadgePrimitive).toContain("[&>svg]:stroke-current");
         expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="recordingTagChip"]',
         );
         expect(globals).not.toContain(
             '[data-recording-tag-chip][data-variant="outline"]',
         );
-        expect(workstation).not.toContain("DASHBOARD_RECORDING_ROW_BUTTON_CLASS");
+        expect(workstation).not.toContain(
+            "DASHBOARD_RECORDING_ROW_BUTTON_CLASS",
+        );
         expect(workstation).toMatch(
             /<Button\s+variant="ghostNeutral"\s+size="default"[\s\S]*className=\{\s*dashboardRecordingRowStyles\.row\s*\}[\s\S]*data-sot-control="dashboard-recording-row"/,
         );
@@ -5786,10 +6078,16 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toContain(
             "dashboardSearchActivityClassNames.dashboardActivityTrigger",
         );
-        expect(workstation).toContain("<SotPlayerControlButton");
-        expect(workstation).toContain("<SotPlayerPrimaryButton");
-        expect(workstation).toContain("<SotPlayerSpeedButton");
-        expect(workstation).toContain('controlSize="sm"');
+        expect(dashboardRecordingPlayerControls).toContain(
+            "<SotPlayerControlButton",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "<SotPlayerPrimaryButton",
+        );
+        expect(dashboardRecordingPlayerControls).toContain(
+            "<SotPlayerSpeedButton",
+        );
+        expect(dashboardRecordingPlayerControls).toContain('controlSize="sm"');
         for (const removedPlayerProp of [
             `variant="${"playerControl"}"`,
             `size="${"playerControl"}"`,
@@ -5799,32 +6097,64 @@ describe("full UI replacement regression coverage", () => {
             `size="${"playerSpeed"}"`,
             `size="${"playerControlSm"}"`,
         ]) {
-            expect(workstation).not.toContain(removedPlayerProp);
+            expect(dashboardRecordingPlayerControls).not.toContain(
+                removedPlayerProp,
+            );
         }
-        expect(workstation).not.toContain("SOT_PLAYER_BUTTON_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_PRIMARY_BUTTON_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
-        expect(workstation).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
-        expect(workstation).not.toContain("dashboardSeekSliderRootStyle");
-        expect(workstation).not.toContain("sotPlayerSeekRangeStyle");
-        expect(workstation).not.toContain("sotPlayerSeekThumbStyle");
-        expect(workstation).not.toContain("SotPlayerSliderTrackStyle");
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_BUTTON_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_BUTTON_SM_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_SPEED_BUTTON_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_SLIDER_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_RANGE_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_THUMB_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "dashboardSeekSliderRootStyle",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "sotPlayerSeekRangeStyle",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "sotPlayerSeekThumbStyle",
+        );
+        expect(dashboardRecordingPlayerControls).not.toContain(
+            "SotPlayerSliderTrackStyle",
+        );
         const transcriptLanguageBadge = extractOpeningElement(
             workstation,
             'data-sot-part="dashboard-transcript-language"',
             "Badge",
         );
-        expect(transcriptLanguageBadge).toContain(
-            'variant="dashboardTranscriptLanguage"',
+        expectExactStringConstInitializer(
+            workstation,
+            "SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME",
+            EXPECTED_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME,
         );
-        expect(transcriptLanguageBadge).not.toContain('variant="outline"');
-        expect(transcriptLanguageBadge).not.toContain("className=");
-        expect(sourceReportBadgePrimitive).toContain(
-            "dashboardTranscriptLanguage:",
+        expect(transcriptLanguageBadge).toContain('variant="outline"');
+        expectClassNameConstReference(
+            transcriptLanguageBadge,
+            "SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME",
+        );
+        expectSourceToExcludeForbiddenSubstrings(
+            sourceReportBadgePrimitive,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -5842,9 +6172,7 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain(
-                'variant="sourceReportCopyAction"',
-            );
+            expect(buttonOpening).toContain('variant="sourceReportCopyAction"');
             expect(buttonOpening).toContain('size="sourceReportCopyAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
             expect(buttonOpening).not.toContain('variant="secondary"');
@@ -5858,9 +6186,7 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain(
-                'variant="dashboardCompactAction"',
-            );
+            expect(buttonOpening).toContain('variant="dashboardCompactAction"');
             expect(buttonOpening).toContain('size="dashboardCompactAction"');
             expect(buttonOpening).not.toContain("className=");
         }
@@ -5917,6 +6243,7 @@ describe("full UI replacement regression coverage", () => {
             dashboardPlayerStart,
             dashboardPlayerEnd,
         );
+        const dashboardPlayerControls = dashboardRecordingPlayerControls;
         const dashboardPlayerStatusBadge = extractOpeningElement(
             dashboardPlayer,
             "selectedPlayerStatus.label",
@@ -5927,44 +6254,237 @@ describe("full UI replacement regression coverage", () => {
             'part="dashboard-recording-player-no-audio"',
             "SotPlayerNoAudioAlert",
         );
-        const dashboardVolumeMuteControl = extractOpeningElement(
+        const dashboardPlayerMetaHeader = extractOpeningElement(
             dashboardPlayer,
+            'data-sot-part="dashboard-recording-player-meta"',
+            "CardHeader",
+        );
+        const dashboardPlayerControlsCallsite = extractSelfClosingElement(
+            dashboardPlayer,
+            "<DashboardRecordingPlayerControls",
+            "DashboardRecordingPlayerControls",
+        );
+        const dashboardVolumeMuteControl = extractOpeningElement(
+            dashboardPlayerControls,
             'data-sot-control="dashboard-player-volume-mute"',
             "SotPlayerControlButton",
         );
-        const dashboardSeekShell = extractOpeningElement(
+        const dashboardPlayerVolumeControl = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-control="dashboard-player-volume"',
+            "SotPlayerControlButton",
+        );
+        const dashboardPlayerDate = extractOpeningElement(
             dashboardPlayer,
+            'data-sot-part="dashboard-recording-player-date"',
+            "span",
+        );
+        const dashboardPlayerControlIcon = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-part="dashboard-player-control-icon"',
+            "span",
+        );
+        const dashboardPlayerPrimaryControlIconFunction = extractBoundedSlice(
+            dashboardPlayerControls,
+            "function DashboardPlayerPrimaryControlIcon",
+            "function DashboardPlayerSeekSlider",
+        );
+        const dashboardPlayerPlayIcon = extractOpeningElement(
+            dashboardPlayerPrimaryControlIconFunction,
+            "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+            "span",
+        );
+        const dashboardPlayerCurrentTime = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-part="dashboard-player-current-time"',
+            "span",
+        );
+        const dashboardPlayerDuration = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-part="dashboard-player-duration"',
+            "span",
+        );
+        const dashboardPlayerSpeed = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-control="dashboard-player-speed"',
+            "SotPlayerSpeedButton",
+        );
+        const dashboardSeekShell = extractOpeningElement(
+            dashboardPlayerControls,
             'data-sot-part="dashboard-player-seek-shell"',
             "span",
         );
+        const dashboardPlayerSeekSlider = extractSelfClosingElement(
+            dashboardPlayerControls,
+            'data-sot-control="dashboard-player-seek"',
+            "SotPlayerSeekSlider",
+        );
         const dashboardVolumeAnchor = extractOpeningElement(
-            dashboardPlayer,
+            dashboardPlayerControls,
             'data-sot-part="dashboard-player-volume-anchor"',
             "div",
         );
+        const dashboardPlayerVolumeValue = extractOpeningElement(
+            dashboardPlayerControls,
+            'data-sot-part="dashboard-player-volume-value"',
+            "span",
+        );
+        const dashboardPlayerCardOpening = extractOpeningElement(
+            dashboardPlayer,
+            'data-sot-surface="dashboard-recording-player"',
+            "Card",
+        );
+        const dashboardPlayerCardBlock = extractElementSlice(
+            dashboardPlayer,
+            'data-sot-surface="dashboard-recording-player"',
+            "Card",
+        );
+        const dashboardPlayerHiddenAudio = extractElementSlice(
+            dashboardPlayerCardBlock,
+            "<audio",
+            "audio",
+        );
         expect(dashboardPlayer).toContain("<Card");
-        expect(dashboardPlayer).toContain("hasNoPadding");
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerCardOpening).toContain("hasNoPadding");
+        expect(dashboardPlayerCardOpening).toMatch(
+            /className=\{\s*SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME\s*\}/,
+        );
+        expect(dashboardPlayerCardOpening).toContain(
+            'data-sot-surface="dashboard-recording-player"',
+        );
+        expect(dashboardPlayerCardOpening).toContain("data-no-audio={");
+        expect(dashboardPlayerCardOpening).toContain("data-playing={");
+        expect(dashboardPlayerCardOpening).toContain("data-sot-state={");
+        expect(dashboardPlayerCardBlock).not.toContain(
             'variant="dashboardRecordingPlayer"',
         );
-        expect(sourceReportCardPrimitive).toContain(
-            "dashboardRecordingPlayer:",
+        expect(dashboardPlayerCardBlock).toContain("{audioSrc ? (");
+        expect(dashboardPlayerHiddenAudio).toContain(
+            "<audio ref={audioRef} src={audioSrc}>",
         );
-        expect(sourceReportCardPrimitive).toContain('data-variant={variant}');
+        expect(dashboardPlayerHiddenAudio).toContain(
+            '<track kind="captions" />',
+        );
+        expect(dashboardPlayerHiddenAudio).not.toContain("controls");
+        expect(sourceReportCardPrimitive).not.toContain(
+            "dashboardRecordingPlayer",
+        );
+        expect(sourceReportCardPrimitive).toContain("data-variant={variant}");
         expect(sourceReportCardPrimitive).toContain("cardVariants[variant]");
-        for (const token of [
-            "min-h-[114px]",
-            "overflow-visible",
-            "rounded-[16px]",
-            "border-[var(--glass-border-soft)]",
-            "shadow-none",
-            "backdrop-blur-none",
-        ]) {
-            expect(sourceReportCardPrimitive).toContain(token);
-        }
-        expect(dashboardPlayer).not.toContain(
-            'className="min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none"',
+        expectExactStringConstInitializers(
+            workstation,
+            DASHBOARD_RECORDING_PLAYER_WORKSTATION_CLASS_INITIALIZERS,
         );
+        expectExactStringConstInitializers(
+            dashboardPlayerControls,
+            DASHBOARD_RECORDING_PLAYER_CONTROLS_CLASS_INITIALIZERS,
+        );
+        expectClassNameConstReference(
+            dashboardPlayerMetaHeader,
+            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        );
+        expectClassNameConstReference(
+            dashboardPlayerDate,
+            "SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME",
+        );
+        expectClassNameConstReference(
+            dashboardPlayerControlIcon,
+            "DASHBOARD_PLAYER_CONTROL_ICON_CLASS_NAME",
+        );
+        expectClassNameConstReference(
+            dashboardPlayerPlayIcon,
+            "DASHBOARD_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+        );
+        expectCnClassNameReferences(dashboardPlayerCurrentTime, [
+            "DASHBOARD_PLAYER_TIME_CLASS_NAME",
+            "playbackDisabled &&",
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        ]);
+        expect(dashboardSeekShell).toContain(
+            'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
+        );
+        expectCnClassNameReferences(dashboardPlayerSeekSlider, [
+            '"flex-none"',
+            "disabled &&",
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        ]);
+        expectCnClassNameReferences(dashboardPlayerDuration, [
+            "DASHBOARD_PLAYER_DURATION_CLASS_NAME",
+            "playbackDisabled &&",
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        ]);
+        expectCnClassNameReferences(dashboardPlayerSpeed, [
+            "DASHBOARD_PLAYER_SPEED_CLASS_NAME",
+            "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        ]);
+        expectClassNameConstReference(
+            dashboardPlayerVolumeControl,
+            "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        );
+        expect(dashboardVolumeAnchor).toContain(
+            'className="relative ml-0 inline-flex"',
+        );
+        expect(dashboardPlayerVolumeValue).toContain(
+            'className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"',
+        );
+        expect(dashboardPlayerCurrentTime).toContain("playbackDisabled &&");
+        expect(dashboardPlayerCurrentTime).toContain(
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        );
+        expect(dashboardPlayerDuration).toContain("playbackDisabled &&");
+        expect(dashboardPlayerDuration).toContain(
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        );
+        expect(dashboardPlayerSpeed).toContain(
+            "DASHBOARD_PLAYER_DISABLED_BUTTON_CLASS_NAME",
+        );
+        expect(dashboardPlayerSpeed).toContain(
+            "data-sot-state={playerControlState}",
+        );
+        expect(workstation).toContain(
+            'import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";',
+        );
+        for (const propRef of [
+            "currentTime={currentTime}",
+            "duration={playerDurationValue}",
+            "isPlaying={isPlaying}",
+            "onCyclePlaybackSpeed={cyclePlaybackSpeed}",
+            "onSeekBySeconds={seekDashboardPlayerBySeconds}",
+            "onSeekToPercent={seekDashboardPlayerToPercent}",
+            "onTogglePlayPause={togglePlayPause}",
+            "onVolumeChange={setVolume}",
+            "onVolumeOpenChange={setVolumeOpen}",
+            "playbackDisabled={playbackDisabled}",
+            "playbackSpeedLabel={playbackSpeedLabel}",
+            "progress={progress}",
+            "volume={volume}",
+            "volumePopoverOpen={volumePopoverOpen}",
+        ]) {
+            expect(dashboardPlayerControlsCallsite).toContain(propRef);
+        }
+        for (const workstationDirectControlToken of [
+            "<SotPlayerControlButton",
+            "<SotPlayerPrimaryButton",
+            "<SotPlayerSpeedButton",
+            "<SotPlayerSeekSlider",
+            "<SotPlayerVolumeSlider",
+            'data-sot-control="dashboard-player-back"',
+            'data-sot-control="dashboard-player-play"',
+            'data-sot-control="dashboard-player-forward"',
+            'data-sot-control="dashboard-player-seek"',
+            'data-sot-control="dashboard-player-speed"',
+            'data-sot-control="dashboard-player-volume"',
+            'data-sot-control="dashboard-player-volume-mute"',
+            'data-sot-control="dashboard-player-volume-slider"',
+            'data-sot-part="dashboard-player-control-icon"',
+            'data-sot-part="dashboard-player-current-time"',
+            'data-sot-part="dashboard-player-duration"',
+            'data-sot-part="dashboard-player-seek-shell"',
+            'data-sot-part="dashboard-player-volume-anchor"',
+            'data-sot-part="dashboard-player-volume-value"',
+        ]) {
+            expect(workstation).not.toContain(workstationDirectControlToken);
+        }
         expect(dashboardPlayer).toContain(
             'data-sot-surface="dashboard-recording-player"',
         );
@@ -5994,16 +6514,11 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardNoAudioAlert).not.toContain("layout=");
         expect(dashboardNoAudioAlert).not.toContain("className=");
         expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        expectExactStringConstInitializers(
+            sotPlayerPrimitives,
+            SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
         );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
-        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
-        expect(sotPlayerPrimitives).toContain('role="status"');
-        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
         expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(dashboardPlayer).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
@@ -6016,18 +6531,19 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardPlayer).toContain("<CardHeader");
         expect(dashboardPlayer).toContain(
+            "SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME",
+        );
+        expect(dashboardPlayer).not.toContain(
             'className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"',
         );
         expect(dashboardPlayer).toContain(
             'data-sot-part="dashboard-recording-player-meta"',
         );
-        expect(dashboardPlayer).toContain("<CardContent");
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain("<CardContent");
+        expect(dashboardPlayerControls).toContain(
             'className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"',
         );
-        expect(dashboardPlayer).toContain(
-            'data-sot-panel="dashboard-recording-player-controls"',
-        );
+        expect(dashboardPlayer).toContain("<DashboardRecordingPlayerControls");
         expect(dashboardPlayer).toContain("<SotPlayerStatusBadge");
         expect(dashboardPlayerStatusBadge).toContain(
             "label={selectedPlayerStatus.label}",
@@ -6036,9 +6552,7 @@ describe("full UI replacement regression coverage", () => {
             /tone=\{\s*selectedPlayerStatus\.tone\s*\}/,
         );
         expect(dashboardPlayerStatusBadge).toContain('className="ml-auto"');
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_STATUS_BADGE_CLASS",
-        );
+        expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
         expect(sotPlayerPrimitives).toContain('variant="ghost"');
         expect(sotPlayerPrimitives).toContain(
             "className={cn(SOT_PLAYER_STATUS_BADGE_CLASS, className)}",
@@ -6047,12 +6561,8 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="player-status"',
         );
         expect(sotPlayerPrimitives).toContain("data-sot-tone={tone}");
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-part="status-dot"',
-        );
-        expect(sotPlayerPrimitives).toContain(
-            'data-sot-part="status-label"',
-        );
+        expect(sotPlayerPrimitives).toContain('data-sot-part="status-dot"');
+        expect(sotPlayerPrimitives).toContain('data-sot-part="status-label"');
         expect(sotPlayerPrimitives).toContain(
             'type SotPlayerButtonProps = Omit<ButtonProps, "variant" | "size">',
         );
@@ -6076,13 +6586,13 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(playerButtonPrimitiveToken);
         }
-        expect(dashboardPlayer).toContain("<SotPlayerControlButton");
-        expect(dashboardPlayer).toContain("<SotPlayerPrimaryButton");
-        expect(dashboardPlayer).toContain("<SotPlayerSpeedButton");
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain("<SotPlayerControlButton");
+        expect(dashboardPlayerControls).toContain("<SotPlayerPrimaryButton");
+        expect(dashboardPlayerControls).toContain("<SotPlayerSpeedButton");
+        expect(dashboardPlayerControls).toContain(
             'data-sot-control="dashboard-player-play"',
         );
-        expect(dashboardPlayer).toContain('controlSize="sm"');
+        expect(dashboardPlayerControls).toContain('controlSize="sm"');
         for (const removedPlayerProp of [
             `variant="${"playerControl"}"`,
             `size="${"playerControl"}"`,
@@ -6092,7 +6602,7 @@ describe("full UI replacement regression coverage", () => {
             `size="${"playerSpeed"}"`,
             `size="${"playerControlSm"}"`,
         ]) {
-            expect(dashboardPlayer).not.toContain(removedPlayerProp);
+            expect(dashboardPlayerControls).not.toContain(removedPlayerProp);
         }
         expect(dashboardVolumeMuteControl).toContain('controlSize="sm"');
         expect(dashboardVolumeMuteControl).not.toContain("variant=");
@@ -6101,76 +6611,107 @@ describe("full UI replacement regression coverage", () => {
         expect(button).not.toContain("data-player-control-icon");
         expect(button).not.toContain("dashboard-player-volume-icon");
         expect(button).not.toContain("recording-player-volume-icon");
-        expect(dashboardPlayer).toContain("data-player-control-icon");
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_BUTTON_CLASS");
-        expect(dashboardPlayer).not.toContain(
+        expect(dashboardPlayerControls).toContain("data-player-control-icon");
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_BUTTON_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain(
             "SOT_PLAYER_PRIMARY_BUTTON_CLASS",
         );
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_BUTTON_SM_CLASS");
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SPEED_BUTTON_CLASS");
-        expect(dashboardPlayer).not.toContain('variant="ghost"');
-        expect(dashboardPlayer).not.toContain('variant="outline"');
-        expect(dashboardPlayer).not.toContain('variant="default"');
-        expect(dashboardPlayer).not.toContain('size="icon-sm"');
-        expect(dashboardPlayer).not.toContain('size="icon-xs"');
-        expect(dashboardPlayer).not.toContain('size="sm"');
-        expect(dashboardPlayer).not.toContain('variant="player"');
-        expect(dashboardPlayer).not.toContain('variant="player-primary"');
-        expect(dashboardPlayer).not.toContain('size="player"');
-        expect(dashboardPlayer).not.toContain('size="player-lg"');
-        expect(dashboardPlayer).not.toContain('size="player-sm"');
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_BUTTON_SM_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_SPEED_BUTTON_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain('variant="ghost"');
+        expect(dashboardPlayerControls).not.toContain('variant="outline"');
+        expect(dashboardPlayerControls).not.toContain('variant="default"');
+        expect(dashboardPlayerControls).not.toContain('size="icon-sm"');
+        expect(dashboardPlayerControls).not.toContain('size="icon-xs"');
+        expect(dashboardPlayerControls).not.toContain('size="sm"');
+        expect(dashboardPlayerControls).not.toContain('variant="player"');
+        expect(dashboardPlayerControls).not.toContain(
+            'variant="player-primary"',
+        );
+        expect(dashboardPlayerControls).not.toContain('size="player"');
+        expect(dashboardPlayerControls).not.toContain('size="player-lg"');
+        expect(dashboardPlayerControls).not.toContain('size="player-sm"');
         expect(
-            extractCssBlock(
+            collectCssRuleBlocks(
                 globals,
                 '[data-sot-control="dashboard-player-play"]',
             ),
-        ).not.toContain("background:");
-        expect(dashboardPlayer).toContain("<SotPlayerSeekSlider");
-        expect(dashboardPlayer).toContain(
+        ).toEqual([]);
+        expect(dashboardPlayerControls).toContain("<SotPlayerSeekSlider");
+        expect(dashboardPlayerControls).toContain(
             'data-sot-part="dashboard-player-current-time"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-part="dashboard-player-duration"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-control="dashboard-player-seek"',
         );
         expect(dashboardSeekShell).toContain(
             'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
         );
-        expect(dashboardPlayer).toContain('className="flex-none"');
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_SLIDER_CLASS");
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_RANGE_CLASS");
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_SEEK_THUMB_CLASS");
-        expect(dashboardPlayer).not.toContain("dashboardSeekSliderRootStyle");
-        expect(dashboardPlayer).not.toContain("sotPlayerSeekRangeStyle");
-        expect(dashboardPlayer).not.toContain("sotPlayerSeekThumbStyle");
-        expect(dashboardPlayer).not.toContain("className: SOT_PLAYER");
-        expect(dashboardPlayer).not.toContain("style: sotPlayer");
-        expect(dashboardPlayer).not.toContain(
+        expect(dashboardPlayerControls).toContain('"flex-none"');
+        expect(dashboardPlayerControls).toContain(
+            "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_SLIDER_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_RANGE_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_SEEK_THUMB_CLASS",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "dashboardSeekSliderRootStyle",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "sotPlayerSeekRangeStyle",
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            "sotPlayerSeekThumbStyle",
+        );
+        expect(dashboardPlayerControls).not.toContain("className: SOT_PLAYER");
+        expect(dashboardPlayerControls).not.toContain("style: sotPlayer");
+        expect(dashboardPlayerControls).not.toContain(
             "style: dashboardSeekSliderRootStyle",
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-part="dashboard-player-volume-anchor"',
         );
         expect(dashboardVolumeAnchor).toContain(
             'className="relative ml-0 inline-flex"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-panel="dashboard-player-volume-popover"',
         );
-        expect(dashboardPlayer).toContain("<SotPlayerVolumePopoverContent");
-        expect(dashboardPlayer).toContain("<SotPlayerVolumeSlider");
-        expect(dashboardPlayer).not.toContain(`variant="${"player"}Seek"`);
-        expect(dashboardPlayer).not.toContain(`variant="${"player"}Volume"`);
-        expect(dashboardPlayer).not.toContain(
+        expect(dashboardPlayerControls).toContain(
+            "<SotPlayerVolumePopoverContent",
+        );
+        expect(dashboardPlayerControls).toContain("<SotPlayerVolumeSlider");
+        expect(dashboardPlayerControls).not.toContain(
+            `variant="${"player"}Seek"`,
+        );
+        expect(dashboardPlayerControls).not.toContain(
+            `variant="${"player"}Volume"`,
+        );
+        expect(dashboardPlayerControls).not.toContain(
             'className="w-[200px] min-w-[200px] gap-0 overflow-visible px-2.5 py-2"',
         );
-        expect(dashboardPlayer).not.toContain("SOT_PLAYER_VOLUME_SLIDER_CLASS");
-        expect(dashboardPlayer).toContain("<Popover");
-        expect(dashboardPlayer).toContain("<PopoverTrigger asChild>");
-        expect(dashboardPlayer).toContain('side="top"');
-        expect(dashboardPlayer).toContain('align="end"');
+        expect(dashboardPlayerControls).not.toContain(
+            "SOT_PLAYER_VOLUME_SLIDER_CLASS",
+        );
+        expect(dashboardPlayerControls).toContain("<Popover");
+        expect(dashboardPlayerControls).toContain("<PopoverTrigger asChild>");
+        expect(dashboardPlayerControls).toContain('side="top"');
+        expect(dashboardPlayerControls).toContain('align="end"');
         for (const wrapperToken of [
             "SOT_PLAYER_SEEK_SLIDER_CLASS",
             "SOT_PLAYER_SEEK_RANGE_CLASS",
@@ -6180,15 +6721,29 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(wrapperToken);
         }
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-control="dashboard-player-volume-mute"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-control="dashboard-player-volume-slider"',
         );
-        expect(dashboardPlayer).toContain(
+        expect(dashboardPlayerControls).toContain(
             'data-sot-part="dashboard-player-volume-value"',
         );
+        for (const removedGlobalSelector of REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS) {
+            expect(globals).not.toContain(removedGlobalSelector);
+            expect(alertPrimitive).not.toContain(removedGlobalSelector);
+            expect(sourceReportBadgePrimitive).not.toContain(
+                removedGlobalSelector,
+            );
+            expect(sourceReportButtonPrimitive).not.toContain(
+                removedGlobalSelector,
+            );
+            expect(sourceReportCardPrimitive).not.toContain(
+                removedGlobalSelector,
+            );
+            expect(sotPlayerPrimitives).not.toContain(removedGlobalSelector);
+        }
         expect(globals).not.toContain(
             '[data-sot-surface="dashboard-recording-player"][data-slot="card"]',
         );
@@ -6313,7 +6868,7 @@ describe("full UI replacement regression coverage", () => {
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
                 SOURCE_REPORT_SKELETON_LEGACY_CSS_SELECTOR_RE.test(text),
-        );
+            );
 
         expect(sourceReportSkeletonLegacySelectorLines).toEqual([]);
         for (const selectorFragment of SOURCE_REPORT_SKELETON_GLOBAL_CSS_SELECTOR_FRAGMENTS) {
@@ -6404,9 +6959,7 @@ describe("full UI replacement regression coverage", () => {
         ).filter(({ declarations, prelude }) => {
             const normalizedPrelude = prelude.replace(/\s+/g, " ");
             return (
-                normalizedPrelude.includes(
-                    '[data-sot-state="loading"]',
-                ) ||
+                normalizedPrelude.includes('[data-sot-state="loading"]') ||
                 normalizedPrelude.includes('[aria-busy="true"]') ||
                 normalizedPrelude.includes(":disabled") ||
                 normalizedPrelude.includes('[aria-disabled="true"]') ||
@@ -6577,10 +7130,12 @@ describe("full UI replacement regression coverage", () => {
             const targetsSourceReportActionStateCursor =
                 /\[data-sot-source-report-actions\][^{,]*\[data-sot-control="(?:open-source-record|repull-source)"\][^{,]*(?:\[data-sot-state="(?:loading|unavailable)"\]|\[aria-busy="true"\]|:disabled|\[aria-disabled="true"\])/.test(
                     normalizedPrelude,
-                ) && /\bcursor\s*:\s*(?:progress|not-allowed)\b/.test(declarations);
+                ) &&
+                /\bcursor\s*:\s*(?:progress|not-allowed)\b/.test(declarations);
 
             return (
-                targetsSourceReportButton || targetsSourceReportActionStateCursor
+                targetsSourceReportButton ||
+                targetsSourceReportActionStateCursor
             );
         });
 
@@ -6643,9 +7198,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActions).toContain(
             'variant="sourceReportGhostAction"',
         );
-        expect(sourceReportEmptyActions).toContain(
-            'size="sourceReportAction"',
-        );
+        expect(sourceReportEmptyActions).toContain('size="sourceReportAction"');
         expect(sourceReportEmptyActions).not.toContain('variant="default"');
         expect(sourceReportEmptyActions).not.toContain('variant="ghost"');
         expect(sourceReportEmptyActions).not.toContain('size="sm"');
@@ -6669,41 +7222,34 @@ describe("full UI replacement regression coverage", () => {
         for (const hook of DASHBOARD_SOURCE_REPORT_LOADED_SOT_HOOKS) {
             expect(dashboardSourceReportLoaded).toContain(hook);
         }
-        expect(sourceReportBadgePrimitive).toContain("sourceReportStatus:");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=ok]");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=warn]");
-        expect(sourceReportBadgePrimitive).toContain("data-[sot-tone=err]");
-        for (const sourceReportStatusDotPrimitiveClass of [
-            "[&_[data-sot-part=source-report-status-dot]]:inline-block",
-            "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
-            "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
-            "[&_[data-sot-part=source-report-status-dot]]:bg-current",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px]",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full",
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
-        ]) {
-            expect(sourceReportBadgePrimitive).toContain(
-                sourceReportStatusDotPrimitiveClass,
-            );
-        }
-        expect(dashboardSourceReportLoaded).toContain(
+        expectExactStringConstInitializer(
+            workstation,
+            "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
+            EXPECTED_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME,
+        );
+        expectSourceToExcludeForbiddenSubstrings(
+            sourceReportBadgePrimitive,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        const dashboardSourceReportStatusBadge = extractOpeningElement(
+            workstation,
+            'data-sot-badge="source-report-status"',
+            "Badge",
+        );
+        expect(dashboardSourceReportStatusBadge).toContain('variant="ghost"');
+        expectClassNameConstReference(
+            dashboardSourceReportStatusBadge,
+            "SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME",
+        );
+        expect(dashboardSourceReportLoaded).not.toContain(
             'variant="sourceReportStatus"',
         );
-        expect(workstation).toContain('variant="sourceReportStatus"');
+        expect(workstation).not.toContain('variant="sourceReportStatus"');
         expect(workstation).toMatch(/data-sot-tone=\{\s*tone\s*\}/);
         expect(workstation).not.toContain("SOURCE_REPORT_STATUS_BADGE_CLASS");
         expect(workstation).not.toContain(
             "SOURCE_REPORT_STATUS_BADGE_TONE_CLASS",
         );
-        for (const genericToken of [
-            'variant="outline"',
-            'variant="ghost"',
-            'variant="default"',
-            'size="sm"',
-        ]) {
-            expect(dashboardSourceReportLoaded).not.toContain(genericToken);
-        }
         const dashboardSourceReportOpenAction = extractOpeningElement(
             workstation,
             'data-sot-control="open-source-record"',
@@ -6756,6 +7302,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps dashboard detail actions, AI rename, and retx states inline in SOT", () => {
         const workstation = readSource("features/dashboard/workstation.tsx");
+        const dashboardRecordingPlayerControls = readSource(
+            "features/dashboard/components/dashboard-recording-player-controls.tsx",
+        );
         const aiRenamePreview = readSource(
             "features/recordings/components/ai-rename-preview-card.tsx",
         );
@@ -6804,28 +7353,26 @@ describe("full UI replacement regression coverage", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
-        expect(badge).toContain("detailHeaderLocal:");
-        expect(badge).toContain("detailHeaderStatus:");
-        expect(badge).toContain("ml-1 shrink-0");
+        expectSourceToExcludeForbiddenSubstrings(
+            badge,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
         expect(button).toContain('data-slot="button"');
         expect(button).toContain("data-variant={variant}");
         expect(button).toContain("data-size={size}");
         expect(card).toContain('data-slot="card-header"');
-        expect(input).toContain('data-slot="input"');
-        expect(card).toContain("detailHeader:");
-        expect(card).toContain("data-[sot-state=saving]:py-0");
-        expect(card).toContain(
-            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
+        expectSourceToExcludeForbiddenSubstrings(
+            card,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
-        expect(badge).toContain("detailHeaderLocal:");
-        expect(badge).toContain("detailHeaderStatus:");
+        expect(input).toContain('data-slot="input"');
         expect(button).toContain("detailHeaderIconAction:");
         expect(button).toContain("detailHeaderAction:");
         expect(button).toContain(
-            "detailHeaderIconAction:\n                    \"border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none",
+            'detailHeaderIconAction:\n                    "border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none',
         );
         expect(button).toContain(
-            "detailHeaderAction:\n                    \"border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] font-sans font-semibold text-[var(--fg-primary)] shadow-[var(--shadow-xs)]",
+            'detailHeaderAction:\n                    "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] font-sans font-semibold text-[var(--fg-primary)] shadow-[var(--shadow-xs)]',
         );
         expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
         expect(button).toContain(
@@ -6867,33 +7414,32 @@ describe("full UI replacement regression coverage", () => {
         expect(dashboardDetailHeader).toContain("data-rh-ai-anchor");
         expect(dashboardDetailHeader).toContain("data-rh-ai-trigger");
         expect(dashboardDetailHeader).toContain('data-sot-control="ai-rename"');
-        expect(dashboardDetailHeader).toContain('variant="detailHeader"');
-        expect(dashboardDetailHeader).toContain(
+        expect(workstation).toContain("SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME");
+        expect(workstation).toContain(
+            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
+        );
+        expect(workstation).toContain(
+            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+        );
+        for (const removedDashboardDetailCardBadgeVariant of [
+            'variant="detailHeader"',
             'variant="detailHeaderTitle"',
-        );
-        expect(dashboardDetailHeader).toContain(
             'variant="detailHeaderLocal"',
-        );
-        expect(dashboardDetailHeader).toContain(
             'variant="detailHeaderStatus"',
-        );
+            'controlSize="detailHeaderTitle"',
+        ]) {
+            expect(dashboardDetailHeader).not.toContain(
+                removedDashboardDetailCardBadgeVariant,
+            );
+        }
         expect(dashboardDetailHeader).toContain(
             'variant="detailHeaderIconAction"',
         );
         expect(dashboardDetailHeader).toContain(
             'size="detailHeaderIconAction"',
         );
-        expect(dashboardDetailHeader).toContain(
-            'variant="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'size="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'controlSize="detailHeaderTitle"',
-        );
-        expect(dashboardDetailHeader).not.toContain('variant="ghost"');
-        expect(dashboardDetailHeader).not.toContain('variant="outline"');
+        expect(dashboardDetailHeader).toContain('variant="detailHeaderAction"');
+        expect(dashboardDetailHeader).toContain('size="detailHeaderAction"');
         expect(dashboardDetailHeader).not.toContain('size="icon-sm"');
         expect(dashboardDetailHeader).not.toContain('size="sm"');
         expect(workstation).toContain(
@@ -6963,12 +7509,12 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(globals).not.toContain(selector);
         }
-        for (const selector of [
-            '[data-sot-panel="dashboard-detail-header"]',
-            '[data-sot-panel="dashboard-detail-header"] [data-sot-part="detail-header-title"]',
-        ]) {
+        for (const selector of ['[data-sot-panel="dashboard-detail-header"]']) {
             expect(globals).toContain(selector);
         }
+        expect(globals).toMatch(
+            /\[data-sot-panel="dashboard-detail-header"\]\s*\[data-sot-part="detail-header-title"\]\s*{/,
+        );
         expect(globals).not.toContain(
             '[data-sot-part="detail-header-action-anchor"]',
         );
@@ -7085,9 +7631,7 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(dashboardTranscriptSkeleton).toContain("data-sot-size={size}");
         expect(workstation).not.toContain('variant="dashboardTranscript"');
-        expect(workstation).not.toContain(
-            "dashboardTranscriptSkeletonSize",
-        );
+        expect(workstation).not.toContain("dashboardTranscriptSkeletonSize");
         expect(workstation).not.toContain("dashboardTranscriptAvatar");
         expect(globals).not.toContain(
             '[data-sot-part="dashboard-transcript-skeleton"][data-slot="skeleton"]',
@@ -7115,7 +7659,7 @@ describe("full UI replacement regression coverage", () => {
             expect(localTurnSlice).not.toContain('className="speaker-name"');
         }
         expect(workstation).toContain('aria-label="详情标签"');
-        expect(workstation).toContain(
+        expect(dashboardRecordingPlayerControls).toContain(
             'aria-label={isPlaying ? "暂停" : "播放"}',
         );
         expect(workstation).toContain("previewAutoRename");
@@ -7136,9 +7680,7 @@ describe("full UI replacement regression coverage", () => {
             'import { Button } from "@/components/ui/button";',
         );
         expect(aiRenamePreview).toContain('from "@/components/ui/card";');
-        expect(aiRenamePreview).toContain(
-            'from "@/components/ui/separator";',
-        );
+        expect(aiRenamePreview).toContain('from "@/components/ui/separator";');
         expect(aiRenamePreview).toContain("<Card");
         expect(aiRenamePreview).toContain("<CardHeader");
         expect(aiRenamePreview).toContain("<CardContent");
@@ -7153,7 +7695,9 @@ describe("full UI replacement regression coverage", () => {
         expect(aiRenamePreview).toMatch(
             /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
         );
-        for (const { snippets } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
+        for (const {
+            snippets,
+        } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
             for (const snippet of snippets) {
                 expect(aiRenamePreview).toContain(snippet);
             }
@@ -7373,24 +7917,16 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain(
             'settingsNav:\n                    "cursor-pointer border border-transparent bg-transparent',
         );
-        expect(button).toContain(
-            "hover:bg-[var(--bg-recessed)]",
-        );
-        expect(button).toContain(
-            "focus-visible:outline-[var(--accent)]",
-        );
-        expect(button).toContain(
-            "data-[state=active]:bg-[var(--bg-elevated)]",
-        );
+        expect(button).toContain("hover:bg-[var(--bg-recessed)]");
+        expect(button).toContain("focus-visible:outline-[var(--accent)]");
+        expect(button).toContain("data-[state=active]:bg-[var(--bg-elevated)]");
         expect(button).toContain(
             "dark:data-[state=active]:bg-[rgb(255_255_255_/_0.07)]",
         );
         expect(button).toContain(
             "h-auto w-full min-w-0 justify-start gap-[10px] truncate",
         );
-        expect(button).toContain(
-            "[&_svg:not([class*='size-'])]:size-[14px]",
-        );
+        expect(button).toContain("[&_svg:not([class*='size-'])]:size-[14px]");
         for (const selector of REMOVED_SETTINGS_NAV_GLOBAL_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
@@ -7429,9 +7965,7 @@ describe("full UI replacement regression coverage", () => {
         expect(detailBackButton).toContain('data-sot-state="selected"');
         expect(detailBackButton).toContain("<ArrowLeft");
         expect(detailBackButton).toContain('data-icon="inline-start"');
-        expect(detailBackButton).toContain(
-            '{t("recording.backToDashboard")}',
-        );
+        expect(detailBackButton).toContain('{t("recording.backToDashboard")}');
         expect(detailBackButton).not.toContain('variant="ghost"');
         expect(button).toContain("[&_span]:truncate");
         expect(button).toContain("[&_svg]:stroke-[1.7]");
@@ -7482,7 +8016,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).not.toContain(
             'variant="sourceAuthModeBadge"',
         );
-        expect(settingsSourceAuthModeControl).not.toContain('variant="outline"');
+        expect(settingsSourceAuthModeControl).not.toContain(
+            'variant="outline"',
+        );
         expect(settingsSourceAuthModeControl).not.toContain(
             'variant="secondary"',
         );
@@ -7494,9 +8030,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceAuthModeControl).not.toContain(
             'className="h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left"',
         );
-        expect(settings).toMatch(
-            /data-sot-tone=\{\s*modeBadge\.tone\s*\}/,
-        );
+        expect(settings).toMatch(/data-sot-tone=\{\s*modeBadge\.tone\s*\}/);
         expect(settings).toMatch(
             /getSourceAuthModeDisplayLabel\(\s*mode,\s*language,\s*\)/,
         );
@@ -7601,8 +8135,13 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSegmentControl).not.toContain('variant="outline"');
         expect(settingsSegmentControl).not.toContain('size="sm"');
         expect(settingsSegmentControl).not.toContain("spacing={1}");
-        expect(settingsSaveStatus).toContain('variant="settingsSaveStatus"');
-        expect(settingsSaveStatus).not.toContain('variant="ghost"');
+        expect(settingsSaveStatus).toContain('variant="ghost"');
+        expect(settingsSaveStatus).toContain(
+            "SETTINGS_SAVE_STATUS_BADGE_CLASS",
+        );
+        expect(settingsSaveStatus).not.toContain(
+            'variant="settingsSaveStatus"',
+        );
         expect(settingsSaveAction).toContain('variant="settingsSave"');
         expect(settingsSaveAction).toContain('size="settingsSave"');
         expect(settingsSaveAction).not.toContain('variant="default"');
@@ -7615,9 +8154,9 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsVoScriptTestAction).not.toContain('variant="ghost"');
         expect(badge).toContain('data-slot="badge"');
         expect(badge).toContain("data-variant={variant}");
-        expect(badge).toContain("settingsSaveStatus:");
-        expect(badge).toContain(
-            "[&_[data-sot-part=settings-save-status-indicator]]",
+        expectSourceToExcludeForbiddenSubstrings(
+            badge,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expect(badge).not.toContain("sourceAuthModeBadge");
         expect(badge).not.toContain("SOURCE_AUTH_MODE_BADGE_CLASS");
@@ -7667,14 +8206,10 @@ describe("full UI replacement regression coverage", () => {
         expect(badge).not.toContain("playerTagChip:");
         expect(badge).not.toContain("playerTagOverflow:");
         expect(badge).not.toContain('"player-status":');
-        expect(badge).toContain("sourceReportStatus:");
-        expect(badge).toContain("transcriptionMeta:");
-        expect(badge).toContain("data-[sot-tone=attribute]");
-        expect(badge).toContain("data-[sot-tone=measure]");
-        expect(badge).toContain("speakerReviewVoiceprint:");
-        expect(badge).toContain("data-[sot-tone=ready]");
-        expect(badge).toContain("data-[sot-tone=missing]");
-        expect(badge).toContain("data-[sot-tone=selected]");
+        expectSourceToExcludeForbiddenSubstrings(
+            badge,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
         expect(alertPrimitive).toContain("statusError:");
         expect(alertPrimitive).toContain("speakerReviewError:");
         for (const settingsAlertPrimitiveToken of [
@@ -7737,7 +8272,9 @@ describe("full UI replacement regression coverage", () => {
             expect(settingsLoadErrorAlert).toContain(
                 'variant="settingsLoadError"',
             );
-            expect(settingsLoadErrorAlert).toContain('density="settingsBanner"');
+            expect(settingsLoadErrorAlert).toContain(
+                'density="settingsBanner"',
+            );
             expect(settingsLoadErrorAlert).toContain(
                 'layout="settingsBannerAction"',
             );
@@ -7745,9 +8282,7 @@ describe("full UI replacement regression coverage", () => {
         expect(settingsSourceLoadRetry).toContain(
             'variant="settingsSourceRetry"',
         );
-        expect(settingsSourceLoadRetry).toContain(
-            'size="settingsSourceRetry"',
-        );
+        expect(settingsSourceLoadRetry).toContain('size="settingsSourceRetry"');
         expect(settingsSourceLoadRetry).toContain(
             "onClick={() => void refreshSources()}",
         );
@@ -7800,17 +8335,27 @@ describe("full UI replacement regression coverage", () => {
             expect(button).toContain(`${speakerReviewButtonVariant}:`);
         }
         expect(button).toContain("speakerReviewIcon:");
-        for (const speakerReviewCardVariant of [
-            "speakerReviewTranscript",
-            "speakerReviewRow",
-            "speakerReviewMergePopover",
-            "speakerReviewConfirm",
-            "speakerReviewTitle",
-            "speakerReviewMergeTitle",
-            "speakerReviewDescription",
-            "speakerReviewActions",
+        expectSourceToExcludeForbiddenSubstrings(
+            cardPrimitive,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        for (const speakerReviewCardOwnerToken of [
+            "SPEAKER_REVIEW_CARD_CLASS_NAMES",
+            "SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES",
+            "SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES",
+            "SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES",
+            "SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME",
+            "SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME",
+            "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+            "SpeakerReviewCard",
+            "SpeakerReviewCardHeader",
+            "SpeakerReviewCardTitle",
+            "SpeakerReviewCardDescription",
+            "SpeakerReviewCardAction",
+            "SpeakerReviewCardContent",
+            "SpeakerReviewVoiceprintBadge",
         ]) {
-            expect(cardPrimitive).toContain(`${speakerReviewCardVariant}:`);
+            expect(speakerReview).toContain(speakerReviewCardOwnerToken);
         }
         expect(toggleGroupPrimitive).toContain("speakerReviewMode:");
         expect(toggleGroupPrimitive).toContain("speakerReviewModeItem:");
@@ -7824,7 +8369,12 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(emptyPrimitive).toContain(`${speakerReviewEmptyVariant}:`);
         }
-        expect(badge).toContain("h-[22px]");
+        const speakerReviewVoiceprintBadgeClass = extractBoundedSlice(
+            speakerReview,
+            "const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =",
+            ";",
+        );
+        expect(speakerReviewVoiceprintBadgeClass).toContain("h-[22px]");
         const providerPrimitiveRepaintSelectors = [
             '[data-sot-provider-card][data-slot="button"]',
             '[data-sot-provider-status][data-slot="badge"]',
@@ -7953,9 +8503,7 @@ describe("full UI replacement regression coverage", () => {
         expect(speakerReviewModeToggle).toContain(
             'size="speakerReviewModeItem"',
         );
-        expect(speakerReviewModeToggle).toContain(
-            'layout="speakerReviewMode"',
-        );
+        expect(speakerReviewModeToggle).toContain('layout="speakerReviewMode"');
         expect(speakerReviewModeToggle).toContain(
             'spacing="speakerReviewMode"',
         );
@@ -7968,9 +8516,7 @@ describe("full UI replacement regression coverage", () => {
             speakerReview,
             "ToggleGroupItem",
         ).filter((opening) =>
-            opening.includes(
-                'data-sot-control="speaker-review-mode-option"',
-            ),
+            opening.includes('data-sot-control="speaker-review-mode-option"'),
         );
         expect(speakerReviewModeOptions).toHaveLength(2);
         for (const opening of speakerReviewModeOptions) {
@@ -7995,9 +8541,7 @@ describe("full UI replacement regression coverage", () => {
             speakerReview,
             "InputGroupButton",
         ).find((opening) =>
-            opening.includes(
-                'data-sot-control="speaker-review-mapping-clear"',
-            ),
+            opening.includes('data-sot-control="speaker-review-mapping-clear"'),
         );
         expect(speakerReviewMappingClear).toBeDefined();
         expect(speakerReviewMappingClear).toContain(
@@ -8128,9 +8672,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(speakerReview).toContain('variant="speakerReviewSuggestion"');
         expect(speakerReview).toContain('size="speakerReviewSuggestion"');
-        expect(speakerReview).toContain(
-            'variant="speakerReviewPrimaryAction"',
-        );
+        expect(speakerReview).toContain('variant="speakerReviewPrimaryAction"');
         expect(speakerReview).toContain('variant="speakerReviewGhostAction"');
         expect(speakerReview).toContain('variant="speakerReviewDangerAction"');
         expect(speakerReview).toContain('size="speakerReviewAction"');
@@ -8142,13 +8684,17 @@ describe("full UI replacement regression coverage", () => {
             expect(opening).not.toContain('variant="elevated"');
             expect(opening).not.toContain('variant="popover"');
         }
-        expect(speakerReview).toContain('variant="speakerReviewTranscript"');
-        expect(speakerReview).toContain('variant="speakerReviewRow"');
+        expect(speakerReview).toContain("<SpeakerReviewCard");
+        expect(speakerReview).toContain('surface="transcript"');
+        expect(speakerReview).toContain('surface="row"');
+        expect(speakerReview).toContain('surface="mergePopover"');
         expect(speakerReview).toContain(
-            'variant="speakerReviewMergePopover"',
+            '<SpeakerReviewCardContent surface="mergePopover">',
         );
-        expect(cardPrimitive).toContain(
-            SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT,
+        expect(speakerReview).toContain(SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT);
+        expectSourceToExcludeForbiddenSubstrings(
+            cardPrimitive,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expect(speakerReview).not.toContain(
             `className="${SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT}"`,
@@ -8157,14 +8703,12 @@ describe("full UI replacement regression coverage", () => {
             speakerReview,
             "div",
         ).find((opening) =>
-            opening.includes(
-                'data-sot-part="speaker-review-merge-anchor"',
-            ),
+            opening.includes('data-sot-part="speaker-review-merge-anchor"'),
         );
         expect(speakerReviewMergeAnchor).toContain(
             'className="relative inline-flex"',
         );
-        expect(speakerReview).toContain('variant="speakerReviewConfirm"');
+        expect(speakerReview).toContain('surface="confirm"');
         for (const opening of collectOpeningElements(
             speakerReview,
             "Alert",
@@ -8178,13 +8722,13 @@ describe("full UI replacement regression coverage", () => {
         }
         const speakerReviewBadgeOpenings = collectOpeningElements(
             speakerReview,
-            "Badge",
+            "SpeakerReviewVoiceprintBadge",
         ).filter((opening) =>
             opening.includes('data-sot-part="speaker-review-voiceprint-pill"'),
         );
         expect(speakerReviewBadgeOpenings.length).toBeGreaterThan(0);
         for (const opening of speakerReviewBadgeOpenings) {
-            expect(opening).toContain('variant="speakerReviewVoiceprint"');
+            expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
             expect(opening).not.toContain('variant="outline"');
         }
         expect(speakerReview).toContain("hidden={!isMergePopoverOpen}");
@@ -8206,16 +8750,13 @@ describe("full UI replacement regression coverage", () => {
             'className="flex-nowrap"',
             'className="px-2.5"',
             'size="icon-xs"',
-            'variant="ghost"',
             'variant="compact"',
             'variant="subtleIcon"',
             'className="max-w-none gap-0"',
             'className="py-6"',
             'className="py-4 md:p-4"',
         ]) {
-            expect(speakerReview).not.toContain(
-                retiredSpeakerReviewSliceToken,
-            );
+            expect(speakerReview).not.toContain(retiredSpeakerReviewSliceToken);
         }
         expect(speakerReview).not.toContain('className="sp-head"');
         expect(speakerReview).not.toContain(
@@ -8358,13 +8899,16 @@ describe("full UI replacement regression coverage", () => {
             const metaOpening = extractOpeningElement(
                 transcriptionSection,
                 `data-sot-meta="${meta}"`,
-                "Badge",
+                "RecordingTranscriptionMetaBadge",
             );
-            expect(metaOpening).toContain('variant="transcriptionMeta"');
             expect(metaOpening).toContain(`data-sot-tone="${tone}"`);
-            expect(metaOpening).not.toContain('variant="outline"');
+            expect(metaOpening).not.toContain('variant="transcriptionMeta"');
             expect(metaOpening).not.toContain('variant="secondary"');
         }
+        expect(transcriptionSection).toContain(
+            "RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+        );
+        expect(transcriptionSection).toContain('variant="outline"');
         const transcriptionJobLegacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -8456,9 +9000,7 @@ describe("full UI replacement regression coverage", () => {
         expect(transcriptionSkeletons).toContain(
             "const transcriptionSkeletonClassNames",
         );
-        expect(transcriptionSkeletons).toContain(
-            'action: "h-[26px] w-[72px]"',
-        );
+        expect(transcriptionSkeletons).toContain('action: "h-[26px] w-[72px]"');
         expect(transcriptionSkeletons).toContain(
             'description: "h-[13px] w-full max-w-[220px]"',
         );
@@ -8486,9 +9028,7 @@ describe("full UI replacement regression coverage", () => {
         expect(skeletonPrimitive).toContain(
             '"animate-pulse rounded-md bg-accent"',
         );
-        expect(transcriptionSkeletons).not.toContain(
-            "type SkeletonLineSize",
-        );
+        expect(transcriptionSkeletons).not.toContain("type SkeletonLineSize");
         expect(transcriptionSkeletons).not.toContain(
             "const skeletonLineClassNames",
         );
@@ -8535,16 +9075,16 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-panel="recording-detail-header"',
         );
         const detailHeaderStart = detail.lastIndexOf(
-            "<CardHeader",
+            "<RecordingDetailCardHeader",
             detailHeaderPanelIndex,
         );
         const detailHeaderEnd = detail.indexOf(
-            "</CardHeader>",
+            "</RecordingDetailCardHeader>",
             detailHeaderStart,
         );
         const detailHeader = detail.slice(
             detailHeaderStart,
-            detailHeaderEnd + "</CardHeader>".length,
+            detailHeaderEnd + "</RecordingDetailCardHeader>".length,
         );
         const legacyDetailHeaderClassNamePattern =
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
@@ -8587,9 +9127,7 @@ describe("full UI replacement regression coverage", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-row-duration"',
         );
-        expect(listPanel).toContain(
-            'className="flex flex-col gap-0.5 p-1"',
-        );
+        expect(listPanel).toContain('className="flex flex-col gap-0.5 p-1"');
         expect(listPanel).toContain(
             "grid w-full cursor-pointer grid-cols-[1fr_auto]",
         );
@@ -8628,8 +9166,18 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeaderStart).toBeGreaterThanOrEqual(0);
         expect(detailHeaderEnd).toBeGreaterThan(detailHeaderStart);
         expect(detail).toContain('data-sot-panel="recording-detail-header"');
-        expect(detailHeader).toContain("<CardHeader");
-        expect(detailHeader).toContain("<CardTitle");
+        expect(detail).toContain("function RecordingDetailCardHeader");
+        expect(detail).toContain("function RecordingDetailCardTitle");
+        expect(detail).toContain("RECORDING_DETAIL_HEADER_CLASS_NAME");
+        expect(detail).toContain("RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME");
+        expect(detail).toContain(
+            "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
+        );
+        expect(detail).toContain(
+            "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
+        );
+        expect(detailHeader).toContain("<RecordingDetailCardHeader");
+        expect(detailHeader).toContain("<RecordingDetailCardTitle");
         expect(detailHeader).toContain("<Badge");
         expect(detailHeader).toContain('data-sot-part="detail-header-title"');
         expect(detailHeader).toContain(
@@ -8644,17 +9192,23 @@ describe("full UI replacement regression coverage", () => {
         expect(detailHeader).toContain("data-rh-edit-cancel");
         expect(detailHeader).toContain("<Button");
         expect(detailHeader).toContain("<Input");
-        expect(detailHeader).toContain('variant="detailHeader"');
-        expect(detailHeader).toContain('variant="detailHeaderTitle"');
-        expect(detailHeader).toContain('variant="detailHeaderLocal"');
-        expect(detailHeader).toContain('variant="detailHeaderStatus"');
+        for (const removedRecordingDetailCardBadgeVariant of [
+            'variant="detailHeader"',
+            'variant="detailHeaderTitle"',
+            'variant="detailHeaderLocal"',
+            'variant="detailHeaderStatus"',
+        ]) {
+            expect(detailHeader).not.toContain(
+                removedRecordingDetailCardBadgeVariant,
+            );
+        }
+        expect(detailHeader).toContain('variant="outline"');
+        expect(detailHeader).toContain('variant="ghost"');
         expect(detailHeader).toContain('variant="detailHeaderIconAction"');
         expect(detailHeader).toContain('size="detailHeaderIconAction"');
         expect(detailHeader).toContain('variant="detailHeaderAction"');
         expect(detailHeader).toContain('size="detailHeaderAction"');
         expect(detailHeader).toContain('controlSize="detailHeaderTitle"');
-        expect(detailHeader).not.toContain('variant="ghost"');
-        expect(detailHeader).not.toContain('variant="outline"');
         expect(detailHeader).not.toContain('size="icon-sm"');
         expect(detailHeader).not.toContain('size="sm"');
         expect(detail).toContain(
@@ -9025,16 +9579,11 @@ describe("full UI replacement regression coverage", () => {
         expect(playerNoAudioAlert).not.toContain("className=");
         expect(alertPrimitive).not.toContain("data-player-no-audio-text");
         expect(sotPlayerPrimitives).toContain("SotPlayerNoAudioAlert");
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_ALERT_CLASS",
+        expectExactStringConstInitializers(
+            sotPlayerPrimitives,
+            SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
         );
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_NO_AUDIO_TEXT_CLASS",
-        );
-        expect(sotPlayerPrimitives).toContain("data-player-no-audio-text");
-        expect(sotPlayerPrimitives).toContain("data-sot-part={textPart}");
-        expect(sotPlayerPrimitives).toContain('role="status"');
-        expect(sotPlayerPrimitives).toContain("hidden={!playbackDisabled}");
+        expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
         expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(player).not.toContain(
             '<SotPlayerNoAudioIcon className="size-3.5" />',
@@ -9144,9 +9693,12 @@ describe("full UI replacement regression coverage", () => {
         const tagManagerToggleNote = extractElementSlice(
             tagManager,
             'data-sot-part="toggle-note"',
-            "CardDescription",
+            "RecordingTagManagerToggleNote",
         );
         expect(tagManagerToggleNote).toContain(
+            "<RecordingTagManagerToggleNote",
+        );
+        expect(tagManagerToggleNote).not.toContain(
             'variant="recordingTagToggleNote"',
         );
         expect(tagManagerToggleNote).toContain('data-sot-part="toggle-note"');
@@ -9239,9 +9791,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerIconPicker).toContain(
             'variant="recordingTagIconPicker"',
         );
-        expect(tagManagerIconPicker).toContain(
-            'size="recordingTagIconPicker"',
-        );
+        expect(tagManagerIconPicker).toContain('size="recordingTagIconPicker"');
         expect(tagManagerIconPicker).toContain(
             'layout="recordingTagIconPicker"',
         );
@@ -9251,9 +9801,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerIconPicker).toContain(
             'variant="recordingTagIconOption"',
         );
-        expect(tagManagerIconPicker).toContain(
-            'size="recordingTagIconOption"',
-        );
+        expect(tagManagerIconPicker).toContain('size="recordingTagIconOption"');
         expect(tagManagerIconPicker).not.toContain('variant="outline"');
         for (const primitiveImport of [
             "Field,",
@@ -9273,9 +9821,20 @@ describe("full UI replacement regression coverage", () => {
             expect(tagManager).toContain(primitiveImport);
         }
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
-        expect(tagManager).toContain('variant="recordingTagManagerPanel"');
-        expect(tagManager).toContain('variant="recordingTagManagerHeader"');
-        expect(tagManager).toContain('variant="recordingTagManagerTitle"');
+        for (const ownerWrapper of [
+            "recordingTagManagerCardClassNames",
+            "recordingTagManagerContentClassNames",
+            "recordingTagManagerBadgeClassNames",
+            "RecordingTagManagerPanelCard",
+            "RecordingTagManagerHeader",
+            "RecordingTagManagerTitle",
+            "RecordingTagManagerContent",
+            "RecordingTagManagerFooter",
+            "RecordingTagManagerToggleNote",
+            "RecordingTagManagerBadge",
+        ]) {
+            expect(tagManager).toContain(ownerWrapper);
+        }
         expect(tagManager).toContain('"recordingTagManagerCreate"');
         expect(tagManager).toContain('"recordingTagManagerDelete"');
         expect(tagManager).toContain('"recordingTagManagerDefault"');
@@ -9283,8 +9842,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('"recordingTagManagerSaving"');
         expect(tagManager).toContain('"recordingTagManagerTight"');
         expect(tagManager).toContain('"recordingTagManagerCompact"');
-        expect(tagManager).toContain("variant={contentVariant}");
-        expect(tagManager).toContain('variant="recordingTagToggleNote"');
+        expect(tagManager).toContain("contentVariant={contentVariant}");
+        expect(tagManager).not.toContain('variant="recordingTagToggleNote"');
         for (const recordingTagButtonVariant of [
             'variant="recordingTagErrorRetry"',
             'variant="recordingTagToggle"',
@@ -9292,16 +9851,24 @@ describe("full UI replacement regression coverage", () => {
             'variant="recordingTagCancel"',
             'variant="recordingTagCreate"',
             'variant="recordingTagDelete"',
-            'variant="recordingTagChipRemove"',
             'variant="recordingTagPanelClose"',
         ]) {
             expect(tagManager).toContain(recordingTagButtonVariant);
         }
+        expect(tagManager).toContain(
+            "RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT",
+        );
+        expect(tagManager).toContain(
+            '"recordingTagChipRemove" satisfies ComponentProps<typeof Button>["variant"]',
+        );
+        expect(tagManager).toContain(
+            "variant={\n                                                    RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT\n                                                }",
+        );
         expect(tagManager).toContain('variant="recordingTagPickerFrame"');
         expect(tagManager).toContain('variant="recordingTagPickerLabel"');
         expect(tagManager).toContain('variant="recordingTagSection"');
         expect(tagManager).toContain('variant="recordingTagSectionLabel"');
-        expect(tagManager).toContain('variant="pill"');
+        expect(tagManager).toContain('appearance="pill"');
         expect(tagManager).toContain('variant="swatch"');
         expect(tagManager).toContain('variant="recordingTagError"');
         expect(tagManager).toContain('variant="recordingTagDeleteConfirm"');
@@ -9339,18 +9906,23 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain('saving && "pointer-events-none"');
         expect(tagManager).toContain("<Spinner");
-        expect(tagManager).toContain('variant="checkDot"');
+        expect(tagManager).toContain('appearance="checkDot"');
         expect(tagManager).not.toContain("<LoaderCircle");
         expect(tagManager).not.toContain('className="animate-spin"');
         expect(tagManager).not.toContain("recordingTagSwatchStyle");
         expect(tagManager).not.toContain("--recording-tag-swatch-color");
         expect(tagManager).not.toContain("--toggle-swatch-color");
         expect(tagManager).not.toContain("bg-white");
-        expect(cardPrimitive).toContain("recordingTagManagerPanel:");
-        expect(cardPrimitive).toContain(
+        expectSourceToExcludeForbiddenSubstrings(
+            cardPrimitive,
+            CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        expect(tagManager).toContain(
             "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0",
         );
-        expect(cardPrimitive).toContain("recordingTagToggleNote:");
+        expect(tagManager).toContain(
+            "recordingTagManagerCardClassNames.toggleNote",
+        );
         expect(emptyPrimitive).toContain("recordingTagEmptyState:");
         expect(inputGroupPrimitive).toContain("recordingTagCreateRow:");
         expect(inputGroupPrimitive).toContain("recordingTagNameInput:");
@@ -9749,7 +10321,7 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportErrorIcon).toContain(
             "data-sot-source-report-empty-icon",
         );
-        expect(sourceReportErrorIcon).toContain("aria-hidden=\"true\"");
+        expect(sourceReportErrorIcon).toContain('aria-hidden="true"');
         expect(sourceReportErrorState).toContain("<SourceReportAlertGlyph />");
         expect(sourceReportErrorState).toContain("无法读取来源详情");
         expect(sourceReportErrorState).toContain("sourceProviderSentenceName");
@@ -9765,8 +10337,14 @@ describe("full UI replacement regression coverage", () => {
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
         expect(sourceReport).toContain('data-sot-badge="source-report-status"');
-        expect(badge).toContain("sourceReportStatus:");
-        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
+        expect(sourceReport).toContain("function SourceReportStatusBadge");
+        expect(sourceReport).toContain('variant="outline"');
+        expectSourceToExcludeForbiddenSubstrings(
+            badge,
+            BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
+        );
+        expect(sourceReport).not.toContain('variant="sourceReportStatus"');
         expect(sourceReport).toContain('variant="sourceReportError"');
         expect(alertPrimitive).toContain("sourceReportError:");
         expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
@@ -9843,11 +10421,8 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
         expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
-        expect(badge).toContain(
+        expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:bg-current",
-        );
-        expect(badge).toContain(
-            "[&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current",
         );
         for (const selector of SOURCE_REPORT_METRIC_GLOBAL_REPAINT_SELECTOR_FRAGMENTS) {
             expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
@@ -9933,6 +10508,22 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagClassToken);
         }
+        for (const sotPlayerTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+            "--sot-player-tag-chip-blue-bg",
+            "--sot-player-tag-chip-blue-border",
+            "--sot-player-tag-chip-blue-fg",
+        ]) {
+            expect(globals).toContain(sotPlayerTagChipToken);
+            expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
+        }
+        expect(globals).not.toContain("dashboard-recording-tag-chip");
+        expect(badge).not.toContain("dashboard-recording-tag-chip");
+        expect(sotPlayerPrimitives).not.toContain(
+            "dashboard-recording-tag-chip",
+        );
         expect(sotPlayerTagChip).toContain('variant="ghost"');
         expect(sotPlayerTagChip).toContain('size="xs"');
         expect(sotPlayerTagChip).toContain(
@@ -9973,8 +10564,11 @@ describe("full UI replacement regression coverage", () => {
             "data-recording-tag-chip",
             "Badge",
         );
-        expect(sharedRecordingTagChip).toContain(
+        expect(sharedRecordingTagChip).not.toContain(
             'variant="recordingTagChip"',
+        );
+        expect(sharedRecordingTagChip).toContain(
+            "className={recordingTagChipClassName}",
         );
         expect(sharedRecordingTagChip).toContain(
             "data-sot-tag-color={tag.color}",
@@ -10007,9 +10601,11 @@ describe("full UI replacement regression coverage", () => {
         );
         const legacyPlayerSourceVariantUsage = `variant="${"player"}Source"`;
 
-        expect(sotPlayerPrimitives).toContain(
-            "SOT_PLAYER_SOURCE_BADGE_CLASS",
+        expectExactStringConstInitializers(
+            sotPlayerPrimitives,
+            SOT_PLAYER_SOURCE_CLASS_INITIALIZERS,
         );
+        expectSotPlayerSourcePrimitiveBindings(sotPlayerPrimitives);
         expect(sotPlayerPrimitives).toContain("SOT_PLAYER_STATUS_BADGE_CLASS");
         expect(sotPlayerPrimitives).not.toContain(
             legacyPlayerSourceVariantUsage,
@@ -10038,12 +10634,6 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(sotPlayerPrimitives).not.toContain('variant="source"');
         expect(sotPlayerPrimitives).not.toContain('variant="player-status"');
-        expect(sotPlayerPrimitives).toContain(
-            'className="inline-flex size-[16px] shrink-0 items-center justify-center overflow-hidden rounded-[4px]"',
-        );
-        expect(sotPlayerPrimitives).toContain(
-            'className="block size-[16px] max-w-none object-contain"',
-        );
         expect(sotPlayerPrimitives).toContain(
             'className={cn("size-4", className)}',
         );

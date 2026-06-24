@@ -392,6 +392,7 @@ const sourceReportCardSkeletonClassNames = {
     status: "inline-block h-[18px] w-20 align-middle rounded-[6px]",
 } as const satisfies Record<SourceReportCardSkeletonSize, string>;
 
+// biome-ignore format: regression tests assert these local contract tokens as single-line source text.
 const sourceReportSegmentSkeletonClassNames = {
     "line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
     "line-medium": "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
@@ -513,6 +514,9 @@ function SourceReportEmptyGlyph() {
     );
 }
 
+const SOURCE_REPORT_STATUS_BADGE_STYLE =
+    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+
 function SourceReportStatusBadge({
     children,
     tone,
@@ -522,7 +526,8 @@ function SourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="sourceReportStatus"
+            variant="outline"
+            className={SOURCE_REPORT_STATUS_BADGE_STYLE}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >

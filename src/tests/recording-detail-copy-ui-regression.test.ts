@@ -174,10 +174,12 @@ function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function variantAttr(value: string) {
+    return `variant=${JSON.stringify(value)}`;
+}
+
 function hasExactBusinessToken(source: string, token: string) {
-    return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(
-        source,
-    );
+    return new RegExp(`\\b${escapeRegExp(token)}(?![A-Za-z0-9_])`).test(source);
 }
 
 function collectAiRenamePrimitiveBusinessTokens() {
@@ -301,10 +303,11 @@ function extractExactOpeningElement(
     expect(markerIndex).toBeGreaterThanOrEqual(0);
     const tagPattern = new RegExp(`<${tagName}(?=\\s|>)`, "g");
     let start = -1;
-    let match: RegExpExecArray | null;
+    let match = tagPattern.exec(source);
 
-    while ((match = tagPattern.exec(source)) && match.index <= markerIndex) {
+    while (match && match.index <= markerIndex) {
         start = match.index;
+        match = tagPattern.exec(source);
     }
 
     expect(start).toBeGreaterThanOrEqual(0);
@@ -524,6 +527,12 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Badge } from "@/components/ui/badge";',
         );
         expect(detailTranscript).toContain("<Badge");
+        expect(detailTranscript).toContain(
+            "const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME",
+        );
+        expect(detailTranscript).toContain(
+            "function RecordingTranscriptionMetaBadge",
+        );
         for (const metaHook of [
             'data-sot-meta="language"',
             'data-sot-meta="source"',
@@ -580,14 +589,12 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(retranscribeControl).toContain('size="transcriptionAction"');
         expect(startControl).toContain("<Button");
-        expect(startControl).toContain(
-            'variant="transcriptionPrimaryAction"',
-        );
+        expect(startControl).toContain('variant="transcriptionPrimaryAction"');
         expect(startControl).toContain('size="transcriptionAction"');
         expect(jobErrorBanner).toContain("<Alert");
         expect(jobErrorBanner).toContain('variant="statusError"');
-        expect(metaList).toContain("<Badge");
-        expect(metaList).toContain('variant="transcriptionMeta"');
+        expect(metaList).toContain("<RecordingTranscriptionMetaBadge");
+        expect(metaList).not.toContain(variantAttr("transcriptionMeta"));
         expect(metaList).toContain('data-sot-tone="attribute"');
         expect(metaList).toContain('data-sot-tone="measure"');
         for (const genericActionToken of [
@@ -662,7 +669,6 @@ describe("recording detail copy and title action UI regressions", () => {
             "features/recordings/components/transcription-skeletons.tsx",
         );
         const alertPrimitive = readSource("components/ui/alert.tsx");
-        const badgePrimitive = readSource("components/ui/badge.tsx");
         const buttonPrimitive = readSource("components/ui/button.tsx");
         const cardPrimitive = readSource("components/ui/card.tsx");
         const emptyPrimitive = readSource("components/ui/empty.tsx");
@@ -831,7 +837,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReportErrorIcon).toContain(
             "data-sot-source-report-empty-icon",
         );
-        expect(sourceReportErrorIcon).toContain("aria-hidden=\"true\"");
+        expect(sourceReportErrorIcon).toContain('aria-hidden="true"');
         expect(sourceReportErrorState).toContain("<SourceReportAlertGlyph />");
         expect(sourceReportErrorState).toContain("无法读取来源详情");
         expect(sourceReportErrorState).toContain("sourceProviderSentenceName");
@@ -846,7 +852,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).not.toContain(
             'className="flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"',
         );
-        expect(sourceReport).toContain('variant="sourceReportStatus"');
+        expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
+        expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
         expect(alertPrimitive).toContain("sourceReportError:");
         expect(buttonPrimitive).toContain("sourceReportAction:");
         expect(buttonPrimitive).toContain("sourceReportGhostAction:");
@@ -903,9 +910,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(transcriptionSkeletons).toContain(
             "const transcriptionSkeletonClassNames",
         );
-        expect(transcriptionSkeletons).toContain(
-            'action: "h-[26px] w-[72px]"',
-        );
+        expect(transcriptionSkeletons).toContain('action: "h-[26px] w-[72px]"');
         expect(transcriptionSkeletons).toContain(
             'description: "h-[13px] w-full max-w-[220px]"',
         );
@@ -956,17 +961,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(sourceReport).toContain('data-sot-format="mono"');
         expect(sourceReport).toContain("data-sot-source-report-meta-value");
         expect(globals).toContain('[data-sot-part="source-report-copy-label"]');
-        expect(badgePrimitive).toContain("sourceReportStatus:");
-        expect(badgePrimitive).toContain(
+        expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:inline-block",
         );
-        expect(badgePrimitive).toContain(
+        expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:size-[5px]",
         );
-        expect(badgePrimitive).toContain(
+        expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:rounded-full",
         );
-        expect(badgePrimitive).toContain(
+        expect(sourceReport).toContain(
             "[&_[data-sot-part=source-report-status-dot]]:bg-current",
         );
         for (const removedSourceReportStatusGlobalSelector of [
@@ -1095,16 +1099,16 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-panel="recording-detail-header"',
         );
         const headerStart = detailWorkstation.lastIndexOf(
-            "<CardHeader",
+            "<RecordingDetailCardHeader",
             headerPanelIndex,
         );
         const headerEnd = detailWorkstation.indexOf(
-            "</CardHeader>",
+            "</RecordingDetailCardHeader>",
             headerStart,
         );
         const detailHeader = detailWorkstation.slice(
             headerStart,
-            headerEnd + "</CardHeader>".length,
+            headerEnd + "</RecordingDetailCardHeader>".length,
         );
         const legacyHeaderClassNamePattern =
             /className=(?:"[^"]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^"]*"|\{[^}]*\b(?:rec-head|rec-h2|rec-h2-local|rec-h2-input|rec-h2-status|rh-norm|rh-edit|ai-rename-anchor|more-anchor)\b[^}]*\})/;
@@ -1169,9 +1173,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControl).toContain('data-sot-state="selected"');
         expect(detailBackControl).toContain("<ArrowLeft");
         expect(detailBackControl).toContain('data-icon="inline-start"');
-        expect(detailBackControl).toContain(
-            '{t("recording.backToDashboard")}',
-        );
+        expect(detailBackControl).toContain('{t("recording.backToDashboard")}');
         expect(detailBackControl).not.toContain('variant="ghost"');
         expect(button).toContain("[&_span]:truncate");
         expect(button).toContain("[&_svg]:stroke-[1.7]");
@@ -1266,9 +1268,7 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(listPanel).toContain(
             'data-sot-part="recording-detail-list-row-duration"',
         );
-        expect(listPanel).toContain(
-            'className="flex flex-col gap-0.5 p-1"',
-        );
+        expect(listPanel).toContain('className="flex flex-col gap-0.5 p-1"');
         expect(listPanel).toContain(
             "grid w-full cursor-pointer grid-cols-[1fr_auto]",
         );
@@ -1321,8 +1321,8 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(headerPanelIndex).toBeGreaterThanOrEqual(0);
         expect(headerStart).toBeGreaterThanOrEqual(0);
         expect(headerEnd).toBeGreaterThan(headerStart);
-        expect(detailHeader).toContain("<CardHeader");
-        expect(detailHeader).toContain("<CardTitle");
+        expect(detailHeader).toContain("<RecordingDetailCardHeader");
+        expect(detailHeader).toContain("<RecordingDetailCardTitle");
         expect(detailHeader).toContain("<Badge");
         expect(detailHeader).toContain(
             'data-sot-panel="recording-detail-header"',
@@ -1347,17 +1347,51 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailWorkstation).toContain(
             "const recordingDetailHeaderState = isSavingRename",
         );
-        expect(detailHeader).toContain('variant="detailHeader"');
-        expect(detailHeader).toContain('variant="detailHeaderTitle"');
-        expect(detailHeader).toContain('variant="detailHeaderLocal"');
-        expect(detailHeader).toContain('variant="detailHeaderStatus"');
+        expect(detailWorkstation).toContain(
+            "const RECORDING_DETAIL_HEADER_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
+            "const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
+            "const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
+            "const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
+            "function RecordingDetailCardHeader",
+        );
+        expect(detailWorkstation).toContain(
+            "function RecordingDetailCardTitle",
+        );
+        expect(detailWorkstation).toContain(
+            "cn(RECORDING_DETAIL_HEADER_CLASS_NAME",
+        );
+        expect(detailWorkstation).toContain(
+            "cn(RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME",
+        );
+        expect(detailHeader).toContain(
+            "RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME",
+        );
+        expect(detailHeader).toContain(
+            "RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME",
+        );
+        for (const removedRecordingDetailVariant of [
+            "detailHeader",
+            "detailHeaderTitle",
+            "detailHeaderLocal",
+            "detailHeaderStatus",
+        ]) {
+            expect(detailHeader).not.toContain(
+                variantAttr(removedRecordingDetailVariant),
+            );
+        }
         expect(detailHeader).toContain('variant="detailHeaderIconAction"');
         expect(detailHeader).toContain('size="detailHeaderIconAction"');
         expect(detailHeader).toContain('variant="detailHeaderAction"');
         expect(detailHeader).toContain('size="detailHeaderAction"');
         expect(detailHeader).toContain('controlSize="detailHeaderTitle"');
-        expect(detailHeader).not.toContain('variant="ghost"');
-        expect(detailHeader).not.toContain('variant="outline"');
         expect(detailHeader).not.toContain('size="icon-sm"');
         expect(detailHeader).not.toContain('size="sm"');
         expect(detailHeader).not.toContain(
@@ -1669,22 +1703,12 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
-        expect(badge).toContain("detailHeaderLocal:");
-        expect(badge).toContain("detailHeaderStatus:");
         expect(button).toContain("detailHeaderIconAction:");
         expect(button).toContain("detailHeaderAction:");
         expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
         expect(card).toContain('data-slot="card-header"');
-        expect(card).toContain("detailHeader:");
-        expect(card).toContain("data-[sot-state=saving]:py-0");
-        expect(card).toContain(
-            'detailHeaderTitle: "leading-none font-semibold min-w-0 flex-1 truncate"',
-        );
+        expect(card).toContain('data-slot="card-title"');
         expect(input).toContain('data-slot="input"');
-        expect(input).toContain("detailHeaderTitle:");
-        expect(input).toContain(
-            '"h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm"',
-        );
         expect(dashboardDetailHeader).toContain(
             'data-sot-panel="dashboard-detail-header"',
         );
@@ -1709,29 +1733,49 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardTranscript).toContain(
             "const dashboardDetailHeaderMode = editingTitle",
         );
-        expect(dashboardDetailHeader).toContain('variant="detailHeader"');
-        expect(dashboardDetailHeader).toContain(
-            'variant="detailHeaderTitle"',
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME",
+        );
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
+        );
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+        );
+        expect(dashboardTranscript).toContain(
+            "const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
         );
         expect(dashboardDetailHeader).toContain(
-            'variant="detailHeaderLocal"',
+            "className={SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME}",
         );
         expect(dashboardDetailHeader).toContain(
-            'variant="detailHeaderStatus"',
+            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME",
         );
+        expect(dashboardDetailHeader).toContain(
+            "SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME",
+        );
+        expect(dashboardDetailHeader).toContain(
+            "SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME",
+        );
+        for (const retiredDashboardDetailVariant of [
+            "detailHeader",
+            "detailHeaderTitle",
+            "detailHeaderLocal",
+            "detailHeaderStatus",
+        ]) {
+            expect(dashboardDetailHeader).not.toContain(
+                variantAttr(retiredDashboardDetailVariant),
+            );
+        }
         expect(dashboardDetailHeader).toContain(
             'variant="detailHeaderIconAction"',
         );
         expect(dashboardDetailHeader).toContain(
             'size="detailHeaderIconAction"',
         );
-        expect(dashboardDetailHeader).toContain(
-            'variant="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).toContain(
-            'size="detailHeaderAction"',
-        );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).toContain('variant="detailHeaderAction"');
+        expect(dashboardDetailHeader).toContain('size="detailHeaderAction"');
+        expect(dashboardDetailHeader).not.toContain(
             'controlSize="detailHeaderTitle"',
         );
         expect(dashboardDetailHeader).not.toContain(
@@ -1971,9 +2015,7 @@ describe("recording detail copy and title action UI regressions", () => {
             'variant="recordingRoutePrimaryAction"',
             "</Button>",
         );
-        expect(notFoundPrimaryAction).toContain(
-            'size="recordingRouteAction"',
-        );
+        expect(notFoundPrimaryAction).toContain('size="recordingRouteAction"');
         expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(error).toContain("<Button");
         const errorPrimaryAction = extractBoundedSlice(
@@ -2141,16 +2183,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(dashboardWorkstation).toContain("applyAiRename");
         expect(dashboardWorkstation).toContain("/rename/auto");
         expect(collectAiRenamePrimitiveBusinessTokens()).toEqual([]);
-        expect(aiRenamePreview).toContain(
-            'data-sot-panel="ai-rename-preview"',
-        );
+        expect(aiRenamePreview).toContain('data-sot-panel="ai-rename-preview"');
         expect(aiRenamePreview).toContain("data-sot-state={state}");
         expect(aiRenamePreview).toContain('role="dialog"');
         expect(aiRenamePreview).toContain("aria-label={title}");
         expect(aiRenamePreview).toMatch(
             /const\s+aiRenamePreview[A-Za-z0-9_]*ClassNames\s*=\s*{/,
         );
-        for (const { snippets } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
+        for (const {
+            snippets,
+        } of AI_RENAME_PREVIEW_FEATURE_OWNER_CLASS_SNIPPETS) {
             for (const snippet of snippets) {
                 expect(aiRenamePreview).toContain(snippet);
             }
@@ -2220,11 +2262,17 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(aiRenamePreview).toContain("aria-busy={isApplying}");
         expect(aiRenamePreview).toContain("disabled={isApplying}");
         expect(aiRenamePreview).toContain("disabled={isBusy || !canAct}");
-        expect(detailWorkstation).toContain("onApply={handleAutoRenamePreviewApply}");
-        expect(detailWorkstation).toContain("onCancel={handleAutoRenamePreviewCancel}");
+        expect(detailWorkstation).toContain(
+            "onApply={handleAutoRenamePreviewApply}",
+        );
+        expect(detailWorkstation).toContain(
+            "onCancel={handleAutoRenamePreviewCancel}",
+        );
         expect(detailWorkstation).toContain("onRegenerate={handleAutoRename}");
         expect(dashboardWorkstation).toContain("onApply={applyAiRename}");
-        expect(dashboardWorkstation).toContain("onRegenerate={previewAutoRename}");
+        expect(dashboardWorkstation).toContain(
+            "onRegenerate={previewAutoRename}",
+        );
         for (const retiredAiRenameToken of [
             "animate-spin rounded-full border-2 border-border border-t-current",
         ]) {
@@ -2351,5 +2399,53 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(tagManager).toContain('aria-label="添加"');
         expect(tagManager).not.toContain("tagm-add-btn");
         expect(tagManager).not.toContain('variant="compact"');
+    });
+
+    it("keeps recording tag manager card and badge business classes owner-local", () => {
+        const tagManager = readSource(
+            "features/recordings/components/recording-tag-manager.tsx",
+        );
+        const tagVisuals = readSource(
+            "features/recordings/components/recording-tag-visuals.tsx",
+        );
+
+        expect(tagManager).toContain("const recordingTagManagerCardClassNames");
+        expect(tagManager).toContain(
+            "const recordingTagManagerContentClassNames",
+        );
+        expect(tagManager).toContain(
+            "const recordingTagManagerBadgeClassNames",
+        );
+        expect(tagManager).toContain(
+            "contentVariant: RecordingTagManagerContentVariant",
+        );
+        expect(tagManager).toContain(
+            "recordingTagManagerContentClassNames[contentVariant]",
+        );
+        expect(tagManager).toContain("<RecordingTagManagerPanelCard");
+        expect(tagManager).toContain("<RecordingTagManagerHeader");
+        expect(tagManager).toContain("<RecordingTagManagerTitle");
+        expect(tagManager).toContain("<RecordingTagManagerContent");
+        expect(tagManager).toContain("<RecordingTagManagerFooter");
+        expect(tagManager).toContain("<RecordingTagManagerToggleNote");
+        expect(tagManager).toContain("<RecordingTagManagerBadge");
+
+        for (const retiredCardVariant of [
+            "recordingTagManagerPanel",
+            "recordingTagManagerHeader",
+            "recordingTagManagerTitle",
+            "recordingTagManagerFooter",
+            "recordingTagToggleNote",
+        ]) {
+            expect(tagManager).not.toContain(variantAttr(retiredCardVariant));
+        }
+
+        for (const retiredBadgeVariant of ["pill", "checkDot"]) {
+            expect(tagManager).not.toContain(variantAttr(retiredBadgeVariant));
+        }
+
+        expect(tagVisuals).toContain("const recordingTagChipClassName");
+        expect(tagVisuals).toContain("className={recordingTagChipClassName}");
+        expect(tagVisuals).not.toContain(variantAttr("recordingTagChip"));
     });
 });

@@ -192,8 +192,7 @@ const SOURCE_ACTION_BUTTON_CLASS_BY_TONE: Record<
     SourceActionButtonTone,
     string
 > = {
-    danger:
-        "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
+    danger: "border border-transparent bg-transparent text-[var(--signal-danger)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--signal-danger)]",
     neutral:
         "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[sot-state=error]:text-destructive data-[sot-state=success]:text-primary",
     primary:
@@ -208,6 +207,15 @@ const SOURCE_ACTION_STATUS_INDICATOR_CLASS =
 
 const SOURCE_AUTH_MODE_BADGE_CLASS =
     "px-1.5 data-[sot-tone=recommended]:bg-secondary data-[sot-tone=recommended]:text-secondary-foreground data-[sot-tone=personal]:border-border data-[sot-tone=personal]:text-foreground";
+
+const SOURCE_PROVIDER_STATUS_BADGE_CLASS =
+    "h-[18px] gap-[4px] rounded-[999px] border border-solid px-[7px] py-0 text-[10.5px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=syncing]:border-[var(--source-provider-status-info-border)] data-[sot-tone=syncing]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=syncing]:text-[var(--signal-info)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] group-data-[sot-dimmed=true]/source-provider:border-[var(--line-hairline)] group-data-[sot-dimmed=true]/source-provider:bg-[var(--bg-recessed)] group-data-[sot-dimmed=true]/source-provider:text-[var(--fg-tertiary)] [&_[data-sot-provider-status-dot]]:size-[4px] [&_[data-sot-provider-status-dot]]:rounded-full [&_[data-sot-provider-status-dot]]:bg-current data-[sot-tone=syncing]:[&_[data-sot-provider-status-dot]]:animate-pulse";
+
+const SOURCE_DETAIL_STATUS_BADGE_CLASS =
+    "h-6 gap-1.5 rounded-[999px] border border-solid px-2.5 py-0 text-[11px] font-semibold leading-[normal] data-[sot-tone=ok]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ok]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ok]:text-[var(--signal-success)] data-[sot-tone=info]:border-[var(--source-provider-status-info-border)] data-[sot-tone=info]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=info]:text-[var(--signal-info)] data-[sot-tone=syncing]:border-[var(--source-provider-status-info-border)] data-[sot-tone=syncing]:bg-[var(--source-provider-status-info-bg)] data-[sot-tone=syncing]:text-[var(--signal-info)] data-[sot-tone=warn]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=warn]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=warn]:text-[var(--signal-warning-strong)] data-[sot-tone=err]:border-[var(--source-provider-status-danger-border)] data-[sot-tone=err]:bg-[var(--source-provider-status-danger-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)]";
+
+const SETTINGS_SAVE_STATUS_BADGE_CLASS =
+    "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
 
 function SourceActionButton({
     className,
@@ -643,30 +651,25 @@ function DataSourceProviderTile({
                 data-sot-provider-meta=""
                 data-sot-part="source-provider-meta"
             >
-                <span
-                    data-sot-provider-name=""
-                >
-                    {displayName}
-                </span>
-                <span
-                    data-sot-provider-hint=""
-                >
+                <span data-sot-provider-name="">{displayName}</span>
+                <span data-sot-provider-hint="">
                     {getSourceProviderStatusHint(source, language) ??
                         (isZh ? "录音来源" : "Recording source")}
                 </span>
             </span>
             <Badge
-                variant="sourceProviderStatus"
-                className="justify-self-end"
+                variant="ghost"
+                className={cn(
+                    SOURCE_PROVIDER_STATUS_BADGE_CLASS,
+                    "justify-self-end",
+                )}
                 data-sot-provider-status=""
                 data-sot-state={status.state}
                 data-sot-status={status.state}
                 data-sot-tone={status.tone}
                 data-state={status.state}
             >
-                <span
-                    data-sot-provider-status-dot=""
-                />
+                <span data-sot-provider-status-dot="" />
                 {status.label}
             </Badge>
         </Button>
@@ -703,9 +706,7 @@ function ProviderStateBanner({
             data-sot-tone={tone}
             density="settingsBanner"
             layout="settingsBanner"
-            variant={
-                tone === "err" ? "settingsBannerError" : "settingsBanner"
-            }
+            variant={tone === "err" ? "settingsBannerError" : "settingsBanner"}
         >
             <span data-sot-banner-icon>
                 <Icon
@@ -717,10 +718,7 @@ function ProviderStateBanner({
                 <AlertTitle density="settingsBanner" data-sot-banner-title>
                     {title}
                 </AlertTitle>
-                <AlertDescription
-                    density="settingsBanner"
-                    data-sot-banner-sub
-                >
+                <AlertDescription density="settingsBanner" data-sot-banner-sub>
                     {description}
                 </AlertDescription>
             </div>
@@ -1284,7 +1282,8 @@ function DataSourcesSettingsPanel({
                                 </div>
                             </div>
                             <Badge
-                                variant="sourceProviderDetailStatus"
+                                variant="ghost"
+                                className={SOURCE_DETAIL_STATUS_BADGE_CLASS}
                                 data-sot-status={status.state}
                                 data-sot-tone={status.tone}
                             >
@@ -1401,9 +1400,7 @@ function DataSourcesSettingsPanel({
                                     orientation="horizontal"
                                     variant="sourceProviderDetail"
                                 >
-                                    <FieldContent
-                                        variant="sourceProviderDetail"
-                                    >
+                                    <FieldContent variant="sourceProviderDetail">
                                         <FieldTitle>
                                             {isZh
                                                 ? "登录方式"
@@ -1436,9 +1433,7 @@ function DataSourcesSettingsPanel({
                                     orientation="horizontal"
                                     variant="sourceProviderDetail"
                                 >
-                                    <FieldContent
-                                        variant="sourceProviderDetail"
-                                    >
+                                    <FieldContent variant="sourceProviderDetail">
                                         <FieldLabel
                                             htmlFor={`${selectedSource.provider}-base-url`}
                                         >
@@ -1551,9 +1546,7 @@ function DataSourcesSettingsPanel({
                                 orientation="horizontal"
                                 variant="sourceProviderDetail"
                             >
-                                <FieldContent
-                                    variant="sourceProviderDetail"
-                                >
+                                <FieldContent variant="sourceProviderDetail">
                                     <FieldTitle>
                                         {isZh
                                             ? "自动更新"
@@ -1625,9 +1618,7 @@ function DataSourcesSettingsPanel({
                                 orientation="horizontal"
                                 variant="sourceProviderDetail"
                             >
-                                <FieldContent
-                                    variant="sourceProviderDetail"
-                                >
+                                <FieldContent variant="sourceProviderDetail">
                                     <FieldLabel
                                         htmlFor={`${selectedSource.provider}-enabled`}
                                     >
@@ -1765,9 +1756,7 @@ function DataSourcesSettingsPanel({
                             orientation="horizontal"
                             variant="sourceProviderDetail"
                         >
-                            <FieldContent
-                                variant="sourceProviderDetail"
-                            >
+                            <FieldContent variant="sourceProviderDetail">
                                 <FieldTitle>
                                     {isZh ? "重新连接" : "Reconnect"}
                                 </FieldTitle>
@@ -1814,9 +1803,7 @@ function DataSourcesSettingsPanel({
                             orientation="horizontal"
                             variant="sourceProviderDetail"
                         >
-                            <FieldContent
-                                variant="sourceProviderDetail"
-                            >
+                            <FieldContent variant="sourceProviderDetail">
                                 <FieldTitle>
                                     {isZh ? "断开连接" : "Disconnect"}
                                 </FieldTitle>
@@ -1936,7 +1923,8 @@ function SaveStatus({
 
     return (
         <Badge
-            variant="settingsSaveStatus"
+            variant="ghost"
+            className={SETTINGS_SAVE_STATUS_BADGE_CLASS}
             data-sot-part="settings-save-status"
             data-sot-state={saveState}
         >
@@ -3072,10 +3060,7 @@ function VoScriptSettingsPanel({
                     layout="settingsBanner"
                     variant="settingsVoScriptWarning"
                 >
-                    <span
-                        data-sot-banner-icon
-                        aria-hidden="true"
-                    >
+                    <span data-sot-banner-icon aria-hidden="true">
                         <AlertCircle aria-hidden="true" />
                     </span>
                     <div data-sot-banner-body>

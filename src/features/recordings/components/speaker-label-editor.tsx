@@ -9,6 +9,7 @@ import {
     Volume2,
     X,
 } from "lucide-react";
+import type { ComponentProps } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
@@ -46,6 +47,7 @@ import {
 import { formatDateTime } from "@/lib/format-date";
 import { startBrowserTimeout } from "@/lib/platform/browser-shell";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
+import { cn } from "@/lib/utils";
 
 interface SpeakerProfile {
     id: string;
@@ -88,6 +90,166 @@ interface SpeakerSaveError {
     rawLabel: string;
     profileId: string | null;
     profileName: string | undefined;
+}
+
+const SPEAKER_REVIEW_CARD_CLASS_NAMES = {
+    transcript: "gap-0",
+    row: "grid items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border-[var(--card-elevated-border)] bg-[var(--card-elevated-bg)] p-[10px_12px]",
+    mergePopover:
+        "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] p-0 shadow-[var(--card-popover-shadow)] backdrop-blur-none",
+    confirm:
+        "flex-row items-center gap-[10px] overflow-visible rounded-[var(--radius-md)] border border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] p-[10px_12px] text-[length:var(--text-body-sm)] text-[var(--fg-primary)] shadow-none backdrop-blur-none [&_[data-sot-confirm-message]]:min-w-0 [&_[data-sot-confirm-message]]:flex-1 [&_[data-sot-confirm-subject]]:not-italic [&_[data-sot-confirm-subject]]:[font-weight:var(--weight-semibold)] [&_[data-sot-confirm-subject]]:text-[var(--fg-primary)]",
+} as const;
+
+const SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES = {
+    transcript:
+        "flex items-center justify-between gap-[10px] px-[16px] pt-[12px] pb-[8px] max-[860px]:flex-col max-[860px]:items-stretch [&_[data-sot-part=speaker-review-header-copy]]:flex [&_[data-sot-part=speaker-review-header-copy]]:min-w-0 [&_[data-sot-part=speaker-review-header-copy]]:items-center [&_[data-sot-part=speaker-review-header-copy]]:gap-2.5",
+    mergePopover:
+        "flex flex-row items-center justify-between gap-[10px] border-b-[1px] border-[var(--card-popover-divider)] px-[12px] pb-[9px] pt-[11px]",
+} as const;
+
+const SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES = {
+    title: "leading-none font-semibold",
+    mergeTitle:
+        "text-[12px] font-semibold leading-normal text-[var(--fg-primary)]",
+} as const;
+
+const SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES = {
+    transcript:
+        "px-4 pb-4 [&_[data-sot-list=speaker-review-meta]]:my-4 [&_[data-sot-list=speaker-review-meta]]:grid [&_[data-sot-list=speaker-review-meta]]:grid-cols-2 [&_[data-sot-list=speaker-review-meta]]:gap-x-3.5 [&_[data-sot-list=speaker-review-meta]]:gap-y-1.5 max-[640px]:[&_[data-sot-list=speaker-review-meta]]:grid-cols-1 [&_[data-sot-part=speaker-review-transcript-section]]:flex [&_[data-sot-part=speaker-review-transcript-section]]:flex-col [&_[data-sot-part=speaker-review-transcript-section]]:gap-2 [&_[data-sot-part=speaker-review-transcript-section]]:border-t [&_[data-sot-part=speaker-review-transcript-section]]:pt-2",
+    mergePopover: "p-0",
+} as const;
+
+const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =
+    "text-sm text-muted-foreground";
+
+const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
+    "flex min-w-0 flex-wrap items-center justify-end gap-[6px] max-[860px]:justify-start";
+
+const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =
+    "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=missing]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=missing]:text-[var(--signal-warning-strong)] data-[sot-tone=ready]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ready]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ready]:text-[var(--signal-success)] data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
+
+type ClassNameProp = {
+    className?: string;
+};
+
+function SpeakerReviewCard({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof Card>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_CLASS_NAMES;
+    }) {
+    return (
+        <Card
+            className={cn(SPEAKER_REVIEW_CARD_CLASS_NAMES[surface], className)}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardHeader({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardHeader>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES;
+    }) {
+    return (
+        <CardHeader
+            className={cn(
+                SPEAKER_REVIEW_CARD_HEADER_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardTitle({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardTitle>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES;
+    }) {
+    return (
+        <CardTitle
+            className={cn(
+                SPEAKER_REVIEW_CARD_TITLE_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardDescription({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardDescription>, "className" | "variant"> &
+    ClassNameProp) {
+    return (
+        <CardDescription
+            className={cn(
+                SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME,
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardAction({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof CardAction>, "className" | "variant"> &
+    ClassNameProp) {
+    return (
+        <CardAction
+            className={cn(SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME, className)}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewCardContent({
+    className,
+    surface,
+    ...props
+}: Omit<ComponentProps<typeof CardContent>, "className" | "variant"> &
+    ClassNameProp & {
+        surface: keyof typeof SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES;
+    }) {
+    return (
+        <CardContent
+            className={cn(
+                SPEAKER_REVIEW_CARD_CONTENT_CLASS_NAMES[surface],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function SpeakerReviewVoiceprintBadge({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof Badge>, "className" | "variant"> &
+    ClassNameProp) {
+    return (
+        <Badge
+            variant="ghost"
+            className={cn(
+                SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME,
+                className,
+            )}
+            {...props}
+        />
+    );
 }
 
 function formatSegmentWindow(startMs: number | null, endMs: number | null) {
@@ -716,41 +878,33 @@ export function SpeakerLabelEditor({
                         : "empty"
             }
         >
-            <Card
+            <SpeakerReviewCard
                 hasNoPadding
-                variant="speakerReviewTranscript"
+                surface="transcript"
                 data-sot-part="speaker-review-transcript-card"
             >
-                <CardHeader
-                    variant="speakerReviewTranscript"
+                <SpeakerReviewCardHeader
+                    surface="transcript"
                     data-sot-part="speaker-review-header"
                 >
-                    <div
-                        data-sot-part="speaker-review-header-copy"
-                    >
+                    <div data-sot-part="speaker-review-header-copy">
                         <FileText
                             className="size-4 shrink-0"
                             aria-hidden="true"
                         />
                         <div className="min-w-0">
-                            <CardTitle
-                                variant="speakerReviewTitle"
+                            <SpeakerReviewCardTitle
+                                surface="title"
                                 data-sot-part="speaker-review-title"
                             >
                                 {t("speakerReview.transcriptReviewTitle")}
-                            </CardTitle>
-                            <CardDescription
-                                variant="speakerReviewDescription"
-                                data-sot-part="speaker-review-description"
-                            >
+                            </SpeakerReviewCardTitle>
+                            <SpeakerReviewCardDescription data-sot-part="speaker-review-description">
                                 {t("speakerReview.transcriptReviewDescription")}
-                            </CardDescription>
+                            </SpeakerReviewCardDescription>
                         </div>
                     </div>
-                    <CardAction
-                        variant="speakerReviewActions"
-                        data-sot-part="speaker-review-actions"
-                    >
+                    <SpeakerReviewCardAction data-sot-part="speaker-review-actions">
                         <ToggleGroup
                             type="single"
                             value={reviewMode}
@@ -828,9 +982,9 @@ export function SpeakerLabelEditor({
                             >
                                 合并相似…
                             </Button>
-                            <Card
+                            <SpeakerReviewCard
                                 hasNoPadding
-                                variant="speakerReviewMergePopover"
+                                surface="mergePopover"
                                 id={mergePopoverId}
                                 data-sot-panel="speaker-review-merge"
                                 data-spk-merge-pop
@@ -839,16 +993,16 @@ export function SpeakerLabelEditor({
                                 role="dialog"
                                 aria-label="合并相似说话人"
                             >
-                                <CardHeader
-                                    variant="speakerReviewMergePopover"
+                                <SpeakerReviewCardHeader
+                                    surface="mergePopover"
                                     data-sot-part="speaker-review-merge-header"
                                 >
-                                    <CardTitle
-                                        variant="speakerReviewMergeTitle"
+                                    <SpeakerReviewCardTitle
+                                        surface="mergeTitle"
                                         data-sot-part="speaker-review-merge-title"
                                     >
                                         合并相似说话人
-                                    </CardTitle>
+                                    </SpeakerReviewCardTitle>
                                     <CardAction>
                                         <Button
                                             variant="speakerReviewIconAction"
@@ -868,8 +1022,8 @@ export function SpeakerLabelEditor({
                                             />
                                         </Button>
                                     </CardAction>
-                                </CardHeader>
-                                <CardContent variant="speakerReviewMergePopover">
+                                </SpeakerReviewCardHeader>
+                                <SpeakerReviewCardContent surface="mergePopover">
                                     <Empty
                                         variant="speakerReviewMerge"
                                         data-sot-part="speaker-review-merge-empty"
@@ -895,11 +1049,11 @@ export function SpeakerLabelEditor({
                                             </EmptyDescription>
                                         </EmptyHeader>
                                     </Empty>
-                                </CardContent>
-                            </Card>
+                                </SpeakerReviewCardContent>
+                            </SpeakerReviewCard>
                         </div>
-                    </CardAction>
-                </CardHeader>
+                    </SpeakerReviewCardAction>
+                </SpeakerReviewCardHeader>
 
                 {isReviewLoading ? (
                     <TranscriptReviewSkeleton />
@@ -916,13 +1070,11 @@ export function SpeakerLabelEditor({
                         </AlertTitle>
                     </Alert>
                 ) : activeReview ? (
-                    <CardContent
-                        variant="speakerReviewTranscript"
+                    <SpeakerReviewCardContent
+                        surface="transcript"
                         data-sot-part="speaker-review-transcript-content"
                     >
-                        <div
-                            data-sot-list="speaker-review-meta"
-                        >
+                        <div data-sot-list="speaker-review-meta">
                             {activeReview.detectedLanguage ? (
                                 <span>
                                     {t("speakerReview.languageLabel")}:{" "}
@@ -980,16 +1132,14 @@ export function SpeakerLabelEditor({
                                 })}
                             </span>
                         </div>
-                        <div
-                            data-sot-part="speaker-review-transcript-section"
-                        >
+                        <div data-sot-part="speaker-review-transcript-section">
                             <p data-sot-part="speaker-review-segment-text">
                                 {activeReview.text}
                             </p>
                         </div>
-                    </CardContent>
+                    </SpeakerReviewCardContent>
                 ) : null}
-            </Card>
+            </SpeakerReviewCard>
 
             {speakerLoadError ? (
                 <Alert
@@ -1035,10 +1185,10 @@ export function SpeakerLabelEditor({
                     data-sot-variant="review"
                 >
                     {speakers.map((speaker) => (
-                        <Card
+                        <SpeakerReviewCard
                             key={speaker.rawLabel}
                             hasNoPadding
-                            variant="speakerReviewRow"
+                            surface="row"
                             data-sot-item="speaker-review-row"
                             data-sot-speaker-has-playable-sample={String(
                                 speaker.hasPlayableSample,
@@ -1340,8 +1490,7 @@ export function SpeakerLabelEditor({
                                                         重命名
                                                     </Button>
                                                     {speaker.hasPlayableSample ? null : (
-                                                        <Badge
-                                                            variant="speakerReviewVoiceprint"
+                                                        <SpeakerReviewVoiceprintBadge
                                                             data-sot-part="speaker-review-voiceprint-pill"
                                                             data-sot-tone="missing"
                                                         >
@@ -1349,7 +1498,7 @@ export function SpeakerLabelEditor({
                                                             {t(
                                                                 "speakerReview.noTimedSamples",
                                                             )}
-                                                        </Badge>
+                                                        </SpeakerReviewVoiceprintBadge>
                                                     )}
                                                 </div>
                                             )}
@@ -1612,9 +1761,9 @@ export function SpeakerLabelEditor({
                                             </FieldContent>
                                             {speaker.matchedProfileId ? (
                                                 isConfirmingUnlink ? (
-                                                    <Card
+                                                    <SpeakerReviewCard
                                                         hasNoPadding
-                                                        variant="speakerReviewConfirm"
+                                                        surface="confirm"
                                                         data-sot-confirm="speaker-unlink"
                                                         data-sot-confirm-state={
                                                             isSpeakerSaving
@@ -1675,7 +1824,7 @@ export function SpeakerLabelEditor({
                                                                 "speakerReview.unlink",
                                                             )}
                                                         </Button>
-                                                    </Card>
+                                                    </SpeakerReviewCard>
                                                 ) : (
                                                     <div
                                                         className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
@@ -1792,8 +1941,7 @@ export function SpeakerLabelEditor({
                                                                             profile.displayName
                                                                         }
                                                                     </span>
-                                                                    <Badge
-                                                                        variant="speakerReviewVoiceprint"
+                                                                    <SpeakerReviewVoiceprintBadge
                                                                         data-sot-part="speaker-review-voiceprint-pill"
                                                                         data-sot-tone={
                                                                             speaker.matchedProfileId ===
@@ -1816,7 +1964,7 @@ export function SpeakerLabelEditor({
                                                                               : t(
                                                                                     "speakerReview.voiceprintMissing",
                                                                                 )}
-                                                                    </Badge>
+                                                                    </SpeakerReviewVoiceprintBadge>
                                                                 </Button>
                                                             ),
                                                         )}
@@ -1911,7 +2059,7 @@ export function SpeakerLabelEditor({
                                     </>
                                 );
                             })()}
-                        </Card>
+                        </SpeakerReviewCard>
                     ))}
                 </div>
             )}

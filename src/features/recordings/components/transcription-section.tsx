@@ -8,7 +8,13 @@ import {
     RefreshCw,
     Sparkles,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    type ComponentProps,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -41,6 +47,7 @@ import {
     getTranscriptionJobDisplayState,
     isActiveTranscriptionJob,
 } from "@/lib/transcription/job-display";
+import { cn } from "@/lib/utils";
 
 interface TranscriptionSectionProps {
     recordingId: string;
@@ -54,6 +61,25 @@ interface TranscriptionSectionProps {
     initialJobRemoteStatus?: string | null;
     initialJobError?: string | null;
     showSpeakerReview?: boolean;
+}
+
+const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
+    "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
+
+function RecordingTranscriptionMetaBadge({
+    className,
+    ...props
+}: Omit<ComponentProps<typeof Badge>, "variant">) {
+    return (
+        <Badge
+            variant="outline"
+            className={cn(
+                RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME,
+                className,
+            )}
+            {...props}
+        />
+    );
 }
 
 function applySpeakerMap(
@@ -455,8 +481,7 @@ export function TranscriptionSection({
                             </div>
                             <div data-sot-list="recording-transcription-meta">
                                 {language ? (
-                                    <Badge
-                                        variant="transcriptionMeta"
+                                    <RecordingTranscriptionMetaBadge
                                         data-sot-meta="language"
                                         data-sot-tone="attribute"
                                     >
@@ -468,33 +493,30 @@ export function TranscriptionSection({
                                             {t("transcription.languagePrefix")}:{" "}
                                             {language}
                                         </span>
-                                    </Badge>
+                                    </RecordingTranscriptionMetaBadge>
                                 ) : null}
                                 {transcriptionType ? (
-                                    <Badge
-                                        variant="transcriptionMeta"
+                                    <RecordingTranscriptionMetaBadge
                                         data-sot-meta="source"
                                         data-sot-tone="attribute"
                                     >
                                         {t("transcription.sourcePrefix")}:{" "}
                                         {transcriptionType}
-                                    </Badge>
+                                    </RecordingTranscriptionMetaBadge>
                                 ) : null}
-                                <Badge
-                                    variant="transcriptionMeta"
+                                <RecordingTranscriptionMetaBadge
                                     data-sot-meta="words"
                                     data-sot-tone="measure"
                                 >
                                     {wordCount} {t("transcription.words")}
-                                </Badge>
-                                <Badge
-                                    variant="transcriptionMeta"
+                                </RecordingTranscriptionMetaBadge>
+                                <RecordingTranscriptionMetaBadge
                                     data-sot-meta="characters"
                                     data-sot-tone="measure"
                                 >
                                     {transcription.length}{" "}
                                     {t("transcription.characters")}
-                                </Badge>
+                                </RecordingTranscriptionMetaBadge>
                             </div>
                         </section>
                         {showSpeakerReview ? (

@@ -10,7 +10,14 @@ import {
     Sparkles,
     X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type ComponentProps,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +82,7 @@ import {
 } from "@/lib/platform/browser-router";
 import { writeBrowserClipboardText } from "@/lib/platform/clipboard";
 import type { RecordingTag } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 
 interface Transcription {
@@ -88,6 +96,39 @@ interface TranscriptionJob {
     status: string;
     remoteStatus?: string | null;
     lastError?: string | null;
+}
+
+const RECORDING_DETAIL_HEADER_CLASS_NAME =
+    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
+const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
+    "leading-none font-semibold min-w-0 flex-1 truncate";
+const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
+const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
+
+function RecordingDetailCardHeader({
+    className,
+    ...props
+}: ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-header"
+            className={cn(RECORDING_DETAIL_HEADER_CLASS_NAME, className)}
+            {...props}
+        />
+    );
+}
+
+function RecordingDetailCardTitle({
+    className,
+    ...props
+}: ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-title"
+            className={cn(RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME, className)}
+            {...props}
+        />
+    );
 }
 
 interface RecordingWorkstationProps {
@@ -917,8 +958,7 @@ export function RecordingWorkstation({
                         </CardContent>
                     </Card>
                     <section data-sot-panel="recording-workstation-detail">
-                        <CardHeader
-                            variant="detailHeader"
+                        <RecordingDetailCardHeader
                             data-sot-panel="recording-detail-header"
                             data-sot-mode={recordingDetailHeaderState}
                             data-sot-state={recordingDetailHeaderState}
@@ -928,20 +968,22 @@ export function RecordingWorkstation({
                             }
                         >
                             {recordingDetailHeaderState === "normal" ? (
-                                <CardTitle
-                                    variant="detailHeaderTitle"
+                                <RecordingDetailCardTitle
                                     data-sot-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
                                     aria-level={2}
                                 >
                                     {filename}
-                                </CardTitle>
+                                </RecordingDetailCardTitle>
                             ) : null}
                             {recordingDetailHeaderState === "normal" &&
                             localDeleteAvailable ? (
                                 <Badge
-                                    variant="detailHeaderLocal"
+                                    variant="outline"
+                                    className={
+                                        RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label={t("recording.localOnly")}
@@ -951,7 +993,6 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "editing" ? (
                                 <Input
-                                    variant="detailHeaderTitle"
                                     controlSize="detailHeaderTitle"
                                     value={renameValue}
                                     onChange={(event) =>
@@ -975,7 +1016,10 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "saving" ? (
                                 <Badge
-                                    variant="detailHeaderStatus"
+                                    variant="ghost"
+                                    className={
+                                        RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-title-status"
                                     data-sot-state="saving"
                                     data-rh-status
@@ -1242,7 +1286,7 @@ export function RecordingWorkstation({
                                     </DropdownMenu>
                                 </div>
                             ) : null}
-                        </CardHeader>
+                        </RecordingDetailCardHeader>
 
                         <SystemBanner />
 

@@ -85,6 +85,20 @@ const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
     "feishu-minutes": "/assets/sources/feishu.jpeg",
 };
 
+const onboardingCardClassNames = {
+    surface:
+        "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+    speakerDraft:
+        "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
+    header: "grid auto-rows-min gap-0 p-0",
+    stepHeader: "grid auto-rows-min gap-0 p-0",
+    providerMeta: "grid auto-rows-min gap-0 p-0",
+    heading:
+        "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+    sub: "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+    stepBody: "gap-0 p-0",
+} as const;
+
 function getStepIndex(step: OnboardingStepId) {
     return ONBOARDING_STEPS.findIndex((item) => item.id === step);
 }
@@ -281,19 +295,23 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
             data-sot-ready={isMounted ? "true" : "false"}
             data-sot-surface="onboarding"
         >
-            <Card variant="onboardingSurface" data-sot-card="onboarding">
+            <Card
+                hasNoPadding
+                className={onboardingCardClassNames.surface}
+                data-sot-card="onboarding"
+            >
                 <CardHeader
-                    variant="onboardingHeader"
+                    className={onboardingCardClassNames.header}
                     data-sot-part="onboarding-card-header"
                 >
                     <CardTitle
-                        variant="onboardingHeading"
+                        className={onboardingCardClassNames.heading}
                         data-sot-part="card-heading"
                     >
                         上手 / Onboarding · 4 步
                     </CardTitle>
                     <CardDescription
-                        variant="onboardingSub"
+                        className={onboardingCardClassNames.sub}
                         data-sot-part="card-sub"
                     >
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
@@ -336,24 +354,18 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                         })}
                     </div>
                     <CardHeader
-                        variant="onboardingStepHeader"
+                        className={onboardingCardClassNames.stepHeader}
                         data-sot-part="onboarding-step-header"
                     >
-                        <CardTitle
-                            variant="onboardingStepTitle"
-                            data-sot-part="onboarding-step-title"
-                        >
+                        <CardTitle data-sot-part="onboarding-step-title">
                             {visibleStepTitle}
                         </CardTitle>
-                        <CardDescription
-                            variant="onboardingStepDescription"
-                            data-sot-part="onboarding-step-description"
-                        >
+                        <CardDescription data-sot-part="onboarding-step-description">
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </CardDescription>
                     </CardHeader>
                     <CardContent
-                        variant="onboardingStepBody"
+                        className={onboardingCardClassNames.stepBody}
                         data-sot-part="onboarding-step-body"
                     >
                         {finishError ? (
@@ -782,7 +794,8 @@ function SpeakersStep({
         <>
             <div data-sot-list="speaker-profiles">
                 <Card
-                    variant="onboardingSpeakerDraft"
+                    hasNoPadding
+                    className={onboardingCardClassNames.speakerDraft}
                     data-sot-control="speaker-profile-draft"
                     data-sot-state={speakerState}
                 >
@@ -790,19 +803,13 @@ function SpeakersStep({
                         <UserRound />
                     </span>
                     <CardHeader
-                        variant="onboardingProviderMeta"
+                        className={onboardingCardClassNames.providerMeta}
                         data-sot-part="provider-meta"
                     >
-                        <CardTitle
-                            variant="onboardingProviderName"
-                            data-sot-part="provider-name"
-                        >
+                        <CardTitle data-sot-part="provider-name">
                             第一个说话人
                         </CardTitle>
-                        <CardDescription
-                            variant="onboardingProviderHint"
-                            data-sot-part="provider-hint"
-                        >
+                        <CardDescription data-sot-part="provider-hint">
                             可先留空，工作台内继续校对
                         </CardDescription>
                     </CardHeader>

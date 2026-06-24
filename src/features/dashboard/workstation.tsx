@@ -69,7 +69,6 @@ import {
     InputGroupButton,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import {
     type SegmentedTabItem,
     SegmentedTabs,
@@ -77,30 +76,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { DashboardRecordingPlayerControls } from "@/features/dashboard/components/dashboard-recording-player-controls";
 import { SystemBanner } from "@/features/dashboard/components/system-banner";
 import { AiRenamePreviewCard as AiRenamePreview } from "@/features/recordings/components/ai-rename-preview-card";
 import { RecordingTagManager } from "@/features/recordings/components/recording-tag-manager";
-import { RecordingTagIconGlyph } from "@/features/recordings/components/recording-tag-visuals";
 import {
     formatSotPlayerDate,
-    formatSotPlayerTime,
-    SotPlayerBackIcon,
-    SotPlayerControlButton,
-    SotPlayerForwardIcon,
     SotPlayerNoAudioAlert,
-    SotPlayerPauseIcon,
-    SotPlayerPlayIcon,
-    SotPlayerPrimaryButton,
-    SotPlayerSeekSlider,
     SotPlayerSourceTag,
-    SotPlayerSpeedButton,
     SotPlayerStatusBadge,
     type SotPlayerStatusTone,
     SotPlayerTagChip,
-    SotPlayerVolumePopoverContent,
-    SotPlayerVolumeIcon,
-    SotPlayerVolumeSlider,
-    sotPlayerVolumeLevel,
 } from "@/features/recordings/components/sot-player-primitives";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useDisplaySettingsStore } from "@/features/settings/display-settings-store";
@@ -457,8 +443,7 @@ const dashboardRecordingTimeFilterStyles = {
 
 const dashboardRecordingTagFilterStyles = {
     trigger: "w-full justify-start text-[var(--fg-primary)]",
-    option:
-        "w-full justify-start border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
+    option: "w-full justify-start border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80",
 } as const;
 
 const dashboardSearchActivityClassNames = {
@@ -469,8 +454,7 @@ const dashboardSearchActivityClassNames = {
     librarySearchInputRow:
         "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0",
     librarySearchInputAddon: "p-0 has-[>button]:m-0",
-    librarySearchInput:
-        "h-8 px-1 text-sm font-medium md:text-sm",
+    librarySearchInput: "h-8 px-1 text-sm font-medium md:text-sm",
     librarySearchClear:
         "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3 [&_svg:not([class*='size-'])]:size-3",
     librarySearchScope:
@@ -878,6 +862,9 @@ function sourceReportSyncTone(label: string): SourceReportTone {
     return "neu";
 }
 
+const SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME =
+    "h-[22px] min-w-[65px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=err]:border-[var(--source-report-status-err-border)] data-[sot-tone=err]:bg-[var(--source-report-status-err-bg)] data-[sot-tone=err]:text-[var(--signal-danger)] data-[sot-tone=neu]:border-[var(--line-hairline)] data-[sot-tone=neu]:bg-[var(--bg-recessed)] data-[sot-tone=neu]:text-[var(--fg-secondary)] data-[sot-tone=ok]:border-[var(--source-report-status-ok-border)] data-[sot-tone=ok]:bg-[var(--source-report-status-ok-bg)] data-[sot-tone=ok]:text-[var(--source-report-status-ok-fg)] data-[sot-tone=warn]:border-[var(--source-report-status-warn-border)] data-[sot-tone=warn]:bg-[var(--source-report-status-warn-bg)] data-[sot-tone=warn]:text-[var(--source-report-status-warn-fg)] [&_[data-sot-part=dashboard-source-report-status-dot]]:mr-0 [&_[data-sot-part=dashboard-source-report-status-dot]]:inline-block [&_[data-sot-part=dashboard-source-report-status-dot]]:size-[5px] [&_[data-sot-part=dashboard-source-report-status-dot]]:rounded-full [&_[data-sot-part=dashboard-source-report-status-dot]]:bg-current [&_[data-sot-part=source-report-status-dot]]:mr-0 [&_[data-sot-part=source-report-status-dot]]:inline-block [&_[data-sot-part=source-report-status-dot]]:size-[5px] [&_[data-sot-part=source-report-status-dot]]:rounded-full [&_[data-sot-part=source-report-status-dot]]:bg-current";
+
 function SotSourceReportStatusBadge({
     children,
     tone,
@@ -887,7 +874,8 @@ function SotSourceReportStatusBadge({
 }) {
     return (
         <Badge
-            variant="sourceReportStatus"
+            variant="ghost"
+            className={SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME}
             data-sot-badge="source-report-status"
             data-sot-tone={tone}
         >
@@ -902,6 +890,27 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
 
 const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
+
+const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
+    "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
+
+const SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME = "min-w-0 flex-1 truncate";
+
+const SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
+    "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
+
+const SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME = "ml-1 shrink-0";
+
+const SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME = "gap-1.5";
+
+const SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME =
+    "block min-h-[114px] gap-0 overflow-visible rounded-[16px] border-[var(--glass-border-soft)] bg-[rgb(255_255_255_/_0.025)] px-[18px] py-[16px] shadow-none backdrop-blur-none";
+
+const SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME =
+    "mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0";
+
+const SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME =
+    "font-mono text-[11.5px] font-medium tracking-[0.02em] text-[var(--fg-tertiary)]";
 
 type SotSourceReportCardSkeletonSize = "count" | "source" | "status";
 type SotSourceReportSegmentSkeletonSize =
@@ -919,10 +928,14 @@ const sotSourceReportCardSkeletonClassNames = {
 } as const satisfies Record<SotSourceReportCardSkeletonSize, string>;
 
 const sotSourceReportSegmentSkeletonClassNames = {
-    "line-long": "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
-    "line-medium": "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
-    "line-short": "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
-    "line-wide": "mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
+    "line-long":
+        "mt-1.5 inline-block h-[13px] w-[92%] align-middle rounded-[4px]",
+    "line-medium":
+        "mt-1.5 inline-block h-[13px] w-[76%] align-middle rounded-[4px]",
+    "line-short":
+        "mt-1.5 inline-block h-[13px] w-3/5 align-middle rounded-[4px]",
+    "line-wide":
+        "mt-1.5 inline-block h-[13px] w-[88%] align-middle rounded-[4px]",
     speaker: "inline-block h-[12px] w-[54px] align-middle rounded-[4px]",
     time: "inline-block h-[12px] w-[96px] align-middle rounded-[4px]",
 } as const satisfies Record<SotSourceReportSegmentSkeletonSize, string>;
@@ -2369,17 +2382,7 @@ export function Workstation({
     });
     const playbackDisabled =
         !selectedRecording || !selectedRecording.hasAudio || !audioSrc;
-    const volumeMuted = volume === 0;
     const volumePopoverOpen = volumeOpen && !playbackDisabled;
-    const playerControlsState = playbackDisabled
-        ? "disabled"
-        : volumeMuted
-          ? "muted"
-          : isPlaying
-            ? "playing"
-            : "ready";
-    const playerControlState = playbackDisabled ? "disabled" : "ready";
-    const playerProgressPct = Math.max(0, Math.min(100, Math.round(progress)));
     const playerDurationValue =
         playbackDuration > 0
             ? playbackDuration
@@ -4058,8 +4061,7 @@ export function Workstation({
                                 item.status,
                                 item.active,
                             );
-                            const sourceRowCollapsed =
-                                collapsed && !drawerOpen;
+                            const sourceRowCollapsed = collapsed && !drawerOpen;
                             const sourceStatusTone =
                                 sourceProviderStatusTone(sourceRowState);
                             const sourceCountTone =
@@ -4722,18 +4724,14 @@ export function Workstation({
                                                                                     )}
                                                                                 </Badge>
                                                                             ) : (
-                                                                                <span
-                                                                                    data-sot-part="library-search-result-title"
-                                                                                >
+                                                                                <span data-sot-part="library-search-result-title">
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
                                                                                     )}
                                                                                 </span>
                                                                             )}
-                                                                            <span
-                                                                                data-sot-part="library-search-result-meta"
-                                                                            >
+                                                                            <span data-sot-part="library-search-result-meta">
                                                                                 {
                                                                                     meta
                                                                                 }
@@ -5623,280 +5621,277 @@ export function Workstation({
                                         }
                                         data-sot-list="dashboard-recording-rows"
                                     >
-                                        {groupedListEntries.map((group, groupIndex) => (
-                                            <Fragment key={group.id}>
-                                                {groupIndex > 0 ? (
-                                                    <Separator
-                                                        className={
-                                                            dashboardRecordingRowStyles.groupSeparator
-                                                        }
-                                                        data-sot-part="dashboard-recording-list-group-separator"
-                                                    />
-                                                ) : null}
-                                                <div
-                                                    className={
-                                                        dashboardRecordingRowStyles.group
-                                                    }
-                                                    data-sot-group-id={group.id}
-                                                    data-sot-group="recording-list"
-                                                    data-sot-part="dashboard-recording-list-group"
-                                                    data-sot-mode={listMode}
-                                                >
-                                                    <div
-                                                        className={
-                                                            dashboardRecordingRowStyles.groupHeading
-                                                        }
-                                                        data-sot-part="dashboard-recording-list-group-heading"
-                                                    >
-                                                        <span
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupLabel
-                                                            }
-                                                            data-sot-part="dashboard-recording-list-group-label"
-                                                        >
-                                                            {group.label}
-                                                        </span>
-                                                        <span
-                                                            className={
-                                                                dashboardRecordingRowStyles.groupCount
-                                                            }
-                                                            data-sot-part="dashboard-recording-list-group-count"
-                                                        >
-                                                            {
-                                                                group.entries
-                                                                    .length
-                                                            }
-                                                        </span>
+                                        {groupedListEntries.map(
+                                            (group, groupIndex) => (
+                                                <Fragment key={group.id}>
+                                                    {groupIndex > 0 ? (
                                                         <Separator
                                                             className={
-                                                                dashboardRecordingRowStyles.groupDivider
+                                                                dashboardRecordingRowStyles.groupSeparator
                                                             }
-                                                            data-sot-part="dashboard-recording-list-group-divider"
+                                                            data-sot-part="dashboard-recording-list-group-separator"
                                                         />
-                                                    </div>
-                                                    {group.entries.map((entry) => {
-                                                        const { recording } =
-                                                            entry;
-                                                        const active =
-                                                            recording.id ===
-                                                            selectedRecording?.id;
-                                                        const sourceMeta =
-                                                            SOURCE_ORDER.find(
-                                                                (item) =>
-                                                                    item.key ===
-                                                                    recording.sourceProvider,
-                                                            );
-                                                        const job =
-                                                            liveJobs.get(
-                                                                recording.id,
-                                                            );
-                                                        const transcription =
-                                                            liveTranscriptions.get(
-                                                                recording.id,
-                                                            );
-                                                        const rowStatus =
-                                                            getRecordingListStatus(
-                                                                recording,
-                                                                transcription,
-                                                                job,
-                                                                t,
-                                                            );
-                                                        const primaryTag =
-                                                            entry.displayTag ??
-                                                            recording.tags[0];
-                                                        return (
-                                                            <Button
-                                                                variant="ghostNeutral"
-                                                                size="default"
+                                                    ) : null}
+                                                    <div
+                                                        className={
+                                                            dashboardRecordingRowStyles.group
+                                                        }
+                                                        data-sot-group-id={
+                                                            group.id
+                                                        }
+                                                        data-sot-group="recording-list"
+                                                        data-sot-part="dashboard-recording-list-group"
+                                                        data-sot-mode={listMode}
+                                                    >
+                                                        <div
+                                                            className={
+                                                                dashboardRecordingRowStyles.groupHeading
+                                                            }
+                                                            data-sot-part="dashboard-recording-list-group-heading"
+                                                        >
+                                                            <span
                                                                 className={
-                                                                    dashboardRecordingRowStyles.row
+                                                                    dashboardRecordingRowStyles.groupLabel
                                                                 }
-                                                                aria-current={
-                                                                    active
-                                                                        ? "true"
-                                                                        : undefined
-                                                                }
-                                                                key={
-                                                                    recording.id
-                                                                }
-                                                                type="button"
-                                                                data-recording-id={
-                                                                    recording.id
-                                                                }
-                                                                data-rec={
-                                                                    recording.id
-                                                                }
-                                                                data-sot-control="dashboard-recording-row"
-                                                                data-sot-recording-id={
-                                                                    recording.id
-                                                                }
-                                                                data-sot-state={
-                                                                    active
-                                                                        ? "selected"
-                                                                        : "idle"
-                                                                }
-                                                                onClick={() =>
-                                                                    selectRecording(
-                                                                        recording.id,
-                                                                    )
-                                                                }
+                                                                data-sot-part="dashboard-recording-list-group-label"
                                                             >
-                                                                <div
-                                                                    className={
-                                                                        dashboardRecordingRowStyles.body
-                                                                    }
-                                                                    data-sot-part="dashboard-recording-row-body"
-                                                                >
-                                                                    <div
+                                                                {group.label}
+                                                            </span>
+                                                            <span
+                                                                className={
+                                                                    dashboardRecordingRowStyles.groupCount
+                                                                }
+                                                                data-sot-part="dashboard-recording-list-group-count"
+                                                            >
+                                                                {
+                                                                    group
+                                                                        .entries
+                                                                        .length
+                                                                }
+                                                            </span>
+                                                            <Separator
+                                                                className={
+                                                                    dashboardRecordingRowStyles.groupDivider
+                                                                }
+                                                                data-sot-part="dashboard-recording-list-group-divider"
+                                                            />
+                                                        </div>
+                                                        {group.entries.map(
+                                                            (entry) => {
+                                                                const {
+                                                                    recording,
+                                                                } = entry;
+                                                                const active =
+                                                                    recording.id ===
+                                                                    selectedRecording?.id;
+                                                                const sourceMeta =
+                                                                    SOURCE_ORDER.find(
+                                                                        (
+                                                                            item,
+                                                                        ) =>
+                                                                            item.key ===
+                                                                            recording.sourceProvider,
+                                                                    );
+                                                                const job =
+                                                                    liveJobs.get(
+                                                                        recording.id,
+                                                                    );
+                                                                const transcription =
+                                                                    liveTranscriptions.get(
+                                                                        recording.id,
+                                                                    );
+                                                                const rowStatus =
+                                                                    getRecordingListStatus(
+                                                                        recording,
+                                                                        transcription,
+                                                                        job,
+                                                                        t,
+                                                                    );
+                                                                const primaryTag =
+                                                                    entry.displayTag ??
+                                                                    recording
+                                                                        .tags[0];
+                                                                return (
+                                                                    <Button
+                                                                        variant="ghostNeutral"
+                                                                        size="default"
                                                                         className={
-                                                                            dashboardRecordingRowStyles.title
+                                                                            dashboardRecordingRowStyles.row
                                                                         }
-                                                                        data-sot-part="dashboard-recording-row-title"
+                                                                        aria-current={
+                                                                            active
+                                                                                ? "true"
+                                                                                : undefined
+                                                                        }
+                                                                        key={
+                                                                            recording.id
+                                                                        }
+                                                                        type="button"
+                                                                        data-recording-id={
+                                                                            recording.id
+                                                                        }
+                                                                        data-rec={
+                                                                            recording.id
+                                                                        }
+                                                                        data-sot-control="dashboard-recording-row"
+                                                                        data-sot-recording-id={
+                                                                            recording.id
+                                                                        }
+                                                                        data-sot-state={
+                                                                            active
+                                                                                ? "selected"
+                                                                                : "idle"
+                                                                        }
+                                                                        onClick={() =>
+                                                                            selectRecording(
+                                                                                recording.id,
+                                                                            )
+                                                                        }
                                                                     >
-                                                                        {
-                                                                            recording.filename
-                                                                        }
-                                                                    </div>
-                                                                    <div
-                                                                        className={
-                                                                            dashboardRecordingRowStyles.meta
-                                                                        }
-                                                                        data-sot-part="dashboard-recording-row-meta"
-                                                                    >
-                                                                        {sourceMeta?.icon ? (
-                                                                            <span
+                                                                        <div
+                                                                            className={
+                                                                                dashboardRecordingRowStyles.body
+                                                                            }
+                                                                            data-sot-part="dashboard-recording-row-body"
+                                                                        >
+                                                                            <div
                                                                                 className={
-                                                                                    dashboardRecordingRowStyles.sourceMark
+                                                                                    dashboardRecordingRowStyles.title
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-source-mark"
-                                                                                data-sot-provider-cover={
-                                                                                    sourceMeta.cover
-                                                                                        ? "true"
-                                                                                        : "false"
-                                                                                }
-                                                                                data-sot-variant="image"
-                                                                                title={
-                                                                                    sourceMeta.label
-                                                                                }
+                                                                                data-sot-part="dashboard-recording-row-title"
                                                                             >
-                                                                                <img
-                                                                                    className={cn(
-                                                                                        dashboardRecordingRowStyles.sourceMarkImage,
-                                                                                        sourceMeta.cover
-                                                                                            ? dashboardRecordingRowStyles.sourceMarkImageCover
-                                                                                            : undefined,
-                                                                                    )}
-                                                                                    src={
-                                                                                        sourceMeta.icon
+                                                                                {
+                                                                                    recording.filename
+                                                                                }
+                                                                            </div>
+                                                                            <div
+                                                                                className={
+                                                                                    dashboardRecordingRowStyles.meta
+                                                                                }
+                                                                                data-sot-part="dashboard-recording-row-meta"
+                                                                            >
+                                                                                {sourceMeta?.icon ? (
+                                                                                    <span
+                                                                                        className={
+                                                                                            dashboardRecordingRowStyles.sourceMark
+                                                                                        }
+                                                                                        data-sot-part="dashboard-recording-source-mark"
+                                                                                        data-sot-provider-cover={
+                                                                                            sourceMeta.cover
+                                                                                                ? "true"
+                                                                                                : "false"
+                                                                                        }
+                                                                                        data-sot-variant="image"
+                                                                                        title={
+                                                                                            sourceMeta.label
+                                                                                        }
+                                                                                    >
+                                                                                        <img
+                                                                                            className={cn(
+                                                                                                dashboardRecordingRowStyles.sourceMarkImage,
+                                                                                                sourceMeta.cover
+                                                                                                    ? dashboardRecordingRowStyles.sourceMarkImageCover
+                                                                                                    : undefined,
+                                                                                            )}
+                                                                                            src={
+                                                                                                sourceMeta.icon
+                                                                                            }
+                                                                                            alt=""
+                                                                                        />
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span
+                                                                                        className={cn(
+                                                                                            dashboardRecordingRowStyles.sourceMark,
+                                                                                            dashboardRecordingRowStyles.sourceMarkLetter,
+                                                                                        )}
+                                                                                        data-sot-part="dashboard-recording-source-mark"
+                                                                                        data-sot-provider-cover="false"
+                                                                                        data-sot-variant="letter"
+                                                                                        title={providerLabel(
+                                                                                            recording.sourceProvider,
+                                                                                            language,
+                                                                                        )}
+                                                                                    >
+                                                                                        讯
+                                                                                    </span>
+                                                                                )}
+                                                                                <span
+                                                                                    className={
+                                                                                        dashboardRecordingRowStyles.duration
                                                                                     }
-                                                                                    alt=""
+                                                                                    data-sot-part="dashboard-recording-duration"
+                                                                                >
+                                                                                    {formatDuration(
+                                                                                        recording.duration,
+                                                                                    )}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div
+                                                                                className={
+                                                                                    dashboardRecordingRowStyles.secondary
+                                                                                }
+                                                                                data-sot-part="dashboard-recording-row-secondary"
+                                                                            >
+                                                                                <span
+                                                                                    className={
+                                                                                        dashboardRecordingRowStyles.timestamp
+                                                                                    }
+                                                                                    data-sot-part="dashboard-recording-timestamp"
+                                                                                >
+                                                                                    <span
+                                                                                        className={
+                                                                                            dashboardRecordingRowStyles.timestampAbsolute
+                                                                                        }
+                                                                                        data-sot-part="dashboard-recording-timestamp-absolute"
+                                                                                    >
+                                                                                        {formatAbsoluteDate(
+                                                                                            recording.startTime,
+                                                                                        )}
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className={
+                                                                                            dashboardRecordingRowStyles.timestampRelative
+                                                                                        }
+                                                                                        data-sot-part="dashboard-recording-timestamp-relative"
+                                                                                    >
+                                                                                        {formatRelativeDate(
+                                                                                            recording.startTime,
+                                                                                        )}
+                                                                                    </span>
+                                                                                </span>
+                                                                                <SotDashboardRecordingStatusBadge
+                                                                                    label={
+                                                                                        rowStatus.label
+                                                                                    }
+                                                                                    tone={
+                                                                                        rowStatus.tone
+                                                                                    }
                                                                                 />
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span
-                                                                                className={cn(
-                                                                                    dashboardRecordingRowStyles.sourceMark,
-                                                                                    dashboardRecordingRowStyles.sourceMarkLetter,
-                                                                                )}
-                                                                                data-sot-part="dashboard-recording-source-mark"
-                                                                                data-sot-provider-cover="false"
-                                                                                data-sot-variant="letter"
-                                                                                title={providerLabel(
-                                                                                    recording.sourceProvider,
-                                                                                    language,
-                                                                                )}
-                                                                            >
-                                                                                讯
-                                                                            </span>
-                                                                        )}
-                                                                        <span
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.duration
-                                                                            }
-                                                                            data-sot-part="dashboard-recording-duration"
-                                                                        >
-                                                                            {formatDuration(
-                                                                                recording.duration,
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div
-                                                                        className={
-                                                                            dashboardRecordingRowStyles.secondary
-                                                                        }
-                                                                        data-sot-part="dashboard-recording-row-secondary"
-                                                                    >
-                                                                        <span
-                                                                            className={
-                                                                                dashboardRecordingRowStyles.timestamp
-                                                                            }
-                                                                            data-sot-part="dashboard-recording-timestamp"
-                                                                        >
-                                                                            <span
+                                                                            </div>
+                                                                        </div>
+                                                                        {primaryTag ? (
+                                                                            <div
                                                                                 className={
-                                                                                    dashboardRecordingRowStyles.timestampAbsolute
+                                                                                    dashboardRecordingRowStyles.actions
                                                                                 }
-                                                                                data-sot-part="dashboard-recording-timestamp-absolute"
+                                                                                data-sot-part="dashboard-recording-row-actions"
                                                                             >
-                                                                                {formatAbsoluteDate(
-                                                                                    recording.startTime,
-                                                                                )}
-                                                                            </span>
-                                                                            <span
-                                                                                className={
-                                                                                    dashboardRecordingRowStyles.timestampRelative
-                                                                                }
-                                                                                data-sot-part="dashboard-recording-timestamp-relative"
-                                                                            >
-                                                                                {formatRelativeDate(
-                                                                                    recording.startTime,
-                                                                                )}
-                                                                            </span>
-                                                                        </span>
-                                                                        <SotDashboardRecordingStatusBadge
-                                                                            label={
-                                                                                rowStatus.label
-                                                                            }
-                                                                            tone={
-                                                                                rowStatus.tone
-                                                                            }
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                {primaryTag ? (
-                                                                    <div
-                                                                        className={
-                                                                            dashboardRecordingRowStyles.actions
-                                                                        }
-                                                                        data-sot-part="dashboard-recording-row-actions"
-                                                                    >
-                                                                        <Badge
-                                                                            variant="recordingTagChip"
-                                                                            data-recording-tag-chip=""
-                                                                            data-sot-tag-color={
-                                                                                primaryTag.color
-                                                                            }
-                                                                            data-sot-tag-icon={
-                                                                                primaryTag.icon
-                                                                            }
-                                                                        >
-                                                                            <RecordingTagIconGlyph
-                                                                                icon={
-                                                                                    primaryTag.icon
-                                                                                }
-                                                                            />
-                                                                            {
-                                                                                primaryTag.name
-                                                                            }
-                                                                        </Badge>
-                                                                    </div>
-                                                                ) : null}
-                                                            </Button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </Fragment>
-                                        ))}
+                                                                                <SotPlayerTagChip
+                                                                                    tag={
+                                                                                        primaryTag
+                                                                                    }
+                                                                                />
+                                                                            </div>
+                                                                        ) : null}
+                                                                    </Button>
+                                                                );
+                                                            },
+                                                        )}
+                                                    </div>
+                                                </Fragment>
+                                            ),
+                                        )}
                                     </div>
                                 ) : (
                                     <div
@@ -6105,7 +6100,7 @@ export function Workstation({
                         data-empty={selectedRecording ? "false" : "true"}
                     >
                         <CardHeader
-                            variant="detailHeader"
+                            className={SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME}
                             data-sot-panel="dashboard-detail-header"
                             data-sot-mode={dashboardDetailHeaderMode}
                             data-sot-state={dashboardDetailHeaderState}
@@ -6116,7 +6111,9 @@ export function Workstation({
                         >
                             {dashboardDetailHeaderState === "normal" ? (
                                 <CardTitle
-                                    variant="detailHeaderTitle"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_TITLE_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-title"
                                     data-rh-title
                                     role="heading"
@@ -6129,7 +6126,10 @@ export function Workstation({
                             {dashboardDetailHeaderState === "normal" &&
                             localDeleteAvailable ? (
                                 <Badge
-                                    variant="detailHeaderLocal"
+                                    variant="outline"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-local-badge"
                                     data-rh-local
                                     aria-label="仅存在本地副本"
@@ -6138,38 +6138,40 @@ export function Workstation({
                                 </Badge>
                             ) : null}
                             {dashboardDetailHeaderState === "editing" ? (
-                                <>
-                                    <Input
-                                        type="text"
-                                        variant="detailHeaderTitle"
-                                        controlSize="detailHeaderTitle"
-                                        data-rh-input
-                                        data-sot-part="detail-header-title-input"
-                                        data-sot-state="editing"
-                                        value={draftTitle}
-                                        aria-label="录音标题"
-                                        maxLength={120}
-                                        onChange={(event) =>
-                                            setDraftTitle(event.target.value)
+                                <Input
+                                    type="text"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME
+                                    }
+                                    data-rh-input
+                                    data-sot-part="detail-header-title-input"
+                                    data-sot-state="editing"
+                                    value={draftTitle}
+                                    aria-label="录音标题"
+                                    maxLength={120}
+                                    onChange={(event) =>
+                                        setDraftTitle(event.target.value)
+                                    }
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter") {
+                                            void renameRecording();
                                         }
-                                        onKeyDown={(event) => {
-                                            if (event.key === "Enter") {
-                                                void renameRecording();
-                                            }
-                                            if (event.key === "Escape") {
-                                                setEditingTitle(false);
-                                                setDraftTitle(
-                                                    selectedRecording?.filename ??
-                                                        "",
-                                                );
-                                            }
-                                        }}
-                                    />
-                                </>
+                                        if (event.key === "Escape") {
+                                            setEditingTitle(false);
+                                            setDraftTitle(
+                                                selectedRecording?.filename ??
+                                                    "",
+                                            );
+                                        }
+                                    }}
+                                />
                             ) : null}
                             {dashboardDetailHeaderState === "saving" ? (
                                 <Badge
-                                    variant="detailHeaderStatus"
+                                    variant="ghost"
+                                    className={
+                                        SOT_DASHBOARD_DETAIL_HEADER_BADGE_CLASS_NAME
+                                    }
                                     data-sot-part="detail-header-title-status"
                                     data-sot-state="saving"
                                     data-rh-status
@@ -6495,7 +6497,9 @@ export function Workstation({
 
                         <Card
                             hasNoPadding
-                            variant="dashboardRecordingPlayer"
+                            className={
+                                SOT_DASHBOARD_RECORDING_PLAYER_CARD_CLASS_NAME
+                            }
                             data-no-audio={
                                 playbackDisabled ? "true" : undefined
                             }
@@ -6514,11 +6518,17 @@ export function Workstation({
                                 playbackDisabled={playbackDisabled}
                             />
                             <CardHeader
-                                className="mb-[12px] flex flex-row flex-wrap items-center gap-[10px] p-0"
+                                className={
+                                    SOT_DASHBOARD_RECORDING_PLAYER_META_CLASS_NAME
+                                }
                                 data-sot-part="dashboard-recording-player-meta"
                             >
                                 <span
+                                    className={
+                                        SOT_DASHBOARD_RECORDING_PLAYER_DATE_CLASS_NAME
+                                    }
                                     data-sot-part="dashboard-recording-player-date"
+                                    style={{ transform: "translateY(1px)" }}
                                     suppressHydrationWarning
                                 >
                                     {selectedRecording
@@ -6574,249 +6584,22 @@ export function Workstation({
                                     />
                                 ) : null}
                             </CardHeader>
-                            <CardContent
-                                className="flex min-w-0 items-center gap-[12px] overflow-visible p-0"
-                                aria-disabled={
-                                    playbackDisabled ? "true" : undefined
-                                }
-                                data-sot-panel="dashboard-recording-player-controls"
-                                data-sot-state={playerControlsState}
-                            >
-                                <SotPlayerControlButton
-                                    type="button"
-                                    aria-label="后退 5 秒"
-                                    data-sot-control="dashboard-player-back"
-                                    data-sot-state={playerControlState}
-                                    disabled={playbackDisabled}
-                                    onClick={() =>
-                                        seekDashboardPlayerBySeconds(-5)
-                                    }
-                                >
-                                    <span
-                                        data-icon="inline-start"
-                                        data-sot-part="dashboard-player-control-icon"
-                                    >
-                                        <SotPlayerBackIcon />
-                                    </span>
-                                </SotPlayerControlButton>
-                                <SotPlayerPrimaryButton
-                                    type="button"
-                                    aria-label={isPlaying ? "暂停" : "播放"}
-                                    data-playing={isPlaying ? "true" : "false"}
-                                    data-sot-control="dashboard-player-play"
-                                    data-sot-state={
-                                        playbackDisabled
-                                            ? "disabled"
-                                            : isPlaying
-                                              ? "playing"
-                                              : "paused"
-                                    }
-                                    disabled={playbackDisabled}
-                                    onClick={togglePlayPause}
-                                >
-                                    <span
-                                        data-icon="inline-start"
-                                        data-sot-part="dashboard-player-control-icon"
-                                    >
-                                        {isPlaying ? (
-                                            <SotPlayerPauseIcon />
-                                        ) : (
-                                            <SotPlayerPlayIcon />
-                                        )}
-                                    </span>
-                                </SotPlayerPrimaryButton>
-                                <SotPlayerControlButton
-                                    type="button"
-                                    aria-label="前进 5 秒"
-                                    data-sot-control="dashboard-player-forward"
-                                    data-sot-state={playerControlState}
-                                    disabled={playbackDisabled}
-                                    onClick={() =>
-                                        seekDashboardPlayerBySeconds(5)
-                                    }
-                                >
-                                    <span
-                                        data-icon="inline-start"
-                                        data-sot-part="dashboard-player-control-icon"
-                                    >
-                                        <SotPlayerForwardIcon />
-                                    </span>
-                                </SotPlayerControlButton>
-                                <span data-sot-part="dashboard-player-current-time">
-                                    {formatSotPlayerTime(currentTime)}
-                                </span>
-                                <span
-                                    className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"
-                                    data-sot-part="dashboard-player-seek-shell"
-                                >
-                                    <SotPlayerSeekSlider
-                                        aria-disabled={
-                                            playbackDisabled
-                                                ? "true"
-                                                : undefined
-                                        }
-                                        aria-label="播放进度"
-                                        className="flex-none"
-                                        data-sot-control="dashboard-player-seek"
-                                        data-sot-state={playerControlState}
-                                        data-pct={playerProgressPct}
-                                        disabled={playbackDisabled}
-                                        max={100}
-                                        min={0}
-                                        rangeProps={{
-                                            "data-pct": playerProgressPct,
-                                        }}
-                                        step={1}
-                                        thumbProps={{
-                                            "data-pct": playerProgressPct,
-                                        }}
-                                        value={[progress]}
-                                        onValueChange={(values) =>
-                                            seekDashboardPlayerToPercent(
-                                                values[0] ?? 0,
-                                            )
-                                        }
-                                    />
-                                </span>
-                                <span data-sot-part="dashboard-player-duration">
-                                    {formatSotPlayerTime(playerDurationValue)}
-                                </span>
-                                <SotPlayerSpeedButton
-                                    type="button"
-                                    disabled={playbackDisabled}
-                                    aria-label="切换播放倍速"
-                                    data-sot-control="dashboard-player-speed"
-                                    data-sot-state={playerControlState}
-                                    onClick={cyclePlaybackSpeed}
-                                >
-                                    {playbackSpeedLabel}
-                                </SotPlayerSpeedButton>
-                                <Popover
-                                    open={volumePopoverOpen}
-                                    onOpenChange={(open) => setVolumeOpen(open)}
-                                >
-                                    <div
-                                        className="relative ml-0 inline-flex"
-                                        data-sot-part="dashboard-player-volume-anchor"
-                                    >
-                                        <PopoverTrigger asChild>
-                                            <SotPlayerControlButton
-                                                controlSize="sm"
-                                                type="button"
-                                                aria-label={`音量 ${volume}`}
-                                                aria-expanded={
-                                                    volumePopoverOpen
-                                                }
-                                                title={`音量 ${volume}`}
-                                                data-level={sotPlayerVolumeLevel(
-                                                    volume,
-                                                )}
-                                                data-sot-control="dashboard-player-volume"
-                                                data-sot-state={
-                                                    playbackDisabled
-                                                        ? "disabled"
-                                                        : volumePopoverOpen
-                                                          ? "open"
-                                                          : "closed"
-                                                }
-                                                data-sot-volume-state={
-                                                    volumeMuted
-                                                        ? "muted"
-                                                        : "audible"
-                                                }
-                                                disabled={playbackDisabled}
-                                            >
-                                                <span
-                                                    data-icon="inline-start"
-                                                    data-sot-part="dashboard-player-control-icon"
-                                                >
-                                                    <SotPlayerVolumeIcon
-                                                        volume={volume}
-                                                    />
-                                                </span>
-                                            </SotPlayerControlButton>
-                                        </PopoverTrigger>
-                                        <SotPlayerVolumePopoverContent
-                                            align="end"
-                                            side="top"
-                                            sideOffset={8}
-                                            data-open={
-                                                volumePopoverOpen
-                                                    ? "true"
-                                                    : "false"
-                                            }
-                                            data-sot-panel="dashboard-player-volume-popover"
-                                            data-sot-state={
-                                                volumePopoverOpen
-                                                    ? "open"
-                                                    : "closed"
-                                            }
-                                            aria-label="音量"
-                                        >
-                                            <div
-                                                className="flex items-center gap-2"
-                                                data-sot-part="dashboard-player-volume-row"
-                                            >
-                                                <SotPlayerControlButton
-                                                    controlSize="sm"
-                                                    type="button"
-                                                    aria-label="静音切换"
-                                                    data-sot-control="dashboard-player-volume-mute"
-                                                    data-sot-state={
-                                                        volumeMuted
-                                                            ? "muted"
-                                                            : "audible"
-                                                    }
-                                                    disabled={playbackDisabled}
-                                                    onClick={() =>
-                                                        setVolume(
-                                                            volumeMuted
-                                                                ? 70
-                                                                : 0,
-                                                        )
-                                                    }
-                                                >
-                                                    <span
-                                                        data-icon="inline-start"
-                                                        data-player-control-icon=""
-                                                        data-sot-part="dashboard-player-volume-icon"
-                                                    >
-                                                        <SotPlayerVolumeIcon
-                                                            volume={volume}
-                                                        />
-                                                    </span>
-                                                </SotPlayerControlButton>
-                                                <SotPlayerVolumeSlider
-                                                    min={0}
-                                                    max={100}
-                                                    step={1}
-                                                    value={[volume]}
-                                                    disabled={playbackDisabled}
-                                                    data-sot-control="dashboard-player-volume-slider"
-                                                    data-sot-state={
-                                                        playerControlState
-                                                    }
-                                                    aria-label="音量"
-                                                    onValueChange={(
-                                                        nextValue,
-                                                    ) =>
-                                                        setVolume(
-                                                            nextValue[0] ??
-                                                                volume,
-                                                        )
-                                                    }
-                                                />
-                                                <span
-                                                    className="min-w-11 text-center font-mono text-xs font-medium tracking-[0.03em] tabular-nums"
-                                                    data-sot-part="dashboard-player-volume-value"
-                                                >
-                                                    {volume}
-                                                </span>
-                                            </div>
-                                        </SotPlayerVolumePopoverContent>
-                                    </div>
-                                </Popover>
-                            </CardContent>
+                            <DashboardRecordingPlayerControls
+                                currentTime={currentTime}
+                                duration={playerDurationValue}
+                                isPlaying={isPlaying}
+                                onCyclePlaybackSpeed={cyclePlaybackSpeed}
+                                onSeekBySeconds={seekDashboardPlayerBySeconds}
+                                onSeekToPercent={seekDashboardPlayerToPercent}
+                                onTogglePlayPause={togglePlayPause}
+                                onVolumeChange={setVolume}
+                                onVolumeOpenChange={setVolumeOpen}
+                                playbackDisabled={playbackDisabled}
+                                playbackSpeedLabel={playbackSpeedLabel}
+                                progress={progress}
+                                volume={volume}
+                                volumePopoverOpen={volumePopoverOpen}
+                            />
                             {audioSrc ? (
                                 <audio ref={audioRef} src={audioSrc}>
                                     <track kind="captions" />
@@ -6864,7 +6647,10 @@ export function Workstation({
                                     {detailTab === "transcript" &&
                                     selectedTranscription?.language ? (
                                         <Badge
-                                            variant="dashboardTranscriptLanguage"
+                                            variant="outline"
+                                            className={
+                                                SOT_DASHBOARD_TRANSCRIPT_LANGUAGE_BADGE_CLASS_NAME
+                                            }
                                             data-sot-part="dashboard-transcript-language"
                                         >
                                             <Globe2 data-icon="inline-start" />
@@ -7479,7 +7265,10 @@ export function Workstation({
                                         >
                                             {!selectedRecording?.hasAudio ? (
                                                 <Badge
-                                                    variant="sourceReportStatus"
+                                                    variant="ghost"
+                                                    className={
+                                                        SOT_DASHBOARD_SOURCE_REPORT_STATUS_CLASS_NAME
+                                                    }
                                                     data-sot-badge="source-report-status"
                                                     data-sot-tone="warn"
                                                 >

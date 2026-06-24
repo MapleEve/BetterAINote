@@ -243,11 +243,10 @@
         black 8%
     );
     --source-provider-primary-shadow:
-        0 2px 6px rgb(92 168 198 / 0.24),
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
+        0 2px 6px rgb(92 168 198 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.22);
     --source-provider-primary-shadow:
-        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
+        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent), inset 0
+        1px 0 rgb(255 255 255 / 0.22);
 
     --tag-blue: rgb(69 125 178);
     --tag-blue: oklch(0.58 0.13 235);
@@ -275,28 +274,135 @@
     --card-popover-footer-bg: var(--bg-recessed);
     --card-popover-note-fg: rgba(0, 0, 0, 0.5);
     --card-popover-shadow:
-        0 1px 2px rgb(15 23 42 / 0.04),
-        0 12px 32px -8px rgb(15 23 42 / 0.18),
-        0 24px 64px -12px rgb(15 23 42 / 0.22);
+        0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -8px rgb(15 23 42 / 0.18), 0
+        24px 64px -12px rgb(15 23 42 / 0.22);
     --badge-pill-height: 22px;
     --badge-check-bg: rgb(80 161 191 / 0.7);
     --badge-check-bg: color-mix(in srgb, var(--accent) 70%, transparent);
-    --dashboard-recording-tag-chip-bg: rgb(244 246 248);
-    --dashboard-recording-tag-chip-bg: color-mix(
+    --sot-player-tag-chip-bg: rgb(244 246 248);
+    --sot-player-tag-chip-bg: color-mix(
         in srgb,
         var(--tag-c) 12%,
         var(--bg-elevated)
     );
-    --dashboard-recording-tag-chip-border: rgb(126 135 143 / 0.32);
-    --dashboard-recording-tag-chip-border: color-mix(
+    --sot-player-tag-chip-border: rgb(126 135 143 / 0.32);
+    --sot-player-tag-chip-border: color-mix(
         in srgb,
         var(--tag-c) 32%,
         transparent
     );
-    --dashboard-recording-tag-chip-fg: rgb(75 85 99);
-    --dashboard-recording-tag-chip-fg: color-mix(
+    --sot-player-tag-chip-fg: rgb(75 85 99);
+    --sot-player-tag-chip-fg: color-mix(
         in srgb,
         var(--tag-c) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-blue-bg: rgb(69 125 178 / 0.12);
+    --sot-player-tag-chip-blue-bg: color-mix(
+        in srgb,
+        var(--tag-blue) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-blue-border: rgb(69 125 178 / 0.32);
+    --sot-player-tag-chip-blue-border: color-mix(
+        in srgb,
+        var(--tag-blue) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-blue-fg: rgb(69 125 178);
+    --sot-player-tag-chip-blue-fg: color-mix(
+        in srgb,
+        var(--tag-blue) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-green-bg: rgb(49 137 95 / 0.12);
+    --sot-player-tag-chip-green-bg: color-mix(
+        in srgb,
+        var(--tag-green) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-green-border: rgb(49 137 95 / 0.32);
+    --sot-player-tag-chip-green-border: color-mix(
+        in srgb,
+        var(--tag-green) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-green-fg: rgb(49 137 95);
+    --sot-player-tag-chip-green-fg: color-mix(
+        in srgb,
+        var(--tag-green) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-orange-bg: rgb(173 124 32 / 0.12);
+    --sot-player-tag-chip-orange-bg: color-mix(
+        in srgb,
+        var(--tag-amber) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-orange-border: rgb(173 124 32 / 0.32);
+    --sot-player-tag-chip-orange-border: color-mix(
+        in srgb,
+        var(--tag-amber) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-orange-fg: rgb(173 124 32);
+    --sot-player-tag-chip-orange-fg: color-mix(
+        in srgb,
+        var(--tag-amber) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-purple-bg: rgb(126 95 188 / 0.12);
+    --sot-player-tag-chip-purple-bg: color-mix(
+        in srgb,
+        var(--tag-violet) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-purple-border: rgb(126 95 188 / 0.32);
+    --sot-player-tag-chip-purple-border: color-mix(
+        in srgb,
+        var(--tag-violet) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-purple-fg: rgb(126 95 188);
+    --sot-player-tag-chip-purple-fg: color-mix(
+        in srgb,
+        var(--tag-violet) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-red-bg: rgb(201 73 78 / 0.12);
+    --sot-player-tag-chip-red-bg: color-mix(
+        in srgb,
+        var(--tag-rose) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-red-border: rgb(201 73 78 / 0.32);
+    --sot-player-tag-chip-red-border: color-mix(
+        in srgb,
+        var(--tag-rose) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-red-fg: rgb(201 73 78);
+    --sot-player-tag-chip-red-fg: color-mix(
+        in srgb,
+        var(--tag-rose) 72%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-slate-bg: rgb(126 135 143 / 0.12);
+    --sot-player-tag-chip-slate-bg: color-mix(
+        in srgb,
+        var(--tag-slate) 12%,
+        var(--bg-elevated)
+    );
+    --sot-player-tag-chip-slate-border: rgb(126 135 143 / 0.32);
+    --sot-player-tag-chip-slate-border: color-mix(
+        in srgb,
+        var(--tag-slate) 32%,
+        transparent
+    );
+    --sot-player-tag-chip-slate-fg: rgb(126 135 143);
+    --sot-player-tag-chip-slate-fg: color-mix(
+        in srgb,
+        var(--tag-slate) 72%,
         var(--fg-primary)
     );
     --swatch-selection-dot-bg: rgb(255 255 255);
@@ -353,7 +459,11 @@
     --accent-on: rgb(250 251 252);
     --accent-on: oklch(0.985 0.003 250);
 
-    --button-primary-bg: linear-gradient(180deg, rgb(112 186 214), var(--accent));
+    --button-primary-bg: linear-gradient(
+        180deg,
+        rgb(112 186 214),
+        var(--accent)
+    );
     --button-primary-bg: linear-gradient(
         180deg,
         color-mix(in srgb, var(--accent) 92%, white 18%),
@@ -370,18 +480,13 @@
         var(--accent)
     );
     --button-primary-border: rgb(70 145 174);
-    --button-primary-border: color-mix(
-        in srgb,
-        var(--accent) 60%,
-        black 8%
-    );
+    --button-primary-border: color-mix(in srgb, var(--accent) 60%, black 8%);
     --button-primary-fg: rgb(255 255 255);
     --button-primary-shadow:
-        0 2px 6px rgb(92 168 198 / 0.24),
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
+        0 2px 6px rgb(92 168 198 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.22);
     --button-primary-shadow:
-        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
+        0 2px 6px color-mix(in srgb, var(--accent) 24%, transparent), inset 0
+        1px 0 rgb(255 255 255 / 0.22);
     --button-destructive-bg: linear-gradient(
         180deg,
         rgb(218 79 60),
@@ -406,8 +511,7 @@
     --button-destructive-border: oklch(0.5 0.2 25);
     --button-destructive-fg: rgb(255 255 255);
     --button-destructive-shadow:
-        0 2px 6px rgb(210 65 53 / 0.24),
-        inset 0 1px 0 rgb(255 255 255 / 0.2);
+        0 2px 6px rgb(210 65 53 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.2);
     --button-destructive-shadow:
         0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.2);
@@ -429,8 +533,8 @@
         black 8%
     );
     --button-player-primary-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent),
-        inset 0 1px 0 rgb(255 255 255 / 0.25);
+        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent), inset 0
+        1px 0 rgb(255 255 255 / 0.25);
     --button-copy-success-bg: rgb(36 151 104 / 0.1);
     --button-copy-success-bg: color-mix(
         in srgb,
@@ -643,11 +747,7 @@
     --bg-elevated: rgb(31 36 42);
     --bg-elevated: oklch(0.215 0.004 250); /* one step up — sidebars/panels */
     --card-elevated-bg: rgb(31 36 42 / 0.7);
-    --card-elevated-bg: color-mix(
-        in srgb,
-        var(--bg-elevated) 70%,
-        transparent
-    );
+    --card-elevated-bg: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
     --card-elevated-border: var(--glass-border-soft);
     --card-popover-bg: var(--graphite-900);
     --card-popover-border: var(--glass-border);
@@ -655,9 +755,8 @@
     --card-popover-footer-bg: rgb(255 255 255 / 0.03);
     --card-popover-note-fg: rgba(0, 0, 0, 0.5);
     --card-popover-shadow:
-        0 1px 2px rgb(0 0 0 / 0.5),
-        0 12px 32px -8px rgb(0 0 0 / 0.55),
-        0 24px 64px -12px rgb(0 0 0 / 0.6);
+        0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -8px rgb(0 0 0 / 0.55), 0 24px
+        64px -12px rgb(0 0 0 / 0.6);
     --alert-destructive-soft-bg: rgb(223 83 90 / 0.1);
     --alert-destructive-soft-bg: color-mix(
         in srgb,
@@ -711,22 +810,126 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-on: rgb(11 16 22);
     --accent-on: oklch(0.11 0.004 250);
-    --dashboard-recording-tag-chip-bg: rgb(126 135 143 / 0.18);
-    --dashboard-recording-tag-chip-bg: color-mix(
-        in srgb,
-        var(--tag-c) 18%,
-        transparent
-    );
-    --dashboard-recording-tag-chip-border: rgb(126 135 143 / 0.36);
-    --dashboard-recording-tag-chip-border: color-mix(
+    --sot-player-tag-chip-bg: rgb(126 135 143 / 0.18);
+    --sot-player-tag-chip-bg: color-mix(in srgb, var(--tag-c) 18%, transparent);
+    --sot-player-tag-chip-border: rgb(126 135 143 / 0.36);
+    --sot-player-tag-chip-border: color-mix(
         in srgb,
         var(--tag-c) 36%,
         transparent
     );
-    --dashboard-recording-tag-chip-fg: rgb(244 246 248);
-    --dashboard-recording-tag-chip-fg: color-mix(
+    --sot-player-tag-chip-fg: rgb(244 246 248);
+    --sot-player-tag-chip-fg: color-mix(
         in srgb,
         var(--tag-c) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-blue-bg: rgb(69 125 178 / 0.18);
+    --sot-player-tag-chip-blue-bg: color-mix(
+        in srgb,
+        var(--tag-blue) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-blue-border: rgb(69 125 178 / 0.36);
+    --sot-player-tag-chip-blue-border: color-mix(
+        in srgb,
+        var(--tag-blue) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-blue-fg: rgb(244 246 248);
+    --sot-player-tag-chip-blue-fg: color-mix(
+        in srgb,
+        var(--tag-blue) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-green-bg: rgb(49 137 95 / 0.18);
+    --sot-player-tag-chip-green-bg: color-mix(
+        in srgb,
+        var(--tag-green) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-green-border: rgb(49 137 95 / 0.36);
+    --sot-player-tag-chip-green-border: color-mix(
+        in srgb,
+        var(--tag-green) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-green-fg: rgb(244 246 248);
+    --sot-player-tag-chip-green-fg: color-mix(
+        in srgb,
+        var(--tag-green) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-orange-bg: rgb(173 124 32 / 0.18);
+    --sot-player-tag-chip-orange-bg: color-mix(
+        in srgb,
+        var(--tag-amber) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-orange-border: rgb(173 124 32 / 0.36);
+    --sot-player-tag-chip-orange-border: color-mix(
+        in srgb,
+        var(--tag-amber) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-orange-fg: rgb(244 246 248);
+    --sot-player-tag-chip-orange-fg: color-mix(
+        in srgb,
+        var(--tag-amber) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-purple-bg: rgb(126 95 188 / 0.18);
+    --sot-player-tag-chip-purple-bg: color-mix(
+        in srgb,
+        var(--tag-violet) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-purple-border: rgb(126 95 188 / 0.36);
+    --sot-player-tag-chip-purple-border: color-mix(
+        in srgb,
+        var(--tag-violet) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-purple-fg: rgb(244 246 248);
+    --sot-player-tag-chip-purple-fg: color-mix(
+        in srgb,
+        var(--tag-violet) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-red-bg: rgb(201 73 78 / 0.18);
+    --sot-player-tag-chip-red-bg: color-mix(
+        in srgb,
+        var(--tag-rose) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-red-border: rgb(201 73 78 / 0.36);
+    --sot-player-tag-chip-red-border: color-mix(
+        in srgb,
+        var(--tag-rose) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-red-fg: rgb(244 246 248);
+    --sot-player-tag-chip-red-fg: color-mix(
+        in srgb,
+        var(--tag-rose) 30%,
+        var(--fg-primary)
+    );
+    --sot-player-tag-chip-slate-bg: rgb(126 135 143 / 0.18);
+    --sot-player-tag-chip-slate-bg: color-mix(
+        in srgb,
+        var(--tag-slate) 18%,
+        transparent
+    );
+    --sot-player-tag-chip-slate-border: rgb(126 135 143 / 0.36);
+    --sot-player-tag-chip-slate-border: color-mix(
+        in srgb,
+        var(--tag-slate) 36%,
+        transparent
+    );
+    --sot-player-tag-chip-slate-fg: rgb(244 246 248);
+    --sot-player-tag-chip-slate-fg: color-mix(
+        in srgb,
+        var(--tag-slate) 30%,
         var(--fg-primary)
     );
     --button-player-hover-bg: rgb(255 255 255 / 0.08);
@@ -1356,144 +1559,6 @@ button:not([data-slot]) {
     min-height: 0;
     min-width: 0;
 }
-/* Dashboard recording player — shadcn Card/Button/Slider surface scoped by data-sot. */
-[data-sot-surface="dashboard-recording-player"] {
-    display: block;
-    box-shadow: none;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-no-audio"][hidden] {
-    display: none;
-}
-[data-sot-part="dashboard-recording-player-no-audio-icon"],
-[data-sot-part="recording-player-no-audio-icon"] {
-    display: inline-grid;
-    width: 26px;
-    height: 26px;
-    place-items: center;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
-    color: var(--signal-warning);
-}
-[data-sot-part="dashboard-recording-player-no-audio-icon"] svg,
-[data-sot-part="recording-player-no-audio-icon"] svg {
-    width: 14px;
-    height: 14px;
-}
-[data-sot-part="dashboard-recording-player-no-audio"] {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--signal-warning) 8%, var(--bg-elevated));
-    border: 1px solid color-mix(in srgb, var(--signal-warning) 28%, transparent);
-    color: var(--fg-primary);
-}
-[data-sot-part="dashboard-recording-player-no-audio-text"] {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 1px;
-}
-[data-sot-part="dashboard-recording-player-no-audio-title"] {
-    min-height: 0;
-    font: 600 12.5px var(--font-sans);
-    letter-spacing: normal;
-    color: var(--fg-primary);
-}
-[data-sot-part="dashboard-recording-player-no-audio-description"] {
-    display: block;
-    font: 500 11.5px / 1.5 var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-recording-player-date"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.02em;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-control-icon"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-control-icon"]
-    svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-control="dashboard-player-play"]
-    [data-sot-part="dashboard-player-control-icon"]
-    svg {
-    width: 18px;
-    height: 18px;
-    fill: white;
-    stroke: white;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-current-time"],
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-duration"] {
-    font: 500 12px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.03em;
-    min-width: 44px;
-    text-align: center;
-}
-[data-sot-surface="dashboard-recording-player"]
-    [data-sot-part="dashboard-player-duration"] {
-    transform: translateX(-0.109375px);
-}
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-back"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-play"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-forward"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-seek"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-speed"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-volume"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-part="dashboard-player-current-time"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-part="dashboard-player-duration"] {
-    opacity: 0.42;
-    pointer-events: none;
-}
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-back"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-play"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-forward"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-speed"],
-[data-sot-surface="dashboard-recording-player"][data-no-audio="true"]
-    [data-sot-control="dashboard-player-volume"] {
-    cursor: not-allowed;
-}
-@media (max-width: 640px) {
-    [data-sot-surface="dashboard-recording-player"]
-        [data-sot-control="dashboard-player-speed"] {
-        flex: 0 0 50.75px;
-        width: 50.75px;
-        min-width: 50.75px;
-    }
-}
-
 /* Recording detail player — shadcn Card owns primitive surface styling. */
 [data-sot-surface="recording-player"]
     [data-sot-part="recording-player-no-audio"][hidden] {
@@ -1975,23 +2040,6 @@ button:not([data-slot]) {
     50% {
         opacity: 0.45;
     }
-}
-
-/* source tag with logo */
-[data-sot-control="player-source-tag"] [data-sot-part="source-icon"] {
-    background: rgb(255 255 255);
-    border: 1px solid var(--line-hairline);
-}
-[data-sot-control="player-source-tag"]
-    [data-sot-part="source-icon"][data-sot-cover="true"]
-    img {
-    object-fit: cover;
-}
-[data-sot-control="player-source-tag"]
-    [data-sot-part="source-icon"][data-sot-source-icon="letter"] {
-    font: 700 9px var(--font-sans);
-    color: var(--fg-secondary);
-    background: var(--bg-recessed);
 }
 
 /* sidebar source nav with logo */
@@ -2700,7 +2748,8 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     gap: 10px;
     padding: 4px 4px 0;
 }
-[data-sot-panel="dashboard-detail-header"] [data-sot-part="detail-header-title"] {
+[data-sot-panel="dashboard-detail-header"]
+    [data-sot-part="detail-header-title"] {
     flex: 1;
     min-width: 0;
     margin: 0;
@@ -3898,13 +3947,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-sot-part="dashboard-activity-empty"][hidden] {
     display: none !important;
-}
-
-/* ---------- Player meta inline alignment + source tag fixes ---------- */
-[data-sot-part="dashboard-recording-player-meta"]
-    [data-sot-control="player-source-tag"],
-[data-sot-part="recording-player-meta"] [data-sot-control="player-source-tag"] {
-    flex: none;
 }
 
 [data-sot-part="dashboard-transcript-actions"] {
