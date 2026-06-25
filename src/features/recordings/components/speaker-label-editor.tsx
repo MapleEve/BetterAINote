@@ -128,6 +128,26 @@ const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =
 
 const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =
     "h-[22px] justify-normal gap-[5px] overflow-visible rounded-full border px-[8px] py-0 text-[11px] font-semibold shadow-none data-[sot-tone=missing]:border-[var(--source-provider-status-warning-border)] data-[sot-tone=missing]:bg-[var(--source-provider-status-warning-bg)] data-[sot-tone=missing]:text-[var(--signal-warning-strong)] data-[sot-tone=ready]:border-[var(--source-provider-status-success-border)] data-[sot-tone=ready]:bg-[var(--source-provider-status-success-bg)] data-[sot-tone=ready]:text-[var(--signal-success)] data-[sot-tone=selected]:border-primary/30 data-[sot-tone=selected]:bg-primary/10 data-[sot-tone=selected]:text-primary [&>svg]:size-[11px] [&>svg]:stroke-2";
+const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME =
+    "text-[var(--fg-primary)]";
+const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME = "shadow-xs";
+const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =
+    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]";
+const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME = "shadow-xs";
+const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =
+    "grid h-auto min-h-8 w-full grid-cols-[minmax(0,1fr)_auto] justify-stretch gap-2 whitespace-normal px-2 py-1.5 text-left text-[var(--fg-primary)] has-[>svg]:px-2 data-[sot-state=create]:text-[var(--fg-secondary)]";
+const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =
+    "rounded-[8px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:size-[16px] [&_svg]:stroke-[1.8]";
+const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME = "px-2.5";
+const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =
+    "grid w-full gap-2 rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal [&_[data-slot=button]]:w-fit";
+const SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME =
+    "min-h-0 font-medium leading-normal tracking-normal";
+const SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME =
+    "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal";
+const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME = "px-6 py-4 md:p-4";
+const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =
+    "text-[var(--fg-secondary)] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&>svg:not([class*='size-'])]:size-3";
 
 type ClassNameProp = {
     className?: string;
@@ -908,10 +928,10 @@ export function SpeakerLabelEditor({
                         <ToggleGroup
                             type="single"
                             value={reviewMode}
-                            variant="speakerReviewMode"
-                            size="speakerReviewModeItem"
-                            layout="speakerReviewMode"
-                            spacing="speakerReviewMode"
+                            variant="default"
+                            size="sm"
+                            className="flex-nowrap"
+                            spacing={1}
                             aria-label={t("speakerReview.title")}
                             data-sot-control="speaker-review-mode"
                             onValueChange={(value) => {
@@ -922,12 +942,14 @@ export function SpeakerLabelEditor({
                         >
                             <ToggleGroupItem
                                 value="speaker"
+                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.speakerNamesMode")}
                             </ToggleGroupItem>
                             <ToggleGroupItem
                                 value="raw"
+                                className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}
                                 data-sot-control="speaker-review-mode-option"
                             >
                                 {t("speakerReview.rawLabelsMode")}
@@ -935,8 +957,9 @@ export function SpeakerLabelEditor({
                         </ToggleGroup>
                         <Button
                             type="button"
-                            variant="speakerReviewPrimaryAction"
-                            size="speakerReviewAction"
+                            variant="default"
+                            size="sm"
+                            className={SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME}
                             onClick={handleCopyRawTranscript}
                             disabled={
                                 isCopyingRawTranscript ||
@@ -953,8 +976,9 @@ export function SpeakerLabelEditor({
                         </Button>
                         <Button
                             type="button"
-                            variant="speakerReviewGhostAction"
-                            size="speakerReviewAction"
+                            variant="ghost"
+                            size="sm"
+                            className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                             onClick={() => void refreshTranscriptReview()}
                             disabled={isReviewLoading}
                             data-sot-control="speaker-review-refresh"
@@ -970,8 +994,11 @@ export function SpeakerLabelEditor({
                             <Button
                                 ref={mergeButtonRef}
                                 type="button"
-                                variant="speakerReviewGhostAction"
-                                size="speakerReviewAction"
+                                variant="ghost"
+                                size="sm"
+                                className={
+                                    SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME
+                                }
                                 data-spk-merge
                                 data-sot-control="speaker-review-merge"
                                 aria-controls={mergePopoverId}
@@ -1005,8 +1032,11 @@ export function SpeakerLabelEditor({
                                     </SpeakerReviewCardTitle>
                                     <CardAction>
                                         <Button
-                                            variant="speakerReviewIconAction"
-                                            size="speakerReviewIcon"
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className={
+                                                SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME
+                                            }
                                             data-spk-merge-close
                                             type="button"
                                             aria-label="关闭"
@@ -1025,24 +1055,24 @@ export function SpeakerLabelEditor({
                                 </SpeakerReviewCardHeader>
                                 <SpeakerReviewCardContent surface="mergePopover">
                                     <Empty
-                                        variant="speakerReviewMerge"
+                                        variant="compact"
                                         data-sot-part="speaker-review-merge-empty"
                                     >
-                                        <EmptyHeader variant="speakerReviewMerge">
+                                        <EmptyHeader variant="popover">
                                             <EmptyMedia
-                                                variant="speakerReviewMergeIcon"
+                                                variant="subtleIcon"
                                                 data-sot-part="speaker-review-merge-empty-icon"
                                             >
                                                 <Check strokeWidth={1.8} />
                                             </EmptyMedia>
                                             <EmptyTitle
-                                                variant="speakerReviewMerge"
+                                                variant="compact"
                                                 data-sot-part="speaker-review-merge-empty-title"
                                             >
                                                 当前没有可合并的相似说话人
                                             </EmptyTitle>
                                             <EmptyDescription
-                                                variant="speakerReviewMerge"
+                                                variant="compact"
                                                 data-sot-part="speaker-review-merge-empty-description"
                                             >
                                                 如果两位说话人声纹接近，会出现在这里供你确认。
@@ -1059,13 +1089,14 @@ export function SpeakerLabelEditor({
                     <TranscriptReviewSkeleton />
                 ) : reviewError ? (
                     <Alert
-                        variant="speakerReviewError"
-                        density="speakerReviewError"
-                        layout="speakerReviewError"
+                        variant="statusError"
+                        className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
                         data-sot-part="speaker-review-state"
                         data-sot-state="error"
                     >
-                        <AlertTitle density="speakerReviewError">
+                        <AlertTitle
+                            className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
+                        >
                             {reviewError}
                         </AlertTitle>
                     </Alert>
@@ -1143,20 +1174,26 @@ export function SpeakerLabelEditor({
 
             {speakerLoadError ? (
                 <Alert
-                    variant="speakerReviewError"
-                    density="speakerReviewError"
-                    layout="speakerReviewError"
+                    variant="statusError"
+                    className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}
                     data-sot-part="speaker-review-state"
                     data-sot-state="speaker-load-error"
                 >
-                    <AlertTitle density="speakerReviewError">
+                    <AlertTitle
+                        className={SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME}
+                    >
                         {speakerLoadError}
                     </AlertTitle>
-                    <AlertDescription density="speakerReviewError">
+                    <AlertDescription
+                        className={
+                            SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME
+                        }
+                    >
                         <Button
                             type="button"
-                            variant="speakerReviewAction"
-                            size="speakerReviewAction"
+                            variant="outline"
+                            size="sm"
+                            className={SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME}
                             onClick={() => void refreshSpeakers()}
                             disabled={isLoading}
                             data-sot-control="speaker-review-refresh-speakers"
@@ -1168,12 +1205,12 @@ export function SpeakerLabelEditor({
                 </Alert>
             ) : speakers.length === 0 ? (
                 <Empty
-                    variant="speakerReviewDetected"
+                    variant="default"
                     data-sot-part="speaker-review-empty"
                     data-sot-state="no-detected-speakers"
                 >
-                    <EmptyHeader variant="speakerReviewState">
-                        <EmptyTitle variant="speakerReviewState">
+                    <EmptyHeader variant="default">
+                        <EmptyTitle variant="default">
                             {t("speakerReview.noDetectedSpeakers")}
                         </EmptyTitle>
                     </EmptyHeader>
@@ -1344,8 +1381,9 @@ export function SpeakerLabelEditor({
                                             >
                                                 <Button
                                                     type="button"
-                                                    variant="speakerReviewGhostAction"
-                                                    size="speakerReviewAction"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                                                     data-spk-cancel
                                                     data-sot-control="speaker-review-inline-cancel"
                                                     disabled={isSpeakerSaving}
@@ -1359,8 +1397,9 @@ export function SpeakerLabelEditor({
                                                 </Button>
                                                 <Button
                                                     type="button"
-                                                    variant="speakerReviewPrimaryAction"
-                                                    size="speakerReviewAction"
+                                                    variant="default"
+                                                    size="sm"
+                                                    className={SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME}
                                                     data-spk-save
                                                     data-sot-control="speaker-review-inline-save"
                                                     disabled={
@@ -1452,8 +1491,9 @@ export function SpeakerLabelEditor({
                                             {saveError ? (
                                                 <Button
                                                     type="button"
-                                                    variant="speakerReviewGhostAction"
-                                                    size="speakerReviewAction"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                                                     data-sot-control="speaker-review-save-retry"
                                                     disabled={isSpeakerSaving}
                                                     onClick={() =>
@@ -1473,8 +1513,9 @@ export function SpeakerLabelEditor({
                                                 >
                                                     <Button
                                                         type="button"
-                                                        variant="speakerReviewGhostAction"
-                                                        size="speakerReviewAction"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                                                         data-spk-rename
                                                         data-sot-control="speaker-review-rename"
                                                         disabled={
@@ -1560,8 +1601,9 @@ export function SpeakerLabelEditor({
                                                                     </p>
                                                                     <Button
                                                                         type="button"
-                                                                        variant="speakerReviewAction"
-                                                                        size="speakerReviewAction"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className={SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME}
                                                                         data-sot-control="speaker-review-play-sample"
                                                                         onClick={() =>
                                                                             handlePlaySample(
@@ -1593,12 +1635,13 @@ export function SpeakerLabelEditor({
                                                 </div>
                                             ) : (
                                                 <Empty
-                                                    variant="speakerReviewInline"
+                                                    variant="default"
+                                                    className={SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME}
                                                     data-sot-part="speaker-review-empty"
                                                     data-sot-state="no-samples"
                                                 >
-                                                    <EmptyHeader variant="speakerReviewState">
-                                                        <EmptyTitle variant="speakerReviewState">
+                                                    <EmptyHeader variant="default">
+                                                        <EmptyTitle variant="default">
                                                             {t(
                                                                 "speakerReview.noTimedSamples",
                                                             )}
@@ -1712,8 +1755,9 @@ export function SpeakerLabelEditor({
                                                         <InputGroupAddon align="inline-end">
                                                             <InputGroupButton
                                                                 type="button"
-                                                                size="speakerReviewMappingClear"
-                                                                variant="speakerReviewMappingClear"
+                                                                size="icon-xs"
+                                                                variant="ghost"
+                                                                className={SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME}
                                                                 aria-label={t(
                                                                     "speakerReview.clearSelectedSpeaker",
                                                                 )}
@@ -1791,8 +1835,9 @@ export function SpeakerLabelEditor({
                                                         </p>
                                                         <Button
                                                             type="button"
-                                                            variant="speakerReviewGhostAction"
-                                                            size="speakerReviewAction"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className={SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME}
                                                             data-sot-confirm-action="cancel"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1807,8 +1852,9 @@ export function SpeakerLabelEditor({
                                                         </Button>
                                                         <Button
                                                             type="button"
-                                                            variant="speakerReviewDangerAction"
-                                                            size="speakerReviewAction"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className={SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME}
                                                             data-sot-confirm-action="confirm"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1832,8 +1878,9 @@ export function SpeakerLabelEditor({
                                                     >
                                                         <Button
                                                             type="button"
-                                                            variant="speakerReviewDangerAction"
-                                                            size="speakerReviewAction"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className={SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME}
                                                             data-sot-control="speaker-review-unlink"
                                                             disabled={
                                                                 isSpeakerSaving
@@ -1875,12 +1922,15 @@ export function SpeakerLabelEditor({
                                                 profiles.length === 0 &&
                                                 !normalizedQuery ? (
                                                     <Empty
-                                                        variant="speakerReviewInline"
+                                                        variant="default"
+                                                        className={
+                                                            SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                        }
                                                         data-sot-part="speaker-review-empty"
                                                         data-sot-state="no-saved-speakers"
                                                     >
-                                                        <EmptyHeader variant="speakerReviewState">
-                                                            <EmptyTitle variant="speakerReviewState">
+                                                        <EmptyHeader variant="default">
+                                                            <EmptyTitle variant="default">
                                                                 {t(
                                                                     "speakerReview.noSavedSpeakers",
                                                                 )}
@@ -1899,8 +1949,9 @@ export function SpeakerLabelEditor({
                                                                         profile.id
                                                                     }
                                                                     type="button"
-                                                                    variant="speakerReviewSuggestion"
-                                                                    size="speakerReviewSuggestion"
+                                                                    variant="outline"
+                                                                    size="default"
+                                                                    className={SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME}
                                                                     data-sot-control="speaker-review-suggestion"
                                                                     disabled={
                                                                         isSpeakerSaving ||
@@ -1972,8 +2023,9 @@ export function SpeakerLabelEditor({
                                                         !hasExactMatch ? (
                                                             <Button
                                                                 type="button"
-                                                                variant="speakerReviewSuggestion"
-                                                                size="speakerReviewSuggestion"
+                                                                variant="outline"
+                                                                size="default"
+                                                                className={SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME}
                                                                 data-sot-control="speaker-review-suggestion"
                                                                 data-sot-state="create"
                                                                 disabled={
@@ -2021,12 +2073,15 @@ export function SpeakerLabelEditor({
                                                             0 &&
                                                         !normalizedQuery ? (
                                                             <Empty
-                                                                variant="speakerReviewInline"
+                                                                variant="default"
+                                                                className={
+                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                                }
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-saved-speakers"
                                                             >
-                                                                <EmptyHeader variant="speakerReviewState">
-                                                                    <EmptyTitle variant="speakerReviewState">
+                                                                <EmptyHeader variant="default">
+                                                                    <EmptyTitle variant="default">
                                                                         {t(
                                                                             "speakerReview.noSavedSpeakers",
                                                                         )}
@@ -2039,12 +2094,15 @@ export function SpeakerLabelEditor({
                                                         normalizedQuery &&
                                                         hasLiveNoMatch ? (
                                                             <Empty
-                                                                variant="speakerReviewInline"
+                                                                variant="default"
+                                                                className={
+                                                                    SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME
+                                                                }
                                                                 data-sot-part="speaker-review-empty"
                                                                 data-sot-state="no-matching-speakers"
                                                             >
-                                                                <EmptyHeader variant="speakerReviewState">
-                                                                    <EmptyTitle variant="speakerReviewState">
+                                                                <EmptyHeader variant="default">
+                                                                    <EmptyTitle variant="default">
                                                                         {t(
                                                                             "speakerReview.noMatchingSpeakers",
                                                                         )}

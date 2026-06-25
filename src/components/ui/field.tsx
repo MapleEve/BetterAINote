@@ -12,28 +12,17 @@ type FieldControlVariant = "default" | "onboardingSourceField";
 type FieldSetVariant =
     | "default"
     | "pickerFrame"
-    | "recordingTagPickerFrame"
-    | "recordingTagSection"
     | "section";
-type FieldSetSize =
-    | "default"
-    | "colorPicker"
-    | "iconPicker"
-    | "recordingTagColorPicker"
-    | "recordingTagIconPicker";
+type FieldSetSize = "default" | "colorPicker" | "iconPicker";
 type FieldLegendVariant =
     | "legend"
     | "label"
     | "picker"
-    | "recordingTagPickerLabel"
-    | "recordingTagSectionLabel"
     | "sectionLabel";
 
 const fieldSetVariantClassNames: Record<FieldSetVariant, string> = {
     default: "",
     pickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
-    recordingTagPickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
-    recordingTagSection: "gap-2",
     section: "gap-2",
 };
 
@@ -41,18 +30,12 @@ const fieldSetSizeClassNames: Record<FieldSetSize, string> = {
     default: "",
     colorPicker: "min-h-[59px]",
     iconPicker: "min-h-[103px]",
-    recordingTagColorPicker: "min-h-[59px]",
-    recordingTagIconPicker: "min-h-[103px]",
 };
 
 const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
     legend: "mb-3 text-base font-medium",
     label: "mb-3 text-sm font-medium",
     picker: "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
-    recordingTagPickerLabel:
-        "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
-    recordingTagSectionLabel:
-        "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
     sectionLabel:
         "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
 };

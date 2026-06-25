@@ -684,6 +684,14 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-control="copy-source-transcript"',
             'data-sot-control="copy-source-report"',
         ];
+        const sourceReportPrimitiveSources = [
+            alertPrimitive,
+            buttonPrimitive,
+            cardPrimitive,
+            emptyPrimitive,
+            skeletonPrimitive,
+            globals,
+        ];
 
         expect(sourceReport).toContain("handleCopySourceTranscript");
         expect(sourceReport).toContain("handleCopySourceReport");
@@ -828,8 +836,14 @@ describe("recording detail copy and title action UI regressions", () => {
         }
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
         expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('density="sourceReportError"');
-        expect(sourceReportErrorState).toContain('layout="sourceReportError"');
+        expect(sourceReportErrorState).toContain('variant="statusError"');
+        expect(sourceReportErrorState).toContain(
+            "className={SOURCE_REPORT_ERROR_ALERT_CLASS_NAME}",
+        );
+        expect(sourceReport).toContain("SOURCE_REPORT_ERROR_ALERT_CLASS_NAME");
+        expect(sourceReport).not.toContain('variant="sourceReportError"');
+        expect(sourceReport).not.toContain('density="sourceReportError"');
+        expect(sourceReport).not.toContain('layout="sourceReportError"');
         expect(sourceReportErrorState).toContain(
             "data-sot-source-report-empty",
         );
@@ -854,19 +868,18 @@ describe("recording detail copy and title action UI regressions", () => {
         );
         expect(sourceReport).toContain("SOURCE_REPORT_STATUS_BADGE_STYLE");
         expect(sourceReport).not.toContain(variantAttr("sourceReportStatus"));
-        expect(alertPrimitive).toContain("sourceReportError:");
-        expect(buttonPrimitive).toContain("sourceReportAction:");
-        expect(buttonPrimitive).toContain("sourceReportGhostAction:");
-        expect(buttonPrimitive).toContain("sourceReportCopyAction:");
+        for (const primitiveSource of sourceReportPrimitiveSources) {
+            expect(primitiveSource).not.toMatch(/\bsourceReport[A-Za-z0-9_]*\b/);
+        }
         expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).toContain(
-            '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
+            '"ghost" satisfies ButtonProps["variant"]',
         );
         expect(sourceReport).toContain(
-            '"sourceReportCopyAction" satisfies ButtonProps["size"]',
+            '"control-xs" satisfies ButtonProps["size"]',
         );
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
@@ -1035,13 +1048,15 @@ describe("recording detail copy and title action UI regressions", () => {
                 expect(controlSource).not.toContain('variant="destructive"');
                 expect(controlSource).not.toContain('size="sm"');
             } else {
-                expect(controlSource).toContain('size="sourceReportAction"');
+                expect(controlSource).toContain('size="xs"');
+                expect(controlSource).toMatch(/variant="(?:outline|ghost)"/);
                 expect(controlSource).toMatch(
+                    /SOURCE_REPORT_(?:ACTION|GHOST_ACTION)_BUTTON_CLASS_NAME/,
+                );
+                expect(controlSource).not.toMatch(
                     /variant="sourceReport(?:Ghost)?Action"/,
                 );
-                expect(controlSource).not.toContain('variant="outline"');
-                expect(controlSource).not.toContain('variant="ghost"');
-                expect(controlSource).not.toContain('size="xs"');
+                expect(controlSource).not.toContain('size="sourceReportAction"');
             }
             expect(controlSource).toContain("data-sot-control=");
             expect(controlSource).not.toContain("copy-btn");
@@ -2374,31 +2389,32 @@ describe("recording detail copy and title action UI regressions", () => {
         const tagManager = readSource(
             "features/recordings/components/recording-tag-manager.tsx",
         );
+        const buttonPrimitive = readSource("components/ui/button.tsx");
+        const inputGroupPrimitive = readSource("components/ui/input-group.tsx");
 
         expect(tagManager).toContain('data-sot-control="recording-tag-create"');
         expect(tagManager).toContain("<Button");
-        expect(tagManager).toContain('variant="recordingTagInlineCreate"');
-        expect(tagManager).toContain('size="recordingTagInlineCreate"');
-        for (const retiredRecordingTagButtonToken of [
-            'variant="ghostNeutral"',
-            'variant="actionPrimary"',
-            'variant="actionDestructive"',
-            'variant="accentIcon"',
-            'variant="chipRemove"',
-            'variant="ghostIconCompact"',
-            'size="icon-compact"',
-            'size="control-sm"',
-            'size="pill-sm"',
-            'size="icon-2xs"',
-            'size="icon-chip"',
+        expect(buttonPrimitive).not.toMatch(/\brecordingTag[A-Za-z0-9_]*\b/);
+        expect(inputGroupPrimitive).not.toMatch(
+            /\brecordingTag[A-Za-z0-9_]*\b/,
+        );
+        const inlineCreateButton = extractOpeningElement(
+            tagManager,
+            'data-sot-control="recording-tag-create"',
+            "Button",
+        );
+        for (const ownerOwnedCreateToken of [
+            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
+            'data-sot-control="recording-tag-create"',
+            'aria-label="添加"',
         ]) {
-            expect(tagManager).not.toContain(retiredRecordingTagButtonToken);
+            expect(inlineCreateButton).toContain(ownerOwnedCreateToken);
         }
-        expect(tagManager).toContain('variant="recordingTagCreateRow"');
-        expect(tagManager).toContain('variant="recordingTagNameInput"');
-        expect(tagManager).toContain('aria-label="添加"');
-        expect(tagManager).not.toContain("tagm-add-btn");
-        expect(tagManager).not.toContain('variant="compact"');
+        expect(inlineCreateButton).toContain("className={cn(");
+        expect(tagManager).not.toContain('variant="recordingTagInlineCreate"');
+        expect(tagManager).not.toContain('size="recordingTagInlineCreate"');
+        expect(tagManager).not.toContain('variant="recordingTagCreateRow"');
+        expect(tagManager).not.toContain('variant="recordingTagNameInput"');
     });
 
     it("keeps recording tag manager card and badge business classes owner-local", () => {
@@ -2408,6 +2424,8 @@ describe("recording detail copy and title action UI regressions", () => {
         const tagVisuals = readSource(
             "features/recordings/components/recording-tag-visuals.tsx",
         );
+        const cardPrimitive = readSource("components/ui/card.tsx");
+        const badgePrimitive = readSource("components/ui/badge.tsx");
 
         expect(tagManager).toContain("const recordingTagManagerCardClassNames");
         expect(tagManager).toContain(
@@ -2440,9 +2458,16 @@ describe("recording detail copy and title action UI regressions", () => {
             expect(tagManager).not.toContain(variantAttr(retiredCardVariant));
         }
 
-        for (const retiredBadgeVariant of ["pill", "checkDot"]) {
-            expect(tagManager).not.toContain(variantAttr(retiredBadgeVariant));
+        for (const primitiveSource of [cardPrimitive, badgePrimitive]) {
+            expect(primitiveSource).not.toMatch(/\brecordingTag[A-Za-z0-9_]*\b/);
         }
+        expect(tagManager).toContain(
+            "appearance: RecordingTagManagerBadgeAppearance",
+        );
+        expect(tagManager).toContain(
+            "recordingTagManagerBadgeClassNames[appearance]",
+        );
+        expect(tagManager).not.toContain(variantAttr("recordingTagChip"));
 
         expect(tagVisuals).toContain("const recordingTagChipClassName");
         expect(tagVisuals).toContain("className={recordingTagChipClassName}");

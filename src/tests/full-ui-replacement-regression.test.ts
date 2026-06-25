@@ -2895,7 +2895,7 @@ describe("full UI replacement regression coverage", () => {
             /--tag-(blue|green|amber|violet|rose|slate)/,
         );
         expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
-        expect(toggleGroup).toContain("[display:grid]");
+        expect(toggleGroup).toContain("!grid");
         expect(toggleGroup).toContain("place-items-center");
         expect(toggleGroup).toContain("rounded-[50%]");
         expect(toggleGroup).toContain("text-[13.3333px]");
@@ -3253,7 +3253,7 @@ describe("full UI replacement regression coverage", () => {
         expect(button).toContain("actionPrimary:");
         expect(button).toContain("actionDestructive:");
         expect(button).toContain("accentIcon:");
-        for (const recordingTagButtonVariant of [
+        for (const recordingTagButtonToken of [
             "recordingTagErrorRetry",
             "recordingTagToggle",
             "recordingTagInlineCreate",
@@ -3262,19 +3262,9 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagDelete",
             "recordingTagChipRemove",
             "recordingTagPanelClose",
-        ]) {
-            expect(buttonVariantBlock).toContain(
-                `${recordingTagButtonVariant}:`,
-            );
-        }
-        for (const recordingTagButtonSize of [
             "recordingTagAction",
-            "recordingTagToggle",
-            "recordingTagInlineCreate",
-            "recordingTagChipRemove",
-            "recordingTagPanelClose",
         ]) {
-            expect(buttonSizeBlock).toContain(`${recordingTagButtonSize}:`);
+            expect(button).not.toContain(recordingTagButtonToken);
         }
         expect(button).toContain("text-[var(--accent)]");
         expect(button).toContain('"control-xs":');
@@ -3566,10 +3556,14 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("data-variant={variant}");
         expect(toggleGroup).toContain("data-tone={itemTone}");
         expect(toggleGroup).toContain("data-size={size}");
-        expect(toggleGroup).toContain("recordingTagColorPicker:");
-        expect(toggleGroup).toContain("recordingTagQuickColorPicker:");
-        expect(toggleGroup).toContain("recordingTagIconPicker:");
-        expect(toggleGroup).toContain("recordingTagIconOption:");
+        for (const recordingTagToggleToken of [
+            "recordingTagColorPicker",
+            "recordingTagQuickColorPicker",
+            "recordingTagIconPicker",
+            "recordingTagIconOption",
+        ]) {
+            expect(toggleGroup).not.toContain(recordingTagToggleToken);
+        }
         expect(toggleGroup).toContain("onboardingSourceAuthMode:");
         expect(toggleGroup).toContain("onboardingSourceAuthModeOption:");
         expect(toggleGroup).not.toContain("settingsSourceAuthMode:");
@@ -3582,7 +3576,7 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain("toggle-group-swatch-tone-purple");
         expect(toggleGroup).toContain("toggle-group-swatch-tone-red");
         expect(toggleGroup).toContain("toggle-group-swatch-tone-slate");
-        expect(toggleGroup).toContain("[display:grid]");
+        expect(toggleGroup).toContain("!grid");
         expect(toggleGroup).toContain("rounded-[50%]");
         expect(toggleGroup).toContain("text-[13.3333px]");
         expect(toggleGroup).toContain("font-normal");
@@ -6253,13 +6247,18 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="sourceReportCopyAction"');
-            expect(buttonOpening).toContain('size="sourceReportCopyAction"');
-            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('size="control-xs"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+            );
+            expect(buttonOpening).not.toContain(
+                'variant="sourceReportCopyAction"',
+            );
             expect(buttonOpening).not.toContain('variant="secondary"');
             expect(buttonOpening).not.toContain('variant="destructive"');
             expect(buttonOpening).not.toContain('size="sm"');
-            expect(buttonOpening).not.toContain("className=");
         }
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -6277,12 +6276,16 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="sourceReportAction"');
-            expect(buttonOpening).toContain('size="sourceReportAction"');
+            expect(buttonOpening).toContain('variant="outline"');
+            expect(buttonOpening).toContain('size="xs"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            );
+            expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
             expect(buttonOpening).not.toContain('variant="default"');
-            expect(buttonOpening).not.toContain('size="sm"');
-            expect(buttonOpening).not.toContain("className=");
+            expect(buttonOpening).not.toContain('size="sourceReportAction"');
         }
         for (const removed of [
             "SOT_COPY_BUTTON_BASE_CLASS",
@@ -7153,9 +7156,8 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toContain(
             "className={SOURCE_REPORT_METRIC_CARD_CLASS}",
         );
-        expect(sourceReportPanel).toContain(
-            "<div data-sot-source-report-actions>",
-        );
+        expect(sourceReportPanel).toContain("data-sot-source-report-actions");
+        expect(sourceReportPanel).toContain("SOURCE_REPORT_ACTIONS_CLASS_NAME");
         expect(sourceReportPanel).not.toContain(
             'className="justify-start whitespace-normal"',
         );
@@ -7227,26 +7229,51 @@ describe("full UI replacement regression coverage", () => {
             ") : null;",
         );
         expect(sourceReportActions).toContain(
-            "<div data-sot-source-report-actions>",
+            "className={sourceReportActionsClassName}",
         );
-        expect(sourceReportButtonPrimitive).toContain("sourceReportAction:");
-        expect(sourceReportButtonPrimitive).toContain(
-            "sourceReportPrimaryAction:",
+        expect(sourceReportActions).toContain("data-sot-source-report-actions");
+        for (const sourceReportButtonToken of [
+            "sourceReportAction",
+            "sourceReportPrimaryAction",
+            "sourceReportGhostAction",
+            "sourceReportCopyAction",
+        ]) {
+            expect(sourceReportButtonPrimitive).not.toContain(
+                sourceReportButtonToken,
+            );
+        }
+        expect(sourceReportPanel).toContain(
+            "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
         );
-        expect(sourceReportButtonPrimitive).toContain(
-            "sourceReportGhostAction:",
+        expect(sourceReportPanel).toContain("SOURCE_REPORT_ACTIONS_CLASS_NAME");
+        expect(sourceReportPanel).toContain(
+            "SOURCE_REPORT_ACTIONS_BOTH_MISSING_CLASS_NAME",
         );
-        expect(sourceReportButtonPrimitive).toContain(
-            "sourceReportCopyAction:",
+        expect(sourceReportPanel).toContain(
+            'sourceReportSubState === "both-missing"',
         );
-        expect(sourceReportActions).toContain('variant="sourceReportAction"');
+        expect(sourceReportPanel).toContain(
+            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportPanel).toContain(
+            "SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportActions).toContain('variant="outline"');
+        expect(sourceReportActions).toContain('variant="ghost"');
+        expect(sourceReportActions).toContain('size="xs"');
         expect(sourceReportActions).toContain(
+            "SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportActions).toContain(
+            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportActions).not.toContain(
+            'variant="sourceReportAction"',
+        );
+        expect(sourceReportActions).not.toContain(
             'variant="sourceReportGhostAction"',
         );
-        expect(sourceReportActions).toContain('size="sourceReportAction"');
-        expect(sourceReportActions).not.toContain('variant="outline"');
-        expect(sourceReportActions).not.toContain('variant="ghost"');
-        expect(sourceReportActions).not.toContain('size="xs"');
+        expect(sourceReportActions).not.toContain('size="sourceReportAction"');
         expect(sourceReportActions).toContain(
             'data-sot-control="open-source-record"',
         );
@@ -7274,16 +7301,28 @@ describe("full UI replacement regression coverage", () => {
             'className="justify-center"',
         );
         expect(sourceReportEmptyActions).toContain(
-            'variant="sourceReportPrimaryAction"',
+            'variant="default"',
         );
         expect(sourceReportEmptyActions).toContain(
+            'variant="ghost"',
+        );
+        expect(sourceReportEmptyActions).toContain('size="xs"');
+        expect(sourceReportEmptyActions).toContain(
+            "SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportEmptyActions).toContain(
+            "SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
+        );
+        expect(sourceReportEmptyActions).not.toContain(
+            'variant="sourceReportPrimaryAction"',
+        );
+        expect(sourceReportEmptyActions).not.toContain(
             'variant="sourceReportGhostAction"',
         );
-        expect(sourceReportEmptyActions).toContain('size="sourceReportAction"');
-        expect(sourceReportEmptyActions).not.toContain('variant="default"');
-        expect(sourceReportEmptyActions).not.toContain('variant="ghost"');
+        expect(sourceReportEmptyActions).not.toContain(
+            'size="sourceReportAction"',
+        );
         expect(sourceReportEmptyActions).not.toContain('size="sm"');
-        expect(sourceReportEmptyActions).not.toContain('size="xs"');
         expect(sourceReportEmptyActions).toContain(
             'data-sot-control="refresh-source-report"',
         );
@@ -7341,24 +7380,24 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="repull-source"',
             "Button",
         );
-        expect(dashboardSourceReportOpenAction).toContain(
-            'variant="sourceReportAction"',
+        expect(dashboardSourceReportOpenAction).toContain('variant="outline"');
+        expect(dashboardSourceReportOpenAction).toContain('size="xs"');
+        expectClassNameConstReference(
+            dashboardSourceReportOpenAction,
+            "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
         );
-        expect(dashboardSourceReportOpenAction).toContain(
-            'size="sourceReportAction"',
-        );
-        expect(dashboardSourceReportRepullAction).toContain(
-            'variant="sourceReportGhostAction"',
-        );
-        expect(dashboardSourceReportRepullAction).toContain(
-            'size="sourceReportAction"',
+        expect(dashboardSourceReportRepullAction).toContain('variant="ghost"');
+        expect(dashboardSourceReportRepullAction).toContain('size="xs"');
+        expectClassNameConstReference(
+            dashboardSourceReportRepullAction,
+            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
         for (const action of [
             dashboardSourceReportOpenAction,
             dashboardSourceReportRepullAction,
         ]) {
-            expect(action).not.toContain('variant="ghost"');
-            expect(action).not.toContain('variant="outline"');
+            expect(action).not.toContain('variant="sourceReport');
+            expect(action).not.toContain('size="sourceReport');
             expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {
@@ -8459,7 +8498,7 @@ describe("full UI replacement regression coverage", () => {
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expect(alertPrimitive).toContain("statusError:");
-        expect(alertPrimitive).toContain("speakerReviewError:");
+        expect(alertPrimitive).not.toContain("speakerReviewError:");
         for (const settingsAlertPrimitiveToken of [
             "settingsBanner:",
             "settingsBannerError:",
@@ -8575,9 +8614,9 @@ describe("full UI replacement regression coverage", () => {
             "speakerReviewSuggestion",
             "speakerReviewIconAction",
         ]) {
-            expect(button).toContain(`${speakerReviewButtonVariant}:`);
+            expect(button).not.toContain(`${speakerReviewButtonVariant}:`);
         }
-        expect(button).toContain("speakerReviewIcon:");
+        expect(button).not.toContain("speakerReviewIcon:");
         expectSourceToExcludeForbiddenSubstrings(
             cardPrimitive,
             CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
@@ -8590,6 +8629,18 @@ describe("full UI replacement regression coverage", () => {
             "SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME",
             "SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME",
             "SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME",
+            "SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME",
+            "SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME",
+            "SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME",
+            "SPEAKER_REVIEW_ERROR_DESCRIPTION_CLASS_NAME",
+            "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+            "SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME",
             "SpeakerReviewCard",
             "SpeakerReviewCardHeader",
             "SpeakerReviewCardTitle",
@@ -8600,9 +8651,9 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(speakerReview).toContain(speakerReviewCardOwnerToken);
         }
-        expect(toggleGroupPrimitive).toContain("speakerReviewMode:");
-        expect(toggleGroupPrimitive).toContain("speakerReviewModeItem:");
-        expect(inputGroupPrimitive).toContain("speakerReviewMappingClear:");
+        expect(toggleGroupPrimitive).not.toContain("speakerReviewMode");
+        expect(toggleGroupPrimitive).not.toContain("speakerReviewModeItem");
+        expect(inputGroupPrimitive).not.toContain("speakerReviewMappingClear");
         for (const speakerReviewEmptyVariant of [
             "speakerReviewMerge",
             "speakerReviewDetected",
@@ -8610,7 +8661,7 @@ describe("full UI replacement regression coverage", () => {
             "speakerReviewState",
             "speakerReviewMergeIcon",
         ]) {
-            expect(emptyPrimitive).toContain(`${speakerReviewEmptyVariant}:`);
+            expect(emptyPrimitive).not.toContain(speakerReviewEmptyVariant);
         }
         const speakerReviewVoiceprintBadgeClass = extractBoundedSlice(
             speakerReview,
@@ -8719,20 +8770,21 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="speaker-review-mode"',
             "ToggleGroup",
         );
-        expect(speakerReviewModeToggle).toContain(
+        expect(speakerReviewModeToggle).toContain('variant="default"');
+        expect(speakerReviewModeToggle).toContain('size="sm"');
+        expect(speakerReviewModeToggle).toContain('className="flex-nowrap"');
+        expect(speakerReviewModeToggle).toContain("spacing={1}");
+        expect(speakerReviewModeToggle).not.toContain(
             'variant="speakerReviewMode"',
         );
-        expect(speakerReviewModeToggle).toContain(
+        expect(speakerReviewModeToggle).not.toContain(
             'size="speakerReviewModeItem"',
         );
-        expect(speakerReviewModeToggle).toContain('layout="speakerReviewMode"');
-        expect(speakerReviewModeToggle).toContain(
-            'spacing="speakerReviewMode"',
-        );
-        expect(speakerReviewModeToggle).not.toContain('size="sm"');
-        expect(speakerReviewModeToggle).not.toContain("spacing={1}");
         expect(speakerReviewModeToggle).not.toContain(
-            'className="flex-nowrap"',
+            'layout="speakerReviewMode"',
+        );
+        expect(speakerReviewModeToggle).not.toContain(
+            'spacing="speakerReviewMode"',
         );
         const speakerReviewModeOptions = collectOpeningElements(
             speakerReview,
@@ -8742,7 +8794,10 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(speakerReviewModeOptions).toHaveLength(2);
         for (const opening of speakerReviewModeOptions) {
-            expect(opening).not.toContain('className="px-2.5"');
+            expectClassNameConstReference(
+                opening,
+                "SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME",
+            );
         }
         const speakerReviewMappingInputIndex = speakerReview.indexOf(
             'data-sot-control="speaker-review-mapping-input"',
@@ -8766,14 +8821,21 @@ describe("full UI replacement regression coverage", () => {
             opening.includes('data-sot-control="speaker-review-mapping-clear"'),
         );
         expect(speakerReviewMappingClear).toBeDefined();
+        expect(speakerReviewMappingClear).toContain('size="icon-xs"');
+        expect(speakerReviewMappingClear).toContain('variant="ghost"');
+        expectClassNameConstReference(
+            speakerReviewMappingClear ?? "",
+            "SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME",
+        );
         expect(speakerReviewMappingClear).toContain(
+            'data-sot-control="speaker-review-mapping-clear"',
+        );
+        expect(speakerReviewMappingClear).not.toContain(
             'size="speakerReviewMappingClear"',
         );
-        expect(speakerReviewMappingClear).toContain(
+        expect(speakerReviewMappingClear).not.toContain(
             'variant="speakerReviewMappingClear"',
         );
-        expect(speakerReviewMappingClear).not.toContain('size="icon-xs"');
-        expect(speakerReviewMappingClear).not.toContain('variant="ghost"');
         expect(speakerReviewMappingInput).toContain("aria-busy={");
         expect(speakerReviewMappingInput).toContain("onFocus={() =>");
         expect(speakerReviewMappingInput).toContain("onBlur={() =>");
@@ -8798,23 +8860,23 @@ describe("full UI replacement regression coverage", () => {
             "Empty",
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<Empty\s+variant="speakerReviewMerge"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
+            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
         );
         expect(speakerReviewMergeEmpty).toContain(
-            '<EmptyHeader variant="speakerReviewMerge">',
+            '<EmptyHeader variant="popover">',
         );
         expect(speakerReviewMergeEmpty).toContain("<EmptyMedia");
         expect(speakerReviewMergeEmpty).toContain(
-            'variant="speakerReviewMergeIcon"',
+            'variant="subtleIcon"',
         );
         expect(speakerReviewMergeEmpty).toContain(
             "<Check strokeWidth={1.8} />",
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyTitle\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
+            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
         );
         expect(speakerReviewMergeEmpty).toMatch(
-            /<EmptyDescription\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
+            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
         );
         const speakerReviewNoSamplesEmpty = extractElementSlice(
             speakerReview,
@@ -8825,13 +8887,16 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="speaker-review-empty"',
         );
         expect(speakerReviewNoSamplesEmpty).toContain(
-            'variant="speakerReviewInline"',
+            'variant="default"',
         );
         expect(speakerReviewNoSamplesEmpty).toContain(
-            '<EmptyHeader variant="speakerReviewState">',
+            "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
         );
         expect(speakerReviewNoSamplesEmpty).toContain(
-            '<EmptyTitle variant="speakerReviewState">',
+            '<EmptyHeader variant="default">',
+        );
+        expect(speakerReviewNoSamplesEmpty).toContain(
+            '<EmptyTitle variant="default">',
         );
         for (const state of [
             "no-detected-speakers",
@@ -8843,16 +8908,17 @@ describe("full UI replacement regression coverage", () => {
                 `data-sot-state="${state}"`,
                 "Empty",
             );
+            expect(emptyState).toContain('variant="default"');
+            if (state !== "no-detected-speakers") {
+                expect(emptyState).toContain(
+                    "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+                );
+            }
             expect(emptyState).toContain(
-                state === "no-detected-speakers"
-                    ? 'variant="speakerReviewDetected"'
-                    : 'variant="speakerReviewInline"',
+                '<EmptyHeader variant="default">',
             );
             expect(emptyState).toContain(
-                '<EmptyHeader variant="speakerReviewState">',
-            );
-            expect(emptyState).toContain(
-                '<EmptyTitle variant="speakerReviewState">',
+                '<EmptyTitle variant="default">',
             );
         }
         for (const selector of [
@@ -8886,18 +8952,36 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(speakerReviewButtonOpenings.length).toBeGreaterThan(0);
         for (const opening of speakerReviewButtonOpenings) {
-            expect(opening).not.toContain('variant="ghost"');
-            expect(opening).not.toContain('variant="default"');
-            expect(opening).not.toContain('variant="destructive"');
-            expect(opening).not.toContain('variant="outline"');
-            expect(opening).not.toContain('size="sm"');
+            expect(opening).not.toContain('variant="speakerReview');
+            expect(opening).not.toContain('size="speakerReview');
         }
-        expect(speakerReview).toContain('variant="speakerReviewSuggestion"');
-        expect(speakerReview).toContain('size="speakerReviewSuggestion"');
-        expect(speakerReview).toContain('variant="speakerReviewPrimaryAction"');
-        expect(speakerReview).toContain('variant="speakerReviewGhostAction"');
-        expect(speakerReview).toContain('variant="speakerReviewDangerAction"');
-        expect(speakerReview).toContain('size="speakerReviewAction"');
+        expect(speakerReview).toContain('variant="outline"');
+        expect(speakerReview).toContain('variant="default"');
+        expect(speakerReview).toContain('variant="ghost"');
+        expect(speakerReview).toContain('variant="destructive"');
+        expect(speakerReview).toContain('size="sm"');
+        for (const speakerReviewButtonOwnerToken of [
+            "SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
+            "SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME",
+        ]) {
+            expect(speakerReview).toContain(speakerReviewButtonOwnerToken);
+        }
+        expect(speakerReview).not.toContain('variant="speakerReviewSuggestion"');
+        expect(speakerReview).not.toContain('size="speakerReviewSuggestion"');
+        expect(speakerReview).not.toContain(
+            'variant="speakerReviewPrimaryAction"',
+        );
+        expect(speakerReview).not.toContain(
+            'variant="speakerReviewGhostAction"',
+        );
+        expect(speakerReview).not.toContain(
+            'variant="speakerReviewDangerAction"',
+        );
+        expect(speakerReview).not.toContain('size="speakerReviewAction"');
         const speakerReviewCardOpenings = collectOpeningElements(
             speakerReview,
             "Card",
@@ -8937,9 +9021,14 @@ describe("full UI replacement regression coverage", () => {
         ).filter((element) =>
             element.includes('data-sot-part="speaker-review-state"'),
         )) {
-            expect(opening).toContain('variant="speakerReviewError"');
-            expect(opening).toContain('density="speakerReviewError"');
-            expect(opening).toContain('layout="speakerReviewError"');
+            expect(opening).toContain('variant="statusError"');
+            expectClassNameConstReference(
+                opening,
+                "SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME",
+            );
+            expect(opening).not.toContain('variant="speakerReviewError"');
+            expect(opening).not.toContain('density="speakerReviewError"');
+            expect(opening).not.toContain('layout="speakerReviewError"');
             expect(opening).not.toContain('variant="destructive"');
         }
         const speakerReviewBadgeOpenings = collectOpeningElements(
@@ -8967,16 +9056,16 @@ describe("full UI replacement regression coverage", () => {
             'className="h-auto min-h-8 w-full justify-start px-2 py-1.5"',
         );
         for (const retiredSpeakerReviewSliceToken of [
-            'size="sm"',
-            "spacing={1}",
-            'className="flex-nowrap"',
-            'className="px-2.5"',
-            'size="icon-xs"',
-            'variant="compact"',
-            'variant="subtleIcon"',
-            'className="max-w-none gap-0"',
-            'className="py-6"',
-            'className="py-4 md:p-4"',
+            'variant="speakerReviewMode"',
+            'size="speakerReviewModeItem"',
+            'layout="speakerReviewMode"',
+            'spacing="speakerReviewMode"',
+            'size="speakerReviewMappingClear"',
+            'variant="speakerReviewMappingClear"',
+            'variant="speakerReviewMerge"',
+            'variant="speakerReviewMergeIcon"',
+            'variant="speakerReviewInline"',
+            'variant="speakerReviewState"',
         ]) {
             expect(speakerReview).not.toContain(retiredSpeakerReviewSliceToken);
         }
@@ -9994,37 +10083,51 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="icon-grid"',
             "ToggleGroup",
         );
+        expect(tagManagerColorPicker).toContain('variant="default"');
+        expect(tagManagerColorPicker).toContain('size="sm"');
         expect(tagManagerColorPicker).toContain(
+            'className="tagm-swatches flex-wrap"',
+        );
+        expect(tagManagerColorPicker).toContain(
+            "spacing={picker === \"quick\" ? 1 : 2}",
+        );
+        expect(tagManagerColorPicker).not.toContain(
             'variant="recordingTagColorPicker"',
         );
-        expect(tagManagerColorPicker).toContain(
+        expect(tagManagerColorPicker).not.toContain(
             'size="recordingTagColorPicker"',
         );
-        expect(tagManagerColorPicker).toContain(
+        expect(tagManagerColorPicker).not.toContain(
             'layout="recordingTagColorPicker"',
         );
-        expect(tagManagerColorPicker).toContain(
-            '"recordingTagQuickColorPicker"',
-        );
-        expect(tagManagerColorPicker).toContain('"recordingTagColorPicker"');
         expect(tagManagerColorPicker).toContain('variant="swatch"');
         expect(tagManagerColorPicker).toContain('size="swatch"');
         expect(tagManagerColorPicker).not.toContain('variant="outline"');
-        expect(tagManagerIconPicker).toContain(
+        expect(tagManagerIconPicker).toContain('variant="default"');
+        expect(tagManagerIconPicker).toContain('size="sm"');
+        expect(tagManagerIconPicker).toContain('layout="default"');
+        expect(tagManagerIconPicker).toContain('className="grid grid-cols-6"');
+        expect(tagManagerIconPicker).toContain("spacing={2}");
+        expect(tagManagerIconPicker).toContain('variant="outline"');
+        expect(tagManagerIconPicker).toContain('size="iconPicker"');
+        expect(tagManagerIconPicker).not.toContain(
             'variant="recordingTagIconPicker"',
         );
-        expect(tagManagerIconPicker).toContain('size="recordingTagIconPicker"');
-        expect(tagManagerIconPicker).toContain(
+        expect(tagManagerIconPicker).not.toContain(
+            'size="recordingTagIconPicker"',
+        );
+        expect(tagManagerIconPicker).not.toContain(
             'layout="recordingTagIconPicker"',
         );
-        expect(tagManagerIconPicker).toContain(
+        expect(tagManagerIconPicker).not.toContain(
             'spacing="recordingTagIconPicker"',
         );
-        expect(tagManagerIconPicker).toContain(
+        expect(tagManagerIconPicker).not.toContain(
             'variant="recordingTagIconOption"',
         );
-        expect(tagManagerIconPicker).toContain('size="recordingTagIconOption"');
-        expect(tagManagerIconPicker).not.toContain('variant="outline"');
+        expect(tagManagerIconPicker).not.toContain(
+            'size="recordingTagIconOption"',
+        );
         for (const primitiveImport of [
             "Field,",
             "FieldGroup,",
@@ -10066,7 +10169,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('"recordingTagManagerCompact"');
         expect(tagManager).toContain("contentVariant={contentVariant}");
         expect(tagManager).not.toContain('variant="recordingTagToggleNote"');
-        for (const recordingTagButtonVariant of [
+        for (const recordingTagBusinessProp of [
             'variant="recordingTagErrorRetry"',
             'variant="recordingTagToggle"',
             'variant="recordingTagInlineCreate"',
@@ -10074,56 +10177,55 @@ describe("full UI replacement regression coverage", () => {
             'variant="recordingTagCreate"',
             'variant="recordingTagDelete"',
             'variant="recordingTagPanelClose"',
+            'variant="recordingTagPickerFrame"',
+            'variant="recordingTagPickerLabel"',
+            'variant="recordingTagSection"',
+            'variant="recordingTagSectionLabel"',
+            'variant="recordingTagError"',
+            'size="recordingTag',
+            'density="recordingTag',
+            'layout="recordingTag',
+            'spacing="recordingTag',
         ]) {
-            expect(tagManager).toContain(recordingTagButtonVariant);
+            expect(tagManager).not.toContain(recordingTagBusinessProp);
         }
         expect(tagManager).toContain(
+            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
+        );
+        expect(tagManager).not.toContain(
             "RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT",
         );
-        expect(tagManager).toContain(
-            '"recordingTagChipRemove" satisfies ComponentProps<typeof Button>["variant"]',
-        );
-        expect(tagManager).toContain(
-            "variant={\n                                                    RECORDING_TAG_CHIP_REMOVE_BUTTON_VARIANT\n                                                }",
-        );
-        expect(tagManager).toContain('variant="recordingTagPickerFrame"');
-        expect(tagManager).toContain('variant="recordingTagPickerLabel"');
-        expect(tagManager).toContain('variant="recordingTagSection"');
-        expect(tagManager).toContain('variant="recordingTagSectionLabel"');
+        expect(tagManager).toContain('variant="ghostNeutral"');
+        expect(tagManager).toContain('variant="pill"');
+        expect(tagManager).toContain('variant="accentIcon"');
+        expect(tagManager).toContain('variant="actionPrimary"');
+        expect(tagManager).toContain('variant="actionDestructive"');
+        expect(tagManager).toContain('variant="chipRemove"');
+        expect(tagManager).toContain('variant="ghostIconCompact"');
+        expect(tagManager).toContain('variant="pickerFrame"');
+        expect(tagManager).toContain('variant="picker"');
+        expect(tagManager).toContain('className="tagm-sec"');
+        expect(tagManager).toContain('className="tagm-sec-label"');
         expect(tagManager).toContain('appearance="pill"');
         expect(tagManager).toContain('variant="swatch"');
-        expect(tagManager).toContain('variant="recordingTagError"');
-        expect(tagManager).toContain('variant="recordingTagDeleteConfirm"');
-        expect(tagManager).toContain('density="recordingTagError"');
-        expect(tagManager).toContain('density="recordingTagDeleteConfirm"');
-        expect(tagManager).toContain('layout="recordingTagInline"');
-        expect(tagManager).toContain('size="recordingTagColorPicker"');
-        expect(tagManager).toContain('size="recordingTagIconPicker"');
+        expect(tagManager).toContain('variant="statusError"');
+        expect(tagManager).toContain('variant="destructiveSoftNeutral"');
+        expect(tagManager).toContain('density="compact"');
+        expect(tagManager).toContain('density="comfortable"');
+        expect(tagManager).toContain('layout="inline"');
+        expect(tagManager).toContain('size="colorPicker"');
+        expect(tagManager).toContain('size="iconPicker"');
         for (const recordingTagButtonSize of [
-            'size="recordingTagAction"',
-            'size="recordingTagToggle"',
-            'size="recordingTagInlineCreate"',
-            'size="recordingTagChipRemove"',
-            'size="recordingTagPanelClose"',
+            'size="control-sm"',
+            'size="pill-sm"',
+            'size="icon"',
+            'size="icon-chip"',
+            'size="icon-2xs"',
         ]) {
             expect(tagManager).toContain(recordingTagButtonSize);
         }
         expect(tagManager).toContain('size="swatch"');
-        for (const retiredRecordingTagButtonToken of [
-            'variant="ghostNeutral"',
-            'variant="actionPrimary"',
-            'variant="actionDestructive"',
-            'variant="accentIcon"',
-            'variant="chipRemove"',
-            'variant="ghostIconCompact"',
-            'size="icon-compact"',
-            'size="control-sm"',
-            'size="pill-sm"',
-            'size="icon-2xs"',
-            'size="icon-chip"',
-        ]) {
-            expect(tagManager).not.toContain(retiredRecordingTagButtonToken);
-        }
+        expect(tagManager).not.toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
         expect(tagManager).toContain('saving && "pointer-events-none"');
@@ -10145,25 +10247,24 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain(
             "recordingTagManagerCardClassNames.toggleNote",
         );
-        expect(emptyPrimitive).toContain("recordingTagEmptyState:");
-        expect(inputGroupPrimitive).toContain("recordingTagCreateRow:");
-        expect(inputGroupPrimitive).toContain("recordingTagNameInput:");
-        expect(fieldPrimitive).toContain("recordingTagPickerFrame:");
-        expect(fieldPrimitive).toContain("recordingTagPickerLabel:");
-        expect(fieldPrimitive).toContain("recordingTagSectionLabel:");
-        expect(alertPrimitive).toContain("recordingTagError:");
-        expect(alertPrimitive).toContain("recordingTagDeleteConfirm:");
+        expect(emptyPrimitive).not.toContain("recordingTagEmptyState:");
+        expect(inputGroupPrimitive).not.toContain("recordingTagCreateRow:");
+        expect(inputGroupPrimitive).not.toContain("recordingTagNameInput:");
+        expect(fieldPrimitive).not.toContain("recordingTagPickerFrame:");
+        expect(fieldPrimitive).not.toContain("recordingTagPickerLabel:");
+        expect(fieldPrimitive).not.toContain("recordingTagSectionLabel:");
+        expect(alertPrimitive).not.toContain("recordingTagError:");
+        expect(alertPrimitive).not.toContain("recordingTagDeleteConfirm:");
         expect(tagManager).not.toContain(
             'className="max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 max-md:max-w-none"',
         );
         expect(tagManager).toMatch(
-            /<InputGroup[\s\S]*variant="recordingTagCreateRow"[\s\S]*data-sot-part="create-row"/,
+            /<InputGroup[\s\S]*variant="compact"[\s\S]*data-sot-part="create-row"/,
         );
         expect(tagManager).toMatch(
-            /<InputGroupInput[\s\S]*variant="recordingTagNameInput"[\s\S]*data-sot-control="recording-tag-name"/,
+            /<InputGroupInput[\s\S]*variant="compact"[\s\S]*data-sot-control="recording-tag-name"/,
         );
         for (const retiredRecordingTagShellToken of [
-            'variant="popover"',
             'variant="popoverCompact"',
             '"popoverCreate"',
             '"popoverDelete"',
@@ -10173,18 +10274,14 @@ describe("full UI replacement regression coverage", () => {
             '"popoverTight"',
             '"popoverCompact"',
             'variant="popoverNote"',
-            'variant="pickerFrame"',
-            'variant="picker"',
-            'variant="section"',
-            'variant="sectionLabel"',
-            'variant="destructiveSoft"',
-            'variant="destructiveSoftNeutral"',
-            'variant="compact"',
-            'density="compact"',
-            'density="comfortable"',
-            'layout="inline"',
-            'size="colorPicker"',
-            'size="iconPicker"',
+            'variant="recordingTagPickerFrame"',
+            'variant="recordingTagPickerLabel"',
+            'variant="recordingTagSection"',
+            'variant="recordingTagSectionLabel"',
+            'variant="recordingTagDeleteConfirm"',
+            'density="recordingTag',
+            'layout="recordingTag',
+            'size="recordingTag',
         ]) {
             expect(tagManager).not.toContain(retiredRecordingTagShellToken);
         }
@@ -10194,32 +10291,24 @@ describe("full UI replacement regression coverage", () => {
             "Button",
         );
         expect(tagManagerInlineCreateButton).toContain(
-            'variant="recordingTagInlineCreate"',
+            'variant="accentIcon"',
         );
         expect(tagManagerInlineCreateButton).toContain(
-            'size="recordingTagInlineCreate"',
+            'size="icon"',
+        );
+        expect(tagManagerInlineCreateButton).toContain(
+            "RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME",
         );
         expect(tagManagerInlineCreateButton).toContain(
             'data-sot-control="recording-tag-create"',
         );
         expect(tagManagerInlineCreateButton).toContain("disabled={!canCreate}");
-        const tagManagerFooterCreateButton = extractElementSlice(
-            tagManager,
-            'variant="recordingTagCreate"',
-            "Button",
-        );
-        expect(tagManagerFooterCreateButton).toContain(
-            'variant="recordingTagCreate"',
-        );
-        expect(tagManagerFooterCreateButton).toContain(
-            'size="recordingTagAction"',
-        );
-        expect(tagManagerFooterCreateButton).toContain(
-            'data-sot-control="recording-tag-create"',
-        );
-        expect(tagManager).toContain('className="min-w-0 max-w-full"');
+        expect(tagManager).toContain('variant="actionPrimary"');
+        expect(tagManager).toContain('size="control-sm"');
+        expect(tagManager).toContain('data-sot-control="recording-tag-create"');
+        expect(tagManager).toContain('"min-w-0 max-w-full"');
         expect(tagManager).toContain('className="gap-3.5"');
-        expect(tagManager).toContain('className="gap-2"');
+        expect(tagManager).toContain('className="tagm-create gap-2"');
         expect(tagManager).toContain("disabled={!canCreate}");
         expect(tagManager).toContain("onClick={() => void handleCreateTag()}");
         for (const shadcnRegression of [
@@ -10238,32 +10327,6 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).not.toContain(shadcnRegression);
         }
-        for (const rawClass of [
-            "tagm-panel",
-            "tagm-head",
-            "tagm-title",
-            "tagm-close",
-            "tagm-body",
-            "tagm-opts",
-            "tagm-opt",
-            "tagm-delete-confirm",
-            "tagm-delete-msg",
-            "tagm-create",
-            "tagm-create-row",
-            "tagm-picker",
-            "tagm-swatches",
-            "tagm-swatch",
-            "tagm-icon-grid",
-            "tg-pick",
-            "tagm-empty",
-            "tagm-sec",
-            "tagm-chips",
-            "tagm-sel-chip",
-            "tagm-error",
-            "tagm-add-btn",
-        ]) {
-            expect(tagManager).not.toContain(rawClass);
-        }
         expect(tagManager).not.toContain("mergeTagManagerClassName");
         expect(tagManager).not.toContain("transcript t-pane");
         expect(tagManager).not.toContain("className?: string");
@@ -10280,16 +10343,14 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(tagManagerEmpty).toContain('data-sot-part="empty"');
         expect(tagManagerEmpty).toContain('data-sot-state="empty"');
-        expect(tagManagerEmpty).toContain('variant="recordingTagEmptyState"');
+        expect(tagManagerEmpty).toContain('variant="popover"');
+        expect(tagManagerEmpty).toContain('<EmptyHeader variant="popover">');
         expect(tagManagerEmpty).toContain(
-            '<EmptyHeader variant="recordingTagEmptyState">',
-        );
-        expect(tagManagerEmpty).toContain(
-            '<EmptyTitle\n                                variant="recordingTagEmptyState"\n                                data-sot-part="empty-message"',
+            '<EmptyTitle\n                                variant="popover"\n                                data-sot-part="empty-message"',
         );
         expect(tagManagerEmpty).toContain("还没有任何标签");
         expect(tagManagerEmpty).toContain(
-            '<EmptyDescription\n                                variant="recordingTagEmptyState"\n                                data-sot-part="empty-description"',
+            '<EmptyDescription\n                                variant="popover"\n                                data-sot-part="empty-description"',
         );
         expect(tagManagerEmpty).toContain("在下方为这条录音创建第一个标签。");
         expect(tagManagerEmpty).not.toContain(
@@ -10534,8 +10595,16 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(sourceReport).not.toContain('variant="sourceReportErrorIcon"');
         expect(sourceReportErrorState).toContain("<EmptyMedia");
-        expect(sourceReportErrorState).toContain('density="sourceReportError"');
-        expect(sourceReportErrorState).toContain('layout="sourceReportError"');
+        expect(sourceReportErrorState).toContain('variant="statusError"');
+        expect(sourceReportErrorState).toContain(
+            "SOURCE_REPORT_ERROR_ALERT_CLASS_NAME",
+        );
+        expect(sourceReportErrorState).not.toContain(
+            'density="sourceReportError"',
+        );
+        expect(sourceReportErrorState).not.toContain(
+            'layout="sourceReportError"',
+        );
         expect(sourceReportErrorState).toContain(
             "data-sot-source-report-empty",
         );
@@ -10567,18 +10636,19 @@ describe("full UI replacement regression coverage", () => {
             BADGE_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS,
         );
         expect(sourceReport).not.toContain('variant="sourceReportStatus"');
-        expect(sourceReport).toContain('variant="sourceReportError"');
-        expect(alertPrimitive).toContain("sourceReportError:");
+        expect(sourceReport).not.toContain('variant="sourceReportError"');
+        expect(alertPrimitive).not.toContain("sourceReportError:");
         expect(emptyPrimitive).not.toContain("sourceReportErrorIcon");
         expect(emptyPrimitive).not.toContain(
             "SOURCE_REPORT_ERROR_ICON_CLASS_NAME",
         );
         expect(sourceReport).toContain(
-            '"sourceReportCopyAction" satisfies ButtonProps["variant"]',
+            '"ghost" satisfies ButtonProps["variant"]',
         );
         expect(sourceReport).toContain(
-            '"sourceReportCopyAction" satisfies ButtonProps["size"]',
+            '"control-xs" satisfies ButtonProps["size"]',
         );
+        expect(sourceReport).toContain("SOURCE_REPORT_COPY_BUTTON_CLASS_NAME");
         for (const token of SOURCE_REPORT_SKELETON_SHARED_TOKENS) {
             expect(skeletonPrimitive).not.toContain(token);
         }

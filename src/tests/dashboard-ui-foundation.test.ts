@@ -3329,13 +3329,18 @@ describe("dashboard SOT foundation", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="sourceReportCopyAction"');
-            expect(buttonOpening).toContain('size="sourceReportCopyAction"');
-            expect(buttonOpening).not.toContain('variant="ghost"');
+            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('size="control-xs"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME",
+            );
+            expect(buttonOpening).not.toContain(
+                'variant="sourceReportCopyAction"',
+            );
             expect(buttonOpening).not.toContain('variant="secondary"');
             expect(buttonOpening).not.toContain('variant="destructive"');
             expect(buttonOpening).not.toContain('size="sm"');
-            expect(buttonOpening).not.toContain("className=");
         }
         for (const control of DASHBOARD_TRANSCRIPT_GENERIC_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -3353,12 +3358,16 @@ describe("dashboard SOT foundation", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="sourceReportAction"');
-            expect(buttonOpening).toContain('size="sourceReportAction"');
+            expect(buttonOpening).toContain('variant="outline"');
+            expect(buttonOpening).toContain('size="xs"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
+            );
+            expect(buttonOpening).not.toContain('variant="sourceReportAction"');
             expect(buttonOpening).not.toContain('variant="ghost"');
             expect(buttonOpening).not.toContain('variant="default"');
-            expect(buttonOpening).not.toContain('size="sm"');
-            expect(buttonOpening).not.toContain("className=");
+            expect(buttonOpening).not.toContain('size="sourceReportAction"');
         }
         for (const removed of [
             "SOT_COPY_BUTTON_BASE_CLASS",
@@ -3425,20 +3434,24 @@ describe("dashboard SOT foundation", () => {
             'data-sot-control="repull-source"',
             "Button",
         );
-        expect(sourceReportOpenAction).toContain(
-            'variant="sourceReportAction"',
+        expect(sourceReportOpenAction).toContain('variant="outline"');
+        expect(sourceReportOpenAction).toContain('size="xs"');
+        expectClassNameConstReference(
+            sourceReportOpenAction,
+            "SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME",
         );
-        expect(sourceReportOpenAction).toContain('size="sourceReportAction"');
-        expect(sourceReportRepullAction).toContain(
-            'variant="sourceReportGhostAction"',
+        expect(sourceReportRepullAction).toContain('variant="ghost"');
+        expect(sourceReportRepullAction).toContain('size="xs"');
+        expectClassNameConstReference(
+            sourceReportRepullAction,
+            "SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME",
         );
-        expect(sourceReportRepullAction).toContain('size="sourceReportAction"');
         for (const action of [
             sourceReportOpenAction,
             sourceReportRepullAction,
         ]) {
-            expect(action).not.toContain('variant="ghost"');
-            expect(action).not.toContain('variant="outline"');
+            expect(action).not.toContain('variant="sourceReport');
+            expect(action).not.toContain('size="sourceReport');
             expect(action).not.toContain('size="sm"');
         }
         for (const hook of DASHBOARD_SOURCE_REPORT_META_VALUE_HELPER_HOOKS) {

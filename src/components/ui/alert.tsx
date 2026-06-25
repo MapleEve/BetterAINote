@@ -7,33 +7,17 @@ type AlertVariant =
     | "destructive"
     | "destructiveSoft"
     | "destructiveSoftNeutral"
-    | "statusError"
-    | "recordingTagDeleteConfirm"
-    | "recordingTagError"
-    | "sourceReportError"
-    | "speakerReviewError";
+    | "statusError";
 type AlertDensity =
     | "default"
     | "compact"
-    | "comfortable"
-    | "recordingTagDeleteConfirm"
-    | "recordingTagError"
-    | "sourceReportError"
-    | "speakerReviewError";
-type AlertLayout =
-    | "default"
-    | "inline"
-    | "recordingTagInline"
-    | "sourceReportError"
-    | "speakerReviewError";
-type AlertTitleDensity = "default" | "speakerReviewError";
+    | "comfortable";
+type AlertLayout = "default" | "inline";
+type AlertTitleDensity = "default";
 type AlertDescriptionDensity =
     | "default"
     | "compact"
-    | "comfortable"
-    | "recordingTagDeleteConfirm"
-    | "recordingTagError"
-    | "speakerReviewError";
+    | "comfortable";
 
 const alertVariantClassNames: Record<AlertVariant, string> = {
     default: "bg-card text-card-foreground",
@@ -45,14 +29,6 @@ const alertVariantClassNames: Record<AlertVariant, string> = {
         "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
     statusError:
         "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    recordingTagDeleteConfirm:
-        "border-[var(--alert-destructive-soft-strong-border)] bg-[var(--alert-destructive-soft-strong-bg)] text-[var(--fg-primary)] *:data-[slot=alert-description]:text-[var(--fg-primary)] [&>svg]:text-current",
-    recordingTagError:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    sourceReportError:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
-    speakerReviewError:
-        "border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)] text-[var(--signal-danger)] *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
 };
 
 const alertDensityClassNames: Record<AlertDensity, string> = {
@@ -62,29 +38,16 @@ const alertDensityClassNames: Record<AlertDensity, string> = {
         "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
     comfortable:
         "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
-    recordingTagDeleteConfirm:
-        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
-    recordingTagError:
-        "rounded-[var(--radius-sm)] px-[10px] py-[8px] text-[12px] leading-[1.4] font-medium has-[>svg]:grid-cols-[14px_1fr] has-[>svg]:gap-x-[8px] [&>svg]:size-[14px] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
-    sourceReportError: "rounded-lg px-4 py-8 text-sm",
-    speakerReviewError:
-        "rounded-[var(--radius-md)] px-[12px] py-[10px] text-[13px] leading-normal",
 };
 
 const alertLayoutClassNames: Record<AlertLayout, string> = {
     default:
         "grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 [&>svg]:text-current",
     inline: "flex w-full items-center gap-[8px] [&>svg]:text-current",
-    recordingTagInline:
-        "flex w-full items-center gap-[8px] [&>svg]:text-current",
-    sourceReportError:
-        "flex w-full flex-col items-center gap-2 text-center [&>svg]:text-current",
-    speakerReviewError: "grid w-full gap-2 [&_[data-slot=button]]:w-fit",
 };
 
 const alertTitleDensityClassNames: Record<AlertTitleDensity, string> = {
     default: "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-    speakerReviewError: "min-h-0 font-medium leading-normal tracking-normal",
 };
 
 const alertDescriptionDensityClassNames: Record<
@@ -97,12 +60,6 @@ const alertDescriptionDensityClassNames: Record<
         "flex items-center gap-2 text-[12px] leading-[1.4] font-medium text-current [&_p]:leading-[1.4]",
     comfortable:
         "block text-[13px] leading-normal text-current [&_strong]:font-bold",
-    recordingTagDeleteConfirm:
-        "block text-[13px] leading-normal text-current [&_strong]:font-bold",
-    recordingTagError:
-        "flex items-center gap-2 text-[12px] leading-[1.4] font-medium text-current [&_p]:leading-[1.4]",
-    speakerReviewError:
-        "flex items-center gap-2 text-[12px] leading-normal text-current [&_p]:leading-normal",
 };
 
 function Alert({

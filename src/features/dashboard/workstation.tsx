@@ -897,6 +897,15 @@ function SotSourceReportMetricCards({ children }: { children: ReactNode }) {
 const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =
     "gap-[6px] overflow-visible rounded-[10px] border-[var(--source-report-metric-border)] bg-[var(--source-report-metric-bg)] px-[12px] py-[10px] shadow-none backdrop-blur-none";
 
+const SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME = "text-[var(--fg-primary)]";
+const SOT_SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME = "shadow-xs";
+const SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME =
+    "border border-transparent bg-transparent text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50";
+const SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME =
+    "h-[26px] gap-[6px] rounded-[7px] px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] has-[>svg]:px-[10px] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg:not([class*='size-'])]:size-[14px] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)]";
+const SOT_SOURCE_REPORT_ERROR_ALERT_CLASS_NAME =
+    "flex w-full flex-col items-center gap-2 rounded-lg px-4 py-8 text-center text-sm [&>svg]:text-current";
+
 const SOT_DASHBOARD_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 
@@ -6731,8 +6740,9 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="sourceReportCopyAction"
-                                        size="sourceReportCopyAction"
+                                        variant="ghost"
+                                        size="control-xs"
+                                        className={SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
                                         type="button"
                                         data-copy="source-transcript"
                                         data-copy-state={
@@ -6794,8 +6804,9 @@ export function Workstation({
                                         </span>
                                     </Button>
                                     <Button
-                                        variant="sourceReportCopyAction"
-                                        size="sourceReportCopyAction"
+                                        variant="ghost"
+                                        size="control-xs"
+                                        className={SOT_SOURCE_REPORT_COPY_BUTTON_CLASS_NAME}
                                         type="button"
                                         data-copy="source-report"
                                         data-copy-state={
@@ -6855,8 +6866,9 @@ export function Workstation({
                                     </Button>
                                     {detailTab === "source" ? (
                                         <Button
-                                            variant="sourceReportAction"
-                                            size="sourceReportAction"
+                                            variant="outline"
+                                            size="xs"
+                                            className={SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME}
                                             type="button"
                                             data-sot-control="refresh-source-report"
                                             data-sot-state={sourceReportState}
@@ -7207,7 +7219,8 @@ export function Workstation({
                                             }
                                         >
                                             <Alert
-                                                variant="sourceReportError"
+                                                variant="statusError"
+                                                className={SOT_SOURCE_REPORT_ERROR_ALERT_CLASS_NAME}
                                                 data-sot-source-report-empty
                                                 data-sot-tone="err"
                                             >
@@ -7234,8 +7247,9 @@ export function Workstation({
                                                     data-sot-source-report-empty-actions
                                                 >
                                                     <Button
-                                                        variant="sourceReportPrimaryAction"
-                                                        size="sourceReportAction"
+                                                        variant="default"
+                                                        size="xs"
+                                                        className={SOT_SOURCE_REPORT_PRIMARY_ACTION_BUTTON_CLASS_NAME}
                                                         type="button"
                                                         data-sot-control="refresh-source-report"
                                                         data-sot-state="error"
@@ -7246,8 +7260,9 @@ export function Workstation({
                                                         重试
                                                     </Button>
                                                     <Button
-                                                        variant="sourceReportGhostAction"
-                                                        size="sourceReportAction"
+                                                        variant="ghost"
+                                                        size="xs"
+                                                        className={SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME}
                                                         type="button"
                                                         data-sot-control="source-report-activity-log"
                                                         data-sot-state="error"
@@ -7542,8 +7557,9 @@ export function Workstation({
                                                     data-sot-source-report-actions
                                                 >
                                                     <Button
-                                                        variant="sourceReportAction"
-                                                        size="sourceReportAction"
+                                                        variant="outline"
+                                                        size="xs"
+                                                        className={SOT_SOURCE_REPORT_ACTION_BUTTON_CLASS_NAME}
                                                         type="button"
                                                         disabled={
                                                             !sourceOpenUrl
@@ -7570,8 +7586,9 @@ export function Workstation({
                                                         )}
                                                     </Button>
                                                     <Button
-                                                        variant="sourceReportGhostAction"
-                                                        size="sourceReportAction"
+                                                        variant="ghost"
+                                                        size="xs"
+                                                        className={SOT_SOURCE_REPORT_GHOST_ACTION_BUTTON_CLASS_NAME}
                                                         type="button"
                                                         disabled={
                                                             sourceRepullDisabled

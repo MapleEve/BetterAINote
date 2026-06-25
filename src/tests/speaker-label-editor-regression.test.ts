@@ -6,6 +6,8 @@ const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 const SPEAKER_REVIEW_MERGE_POPOVER_PLACEMENT =
     "absolute right-0 top-[calc(100%+0.5rem)] z-[var(--z-popover-inline)] w-[320px] min-w-[280px]";
+const SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE =
+    /\bspeakerReview[A-Za-z0-9_]*\b/;
 
 describe("dashboard speaker label editor regressions", () => {
     const source = readFileSync(
@@ -224,9 +226,12 @@ describe("dashboard speaker label editor regressions", () => {
     it("keeps speaker list load failures distinct from empty state", () => {
         expect(source).toContain("speakerLoadError");
         expect(source).toContain("<Alert");
-        expect(source).toContain('variant="speakerReviewError"');
-        expect(source).toContain('density="speakerReviewError"');
-        expect(source).toContain('layout="speakerReviewError"');
+        expect(source).toContain('variant="statusError"');
+        expect(source).toContain("SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME");
+        expect(source).toContain("SPEAKER_REVIEW_ERROR_TITLE_CLASS_NAME");
+        expect(source).not.toContain('variant="speakerReviewError"');
+        expect(source).not.toContain('density="speakerReviewError"');
+        expect(source).not.toContain('layout="speakerReviewError"');
         expect(source).toContain("onClick={() => void refreshSpeakers()}");
         expect(source).toContain("speakerLoadError ? (");
         expect(source).toContain(") : speakers.length === 0 ? (");
@@ -325,9 +330,11 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).toContain(
             'data-sot-control="speaker-review-inline-save"',
         );
-        expect(source).toContain('variant="speakerReviewGhostAction"');
-        expect(source).toContain('variant="speakerReviewPrimaryAction"');
-        expect(source).toContain('size="speakerReviewAction"');
+        expect(source).toContain("SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME");
+        expect(source).toContain("SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME");
+        expect(source).not.toContain('variant="speakerReviewGhostAction"');
+        expect(source).not.toContain('variant="speakerReviewPrimaryAction"');
+        expect(source).not.toContain('size="speakerReviewAction"');
         expect(source).toContain('t("common.cancel")');
         expect(source).toContain('t("common.save")');
         expect(source).toMatch(/event\.key ===\s*"Escape"/);
@@ -390,18 +397,17 @@ describe("dashboard speaker label editor regressions", () => {
             expect(globalsSource).not.toContain(selector);
         }
 
-        for (const token of [
-            "speakerReviewAction:",
-            "speakerReviewPrimaryAction:",
-            "speakerReviewGhostAction:",
-            "speakerReviewDangerAction:",
-            "speakerReviewSuggestion:",
-            "speakerReviewIconAction:",
-            "speakerReviewAction:",
-            "speakerReviewSuggestion:",
-            "speakerReviewIcon:",
+        for (const primitiveSource of [
+            alertPrimitiveSource,
+            buttonPrimitiveSource,
+            emptyPrimitiveSource,
+            inputGroupPrimitiveSource,
+            toggleGroupPrimitiveSource,
+            globalsSource,
         ]) {
-            expect(buttonPrimitiveSource).toContain(token);
+            expect(primitiveSource).not.toMatch(
+                SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE,
+            );
         }
         for (const token of [
             "const SPEAKER_REVIEW_CARD_CLASS_NAMES =",
@@ -411,6 +417,16 @@ describe("dashboard speaker label editor regressions", () => {
             "const SPEAKER_REVIEW_CARD_DESCRIPTION_CLASS_NAME =",
             "const SPEAKER_REVIEW_CARD_ACTION_CLASS_NAME =",
             "const SPEAKER_REVIEW_VOICEPRINT_BADGE_CLASS_NAME =",
+            "const SPEAKER_REVIEW_ACTION_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_ICON_BUTTON_CLASS_NAME =",
+            "const SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME =",
+            "const SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME =",
+            "const SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME =",
+            "const SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME =",
             "function SpeakerReviewCard(",
             "function SpeakerReviewCardHeader(",
             "function SpeakerReviewCardTitle(",
@@ -425,6 +441,22 @@ describe("dashboard speaker label editor regressions", () => {
             expect(source).toContain(token);
         }
         for (const legacyVariant of [
+            "speakerReviewAction",
+            "speakerReviewPrimaryAction",
+            "speakerReviewGhostAction",
+            "speakerReviewDangerAction",
+            "speakerReviewSuggestion",
+            "speakerReviewIconAction",
+            "speakerReviewIcon",
+            "speakerReviewError",
+            "speakerReviewMode",
+            "speakerReviewModeItem",
+            "speakerReviewMappingClear",
+            "speakerReviewMerge",
+            "speakerReviewDetected",
+            "speakerReviewInline",
+            "speakerReviewState",
+            "speakerReviewMergeIcon",
             "speakerReviewTranscript",
             "speakerReviewRow",
             "speakerReviewMergePopover",
@@ -437,21 +469,6 @@ describe("dashboard speaker label editor regressions", () => {
         ]) {
             expect(source).not.toContain(`variant="${legacyVariant}"`);
         }
-        expect(alertPrimitiveSource).toContain("speakerReviewError:");
-        expect(toggleGroupPrimitiveSource).toContain("speakerReviewMode:");
-        expect(toggleGroupPrimitiveSource).toContain("speakerReviewModeItem:");
-        expect(inputGroupPrimitiveSource).toContain(
-            "speakerReviewMappingClear:",
-        );
-        for (const token of [
-            "speakerReviewMerge:",
-            "speakerReviewDetected:",
-            "speakerReviewInline:",
-            "speakerReviewState:",
-            "speakerReviewMergeIcon:",
-        ]) {
-            expect(emptyPrimitiveSource).toContain(token);
-        }
     });
 
     it("uses speaker review owner-local surfaces for this slice", () => {
@@ -459,13 +476,14 @@ describe("dashboard speaker label editor regressions", () => {
             'data-sot-control="speaker-review-mode"',
             "ToggleGroup",
         );
-        expect(modeToggle).toContain('variant="speakerReviewMode"');
-        expect(modeToggle).toContain('size="speakerReviewModeItem"');
-        expect(modeToggle).toContain('layout="speakerReviewMode"');
-        expect(modeToggle).toContain('spacing="speakerReviewMode"');
-        expect(modeToggle).not.toContain('size="sm"');
-        expect(modeToggle).not.toContain("spacing={1}");
-        expect(modeToggle).not.toContain('className="flex-nowrap"');
+        expect(modeToggle).toContain('variant="default"');
+        expect(modeToggle).toContain('size="sm"');
+        expect(modeToggle).toContain('className="flex-nowrap"');
+        expect(modeToggle).toContain("spacing={1}");
+        expect(modeToggle).not.toContain('variant="speakerReviewMode"');
+        expect(modeToggle).not.toContain('size="speakerReviewModeItem"');
+        expect(modeToggle).not.toContain('layout="speakerReviewMode"');
+        expect(modeToggle).not.toContain('spacing="speakerReviewMode"');
 
         const modeOptionOpenings = collectOpeningElements(
             "ToggleGroupItem",
@@ -474,44 +492,48 @@ describe("dashboard speaker label editor regressions", () => {
         );
         expect(modeOptionOpenings).toHaveLength(2);
         for (const opening of modeOptionOpenings) {
-            expect(opening).not.toContain('className="px-2.5"');
+            expect(opening).toContain(
+                "className={SPEAKER_REVIEW_MODE_ITEM_CLASS_NAME}",
+            );
+            expect(opening).not.toContain('variant="speakerReviewModeItem"');
         }
 
         const buttonOpenings = collectSpeakerReviewButtonOpenings();
         expect(buttonOpenings.length).toBeGreaterThan(0);
         for (const opening of buttonOpenings) {
-            expect(opening).not.toContain('variant="ghost"');
-            expect(opening).not.toContain('variant="default"');
-            expect(opening).not.toContain('variant="destructive"');
-            expect(opening).not.toContain('variant="outline"');
-            expect(opening).not.toContain('size="sm"');
+            expect(opening).not.toMatch(SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE);
         }
 
-        for (const { control, variant, size } of [
+        for (const { control, variant, size, className } of [
             {
                 control: 'data-sot-control="speaker-review-copy-raw"',
-                variant: 'variant="speakerReviewPrimaryAction"',
-                size: 'size="speakerReviewAction"',
+                variant: 'variant="default"',
+                size: 'size="sm"',
+                className: "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-sot-control="speaker-review-refresh"',
-                variant: 'variant="speakerReviewGhostAction"',
-                size: 'size="speakerReviewAction"',
+                variant: 'variant="ghost"',
+                size: 'size="sm"',
+                className: "SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-sot-control="speaker-review-inline-save"',
-                variant: 'variant="speakerReviewPrimaryAction"',
-                size: 'size="speakerReviewAction"',
+                variant: 'variant="default"',
+                size: 'size="sm"',
+                className: "SPEAKER_REVIEW_PRIMARY_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-sot-control="speaker-review-unlink"',
-                variant: 'variant="speakerReviewDangerAction"',
-                size: 'size="speakerReviewAction"',
+                variant: 'variant="destructive"',
+                size: 'size="sm"',
+                className: "SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME",
             },
             {
                 control: 'data-sot-control="speaker-review-suggestion"',
-                variant: 'variant="speakerReviewSuggestion"',
-                size: 'size="speakerReviewSuggestion"',
+                variant: 'variant="outline"',
+                size: 'size="default"',
+                className: "SPEAKER_REVIEW_SUGGESTION_BUTTON_CLASS_NAME",
             },
         ]) {
             const opening = collectOpeningElements("Button").find((element) =>
@@ -520,6 +542,7 @@ describe("dashboard speaker label editor regressions", () => {
             expect(opening).toBeDefined();
             expect(opening).toContain(variant);
             expect(opening).toContain(size);
+            expect(opening).toContain(className);
         }
 
         const cardOpenings = collectExactOpeningElements("SpeakerReviewCard");
@@ -604,10 +627,13 @@ describe("dashboard speaker label editor regressions", () => {
         );
         expect(alertOpenings.length).toBeGreaterThan(0);
         for (const opening of alertOpenings) {
-            expect(opening).toContain('variant="speakerReviewError"');
-            expect(opening).toContain('density="speakerReviewError"');
-            expect(opening).toContain('layout="speakerReviewError"');
-            expect(opening).not.toContain('variant="destructive"');
+            expect(opening).toContain('variant="statusError"');
+            expect(opening).toContain(
+                "className={SPEAKER_REVIEW_ERROR_ALERT_CLASS_NAME}",
+            );
+            expect(opening).not.toContain('variant="speakerReviewError"');
+            expect(opening).not.toContain('density="speakerReviewError"');
+            expect(opening).not.toContain('layout="speakerReviewError"');
         }
 
         const voiceprintBadges = collectExactOpeningElements(
@@ -618,6 +644,7 @@ describe("dashboard speaker label editor regressions", () => {
         expect(voiceprintBadges.length).toBeGreaterThan(0);
         for (const opening of voiceprintBadges) {
             expect(opening).not.toContain("variant=");
+            expect(opening).not.toContain('variant="speakerReviewVoiceprint"');
         }
         expect(source).toContain('data-sot-tone="missing"');
         expect(source).toContain('? "selected"');
@@ -668,10 +695,13 @@ describe("dashboard speaker label editor regressions", () => {
                 ),
         );
         expect(mappingClear).toBeDefined();
-        expect(mappingClear).toContain('size="speakerReviewMappingClear"');
-        expect(mappingClear).toContain('variant="speakerReviewMappingClear"');
-        expect(mappingClear).not.toContain('size="icon-xs"');
-        expect(mappingClear).not.toContain('variant="ghost"');
+        expect(mappingClear).toContain('size="icon-xs"');
+        expect(mappingClear).toContain('variant="ghost"');
+        expect(mappingClear).toContain(
+            "className={SPEAKER_REVIEW_MAPPING_CLEAR_BUTTON_CLASS_NAME}",
+        );
+        expect(mappingClear).not.toContain('size="speakerReviewMappingClear"');
+        expect(mappingClear).not.toContain('variant="speakerReviewMappingClear"');
         expect(mappingSlice).toContain("aria-busy={");
         expect(mappingSlice).toContain("disabled={");
         expect(mappingSlice).toContain("onFocus={() =>");
@@ -686,37 +716,43 @@ describe("dashboard speaker label editor regressions", () => {
             "Empty",
         );
         expect(mergeEmpty).toMatch(
-            /<Empty\s+variant="speakerReviewMerge"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
+            /<Empty\s+variant="compact"[\s\S]*?data-sot-part="speaker-review-merge-empty"/,
         );
-        expect(mergeEmpty).toContain(
-            '<EmptyHeader variant="speakerReviewMerge">',
-        );
+        expect(mergeEmpty).toContain('<EmptyHeader variant="popover">');
         expect(mergeEmpty).toContain("<EmptyMedia");
-        expect(mergeEmpty).toContain('variant="speakerReviewMergeIcon"');
+        expect(mergeEmpty).toContain('variant="subtleIcon"');
         expect(mergeEmpty).toContain("<Check strokeWidth={1.8} />");
         expect(mergeEmpty).toContain(
             'data-sot-part="speaker-review-merge-empty-icon"',
         );
         expect(mergeEmpty).toMatch(
-            /<EmptyTitle\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
+            /<EmptyTitle\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-title"\s*>/,
         );
         expect(mergeEmpty).toMatch(
-            /<EmptyDescription\s+variant="speakerReviewMerge"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
+            /<EmptyDescription\s+variant="compact"\s+data-sot-part="speaker-review-merge-empty-description"\s*>/,
         );
-        expect(mergeEmpty).not.toContain('variant="compact"');
-        expect(mergeEmpty).not.toContain('variant="subtleIcon"');
+        expect(mergeEmpty).not.toMatch(SPEAKER_REVIEW_PRIMITIVE_BUSINESS_RE);
         expect(mergeEmpty).not.toContain('className="max-w-none gap-0"');
         expect(mergeEmpty).not.toContain("<svg");
         expect(mergeEmpty).not.toContain("<p");
 
-        for (const { state, variant } of [
+        for (const { state, ownerClassName } of [
             {
                 state: "no-detected-speakers",
-                variant: "speakerReviewDetected",
+                ownerClassName: null,
             },
-            { state: "no-samples", variant: "speakerReviewInline" },
-            { state: "no-saved-speakers", variant: "speakerReviewInline" },
-            { state: "no-matching-speakers", variant: "speakerReviewInline" },
+            {
+                state: "no-samples",
+                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+            },
+            {
+                state: "no-saved-speakers",
+                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+            },
+            {
+                state: "no-matching-speakers",
+                ownerClassName: "SPEAKER_REVIEW_INLINE_EMPTY_CLASS_NAME",
+            },
         ]) {
             const emptySlice = extractElementSlice(
                 `data-sot-state="${state}"`,
@@ -725,13 +761,15 @@ describe("dashboard speaker label editor regressions", () => {
             expect(emptySlice).toContain(
                 'data-sot-part="speaker-review-empty"',
             );
-            expect(emptySlice).toContain(`variant="${variant}"`);
-            expect(emptySlice).toContain(
-                '<EmptyHeader variant="speakerReviewState">',
-            );
-            expect(emptySlice).toContain(
-                '<EmptyTitle variant="speakerReviewState">',
-            );
+            expect(emptySlice).toContain('variant="default"');
+            expect(emptySlice).toContain('<EmptyHeader variant="default">');
+            expect(emptySlice).toContain('<EmptyTitle variant="default">');
+            if (ownerClassName) {
+                expect(emptySlice).toContain(ownerClassName);
+            }
+            expect(emptySlice).not.toContain('variant="speakerReview');
+            expect(emptySlice).not.toContain('density="speakerReview');
+            expect(emptySlice).not.toContain('layout="speakerReview');
             expect(emptySlice).not.toContain('className="py-6"');
             expect(emptySlice).not.toContain('className="py-4 md:p-4"');
             expect(emptySlice).not.toContain("<Card");
@@ -834,8 +872,12 @@ describe("dashboard speaker label editor regressions", () => {
         expect(source).not.toContain('className="sp-confirm-msg"');
         expect(source).toContain("speakerReview.confirmUnlinkMessagePrefix");
         expect(source).toContain("speakerReview.confirmUnlinkMessageSuffix");
-        expect(source).toContain('variant="speakerReviewGhostAction"');
-        expect(source).toContain('variant="speakerReviewDangerAction"');
+        expect(source).toContain('variant="ghost"');
+        expect(source).toContain('variant="destructive"');
+        expect(source).toContain("SPEAKER_REVIEW_GHOST_BUTTON_CLASS_NAME");
+        expect(source).toContain("SPEAKER_REVIEW_DANGER_BUTTON_CLASS_NAME");
+        expect(source).not.toContain('variant="speakerReviewGhostAction"');
+        expect(source).not.toContain('variant="speakerReviewDangerAction"');
         expect(source).toContain("<ToggleGroup");
         expect(source).toContain("<ToggleGroupItem");
         expect(source).toContain("<Badge");
