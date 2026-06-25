@@ -84,6 +84,8 @@ const QUICK_RECORDING_TAG_COLORS = RECORDING_TAG_COLORS.filter(
 const SOT_TAG_MANAGER_ERROR_TEXT = "保存失败 · 请稍后再试";
 const RECORDING_TAG_INLINE_CREATE_BUTTON_CLASS_NAME =
     "size-[30px] rounded-[6px] p-0 text-[14px] leading-[0] font-semibold has-[>svg]:p-0 [&_svg:not([class*='size-'])]:size-[14px]";
+const RECORDING_TAG_SWATCH_ITEM_CLASS_NAME =
+    "tagm-swatch !grid !size-[18px] min-w-0 place-items-center rounded-[50%] border-2 border-transparent !p-0 text-[13.3333px] font-normal leading-[0] !text-[var(--fg-primary)] shadow-none hover:!text-[var(--fg-primary)] data-[state=on]:border-[var(--fg-primary)] data-[state=on]:!text-[var(--fg-primary)] data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]";
 const recordingTagManagerSotColorClassName: Record<RecordingTagColor, string> =
     {
         blue: "c-blue",
@@ -93,6 +95,17 @@ const recordingTagManagerSotColorClassName: Record<RecordingTagColor, string> =
         red: "c-rose",
         slate: "c-slate",
     };
+const recordingTagManagerSwatchToneClassNames: Record<
+    RecordingTagColor,
+    string
+> = {
+    blue: "!bg-[var(--tag-blue)] hover:!bg-[var(--tag-blue)] data-[state=on]:!bg-[var(--tag-blue)]",
+    green: "!bg-[var(--tag-green)] hover:!bg-[var(--tag-green)] data-[state=on]:!bg-[var(--tag-green)]",
+    orange: "!bg-[var(--tag-amber)] hover:!bg-[var(--tag-amber)] data-[state=on]:!bg-[var(--tag-amber)]",
+    purple: "!bg-[var(--tag-violet)] hover:!bg-[var(--tag-violet)] data-[state=on]:!bg-[var(--tag-violet)]",
+    red: "!bg-[var(--tag-rose)] hover:!bg-[var(--tag-rose)] data-[state=on]:!bg-[var(--tag-rose)]",
+    slate: "!bg-[var(--tag-slate)] hover:!bg-[var(--tag-slate)] data-[state=on]:!bg-[var(--tag-slate)]",
+};
 
 const recordingTagManagerCardClassNames = {
     panel: "tagm-panel max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] shadow-[var(--card-popover-shadow)] backdrop-blur-none max-md:max-w-none",
@@ -712,11 +725,9 @@ export function RecordingTagManager({
                     data-sot-part="color-swatch"
                     data-sot-state={color === item ? "selected" : "idle"}
                     data-sot-tag-color={item}
-                    variant="swatch"
-                    tone={item}
-                    size="swatch"
                     className={cn(
-                        "tagm-swatch",
+                        RECORDING_TAG_SWATCH_ITEM_CLASS_NAME,
+                        recordingTagManagerSwatchToneClassNames[item],
                         recordingTagManagerSotColorClassName[item],
                         color === item && "is-selected",
                     )}

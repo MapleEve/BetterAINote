@@ -1060,7 +1060,7 @@ const LEGACY_DESIGN_TWEAKS_PRODUCT_CSS_SELECTOR_RE =
     /#tweaks-(?:panel|close)|--(?:ds-only-accent|todo-marker-bg|z-tweaks)\b|(^|[,\s>{])\.(?:design-todo|ds-only-(?:badge|mark|note)|ds-trigger-chip|tw-[\w-]+|src-item|src-hint(?:-email)?|cl-tweaks-mock|cl-tm-[\w-]+)(?![\w-])/m;
 
 const UNAPPROVED_PRODUCT_CSS_CLASS_SELECTOR_RE =
-    /(^|[,\s>{(:])\.(?!(?:dark|toggle-group-swatch(?:-tone-(?:blue|green|orange|purple|red|slate))?)(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
+    /(^|[,\s>{(:])\.(?!dark(?:[\s,:[>{]|$))[A-Za-z][\w-]*(?![\w-])/m;
 
 const MODAL_SHELL_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-overlay="settings-shell"]',
@@ -2958,6 +2958,9 @@ describe("full UI replacement regression coverage", () => {
         const toaster = readSource("components/ui/sonner.tsx");
         const confirmDialog = readSource("components/ui/confirm-dialog.tsx");
         const layout = readSource("app/layout.tsx");
+        const tagManager = readSource(
+            "features/recordings/components/recording-tag-manager.tsx",
+        );
 
         expect(globals).toContain(
             "BetterAINote · Graphite Glass Design System",
@@ -2998,39 +3001,33 @@ describe("full UI replacement regression coverage", () => {
             '[data-slot="toggle-group-item"][data-variant="swatch"]',
         );
         expect(globals).not.toContain("--toggle-swatch-");
+        expect(globals).not.toContain("--swatch-selection-dot-bg");
+        expect(globals).not.toContain(".toggle-group-swatch");
+        expect(globals).not.toMatch(/\.toggle-group-swatch-tone-/);
         expect(toggleGroup).not.toContain("[--toggle-swatch");
         expect(toggleGroup).not.toMatch(
             /--tag-(blue|green|amber|violet|rose|slate)/,
         );
-        expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
-        expect(toggleGroup).toContain("!grid");
-        expect(toggleGroup).toContain("place-items-center");
-        expect(toggleGroup).toContain("rounded-[50%]");
-        expect(toggleGroup).toContain("text-[13.3333px]");
-        expect(toggleGroup).toContain("font-normal");
-        expect(toggleGroup).toContain("leading-[0]");
-        const swatchBlock = extractCssBlock(globals, ".toggle-group-swatch");
-        expect(swatchBlock).toContain("color: var(--fg-primary);");
-        expect(swatchBlock).toContain("background: var(--tag-slate);");
-        expect(
-            collectCssRuleBlocks(
-                globals,
-                '.toggle-group-swatch[data-state="on"]',
-            ).some(
-                ({ declarations }) =>
-                    declarations.includes("border-color: var(--fg-primary);") &&
-                    declarations.includes(
-                        "box-shadow: inset 0 0 0 2px var(--bg-elevated);",
-                    ),
-            ),
-        ).toBe(true);
-        expect(
-            collectCssRuleBlocks(globals, ".toggle-group-swatch").every(
-                ({ prelude }) =>
-                    !prelude.includes("[data-slot=") &&
-                    !prelude.includes("[data-sot-"),
-            ),
-        ).toBe(true);
+        expect(toggleGroup).not.toContain("toggle-group-swatch");
+        expect(toggleGroup).not.toContain("ToggleGroupSwatchDot");
+        expect(toggleGroup).not.toContain("swatch:");
+        expect(toggleGroup).not.toContain("tone:");
+        expect(toggleGroup).not.toContain("data-tone=");
+        expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
+        expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
+        expect(tagManager).toContain("!grid");
+        expect(tagManager).toContain("place-items-center");
+        expect(tagManager).toContain("rounded-[50%]");
+        expect(tagManager).toContain("text-[13.3333px]");
+        expect(tagManager).toContain("font-normal");
+        expect(tagManager).toContain("leading-[0]");
+        expect(tagManager).toContain("!text-[var(--fg-primary)]");
+        expect(tagManager).toContain(
+            "data-[state=on]:border-[var(--fg-primary)]",
+        );
+        expect(tagManager).toContain(
+            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
+        );
         for (const [tone, token] of [
             ["blue", "--tag-blue"],
             ["green", "--tag-green"],
@@ -3039,42 +3036,22 @@ describe("full UI replacement regression coverage", () => {
             ["red", "--tag-rose"],
             ["slate", "--tag-slate"],
         ]) {
-            const toneClass = `toggle-group-swatch-tone-${tone}`;
-            expect(toggleGroup).toContain(toneClass);
-            expect(
-                collectCssRuleBlocks(globals, `.${toneClass}`).some(
-                    ({ declarations, prelude }) =>
-                        !prelude.includes("[data-sot-") &&
-                        declarations.includes(`background: var(${token});`),
-                ),
-            ).toBe(true);
+            expect(tagManager).toContain(`${tone}:`);
+            expect(tagManager).toContain(`!bg-[var(${token})]`);
+            expect(tagManager).toContain(`hover:!bg-[var(${token})]`);
+            expect(tagManager).toContain(
+                `data-[state=on]:!bg-[var(${token})]`,
+            );
         }
-        const allowedSwatchToneNames = new Set([
-            "blue",
-            "green",
-            "orange",
-            "purple",
-            "red",
-            "slate",
-        ]);
-        const unexpectedSwatchToneSelectors = Array.from(
-            stripCssComments(globals).matchAll(
-                /\.toggle-group-swatch-tone-([A-Za-z][\w-]*)/g,
-            ),
-            ([selector, tone]) => ({ selector, tone }),
-        ).filter(({ tone }) => !allowedSwatchToneNames.has(tone));
-        expect(unexpectedSwatchToneSelectors).toEqual([]);
         expect(
             collectCssRuleBlocks(
                 globals,
                 '[data-slot="toggle-group-item"][data-variant="swatch"]',
             ),
         ).toEqual([]);
-        expect(
-            collectCssRuleBlocks(globals, ".toggle-group-swatch").some(
-                ({ declarations }) => declarations.includes("--toggle-swatch-"),
-            ),
-        ).toBe(false);
+        expect(collectCssRuleBlocks(globals, ".toggle-group-swatch")).toEqual(
+            [],
+        );
         expectTokenOklchFallbackOrder(globals, ":root");
         expectTokenOklchFallbackOrder(globals, '.dark,\n[data-theme="dark"]');
         expect(
@@ -3672,8 +3649,8 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).toContain('data-slot="toggle-group"');
         expect(toggleGroup).toContain('data-slot="toggle-group-item"');
         expect(toggleGroup).toContain("data-variant={variant}");
-        expect(toggleGroup).toContain("data-tone={itemTone}");
         expect(toggleGroup).toContain("data-size={size}");
+        expect(toggleGroup).not.toContain("data-tone=");
         for (const recordingTagToggleToken of [
             "recordingTagColorPicker",
             "recordingTagQuickColorPicker",
@@ -3686,19 +3663,10 @@ describe("full UI replacement regression coverage", () => {
         expect(toggleGroup).not.toContain("onboardingSourceAuthModeOption:");
         expect(toggleGroup).not.toContain("settingsSourceAuthMode:");
         expect(toggleGroup).not.toContain("settingsSourceAuthModeOption:");
-        expect(toggleGroup).toContain("swatch:");
-        expect(toggleGroup).toContain("toggle-group-swatch group/swatch");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-blue");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-green");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-orange");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-purple");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-red");
-        expect(toggleGroup).toContain("toggle-group-swatch-tone-slate");
-        expect(toggleGroup).toContain("!grid");
-        expect(toggleGroup).toContain("rounded-[50%]");
-        expect(toggleGroup).toContain("text-[13.3333px]");
-        expect(toggleGroup).toContain("font-normal");
-        expect(toggleGroup).toContain("leading-[0]");
+        expect(toggleGroup).not.toContain("swatch:");
+        expect(toggleGroup).not.toContain("tone:");
+        expect(toggleGroup).not.toContain("toggle-group-swatch");
+        expect(toggleGroup).not.toContain("ToggleGroupSwatchDot");
         expect(toggleGroup).not.toContain("[--toggle-swatch");
         expect(toggleGroup).not.toMatch(
             /--tag-(blue|green|amber|violet|rose|slate)/,
@@ -10398,8 +10366,14 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerColorPicker).not.toContain(
             'layout="recordingTagColorPicker"',
         );
-        expect(tagManagerColorPicker).toContain('variant="swatch"');
-        expect(tagManagerColorPicker).toContain('size="swatch"');
+        expect(tagManagerColorPicker).toContain(
+            "RECORDING_TAG_SWATCH_ITEM_CLASS_NAME",
+        );
+        expect(tagManagerColorPicker).toContain(
+            "recordingTagManagerSwatchToneClassNames[item]",
+        );
+        expect(tagManagerColorPicker).not.toContain('variant="swatch"');
+        expect(tagManagerColorPicker).not.toContain('size="swatch"');
         expect(tagManagerColorPicker).not.toContain('variant="outline"');
         expect(tagManagerIconPicker).toContain('variant="default"');
         expect(tagManagerIconPicker).toContain('size="sm"');
@@ -10505,7 +10479,7 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('className="tagm-sec"');
         expect(tagManager).toContain('className="tagm-sec-label"');
         expect(tagManager).toContain('appearance="pill"');
-        expect(tagManager).toContain('variant="swatch"');
+        expect(tagManager).not.toContain('variant="swatch"');
         expect(tagManager).toContain('variant="statusError"');
         expect(tagManager).toContain('variant="destructiveSoftNeutral"');
         expect(tagManager).toContain('density="compact"');
@@ -10522,7 +10496,18 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(tagManager).toContain(recordingTagButtonSize);
         }
-        expect(tagManager).toContain('size="swatch"');
+        expect(tagManager).not.toContain('size="swatch"');
+        expect(tagManager).toContain("RECORDING_TAG_SWATCH_ITEM_CLASS_NAME");
+        expect(tagManager).toContain("recordingTagManagerSwatchToneClassNames");
+        expect(tagManager).toContain("!size-[18px]");
+        expect(tagManager).toContain("!p-0");
+        expect(tagManager).toContain("hover:!text-[var(--fg-primary)]");
+        expect(tagManager).toContain(
+            "data-[state=on]:border-[var(--fg-primary)]",
+        );
+        expect(tagManager).toContain(
+            "data-[state=on]:shadow-[inset_0_0_0_2px_var(--bg-elevated)]",
+        );
         expect(tagManager).not.toContain('size="icon-compact"');
         expect(tagManager).toContain('placement="inlineStart"');
         expect(tagManager).toContain('"relative whitespace-nowrap"');
