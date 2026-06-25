@@ -80,6 +80,18 @@ const speakerSettingsBannerInfoClassName = `${speakerSettingsBannerIconSlotClass
 
 const speakerSettingsBannerErrorClassName = `${speakerSettingsBannerIconSlotClassName} [--settings-banner-icon-bg:var(--alert-destructive-soft-strong-bg)] [--settings-banner-icon-border:var(--alert-destructive-soft-border)] [--settings-banner-icon-color:var(--signal-danger)] border-[var(--alert-destructive-soft-border)] bg-[var(--alert-destructive-soft-bg)]`;
 
+const speakerProfilesPanelClassName = "flex flex-col gap-2 !mb-3.5";
+
+const speakerRowsListClassName = "m-0 flex list-none flex-col gap-1.5 p-0";
+
+const speakerRowItemClassName =
+    "grid min-w-0 grid-cols-[36px_minmax(0,1fr)_auto_auto] items-center gap-2.5 rounded-md border border-[var(--line-hairline)] bg-[var(--bg-elevated)] px-3 py-2.5 hover:bg-[var(--bg-recessed)] [[data-theme=dark]_&]:border-[var(--glass-border-soft)]";
+
+const speakerRowMetaClassName = "flex min-w-0 flex-col gap-0.5";
+
+const speakerRowSubClassName =
+    "flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[11.5px] font-medium leading-[1.4] tracking-normal text-[var(--fg-tertiary)]";
+
 function StatePill({
     children,
     tone = "neutral",
@@ -513,6 +525,7 @@ export function SpeakerProfilesPanel() {
 
     return (
         <div
+            className={speakerProfilesPanelClassName}
             data-sot-panel="speaker-profiles"
             data-sot-section-group
             data-sot-state={profilesState}
@@ -632,7 +645,10 @@ export function SpeakerProfilesPanel() {
                             : "No saved speakers yet."}
                     </PanelNotice>
                 ) : (
-                    <div data-sot-list="speaker-profile-rows">
+                    <div
+                        className={speakerRowsListClassName}
+                        data-sot-list="speaker-profile-rows"
+                    >
                         {profiles.map((profile) => {
                             const isProfileSaving =
                                 localSavingId === profile.id;
@@ -641,6 +657,7 @@ export function SpeakerProfilesPanel() {
 
                             return (
                                 <div
+                                    className={speakerRowItemClassName}
                                     key={profile.id}
                                     data-sot-item="speaker-profile-row"
                                     data-sot-speaker-profile-row=""
@@ -664,7 +681,10 @@ export function SpeakerProfilesPanel() {
                                                 .toUpperCase() || "#"}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div data-sot-part="speaker-profile-row-meta">
+                                    <div
+                                        className={speakerRowMetaClassName}
+                                        data-sot-part="speaker-profile-row-meta"
+                                    >
                                         <Label
                                             className="sr-only"
                                             htmlFor={profileNameInputId}
@@ -701,6 +721,7 @@ export function SpeakerProfilesPanel() {
                                             }
                                         />
                                         <div
+                                            className={speakerRowSubClassName}
                                             id={profileNameDescriptionId}
                                             data-sot-part="speaker-profile-row-sub"
                                         >
@@ -861,7 +882,10 @@ export function SpeakerProfilesPanel() {
                             : "No remote voiceprints found."}
                     </PanelNotice>
                 ) : (
-                    <div data-sot-list="speaker-voiceprint-rows">
+                    <div
+                        className={speakerRowsListClassName}
+                        data-sot-list="speaker-voiceprint-rows"
+                    >
                         {voiceprints.map((voiceprint) => {
                             const isVoiceprintSaving =
                                 voiceprintSavingId === voiceprint.id;
@@ -870,6 +894,7 @@ export function SpeakerProfilesPanel() {
 
                             return (
                                 <div
+                                    className={speakerRowItemClassName}
                                     key={voiceprint.id}
                                     data-sot-item="speaker-voiceprint-row"
                                     data-sot-state={
@@ -894,7 +919,10 @@ export function SpeakerProfilesPanel() {
                                         </AvatarFallback>
                                     </Avatar>
 
-                                    <div data-sot-part="speaker-voiceprint-row-meta">
+                                    <div
+                                        className={speakerRowMetaClassName}
+                                        data-sot-part="speaker-voiceprint-row-meta"
+                                    >
                                         <Label
                                             className="sr-only"
                                             htmlFor={voiceprintNameInputId}
@@ -932,6 +960,7 @@ export function SpeakerProfilesPanel() {
                                             }
                                         />
                                         <div
+                                            className={speakerRowSubClassName}
                                             id={voiceprintNameDescriptionId}
                                             data-sot-part="speaker-voiceprint-row-sub"
                                         >
