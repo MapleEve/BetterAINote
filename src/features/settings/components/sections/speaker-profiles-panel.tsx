@@ -506,6 +506,10 @@ export function SpeakerProfilesPanel() {
             : voiceprints.length === 0
               ? "empty"
               : "ready";
+    const isCreatingSpeakerProfile = localSavingId === "new";
+    const isNewSpeakerNameBlank = newName.trim().length === 0;
+    const isCreateSpeakerDisabled =
+        isCreatingSpeakerProfile || isNewSpeakerNameBlank;
 
     return (
         <div
@@ -567,23 +571,32 @@ export function SpeakerProfilesPanel() {
                             value={newName}
                             onChange={(event) => setNewName(event.target.value)}
                             placeholder={isZh ? "例如：Alex" : "e.g. Alex"}
-                            disabled={localSavingId === "new"}
+                            disabled={isCreatingSpeakerProfile}
                         />
                     </FieldContent>
+                    <span
+                        id="new-speaker-create-description"
+                        className="sr-only"
+                    >
+                        {isZh
+                            ? "输入说话人名称后即可添加。"
+                            : "Enter a speaker name to add a speaker."}
+                    </span>
                     <Button
                         type="button"
                         size="sm"
                         variant="outline"
                         onClick={handleCreate}
-                        disabled={localSavingId === "new"}
-                        aria-busy={localSavingId === "new"}
+                        disabled={isCreateSpeakerDisabled}
+                        aria-busy={isCreatingSpeakerProfile}
+                        aria-describedby="new-speaker-create-description"
                         data-sot-control="speaker-profile-create"
                         data-sot-state={
-                            localSavingId === "new"
+                            isCreatingSpeakerProfile
                                 ? "saving"
-                                : newName.trim()
-                                  ? "idle"
-                                  : "disabled"
+                                : isNewSpeakerNameBlank
+                                  ? "disabled"
+                                  : "idle"
                         }
                     >
                         {isZh ? "添加说话人" : "Add Speaker"}
@@ -623,6 +636,8 @@ export function SpeakerProfilesPanel() {
                         {profiles.map((profile) => {
                             const isProfileSaving =
                                 localSavingId === profile.id;
+                            const profileNameInputId = `speaker-profile-${profile.id}-name`;
+                            const profileNameDescriptionId = `speaker-profile-${profile.id}-description`;
 
                             return (
                                 <div
@@ -650,11 +665,20 @@ export function SpeakerProfilesPanel() {
                                         </AvatarFallback>
                                     </Avatar>
                                     <div data-sot-part="speaker-profile-row-meta">
+                                        <Label
+                                            className="sr-only"
+                                            htmlFor={profileNameInputId}
+                                        >
+                                            {isZh
+                                                ? `说话人名称：${profile.displayName || profile.id}`
+                                                : `Speaker profile name: ${profile.displayName || profile.id}`}
+                                        </Label>
                                         <Input
                                             data-sot-control="speaker-profile-name"
                                             data-sot-speaker-profile-id={
                                                 profile.id
                                             }
+                                            id={profileNameInputId}
                                             value={profile.displayName}
                                             onChange={(event) =>
                                                 setProfiles((prev) =>
@@ -672,8 +696,14 @@ export function SpeakerProfilesPanel() {
                                                 )
                                             }
                                             disabled={isProfileSaving}
+                                            aria-describedby={
+                                                profileNameDescriptionId
+                                            }
                                         />
-                                        <div data-sot-part="speaker-profile-row-sub">
+                                        <div
+                                            id={profileNameDescriptionId}
+                                            data-sot-part="speaker-profile-row-sub"
+                                        >
                                             <span>
                                                 {isZh
                                                     ? `已用于 ${profile.assignmentCount} 条录音`
@@ -835,6 +865,8 @@ export function SpeakerProfilesPanel() {
                         {voiceprints.map((voiceprint) => {
                             const isVoiceprintSaving =
                                 voiceprintSavingId === voiceprint.id;
+                            const voiceprintNameInputId = `voiceprint-${voiceprint.id}`;
+                            const voiceprintNameDescriptionId = `voiceprint-${voiceprint.id}-description`;
 
                             return (
                                 <div
@@ -864,19 +896,19 @@ export function SpeakerProfilesPanel() {
 
                                     <div data-sot-part="speaker-voiceprint-row-meta">
                                         <Label
-                                            hidden
-                                            htmlFor={`voiceprint-${voiceprint.id}`}
+                                            className="sr-only"
+                                            htmlFor={voiceprintNameInputId}
                                         >
                                             {isZh
-                                                ? "声纹名称"
-                                                : "Voiceprint name"}
+                                                ? `声纹名称：${voiceprint.displayName || voiceprint.id}`
+                                                : `Voiceprint name: ${voiceprint.displayName || voiceprint.id}`}
                                         </Label>
                                         <Input
                                             data-sot-control="speaker-voiceprint-name"
                                             data-sot-voiceprint-id={
                                                 voiceprint.id
                                             }
-                                            id={`voiceprint-${voiceprint.id}`}
+                                            id={voiceprintNameInputId}
                                             value={voiceprint.displayName}
                                             onChange={(event) =>
                                                 setVoiceprints((prev) =>
@@ -895,8 +927,14 @@ export function SpeakerProfilesPanel() {
                                                 )
                                             }
                                             disabled={isVoiceprintSaving}
+                                            aria-describedby={
+                                                voiceprintNameDescriptionId
+                                            }
                                         />
-                                        <div data-sot-part="speaker-voiceprint-row-sub">
+                                        <div
+                                            id={voiceprintNameDescriptionId}
+                                            data-sot-part="speaker-voiceprint-row-sub"
+                                        >
                                             <StatePill tone="success">
                                                 {isZh ? "远端声纹" : "Remote"}
                                             </StatePill>
@@ -940,6 +978,11 @@ export function SpeakerProfilesPanel() {
                                         }
                                         disabled={isVoiceprintSaving}
                                         aria-busy={isVoiceprintSaving}
+                                        aria-label={
+                                            isZh
+                                                ? `重命名声纹 ${voiceprint.displayName || voiceprint.id}`
+                                                : `Rename voiceprint ${voiceprint.displayName || voiceprint.id}`
+                                        }
                                         data-sot-control="speaker-voiceprint-rename"
                                         data-sot-state={
                                             isVoiceprintSaving
@@ -958,6 +1001,11 @@ export function SpeakerProfilesPanel() {
                                             handleDeleteVoiceprint(voiceprint)
                                         }
                                         disabled={isVoiceprintSaving}
+                                        aria-label={
+                                            isZh
+                                                ? `删除声纹 ${voiceprint.displayName || voiceprint.id}`
+                                                : `Delete voiceprint ${voiceprint.displayName || voiceprint.id}`
+                                        }
                                         data-sot-control="speaker-voiceprint-delete"
                                         data-sot-state={
                                             isVoiceprintSaving

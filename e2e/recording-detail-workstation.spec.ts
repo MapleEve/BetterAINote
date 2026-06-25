@@ -83,6 +83,20 @@ const SOURCE_REPORT_DETAIL_LOADED_SUBSTATES_MD = path.join(
 );
 const SOURCE_REPORT_DETAIL_LOADED_SUBSTATES_COMMAND =
     'PLAYWRIGHT_USE_SYSTEM_CHROME=1 bunx playwright test e2e/recording-detail-workstation.spec.ts --grep "recording detail source report loaded sub-states match SOT pixels" --timeout=240000 --trace=off';
+const SOURCE_REPORT_ROW107_MATRIX_DIR = path.resolve(
+    process.cwd(),
+    "tmp/betterainote-design-evidence/run-20260605-sot-1to1/source-report-row107-state-action-matrix-20260625",
+);
+const SOURCE_REPORT_ROW107_MATRIX_JSON = path.join(
+    SOURCE_REPORT_ROW107_MATRIX_DIR,
+    "source-report-row107-state-action-matrix.json",
+);
+const SOURCE_REPORT_ROW107_MATRIX_MD = path.join(
+    SOURCE_REPORT_ROW107_MATRIX_DIR,
+    "evidence.md",
+);
+const SOURCE_REPORT_ROW107_MATRIX_COMMAND =
+    'PLAYWRIGHT_USE_SYSTEM_CHROME=1 bunx playwright test e2e/recording-detail-workstation.spec.ts --grep "recording detail source report row107 state-action matrix consolidation" --timeout=240000 --trace=off';
 const PLAYER_RESPONSIVE_FRAMES_DIR = path.resolve(
     process.cwd(),
     "tmp/betterainote-design-evidence/run-20260605-sot-1to1/player-responsive-frames-20260612",
@@ -5312,6 +5326,253 @@ async function writeSourceReportDetailLoadedSubStatesEvidence(
     );
 }
 
+type SourceReportRow107MatrixCaseName =
+    | "complete"
+    | "transcript-missing"
+    | "summary-missing"
+    | "both-missing"
+    | "loading"
+    | "error"
+    | "empty"
+    | "retry"
+    | "refresh-in-flight"
+    | "open-source availability"
+    | "repull availability"
+    | "copy availability";
+
+type SourceReportRow107MatrixCaseEvidence = {
+    case: SourceReportRow107MatrixCaseName;
+    controls: {
+        copyReport: SourceReportLoadedSubStateButtonEvidence;
+        copyTranscript: SourceReportLoadedSubStateButtonEvidence;
+        openSource: SourceReportLoadedSubStateButtonEvidence;
+        refresh: SourceReportLoadedSubStateButtonEvidence;
+        repull: SourceReportLoadedSubStateButtonEvidence;
+        retry: SourceReportLoadedSubStateButtonEvidence;
+    };
+    expectations: string[];
+    markers: {
+        copiedTextCount: number | null;
+        dataError: string | null;
+        dataState: string | null;
+        dataSubState: string | null;
+        rootText: string | null;
+        sectionCount: number;
+        sectionHeadings: string[];
+        segmentCount: number;
+        visibleStates: string[];
+    };
+    requestCount: number;
+    result: "PASS";
+};
+
+type SourceReportRow107MatrixEvidence = {
+    cases: SourceReportRow107MatrixCaseEvidence[];
+    commandResults: Array<{
+        command: string;
+        status: "PARTIAL";
+        summary: string;
+    }>;
+    files: {
+        evidenceDir: string;
+        evidenceMd: string;
+        json: string;
+        matrix: string;
+        spec: string;
+    };
+    generatedAt: string;
+    nonClaims: string[];
+    residualBoundaries: string[];
+    result: "PARTIAL";
+    scope: {
+        matrixRow: 107;
+        rowStatus: "PARTIAL";
+        surface: "Source report";
+        target: "recording-detail state/action matrix consolidation";
+    };
+};
+
+async function sourceReportRow107VisibleStates(page: Page) {
+    const states = ["loaded", "loading", "error", "empty"] as const;
+    const visibleStates: string[] = [];
+
+    for (const state of states) {
+        const locator = sourceReportInnerState(page, state);
+        const isVisible =
+            (await locator.count()) > 0 &&
+            (await locator
+                .first()
+                .isVisible({ timeout: 500 })
+                .catch(() => false));
+        if (isVisible) {
+            visibleStates.push(state);
+        }
+    }
+
+    return visibleStates;
+}
+
+async function readSourceReportRow107MatrixCase(
+    page: Page,
+    caseName: SourceReportRow107MatrixCaseName,
+    requestCount: number,
+    expectations: string[],
+): Promise<SourceReportRow107MatrixCaseEvidence> {
+    const root = sourceReportState(page);
+    const loaded = sourceReportInnerState(page, "loaded");
+    const error = sourceReportInnerState(page, "error");
+    const rootCount = await root.count();
+    const loadedCount = await loaded.count();
+    const errorCount = await error.count();
+    const copiedTextCount = await readCopiedTexts(page)
+        .then((texts) => texts.length)
+        .catch(() => null);
+
+    return {
+        case: caseName,
+        controls: {
+            copyReport: await readSourceReportButtonEvidence(
+                detailSourceReportCopyButton(page),
+            ),
+            copyTranscript: await readSourceReportButtonEvidence(
+                detailSourceTranscriptCopyButton(page),
+            ),
+            openSource: await readSourceReportButtonEvidence(
+                sourceReportOpenSourceControl(page),
+            ),
+            refresh: await readSourceReportButtonEvidence(
+                sourceReportLoadButton(page),
+            ),
+            repull: await readSourceReportButtonEvidence(
+                sourceReportRepullButton(page),
+            ),
+            retry: await readSourceReportButtonEvidence(
+                sourceReportState(page, "error")
+                    .getByRole("button", { name: "重试", exact: true })
+                    .first(),
+            ),
+        },
+        expectations,
+        markers: {
+            copiedTextCount,
+            dataError:
+                errorCount > 0
+                    ? await error.first().getAttribute("data-sot-error")
+                    : null,
+            dataState:
+                rootCount > 0
+                    ? await root.first().getAttribute("data-sot-state")
+                    : null,
+            dataSubState:
+                loadedCount > 0
+                    ? await loaded.first().getAttribute("data-sub-state")
+                    : null,
+            rootText:
+                rootCount > 0
+                    ? ((await root.first().textContent()) ?? "")
+                          .replace(/\s+/g, " ")
+                          .trim()
+                          .slice(0, 800)
+                    : null,
+            sectionCount:
+                loadedCount > 0
+                    ? await loaded
+                          .locator("[data-sot-source-report-section]")
+                          .count()
+                    : 0,
+            sectionHeadings:
+                loadedCount > 0
+                    ? await loaded
+                          .locator("[data-sot-source-report-section-title]")
+                          .evaluateAll((headings) =>
+                              headings.map((heading) =>
+                                  (heading.textContent ?? "")
+                                      .replace(/\s+/g, " ")
+                                      .trim(),
+                              ),
+                          )
+                    : [],
+            segmentCount:
+                loadedCount > 0
+                    ? await loaded
+                          .locator("[data-sot-source-report-segment]")
+                          .count()
+                    : 0,
+            visibleStates: await sourceReportRow107VisibleStates(page),
+        },
+        requestCount,
+        result: "PASS",
+    };
+}
+
+function sourceReportRow107ControlSummary(
+    control: SourceReportLoadedSubStateButtonEvidence,
+    options: { preferText?: boolean } = {},
+) {
+    const state = options.preferText
+        ? control.text ?? control.state ?? "missing"
+        : control.state ?? control.text ?? "missing";
+    const availability =
+        control.count === 0
+            ? "missing"
+            : control.disabled
+              ? "disabled"
+              : "enabled";
+    return `${state}/${availability}`;
+}
+
+function sourceReportRow107MatrixMarkdown(
+    evidence: SourceReportRow107MatrixEvidence,
+) {
+    const caseLines = evidence.cases.flatMap((matrixCase) => [
+        `- ${matrixCase.case}: state=${matrixCase.markers.dataState}; subState=${matrixCase.markers.dataSubState ?? "n/a"}; visible=${matrixCase.markers.visibleStates.join(",") || "none"}; requests=${matrixCase.requestCount}`,
+        `  - controls: transcript=${sourceReportRow107ControlSummary(matrixCase.controls.copyTranscript)}; report=${sourceReportRow107ControlSummary(matrixCase.controls.copyReport)}; open=${sourceReportRow107ControlSummary(matrixCase.controls.openSource)}; repull=${sourceReportRow107ControlSummary(matrixCase.controls.repull)}; refresh=${sourceReportRow107ControlSummary(matrixCase.controls.refresh, { preferText: true })}; retry=${sourceReportRow107ControlSummary(matrixCase.controls.retry, { preferText: true })}`,
+        `  - expectations: ${matrixCase.expectations.join("; ")}`,
+    ]);
+
+    return [
+        "# Source Report Row 107 State/Action Matrix",
+        "",
+        `- Status: ${evidence.result}; Source report row status ${evidence.scope.rowStatus}.`,
+        `- Command: \`${evidence.commandResults[0]?.command}\``,
+        `- Scope: ${evidence.scope.target}.`,
+        "",
+        "## Files",
+        "",
+        `- Spec: \`${evidence.files.spec}\``,
+        `- JSON: \`${evidence.files.json}\``,
+        `- Evidence dir: \`${evidence.files.evidenceDir}\``,
+        `- Matrix: \`${evidence.files.matrix}\``,
+        "",
+        "## Cases",
+        "",
+        ...caseLines,
+        "",
+        "## Non-Claims",
+        "",
+        ...evidence.nonClaims.map((claim) => `- ${claim}`),
+        "",
+        "## Residual Boundaries",
+        "",
+        ...evidence.residualBoundaries.map((boundary) => `- ${boundary}`),
+        "",
+    ].join("\n");
+}
+
+async function writeSourceReportRow107MatrixEvidence(
+    evidence: SourceReportRow107MatrixEvidence,
+) {
+    await mkdir(SOURCE_REPORT_ROW107_MATRIX_DIR, { recursive: true });
+    await writeFile(
+        SOURCE_REPORT_ROW107_MATRIX_JSON,
+        `${JSON.stringify(evidence, null, 2)}\n`,
+    );
+    await writeFile(
+        SOURCE_REPORT_ROW107_MATRIX_MD,
+        sourceReportRow107MatrixMarkdown(evidence),
+    );
+}
+
 async function readStandaloneErrorControls(
     page: Page,
 ): Promise<WorkspaceStandaloneErrorControls> {
@@ -6855,6 +7116,477 @@ test("recording detail source report loading, error, and empty states match SOT 
     } finally {
         releaseLoadingReport();
         await sotPage?.close();
+        await cleanupRecordingDetailSeed();
+    }
+});
+
+test("recording detail source report row107 state-action matrix consolidation", async ({
+    page,
+}, testInfo) => {
+    await installClipboardCapture(page);
+
+    type MatrixSourceReport = {
+        body: Record<string, unknown>;
+        gate?: Promise<void>;
+        status?: number;
+    };
+
+    let releaseLoadingReport: () => void = () => {};
+    let releaseRefreshReport: () => void = () => {};
+    let reportQueue: MatrixSourceReport[] = [];
+    let sourceReportRequests = 0;
+    let userId = "";
+    const sourceReportRoute = `**/api/recordings/${DETAIL_RECORDING_ID}/source-report`;
+    const title = "Row107 source report matrix";
+    const sourceSegments = [
+        {
+            speaker: "Speaker 1",
+            startMs: 0,
+            endMs: 15_000,
+            text: "来源逐字稿完整内容。",
+        },
+        {
+            speaker: "Speaker 2",
+            startMs: 15_000,
+            endMs: 30_000,
+            text: "矩阵补证覆盖复制、刷新和来源动作。",
+        },
+    ];
+    const baseDetail = {
+        durationMs: 240_000,
+        language: "简体中文 (zh-CN)",
+        providerName: "钉钉 闪记",
+        providerSentenceName: "钉钉闪记",
+        recordedAt: "2026-04-22T06:00:00.000Z",
+        sourceTitle: "Row107 Source",
+        statusLabel: "已同步",
+        updatedAt: "2026-04-22T08:38:00.000Z",
+    };
+    const readyActions = {
+        openSource: {
+            available: true,
+            url: "https://source.example.test/recording/row107",
+        },
+        repullSource: { available: true },
+    };
+    const unavailableActions = {
+        openSource: { available: false },
+        repullSource: { available: false },
+    };
+    const completeReport = {
+        detail: {
+            ...baseDetail,
+            readableContent: "音频 · 转写 · 摘要 · 说话人",
+        },
+        filename: title,
+        sourceActions: readyActions,
+        sourceProvider: "dingtalk-a1",
+        summaryMarkdown: "## Row107 来源报告摘要\n\n- 来源报告复制内容。",
+        summaryReady: true,
+        transcript: {
+            segmentCount: sourceSegments.length,
+            segments: sourceSegments,
+            text: sourceSegments.map((segment) => segment.text).join("\n"),
+        },
+        transcriptReady: true,
+    };
+    const transcriptMissingReport = {
+        ...completeReport,
+        detail: {
+            ...baseDetail,
+            readableContent: "音频 · 摘要 · 说话人",
+        },
+        summaryMarkdown: "## Row107 来源报告摘要\n\n- 只有摘要可复制。",
+        summaryReady: true,
+        transcript: null,
+        transcriptReady: false,
+    };
+    const summaryMissingReport = {
+        ...completeReport,
+        detail: {
+            ...baseDetail,
+            readableContent: "音频 · 转写 · 说话人",
+        },
+        summaryMarkdown: "",
+        summaryReady: false,
+        transcript: completeReport.transcript,
+        transcriptReady: true,
+    };
+    const bothMissingReport = {
+        ...completeReport,
+        detail: {
+            ...baseDetail,
+            readableContent: "音频",
+        },
+        sourceActions: unavailableActions,
+        summaryMarkdown: "",
+        summaryReady: false,
+        transcript: null,
+        transcriptReady: false,
+    };
+    const matrixCases: SourceReportRow107MatrixCaseEvidence[] = [];
+    const expectedCaseNames: SourceReportRow107MatrixCaseName[] = [
+        "complete",
+        "open-source availability",
+        "repull availability",
+        "copy availability",
+        "transcript-missing",
+        "summary-missing",
+        "both-missing",
+        "loading",
+        "error",
+        "empty",
+        "retry",
+        "refresh-in-flight",
+    ];
+
+    const addMatrixCase = async (
+        caseName: SourceReportRow107MatrixCaseName,
+        requestStart: number,
+        expectations: string[],
+    ) => {
+        matrixCases.push(
+            await readSourceReportRow107MatrixCase(
+                page,
+                caseName,
+                sourceReportRequests - requestStart,
+                expectations,
+            ),
+        );
+    };
+    const seedAndOpen = async (
+        reports: MatrixSourceReport[],
+        options: RecordingDetailSeedOptions = {},
+    ) => {
+        reportQueue = [...reports];
+        const requestStart = sourceReportRequests;
+        await seedRecordingDetail(userId, {
+            filename: title,
+            sourceProvider: "dingtalk-a1",
+            ...options,
+        });
+        await page.goto(`/recordings/${DETAIL_RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        return requestStart;
+    };
+
+    await page.route(sourceReportRoute, async (route) => {
+        sourceReportRequests += 1;
+        const nextReport = reportQueue.shift();
+
+        if (!nextReport) {
+            await route.fulfill({
+                contentType: "application/json",
+                status: 500,
+                body: JSON.stringify({
+                    error: "unexpected row107 matrix source-report request",
+                }),
+            });
+            return;
+        }
+
+        if (nextReport.gate) {
+            await nextReport.gate;
+        }
+
+        await route.fulfill({
+            contentType: "application/json",
+            status: nextReport.status ?? 200,
+            body: JSON.stringify(nextReport.body),
+        });
+    });
+
+    try {
+        await ensureSignedIn(page);
+        userId = await getPlaywrightUserId();
+
+        let requestStart = await seedAndOpen([{ body: completeReport }]);
+        await waitForRecordingDetailReady(page);
+        await expect(sourceReportInnerState(page, "loaded")).toHaveAttribute(
+            "data-sub-state",
+            "complete",
+        );
+        await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
+        await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
+        await expect(sourceReportOpenSourceControl(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
+        await expect(sourceReportRepullButton(page)).toHaveAttribute(
+            "data-sot-state",
+            "ready",
+        );
+        await expect(sourceReportLoadButton(page)).toBeEnabled();
+        await detailSourceReportCopyButton(page).click();
+        await detailSourceTranscriptCopyButton(page).click();
+        await expect.poll(async () => (await readCopiedTexts(page)).length).toBe(2);
+        const copiedTexts = (await readCopiedTexts(page)).join("\n");
+        expect(copiedTexts).toContain("Row107 来源报告摘要");
+        expect(copiedTexts).toContain("来源逐字稿完整内容");
+        await addMatrixCase("complete", requestStart, [
+            "loaded complete sub-state is visible",
+            "copy transcript/report controls are ready",
+            "open-source and repull controls are ready",
+        ]);
+        await addMatrixCase("open-source availability", requestStart, [
+            "open-source control is ready/enabled",
+            "availability only; no external source workflow is claimed",
+        ]);
+        await addMatrixCase("repull availability", requestStart, [
+            "repull control is ready/enabled",
+            "availability only; no destructive source sync claim is made",
+        ]);
+        await addMatrixCase("copy availability", requestStart, [
+            "source transcript/report copy controls are ready",
+            "clipboard capture received source report and transcript text",
+        ]);
+
+        const loadedSubStateCases = [
+            {
+                body: transcriptMissingReport,
+                caseName: "transcript-missing",
+                copyReportState: "ready",
+                copyTranscriptState: "missing",
+                subState: "transcript-missing",
+            },
+            {
+                body: summaryMissingReport,
+                caseName: "summary-missing",
+                copyReportState: "missing",
+                copyTranscriptState: "ready",
+                subState: "summary-missing",
+            },
+            {
+                body: bothMissingReport,
+                caseName: "both-missing",
+                copyReportState: "missing",
+                copyTranscriptState: "missing",
+                subState: "both-missing",
+            },
+        ] as const;
+
+        for (const loadedSubStateCase of loadedSubStateCases) {
+            requestStart = await seedAndOpen([{ body: loadedSubStateCase.body }]);
+            await waitForRecordingDetailReady(page);
+            await expect(sourceReportInnerState(page, "loaded")).toHaveAttribute(
+                "data-sub-state",
+                loadedSubStateCase.subState,
+            );
+            await expect(detailSourceTranscriptCopyButton(page)).toHaveAttribute(
+                "data-sot-state",
+                loadedSubStateCase.copyTranscriptState,
+            );
+            await expect(detailSourceReportCopyButton(page)).toHaveAttribute(
+                "data-sot-state",
+                loadedSubStateCase.copyReportState,
+            );
+            await addMatrixCase(loadedSubStateCase.caseName, requestStart, [
+                `loaded ${loadedSubStateCase.subState} sub-state is visible`,
+                `copy transcript=${loadedSubStateCase.copyTranscriptState}`,
+                `copy report=${loadedSubStateCase.copyReportState}`,
+            ]);
+        }
+
+        const loadingGate = new Promise<void>((resolve) => {
+            releaseLoadingReport = resolve;
+        });
+        requestStart = await seedAndOpen([
+            { body: completeReport, gate: loadingGate },
+        ]);
+        await waitForRecordingDetailShellReady(page);
+        await expect(sourceReportState(page, "loading")).toBeVisible();
+        await expect(detailSourceTranscriptCopyButton(page)).toHaveCount(0);
+        await expect(detailSourceReportCopyButton(page)).toHaveCount(0);
+        await addMatrixCase("loading", requestStart, [
+            "loading state is visible while source-report request is in-flight",
+            "source copy controls are absent during initial loading",
+        ]);
+        releaseLoadingReport();
+        await expect(sourceReportState(page, "loaded")).toBeVisible();
+
+        requestStart = await seedAndOpen([
+            {
+                body: { error: "Source report temporarily unavailable" },
+                status: 503,
+            },
+        ]);
+        await waitForRecordingDetailShellReady(page);
+        await expect(sourceReportState(page, "error")).toBeVisible();
+        await expect(sourceReportInnerState(page, "error")).toHaveAttribute(
+            "data-sot-error",
+            "Source report temporarily unavailable",
+        );
+        await expect(
+            sourceReportState(page, "error").getByRole("button", {
+                name: "重试",
+                exact: true,
+            }),
+        ).toBeEnabled();
+        await addMatrixCase("error", requestStart, [
+            "error state is visible",
+            "retry control is available after first-load failure",
+            "raw upstream error is recorded in data attribute only",
+        ]);
+
+        requestStart = sourceReportRequests;
+        reportQueue = [];
+        await seedRecordingDetail(userId, {
+            filename: title,
+            sourceProvider: "",
+        });
+        await page.goto(`/recordings/${DETAIL_RECORDING_ID}`, {
+            waitUntil: "domcontentloaded",
+        });
+        await waitForRecordingDetailShellReady(page);
+        await expect(sourceReportState(page, "empty")).toBeVisible();
+        await page.waitForTimeout(300);
+        expect(sourceReportRequests - requestStart).toBe(0);
+        await addMatrixCase("empty", requestStart, [
+            "empty state is visible when the recording has no source provider",
+            "source-report API is not called for empty state",
+        ]);
+
+        requestStart = await seedAndOpen([
+            {
+                body: { error: "Source report temporarily unavailable" },
+                status: 503,
+            },
+            { body: completeReport },
+        ]);
+        await waitForRecordingDetailShellReady(page);
+        await expect(sourceReportState(page, "error")).toBeVisible();
+        await Promise.all([
+            page.waitForResponse(
+                (response) =>
+                    response
+                        .url()
+                        .includes(
+                            `/api/recordings/${DETAIL_RECORDING_ID}/source-report`,
+                        ) &&
+                    response.request().method() === "GET" &&
+                    response.ok(),
+            ),
+            sourceReportState(page, "error")
+                .getByRole("button", { name: "重试", exact: true })
+                .click(),
+        ]);
+        await expect(sourceReportState(page, "loaded")).toBeVisible();
+        await expect(sourceReportInnerState(page, "loaded")).toHaveAttribute(
+            "data-sub-state",
+            "complete",
+        );
+        await addMatrixCase("retry", requestStart, [
+            "first request fails",
+            "retry issues a second GET and restores loaded complete state",
+        ]);
+
+        const refreshGate = new Promise<void>((resolve) => {
+            releaseRefreshReport = resolve;
+        });
+        requestStart = await seedAndOpen([
+            { body: completeReport },
+            {
+                body: {
+                    ...completeReport,
+                    summaryMarkdown:
+                        "## Row107 来源报告刷新摘要\n\n- 刷新中保持已加载动作。",
+                },
+                gate: refreshGate,
+            },
+        ]);
+        await waitForRecordingDetailReady(page);
+        const refreshButton = sourceReportLoadButton(page);
+        const refreshResponse = page.waitForResponse(
+            (response) =>
+                response
+                    .url()
+                    .includes(
+                        `/api/recordings/${DETAIL_RECORDING_ID}/source-report`,
+                    ) &&
+                response.request().method() === "GET" &&
+                response.ok(),
+        );
+        await refreshButton.click();
+        await expect(refreshButton).toBeDisabled();
+        await expect(refreshButton).toContainText("加载中...");
+        await expect(sourceReportState(page, "loaded")).toBeVisible();
+        await expect(sourceReportTranscriptCopyButton(page)).toBeEnabled();
+        await expect(sourceReportReportCopyButton(page)).toBeEnabled();
+        await addMatrixCase("refresh-in-flight", requestStart, [
+            "refresh button enters loading state",
+            "loaded source-report content remains visible",
+            "copy/open-source/repull actions remain available while refresh is in-flight",
+        ]);
+        releaseRefreshReport();
+        await refreshResponse;
+        await expect(refreshButton).toBeEnabled();
+        await expect(refreshButton).toContainText("刷新");
+
+        expect(matrixCases.map((matrixCase) => matrixCase.case)).toEqual(
+            expectedCaseNames,
+        );
+
+        const evidence: SourceReportRow107MatrixEvidence = {
+            cases: matrixCases,
+            commandResults: [
+                {
+                    command: SOURCE_REPORT_ROW107_MATRIX_COMMAND,
+                    status: "PARTIAL",
+                    summary:
+                        "Focused recording-detail Source report state/action matrix assertions passed; row 107 remains PARTIAL by scope.",
+                },
+            ],
+            files: {
+                evidenceDir: repoRelativeEvidencePath(
+                    SOURCE_REPORT_ROW107_MATRIX_DIR,
+                ),
+                evidenceMd: repoRelativeEvidencePath(
+                    SOURCE_REPORT_ROW107_MATRIX_MD,
+                ),
+                json: repoRelativeEvidencePath(SOURCE_REPORT_ROW107_MATRIX_JSON),
+                matrix:
+                    "tmp/betterainote-design-evidence/run-20260605-sot-1to1/sot-1to1-matrix.md",
+                spec: "e2e/recording-detail-workstation.spec.ts",
+            },
+            generatedAt: new Date().toISOString(),
+            nonClaims: [
+                "Row 107 remains PARTIAL.",
+                "This focused E2E consolidation does not prove broader all-control/manual gate acceptance.",
+                "No product code, fixtures, thresholds, pixel helpers, or matrix markdown files were changed.",
+                "Open-source and repull entries assert availability/state only; no external provider workflow is claimed.",
+            ],
+            residualBoundaries: [
+                "This is a recording-detail Source report state/action matrix consolidation only.",
+                "SOT pixel parity and responsive frames continue to rely on sibling focused source-report tests.",
+                "Dashboard Source report coverage and real-browser manual acceptance remain outside this focused grep.",
+                "Broader all-page/all-interaction completion remains pending.",
+            ],
+            result: "PARTIAL",
+            scope: {
+                matrixRow: 107,
+                rowStatus: "PARTIAL",
+                surface: "Source report",
+                target: "recording-detail state/action matrix consolidation",
+            },
+        };
+
+        await writeSourceReportRow107MatrixEvidence(evidence);
+        await testInfo.attach("source-report-row107-state-action-matrix.json", {
+            body: Buffer.from(JSON.stringify(evidence, null, 2)),
+            contentType: "application/json",
+        });
+    } finally {
+        releaseLoadingReport();
+        releaseRefreshReport();
+        reportQueue = [];
+        await page.unroute(sourceReportRoute).catch(() => null);
         await cleanupRecordingDetailSeed();
     }
 });

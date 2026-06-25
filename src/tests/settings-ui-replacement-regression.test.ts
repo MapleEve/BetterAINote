@@ -2781,6 +2781,30 @@ describe("settings SOT interaction regressions", () => {
         expect(speakers).toContain("onClick={() => void refreshVoiceprints()}");
         expect(speakers).toContain("disabled={isProfilesLoading}");
         expect(speakers).toContain("disabled={isVoiceprintsLoading}");
+        expect(speakers).toContain("const isCreateSpeakerDisabled =");
+        expect(speakers).toContain("disabled={isCreateSpeakerDisabled}");
+        expect(speakers).toContain(
+            'aria-describedby="new-speaker-create-description"',
+        );
+        expect(speakers).toContain('id="new-speaker-create-description"');
+        expect(speakers).toContain("const profileNameInputId =");
+        expect(speakers).toContain("const profileNameDescriptionId =");
+        expect(speakers).toContain("htmlFor={profileNameInputId}");
+        expect(speakers).toContain("id={profileNameInputId}");
+        expect(speakers).toMatch(
+            /aria-describedby=\{\s*profileNameDescriptionId\s*\}/,
+        );
+        expect(speakers).toContain("const voiceprintNameInputId =");
+        expect(speakers).toContain("const voiceprintNameDescriptionId =");
+        expect(speakers).toContain("htmlFor={voiceprintNameInputId}");
+        expect(speakers).toContain("id={voiceprintNameInputId}");
+        expect(speakers).toMatch(
+            /aria-describedby=\{\s*voiceprintNameDescriptionId\s*\}/,
+        );
+        expect(speakers).toContain("className=\"sr-only\"");
+        expect(speakers).toContain("Rename voiceprint");
+        expect(speakers).toContain("Delete voiceprint");
+        expect(speakers).not.toMatch(/<Label\s+hidden/);
         expect(speakers).toContain("data-icon-state={");
         expect(speakers).toContain("handleCreate");
         expect(speakers).toContain("handleUpdate");
