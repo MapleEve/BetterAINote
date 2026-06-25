@@ -9,13 +9,9 @@ const inputVariants = cva(
             variant: {
                 default:
                     "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
-                detailHeaderTitle:
-                    "rounded-md border-input bg-transparent text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
             },
             controlSize: {
                 default: "h-9 px-3 py-1 text-base md:text-sm",
-                detailHeaderTitle:
-                    "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm",
             },
         },
         defaultVariants: {

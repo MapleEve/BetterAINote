@@ -51,8 +51,8 @@ export default function RecordingNotFound() {
                             </div>
                             <Button
                                 asChild
-                                variant="recordingRoutePrimaryAction"
-                                size="recordingRouteAction"
+                                variant="default"
+                                size="default"
                             >
                                 <Link href="/dashboard">返回工作台</Link>
                             </Button>

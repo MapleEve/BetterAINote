@@ -2282,8 +2282,7 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     body[data-drawer="open"] [data-sot-part="dashboard-sync-text"] {
         display: block;
     }
-    [data-sot-control="sidebar-collapse"],
-    #sidebar-toggle {
+    [data-sot-control="sidebar-collapse"] {
         display: none !important;
     }
 }
@@ -3289,15 +3288,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     border: 1px solid var(--line-hairline);
 }
 
-[data-recording-tag-chip][data-sot-control="recording-tag-manager"] {
-    height: 24px;
-    cursor: pointer;
-}
-[data-recording-tag-chip][data-sot-control="recording-tag-manager"]:hover {
-    box-shadow:
-        var(--shadow-xs),
-        inset 0 0 0 1px color-mix(in srgb, var(--tag-c) 36%, transparent);
-}
 [data-sot-part="recording-tag-overflow"],
 [data-sot-part="recording-tag-add"] {
     display: inline-flex;

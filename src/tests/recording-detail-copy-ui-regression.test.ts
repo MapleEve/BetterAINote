@@ -557,17 +557,20 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(retranscribeControlIndex).toBeGreaterThanOrEqual(0);
         expect(startControlIndex).toBeGreaterThanOrEqual(0);
         expect(jobErrorBannerIndex).toBeGreaterThanOrEqual(0);
-        const copyControl = detailTranscript.slice(
-            Math.max(0, copyControlIndex - 280),
-            copyControlIndex + 320,
+        const copyControl = extractOpeningElement(
+            detailTranscript,
+            'data-sot-control="copy-local-transcript"',
+            "Button",
         );
-        const retranscribeControl = detailTranscript.slice(
-            Math.max(0, retranscribeControlIndex - 280),
-            retranscribeControlIndex + 320,
+        const retranscribeControl = extractOpeningElement(
+            detailTranscript,
+            'data-sot-control="retranscribe-local"',
+            "Button",
         );
-        const startControl = detailTranscript.slice(
-            Math.max(0, startControlIndex - 280),
-            startControlIndex + 320,
+        const startControl = extractOpeningElement(
+            detailTranscript,
+            'data-sot-control="start-local-transcription"',
+            "Button",
         );
         const jobErrorBanner = detailTranscript.slice(
             Math.max(0, jobErrorBannerIndex - 240),
@@ -578,34 +581,38 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-list="recording-transcription-meta"',
             "</div>",
         );
-        expect(copyControl).toContain("<Button");
-        expect(copyControl).toContain('variant="transcriptionAction"');
-        expect(copyControl).toContain('size="transcriptionAction"');
+        expect(copyControl).toContain('variant="outline"');
+        expect(copyControl).toContain('size="sm"');
+        expect(copyControl).toContain(
+            "recordingTranscriptionButtonClassNames.action",
+        );
         expect(copyControl).toContain("isCopyingTranscript");
         expect(copyControl).toContain("!displayText.trim()");
-        expect(retranscribeControl).toContain("<Button");
+        expect(retranscribeControl).toContain('variant="destructive"');
+        expect(retranscribeControl).toContain('size="sm"');
         expect(retranscribeControl).toContain(
-            'variant="transcriptionDangerAction"',
+            "recordingTranscriptionButtonClassNames.danger",
         );
-        expect(retranscribeControl).toContain('size="transcriptionAction"');
-        expect(startControl).toContain("<Button");
-        expect(startControl).toContain('variant="transcriptionPrimaryAction"');
-        expect(startControl).toContain('size="transcriptionAction"');
+        expect(startControl).toContain('variant="default"');
+        expect(startControl).toContain('size="sm"');
+        expect(startControl).toContain(
+            "recordingTranscriptionButtonClassNames.primary",
+        );
         expect(jobErrorBanner).toContain("<Alert");
         expect(jobErrorBanner).toContain('variant="statusError"');
         expect(metaList).toContain("<RecordingTranscriptionMetaBadge");
         expect(metaList).not.toContain(variantAttr("transcriptionMeta"));
         expect(metaList).toContain('data-sot-tone="attribute"');
         expect(metaList).toContain('data-sot-tone="measure"');
-        for (const genericActionToken of [
-            'variant="outline"',
-            'variant="destructive"',
-            'variant="default"',
-            'size="sm"',
+        for (const removedActionToken of [
+            'variant="transcriptionAction"',
+            'variant="transcriptionDangerAction"',
+            'variant="transcriptionPrimaryAction"',
+            'size="transcriptionAction"',
         ]) {
-            expect(copyControl).not.toContain(genericActionToken);
-            expect(retranscribeControl).not.toContain(genericActionToken);
-            expect(startControl).not.toContain(genericActionToken);
+            expect(copyControl).not.toContain(removedActionToken);
+            expect(retranscribeControl).not.toContain(removedActionToken);
+            expect(startControl).not.toContain(removedActionToken);
         }
         expect(jobErrorBanner).not.toContain('variant="destructive"');
         for (const genericMetaToken of [
@@ -1179,9 +1186,16 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControlIndex).toBeGreaterThanOrEqual(0);
         expect(detailBackControlStart).toBeGreaterThanOrEqual(0);
         expect(detailBackControlEnd).toBeGreaterThan(detailBackControlStart);
-        expect(button).toContain("recordingDetailBack:");
-        expect(detailBackControl).toContain('variant="recordingDetailBack"');
-        expect(detailBackControl).toContain('size="recordingDetailBack"');
+        expect(button).not.toContain("recordingDetailBack:");
+        expect(detailBackControl).toContain('variant="ghost"');
+        expect(detailBackControl).toContain('size="default"');
+        expect(detailBackControl).toContain(
+            "recordingWorkstationButtonClassNames.detailBack",
+        );
+        expect(detailBackControl).not.toContain(
+            'variant="recordingDetailBack"',
+        );
+        expect(detailBackControl).not.toContain('size="recordingDetailBack"');
         expect(detailBackControl).toContain(
             'navigateBrowserRoute(router, "/dashboard")',
         );
@@ -1189,10 +1203,10 @@ describe("recording detail copy and title action UI regressions", () => {
         expect(detailBackControl).toContain("<ArrowLeft");
         expect(detailBackControl).toContain('data-icon="inline-start"');
         expect(detailBackControl).toContain('{t("recording.backToDashboard")}');
-        expect(detailBackControl).not.toContain('variant="ghost"');
-        expect(button).toContain("[&_span]:truncate");
-        expect(button).toContain("[&_svg]:stroke-[1.7]");
-        expect(button).toContain("[&_svg]:opacity-[0.85]");
+        expect(detailBackControl).not.toContain('variant="recordingDetailBack"');
+        expect(detailWorkstation).toContain("[&_span]:truncate");
+        expect(detailWorkstation).toContain("[&_svg]:stroke-[1.7]");
+        expect(detailWorkstation).toContain("[&_svg]:opacity-[0.85]");
         expect(detailWorkstation).toContain(
             'className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3"',
         );
@@ -1402,13 +1416,21 @@ describe("recording detail copy and title action UI regressions", () => {
                 variantAttr(removedRecordingDetailVariant),
             );
         }
-        expect(detailHeader).toContain('variant="detailHeaderIconAction"');
-        expect(detailHeader).toContain('size="detailHeaderIconAction"');
-        expect(detailHeader).toContain('variant="detailHeaderAction"');
-        expect(detailHeader).toContain('size="detailHeaderAction"');
+        expect(detailHeader).toContain('variant="ghost"');
+        expect(detailHeader).toContain('size="icon-sm"');
+        expect(detailHeader).toContain('variant="outline"');
+        expect(detailHeader).toContain('size="sm"');
+        expect(detailHeader).toContain(
+            "recordingWorkstationButtonClassNames.headerIconButton",
+        );
+        expect(detailHeader).toContain(
+            "recordingWorkstationButtonClassNames.headerActionButton",
+        );
+        expect(detailHeader).not.toContain('variant="detailHeaderIconAction"');
+        expect(detailHeader).not.toContain('size="detailHeaderIconAction"');
+        expect(detailHeader).not.toContain('variant="detailHeaderAction"');
+        expect(detailHeader).not.toContain('size="detailHeaderAction"');
         expect(detailHeader).toContain('controlSize="detailHeaderTitle"');
-        expect(detailHeader).not.toContain('size="icon-sm"');
-        expect(detailHeader).not.toContain('size="sm"');
         expect(detailHeader).not.toContain(
             '"relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0"',
         );
@@ -1718,9 +1740,11 @@ describe("recording detail copy and title action UI regressions", () => {
             'import { Input } from "@/components/ui/input";',
         );
         expect(badge).toContain('data-slot="badge"');
-        expect(button).toContain("detailHeaderIconAction:");
-        expect(button).toContain("detailHeaderAction:");
-        expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
+        expect(button).not.toContain("detailHeaderIconAction:");
+        expect(button).not.toContain("detailHeaderAction:");
+        expect(dashboardTranscript).toContain("headerIconButton:");
+        expect(dashboardTranscript).toContain("headerActionButton:");
+        expect(dashboardTranscript).toContain("size-[32px]");
         expect(card).toContain('data-slot="card-header"');
         expect(card).toContain('data-slot="card-title"');
         expect(input).toContain('data-slot="input"');
@@ -1782,14 +1806,28 @@ describe("recording detail copy and title action UI regressions", () => {
                 variantAttr(retiredDashboardDetailVariant),
             );
         }
+        expect(dashboardDetailHeader).toContain('variant="ghost"');
+        expect(dashboardDetailHeader).toContain('size="icon-sm"');
+        expect(dashboardDetailHeader).toContain('variant="outline"');
+        expect(dashboardDetailHeader).toContain('size="sm"');
         expect(dashboardDetailHeader).toContain(
+            "dashboardButtonClassNames.headerIconButton",
+        );
+        expect(dashboardDetailHeader).toContain(
+            "dashboardButtonClassNames.headerActionButton",
+        );
+        expect(dashboardDetailHeader).not.toContain(
             'variant="detailHeaderIconAction"',
         );
-        expect(dashboardDetailHeader).toContain(
+        expect(dashboardDetailHeader).not.toContain(
             'size="detailHeaderIconAction"',
         );
-        expect(dashboardDetailHeader).toContain('variant="detailHeaderAction"');
-        expect(dashboardDetailHeader).toContain('size="detailHeaderAction"');
+        expect(dashboardDetailHeader).not.toContain(
+            'variant="detailHeaderAction"',
+        );
+        expect(dashboardDetailHeader).not.toContain(
+            'size="detailHeaderAction"',
+        );
         expect(dashboardDetailHeader).not.toContain(
             'controlSize="detailHeaderTitle"',
         );
@@ -2027,27 +2065,28 @@ describe("recording detail copy and title action UI regressions", () => {
 
         const notFoundPrimaryAction = extractBoundedSlice(
             notFound,
-            'variant="recordingRoutePrimaryAction"',
+            'variant="default"',
             "</Button>",
         );
-        expect(notFoundPrimaryAction).toContain('size="recordingRouteAction"');
+        expect(notFoundPrimaryAction).toContain('size="default"');
         expect(error).not.toMatch(/\bbg-(background|card|muted)\b/);
         expect(error).toContain("<Button");
         const errorPrimaryAction = extractBoundedSlice(
             error,
-            'variant="recordingRoutePrimaryAction"',
+            'variant="default"',
             "</Button>",
         );
         const errorGhostAction = extractBoundedSlice(
             error,
-            'variant="recordingRouteGhostAction"',
+            'variant="ghost"',
             "</Button>",
         );
-        expect(errorPrimaryAction).toContain('size="recordingRouteAction"');
-        expect(errorGhostAction).toContain('size="recordingRouteAction"');
+        expect(errorPrimaryAction).toContain('size="default"');
+        expect(errorGhostAction).toContain('size="default"');
         for (const source of [notFound, error]) {
-            expect(source).not.toContain('variant="default"');
-            expect(source).not.toContain('variant="ghost"');
+            expect(source).not.toContain('variant="recordingRoutePrimaryAction"');
+            expect(source).not.toContain('variant="recordingRouteGhostAction"');
+            expect(source).not.toContain('size="recordingRouteAction"');
         }
         expect(error).toContain("onClick={reset}");
         expect(error).toContain("重试");
@@ -2158,8 +2197,8 @@ describe("recording detail copy and title action UI regressions", () => {
             'data-sot-part="recording-source-record-tabs"',
             '<FieldDescription data-sot-part="recording-source-record-hint">',
         );
-        expect(sourceRecordSegmentedTabs).toContain('variant="sotSegmented"');
-        expect(sourceRecordSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(sourceRecordSegmentedTabs).toContain('variant="segmented"');
+        expect(sourceRecordSegmentedTabs).toContain('size="segmentedSm"');
         expect(sourceRecordSegmentedTabs).toContain(
             'data-sot-control="segmented-tabs"',
         );

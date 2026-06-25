@@ -487,6 +487,22 @@ const dashboardSearchActivityClassNames = {
         "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
 } as const;
 
+const dashboardButtonClassNames = {
+    nav: "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5",
+    sync: "size-[32px] bg-transparent text-muted-foreground shadow-none hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+    copy: "h-[26px] gap-[6px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[copy-state=ok]:border-[var(--button-copy-success-border)] data-[copy-state=ok]:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:text-[var(--signal-success)] data-[copy-state=ok]:hover:bg-[var(--button-copy-success-bg)] data-[copy-state=ok]:hover:text-[var(--signal-success)] data-[copy-state=err]:border-[var(--button-copy-danger-border)] data-[copy-state=err]:text-[var(--signal-danger)] data-[copy-state=err]:hover:bg-transparent data-[copy-state=err]:hover:text-[var(--signal-danger)] has-[>svg]:px-[10px] [&_svg:not([class*='size-'])]:size-[14px]",
+    compactAction: "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-[10px]",
+    speakersMerge: "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-[10px]",
+    drawerTrigger: "h-auto w-auto rounded-md bg-transparent px-[6px] py-px text-[var(--fg-primary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+    sidebarCollapse: "size-[22px] rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-muted-foreground shadow-sm hover:bg-accent hover:text-foreground dark:hover:bg-accent/50",
+    settingsAvatar: "size-[30px] rounded-full border-0 bg-gradient-to-b from-[var(--steel-500)] to-[var(--steel-700)] text-xs font-semibold text-white shadow-xs hover:scale-[1.04] hover:bg-gradient-to-b hover:from-[var(--steel-500)] hover:to-[var(--steel-700)] hover:text-white",
+    listStatePrimary: "h-8 gap-1.5 rounded-md bg-primary px-3 text-primary-foreground shadow-xs hover:bg-primary/90 has-[>svg]:px-2.5",
+    listStateAction: "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-2.5",
+    listPagination: "h-8 gap-1.5 rounded-md bg-transparent px-3 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-2.5",
+    headerIconButton: "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    headerActionButton: "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
+} as const;
+
 const sourceProviderThemeClassName =
     "[--source-provider-status-success-bg:color-mix(in_srgb,var(--signal-success)_14%,transparent)] [--source-provider-status-success-border:color-mix(in_srgb,var(--signal-success)_30%,transparent)] [--source-provider-status-info-bg:color-mix(in_srgb,var(--signal-info)_14%,transparent)] [--source-provider-status-info-border:color-mix(in_srgb,var(--signal-info)_30%,transparent)] [--source-provider-status-warning-bg:color-mix(in_srgb,var(--signal-warning)_18%,transparent)] [--source-provider-status-warning-border:color-mix(in_srgb,var(--signal-warning)_32%,transparent)] [--source-provider-status-danger-bg:color-mix(in_srgb,var(--signal-danger)_14%,transparent)] [--source-provider-status-danger-border:color-mix(in_srgb,var(--signal-danger)_30%,transparent)] [--source-provider-primary-border:color-mix(in_srgb,var(--accent)_60%,black_8%)]";
 
@@ -4005,8 +4021,9 @@ export function Workstation({
                                     ).size;
                         return (
                             <Button
-                                variant="dashboardNav"
-                                size="dashboardNav"
+                                variant="ghost"
+                                size="default"
+                                className={dashboardButtonClassNames.nav}
                                 type="button"
                                 aria-pressed={favorite === item.value}
                                 data-active={
@@ -4315,8 +4332,9 @@ export function Workstation({
                             </div>
                         </div>
                         <Button
-                            variant="dashboardSync"
-                            size="dashboardSync"
+                            variant="ghost"
+                            size="icon-sm"
+                            className={dashboardButtonClassNames.sync}
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}
@@ -4340,8 +4358,9 @@ export function Workstation({
             <main data-sot-panel="dashboard-main">
                 <header data-sot-panel="dashboard-topbar">
                     <Button
-                        variant="dashboardDrawerTrigger"
-                        size="dashboardDrawerTrigger"
+                        variant="ghost"
+                        size="default"
+                        className={dashboardButtonClassNames.drawerTrigger}
                         data-sot-control="dashboard-drawer-trigger"
                         id="drawer-trigger"
                         type="button"
@@ -4363,8 +4382,9 @@ export function Workstation({
                         />
                     </Button>
                     <Button
-                        variant="dashboardSidebarCollapse"
-                        size="dashboardSidebarCollapse"
+                        variant="outline"
+                        size="icon"
+                        className={dashboardButtonClassNames.sidebarCollapse}
                         type="button"
                         aria-label="折叠 / 展开侧边栏"
                         data-sot-control="sidebar-collapse"
@@ -5209,8 +5229,9 @@ export function Workstation({
                         </div>
                         <Button
                             asChild
-                            variant="dashboardSettingsAvatar"
-                            size="dashboardSettingsAvatar"
+                            variant="ghost"
+                            size="icon"
+                            className={dashboardButtonClassNames.settingsAvatar}
                         >
                             <button
                                 ref={settingsTriggerRef}
@@ -5508,8 +5529,8 @@ export function Workstation({
                                     </div>
                                     <SegmentedTabs
                                         aria-label="列表模式"
-                                        variant="sotSegmented"
-                                        size="sotSegmentedSm"
+                                        variant="segmented"
+                                        size="segmentedSm"
                                         data-sot-control="segmented-tabs"
                                         data-sot-part="dashboard-recording-list-mode-segmented"
                                         data-sot-size="sm"
@@ -6009,8 +6030,11 @@ export function Workstation({
                                         </div>
                                         {listState === "empty" ? (
                                             <Button
-                                                variant="recordingListStatePrimary"
-                                                size="recordingListStateAction"
+                                                variant="default"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listStatePrimary
+                                                }
                                                 type="button"
                                                 data-sot-control="recording-list-open-data-sources"
                                                 onClick={() =>
@@ -6024,8 +6048,11 @@ export function Workstation({
                                         ) : null}
                                         {listState === "no-match" ? (
                                             <Button
-                                                variant="recordingListStateAction"
-                                                size="recordingListStateAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listStateAction
+                                                }
                                                 type="button"
                                                 data-sot-control="recording-list-clear-filters"
                                                 onClick={() => {
@@ -6046,8 +6073,11 @@ export function Workstation({
                                         ) : null}
                                         {listState === "timeline-empty" ? (
                                             <Button
-                                                variant="recordingListStateAction"
-                                                size="recordingListStateAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listStateAction
+                                                }
                                                 type="button"
                                                 data-sot-control="recording-list-clear-timeline"
                                                 onClick={() =>
@@ -6061,8 +6091,11 @@ export function Workstation({
                                         ) : null}
                                         {listState === "tag-empty" ? (
                                             <Button
-                                                variant="recordingListStateAction"
-                                                size="recordingListStateAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listStateAction
+                                                }
                                                 type="button"
                                                 data-sot-control="recording-list-clear-tag"
                                                 onClick={() =>
@@ -6093,8 +6126,11 @@ export function Workstation({
                                         </div>
                                         <div data-sot-part="recording-list-page-nav">
                                             <Button
-                                                variant="recordingListPagination"
-                                                size="recordingListPagination"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listPagination
+                                                }
                                                 type="button"
                                                 data-page-prev=""
                                                 disabled={currentListPage <= 1}
@@ -6117,8 +6153,11 @@ export function Workstation({
                                                 {listTotalPages}
                                             </span>
                                             <Button
-                                                variant="recordingListPagination"
-                                                size="recordingListPagination"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listPagination
+                                                }
                                                 type="button"
                                                 data-page-next=""
                                                 disabled={
@@ -6146,8 +6185,11 @@ export function Workstation({
                                         </div>
                                         {listPaginationState === "paginated" ? (
                                             <Button
-                                                variant="recordingListPagination"
-                                                size="recordingListPagination"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.listPagination
+                                                }
                                                 type="button"
                                                 data-sot-control="recording-list-load-more"
                                                 onClick={() =>
@@ -6256,8 +6298,11 @@ export function Workstation({
                             ) : null}
                             {dashboardDetailHeaderState === "normal" ? (
                                 <Button
-                                    variant="detailHeaderIconAction"
-                                    size="detailHeaderIconAction"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className={
+                                        dashboardButtonClassNames.headerIconButton
+                                    }
                                     type="button"
                                     aria-label="重命名"
                                     title="重命名"
@@ -6279,8 +6324,11 @@ export function Workstation({
                                     data-sot-mode="normal"
                                 >
                                     <Button
-                                        variant="detailHeaderAction"
-                                        size="detailHeaderAction"
+                                        variant="outline"
+                                        size="sm"
+                                        className={
+                                            dashboardButtonClassNames.headerActionButton
+                                        }
                                         type="button"
                                         aria-haspopup="dialog"
                                         aria-expanded={aiOpen}
@@ -6350,8 +6398,11 @@ export function Workstation({
                             {dashboardDetailHeaderState === "editing" ? (
                                 <>
                                     <Button
-                                        variant="detailHeaderIconAction"
-                                        size="detailHeaderIconAction"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className={
+                                            dashboardButtonClassNames.headerIconButton
+                                        }
                                         type="button"
                                         aria-label="保存新标题"
                                         title="保存"
@@ -6365,8 +6416,11 @@ export function Workstation({
                                         <Check data-icon="inline-start" />
                                     </Button>
                                     <Button
-                                        variant="detailHeaderIconAction"
-                                        size="detailHeaderIconAction"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className={
+                                            dashboardButtonClassNames.headerIconButton
+                                        }
                                         type="button"
                                         aria-label="取消重命名"
                                         title="取消"
@@ -6406,8 +6460,11 @@ export function Workstation({
                                     >
                                         <DropdownMenuTrigger asChild>
                                             <Button
-                                                variant="detailHeaderIconAction"
-                                                size="detailHeaderIconAction"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                className={
+                                                    dashboardButtonClassNames.headerIconButton
+                                                }
                                                 type="button"
                                                 aria-label="更多操作"
                                                 aria-haspopup="menu"
@@ -6691,8 +6748,8 @@ export function Workstation({
                             >
                                 <SegmentedTabs
                                     aria-label="详情标签"
-                                    variant="sotSegmented"
-                                    size="sotSegmentedSm"
+                                    variant="segmented"
+                                    size="segmentedSm"
                                     className="shrink-0"
                                     data-sot-control="segmented-tabs"
                                     data-sot-size="sm"
@@ -6734,8 +6791,9 @@ export function Workstation({
                                         </Badge>
                                     ) : null}
                                     <Button
-                                        variant="dashboardCopy"
-                                        size="dashboardCopy"
+                                        variant="ghost"
+                                        size="sm"
+                                        className={dashboardButtonClassNames.copy}
                                         type="button"
                                         data-copy="transcript"
                                         data-copy-state={
@@ -6952,8 +7010,11 @@ export function Workstation({
                                     </span>
                                     <Button
                                         id="retx-btn"
-                                        variant="dashboardCompactAction"
-                                        size="dashboardCompactAction"
+                                        variant="ghost"
+                                        size="sm"
+                                        className={
+                                            dashboardButtonClassNames.compactAction
+                                        }
                                         type="button"
                                         data-sot-control="retranscribe-recording"
                                         data-sot-state={dashboardRetxState}
@@ -7021,8 +7082,11 @@ export function Workstation({
                                     {dashboardRetxState === "failed" ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="dashboardCompactAction"
-                                                size="dashboardCompactAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.compactAction
+                                                }
                                                 type="button"
                                                 data-retx-retry=""
                                                 data-sot-control="retry-retranscription"
@@ -7033,8 +7097,11 @@ export function Workstation({
                                                 重试转写
                                             </Button>
                                             <Button
-                                                variant="dashboardCompactAction"
-                                                size="dashboardCompactAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.compactAction
+                                                }
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -7050,8 +7117,11 @@ export function Workstation({
                                       selectedRecording ? (
                                         <div data-sot-part="dashboard-retranscription-actions">
                                             <Button
-                                                variant="dashboardCompactAction"
-                                                size="dashboardCompactAction"
+                                                variant="ghost"
+                                                size="sm"
+                                                className={
+                                                    dashboardButtonClassNames.compactAction
+                                                }
                                                 type="button"
                                                 aria-label="收起"
                                                 data-retx-dismiss=""
@@ -7716,8 +7786,11 @@ export function Workstation({
                                             {turns.length || 0} 段说话人
                                         </div>
                                         <Button
-                                            variant="dashboardSpeakersMerge"
-                                            size="dashboardSpeakersMerge"
+                                            variant="ghost"
+                                            size="sm"
+                                            className={
+                                                dashboardButtonClassNames.speakersMerge
+                                            }
                                             type="button"
                                             data-sot-control="dashboard-speakers-merge"
                                         >

@@ -65,6 +65,12 @@ interface TranscriptionSectionProps {
 
 const RECORDING_TRANSCRIPTION_META_BADGE_CLASS_NAME =
     "h-[22px] justify-normal gap-[5px] rounded-full border px-[8px] py-0 text-[11px] font-semibold leading-normal data-[sot-tone=attribute]:border-border data-[sot-tone=attribute]:bg-background data-[sot-tone=attribute]:text-[var(--fg-primary)] data-[sot-tone=measure]:border-transparent data-[sot-tone=measure]:bg-secondary data-[sot-tone=measure]:text-secondary-foreground [&>svg]:size-3";
+const recordingTranscriptionButtonClassNames = {
+    action: "h-8 gap-1.5 rounded-md px-3 text-[var(--fg-primary)] shadow-xs has-[>svg]:px-2.5",
+    primary:
+        "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
+    danger: "h-8 gap-1.5 rounded-md px-3 shadow-xs has-[>svg]:px-2.5",
+} as const;
 
 function RecordingTranscriptionMetaBadge({
     className,
@@ -432,8 +438,11 @@ export function TranscriptionSection({
                                 <div data-sot-part="recording-transcription-actions">
                                     <Button
                                         onClick={handleCopyTranscript}
-                                        size="transcriptionAction"
-                                        variant="transcriptionAction"
+                                        size="sm"
+                                        variant="outline"
+                                        className={
+                                            recordingTranscriptionButtonClassNames.action
+                                        }
                                         data-sot-control="copy-local-transcript"
                                         disabled={
                                             isCopyingTranscript ||
@@ -451,8 +460,11 @@ export function TranscriptionSection({
                                     </Button>
                                     <Button
                                         onClick={handleConfirmRetranscribe}
-                                        size="transcriptionAction"
-                                        variant="transcriptionDangerAction"
+                                        size="sm"
+                                        variant="destructive"
+                                        className={
+                                            recordingTranscriptionButtonClassNames.danger
+                                        }
                                         data-sot-control="retranscribe-local"
                                         disabled={
                                             !canTranscribe || isTranscribing
@@ -562,8 +574,11 @@ export function TranscriptionSection({
                         <EmptyContent>
                             <Button
                                 onClick={() => handleTranscribe(false)}
-                                size="transcriptionAction"
-                                variant="transcriptionPrimaryAction"
+                                size="sm"
+                                variant="default"
+                                className={
+                                    recordingTranscriptionButtonClassNames.primary
+                                }
                                 data-sot-control="start-local-transcription"
                                 disabled={!canTranscribe || isTranscribing}
                                 title={

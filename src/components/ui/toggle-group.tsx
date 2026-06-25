@@ -16,7 +16,7 @@ const toggleGroupItemVariants = cva(
             variant: {
                 default: "",
                 outline: "border border-input bg-background shadow-xs",
-                sotSegmented: "border border-input bg-background shadow-xs",
+                segmented: "border border-input bg-background shadow-xs",
                 swatch: "toggle-group-swatch group/swatch !grid place-items-center rounded-[50%] border-2 border-transparent p-0 text-[13.3333px] font-normal leading-[0] shadow-none",
             },
             tone: {
@@ -31,7 +31,7 @@ const toggleGroupItemVariants = cva(
             size: {
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
-                sotSegmentedSm: "h-8 px-2",
+                segmentedSm: "h-8 px-2",
                 swatch: "size-[18px] min-w-0 p-0",
                 iconPicker: "size-7 min-w-0 shrink-0 p-0",
                 lg: "h-10 px-4",
@@ -135,7 +135,7 @@ function ToggleGroupItem({
                     size: itemSize,
                 }),
                 context.spacingValue === 0 &&
-                    "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l data-[variant=sotSegmented]:border-l-0 first:data-[variant=sotSegmented]:border-l",
+                    "rounded-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 first:data-[variant=outline]:border-l data-[variant=segmented]:border-l-0 first:data-[variant=segmented]:border-l",
                 className,
             )}
             {...props}

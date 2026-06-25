@@ -35,7 +35,7 @@ type SegmentedTabsItemContext = {
     size: SegmentedTabsSize;
 };
 
-type SegmentedTabsSize = "default" | "sm" | "sotSegmentedSm";
+type SegmentedTabsSize = "default" | "sm" | "segmentedSm";
 
 export function SegmentedTabs<T extends string>({
     items,
@@ -43,8 +43,8 @@ export function SegmentedTabs<T extends string>({
     onValueChange,
     className,
     getItemProps,
-    variant = "sotSegmented",
-    size = "sotSegmentedSm",
+    variant = "segmented",
+    size = "segmentedSm",
     "aria-label": ariaLabel,
     ...props
 }: SegmentedTabsRootProps & {

@@ -102,8 +102,18 @@ const RECORDING_DETAIL_HEADER_CLASS_NAME =
     "relative flex flex-row items-center gap-2.5 px-1 pt-1 pb-0 data-[sot-state=saving]:py-0";
 const RECORDING_DETAIL_HEADER_TITLE_CLASS_NAME =
     "leading-none font-semibold min-w-0 flex-1 truncate";
+const RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME =
+    "h-8 min-w-0 flex-1 px-3 py-1 text-base md:text-sm";
 const RECORDING_DETAIL_HEADER_LOCAL_BADGE_CLASS_NAME = "ml-1 shrink-0";
 const RECORDING_DETAIL_HEADER_STATUS_BADGE_CLASS_NAME = "ml-1 shrink-0";
+const recordingWorkstationButtonClassNames = {
+    detailBack:
+        "relative h-auto w-full justify-start gap-2.5 rounded-[9px] border border-transparent bg-transparent px-2.5 py-[7px] text-left text-[13px] font-medium text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-[var(--fg-primary)] focus-visible:text-[var(--fg-primary)] disabled:cursor-not-allowed disabled:opacity-50 data-[sot-state=selected]:border-[var(--line-hairline)] data-[sot-state=selected]:bg-[var(--bg-elevated)] data-[sot-state=selected]:text-[var(--fg-primary)] data-[sot-state=selected]:shadow-xs dark:data-[sot-state=selected]:border-[var(--glass-border)] dark:data-[sot-state=selected]:bg-[rgb(255_255_255_/_0.07)] dark:data-[sot-state=selected]:shadow-none has-[>svg]:px-2.5 [&_span]:min-w-0 [&_span]:flex-1 [&_span]:truncate [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.7] [&_svg]:opacity-[0.85] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    headerIconButton:
+        "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    headerActionButton:
+        "h-8 gap-[7px] rounded-[9px] border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold leading-normal text-[var(--fg-primary)] shadow-[var(--shadow-xs)] hover:bg-[var(--glass-tint-base)] hover:text-[var(--fg-primary)] has-[>svg]:px-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&_svg:not([class*='size-'])]:size-4",
+} as const;
 
 function RecordingDetailCardHeader({
     className,
@@ -866,8 +876,9 @@ export function RecordingWorkstation({
                         录音
                     </div>
                     <Button
-                        variant="recordingDetailBack"
-                        size="recordingDetailBack"
+                        variant="ghost"
+                        size="default"
+                        className={recordingWorkstationButtonClassNames.detailBack}
                         data-sot-control="recording-detail-back"
                         data-sot-state="selected"
                         type="button"
@@ -993,7 +1004,9 @@ export function RecordingWorkstation({
                             ) : null}
                             {recordingDetailHeaderState === "editing" ? (
                                 <Input
-                                    controlSize="detailHeaderTitle"
+                                    className={
+                                        RECORDING_DETAIL_HEADER_TITLE_INPUT_CLASS_NAME
+                                    }
                                     value={renameValue}
                                     onChange={(event) =>
                                         setRenameValue(event.target.value)
@@ -1033,8 +1046,11 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "normal" &&
                             canRenameRecording ? (
                                 <Button
-                                    variant="detailHeaderIconAction"
-                                    size="detailHeaderIconAction"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className={
+                                        recordingWorkstationButtonClassNames.headerIconButton
+                                    }
                                     onClick={handleRenameStart}
                                     aria-label="重命名"
                                     title="重命名"
@@ -1055,8 +1071,11 @@ export function RecordingWorkstation({
                                     data-sot-mode="normal"
                                 >
                                     <Button
-                                        variant="detailHeaderAction"
-                                        size="detailHeaderAction"
+                                        variant="outline"
+                                        size="sm"
+                                        className={
+                                            recordingWorkstationButtonClassNames.headerActionButton
+                                        }
                                         onClick={handleAutoRename}
                                         disabled={
                                             isAutoRenaming ||
@@ -1091,8 +1110,11 @@ export function RecordingWorkstation({
                             {recordingDetailHeaderState === "editing" ? (
                                 <>
                                     <Button
-                                        variant="detailHeaderIconAction"
-                                        size="detailHeaderIconAction"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className={
+                                            recordingWorkstationButtonClassNames.headerIconButton
+                                        }
                                         onClick={handleRenameSave}
                                         aria-label="保存新标题"
                                         title="保存（Enter）"
@@ -1104,8 +1126,11 @@ export function RecordingWorkstation({
                                         <Check data-icon="inline-start" />
                                     </Button>
                                     <Button
-                                        variant="detailHeaderIconAction"
-                                        size="detailHeaderIconAction"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className={
+                                            recordingWorkstationButtonClassNames.headerIconButton
+                                        }
                                         onClick={handleRenameCancel}
                                         aria-label={t("recording.cancelRename")}
                                         title="取消（Esc）"
@@ -1133,8 +1158,11 @@ export function RecordingWorkstation({
                                     >
                                         <DropdownMenuTrigger asChild>
                                             <Button
-                                                variant="detailHeaderIconAction"
-                                                size="detailHeaderIconAction"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                className={
+                                                    recordingWorkstationButtonClassNames.headerIconButton
+                                                }
                                                 type="button"
                                                 aria-label={t(
                                                     "dashboardChrome.moreActions",
@@ -1498,8 +1526,8 @@ export function RecordingWorkstation({
                                         </Field>
                                         <div data-sot-part="recording-source-record-tabs">
                                             <SegmentedTabs
-                                                variant="sotSegmented"
-                                                size="sotSegmentedSm"
+                                                variant="segmented"
+                                                size="segmentedSm"
                                                 data-sot-control="segmented-tabs"
                                                 data-sot-size="sm"
                                                 getItemProps={

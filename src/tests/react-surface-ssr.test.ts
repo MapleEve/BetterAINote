@@ -139,7 +139,7 @@ describe("React surface SSR coverage", () => {
         expect(html).toContain('data-slot="switch"');
         expect(html).toContain('data-slot="toggle-group"');
         expect(html).toMatch(
-            /data-slot="toggle-group"[^>]*data-variant="sotSegmented"[^>]*data-size="sotSegmentedSm"/,
+            /data-slot="toggle-group"[^>]*data-variant="segmented"[^>]*data-size="segmentedSm"/,
         );
         expect(html).not.toMatch(
             /data-slot="toggle-group"[^>]*data-variant="outline"/,

@@ -1474,20 +1474,22 @@ describe("dashboard SOT foundation", () => {
         expect(detailHeaderTitleInput).not.toContain("controlSize=");
         expect(detailHeaderLocalBadge).toContain('variant="outline"');
         expect(detailHeaderStatusBadge).toContain('variant="ghost"');
-        expect(button).toContain("detailHeaderIconAction:");
-        expect(button).toContain("detailHeaderAction:");
-        expect(button).toContain(
-            'detailHeaderIconAction:\n                    "border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none',
+        expect(button).not.toContain("detailHeaderIconAction:");
+        expect(button).not.toContain("detailHeaderAction:");
+        expect(workstation).toContain("headerIconButton:");
+        expect(workstation).toContain("headerActionButton:");
+        expect(workstation).toContain(
+            "size-[32px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none",
         );
-        expect(button).toContain(
-            'detailHeaderAction:\n                    "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] font-sans font-semibold text-[var(--fg-primary)] shadow-[var(--shadow-xs)]',
+        expect(workstation).toContain(
+            "border border-[var(--line-hairline)] bg-[var(--glass-tint-base)] px-3 font-sans text-[12.5px] font-semibold",
         );
-        expect(button).toContain('detailHeaderIconAction: "size-[32px]"');
-        expect(button).toContain(
-            'detailHeaderAction:\n                    "h-8 gap-[7px] rounded-[9px] px-3 text-[12.5px] leading-normal',
+        expect(workstation).toContain("shadow-[var(--shadow-xs)]");
+        expect(workstation).toContain(
+            "h-8 gap-[7px] rounded-[9px]",
         );
-        expect(button).toContain("has-[>svg]:px-3");
-        expect(button).toContain("[&_svg:not([class*='size-'])]:size-4");
+        expect(workstation).toContain("has-[>svg]:px-3");
+        expect(workstation).toContain("[&_svg:not([class*='size-'])]:size-4");
         for (const selector of [
             'data-sot-control="rename-recording-title"',
             'data-sot-control="recording-more-actions"',
@@ -2242,7 +2244,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
         ]) {
-            expect(buttonVariantBlock).toContain(`${variant}:`);
+            expect(buttonVariantBlock).not.toContain(`${variant}:`);
         }
         for (const size of [
             "dashboardNav",
@@ -2254,7 +2256,7 @@ describe("dashboard SOT foundation", () => {
             "dashboardSidebarCollapse",
             "dashboardSettingsAvatar",
         ]) {
-            expect(buttonSizeBlock).toContain(`${size}:`);
+            expect(buttonSizeBlock).not.toContain(`${size}:`);
         }
         for (const copyStateClass of [
             "data-[copy-state=ok]:border-[var(--button-copy-success-border)]",
@@ -2264,16 +2266,17 @@ describe("dashboard SOT foundation", () => {
             "data-[copy-state=err]:text-[var(--signal-danger)]",
             "data-[copy-state=err]:hover:bg-transparent",
         ]) {
-            expect(buttonVariantBlock).toContain(copyStateClass);
+            expect(buttonVariantBlock).not.toContain(copyStateClass);
+            expect(workstation).toContain(copyStateClass);
         }
         for (const removedConstant of DASHBOARD_SHELL_SOURCE_BUTTON_CONSTANTS) {
             expect(workstation).not.toContain(removedConstant);
         }
         for (const variant of DASHBOARD_RECORDING_LIST_BUTTON_VARIANTS) {
-            expect(buttonVariantBlock).toContain(`${variant}:`);
+            expect(buttonVariantBlock).not.toContain(`${variant}:`);
         }
         for (const size of DASHBOARD_RECORDING_LIST_BUTTON_SIZES) {
-            expect(buttonSizeBlock).toContain(`${size}:`);
+            expect(buttonSizeBlock).not.toContain(`${size}:`);
         }
         expectPrimitiveToExcludeBusinessTokens(
             button,
@@ -2367,7 +2370,7 @@ describe("dashboard SOT foundation", () => {
         const dashboardActivitySlice = extractBoundedSlice(
             workstation,
             'data-sot-part="dashboard-activity-anchor"',
-            '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
+            '<Button\n                            asChild\n                            variant="ghost"',
         );
         for (const featureHook of [
             'data-sot-control="dashboard-activity"',
@@ -2412,17 +2415,20 @@ describe("dashboard SOT foundation", () => {
         }
         const dashboardFavoriteButton = extractBoundedSlice(
             workstation,
-            'variant="dashboardNav"',
+            'data-sot-control="dashboard-favorite"',
             'data-sot-part="dashboard-favorite-label"',
         );
-        const dashboardFavoriteButtonOpening = extractBoundedSlice(
+        const dashboardFavoriteButtonOpening = extractOpeningElement(
             workstation,
-            'variant="dashboardNav"',
-            ">",
+            'data-sot-control="dashboard-favorite"',
+            "Button",
         );
-        expect(dashboardFavoriteButton).toContain('variant="dashboardNav"');
-        expect(dashboardFavoriteButton).toContain('size="dashboardNav"');
-        expect(dashboardFavoriteButtonOpening).not.toContain("className=");
+        expect(dashboardFavoriteButtonOpening).toContain('variant="ghost"');
+        expect(dashboardFavoriteButtonOpening).toContain('size="default"');
+        expectClassNameConstReference(
+            dashboardFavoriteButtonOpening,
+            "dashboardButtonClassNames.nav",
+        );
         expect(dashboardFavoriteButton).toContain(
             '<Icon data-icon="inline-start" />',
         );
@@ -2443,7 +2449,7 @@ describe("dashboard SOT foundation", () => {
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
         expect(workstation).toMatch(
-            /<Button\s+asChild\s+variant="dashboardSettingsAvatar"\s+size="dashboardSettingsAvatar"[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
+            /<Button\s+asChild\s+variant="ghost"\s+size="icon"\s+className=\{dashboardButtonClassNames\.settingsAvatar\}[\s\S]*>\s*<button[\s\S]*data-sot-control="dashboard-settings"[\s\S]*data-sot-part="dashboard-user-avatar"/,
         );
         expect(globals).not.toContain(
             '[data-sot-control="dashboard-settings"][data-sot-part="dashboard-user-avatar"]',
@@ -3362,8 +3368,8 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-recording-list-mode-segmented"',
             "SegmentedTabs",
         );
-        expect(listModeSegmentedTabs).toContain('variant="sotSegmented"');
-        expect(listModeSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(listModeSegmentedTabs).toContain('variant="segmented"');
+        expect(listModeSegmentedTabs).toContain('size="segmentedSm"');
         expect(listModeSegmentedTabs).toContain(
             'data-sot-control="segmented-tabs"',
         );
@@ -3384,8 +3390,8 @@ describe("dashboard SOT foundation", () => {
             'aria-label="详情标签"',
             "SegmentedTabs",
         );
-        expect(detailSegmentedTabs).toContain('variant="sotSegmented"');
-        expect(detailSegmentedTabs).toContain('size="sotSegmentedSm"');
+        expect(detailSegmentedTabs).toContain('variant="segmented"');
+        expect(detailSegmentedTabs).toContain('size="segmentedSm"');
         expect(detailSegmentedTabs).toContain(
             'data-sot-control="segmented-tabs"',
         );
@@ -3408,15 +3414,21 @@ describe("dashboard SOT foundation", () => {
             'data-sot-control="dashboard-speakers-merge"',
             "Button",
         );
-        expect(buttonPrimitive).toContain("dashboardSpeakersMerge:");
+        expect(buttonPrimitive).not.toContain("dashboardSpeakersMerge:");
         expect(dashboardSpeakersMerge).toContain(
+            'variant="ghost"',
+        );
+        expect(dashboardSpeakersMerge).toContain('size="sm"');
+        expectClassNameConstReference(
+            dashboardSpeakersMerge,
+            "dashboardButtonClassNames.speakersMerge",
+        );
+        expect(dashboardSpeakersMerge).not.toContain(
             'variant="dashboardSpeakersMerge"',
         );
-        expect(dashboardSpeakersMerge).toContain(
+        expect(dashboardSpeakersMerge).not.toContain(
             'size="dashboardSpeakersMerge"',
         );
-        expect(dashboardSpeakersMerge).not.toContain('variant="ghost"');
-        expect(dashboardSpeakersMerge).not.toContain('size="sm"');
         for (const hook of DASHBOARD_TRANSCRIPT_TURN_EMPTY_SOT_HOOKS) {
             expect(workstation).toContain(hook);
         }
@@ -3462,9 +3474,12 @@ describe("dashboard SOT foundation", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="dashboardCopy"');
-            expect(buttonOpening).toContain('size="dashboardCopy"');
-            expect(buttonOpening).not.toContain("className=");
+            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('size="sm"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "dashboardButtonClassNames.copy",
+            );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COPY_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -3491,9 +3506,12 @@ describe("dashboard SOT foundation", () => {
                 `data-sot-control="${control}"`,
                 "Button",
             );
-            expect(buttonOpening).toContain('variant="dashboardCompactAction"');
-            expect(buttonOpening).toContain('size="dashboardCompactAction"');
-            expect(buttonOpening).not.toContain("className=");
+            expect(buttonOpening).toContain('variant="ghost"');
+            expect(buttonOpening).toContain('size="sm"');
+            expectClassNameConstReference(
+                buttonOpening,
+                "dashboardButtonClassNames.compactAction",
+            );
         }
         for (const control of DASHBOARD_TRANSCRIPT_COMPACT_ACTION_CONTROLS) {
             const buttonOpening = extractOpeningElement(
@@ -3773,8 +3791,9 @@ describe("dashboard SOT foundation", () => {
             'data-sot-part="dashboard-sync-indicator"',
         );
         expect(workstation).toContain('data-sot-control="dashboard-sync"');
-        expect(workstation).toContain('variant="dashboardSync"');
-        expect(workstation).toContain('size="dashboardSync"');
+        expect(workstation).toContain('variant="ghost"');
+        expect(workstation).toContain('size="icon-sm"');
+        expect(workstation).toContain("dashboardButtonClassNames.sync");
         expect(workstation).toContain("data-sync-state={syncButtonState}");
         expect(workstation).toContain("aria-busy={syncButtonBusy}");
         expect(workstation).toContain("disabled={syncButtonBusy}");
@@ -3822,13 +3841,13 @@ describe("dashboard SOT foundation", () => {
         );
         expect(segmentedTabs).toContain("<ToggleGroup");
         expect(segmentedTabs).toContain("<ToggleGroupItem");
-        expect(segmentedTabs).toContain('variant = "sotSegmented"');
-        expect(segmentedTabs).toContain('size = "sotSegmentedSm"');
+        expect(segmentedTabs).toContain('variant = "segmented"');
+        expect(segmentedTabs).toContain('size = "segmentedSm"');
         expect(segmentedTabs).toContain("variant={variant}");
         expect(segmentedTabs).toContain("size={size}");
         expect(segmentedTabs).not.toContain('variant="outline"');
-        expect(toggleGroupPrimitive).toContain("sotSegmented:");
-        expect(toggleGroupPrimitive).toContain("sotSegmentedSm:");
+        expect(toggleGroupPrimitive).toContain("segmented:");
+        expect(toggleGroupPrimitive).toContain("segmentedSm:");
         expect(segmentedTabs).toContain("spacing={1}");
         expect(segmentedTabs).toContain('type="single"');
         expect(segmentedTabs).toContain("value={value}");

@@ -484,7 +484,7 @@ describe("dashboard SOT search and activity interactions", () => {
         const activitySlice = extractBoundedSlice(
             workstation,
             'data-sot-part="dashboard-activity-anchor"',
-            '<Button\n                            asChild\n                            variant="dashboardSettingsAvatar"',
+            '<Button\n                            asChild\n                            variant="ghost"',
         );
 
         expect(workstation).toContain("const [activityOpen, setActivityOpen]");
