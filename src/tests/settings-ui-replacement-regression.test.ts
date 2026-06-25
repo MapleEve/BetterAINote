@@ -2334,7 +2334,7 @@ describe("settings SOT interaction regressions", () => {
             /function VoScriptSettingsPanel[\s\S]*?function TranscriptionSettingsPanel/,
         )?.[0];
         const saveFunction = voscriptPanel?.match(
-            /const save = async[\s\S]*?const testConnection = async/,
+            /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
         const settingsRow = content.match(
             /function SettingsRow[\s\S]*?function SelectControl/,
@@ -2346,6 +2346,7 @@ describe("settings SOT interaction regressions", () => {
         expect(voscriptPanel).toContain(
             "function isVoScriptNoRepeatNgramInvalid",
         );
+        expect(voscriptPanel).toContain("const saveRuntimeParams = async");
         expect(voscriptPanel).toContain(
             "draft.privateTranscriptionNoRepeatNgramSize > 0",
         );
@@ -2378,6 +2379,9 @@ describe("settings SOT interaction regressions", () => {
         expect(saveFunction).toMatch(
             /if \(noRepeatNgramInvalid\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate/,
         );
+        expect(saveFunction).toContain(
+            'await persistVoScriptSettingsLane(paramsSave, "params", updates)',
+        );
     });
 
     it("keeps VoScript speaker bounds validation inline before persistence", () => {
@@ -2391,7 +2395,7 @@ describe("settings SOT interaction regressions", () => {
             /function VoScriptSpeakerRows[\s\S]*?function VoScriptSettingsPanel/,
         )?.[0];
         const saveFunction = voscriptPanel?.match(
-            /const save = async[\s\S]*?const testConnection = async/,
+            /const saveRuntimeParams = async[\s\S]*?const testConnection = async/,
         )?.[0];
         const settingsRow = content.match(
             /function SettingsRow[\s\S]*?function SelectControl/,
@@ -2457,7 +2461,7 @@ describe("settings SOT interaction regressions", () => {
             "paramsSave.setSaveError(resolvedSpeakerBoundsMessage)",
         );
         expect(saveFunction).toMatch(
-            /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate[\s\S]*?await updateVoScriptSettings\(updates\)/,
+            /if \(resolvedSpeakerBoundsMessage\)[\s\S]*?return;[\s\S]*?const updates: VoScriptSettingsUpdate[\s\S]*?await persistVoScriptSettingsLane\(paramsSave, "params", updates\)/,
         );
     });
 

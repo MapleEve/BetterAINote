@@ -1021,7 +1021,11 @@ test("VoScript settings save current SOT controls without testing connection", a
     await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
 
     const section = settingsSection(page, "voscript");
-    const saveButton = sectionSaveButton(section, "voscript-params");
+    const connectionSaveButton = sectionSaveButton(
+        section,
+        "voscript-connection",
+    );
+    const paramsSaveButton = sectionSaveButton(section, "voscript-params");
     await expectSectionReady(page, "voscript");
     await expect(
         section.getByRole("heading", {
@@ -1089,14 +1093,41 @@ test("VoScript settings save current SOT controls without testing connection", a
                 response.request().method() === "PUT" &&
                 response.ok() &&
                 response.request().postDataJSON()
-                    ?.privateTranscriptionNoRepeatNgramSize === 4,
+                    ?.privateTranscriptionBaseUrl ===
+                    "https://voscript.example.com",
         ),
-        saveButton.click(),
+        connectionSaveButton.click(),
     ]);
 
-    expect(voscriptPuts.at(-1)).toMatchObject({
+    expect(voscriptPuts.at(-1)).toEqual({
         privateTranscriptionApiKey: "e2e-vs-value",
         privateTranscriptionBaseUrl: "https://voscript.example.com",
+    });
+    await expect(connectionSaveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
+    );
+    await expect(apiKeyInput).toHaveValue("");
+    await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
+    await expect(minSpeakersInput).toHaveValue("3");
+    await expect(maxSpeakersInput).toHaveValue("4");
+    await expect(noRepeatNgramInput).toHaveValue("4");
+    await expect(snrThresholdInput).toHaveValue("12.5");
+    await expect(maxInflightJobsInput).toHaveValue("2");
+
+    await Promise.all([
+        page.waitForResponse(
+            (response) =>
+                response.url().includes("/api/settings/voscript") &&
+                response.request().method() === "PUT" &&
+                response.ok() &&
+                response.request().postDataJSON()
+                    ?.privateTranscriptionNoRepeatNgramSize === 4,
+        ),
+        paramsSaveButton.click(),
+    ]);
+
+    expect(voscriptPuts.at(-1)).toEqual({
         privateTranscriptionDenoiseModel: "deepfilternet",
         privateTranscriptionMaxInflightJobs: 2,
         privateTranscriptionMaxSpeakers: 4,
@@ -1104,7 +1135,7 @@ test("VoScript settings save current SOT controls without testing connection", a
         privateTranscriptionNoRepeatNgramSize: 4,
         privateTranscriptionSnrThreshold: 12.5,
     });
-    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "saved");
     await expect(apiKeyInput).toHaveValue("");
     await expect(apiKeyInput).toHaveAttribute("data-sot-state", "stored");
 

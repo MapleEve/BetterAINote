@@ -136,7 +136,7 @@ test("VoScript settings shows settings load failure and retries", async ({
     expect(settingsGets).toBe(2);
 });
 
-test("VoScript settings saves current SOT controls and keeps the shell scroll-stable", async ({
+test("VoScript settings saves runtime params without connection payload", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
@@ -212,10 +212,13 @@ test("VoScript settings saves current SOT controls and keeps the shell scroll-st
     await expect(section).toHaveAttribute("data-sot-state", "ready");
     await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
     await expect(saveButton).toContainText("已保存");
-    await expect(section.locator("#voscript-api-key")).toHaveValue("");
-    expect(settingsSavePayload).toMatchObject({
-        privateTranscriptionApiKey: "typed-e2e-key",
-        privateTranscriptionBaseUrl: "https://voscript-updated.e2e.example",
+    await expect(section.locator("#voscript-base-url")).toHaveValue(
+        "https://voscript-updated.e2e.example",
+    );
+    await expect(section.locator("#voscript-api-key")).toHaveValue(
+        "typed-e2e-key",
+    );
+    expect(settingsSavePayload).toEqual({
         privateTranscriptionDenoiseModel: "deepfilternet",
         privateTranscriptionMaxInflightJobs: 2,
         privateTranscriptionMaxSpeakers: 3,
@@ -231,6 +234,114 @@ test("VoScript settings saves current SOT controls and keeps the shell scroll-st
         "data-sot-section",
         "voscript",
     );
+});
+
+test("VoScript connection save ignores invalid runtime params", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const connectionSaveButton = sectionSaveButton(
+        section,
+        "voscript-connection",
+    );
+    const paramsSaveButton = sectionSaveButton(section, "voscript-params");
+
+    await section.locator("#voscript-base-url").fill(
+        "https://voscript-connection-only.e2e.example",
+    );
+    await section.locator("#voscript-api-key").fill("connection-only-key");
+    await section.locator("#voscript-no-repeat-ngram").fill("1");
+
+    await connectionSaveButton.click();
+
+    await expect(connectionSaveButton).toHaveAttribute(
+        "data-sot-state",
+        "saved",
+    );
+    await expect(paramsSaveButton).toHaveAttribute("data-sot-state", "idle");
+    await expect(section.locator("#voscript-no-repeat-ngram")).toHaveValue("1");
+    await expect(section.locator("#voscript-api-key")).toHaveValue("");
+    expect(savePayload).toEqual({
+        privateTranscriptionBaseUrl:
+            "https://voscript-connection-only.e2e.example",
+        privateTranscriptionApiKey: "connection-only-key",
+    });
+});
+
+test("VoScript runtime params save does not submit pending API key", async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 1180, height: 680 });
+
+    let savePayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/settings/voscript", async (route) => {
+        if (route.request().method() === "GET") {
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify(voscriptSettings()),
+            });
+            return;
+        }
+
+        savePayload = route.request().postDataJSON();
+        await route.fulfill({
+            contentType: "application/json",
+            body: JSON.stringify({ success: true }),
+        });
+    });
+
+    await ensureSignedIn(page);
+    await resetDisplayToChinese(page);
+    await page.goto("/settings#voscript", { waitUntil: "domcontentloaded" });
+
+    await expectSectionReady(page, "voscript");
+    const section = settingsSection(page, "voscript");
+    const saveButton = sectionSaveButton(section, "voscript-params");
+
+    await section.locator("#voscript-api-key").fill("pending-runtime-key");
+    await section.locator("#voscript-min-speakers").fill("2");
+    await section.locator("#voscript-max-speakers").fill("5");
+
+    await saveButton.click();
+
+    await expect(saveButton).toHaveAttribute("data-sot-state", "saved");
+    await expect(section.locator("#voscript-api-key")).toHaveValue(
+        "pending-runtime-key",
+    );
+    expect(savePayload).toEqual({
+        privateTranscriptionDenoiseModel: "none",
+        privateTranscriptionMaxInflightJobs: 1,
+        privateTranscriptionMaxSpeakers: 5,
+        privateTranscriptionMinSpeakers: 2,
+        privateTranscriptionNoRepeatNgramSize: 0,
+        privateTranscriptionSnrThreshold: null,
+    });
 });
 
 test("VoScript settings blocks invalid no-repeat n-gram inline before saving", async ({
@@ -708,7 +819,7 @@ test("VoScript settings surfaces backend save errors and recovers on retry", asy
     });
 });
 
-test("VoScript settings saves an empty service URL as nullable backend state", async ({
+test("VoScript settings saves connection lane without runtime params payload", async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1180, height: 680 });
@@ -739,6 +850,10 @@ test("VoScript settings saves an empty service URL as nullable backend state", a
     const section = settingsSection(page, "voscript");
     await section.locator("#voscript-base-url").fill("");
     await section.locator("#voscript-snr-threshold").fill("");
+    await section.locator("#voscript-min-speakers").fill("3");
+    await section.locator("#voscript-max-speakers").fill("4");
+    await section.locator("#voscript-no-repeat-ngram").fill("4");
+    await section.locator("#voscript-max-inflight-jobs").fill("2");
 
     const saveButton = sectionSaveButton(section, "voscript-connection");
     await saveButton.click();
@@ -746,11 +861,9 @@ test("VoScript settings saves an empty service URL as nullable backend state", a
         "data-sot-state",
         "saved",
     );
-    expect(savePayload).toMatchObject({
+    expect(savePayload).toEqual({
         privateTranscriptionBaseUrl: null,
-        privateTranscriptionSnrThreshold: null,
     });
-    expect(savePayload).not.toHaveProperty("privateTranscriptionApiKey");
 });
 
 test("VoScript settings save speaker bounds through SOT controls", async ({
@@ -798,7 +911,6 @@ test("VoScript settings save speaker bounds through SOT controls", async ({
     );
     expect(speakerPayloads).toEqual([
         {
-            privateTranscriptionBaseUrl: "https://voscript.e2e.example",
             privateTranscriptionDenoiseModel: "none",
             privateTranscriptionMaxInflightJobs: 1,
             privateTranscriptionMaxSpeakers: 5,

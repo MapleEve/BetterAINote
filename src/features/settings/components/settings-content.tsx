@@ -161,6 +161,7 @@ type VoScriptConnectionTestState =
     | "testing"
     | "test-success"
     | "test-error";
+type VoScriptSettingsSaveLane = "connection" | "params";
 
 interface ProviderActionMessage {
     description: string;
@@ -2967,6 +2968,38 @@ function applyVoScriptSpeakerDraft(
     return { ...draft, ...updates };
 }
 
+function didVoScriptConnectionSettingsChange(
+    previousSettings: VoScriptSettings,
+    nextSettings: VoScriptSettings,
+) {
+    return (
+        previousSettings.privateTranscriptionBaseUrl !==
+            nextSettings.privateTranscriptionBaseUrl ||
+        previousSettings.privateTranscriptionApiKeySet !==
+            nextSettings.privateTranscriptionApiKeySet
+    );
+}
+
+function didVoScriptRuntimeSettingsChange(
+    previousSettings: VoScriptSettings,
+    nextSettings: VoScriptSettings,
+) {
+    return (
+        previousSettings.privateTranscriptionMinSpeakers !==
+            nextSettings.privateTranscriptionMinSpeakers ||
+        previousSettings.privateTranscriptionMaxSpeakers !==
+            nextSettings.privateTranscriptionMaxSpeakers ||
+        previousSettings.privateTranscriptionDenoiseModel !==
+            nextSettings.privateTranscriptionDenoiseModel ||
+        previousSettings.privateTranscriptionSnrThreshold !==
+            nextSettings.privateTranscriptionSnrThreshold ||
+        previousSettings.privateTranscriptionNoRepeatNgramSize !==
+            nextSettings.privateTranscriptionNoRepeatNgramSize ||
+        previousSettings.privateTranscriptionMaxInflightJobs !==
+            nextSettings.privateTranscriptionMaxInflightJobs
+    );
+}
+
 function VoScriptSpeakerRows({
     busy,
     draft,
@@ -3090,6 +3123,9 @@ function VoScriptSettingsPanel({
     >(null);
     const connectionSave = useResettingSaveState();
     const paramsSave = useResettingSaveState();
+    const pendingSaveLaneRef = useRef<VoScriptSettingsSaveLane | null>(null);
+    const previousSettingsRef = useRef(settings);
+    const hasSyncedLoadedSettingsRef = useRef(false);
     const isTestingConnection = connectionTestState === "testing";
     function isVoScriptNoRepeatNgramInvalid() {
         return (
@@ -3131,11 +3167,67 @@ function VoScriptSettingsPanel({
 
     useEffect(() => {
         if (!hasLoaded) return;
-        setDraft(settings);
-        setApiKeyDraft("");
-        setApiKeyMode(VOSCRIPT_API_KEY_KEEP);
-        setConnectionTestState("idle");
-        setConnectionTestMessage(null);
+        const previousSettings = previousSettingsRef.current;
+        previousSettingsRef.current = settings;
+        const hasSyncedLoadedSettings = hasSyncedLoadedSettingsRef.current;
+        hasSyncedLoadedSettingsRef.current = true;
+        const connectionSettingsChanged = didVoScriptConnectionSettingsChange(
+            previousSettings,
+            settings,
+        );
+        const runtimeSettingsChanged = didVoScriptRuntimeSettingsChange(
+            previousSettings,
+            settings,
+        );
+        let saveLane: VoScriptSettingsSaveLane | null = null;
+        if (hasSyncedLoadedSettings) {
+            saveLane = pendingSaveLaneRef.current;
+            if (saveLane === null && connectionSettingsChanged) {
+                saveLane = runtimeSettingsChanged ? null : "connection";
+            }
+            if (saveLane === null && runtimeSettingsChanged) {
+                saveLane = connectionSettingsChanged ? null : "params";
+            }
+        }
+        setDraft((currentDraft) => {
+            if (saveLane === "connection") {
+                return {
+                    ...currentDraft,
+                    privateTranscriptionBaseUrl:
+                        settings.privateTranscriptionBaseUrl,
+                    privateTranscriptionApiKeySet:
+                        settings.privateTranscriptionApiKeySet,
+                };
+            }
+
+            if (saveLane === "params") {
+                return {
+                    ...currentDraft,
+                    privateTranscriptionDenoiseModel:
+                        settings.privateTranscriptionDenoiseModel,
+                    privateTranscriptionMaxInflightJobs:
+                        settings.privateTranscriptionMaxInflightJobs,
+                    privateTranscriptionMaxSpeakers:
+                        settings.privateTranscriptionMaxSpeakers,
+                    privateTranscriptionMinSpeakers:
+                        settings.privateTranscriptionMinSpeakers,
+                    privateTranscriptionNoRepeatNgramSize:
+                        settings.privateTranscriptionNoRepeatNgramSize,
+                    privateTranscriptionSnrThreshold:
+                        settings.privateTranscriptionSnrThreshold,
+                };
+            }
+
+            return settings;
+        });
+        if (saveLane === null) {
+            setApiKeyDraft("");
+            setApiKeyMode(VOSCRIPT_API_KEY_KEEP);
+        }
+        if (saveLane !== "params") {
+            setConnectionTestState("idle");
+            setConnectionTestMessage(null);
+        }
     }, [hasLoaded, settings]);
 
     const connectionDraftSignature = `${draft.privateTranscriptionBaseUrl ?? ""}\u0000${apiKeyDraft}\u0000${apiKeyMode}`;
@@ -3147,7 +3239,54 @@ function VoScriptSettingsPanel({
         setConnectionTestMessage(null);
     }, [connectionDraftSignature]);
 
-    const save = async (saveLane: typeof connectionSave) => {
+    const persistVoScriptSettingsLane = async (
+        saveLane: typeof connectionSave,
+        saveLaneName: VoScriptSettingsSaveLane,
+        updates: VoScriptSettingsUpdate,
+        onSaved?: () => void,
+    ) => {
+        pendingSaveLaneRef.current = saveLaneName;
+        saveLane.setSaveState("saving");
+        saveLane.setSaveError(null);
+        try {
+            await updateVoScriptSettings(updates);
+            onSaved?.();
+            saveLane.setSaveState("saved");
+        } catch (error) {
+            saveLane.setSaveError(
+                getErrorMessage(error, "Failed to update VoScript settings"),
+            );
+            saveLane.setSaveState("error");
+        } finally {
+            pendingSaveLaneRef.current = null;
+        }
+    };
+
+    const saveConnectionSettings = async () => {
+        const updates: VoScriptSettingsUpdate = {
+            privateTranscriptionBaseUrl: nullableText(
+                draft.privateTranscriptionBaseUrl ?? "",
+            ),
+        };
+
+        if (apiKeyMode === VOSCRIPT_API_KEY_CLEAR) {
+            updates.privateTranscriptionApiKey = null;
+        } else if (apiKeyDraft.trim()) {
+            updates.privateTranscriptionApiKey = apiKeyDraft.trim();
+        }
+
+        await persistVoScriptSettingsLane(
+            connectionSave,
+            "connection",
+            updates,
+            () => {
+                setApiKeyDraft("");
+                setApiKeyMode(VOSCRIPT_API_KEY_KEEP);
+            },
+        );
+    };
+
+    const saveRuntimeParams = async () => {
         if (resolvedSpeakerBoundsMessage) {
             paramsSave.setSaveError(resolvedSpeakerBoundsMessage);
             paramsSave.setSaveState("error");
@@ -3161,9 +3300,6 @@ function VoScriptSettingsPanel({
         }
 
         const updates: VoScriptSettingsUpdate = {
-            privateTranscriptionBaseUrl: nullableText(
-                draft.privateTranscriptionBaseUrl ?? "",
-            ),
             privateTranscriptionMinSpeakers: clampInteger(
                 draft.privateTranscriptionMinSpeakers,
                 0,
@@ -3190,25 +3326,7 @@ function VoScriptSettingsPanel({
             ),
         };
 
-        if (apiKeyMode === VOSCRIPT_API_KEY_CLEAR) {
-            updates.privateTranscriptionApiKey = null;
-        } else if (apiKeyDraft.trim()) {
-            updates.privateTranscriptionApiKey = apiKeyDraft.trim();
-        }
-
-        saveLane.setSaveState("saving");
-        saveLane.setSaveError(null);
-        try {
-            await updateVoScriptSettings(updates);
-            setApiKeyDraft("");
-            setApiKeyMode(VOSCRIPT_API_KEY_KEEP);
-            saveLane.setSaveState("saved");
-        } catch (error) {
-            saveLane.setSaveError(
-                getErrorMessage(error, "Failed to update VoScript settings"),
-            );
-            saveLane.setSaveState("error");
-        }
+        await persistVoScriptSettingsLane(paramsSave, "params", updates);
     };
 
     const testConnection = async () => {
@@ -3442,7 +3560,7 @@ function VoScriptSettingsPanel({
                     disabled={busy}
                     error={connectionSave.saveError}
                     isZh={isZh}
-                    onSave={() => void save(connectionSave)}
+                    onSave={() => void saveConnectionSettings()}
                     saveId="voscript-connection"
                     saveState={connectionSave.saveState}
                     section="voscript"
@@ -3626,7 +3744,7 @@ function VoScriptSettingsPanel({
                     disabled={busy}
                     error={paramsSave.saveError}
                     isZh={isZh}
-                    onSave={() => void save(paramsSave)}
+                    onSave={() => void saveRuntimeParams()}
                     saveId="voscript-params"
                     saveState={paramsSave.saveState}
                     section="voscript"
