@@ -910,8 +910,7 @@ button:not([data-slot]) {
     background: var(--glass-tint-subtle);
     border: 1px solid var(--glass-border);
 }
-[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"],
-[data-sot-part="settings-skeleton-sync-dot"] {
+[data-sot-panel="dashboard-sync"] [data-sot-part="dashboard-sync-indicator"] {
     width: 8px;
     height: 8px;
     border-radius: 50%;

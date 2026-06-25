@@ -9,6 +9,8 @@ const makeSkeletonKeys = (prefix: string, count: number) =>
 
 const SKELETON_ROW_CONTROL_CLASS =
     "flex min-w-0 flex-wrap items-center justify-end gap-2";
+const SKELETON_SYNC_DOT_CLASS =
+    "size-2 rounded-full bg-[var(--signal-success)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-success)_22%,transparent)]";
 
 interface SettingsCardSkeletonProps {
     className?: string;
@@ -43,7 +45,10 @@ export function SettingsCardSkeleton({
                         </FieldContent>
                         <div className={SKELETON_ROW_CONTROL_CLASS}>
                             {index === 0 ? (
-                                <Skeleton data-sot-part="settings-skeleton-sync-dot" />
+                                <Skeleton
+                                    className={SKELETON_SYNC_DOT_CLASS}
+                                    data-sot-part="settings-skeleton-sync-dot"
+                                />
                             ) : null}
                             <Skeleton className="h-9 w-60 max-w-full rounded-md" />
                         </div>

@@ -2906,6 +2906,7 @@ describe("settings SOT interaction regressions", () => {
             "features/settings/components/settings-skeletons.tsx",
         );
         const skeletonPrimitive = readSource("components/ui/skeleton.tsx");
+        const globals = readSource("app/globals.css");
 
         expect(skeletons).toContain('data-sot-panel="settings-card-skeleton"');
         expect(skeletons).toContain(
@@ -2920,6 +2921,15 @@ describe("settings SOT interaction regressions", () => {
         );
         expect(skeletons).toContain(
             'data-sot-part="settings-skeleton-sync-dot"',
+        );
+        expect(skeletons).toContain("SKELETON_SYNC_DOT_CLASS");
+        expect(skeletons).toContain("size-2 rounded-full");
+        expect(skeletons).toContain("bg-[var(--signal-success)]");
+        expect(skeletons).toContain(
+            "shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal-success)_22%,transparent)]",
+        );
+        expect(globals).not.toContain(
+            '[data-sot-part="settings-skeleton-sync-dot"]',
         );
         expect(skeletons).toContain(
             'import { Field, FieldContent } from "@/components/ui/field";',
