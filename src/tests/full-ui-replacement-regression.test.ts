@@ -1312,8 +1312,11 @@ const DIALOG_SLOT_GLOBAL_SELECTORS = [
 const DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE =
     /(^|[,\s>{])\.(?:del-modal-icon|del-modal-name)(?![\w-])/m;
 
-const DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS = [
+const CONFIRM_DIALOG_RETAINED_FUNCTIONAL_GLOBAL_SELECTORS = [
     '[data-sot-part="confirm-extra"]',
+] as const;
+
+const REMOVED_CONFIRM_DIALOG_DETAIL_GLOBAL_SELECTORS = [
     '[data-sot-item="confirm-dialog-detail"]',
     '[data-sot-part="confirm-warning"]',
 ] as const;
@@ -2089,13 +2092,10 @@ const SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-part="dashboard-transcript-body"]',
     '[data-sot-part="recording-transcription-body"]',
-    '[data-sot-panel="settings-body"]',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar',
     '[data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar',
     '[data-sot-part="recording-transcription-body"]::-webkit-scrollbar',
-    '[data-sot-panel="settings-body"]::-webkit-scrollbar',
     '[data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover',
-    '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
 ];
 
 const TAB_PANE_HIDDEN_LEGACY_PRODUCT_CSS_SELECTOR_RE =
@@ -3310,6 +3310,9 @@ describe("full UI replacement regression coverage", () => {
             "--button-destructive-border:",
             "--button-destructive-fg:",
             "--button-destructive-shadow:",
+            "--modal-scrim-bg:",
+            "--confirm-dialog-warning-bg:",
+            "--confirm-dialog-warning-border:",
         ]) {
             expect(globals).toContain(token);
         }
@@ -3430,8 +3433,11 @@ describe("full UI replacement regression coverage", () => {
         expect(productCss).not.toMatch(
             DELETE_CONFIRM_MODAL_EXTRAS_LEGACY_PRODUCT_CSS_SELECTOR_RE,
         );
-        for (const selector of DELETE_CONFIRM_MODAL_EXTRAS_DATA_SOT_CSS_SELECTORS) {
+        for (const selector of CONFIRM_DIALOG_RETAINED_FUNCTIONAL_GLOBAL_SELECTORS) {
             expect(productCss).toContain(selector);
+        }
+        for (const selector of REMOVED_CONFIRM_DIALOG_DETAIL_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(productCss, selector)).toEqual([]);
         }
         const confirmFooterButtonRules = collectCssRuleBlocks(
             productCss,
@@ -3452,15 +3458,21 @@ describe("full UI replacement regression coverage", () => {
         expect(
             extractCssBlock(productCss, '[data-sot-part="confirm-extra"]'),
         ).toContain("display: flex;");
-        expect(
-            extractCssBlock(
-                productCss,
-                '[data-sot-item="confirm-dialog-detail"]',
-            ),
-        ).toContain("font: 500 12.5px / 1.55 var(--font-sans);");
-        expect(
-            extractCssBlock(productCss, '[data-sot-part="confirm-warning"]'),
-        ).toContain("var(--signal-danger)");
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_DETAILS_LIST_CLASS",
+            "mt-1 mb-2 flex list-disc flex-col gap-1 pl-[18px]",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_DETAIL_ITEM_CLASS",
+            "flex items-center gap-1.5 font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]",
+        );
+        expectExactStringConstInitializer(
+            confirmDialog,
+            "CONFIRM_DIALOG_WARNING_CLASS",
+            "rounded-md border border-[var(--confirm-dialog-warning-border)] bg-[var(--confirm-dialog-warning-bg)] px-3 py-2 text-[var(--signal-danger)]",
+        );
 
         expect(card.trim()).not.toBe("export {};");
         for (const primitive of [
@@ -4466,15 +4478,33 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).not.toMatch(
             /document\.body\.dataset\.(?:sidebar|collapsed)\b/,
         );
-        expect(productCss).toContain(
+        expect(productCss).not.toContain(
             '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]',
         );
-        expect(productCss).toContain(
+        expect(productCss).not.toContain(
             '[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]\n    [data-sot-panel="dashboard-sidebar"]',
         );
         expect(productCss).toContain(
             '[data-sidebar="collapsed"]\n    [data-sot-panel="dashboard-sidebar"]\n    [data-sot-part="dashboard-nav-section-label"]',
         );
+        const sidebarCollapseClassNames = extractBoundedSlice(
+            workstation,
+            "const dashboardSidebarCollapseClassNames = {",
+            "} as const;",
+        );
+        for (const ownerClassSnippet of [
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px]",
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center",
+            "group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0",
+        ]) {
+            expect(sidebarCollapseClassNames).toContain(ownerClassSnippet);
+        }
+        expect(workstation).toContain("dashboardSidebarCollapseClassNames.sidebar");
+        expect(workstation).toContain("dashboardSidebarCollapseClassNames.hidden");
+        expect(workstation).toContain("dashboardSidebarCollapseClassNames.brand");
+        expect(workstation).toContain("dashboardSidebarCollapseClassNames.favorite");
+        expect(workstation).toContain("dashboardSidebarCollapseClassNames.syncPanel");
         expect(productCss).not.toContain(
             'Desktop sidebar-collapsed — bridge body[data-sidebar="collapsed"]',
         );
@@ -4681,6 +4711,9 @@ describe("full UI replacement regression coverage", () => {
 
     it("keeps shared scrollbars product CSS on data-sot selectors", () => {
         const globals = readSource("app/globals.css");
+        const settingsDialog = readSource(
+            "features/settings/components/settings-dialog.tsx",
+        );
         const legacySelectorLines = globals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
@@ -4692,6 +4725,15 @@ describe("full UI replacement regression coverage", () => {
         for (const selector of SOT_SCROLLBAR_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
         }
+        expect(globals).not.toContain(
+            '[data-sot-panel="settings-body"]::-webkit-scrollbar',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover',
+        );
+        expect(settingsDialog).toContain("const SETTINGS_RAIL_CLASS =");
+        expect(settingsDialog).toContain("overflow-y-auto");
+        expect(settingsDialog).toContain("[overscroll-behavior:contain]");
     });
 
     it("keeps tab pane hidden product CSS on data-sot selectors", () => {
@@ -5697,8 +5739,19 @@ describe("full UI replacement regression coverage", () => {
             "dashboardButtonClassNames.settingsAvatar",
         );
         expect(button).not.toContain("dashboardSpeakersMerge:");
-        expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="default"\s+className=\{dashboardButtonClassNames\.nav\}[\s\S]*data-sot-control="dashboard-favorite"/,
+        const dashboardFavoriteNavButton = extractElementSlice(
+            workstation,
+            'data-sot-control="dashboard-favorite"',
+            "Button",
+        );
+        expect(dashboardFavoriteNavButton).toContain('variant="ghost"');
+        expect(dashboardFavoriteNavButton).toContain('size="default"');
+        expect(dashboardFavoriteNavButton).toMatch(/className=\{\s*cn\(/);
+        expect(dashboardFavoriteNavButton).toContain(
+            "dashboardButtonClassNames.nav",
+        );
+        expect(dashboardFavoriteNavButton).toContain(
+            "dashboardSidebarCollapseClassNames.favorite",
         );
         const dashboardSourceClearButton = extractOpeningElement(
             workstation,
@@ -5708,8 +5761,17 @@ describe("full UI replacement regression coverage", () => {
         expect(workstation).toMatch(
             /<Button[\s\S]*data-sot-control="dashboard-source-clear"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
-        expect(workstation).toMatch(
-            /<Button\s+variant="ghost"\s+size="icon-sm"\s+className=\{dashboardButtonClassNames\.sync\}[\s\S]*data-sot-control="dashboard-sync"/,
+        const dashboardSyncButton = extractElementSlice(
+            workstation,
+            'data-sot-control="dashboard-sync"',
+            "Button",
+        );
+        expect(dashboardSyncButton).toContain('variant="ghost"');
+        expect(dashboardSyncButton).toContain('size="icon-sm"');
+        expect(dashboardSyncButton).toMatch(/className=\{\s*cn\(/);
+        expect(dashboardSyncButton).toContain("dashboardButtonClassNames.sync");
+        expect(dashboardSyncButton).toContain(
+            "dashboardSidebarCollapseClassNames.hidden",
         );
         expect(workstation).toMatch(
             /<Button\s+variant="outline"\s+size="icon"\s+className=\{dashboardButtonClassNames\.sidebarCollapse\}[\s\S]*data-sot-control="sidebar-collapse"/,
@@ -7683,14 +7745,15 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActionStateButtonBlocks).toEqual([]);
         const sourceReportNoSourceEmpty = extractBoundedSlice(
             sourceReportPanel,
-            "<Empty\n                        className={SOURCE_REPORT_EMPTY_SURFACE_CLASS_NAME}",
-            "</Empty>",
+            "{!data && !error && !isLoading && (",
+            "</SourceReportState>",
         );
         expect(sourceReportNoSourceEmpty).toContain(
             "data-sot-source-report-empty",
         );
+        expect(sourceReportNoSourceEmpty).toContain("<EmptyHeader");
         expect(sourceReportNoSourceEmpty).toContain(
-            "<EmptyHeader data-sot-source-report-empty-header>",
+            "data-sot-source-report-empty-header",
         );
         expect(sourceReportNoSourceEmpty).toContain("<EmptyMedia");
         expect(sourceReportNoSourceEmpty).toContain('variant="icon"');
@@ -7956,8 +8019,10 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceReportEmptyActions).toContain(
             "data-sot-source-report-empty-actions",
         );
+        expect(sourceReportEmptyActions).toContain("className={cn(");
+        expect(sourceReportEmptyActions).toContain('"justify-center"');
         expect(sourceReportEmptyActions).toContain(
-            'className="justify-center"',
+            "SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME",
         );
         expect(sourceReportEmptyActions).toContain('variant="default"');
         expect(sourceReportEmptyActions).toContain('variant="ghost"');
@@ -11226,6 +11291,20 @@ describe("full UI replacement regression coverage", () => {
             globals,
             '[data-sot-panel="recording-tag-manager"]',
         ).filter(({ prelude }) => !prelude.includes(".cl-pop-host"));
+        const tagManagerCardClassNames = extractBoundedSlice(
+            tagManager,
+            "const recordingTagManagerCardClassNames = {",
+            "} as const;",
+        );
+        const tagManagerContentClassNames = extractBoundedSlice(
+            tagManager,
+            "const recordingTagManagerContentClassNames = {",
+            "} as const;",
+        );
+        const tagManagerPanelClass = extractObjectStringProperty(
+            tagManagerCardClassNames,
+            "panel",
+        );
         const allowedTagManagerFunctionalProperties = new Set([
             "left",
             "max-width",
@@ -11237,7 +11316,14 @@ describe("full UI replacement regression coverage", () => {
             "z-index",
         ]);
 
-        expect(tagManagerGlobalPanelBlocks.length).toBeGreaterThanOrEqual(4);
+        expect(
+            tagManagerGlobalPanelBlocks
+                .map(({ prelude }) => prelude.trim())
+                .sort(),
+        ).toEqual([
+            '[data-sot-panel="recording-tag-manager"]',
+            '[data-sot-panel="recording-tag-manager"][data-open="true"]',
+        ]);
         for (const block of tagManagerGlobalPanelBlocks) {
             const declarationProperties = block.declarations
                 .split("\n")
@@ -11251,6 +11337,17 @@ describe("full UI replacement regression coverage", () => {
                 ).toBe(true);
             }
         }
+        for (const ownerPanelSnippet of [
+            "tagm-panel fixed top-[96px] right-[28px]",
+            "z-[var(--z-context-menu)]",
+            "max-h-[460px] w-[320px] max-w-[calc(100vw-2rem)]",
+            "pointer-events-auto",
+            "max-md:top-[76px] max-md:right-[12px] max-md:left-[12px]",
+        ]) {
+            expect(tagManagerPanelClass).toContain(ownerPanelSnippet);
+        }
+        expect(tagManagerContentClassNames).toContain("tagm-body");
+        expect(tagManagerContentClassNames).toContain("overflow-auto");
         expect(globals).toContain(
             '.cl-pop-host > [data-sot-panel="recording-tag-manager"],',
         );

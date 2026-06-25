@@ -232,6 +232,24 @@
         var(--signal-danger) 26%,
         transparent
     );
+    --modal-scrim-bg: rgb(11 16 22 / 0.36);
+    --modal-scrim-bg: color-mix(
+        in srgb,
+        var(--graphite-950) 36%,
+        transparent
+    );
+    --confirm-dialog-warning-bg: rgb(210 65 53 / 0.1);
+    --confirm-dialog-warning-bg: color-mix(
+        in srgb,
+        var(--signal-danger) 10%,
+        transparent
+    );
+    --confirm-dialog-warning-border: rgb(210 65 53 / 0.3);
+    --confirm-dialog-warning-border: color-mix(
+        in srgb,
+        var(--signal-danger) 30%,
+        transparent
+    );
     --bg-recessed: var(--graphite-150);
     --bg-overlay: rgb(250 251 252 / 0.72);
     --bg-overlay: oklch(0.99 0.003 250 / 0.72);

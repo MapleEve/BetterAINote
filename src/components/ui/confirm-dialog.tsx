@@ -77,7 +77,7 @@ const ConfirmDialogContext = createContext<{
 } | null>(null);
 
 const CONFIRM_DIALOG_OVERLAY_CLASS =
-    "bg-[color-mix(in_srgb,var(--graphite-950)_36%,transparent)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
+    "bg-[var(--modal-scrim-bg)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
 
 const CONFIRM_DIALOG_CONTENT_CLASS =
     "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] sm:max-w-[460px]";
@@ -101,7 +101,7 @@ const CONFIRM_DIALOG_DETAIL_ITEM_CLASS =
     "flex items-center gap-1.5 font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
 
 const CONFIRM_DIALOG_WARNING_CLASS =
-    "rounded-md border border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_10%,transparent)] px-3 py-2 text-[var(--signal-danger)]";
+    "rounded-md border border-[var(--confirm-dialog-warning-border)] bg-[var(--confirm-dialog-warning-bg)] px-3 py-2 text-[var(--signal-danger)]";
 
 const CONFIRM_DIALOG_FOOTER_CLASS =
     "border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4";
