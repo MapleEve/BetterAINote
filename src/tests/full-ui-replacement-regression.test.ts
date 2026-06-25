@@ -1575,6 +1575,42 @@ const DASHBOARD_SOURCE_FILTER_FEATURE_OWNER_CLASS_SNIPPETS = [
     "h-6",
     "rounded-md",
     "px-2",
+    "sourceFilterStackClassNames",
+    "root:",
+    "gap-x-2 gap-y-1.5",
+    "border-b border-[var(--line-hairline)]",
+    "dark:border-[var(--glass-border-soft)]",
+    "from:",
+    "flex-[0_1_auto]",
+    "[&_b]:font-bold",
+    "separator:",
+    "w-2.5",
+    "select-none",
+    "chip:",
+    "h-[22px]",
+    "gap-1.5",
+    "dark:border-[var(--glass-border)]",
+    "label:",
+    "whitespace-nowrap",
+    "info:",
+    "[&_b]:mx-0.5",
+    "libraryRoot:",
+    "mt-1.5 flex items-center",
+    "libraryLabel:",
+    "truncate",
+] as const;
+
+const DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS = [
+    '[data-sot-panel="dashboard-source-filter-stack"]',
+    '[data-theme="dark"] [data-sot-panel="dashboard-source-filter-stack"]',
+    '[data-sot-part="source-filter-from"] b',
+    '[data-sot-part="source-filter-separator"]',
+    '[data-sot-part="source-filter-chip"]',
+    '[data-stack-label]',
+    '[data-sot-part="source-filter-info"]',
+    '[data-sot-panel="dashboard-library-search-filter"]',
+    '[data-sot-part="library-search-filter-label"]',
+    '[data-sot-part="library-search-filter-chip"]',
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_DIRECT_STATE_SELECTORS = [
@@ -5273,6 +5309,31 @@ describe("full UI replacement regression coverage", () => {
             sourceFilterStackStart,
             sourceFilterStackEnd,
         );
+        const sourceFilterStackOutput = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-source-filter-stack"',
+            "output",
+        );
+        const sourceFilterFrom = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-part="source-filter-from"',
+            "span",
+        );
+        const sourceFilterSeparator = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-part="source-filter-separator"',
+            "span",
+        );
+        const sourceFilterChip = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-part="source-filter-chip"',
+            "span",
+        );
+        const sourceFilterInfo = extractOpeningElement(
+            sourceFilterStack,
+            'data-sot-part="source-filter-info"',
+            "span",
+        );
         const legacySourceRowClassNamePattern =
             /className=(?:"[^"]*\b(?:nav-source|is-active-filter|is-connected-idle|is-syncing|is-sync-error|is-no-results|is-needs-setup|is-not-connected|is-expired|is-disabled|src-ico|src-status|src-action)\b[^"]*"|\{[^}]*\b(?:nav-source|is-active-filter|is-connected-idle|is-syncing|is-sync-error|is-no-results|is-needs-setup|is-not-connected|is-expired|is-disabled|src-ico|src-status|src-action)\b[^}]*\})/;
         const legacySourceFilterActionClassNamePattern =
@@ -5407,6 +5468,21 @@ describe("full UI replacement regression coverage", () => {
         expect(sourceFilterStack).toContain(
             'data-sot-part="source-filter-action"',
         );
+        expect(sourceFilterStackOutput).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.root\s*\}/,
+        );
+        expect(sourceFilterFrom).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.from\s*\}/,
+        );
+        expect(sourceFilterSeparator).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.separator\s*\}/,
+        );
+        expect(sourceFilterChip).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.chip\s*\}/,
+        );
+        expect(sourceFilterInfo).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.info\s*\}/,
+        );
         expect(sourceFilterStack).toContain('data-sot-action="retry"');
         expect(sourceFilterStack).toContain('data-sot-action="widen"');
         expect(sourceFilterStack).toContain('data-sot-action="open-settings"');
@@ -5454,6 +5530,9 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-part="source-filter-action"]',
             ),
         ).toEqual([]);
+        for (const selector of DASHBOARD_SOURCE_FILTER_MIGRATED_GLOBAL_SELECTORS) {
+            expect(collectCssRuleBlocks(globals, selector)).toEqual([]);
+        }
         expect(sourceFilterStack).toMatch(
             /<Button[\s\S]*data-sot-control="source-filter-clear-all"[\s\S]*onClick=\{\(\) => setSource\("all"\)\}/,
         );
@@ -5470,11 +5549,35 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-control="library-search-filter-clear"',
             "Button",
         );
+        const librarySearchFilterOutput = extractOpeningElement(
+            workstation,
+            'data-sot-panel="dashboard-library-search-filter"',
+            "output",
+        );
+        const librarySearchFilterLabel = extractOpeningElement(
+            workstation,
+            'data-sot-part="library-search-filter-label"',
+            "span",
+        );
+        const librarySearchFilterChip = extractOpeningElement(
+            workstation,
+            'data-sot-part="library-search-filter-chip"',
+            "span",
+        );
         const librarySearchFilterClearClassHelper =
             extractFeatureClassHelperSource(
                 workstation,
                 librarySearchFilterClearButton,
             );
+        expect(librarySearchFilterOutput).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.libraryRoot\s*\}/,
+        );
+        expect(librarySearchFilterLabel).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.libraryLabel\s*\}/,
+        );
+        expect(librarySearchFilterChip).toMatch(
+            /className=\{\s*sourceFilterStackClassNames\.chip\s*\}/,
+        );
         expect(librarySearchFilterClearButton).toContain('variant="ghost"');
         expect(librarySearchFilterClearButton).toContain('size="icon"');
         expect(librarySearchFilterClearButton).toContain('type="button"');

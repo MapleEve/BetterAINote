@@ -510,6 +510,19 @@ const sourceFilterClassNames = {
         "h-6 rounded-md bg-transparent px-2 text-sm text-primary underline-offset-4 shadow-none hover:bg-transparent hover:text-primary hover:underline has-[>svg]:px-2",
 } as const;
 
+const sourceFilterStackClassNames = {
+    root: "flex min-w-0 flex-row flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-3 py-2 font-sans text-[11.5px] font-medium text-[var(--fg-tertiary)] dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.03)]",
+    from: "inline-flex min-w-0 max-w-full flex-[0_1_auto] items-baseline overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] [&_b]:whitespace-nowrap [&_b]:font-bold [&_b]:text-[var(--fg-secondary)]",
+    separator:
+        "inline-flex h-[22px] w-2.5 flex-none select-none items-center justify-center text-[13px] leading-none text-[var(--fg-disabled)]",
+    chip: "inline-flex h-[22px] flex-none items-center gap-1.5 whitespace-nowrap rounded-full border border-[var(--line-hairline)] bg-[var(--bg-elevated)] py-0 pl-1.5 pr-1 font-sans text-[11.5px] font-semibold leading-none text-[var(--fg-primary)] dark:border-[var(--glass-border)] dark:bg-[rgb(255_255_255_/_0.06)]",
+    label: "whitespace-nowrap",
+    info: "inline-flex min-w-0 flex-[0_1_auto] items-center overflow-hidden text-ellipsis whitespace-nowrap leading-[22px] text-[var(--fg-tertiary)] [&_b]:mx-0.5 [&_b]:font-bold [&_b]:text-[var(--fg-secondary)]",
+    libraryRoot:
+        "mt-1.5 flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-[var(--fg-tertiary)]",
+    libraryLabel: "truncate",
+} as const;
+
 function dashboardSourceButtonClassName(collapsed: boolean) {
     return cn(
         dashboardSourceClassNames.root,
@@ -5251,6 +5264,9 @@ export function Workstation({
                                 {source !== "all" ? (
                                     <output
                                         aria-live="polite"
+                                        className={
+                                            sourceFilterStackClassNames.root
+                                        }
                                         data-sot-panel="dashboard-source-filter-stack"
                                         data-sot-provider={source}
                                         data-sot-state={sourceFilterStackState}
@@ -5259,7 +5275,12 @@ export function Workstation({
                                         }
                                         data-state={sourceFilterStackState}
                                     >
-                                        <span data-sot-part="source-filter-from">
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.from
+                                            }
+                                            data-sot-part="source-filter-from"
+                                        >
                                             {t("sourceFilterStack.filter")} ·{" "}
                                             <b>
                                                 {t(
@@ -5267,11 +5288,26 @@ export function Workstation({
                                                 )}
                                             </b>
                                         </span>
-                                        <span data-sot-part="source-filter-separator">
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.separator
+                                            }
+                                            data-sot-part="source-filter-separator"
+                                        >
                                             ›
                                         </span>
-                                        <span data-sot-part="source-filter-chip">
-                                            <span data-stack-label>
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.chip
+                                            }
+                                            data-sot-part="source-filter-chip"
+                                        >
+                                            <span
+                                                className={
+                                                    sourceFilterStackClassNames.label
+                                                }
+                                                data-stack-label
+                                            >
                                                 {providerLabel(
                                                     source,
                                                     language,
@@ -5293,7 +5329,12 @@ export function Workstation({
                                                 <X data-icon="inline-start" />
                                             </Button>
                                         </span>
-                                        <span data-sot-part="source-filter-info">
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.info
+                                            }
+                                            data-sot-part="source-filter-info"
+                                        >
                                             {sourceFilterStackMessage ||
                                                 `${t("sourceFilterStack.showing")} `}
                                             {sourceFilterStackMessage ? null : (
@@ -5400,13 +5441,21 @@ export function Workstation({
                                 {librarySearchFilter ? (
                                     <output
                                         aria-live="polite"
+                                        className={
+                                            sourceFilterStackClassNames.libraryRoot
+                                        }
                                         data-sot-panel="dashboard-library-search-filter"
                                         data-sot-filter={
                                             librarySearchFilter.type
                                         }
                                         data-sot-state="active"
                                     >
-                                        <span data-sot-part="library-search-filter-label">
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.libraryLabel
+                                            }
+                                            data-sot-part="library-search-filter-label"
+                                        >
                                             {librarySearchFilter.type === "tag"
                                                 ? t(
                                                       "dashboardFavorites.tagFilter",
@@ -5415,7 +5464,12 @@ export function Workstation({
                                                       "dashboardFavorites.speakerFilter",
                                                   )}
                                         </span>
-                                        <span data-sot-part="library-search-filter-chip">
+                                        <span
+                                            className={
+                                                sourceFilterStackClassNames.chip
+                                            }
+                                            data-sot-part="library-search-filter-chip"
+                                        >
                                             {librarySearchFilter.label}
                                             <Button
                                                 variant="ghost"

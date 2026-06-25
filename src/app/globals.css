@@ -2258,12 +2258,6 @@ button:not([data-slot]) {
 [data-sot-part="dashboard-recording-list-titlebar"] {
     display: flex;
 }
-[data-sot-panel="dashboard-library-search-filter"] {
-    display: flex;
-}
-[data-sot-part="library-search-filter-label"] {
-    overflow: hidden;
-}
 [data-sot-panel="settings-scroll-body"][hidden] {
     display: none !important;
 }
@@ -2907,53 +2901,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     font: 500 11.5px var(--font-mono);
     color: var(--fg-tertiary);
     margin-left: auto;
-}
-[data-sot-panel="dashboard-library-search-filter"] {
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-sot-part="library-search-filter-label"] {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-[data-sot-panel="dashboard-source-filter-stack"] {
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--line-hairline);
-    background: var(--bg-recessed);
-    font: 500 11.5px var(--font-sans);
-    color: var(--fg-tertiary);
-}
-[data-theme="dark"] [data-sot-panel="dashboard-source-filter-stack"] {
-    background: rgb(255 255 255 / 0.03);
-    border-bottom-color: var(--glass-border-soft);
-}
-[data-sot-part="source-filter-from"] b {
-    font-weight: 700;
-    color: var(--fg-secondary);
-}
-[data-sot-part="source-filter-separator"] {
-    color: var(--fg-disabled);
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-chip"],
-[data-sot-panel="dashboard-library-search-filter"]
-    [data-sot-part="library-search-filter-chip"] {
-    align-items: center;
-    gap: 6px;
-    height: 22px;
-    padding: 0 4px 0 6px;
-    border-radius: 999px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    font: 600 11.5px var(--font-sans);
-    color: var(--fg-primary);
 }
 /* ---------- list-mode-bar + tag-filter dropdown ---------- */
 [data-sot-panel="dashboard-recording-list-mode"] {
@@ -3880,108 +3827,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
         max-width: none;
     }
 }
-/* ============================================================
-   Stack filter strip — single-row layout fix.
-   The strip is a flex row of inline atoms: stack-from, stack-sep,
-   stack-chip, stack-info. Banners are still flex children but they
-   force themselves onto their own row via flex-basis: 100%, so the
-   header row never wraps because of them. Each atom is flex:none
-   and white-space:nowrap so the separator never collapses to its
-   own line and the source chip stays as a pill.
-   ============================================================ */
-[data-sot-panel="dashboard-source-filter-stack"] {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 8px;
-    row-gap: 6px;
-    min-width: 0;
-}
-
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-from"] {
-    display: inline-flex;
-    align-items: baseline;
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 22px;
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-from"]
-    b {
-    white-space: nowrap;
-}
-
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-separator"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    width: 10px;
-    height: 22px;
-    line-height: 1;
-    font-size: 13px;
-    color: var(--fg-disabled);
-    user-select: none;
-}
-
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-chip"],
-[data-sot-panel="dashboard-library-search-filter"]
-    [data-sot-part="library-search-filter-chip"] {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 6px;
-    height: 22px;
-    padding: 0 4px 0 6px;
-    border-radius: 999px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    font: 600 11.5px var(--font-sans);
-    color: var(--fg-primary);
-    white-space: nowrap;
-    line-height: 1;
-}
-[data-theme="dark"]
-    [data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-chip"],
-[data-theme="dark"]
-    [data-sot-panel="dashboard-library-search-filter"]
-    [data-sot-part="library-search-filter-chip"] {
-    background: rgb(255 255 255 / 0.06);
-    border-color: var(--glass-border);
-}
-[data-sot-panel="dashboard-source-filter-stack"] [data-stack-label] {
-    white-space: nowrap;
-}
-
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-info"] {
-    display: inline-flex;
-    align-items: center;
-    flex: 0 1 auto;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 22px;
-    color: var(--fg-tertiary);
-}
-[data-sot-panel="dashboard-source-filter-stack"]
-    [data-sot-part="source-filter-info"]
-    b {
-    font-weight: 700;
-    color: var(--fg-secondary);
-    margin: 0 2px;
-}
-
 /* ============================================================
    SystemBanner — primitive-owned surface.
    ============================================================ */
