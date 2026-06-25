@@ -316,12 +316,18 @@ const SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"],',
     '[data-sot-panel="settings-scroll-body"][data-sot-layout="three-pane"]',
     '[data-sot-panel="settings-scroll-body"][hidden]',
+    '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
+] as const;
+
+const REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS = [
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"]',
     '[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"]',
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]',
     '[data-sot-panel="settings-scroll-body"]\n    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
-    '[data-sot-panel="settings-scroll-body"][data-sot-availability="unavailable"]',
-    '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
+    '[data-sot-panel="settings-save-actions"] {',
+    '[data-sot-panel="settings-save-actions"] [data-sot-control="settings-save"]',
+    '[data-sot-panel="settings-save-actions"] [data-sot-control="voscript-test"]',
+    '[data-sot-panel="settings-save-actions"] [data-sot-part="settings-save-status"]',
 ] as const;
 
 const LEGACY_MODAL_SHELL_CSS_SELECTOR_RE =
@@ -698,6 +704,9 @@ describe("settings SOT interaction regressions", () => {
         }
         for (const selector of SETTINGS_MAIN_DATA_SOT_CSS_SELECTORS) {
             expect(globals).toContain(selector);
+        }
+        for (const selector of REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
         expect(collectSourceActionGlobalBusinessBlocks(globals)).toEqual([]);
         expectOnlyAllowedGlobalSlotSelectors(globals);
@@ -1564,6 +1573,9 @@ describe("settings SOT interaction regressions", () => {
             content.match(
                 /const SETTINGS_SAVE_STATUS_BADGE_CLASS[\s\S]*?;/,
             )?.[0] ?? "";
+        const saveActionsClass =
+            content.match(/const SETTINGS_SAVE_ACTIONS_CLASS[\s\S]*?;/)?.[0] ??
+            "";
         const providerDetailInputOwnerClass =
             findStringConstInitializerContaining(settingFieldControl, [
                 "focus-visible:ring-0",
@@ -1713,8 +1725,16 @@ describe("settings SOT interaction regressions", () => {
         expect(buttonPrimitive).not.toContain("settingsSourceRetry:");
         expect(buttonPrimitive).not.toContain("settingsSectionRetry:");
         expect(saveStatusClass).toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
+        expect(saveStatusClass).toContain("data-[sot-state=idle]:hidden");
         expect(saveStatusClass).toContain(
             "[&_[data-sot-part=settings-save-status-indicator]]",
+        );
+        expect(saveActionsClass).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
+        expect(saveActionsClass).toContain(
+            "flex flex-row-reverse items-center gap-2",
+        );
+        expect(saveActionsClass).toContain(
+            "data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none",
         );
         expect(toggleGroupPrimitive).not.toContain("settingsSegment");
         expect(toggleGroupPrimitive).not.toContain("settingsSegmentOption:");
@@ -2041,19 +2061,15 @@ describe("settings SOT interaction regressions", () => {
         expect(stateBannerHelper).toContain('"needs-setup"');
 
         const globals = readSource("app/globals.css");
-        const actionStateBaseCss = readCssBlock(
-            globals,
-            '[data-sot-panel="settings-save-actions"] {\n    align-items: center;',
-        );
         expect(globals).not.toContain(
             '[data-sot-panel="source-provider-detail"] [data-sot-section-divider]',
         );
-        expect(actionStateBaseCss).toContain("flex-direction: row-reverse;");
         expect(collectSourceActionGlobalBusinessBlocks(globals)).toEqual([]);
-        expect(globals).toContain(
-            '[data-sot-panel="settings-save-actions"][data-sot-state="saving"]',
-        );
-        expect(globals).toContain('[data-sot-part="settings-save-status"]');
+        for (const selector of REMOVED_SETTINGS_SAVE_ACTION_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
+        expect(content).toContain("SETTINGS_SAVE_ACTIONS_CLASS");
+        expect(content).toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
         expect(globals).not.toContain('data-sot-actions="source-actions"');
     });
 
@@ -2158,6 +2174,9 @@ describe("settings SOT interaction regressions", () => {
         expect(saveStatus).toContain("SETTINGS_SAVE_STATUS_BADGE_CLASS");
         expect(saveStatus).toContain("data-sot-state={saveState}");
         expect(content).toContain('data-sot-panel="settings-save-actions"');
+        expect(saveActions).toContain(
+            "className={SETTINGS_SAVE_ACTIONS_CLASS}",
+        );
         expect(content).toContain("data-sot-save-id={saveId ?? section}");
         expect(content).toContain("data-sot-section={section}");
         expect(content).toContain("data-sot-state={saveState}");

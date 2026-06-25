@@ -1660,31 +1660,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
     display: flex;
 }
-[data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"] {
-    display: flex;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-part="settings-save-status"] {
-    display: inline-flex;
-}
-[data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"][data-sot-state="idle"]
-    [data-sot-part="settings-save-status"] {
-    display: none;
-}
-[data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="settings-save"],
-[data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="voscript-test"] {
-    pointer-events: none;
-}
-[data-sot-panel="settings-scroll-body"]
-    [data-sot-panel="settings-save-actions"][data-sot-state="saving"]
-    [data-sot-control="settings-save"] {
-    position: relative;
-}
 [data-sot-panel="settings-scroll-body"] [data-sot-banner] {
     display: grid;
 }
@@ -2326,24 +2301,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-theme="dark"] [data-sot-section-divider] {
     border-top-color: var(--glass-border-soft);
-}
-
-[data-sot-panel="settings-save-actions"] {
-    align-items: center;
-    gap: 8px;
-    margin-top: 18px;
-    margin-left: auto;
-    flex-direction: row-reverse;
-    pointer-events: none;
-    position: relative;
-    z-index: 2;
-}
-[data-sot-panel="settings-save-actions"] [data-sot-control="settings-save"],
-[data-sot-panel="settings-save-actions"] [data-sot-control="voscript-test"],
-[data-sot-panel="settings-save-actions"] [data-sot-part="settings-save-status"] {
-    pointer-events: auto;
-    position: relative;
-    z-index: 3;
 }
 
 [data-sot-panel="speaker-profiles"] {
