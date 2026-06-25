@@ -451,44 +451,96 @@ const dashboardRecordingTagFilterStyles = {
 } as const;
 
 const dashboardSearchActivityClassNames = {
+    dashboardTopbarActions: "ml-auto flex items-center gap-2",
+    librarySearchAnchor:
+        "relative inline-flex size-8 items-center justify-center p-0",
+    dashboardActivityAnchor:
+        "relative inline-flex size-8 items-center justify-center p-0",
     dashboardSearchTrigger:
         "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-4",
     librarySearchPanel:
-        "gap-0 rounded-xl border-border bg-card text-card-foreground shadow-2xl backdrop-blur-none",
+        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[540px] w-[460px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] font-sans text-card-foreground opacity-0 [box-shadow:var(--card-popover-shadow)] backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(460px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
     librarySearchInputRow:
-        "h-auto min-h-12 gap-2 rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-3 py-2 shadow-none focus-within:ring-0",
-    librarySearchInputAddon: "p-0 has-[>button]:m-0",
-    librarySearchInput: "h-8 px-1 text-sm font-medium md:text-sm",
+        "h-[49px] min-h-[49px] gap-[8px] rounded-none border-x-0 border-t-0 border-b border-[var(--line-hairline)] bg-transparent px-[12px] py-[8px] shadow-none focus-within:border-[var(--line-hairline)] focus-within:ring-0 dark:border-[var(--glass-border-soft)] dark:focus-within:border-[var(--glass-border-soft)]",
+    librarySearchInputAddon:
+        "p-0 group-data-[disabled=true]/input-group:opacity-100 has-[>button]:m-0 [&>svg]:stroke-[1.8] [&>svg]:text-[var(--fg-tertiary)] [&>svg:not([class*='size-'])]:size-[15px]",
+    librarySearchInput:
+        "h-[32px] min-w-0 px-[4px] py-0 [font:500_13.5px/1.35_var(--font-sans)] text-[var(--fg-primary)] placeholder:text-[var(--fg-tertiary)] md:text-[13.5px]",
     librarySearchClear:
         "size-6 rounded-[calc(var(--radius-md)-5px)] border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground has-[>svg]:p-0 [&>svg:not([class*='size-'])]:size-3 [&_svg:not([class*='size-'])]:size-3",
     librarySearchScope:
-        "w-full flex-wrap rounded-none border-b border-border bg-muted/40 p-2",
+        "min-h-[39px] w-full flex-wrap gap-[6px] rounded-none border-b border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[12px] py-[8px] dark:border-[var(--glass-border-soft)] dark:bg-[rgb(255_255_255_/_0.03)]",
     librarySearchScopeItem:
-        "h-6 rounded-full border border-input bg-background px-2.5 text-xs shadow-xs data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:text-primary",
+        "h-[22px] gap-[4px] rounded-full border border-transparent bg-transparent px-[10px] [font:500_11.5px/1_var(--font-sans)] text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-elevated)] hover:text-[var(--fg-primary)] data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)] data-[state=on]:bg-[var(--accent-soft)] data-[state=on]:text-[var(--accent)] disabled:pointer-events-none disabled:opacity-[.45]",
     librarySearchError:
         "flex w-full flex-col items-center gap-2 rounded-none border-0 bg-transparent px-4 py-4 text-center text-sm text-[var(--signal-danger)] shadow-none *:data-[slot=alert-description]:text-[var(--signal-danger)] [&>svg]:text-current",
     librarySearchErrorTitle:
         "line-clamp-none min-h-0 text-center text-sm font-medium tracking-normal",
     librarySearchRetry:
         "h-6 gap-1 rounded-md border border-input bg-background px-2 text-xs text-[var(--fg-primary)] shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:hover:bg-input/50 has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+    librarySearchScroll:
+        "min-h-0 flex-1 overflow-y-auto px-[6px] pt-[6px] pb-[8px]",
+    librarySearchState: "block text-[var(--fg-tertiary)]",
+    librarySearchIndexing:
+        "flex items-center gap-[10px] px-[16px] py-[14px] text-[length:var(--text-body-sm)] text-[var(--fg-secondary)]",
+    librarySearchStateSkeleton:
+        "relative inline-flex h-1 w-auto min-w-0 flex-1 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)] animate-none after:absolute after:inset-y-0 after:left-0 after:w-[36%] after:rounded-[inherit] after:bg-[linear-gradient(90deg,transparent,var(--signal-info)_50%,transparent)] after:animate-[sbn-sweep_1.4s_linear_infinite] after:content-['']",
+    librarySearchStateCopy:
+        "px-[16px] py-[22px] text-center [font:500_12.5px/1.55_var(--font-sans)] text-[var(--fg-tertiary)] [&_span]:font-semibold [&_span]:text-[var(--fg-primary)]",
+    librarySearchResults: "flex flex-col",
+    librarySearchResultGroup:
+        "flex flex-col gap-[2px] px-[4px] py-[6px] [&+&]:mt-[4px] [&+&]:border-t [&+&]:border-[var(--line-hairline)] [&+&]:pt-[8px] dark:[&+&]:border-[var(--glass-border-soft)]",
+    librarySearchGroupLabel:
+        "px-[6px] py-[4px] [font:600_10.5px/1_var(--font-mono)] uppercase tracking-[0.08em] text-[var(--fg-tertiary)]",
     librarySearchResult:
-        "h-auto min-h-[52px] w-full flex-col items-start justify-start gap-0.5 rounded-sm border border-transparent bg-transparent px-2.5 py-2 text-left whitespace-normal shadow-none hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground [&_[data-sot-part=library-search-result-meta]]:font-mono [&_[data-sot-part=library-search-result-meta]]:text-[11.5px] [&_[data-sot-part=library-search-result-meta]]:font-medium [&_[data-sot-part=library-search-result-meta]]:leading-snug [&_[data-sot-part=library-search-result-meta]]:tracking-[0.02em] [&_[data-sot-part=library-search-result-meta]]:text-muted-foreground [&_[data-sot-part=library-search-result-title]]:text-sm [&_[data-sot-part=library-search-result-title]]:font-semibold [&_[data-sot-part=library-search-result-title]]:leading-snug [&_[data-sot-part=library-search-result-title]]:text-foreground",
+        "h-auto w-full flex-col items-start justify-start gap-[2px] rounded-[var(--radius-sm)] border-0 bg-transparent px-[10px] py-[8px] text-left text-[var(--fg-primary)] whitespace-normal shadow-none hover:bg-[var(--bg-recessed)] focus-visible:bg-[var(--bg-recessed)] focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)] [&_[data-sot-part=library-search-result-meta]]:font-mono [&_[data-sot-part=library-search-result-meta]]:text-[11.5px] [&_[data-sot-part=library-search-result-meta]]:font-medium [&_[data-sot-part=library-search-result-meta]]:leading-[1.4] [&_[data-sot-part=library-search-result-meta]]:tracking-[0.02em] [&_[data-sot-part=library-search-result-meta]]:text-[var(--fg-tertiary)] [&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)] [&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
+    librarySearchHighlight:
+        "rounded-[3px] bg-[color-mix(in_srgb,var(--accent)_22%,transparent)] px-[2px] text-[var(--accent)]",
     librarySearchTag:
-        "w-fit justify-normal gap-1.5 border-primary/25 bg-primary/10 text-primary [a&]:hover:bg-primary/10 [&>svg]:size-3",
+        "[--tag-c:var(--tag-violet)] h-[22px] w-fit justify-normal gap-[5px] overflow-visible rounded-[6px] border border-[color-mix(in_srgb,var(--tag-c)_32%,transparent)] bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] py-0 pr-[9px] pl-[7px] [font:600_11.5px_var(--font-sans)] text-[color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] whitespace-normal shadow-xs [box-shadow:var(--shadow-xs)] [a&]:hover:bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]",
     dashboardActivityTrigger:
-        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-white [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
+        "relative size-[32px] rounded-md border border-transparent bg-transparent p-0 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground data-[sot-state=open]:border-border data-[sot-state=open]:bg-accent data-[sot-state=open]:text-accent-foreground data-[unread=0]:[&_[data-sot-part=dashboard-activity-badge]]:hidden dark:hover:bg-accent/50 [&_[data-sot-part=dashboard-activity-badge]]:pointer-events-none [&_[data-sot-part=dashboard-activity-badge]]:absolute [&_[data-sot-part=dashboard-activity-badge]]:right-0.5 [&_[data-sot-part=dashboard-activity-badge]]:top-0.5 [&_[data-sot-part=dashboard-activity-badge]]:inline-flex [&_[data-sot-part=dashboard-activity-badge]]:h-4 [&_[data-sot-part=dashboard-activity-badge]]:min-w-4 [&_[data-sot-part=dashboard-activity-badge]]:items-center [&_[data-sot-part=dashboard-activity-badge]]:justify-center [&_[data-sot-part=dashboard-activity-badge]]:rounded-full [&_[data-sot-part=dashboard-activity-badge]]:bg-[var(--signal-danger)] [&_[data-sot-part=dashboard-activity-badge]]:px-1 [&_[data-sot-part=dashboard-activity-badge]]:font-sans [&_[data-sot-part=dashboard-activity-badge]]:text-[9.5px] [&_[data-sot-part=dashboard-activity-badge]]:font-bold [&_[data-sot-part=dashboard-activity-badge]]:text-white [&_[data-sot-part=dashboard-activity-badge]]:shadow-[0_0_0_1.5px_var(--bg-elevated)] [&_svg:not([class*='size-'])]:size-4",
     dashboardActivityPanel:
-        "gap-0 overflow-hidden rounded-[12px] border-[var(--line-hairline)] bg-[var(--bg-elevated)] shadow-[var(--shadow-lg)] backdrop-blur-none dark:border-[var(--glass-border)] dark:bg-[var(--graphite-900)]",
+        "pointer-events-none absolute right-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] flex max-h-[520px] w-[380px] max-w-[calc(100vw-32px)] flex-col gap-0 overflow-hidden rounded-[12px] border-[var(--card-popover-border)] bg-[var(--card-popover-bg)] opacity-0 [box-shadow:var(--card-popover-shadow)] backdrop-blur-none transition-[opacity,transform] duration-[180ms] ease-[var(--ease-out)] [transform:translateY(-4px)_scale(0.99)] data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 data-[open=true]:[transform:translateY(0)_scale(1)] min-[641px]:max-[860px]:fixed min-[641px]:max-[860px]:left-3 min-[641px]:max-[860px]:right-auto min-[641px]:max-[860px]:top-[72px] min-[641px]:max-[860px]:box-border min-[641px]:max-[860px]:max-h-[calc(100dvh-96px)] min-[641px]:max-[860px]:w-[min(380px,calc(100vw-24px))] min-[641px]:max-[860px]:max-w-[calc(100vw-24px)] max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[72px] max-[640px]:box-border max-[640px]:max-h-[calc(100dvh-96px)] max-[640px]:w-[calc(100vw-24px)] max-[640px]:min-w-0 max-[640px]:max-w-none",
+    dashboardActivityHeader: "flex items-center gap-2.5 px-3.5 py-3",
+    dashboardActivityHeading: "flex flex-1 flex-col gap-0.5",
+    dashboardActivityTitle:
+        "[font:600_13px_var(--font-sans)] text-[var(--fg-primary)]",
     dashboardActivityCount:
         "justify-normal border-0 bg-transparent p-0 font-mono text-[11px] font-medium text-[var(--fg-tertiary)] [a&]:hover:bg-transparent",
     dashboardActivityClose:
         "size-[26px] rounded-[7px] border border-transparent bg-transparent p-0 text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-3",
+    dashboardActivityContent: "flex min-h-0 flex-1 flex-col p-0",
+    dashboardActivityStatus:
+        "flex items-center gap-2.5 bg-[var(--bg-recessed)] px-3.5 py-2.5 data-[state=error]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-danger)] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite] data-[state=syncing]:[&_[data-sot-part=dashboard-activity-status-indicator]]:bg-[var(--signal-info)] dark:bg-[rgb(255_255_255_/_0.03)]",
+    dashboardActivityStatusIndicator:
+        "size-2 flex-none rounded-full bg-[var(--signal-success)]",
+    dashboardActivityStatusCopy: "flex min-w-0 flex-1 flex-col gap-0.5",
+    dashboardActivityStatusLine:
+        "[font:600_12px_var(--font-sans)] text-[var(--fg-primary)]",
+    dashboardActivityStatusSub:
+        "[font:500_11px_var(--font-mono)] text-[var(--fg-tertiary)]",
     dashboardActivitySync:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
+    dashboardActivityItems:
+        "m-0 max-h-[340px] flex-1 list-none overflow-y-auto p-1 empty:hidden",
+    dashboardActivityItem:
+        "grid grid-cols-[26px_1fr_auto] items-start gap-2.5 rounded-lg p-2.5 [&+&]:rounded-none [&+&]:border-t [&+&]:border-[var(--line-hairline)] dark:[&+&]:border-[var(--glass-border-soft)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-danger)_14%,transparent)] data-[kind=error]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-danger)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[color-mix(in_srgb,var(--signal-info)_30%,transparent)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)] data-[kind=info]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-info)] data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)] data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning)] data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)] data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--fg-tertiary)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[color-mix(in_srgb,var(--signal-success)_30%,transparent)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-success)_14%,transparent)] data-[kind=success]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-success)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:border-[color-mix(in_srgb,var(--signal-warning)_32%,transparent)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_18%,transparent)] data-[kind=warn]:[&_[data-sot-part=dashboard-activity-item-icon]]:text-[var(--signal-warning-strong)]",
+    dashboardActivityItemIcon:
+        "inline-flex size-[26px] flex-none items-center justify-center rounded-[7px] border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] [&_svg]:size-3 [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    dashboardActivityItemCopy: "flex min-w-0 flex-col gap-[3px]",
+    dashboardActivityItemTitle:
+        "[font:600_12.5px/1.35_var(--font-sans)] [margin:0] text-[var(--fg-primary)]",
+    dashboardActivityItemBody:
+        "[font:500_12px/1.5_var(--font-sans)] [margin:2px_0_0] text-[var(--fg-secondary)]",
+    dashboardActivityItemMeta:
+        "mt-1 [font:500_11px/1.4_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+    dashboardActivityItemActions: "mt-1.5 flex items-center gap-1.5",
     dashboardActivityAction:
         "h-[26px] gap-[7px] rounded-[7px] border border-transparent bg-transparent px-[10px] text-[12px] font-semibold leading-normal text-[var(--fg-secondary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] data-[action-state=error]:text-[var(--signal-danger)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     dashboardActivityDismiss:
-        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
+        "size-[22px] rounded-[6px] border border-transparent bg-transparent p-px text-[var(--fg-tertiary)] shadow-none hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)] has-[>svg]:p-0 [&_svg]:stroke-current [&_svg:not([class*='size-'])]:size-[11px]",
+    dashboardActivityEmpty: "p-7 md:p-7 [&[hidden]]:hidden",
 } as const;
 
 const dashboardButtonClassNames = {
@@ -813,6 +865,15 @@ function formatLibrarySearchTimestamp(valueMs: number | null | undefined) {
         return `${parts[0].padStart(2, "0")}:${parts[1]}`;
     }
     return timestamp;
+}
+
+function LibrarySearchTagIcon() {
+    return (
+        <svg viewBox="0 0 24 24" data-icon="inline-start" aria-hidden="true">
+            <path d="M3 3h7v7H3z" />
+            <path d="M14 3h7v7h-7z" />
+        </svg>
+    );
 }
 
 function buildSourceTranscriptCopyText(report: SourceReportData | null) {
@@ -1725,7 +1786,12 @@ function highlightSearchText(value: string, query: string) {
     return (
         <>
             {value.slice(0, index)}
-            <mark data-sot-part="library-search-highlight">
+            <mark
+                className={
+                    dashboardSearchActivityClassNames.librarySearchHighlight
+                }
+                data-sot-part="library-search-highlight"
+            >
                 {value.slice(index, index + needle.length)}
             </mark>
             {value.slice(index + needle.length)}
@@ -4441,8 +4507,16 @@ export function Workstation({
                             {selectedRecording?.filename ?? "未选择录音"}
                         </span>
                     </div>
-                    <div data-sot-part="dashboard-topbar-actions">
+                    <div
+                        className={
+                            dashboardSearchActivityClassNames.dashboardTopbarActions
+                        }
+                        data-sot-part="dashboard-topbar-actions"
+                    >
                         <div
+                            className={
+                                dashboardSearchActivityClassNames.librarySearchAnchor
+                            }
                             data-sot-part="library-search-anchor"
                             ref={searchOverlayRef}
                         >
@@ -4575,7 +4649,7 @@ export function Workstation({
                                             dashboardSearchActivityClassNames.librarySearchScope
                                         }
                                         value={searchScope}
-                                        spacing={1.5}
+                                        spacing={1.6}
                                         aria-label={t(
                                             "librarySearch.scopeLegend",
                                         )}
@@ -4633,14 +4707,32 @@ export function Workstation({
                                             </ToggleGroupItem>
                                         ))}
                                     </ToggleGroup>
-                                    <CardContent data-sot-region="library-search-scroll">
+                                    <CardContent
+                                        className={
+                                            dashboardSearchActivityClassNames.librarySearchScroll
+                                        }
+                                        data-sot-region="library-search-scroll"
+                                    >
                                         {searchPanelState === "indexing" ? (
                                             <div
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchIndexing
+                                                }
                                                 data-sot-part="library-search-indexing"
                                                 data-sot-state="indexing"
                                             >
-                                                <Skeleton data-sot-part="library-search-state-skeleton" />
-                                                <div data-sot-part="library-search-state-copy">
+                                                <Skeleton
+                                                    className={
+                                                        dashboardSearchActivityClassNames.librarySearchStateSkeleton
+                                                    }
+                                                    data-sot-part="library-search-state-skeleton"
+                                                />
+                                                <div
+                                                    className={
+                                                        dashboardSearchActivityClassNames.librarySearchStateCopy
+                                                    }
+                                                    data-sot-part="library-search-state-copy"
+                                                >
                                                     {t(
                                                         "librarySearch.indexing",
                                                         {
@@ -4656,10 +4748,18 @@ export function Workstation({
                                             </div>
                                         ) : searchLoading ? (
                                             <div
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchState
+                                                }
                                                 data-sot-part="library-search-loading"
                                                 data-sot-state="loading"
                                             >
-                                                <div data-sot-part="library-search-state-copy">
+                                                <div
+                                                    className={
+                                                        dashboardSearchActivityClassNames.librarySearchStateCopy
+                                                    }
+                                                    data-sot-part="library-search-state-copy"
+                                                >
                                                     {t("librarySearch.loading")}
                                                 </div>
                                             </div>
@@ -4713,19 +4813,30 @@ export function Workstation({
                                             </Alert>
                                         ) : flatSearchResults.length > 0 ? (
                                             <div
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchResults
+                                                }
                                                 data-sot-list="library-search-results"
                                                 data-sot-state="results"
                                             >
                                                 {groupedSearchResults.map(
                                                     (group) => (
                                                         <div
+                                                            className={
+                                                                dashboardSearchActivityClassNames.librarySearchResultGroup
+                                                            }
                                                             key={group.type}
                                                             data-sot-group="library-search-results"
                                                             data-sot-result-type={
                                                                 group.type
                                                             }
                                                         >
-                                                            <div data-sot-part="library-search-group-label">
+                                                            <div
+                                                                className={
+                                                                    dashboardSearchActivityClassNames.librarySearchGroupLabel
+                                                                }
+                                                                data-sot-part="library-search-group-label"
+                                                            >
                                                                 {t(
                                                                     `librarySearch.types.${group.type}`,
                                                                 )}
@@ -4798,7 +4909,7 @@ export function Workstation({
                                                                                     }
                                                                                     data-sot-part="library-search-tag-chip"
                                                                                 >
-                                                                                    <Tags data-icon="inline-start" />
+                                                                                    <LibrarySearchTagIcon />
                                                                                     {highlightSearchText(
                                                                                         title,
                                                                                         query,
@@ -4813,9 +4924,7 @@ export function Workstation({
                                                                                 </span>
                                                                             )}
                                                                             <span data-sot-part="library-search-result-meta">
-                                                                                {
-                                                                                    meta
-                                                                                }
+                                                                                {meta}
                                                                             </span>
                                                                         </Button>
                                                                     );
@@ -4827,6 +4936,9 @@ export function Workstation({
                                             </div>
                                         ) : (
                                             <div
+                                                className={
+                                                    dashboardSearchActivityClassNames.librarySearchState
+                                                }
                                                 data-sot-part="library-search-empty"
                                                 data-sot-state={
                                                     query.trim()
@@ -4835,7 +4947,12 @@ export function Workstation({
                                                 }
                                             >
                                                 {query.trim() ? (
-                                                    <div data-sot-part="library-search-state-copy">
+                                                    <div
+                                                        className={
+                                                            dashboardSearchActivityClassNames.librarySearchStateCopy
+                                                        }
+                                                        data-sot-part="library-search-state-copy"
+                                                    >
                                                         {language === "en" ? (
                                                             <>
                                                                 {
@@ -4857,7 +4974,12 @@ export function Workstation({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div data-sot-part="library-search-state-copy">
+                                                    <div
+                                                        className={
+                                                            dashboardSearchActivityClassNames.librarySearchStateCopy
+                                                        }
+                                                        data-sot-part="library-search-state-copy"
+                                                    >
                                                         {t(
                                                             "librarySearch.noQuery",
                                                         )}
@@ -4870,6 +4992,9 @@ export function Workstation({
                             ) : null}
                         </div>
                         <div
+                            className={
+                                dashboardSearchActivityClassNames.dashboardActivityAnchor
+                            }
                             data-sot-part="dashboard-activity-anchor"
                             ref={activityOverlayRef}
                         >
@@ -4921,9 +5046,24 @@ export function Workstation({
                                     role="dialog"
                                     aria-label={t("activityOverlay.title")}
                                 >
-                                    <CardHeader data-sot-part="dashboard-activity-header">
-                                        <div data-sot-part="dashboard-activity-heading">
-                                            <CardTitle data-sot-part="dashboard-activity-title">
+                                    <CardHeader
+                                        className={
+                                            dashboardSearchActivityClassNames.dashboardActivityHeader
+                                        }
+                                        data-sot-part="dashboard-activity-header"
+                                    >
+                                        <div
+                                            className={
+                                                dashboardSearchActivityClassNames.dashboardActivityHeading
+                                            }
+                                            data-sot-part="dashboard-activity-heading"
+                                        >
+                                            <CardTitle
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityTitle
+                                                }
+                                                data-sot-part="dashboard-activity-title"
+                                            >
                                                 {t("activityOverlay.title")}
                                             </CardTitle>
                                             <Badge
@@ -4964,21 +5104,45 @@ export function Workstation({
                                         </CardAction>
                                     </CardHeader>
                                     <Separator data-sot-part="dashboard-activity-header-separator" />
-                                    <CardContent data-sot-part="dashboard-activity-content">
+                                    <CardContent
+                                        className={
+                                            dashboardSearchActivityClassNames.dashboardActivityContent
+                                        }
+                                        data-sot-part="dashboard-activity-content"
+                                    >
                                         <div
+                                            className={
+                                                dashboardSearchActivityClassNames.dashboardActivityStatus
+                                            }
                                             data-state={syncButtonState}
                                             data-sot-part="dashboard-activity-status"
                                             data-sot-state={syncButtonState}
                                         >
                                             <span
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityStatusIndicator
+                                                }
                                                 data-sot-part="dashboard-activity-status-indicator"
                                                 aria-hidden="true"
                                             />
-                                            <div data-sot-part="dashboard-activity-status-copy">
-                                                <div data-sot-part="dashboard-activity-status-line">
+                                            <div
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityStatusCopy
+                                                }
+                                                data-sot-part="dashboard-activity-status-copy"
+                                            >
+                                                <div
+                                                    className={
+                                                        dashboardSearchActivityClassNames.dashboardActivityStatusLine
+                                                    }
+                                                    data-sot-part="dashboard-activity-status-line"
+                                                >
                                                     {syncStatusLabel}
                                                 </div>
                                                 <div
+                                                    className={
+                                                        dashboardSearchActivityClassNames.dashboardActivityStatusSub
+                                                    }
                                                     data-sot-format="mono"
                                                     data-sot-part="dashboard-activity-status-sub"
                                                 >
@@ -5022,10 +5186,18 @@ export function Workstation({
                                         </div>
                                         <Separator data-sot-part="dashboard-activity-status-separator" />
                                         {visibleActivityItems.length > 0 ? (
-                                            <ul data-sot-list="dashboard-activity-items">
+                                            <ul
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityItems
+                                                }
+                                                data-sot-list="dashboard-activity-items"
+                                            >
                                                 {visibleActivityItems.map(
                                                     (item) => (
                                                         <li
+                                                            className={
+                                                                dashboardSearchActivityClassNames.dashboardActivityItem
+                                                            }
                                                             data-kind={activityItemKind(
                                                                 item,
                                                             )}
@@ -5121,7 +5293,12 @@ export function Workstation({
                                                                 )
                                                             }
                                                         >
-                                                            <span data-sot-part="dashboard-activity-item-icon">
+                                                            <span
+                                                                className={
+                                                                    dashboardSearchActivityClassNames.dashboardActivityItemIcon
+                                                                }
+                                                                data-sot-part="dashboard-activity-item-icon"
+                                                            >
                                                                 {item.tone ===
                                                                 "success" ? (
                                                                     <CheckCircle />
@@ -5132,20 +5309,45 @@ export function Workstation({
                                                                     <AlertCircle />
                                                                 )}
                                                             </span>
-                                                            <div data-sot-part="dashboard-activity-item-copy">
-                                                                <div data-sot-part="dashboard-activity-item-title">
+                                                            <div
+                                                                className={
+                                                                    dashboardSearchActivityClassNames.dashboardActivityItemCopy
+                                                                }
+                                                                data-sot-part="dashboard-activity-item-copy"
+                                                            >
+                                                                <div
+                                                                    className={
+                                                                        dashboardSearchActivityClassNames.dashboardActivityItemTitle
+                                                                    }
+                                                                    data-sot-part="dashboard-activity-item-title"
+                                                                >
                                                                     {item.title}
                                                                 </div>
-                                                                <div data-sot-part="dashboard-activity-item-body">
+                                                                <div
+                                                                    className={
+                                                                        dashboardSearchActivityClassNames.dashboardActivityItemBody
+                                                                    }
+                                                                    data-sot-part="dashboard-activity-item-body"
+                                                                >
                                                                     {item.body}
                                                                 </div>
-                                                                <div data-sot-part="dashboard-activity-item-meta">
+                                                                <div
+                                                                    className={
+                                                                        dashboardSearchActivityClassNames.dashboardActivityItemMeta
+                                                                    }
+                                                                    data-sot-part="dashboard-activity-item-meta"
+                                                                >
                                                                     {t(
                                                                         "activityOverlay.justNow",
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <div data-sot-part="dashboard-activity-item-actions">
+                                                            <div
+                                                                className={
+                                                                    dashboardSearchActivityClassNames.dashboardActivityItemActions
+                                                                }
+                                                                data-sot-part="dashboard-activity-item-actions"
+                                                            >
                                                                 {item.action ? (
                                                                     <Button
                                                                         variant="ghost"
@@ -5229,7 +5431,9 @@ export function Workstation({
                                         ) : (
                                             <Empty
                                                 data-sot-part="dashboard-activity-empty"
-                                                className="p-7 md:p-7"
+                                                className={
+                                                    dashboardSearchActivityClassNames.dashboardActivityEmpty
+                                                }
                                             >
                                                 <EmptyHeader>
                                                     <EmptyMedia

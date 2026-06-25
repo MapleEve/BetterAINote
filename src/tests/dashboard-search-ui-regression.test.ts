@@ -9,6 +9,14 @@ function readSource(relativePath: string) {
     return readFileSync(path.join(ROOT, relativePath), "utf8");
 }
 
+function readProductGlobals() {
+    const source = readSource("app/globals.css");
+    const marker = "BetterAINote · Component Library";
+    const markerIndex = source.indexOf(marker);
+    expect(markerIndex).toBeGreaterThan(0);
+    return source.slice(0, markerIndex);
+}
+
 function extractBoundedSlice(
     source: string,
     startMarker: string,
@@ -56,14 +64,14 @@ const LIBRARY_SEARCH_LEGACY_CSS_SELECTOR_RE = /\.ls-[a-z0-9-]+(?![\w-])/;
 
 const DASHBOARD_SEARCH_LEGACY_CSS_SELECTOR_RE = /\.search(?![\w-])/;
 
-const LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
+const MIGRATED_LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-indexing"]',
     '[data-sot-part="library-search-state-skeleton"]',
     '[data-sot-part="library-search-state-skeleton"]::after',
     '[data-sot-part="library-search-state-copy"]',
 ];
 
-const DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS = [
+const MIGRATED_DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-anchor"]',
     '[data-sot-panel="library-search"]',
     '[data-sot-panel="library-search"][data-open="true"]',
@@ -76,6 +84,34 @@ const DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-group="library-search-results"]',
     '[data-sot-part="library-search-group-label"]',
     '[data-sot-control="library-search-result"] mark',
+];
+
+const MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="dashboard-topbar-actions"]',
+    '[data-sot-part="dashboard-activity-anchor"]',
+    '[data-sot-control="dashboard-activity"]',
+    '[data-sot-part="dashboard-activity-badge"]',
+    '[data-sot-panel="dashboard-activity"]',
+    '[data-sot-panel="dashboard-activity"][data-open="true"]',
+    '[data-sot-part="dashboard-activity-header"]',
+    '[data-sot-part="dashboard-activity-heading"]',
+    '[data-sot-part="dashboard-activity-title"]',
+    '[data-sot-part="dashboard-activity-content"]',
+    '[data-sot-part="dashboard-activity-status"]',
+    '[data-sot-part="dashboard-activity-status-indicator"]',
+    '[data-sot-part="dashboard-activity-status-copy"]',
+    '[data-sot-part="dashboard-activity-status-line"]',
+    '[data-sot-part="dashboard-activity-status-sub"]',
+    '[data-sot-list="dashboard-activity-items"]',
+    '[data-sot-item="dashboard-activity-item"]',
+    '[data-sot-part="dashboard-activity-item-icon"]',
+    '[data-sot-part="dashboard-activity-item-copy"]',
+    '[data-sot-part="dashboard-activity-item-actions"]',
+    '[data-sot-control="dashboard-activity-dismiss"]:focus-visible',
+    '[data-sot-part="dashboard-activity-empty"][hidden]',
+    '[data-sot-part="dashboard-activity-item-title"]',
+    '[data-sot-part="dashboard-activity-item-body"]',
+    '[data-sot-part="dashboard-activity-item-meta"]',
 ];
 
 const DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
@@ -115,6 +151,18 @@ const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
+        propertyName: "dashboardTopbarActions",
+        snippets: ["ml-auto flex items-center gap-2"],
+    },
+    {
+        propertyName: "librarySearchAnchor",
+        snippets: ["relative inline-flex size-8", "items-center"],
+    },
+    {
+        propertyName: "dashboardActivityAnchor",
+        snippets: ["relative inline-flex size-8", "items-center"],
+    },
+    {
         propertyName: "dashboardSearchTrigger",
         snippets: [
             "relative size-[32px]",
@@ -142,36 +190,66 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchPanel",
         snippets: [
-            "border-border",
-            "bg-card",
+            "absolute right-0 top-[calc(100%+8px)]",
+            "z-[var(--z-dropdown)]",
+            "w-[460px]",
+            "data-[open=true]:pointer-events-auto",
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "font-sans",
             "text-card-foreground",
-            "shadow-2xl",
+            "[box-shadow:var(--card-popover-shadow)]",
+            "max-[640px]:fixed",
         ],
     },
     {
         propertyName: "dashboardActivityPanel",
         snippets: [
-            "border-[var(--line-hairline)]",
-            "bg-[var(--bg-elevated)]",
-            "shadow-[var(--shadow-lg)]",
-            "dark:border-[var(--glass-border)]",
-            "dark:bg-[var(--graphite-900)]",
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "[box-shadow:var(--card-popover-shadow)]",
         ],
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: ["bg-transparent", "focus-within:ring-0"],
+        snippets: [
+            "h-[49px] min-h-[49px]",
+            "gap-[8px]",
+            "px-[12px] py-[8px]",
+            "bg-transparent",
+            "focus-within:ring-0",
+        ],
     },
     {
         propertyName: "librarySearchInput",
-        snippets: ["h-8 px-1 text-sm font-medium md:text-sm"],
+        snippets: [
+            "h-[32px]",
+            "px-[4px] py-0",
+            "[font:500_13.5px/1.35_var(--font-sans)]",
+            "placeholder:text-[var(--fg-tertiary)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchScope",
+        snippets: [
+            "min-h-[39px]",
+            "gap-[6px]",
+            "px-[12px] py-[8px]",
+            "bg-[var(--bg-recessed)]",
+            "dark:bg-[rgb(255_255_255_/_0.03)]",
+        ],
     },
     {
         propertyName: "librarySearchScopeItem",
         snippets: [
-            "data-[state=on]:border-primary/30",
-            "data-[state=on]:bg-primary/10",
-            "data-[state=on]:text-primary",
+            "gap-[4px]",
+            "border-transparent bg-transparent",
+            "px-[10px]",
+            "[font:500_11.5px/1_var(--font-sans)]",
+            "text-[var(--fg-tertiary)] shadow-none",
+            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
+            "data-[state=on]:bg-[var(--accent-soft)]",
+            "data-[state=on]:text-[var(--accent)]",
         ],
     },
     {
@@ -189,20 +267,30 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchResult",
         snippets: [
-            "data-[active=true]:bg-accent",
+            "h-auto",
+            "w-full",
+            "flex-col items-start",
+            "border-0 bg-transparent",
+            "px-[10px] py-[8px]",
+            "text-[var(--fg-primary)]",
+            "hover:bg-[var(--bg-recessed)]",
+            "focus-visible:bg-[var(--bg-recessed)]",
+            "focus-visible:outline-none",
+            "focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)]",
             "[&_[data-sot-part=library-search-result-meta]]:font-mono",
             "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
-            "[&_[data-sot-part=library-search-result-title]]:font-semibold",
-            "[&_[data-sot-part=library-search-result-title]]:text-foreground",
+            "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
+            "[&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
         ],
     },
     {
         propertyName: "librarySearchTag",
         snippets: [
-            "w-fit justify-normal gap-1.5",
-            "border-primary/25",
-            "bg-primary/10",
-            "[&>svg]:size-3",
+            "[--tag-c:var(--tag-violet)]",
+            "h-[22px] w-fit justify-normal gap-[5px]",
+            "rounded-[6px]",
+            "bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))]",
+            "[&>svg]:size-[11px]",
         ],
     },
     {
@@ -221,6 +309,60 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         ],
     },
     {
+        propertyName: "librarySearchScroll",
+        snippets: ["min-h-0 flex-1 overflow-y-auto", "pb-[8px]"],
+    },
+    {
+        propertyName: "librarySearchIndexing",
+        snippets: ["flex items-center gap-[10px]", "text-[var(--fg-secondary)]"],
+    },
+    {
+        propertyName: "librarySearchStateSkeleton",
+        snippets: [
+            "inline-flex h-1",
+            "bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "after:animate-[sbn-sweep_1.4s_linear_infinite]",
+            "after:content-['']",
+        ],
+    },
+    {
+        propertyName: "librarySearchStateCopy",
+        snippets: [
+            "[font:500_12.5px/1.55_var(--font-sans)]",
+            "[&_span]:font-semibold",
+        ],
+    },
+    {
+        propertyName: "librarySearchResults",
+        snippets: ["flex flex-col"],
+    },
+    {
+        propertyName: "librarySearchResultGroup",
+        snippets: [
+            "flex flex-col gap-[2px]",
+            "px-[4px] py-[6px]",
+            "[&+&]:border-t",
+            "dark:[&+&]:border-[var(--glass-border-soft)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchGroupLabel",
+        snippets: [
+            "px-[6px] py-[4px]",
+            "[font:600_10.5px/1_var(--font-mono)]",
+            "uppercase",
+            "tracking-[0.08em]",
+        ],
+    },
+    {
+        propertyName: "librarySearchHighlight",
+        snippets: [
+            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+            "px-[2px]",
+            "text-[var(--accent)]",
+        ],
+    },
+    {
         propertyName: "dashboardActivityClose",
         snippets: [
             "size-[26px]",
@@ -233,6 +375,63 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "data-[action-state=error]:text-[var(--signal-danger)]",
             "disabled:cursor-not-allowed",
             "has-[>svg]:px-[10px]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityPanel",
+        snippets: [
+            "absolute right-0 top-[calc(100%+8px)]",
+            "z-[var(--z-dropdown)]",
+            "w-[380px]",
+            "data-[open=true]:pointer-events-auto",
+            "max-[640px]:fixed",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityHeader",
+        snippets: ["flex items-center gap-2.5", "px-3.5 py-3"],
+    },
+    {
+        propertyName: "dashboardActivityHeading",
+        snippets: ["flex flex-1 flex-col gap-0.5"],
+    },
+    {
+        propertyName: "dashboardActivityStatus",
+        snippets: [
+            "flex items-center gap-2.5",
+            "bg-[var(--bg-recessed)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "dark:bg-[rgb(255_255_255_/_0.03)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItems",
+        snippets: ["max-h-[340px]", "overflow-y-auto", "empty:hidden"],
+    },
+    {
+        propertyName: "dashboardActivityItem",
+        snippets: [
+            "grid grid-cols-[26px_1fr_auto]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItemIcon",
+        snippets: ["inline-flex size-[26px]", "[&_svg]:size-3"],
+    },
+    {
+        propertyName: "dashboardActivityItemTitle",
+        snippets: [
+            "[font:600_12.5px/1.35_var(--font-sans)]",
+            "text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItemMeta",
+        snippets: [
+            "[font:500_11px/1.4_var(--font-mono)]",
+            "tracking-[0.02em]",
         ],
     },
     {
@@ -249,7 +448,33 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
             "size-[22px]",
             "p-px",
             "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)]",
             "[&_svg:not([class*='size-'])]:size-[11px]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityEmpty",
+        snippets: ["p-7 md:p-7", "[&[hidden]]:hidden"],
+    },
+] as const;
+
+const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
+    {
+        propertyName: "librarySearchResultGroup",
+        snippets: ["pt-1.5 pb-2 pl-[5px] pr-1"],
+    },
+    {
+        propertyName: "librarySearchGroupLabel",
+        snippets: ["pt-[5px] pb-[3px]"],
+    },
+    {
+        propertyName: "librarySearchResult",
+        snippets: [
+            "min-h-[52px]",
+            "pt-[9.5px]",
+            "pb-[6.5px]",
+            "data-[active=true]:bg-",
+            "data-[sot-state=active]:bg-",
         ],
     },
 ] as const;
@@ -360,9 +585,12 @@ describe("dashboard SOT search and activity interactions", () => {
         expect(workstation).not.toContain("data-ls-retry");
     });
 
-    it("keeps search indexing progress CSS on data-sot selectors", () => {
-        const globals = readSource("app/globals.css");
-        const legacySelectorLines = globals
+    it("keeps search indexing progress CSS feature-owned without legacy selectors", () => {
+        const productGlobals = readProductGlobals();
+        const workstation = readSource("features/dashboard/workstation.tsx");
+        const classNames =
+            extractDashboardSearchActivityClassNames(workstation);
+        const legacySelectorLines = productGlobals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
@@ -370,14 +598,18 @@ describe("dashboard SOT search and activity interactions", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        expect(productGlobals).toContain("@keyframes sbn-sweep");
+        for (const selector of MIGRATED_LIBRARY_SEARCH_INDEXING_DATA_SOT_CSS_SELECTORS) {
+            expect(productGlobals).not.toContain(selector);
         }
+        expect(
+            extractObjectStringProperty(classNames, "librarySearchStateSkeleton"),
+        ).toContain("after:animate-[sbn-sweep_1.4s_linear_infinite]");
     });
 
-    it("keeps library search runtime CSS off legacy ls aliases", () => {
-        const globals = readSource("app/globals.css");
-        const legacySelectorLines = globals
+    it("keeps library search runtime CSS off globals and legacy ls aliases", () => {
+        const productGlobals = readProductGlobals();
+        const legacySelectorLines = productGlobals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
@@ -391,14 +623,15 @@ describe("dashboard SOT search and activity interactions", () => {
             '[data-sot-region="library-search-scroll"]',
             '[data-sot-list="library-search-results"]',
             '[data-sot-control="library-search-result"] mark',
+            '[data-sot-panel="library-search"] kbd',
         ]) {
-            expect(globals).toContain(selector);
+            expect(productGlobals).not.toContain(selector);
         }
     });
 
-    it("keeps dashboard search atom CSS on data-sot selectors", () => {
-        const globals = readSource("app/globals.css");
-        const legacySelectorLines = globals
+    it("keeps dashboard search and activity atom CSS out of globals", () => {
+        const productGlobals = readProductGlobals();
+        const legacySelectorLines = productGlobals
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
@@ -406,14 +639,17 @@ describe("dashboard SOT search and activity interactions", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        for (const selector of MIGRATED_DASHBOARD_SEARCH_DATA_SOT_CSS_SELECTORS) {
+            expect(productGlobals).not.toContain(selector);
+        }
+        for (const selector of MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS) {
+            expect(productGlobals).not.toContain(selector);
         }
         for (const selector of DASHBOARD_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
-            expect(globals).not.toContain(selector);
+            expect(productGlobals).not.toContain(selector);
         }
         for (const selector of DASHBOARD_ACTIVITY_PRIMITIVE_REPAINT_CSS_SELECTORS) {
-            expect(globals).not.toContain(selector);
+            expect(productGlobals).not.toContain(selector);
         }
     });
 
@@ -442,6 +678,20 @@ describe("dashboard SOT search and activity interactions", () => {
         );
         expect(workstation).toContain(
             'data-sot-part="library-search-tag-chip"',
+        );
+        const searchResultSlice = extractBoundedSlice(
+            workstation,
+            'data-sot-control="library-search-result"',
+            'data-sot-part="library-search-result-meta"',
+        );
+        expect(searchResultSlice).toMatch(
+            /result\.entityType ===\s*"tag"\s*\?\s*\(\s*<Badge[\s\S]*data-sot-part="library-search-tag-chip"/,
+        );
+        expect(searchResultSlice).toMatch(
+            /\)\s*:\s*\(\s*<span data-sot-part="library-search-result-title">/,
+        );
+        expect(searchResultSlice).not.toMatch(
+            /<span data-sot-part="library-search-result-title">[\s\S]*<Badge[\s\S]*data-sot-part="library-search-tag-chip"[\s\S]*<\/span>/,
         );
         expect(workstation).not.toContain('className="ls-item"');
         expect(workstation).not.toContain('className="ls-item-title"');
@@ -597,6 +847,19 @@ describe("dashboard SOT search and activity interactions", () => {
 
             for (const snippet of snippets) {
                 expect(property).toContain(snippet);
+            }
+        }
+        for (const {
+            propertyName,
+            snippets,
+        } of DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS) {
+            const property = extractObjectStringProperty(
+                classNames,
+                propertyName,
+            );
+
+            for (const snippet of snippets) {
+                expect(property).not.toContain(snippet);
             }
         }
 

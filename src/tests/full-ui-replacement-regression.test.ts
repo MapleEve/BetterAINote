@@ -252,6 +252,18 @@ const SEARCH_ACTIVITY_BUSINESS_TOKEN_RE =
 
 const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
+        propertyName: "dashboardTopbarActions",
+        snippets: ["ml-auto flex items-center gap-2"],
+    },
+    {
+        propertyName: "librarySearchAnchor",
+        snippets: ["relative inline-flex size-8"],
+    },
+    {
+        propertyName: "dashboardActivityAnchor",
+        snippets: ["relative inline-flex size-8"],
+    },
+    {
         propertyName: "dashboardSearchTrigger",
         snippets: [
             "data-[sot-state=open]:border-border",
@@ -272,31 +284,65 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         propertyName: "librarySearchPanel",
-        snippets: ["border-border", "bg-card", "shadow-2xl"],
+        snippets: [
+            "absolute right-0 top-[calc(100%+8px)]",
+            "z-[var(--z-dropdown)]",
+            "w-[460px]",
+            "data-[open=true]:pointer-events-auto",
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "[box-shadow:var(--card-popover-shadow)]",
+            "max-[640px]:fixed",
+        ],
     },
     {
         propertyName: "dashboardActivityPanel",
         snippets: [
-            "border-[var(--line-hairline)]",
-            "shadow-[var(--shadow-lg)]",
-            "dark:border-[var(--glass-border)]",
-            "dark:bg-[var(--graphite-900)]",
+            "border-[var(--card-popover-border)]",
+            "bg-[var(--card-popover-bg)]",
+            "[box-shadow:var(--card-popover-shadow)]",
         ],
     },
     {
         propertyName: "librarySearchInputRow",
-        snippets: ["bg-transparent", "focus-within:ring-0"],
+        snippets: [
+            "h-[49px] min-h-[49px]",
+            "gap-[8px]",
+            "px-[12px] py-[8px]",
+            "bg-transparent",
+            "focus-within:ring-0",
+        ],
     },
     {
         propertyName: "librarySearchInput",
-        snippets: ["h-8 px-1 text-sm font-medium md:text-sm"],
+        snippets: [
+            "h-[32px]",
+            "px-[4px] py-0",
+            "[font:500_13.5px/1.35_var(--font-sans)]",
+            "placeholder:text-[var(--fg-tertiary)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchScope",
+        snippets: [
+            "min-h-[39px]",
+            "gap-[6px]",
+            "px-[12px] py-[8px]",
+            "bg-[var(--bg-recessed)]",
+            "dark:bg-[rgb(255_255_255_/_0.03)]",
+        ],
     },
     {
         propertyName: "librarySearchScopeItem",
         snippets: [
-            "data-[state=on]:border-primary/30",
-            "data-[state=on]:bg-primary/10",
-            "data-[state=on]:text-primary",
+            "gap-[4px]",
+            "border-transparent bg-transparent",
+            "px-[10px]",
+            "[font:500_11.5px/1_var(--font-sans)]",
+            "text-[var(--fg-tertiary)] shadow-none",
+            "data-[state=on]:border-[color-mix(in_srgb,var(--accent)_36%,transparent)]",
+            "data-[state=on]:bg-[var(--accent-soft)]",
+            "data-[state=on]:text-[var(--accent)]",
         ],
     },
     {
@@ -314,18 +360,30 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchResult",
         snippets: [
+            "h-auto",
+            "w-full",
+            "flex-col items-start",
+            "border-0 bg-transparent",
+            "px-[10px] py-[8px]",
+            "text-[var(--fg-primary)]",
+            "hover:bg-[var(--bg-recessed)]",
+            "focus-visible:bg-[var(--bg-recessed)]",
+            "focus-visible:outline-none",
+            "focus-visible:shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--accent)_50%,transparent)]",
             "[&_[data-sot-part=library-search-result-meta]]:font-mono",
-            "[&_[data-sot-part=library-search-result-title]]:font-semibold",
-            "[&_[data-sot-part=library-search-result-title]]:text-foreground",
+            "[&_[data-sot-part=library-search-result-meta]]:text-[11.5px]",
+            "[&_[data-sot-part=library-search-result-title]]:[font:600_13px/1.4_var(--font-sans)]",
+            "[&_[data-sot-part=library-search-result-title]]:text-[var(--fg-primary)]",
         ],
     },
     {
         propertyName: "librarySearchTag",
         snippets: [
-            "w-fit justify-normal gap-1.5",
-            "border-primary/25",
-            "bg-primary/10",
-            "[&>svg]:size-3",
+            "[--tag-c:var(--tag-violet)]",
+            "h-[22px] w-fit justify-normal gap-[5px]",
+            "rounded-[6px]",
+            "bg-[color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))]",
+            "[&>svg]:size-[11px]",
         ],
     },
     {
@@ -339,6 +397,48 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
         propertyName: "librarySearchRetry",
         snippets: ["hover:bg-accent hover:text-accent-foreground"],
+    },
+    {
+        propertyName: "librarySearchScroll",
+        snippets: ["min-h-0 flex-1 overflow-y-auto", "pb-[8px]"],
+    },
+    {
+        propertyName: "librarySearchStateSkeleton",
+        snippets: [
+            "bg-[color-mix(in_srgb,var(--signal-info)_14%,transparent)]",
+            "after:animate-[sbn-sweep_1.4s_linear_infinite]",
+        ],
+    },
+    {
+        propertyName: "librarySearchStateCopy",
+        snippets: [
+            "[font:500_12.5px/1.55_var(--font-sans)]",
+            "[&_span]:font-semibold",
+        ],
+    },
+    {
+        propertyName: "librarySearchResultGroup",
+        snippets: [
+            "px-[4px] py-[6px]",
+            "[&+&]:border-t",
+            "dark:[&+&]:border-[var(--glass-border-soft)]",
+        ],
+    },
+    {
+        propertyName: "librarySearchGroupLabel",
+        snippets: [
+            "px-[6px] py-[4px]",
+            "[font:600_10.5px/1_var(--font-mono)]",
+            "tracking-[0.08em]",
+        ],
+    },
+    {
+        propertyName: "librarySearchHighlight",
+        snippets: [
+            "bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+            "px-[2px]",
+            "text-[var(--accent)]",
+        ],
     },
     {
         propertyName: "dashboardActivityClose",
@@ -362,11 +462,89 @@ const DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_CLASS_SNIPPETS = [
         ],
     },
     {
+        propertyName: "dashboardActivityPanel",
+        snippets: [
+            "absolute right-0 top-[calc(100%+8px)]",
+            "w-[380px]",
+            "data-[open=true]:pointer-events-auto",
+            "max-[640px]:fixed",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityHeader",
+        snippets: ["flex items-center gap-2.5", "px-3.5 py-3"],
+    },
+    {
+        propertyName: "dashboardActivityHeading",
+        snippets: ["flex flex-1 flex-col gap-0.5"],
+    },
+    {
+        propertyName: "dashboardActivityStatus",
+        snippets: [
+            "flex items-center gap-2.5",
+            "bg-[var(--bg-recessed)]",
+            "data-[state=running]:[&_[data-sot-part=dashboard-activity-status-indicator]]:animate-[bpulse_1.4s_ease-in-out_infinite]",
+            "dark:bg-[rgb(255_255_255_/_0.03)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItems",
+        snippets: ["max-h-[340px]", "overflow-y-auto", "empty:hidden"],
+    },
+    {
+        propertyName: "dashboardActivityItem",
+        snippets: [
+            "grid grid-cols-[26px_1fr_auto]",
+            "data-[kind=queued]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--fg-tertiary)_16%,transparent)]",
+            "data-[kind=partial-failed]:[&_[data-sot-part=dashboard-activity-item-icon]]:bg-[color-mix(in_srgb,var(--signal-warning)_16%,transparent)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItemTitle",
+        snippets: [
+            "[font:600_12.5px/1.35_var(--font-sans)]",
+            "text-[var(--fg-primary)]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityItemMeta",
+        snippets: [
+            "[font:500_11px/1.4_var(--font-mono)]",
+            "tracking-[0.02em]",
+        ],
+    },
+    {
         propertyName: "dashboardActivityDismiss",
         snippets: [
             "size-[22px]",
             "hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)]",
+            "focus-visible:outline-[color-mix(in_srgb,var(--accent)_55%,transparent)]",
             "[&_svg:not([class*='size-'])]:size-[11px]",
+        ],
+    },
+    {
+        propertyName: "dashboardActivityEmpty",
+        snippets: ["p-7 md:p-7", "[&[hidden]]:hidden"],
+    },
+] as const;
+
+const DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS = [
+    {
+        propertyName: "librarySearchResultGroup",
+        snippets: ["pt-1.5 pb-2 pl-[5px] pr-1"],
+    },
+    {
+        propertyName: "librarySearchGroupLabel",
+        snippets: ["pt-[5px] pb-[3px]"],
+    },
+    {
+        propertyName: "librarySearchResult",
+        snippets: [
+            "min-h-[52px]",
+            "pt-[9.5px]",
+            "pb-[6.5px]",
+            "data-[active=true]:bg-",
+            "data-[sot-state=active]:bg-",
         ],
     },
 ] as const;
@@ -1318,7 +1496,7 @@ const LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_SELECTOR_RE = new RegExp(
     `\\.(${LIBRARY_SEARCH_LEGACY_PRODUCT_CSS_CLASSES.join("|")})(?![\\w-])`,
 );
 
-const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
+const MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-anchor"]',
     '[data-sot-panel="library-search"]',
     '[data-sot-panel="library-search"][data-open="true"]',
@@ -1334,6 +1512,34 @@ const LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="library-search-group-label"]',
     '[data-sot-control="library-search-result"] mark',
 ];
+
+const MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS = [
+    '[data-sot-part="dashboard-topbar-actions"]',
+    '[data-sot-part="dashboard-activity-anchor"]',
+    '[data-sot-control="dashboard-activity"]',
+    '[data-sot-part="dashboard-activity-badge"]',
+    '[data-sot-panel="dashboard-activity"]',
+    '[data-sot-panel="dashboard-activity"][data-open="true"]',
+    '[data-sot-part="dashboard-activity-header"]',
+    '[data-sot-part="dashboard-activity-heading"]',
+    '[data-sot-part="dashboard-activity-title"]',
+    '[data-sot-part="dashboard-activity-content"]',
+    '[data-sot-part="dashboard-activity-status"]',
+    '[data-sot-part="dashboard-activity-status-indicator"]',
+    '[data-sot-part="dashboard-activity-status-copy"]',
+    '[data-sot-part="dashboard-activity-status-line"]',
+    '[data-sot-part="dashboard-activity-status-sub"]',
+    '[data-sot-list="dashboard-activity-items"]',
+    '[data-sot-item="dashboard-activity-item"]',
+    '[data-sot-part="dashboard-activity-item-icon"]',
+    '[data-sot-part="dashboard-activity-item-copy"]',
+    '[data-sot-part="dashboard-activity-item-actions"]',
+    '[data-sot-control="dashboard-activity-dismiss"]:focus-visible',
+    '[data-sot-part="dashboard-activity-empty"][hidden]',
+    '[data-sot-part="dashboard-activity-item-title"]',
+    '[data-sot-part="dashboard-activity-item-body"]',
+    '[data-sot-part="dashboard-activity-item-meta"]',
+] as const;
 
 const LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS = [
     '[data-sot-control="dashboard-search"][data-slot="button"]',
@@ -1362,7 +1568,6 @@ const TOPBAR_DATA_SOT_PRODUCT_CSS_SELECTORS = [
     '[data-sot-panel="dashboard-topbar"]',
     '[data-sot-panel="route-topbar"]',
     '[data-sot-panel="workstation-topbar"]',
-    '[data-sot-panel="library-search"]',
 ] as const;
 
 const DASHBOARD_SOURCE_PROVIDER_MIGRATED_GLOBAL_SELECTORS = [
@@ -2151,7 +2356,15 @@ function isOwnerLocalModernColorLine(relativePath: string, line: string) {
     }
 
     if (relativePath === "features/dashboard/workstation.tsx") {
-        return line.includes("source-provider");
+        return (
+            line.includes("source-provider") ||
+            line.includes("sbn-sweep") ||
+            line.includes("var(--accent)_22%") ||
+            line.includes("var(--accent)_36%") ||
+            line.includes("--tag-c:var(--tag-violet)") ||
+            line.includes("data-sot-part=dashboard-activity") ||
+            line.includes("focus-visible:outline-[color-mix")
+        );
     }
 
     if (relativePath === "features/source-report/styles.ts") {
@@ -4268,9 +4481,10 @@ describe("full UI replacement regression coverage", () => {
         expect(bodySidebarBridgeBlocks).toEqual([]);
     });
 
-    it("keeps library search product CSS on data-sot selectors", () => {
+    it("keeps library search product CSS feature-owned and out of globals", () => {
         const globals = readSource("app/globals.css");
-        const legacySelectorLines = globals
+        const productCss = readProductCss(globals);
+        const legacySelectorLines = productCss
             .split("\n")
             .map((text, index) => ({ line: index + 1, text }))
             .filter(({ text }) =>
@@ -4278,11 +4492,12 @@ describe("full UI replacement regression coverage", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        for (const selector of LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
-            expect(globals).toContain(selector);
+        expect(productCss).toContain("@keyframes sbn-sweep");
+        for (const selector of MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).not.toContain(selector);
         }
         for (const selector of LIBRARY_SEARCH_PRIMITIVE_REPAINT_CSS_SELECTORS) {
-            expect(globals).not.toContain(selector);
+            expect(productCss).not.toContain(selector);
         }
     });
 
@@ -4645,6 +4860,9 @@ describe("full UI replacement regression coverage", () => {
         expect(activityEmpty).toContain(
             'data-sot-part="dashboard-activity-empty"',
         );
+        expect(activityEmpty).toContain(
+            "dashboardSearchActivityClassNames.dashboardActivityEmpty",
+        );
         expect(activityEmpty).toContain("<EmptyHeader>");
         expect(activityEmpty).toContain("<EmptyMedia");
         expect(activityEmpty).toContain('variant="icon"');
@@ -4689,7 +4907,7 @@ describe("full UI replacement regression coverage", () => {
         }
         expect(globals).toContain("[data-detail-empty]");
         expect(globals).toContain("[data-detail-empty][hidden]");
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-part="dashboard-activity-empty"][hidden]',
         );
         expect(globals).toContain(
@@ -5411,6 +5629,7 @@ describe("full UI replacement regression coverage", () => {
             "components/ui/toggle-group.tsx",
         );
         const globals = readSource("app/globals.css");
+        const productCss = readProductCss(globals);
         const sourceProviderThemeClassName =
             findStringConstInitializerContaining(workstation, [
                 "--source-provider-status-",
@@ -5879,12 +6098,26 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(dashboardSearchSlice).toContain(compositionToken);
         }
+        const dashboardSearchActivityClassNames =
+            extractDashboardSearchActivityClassNames(workstation);
         expect(workstation).toContain('data-sot-control="dashboard-activity"');
         expect(workstation).toContain('data-sot-panel="dashboard-activity"');
-        expect(workstation).toMatch(
-            /<div\s+data-sot-format="mono"\s+data-sot-part="dashboard-activity-status-sub"\s*>/,
+        const dashboardActivityStatusSub = extractOpeningElement(
+            workstation,
+            'data-sot-part="dashboard-activity-status-sub"',
+            "div",
         );
-        expect(globals).toContain(
+        expect(dashboardActivityStatusSub).toContain('data-sot-format="mono"');
+        expect(dashboardActivityStatusSub).toContain(
+            "dashboardSearchActivityClassNames.dashboardActivityStatusSub",
+        );
+        expect(
+            extractObjectStringProperty(
+                dashboardSearchActivityClassNames,
+                "dashboardActivityStatusSub",
+            ),
+        ).toContain("[font:500_11px_var(--font-mono)]");
+        expect(globals).not.toContain(
             '[data-sot-part="dashboard-activity-status-sub"]',
         );
         expect(workstation).toContain("visibleActivityItems.map");
@@ -5916,8 +6149,6 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(dashboardActivitySlice).toContain(compositionToken);
         }
-        const dashboardSearchActivityClassNames =
-            extractDashboardSearchActivityClassNames(workstation);
         for (const {
             propertyName,
             snippets,
@@ -5931,8 +6162,27 @@ describe("full UI replacement regression coverage", () => {
                 expect(property).toContain(snippet);
             }
         }
+        for (const {
+            propertyName,
+            snippets,
+        } of DASHBOARD_SEARCH_ACTIVITY_SOT_BODY_FORBIDDEN_CLASS_SNIPPETS) {
+            const property = extractObjectStringProperty(
+                dashboardSearchActivityClassNames,
+                propertyName,
+            );
+
+            for (const snippet of snippets) {
+                expect(property).not.toContain(snippet);
+            }
+        }
         for (const snippet of DASHBOARD_SEARCH_ACTIVITY_FEATURE_OWNER_SOURCE_SNIPPETS) {
             expect(workstation).toContain(snippet);
+        }
+        for (const selector of MIGRATED_LIBRARY_SEARCH_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).not.toContain(selector);
+        }
+        for (const selector of MIGRATED_DASHBOARD_ACTIVITY_DATA_SOT_CSS_SELECTORS) {
+            expect(productCss).not.toContain(selector);
         }
         expect(workstation).toContain('data-sot-control="dashboard-settings"');
         expect(workstation).toContain('data-sot-part="dashboard-user-avatar"');
