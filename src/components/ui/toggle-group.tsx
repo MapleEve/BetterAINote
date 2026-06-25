@@ -22,7 +22,6 @@ const toggleGroupItemVariants = cva(
                 default: "h-9 px-3",
                 sm: "h-8 px-2",
                 segmentedSm: "h-8 px-2",
-                iconPicker: "size-7 min-w-0 shrink-0 p-0",
                 lg: "h-10 px-4",
             },
         },

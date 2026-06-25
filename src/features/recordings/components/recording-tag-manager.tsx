@@ -156,6 +156,18 @@ const recordingTagManagerBadgeClassNames = {
         "ml-0.5 inline-grid size-[14px] place-items-center rounded-[50%] border-0 bg-[var(--badge-check-bg)] p-0 text-[11.5px] font-semibold leading-none text-[var(--accent-on)] [&>svg]:size-[9px] [&>svg]:stroke-[3] [&>svg]:[stroke-linecap:butt] [&>svg]:[stroke-linejoin:miter]",
 } as const;
 
+const recordingTagManagerFieldClassNames = {
+    pickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
+    colorPickerFrame: "min-h-[59px]",
+    iconPickerFrame: "min-h-[103px]",
+    pickerLabel:
+        "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
+} as const;
+
+const recordingTagManagerToggleGroupClassNames = {
+    iconOption: "size-7 min-w-0 shrink-0 p-0",
+} as const;
+
 type RecordingTagManagerContentVariant =
     keyof typeof recordingTagManagerContentClassNames;
 type RecordingTagManagerBadgeAppearance =
@@ -765,13 +777,15 @@ export function RecordingTagManager({
 
     const renderColorPicker = () => (
         <FieldSet
-            variant="pickerFrame"
-            size="colorPicker"
+            className={cn(
+                recordingTagManagerFieldClassNames.pickerFrame,
+                recordingTagManagerFieldClassNames.colorPickerFrame,
+            )}
             data-sot-part="picker-frame"
             data-sot-picker="color"
         >
             <FieldLegend
-                variant="picker"
+                className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 颜色
@@ -784,13 +798,15 @@ export function RecordingTagManager({
 
     const renderIconPicker = () => (
         <FieldSet
-            variant="pickerFrame"
-            size="iconPicker"
+            className={cn(
+                recordingTagManagerFieldClassNames.pickerFrame,
+                recordingTagManagerFieldClassNames.iconPickerFrame,
+            )}
             data-sot-part="picker-frame"
             data-sot-picker="icon"
         >
             <FieldLegend
-                variant="picker"
+                className={recordingTagManagerFieldClassNames.pickerLabel}
                 data-sot-part="picker-label"
             >
                 图标
@@ -822,7 +838,10 @@ export function RecordingTagManager({
                             data-sot-state={icon === item ? "selected" : "idle"}
                             data-sot-tag-icon={item}
                             variant="outline"
-                            size="iconPicker"
+                            size="sm"
+                            className={
+                                recordingTagManagerToggleGroupClassNames.iconOption
+                            }
                         >
                             <RecordingTagIconGlyph icon={item} />
                         </ToggleGroupItem>

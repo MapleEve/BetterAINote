@@ -9,32 +9,11 @@ type FieldVariant = "default";
 type FieldGroupVariant = "default";
 type FieldContentVariant = "default";
 type FieldControlVariant = "default";
-type FieldSetVariant = "default" | "pickerFrame" | "section";
-type FieldSetSize = "default" | "colorPicker" | "iconPicker";
-type FieldLegendVariant =
-    | "legend"
-    | "label"
-    | "picker"
-    | "sectionLabel";
-
-const fieldSetVariantClassNames: Record<FieldSetVariant, string> = {
-    default: "",
-    pickerFrame: "gap-2.5 rounded-md border bg-muted/40 p-3",
-    section: "gap-2",
-};
-
-const fieldSetSizeClassNames: Record<FieldSetSize, string> = {
-    default: "",
-    colorPicker: "min-h-[59px]",
-    iconPicker: "min-h-[103px]",
-};
+type FieldLegendVariant = "legend" | "label";
 
 const fieldLegendVariantClassNames: Record<FieldLegendVariant, string> = {
     legend: "mb-3 text-base font-medium",
     label: "mb-3 text-sm font-medium",
-    picker: "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
-    sectionLabel:
-        "mb-4 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
 };
 
 const fieldGroupVariantClassNames: Record<FieldGroupVariant, string> = {
@@ -51,22 +30,13 @@ const fieldControlVariantClassNames: Record<FieldControlVariant, string> = {
 
 function FieldSet({
     className,
-    variant = "default",
-    size = "default",
     ...props
-}: React.ComponentProps<"fieldset"> & {
-    variant?: FieldSetVariant;
-    size?: FieldSetSize;
-}) {
+}: React.ComponentProps<"fieldset">) {
     return (
         <fieldset
             data-slot="field-set"
-            data-variant={variant}
-            data-size={size}
             className={cn(
                 "flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
-                fieldSetVariantClassNames[variant],
-                fieldSetSizeClassNames[size],
                 className,
             )}
             {...props}

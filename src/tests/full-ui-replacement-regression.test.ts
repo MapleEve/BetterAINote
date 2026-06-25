@@ -10408,7 +10408,11 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManagerIconPicker).toContain('className="grid grid-cols-6"');
         expect(tagManagerIconPicker).toContain("spacing={2}");
         expect(tagManagerIconPicker).toContain('variant="outline"');
-        expect(tagManagerIconPicker).toContain('size="iconPicker"');
+        expect(tagManagerIconPicker).toContain('size="sm"');
+        expect(tagManagerIconPicker).toContain(
+            "recordingTagManagerToggleGroupClassNames.iconOption",
+        );
+        expect(tagManagerIconPicker).not.toContain('size="iconPicker"');
         expect(tagManagerIconPicker).not.toContain(
             'variant="recordingTagIconPicker"',
         );
@@ -10449,6 +10453,8 @@ describe("full UI replacement regression coverage", () => {
             "recordingTagManagerCardClassNames",
             "recordingTagManagerContentClassNames",
             "recordingTagManagerBadgeClassNames",
+            "recordingTagManagerFieldClassNames",
+            "recordingTagManagerToggleGroupClassNames",
             "RecordingTagManagerPanelCard",
             "RecordingTagManagerHeader",
             "RecordingTagManagerTitle",
@@ -10524,8 +10530,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('variant="ghost"');
         expect(tagManager).toContain('variant="default"');
         expect(tagManager).toContain('variant="destructive"');
-        expect(tagManager).toContain('variant="pickerFrame"');
-        expect(tagManager).toContain('variant="picker"');
+        expect(tagManager).not.toContain('variant="pickerFrame"');
+        expect(tagManager).not.toContain('variant="picker"');
         expect(tagManager).toContain('className="tagm-sec"');
         expect(tagManager).toContain('className="tagm-sec-label"');
         expect(tagManager).toContain('appearance="pill"');
@@ -10535,8 +10541,8 @@ describe("full UI replacement regression coverage", () => {
         expect(tagManager).toContain('density="compact"');
         expect(tagManager).toContain('density="comfortable"');
         expect(tagManager).toContain('layout="inline"');
-        expect(tagManager).toContain('size="colorPicker"');
-        expect(tagManager).toContain('size="iconPicker"');
+        expect(tagManager).not.toContain('size="colorPicker"');
+        expect(tagManager).not.toContain('size="iconPicker"');
         expect(tagManager).toContain('size="sm"');
         expect(tagManager).toContain('size="icon"');
         expect(tagManager).toContain('size="icon-xs"');
@@ -10580,6 +10586,31 @@ describe("full UI replacement regression coverage", () => {
         expect(fieldPrimitive).not.toContain("recordingTagPickerFrame:");
         expect(fieldPrimitive).not.toContain("recordingTagPickerLabel:");
         expect(fieldPrimitive).not.toContain("recordingTagSectionLabel:");
+        for (const removedFieldPickerApi of [
+            "pickerFrame",
+            "colorPicker",
+            "iconPicker",
+            "sectionLabel",
+            '"picker"',
+        ]) {
+            expect(fieldPrimitive).not.toContain(removedFieldPickerApi);
+        }
+        for (const removedToggleGroupPickerApi of ["iconPicker"]) {
+            expect(toggleGroupPrimitive).not.toContain(
+                removedToggleGroupPickerApi,
+            );
+        }
+        for (const featureOwnedFieldClassName of [
+            "recordingTagManagerFieldClassNames.pickerFrame",
+            "recordingTagManagerFieldClassNames.colorPickerFrame",
+            "recordingTagManagerFieldClassNames.iconPickerFrame",
+            "recordingTagManagerFieldClassNames.pickerLabel",
+        ]) {
+            expect(tagManager).toContain(featureOwnedFieldClassName);
+        }
+        expect(tagManager).toContain(
+            "recordingTagManagerToggleGroupClassNames.iconOption",
+        );
         expect(alertPrimitive).not.toContain("recordingTagError:");
         expect(alertPrimitive).not.toContain("recordingTagDeleteConfirm:");
         expect(tagManager).not.toContain(
@@ -10648,10 +10679,8 @@ describe("full UI replacement regression coverage", () => {
             "mr-[6px] align-[-2px]",
             "flex min-h-[59px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
             "flex min-h-[103px] flex-col gap-2.5 rounded-md border bg-muted/40 p-3",
-            "m-0 p-0 font-mono text-[11px] leading-none font-semibold uppercase tracking-[0.06em] text-muted-foreground",
             "mb-2 flex items-center gap-1.5 font-mono text-[10.5px] leading-none font-semibold uppercase tracking-[0.08em] text-muted-foreground",
             "[display:grid] grid-cols-6",
-            "size-7 min-w-0 shrink-0 p-0",
             'className="m-0 contents min-w-0 border-0 p-0"',
             "[&>[data-slot=field-legend]]:mb-4",
         ]) {
