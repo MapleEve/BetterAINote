@@ -89,7 +89,7 @@ type SotPlayerControlButtonProps = SotPlayerButtonProps & {
 };
 
 const SOT_PLAYER_CONTROL_BUTTON_CLASS =
-    "border border-[var(--button-player-border)] bg-[var(--button-player-bg)] text-[var(--button-player-fg)] [box-shadow:var(--shadow-xs)] hover:bg-[var(--button-player-hover-bg)] hover:text-[var(--button-player-hover-fg)] active:scale-[0.96] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
+    "border border-[var(--line-hairline)] bg-[var(--bg-elevated)] text-[var(--fg-secondary)] [box-shadow:var(--shadow-xs)] hover:bg-white hover:text-[var(--fg-primary)] active:scale-[0.96] dark:hover:bg-[rgb(255_255_255_/_0.08)] [&_[data-player-control-icon]_svg]:fill-none [&_[data-player-control-icon]_svg]:stroke-current [&_[data-player-control-icon]_svg]:stroke-[1.8]";
 
 const SOT_PLAYER_CONTROL_BUTTON_SIZE_CLASS =
     "size-[36px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
@@ -98,7 +98,7 @@ const SOT_PLAYER_CONTROL_BUTTON_SM_SIZE_CLASS =
     "size-[30px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
 
 const SOT_PLAYER_PRIMARY_BUTTON_CLASS =
-    "border border-[var(--button-player-primary-border)] [background:var(--button-player-primary-bg)] text-white [box-shadow:var(--button-player-primary-shadow)] hover:text-white active:scale-[0.96]";
+    "border border-[color-mix(in_srgb,var(--accent)_60%,black_8%)] [background:linear-gradient(180deg,color-mix(in_srgb,var(--accent)_92%,white_18%),var(--accent))] text-white [box-shadow:0_6px_16px_color-mix(in_srgb,var(--accent)_28%,transparent),inset_0_1px_0_rgb(255_255_255_/_0.25)] hover:text-white active:scale-[0.96]";
 
 const SOT_PLAYER_PRIMARY_BUTTON_SIZE_CLASS =
     "size-[44px] rounded-[50%] px-[6px] py-px text-[13.3333px] font-normal";
@@ -240,8 +240,11 @@ const SOT_PLAYER_SOURCE_ICON_CLASS =
 const SOT_PLAYER_SOURCE_ICON_IMAGE_CLASS =
     "block size-[16px] max-w-none object-contain";
 
+const SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS =
+    "[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_12%,var(--bg-elevated))] [--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_32%,transparent)] [--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_72%,var(--fg-primary))] dark:[--sot-player-tag-chip-bg:color-mix(in_srgb,var(--tag-c)_18%,transparent)] dark:[--sot-player-tag-chip-border:color-mix(in_srgb,var(--tag-c)_36%,transparent)] dark:[--sot-player-tag-chip-fg:color-mix(in_srgb,var(--tag-c)_30%,var(--fg-primary))]";
+
 const SOT_PLAYER_TAG_BADGE_CLASS =
-    "h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]";
+    `${SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS} h-[22px] w-fit justify-normal gap-[5px] rounded-[6px] border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] [&>svg]:size-[11px] [&>svg]:fill-none [&>svg]:stroke-2 [&>svg]:stroke-current [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]`;
 
 const SOT_PLAYER_TAG_OVERFLOW_BADGE_CLASS =
     "h-[22px] justify-normal gap-[4px] rounded-[6px] border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-[8px] py-0 text-[11px] font-semibold text-[var(--fg-tertiary)] shadow-none [a&]:hover:border-[var(--line-strong)] [a&]:hover:bg-transparent [a&]:hover:text-[var(--fg-primary)]";
@@ -250,69 +253,10 @@ const SOT_PLAYER_TAG_ADD_BUTTON_CLASS =
     "border border-dashed border-[var(--line-hairline)] bg-transparent text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] [&_svg]:stroke-current h-[22px] gap-[5px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal has-[>svg]:px-[8px] [&_svg:not([class*='size-'])]:size-3";
 
 const SOT_PLAYER_TAG_CHIP_BUTTON_CLASS =
-    "justify-normal border border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none hover:bg-[var(--sot-player-tag-chip-bg)] hover:text-[var(--sot-player-tag-chip-fg)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] h-[22px] w-fit gap-[5px] rounded-[6px] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] [&_[data-icon=inline-start]]:inline-flex [&_[data-icon=inline-start]]:size-[11px] [&_[data-icon=inline-start]]:flex-none [&_[data-icon=inline-start]]:items-center [&_[data-icon=inline-start]]:justify-center [&_svg:not([class*='size-'])]:size-[11px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+    `${SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS} justify-normal border border-[var(--sot-player-tag-chip-border)] bg-[var(--sot-player-tag-chip-bg)] text-[var(--sot-player-tag-chip-fg)] shadow-[var(--shadow-xs)] transition-none hover:bg-[var(--sot-player-tag-chip-bg)] hover:text-[var(--sot-player-tag-chip-fg)] data-[sot-state=open]:border-[var(--line-strong)] data-[sot-state=open]:bg-[var(--bg-recessed)] data-[sot-tag-color=blue]:[--tag-c:var(--tag-blue)] data-[sot-tag-color=green]:[--tag-c:var(--tag-green)] data-[sot-tag-color=orange]:[--tag-c:var(--tag-amber)] data-[sot-tag-color=purple]:[--tag-c:var(--tag-violet)] data-[sot-tag-color=red]:[--tag-c:var(--tag-rose)] data-[sot-tag-color=slate]:[--tag-c:var(--tag-slate)] [--tag-c:var(--graphite-500)] h-[22px] w-fit gap-[5px] rounded-[6px] py-0 pl-[7px] pr-[9px] [font:600_11.5px_var(--font-sans)] [&_[data-icon=inline-start]]:inline-flex [&_[data-icon=inline-start]]:size-[11px] [&_[data-icon=inline-start]]:flex-none [&_[data-icon=inline-start]]:items-center [&_[data-icon=inline-start]]:justify-center [&_svg:not([class*='size-'])]:size-[11px] [&_svg]:fill-none [&_svg]:stroke-2 [&_svg]:stroke-current [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]`;
 
 const SOT_PLAYER_TAG_OVERFLOW_BUTTON_CLASS =
     "border border-dashed border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-tertiary)] shadow-none hover:border-[var(--line-strong)] hover:bg-transparent hover:text-[var(--fg-primary)] h-[22px] gap-[4px] rounded-[6px] px-[8px] text-[11px] font-semibold leading-normal";
-
-const SOT_PLAYER_TAG_COLOR_TOKEN: Record<RecordingTag["color"], string> = {
-    blue: "var(--tag-blue)",
-    green: "var(--tag-green)",
-    orange: "var(--tag-amber)",
-    purple: "var(--tag-violet)",
-    red: "var(--tag-rose)",
-    slate: "var(--tag-slate)",
-};
-
-const SOT_PLAYER_TAG_CHIP_TOKENS: Record<
-    RecordingTag["color"],
-    { bg: string; border: string; fg: string }
-> = {
-    blue: {
-        bg: "var(--sot-player-tag-chip-blue-bg)",
-        border: "var(--sot-player-tag-chip-blue-border)",
-        fg: "var(--sot-player-tag-chip-blue-fg)",
-    },
-    green: {
-        bg: "var(--sot-player-tag-chip-green-bg)",
-        border: "var(--sot-player-tag-chip-green-border)",
-        fg: "var(--sot-player-tag-chip-green-fg)",
-    },
-    orange: {
-        bg: "var(--sot-player-tag-chip-orange-bg)",
-        border: "var(--sot-player-tag-chip-orange-border)",
-        fg: "var(--sot-player-tag-chip-orange-fg)",
-    },
-    purple: {
-        bg: "var(--sot-player-tag-chip-purple-bg)",
-        border: "var(--sot-player-tag-chip-purple-border)",
-        fg: "var(--sot-player-tag-chip-purple-fg)",
-    },
-    red: {
-        bg: "var(--sot-player-tag-chip-red-bg)",
-        border: "var(--sot-player-tag-chip-red-border)",
-        fg: "var(--sot-player-tag-chip-red-fg)",
-    },
-    slate: {
-        bg: "var(--sot-player-tag-chip-slate-bg)",
-        border: "var(--sot-player-tag-chip-slate-border)",
-        fg: "var(--sot-player-tag-chip-slate-fg)",
-    },
-};
-
-function sotPlayerTagChipStyle(
-    color: RecordingTag["color"],
-): React.CSSProperties & Record<"--tag-c", string> {
-    const tokens = SOT_PLAYER_TAG_CHIP_TOKENS[color];
-
-    return {
-        "--tag-c": SOT_PLAYER_TAG_COLOR_TOKEN[color],
-        background: tokens.bg,
-        borderColor: tokens.border,
-        boxShadow: "var(--shadow-xs)",
-        color: tokens.fg,
-    };
-}
 
 export function SotPlayerSourceTag({
     label,
@@ -399,7 +343,6 @@ export function SotPlayerTagChip({
                 <Badge
                     variant="ghost"
                     className={SOT_PLAYER_TAG_BADGE_CLASS}
-                    style={sotPlayerTagChipStyle(tag.color)}
                     data-recording-tag-chip=""
                     data-tag-id={tag.id}
                     data-sot-tag-color={tag.color}
@@ -433,7 +376,6 @@ export function SotPlayerTagChip({
                 variant="ghost"
                 size="xs"
                 className={SOT_PLAYER_TAG_CHIP_BUTTON_CLASS}
-                style={sotPlayerTagChipStyle(tag.color)}
                 type="button"
                 data-tag-id={tag.id}
                 data-recording-tag-chip=""
@@ -690,7 +632,7 @@ export function SotPlayerNoAudioAlert({
                 background: "var(--system-banner-offline-bg)",
                 border: "1px solid var(--system-banner-offline-border)",
                 boxSizing: "border-box",
-                display: "flex",
+                display: playbackDisabled ? "flex" : "none",
                 gap: "10px",
                 height: "57px",
                 marginBottom: "13px",

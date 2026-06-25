@@ -2029,8 +2029,30 @@ describe("dashboard SOT foundation", () => {
             "--sot-player-tag-chip-blue-fg",
         ]) {
             expect(globals).toContain(sotPlayerTagChipToken);
+        }
+        for (const sotPlayerTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+        ]) {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
         }
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_TAG_COLOR_TOKEN",
+        );
+        expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
+        expect(sotPlayerPrimitives).not.toContain(
+            'background: "var(--sot-player-tag-chip-bg)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'borderColor: "var(--sot-player-tag-chip-border)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'color: "var(--sot-player-tag-chip-fg)"',
+        );
         expect(globals).not.toContain("dashboard-recording-tag-chip");
         expect(badge).not.toContain("dashboard-recording-tag-chip");
         expect(sotPlayerPrimitives).not.toContain(
@@ -2044,6 +2066,24 @@ describe("dashboard SOT foundation", () => {
         );
         expect(playerControls).toContain("<SotPlayerSeekSlider");
         expect(playerControls).toContain('"flex-none"');
+        expect(playerSeekSlider).toContain("rootProps={{");
+        expect(playerSeekSlider).toContain(
+            '"aria-disabled": disabled ? "true" : undefined',
+        );
+        expect(playerSeekSlider).toContain(
+            '"aria-valuenow": Math.round(progress)',
+        );
+        expect(playerSeekSlider).toContain(
+            '"data-sot-state": controlState',
+        );
+        expect(playerSeekSlider).toContain("onClick: (event) =>");
+        expect(playerSeekSlider).toContain("onKeyDown: (event) =>");
+        expect(playerSeekSlider).toContain('event.key === "ArrowLeft"');
+        expect(playerSeekSlider).toContain('event.key === "ArrowRight"');
+        expect(playerSeekSlider).toContain('event.key === "Home"');
+        expect(playerSeekSlider).toContain('event.key === "End"');
+        expect(playerSeekSlider).toContain('role: "slider"');
+        expect(playerSeekSlider).toContain("tabIndex: disabled ? -1 : 0");
         expect(playerControls).toContain(
             "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
         );

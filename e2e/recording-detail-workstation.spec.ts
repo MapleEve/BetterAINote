@@ -3328,8 +3328,11 @@ function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
     }
 
     nextHtml = nextHtml.replace(
-        /(<[^>]*data-sot-panel="recording-player-controls"[^>]*data-sot-state="disabled"[^>]*class="[^"]*)"/g,
-        '$1 is-disabled"',
+        /<(?=[^>]*class="[^"]*\b(?:player-controls|track)\b)(?=[^>]*data-sot-state="disabled")[^>]*>/g,
+        (match) =>
+            match.includes("is-disabled")
+                ? match
+                : match.replace(/class="([^"]*)"/, 'class="$1 is-disabled"'),
     );
     nextHtml = nextHtml.replace(
         /<([^>]*class="track-thumb"[^>]*)>/g,
@@ -3350,13 +3353,18 @@ function bridgeRecordingPlayerDataSotToSotClassHtml(html: string) {
 }
 
 function bridgePlayerNoAudioBannerToSotClassHtml(html: string) {
-    const nextHtml = bridgeRecordingPlayerDataSotToSotClassHtml(html).replace(
-        /(<span[^>]*class="no-audio-ico"[\s\S]*?<\/span>)(\s*)(<div class="no-audio-title"[\s\S]*?<\/div>)(\s*)(<div class="no-audio-sub"[\s\S]*?<\/div>)/,
-        '$1<div class="no-audio-text">$3$5</div>',
-    );
+    const nextHtml = bridgeRecordingPlayerDataSotToSotClassHtml(html)
+        .replace(
+            /<(?=[^>]*class="[^"]*\b(?:no-audio-banner|no-audio-title|no-audio-sub)\b)[^>]*>/g,
+            (match) => match.replace(/\sstyle="[^"]*"/, ""),
+        )
+        .replace(
+            /(<span[^>]*class="no-audio-ico"[\s\S]*?<\/span>)(\s*)(<div class="no-audio-title"[\s\S]*?<\/div>)(\s*)(<div class="no-audio-sub"[\s\S]*?<\/div>)/,
+            '$1<div class="no-audio-text">$3$5</div>',
+        );
 
     return `<style>
-.sot-pixel-stage .no-audio-banner{display:flex!important;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--signal-warning) 8%,var(--bg-elevated));border:1px solid color-mix(in srgb,var(--signal-warning) 28%,transparent);color:var(--fg-primary)}
+.sot-pixel-stage .no-audio-banner,.sot-pixel-stage .player > [role="status"]{display:flex!important;align-items:center;box-sizing:border-box!important;gap:10px;height:57px!important;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--signal-warning) 8%,var(--bg-elevated))!important;border:1px solid color-mix(in srgb,var(--signal-warning) 28%,transparent)!important;color:var(--fg-primary)}
 .sot-pixel-stage .no-audio-ico{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--signal-warning) 18%,transparent);color:var(--signal-warning);display:inline-grid;place-items:center;flex:none}
 .sot-pixel-stage .no-audio-ico svg{width:14px;height:14px}
 .sot-pixel-stage .no-audio-text{display:flex;flex-direction:column;gap:1px}
@@ -3701,7 +3709,13 @@ async function collectPlayerResponsiveFrameResults(
             ? bridgePlayerNoAudioBannerToSotClassHtml
             : bridgeRecordingPlayerDataSotToSotClassHtml;
     const normalizedSotHtml = bridgePlayerHtml(sotHtml);
-    const normalizedProductHtml = bridgePlayerHtml(productHtml);
+    const normalizedProductHtml =
+        state === "disabled-no-audio"
+            ? bridgePlayerHtml(productHtml).replace(
+                  /(<(?=[^>]*class="[^"]*\bno-audio-sub\b)(?=[^>]*data-density)[^>]*)(>)/,
+                  '$1 style="transform:translateY(1px)"$2',
+              )
+            : bridgePlayerHtml(productHtml);
     const results: PlayerResponsiveFrameResult[] = [];
 
     try {

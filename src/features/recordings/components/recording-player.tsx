@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useRecordingPlayback } from "@/hooks/use-recording-playback";
 import type { RecordingTag } from "@/lib/recording-tags";
+import { cn } from "@/lib/utils";
 import type { Recording } from "@/types/recording";
 import {
     formatSotPlayerDate,
@@ -42,6 +43,34 @@ const sotPlayerFontVariables: CSSProperties & { "--font-mono": string } = {
     "--font-mono":
         'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
 };
+
+const RECORDING_PLAYER_META_CLASS_NAME =
+    "flex flex-wrap items-center gap-2.5";
+
+const RECORDING_PLAYER_DATE_CLASS_NAME =
+    "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]";
+
+const RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME = "mb-3";
+
+const RECORDING_PLAYER_CONTROLS_CLASS_NAME =
+    "flex min-w-0 items-center gap-3 overflow-visible";
+
+const RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME =
+    "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+
+const RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME =
+    "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
+
+const RECORDING_PLAYER_TIME_CLASS_NAME =
+    "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]";
+
+const RECORDING_PLAYER_DISABLED_CLASS_NAME =
+    "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]";
+
+const RECORDING_PLAYER_SPEED_CLASS_NAME =
+    "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0";
+
+const RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME = "relative inline-flex";
 
 export function RecordingPlayer({
     recording,
@@ -131,8 +160,12 @@ export function RecordingPlayer({
                 playbackDisabled={playbackDisabled}
             />
 
-            <CardHeader data-sot-part="recording-player-meta">
+            <CardHeader
+                className={RECORDING_PLAYER_META_CLASS_NAME}
+                data-sot-part="recording-player-meta"
+            >
                 <span
+                    className={RECORDING_PLAYER_DATE_CLASS_NAME}
                     data-sot-part="recording-player-date"
                     suppressHydrationWarning
                 >
@@ -149,12 +182,16 @@ export function RecordingPlayer({
             </CardHeader>
 
             {isTagManagerOpen && tagManagerPanel ? (
-                <div data-sot-panel="recording-player-tag-manager-slot">
+                <div
+                    className={RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME}
+                    data-sot-panel="recording-player-tag-manager-slot"
+                >
                     {tagManagerPanel}
                 </div>
             ) : null}
 
             <CardContent
+                className={RECORDING_PLAYER_CONTROLS_CLASS_NAME}
                 aria-disabled={playbackDisabled ? "true" : undefined}
                 data-sot-panel="recording-player-controls"
                 data-sot-state={controlsState}
@@ -170,6 +207,7 @@ export function RecordingPlayer({
                     onClick={() => seekBySeconds(-5)}
                 >
                     <span
+                        className={RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME}
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
                     >
@@ -201,6 +239,9 @@ export function RecordingPlayer({
                     }
                 >
                     <span
+                        className={
+                            RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME
+                        }
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
                     >
@@ -223,6 +264,7 @@ export function RecordingPlayer({
                     onClick={() => seekBySeconds(5)}
                 >
                     <span
+                        className={RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME}
                         data-icon="inline-start"
                         data-sot-part="recording-player-control-icon"
                     >
@@ -230,11 +272,22 @@ export function RecordingPlayer({
                     </span>
                 </SotPlayerControlButton>
 
-                <span data-sot-part="recording-player-current-time">
+                <span
+                    className={cn(
+                        RECORDING_PLAYER_TIME_CLASS_NAME,
+                        playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                    )}
+                    data-sot-part="recording-player-current-time"
+                >
                     {formatSotPlayerTime(currentTime)}
                 </span>
 
                 <SotPlayerSeekSlider
+                    className={
+                        playbackDisabled
+                            ? RECORDING_PLAYER_DISABLED_CLASS_NAME
+                            : undefined
+                    }
                     disabled={playbackDisabled}
                     max={100}
                     min={0}
@@ -290,7 +343,13 @@ export function RecordingPlayer({
                     value={[progress]}
                 />
 
-                <span data-sot-part="recording-player-duration">
+                <span
+                    className={cn(
+                        RECORDING_PLAYER_TIME_CLASS_NAME,
+                        playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME,
+                    )}
+                    data-sot-part="recording-player-duration"
+                >
                     {formatSotPlayerTime(playerDurationValue)}
                 </span>
 
@@ -298,6 +357,7 @@ export function RecordingPlayer({
                     type="button"
                     onClick={cyclePlaybackSpeed}
                     title="Click to cycle playback speed"
+                    className={RECORDING_PLAYER_SPEED_CLASS_NAME}
                     data-sot-control="recording-player-speed"
                     data-sot-state={controlState}
                     disabled={playbackDisabled}
@@ -314,7 +374,10 @@ export function RecordingPlayer({
                     open={volumePopoverOpen}
                     onOpenChange={(open) => setVolumeOpen(open)}
                 >
-                    <div data-sot-part="recording-player-volume-anchor">
+                    <div
+                        className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}
+                        data-sot-part="recording-player-volume-anchor"
+                    >
                         <PopoverTrigger asChild>
                             <SotPlayerControlButton
                                 controlSize="sm"
@@ -345,6 +408,9 @@ export function RecordingPlayer({
                                 disabled={playbackDisabled}
                             >
                                 <span
+                                    className={
+                                        RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME
+                                    }
                                     data-icon="inline-start"
                                     data-sot-part="recording-player-control-icon"
                                 >

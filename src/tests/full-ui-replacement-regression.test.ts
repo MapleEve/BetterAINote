@@ -149,6 +149,54 @@ const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
         expected: "block size-[16px] max-w-none object-contain",
     },
 ] as const;
+const RECORDING_PLAYER_CLASS_INITIALIZERS = [
+    {
+        constName: "RECORDING_PLAYER_META_CLASS_NAME",
+        expected: "flex flex-wrap items-center gap-2.5",
+    },
+    {
+        constName: "RECORDING_PLAYER_DATE_CLASS_NAME",
+        expected:
+            "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME",
+        expected: "mb-3",
+    },
+    {
+        constName: "RECORDING_PLAYER_CONTROLS_CLASS_NAME",
+        expected: "flex min-w-0 items-center gap-3 overflow-visible",
+    },
+    {
+        constName: "RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "RECORDING_PLAYER_TIME_CLASS_NAME",
+        expected:
+            "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        expected:
+            "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]",
+    },
+    {
+        constName: "RECORDING_PLAYER_SPEED_CLASS_NAME",
+        expected:
+            "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0",
+    },
+    {
+        constName: "RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME",
+        expected: "relative inline-flex",
+    },
+] as const;
 const REMOVED_DASHBOARD_PLAYER_GLOBAL_SELECTOR_FRAGMENTS = [
     "dashboard-recording-player",
     "dashboard-player-control-icon",
@@ -2065,6 +2113,22 @@ function collectInlineModernColorFindings() {
                     "features/recordings/components/sot-player-primitives.tsx" &&
                 line.includes("--sot-player-status-");
             if (sharedPlayerStatusPrimitiveColor) continue;
+
+            const sharedPlayerTagChipPrimitiveColor =
+                relativePath ===
+                    "features/recordings/components/sot-player-primitives.tsx" &&
+                line.includes("--sot-player-tag-chip-bg:color-mix") &&
+                line.includes("--sot-player-tag-chip-fg:color-mix");
+            if (sharedPlayerTagChipPrimitiveColor) continue;
+
+            const sharedPlayerPrimaryButtonColor =
+                relativePath ===
+                    "features/recordings/components/sot-player-primitives.tsx" &&
+                line.includes(
+                    "color-mix(in_srgb,var(--accent)_60%,black_8%)",
+                ) &&
+                line.includes("linear-gradient");
+            if (sharedPlayerPrimaryButtonColor) continue;
 
             const onboardingDefaultSourceSotColor =
                 relativePath ===
@@ -6871,6 +6935,32 @@ describe("full UI replacement regression coverage", () => {
             'className="relative block h-[14px] w-[168px] min-w-[168px] grow-0 shrink-0 basis-[168px]"',
         );
         expect(dashboardPlayerControls).toContain('"flex-none"');
+        expect(dashboardPlayerSeekSlider).toContain("rootProps={{");
+        expect(dashboardPlayerSeekSlider).toContain(
+            '"aria-disabled": disabled ? "true" : undefined',
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            '"aria-valuenow": Math.round(progress)',
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            '"data-sot-state": controlState',
+        );
+        expect(dashboardPlayerSeekSlider).toContain("onClick: (event) =>");
+        expect(dashboardPlayerSeekSlider).toContain(
+            "onKeyDown: (event) =>",
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            'event.key === "ArrowLeft"',
+        );
+        expect(dashboardPlayerSeekSlider).toContain(
+            'event.key === "ArrowRight"',
+        );
+        expect(dashboardPlayerSeekSlider).toContain('event.key === "Home"');
+        expect(dashboardPlayerSeekSlider).toContain('event.key === "End"');
+        expect(dashboardPlayerSeekSlider).toContain('role: "slider"');
+        expect(dashboardPlayerSeekSlider).toContain(
+            "tabIndex: disabled ? -1 : 0",
+        );
         expect(dashboardPlayerControls).toContain(
             "DASHBOARD_PLAYER_DISABLED_CLASS_NAME",
         );
@@ -6992,7 +7082,7 @@ describe("full UI replacement regression coverage", () => {
         ]) {
             expect(globals).not.toContain(selector);
         }
-        expect(globals).toContain(
+        expect(globals).not.toContain(
             '[data-sot-part="recording-player-volume-anchor"]',
         );
         for (const [
@@ -9973,7 +10063,9 @@ describe("full UI replacement regression coverage", () => {
         expect(playerSpeedControl).toContain("<SotPlayerSpeedButton");
         expect(playerSpeedControl).not.toContain("variant=");
         expect(playerSpeedControl).not.toContain("size=");
-        expect(playerSpeedControl).not.toContain("className=");
+        expect(playerSpeedControl).toContain(
+            "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
+        );
         for (const control of [playerVolumeControl, playerVolumeMuteControl]) {
             expect(control).toContain("<SotPlayerControlButton");
             expect(control).toContain('controlSize="sm"');
@@ -10024,6 +10116,10 @@ describe("full UI replacement regression coverage", () => {
             sotPlayerPrimitives,
             SOT_PLAYER_NO_AUDIO_CLASS_INITIALIZERS,
         );
+        expectExactStringConstInitializers(
+            player,
+            RECORDING_PLAYER_CLASS_INITIALIZERS,
+        );
         expectSotPlayerNoAudioPrimitiveBindings(sotPlayerPrimitives);
         expect(sotPlayerPrimitives).toContain("<SotPlayerNoAudioIcon");
         expect(player).not.toContain(
@@ -10031,6 +10127,18 @@ describe("full UI replacement regression coverage", () => {
         );
         expect(player).toContain('data-sot-part="recording-player-meta"');
         expect(player).toContain('data-sot-panel="recording-player-controls"');
+        expect(player).toContain(
+            "className={RECORDING_PLAYER_META_CLASS_NAME}",
+        );
+        expect(player).toContain(
+            "className={RECORDING_PLAYER_CONTROLS_CLASS_NAME}",
+        );
+        expect(player).toContain(
+            "className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}",
+        );
+        expect(player).toContain(
+            "playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        );
         expect(player).toContain(
             'data-sot-panel="recording-player-volume-popover"',
         );
@@ -10092,12 +10200,14 @@ describe("full UI replacement regression coverage", () => {
                 );
             }
         }
-        expect(globals).toContain(
-            '[data-sot-surface="recording-player"] [data-sot-part="recording-player-meta"]',
-        );
-        expect(globals).toContain(
+        expect(globals).not.toContain('[data-sot-surface="recording-player"]');
+        expect(globals).not.toContain(
             '[data-sot-panel="recording-player-controls"]',
         );
+        expect(globals).not.toContain("recording-player-control-icon");
+        expect(globals).not.toContain("recording-player-current-time");
+        expect(globals).not.toContain("recording-player-duration");
+        expect(globals).not.toContain("recording-player-volume-anchor");
         for (const legacyClass of [
             'className="player"',
             'className="player-meta"',
@@ -10939,8 +11049,30 @@ describe("full UI replacement regression coverage", () => {
             "--sot-player-tag-chip-blue-fg",
         ]) {
             expect(globals).toContain(sotPlayerTagChipToken);
+        }
+        for (const sotPlayerTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+        ]) {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
         }
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_TAG_COLOR_TOKEN",
+        );
+        expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
+        expect(sotPlayerPrimitives).not.toContain(
+            'background: "var(--sot-player-tag-chip-bg)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'borderColor: "var(--sot-player-tag-chip-border)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'color: "var(--sot-player-tag-chip-fg)"',
+        );
         expect(globals).not.toContain("dashboard-recording-tag-chip");
         expect(badge).not.toContain("dashboard-recording-tag-chip");
         expect(sotPlayerPrimitives).not.toContain(

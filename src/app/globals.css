@@ -439,25 +439,6 @@
         0 2px 6px color-mix(in srgb, var(--signal-danger) 24%, transparent),
         inset 0 1px 0 rgb(255 255 255 / 0.2);
 
-    --button-player-bg: var(--bg-elevated);
-    --button-player-border: var(--line-hairline);
-    --button-player-fg: var(--fg-secondary);
-    --button-player-hover-bg: rgb(255 255 255);
-    --button-player-hover-fg: var(--fg-primary);
-    --button-player-primary-bg: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 92%, white 18%),
-        var(--accent)
-    );
-    --button-player-primary-border: rgb(68 132 155);
-    --button-player-primary-border: color-mix(
-        in srgb,
-        var(--accent) 60%,
-        black 8%
-    );
-    --button-player-primary-shadow:
-        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent), inset 0
-        1px 0 rgb(255 255 255 / 0.25);
     --button-copy-success-bg: rgb(36 151 104 / 0.1);
     --button-copy-success-bg: color-mix(
         in srgb,
@@ -855,7 +836,6 @@
         var(--tag-slate) 30%,
         var(--fg-primary)
     );
-    --button-player-hover-bg: rgb(255 255 255 / 0.08);
     --source-report-metric-bg: rgb(255 255 255 / 0.03);
     --source-report-metric-border: var(--glass-border-soft);
     --signal-warning-strong: rgb(226 177 60);
@@ -1481,91 +1461,6 @@ button:not([data-slot]) {
     gap: 16px;
     min-height: 0;
     min-width: 0;
-}
-/* Recording detail player — shadcn Card owns primitive surface styling. */
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-no-audio"][hidden] {
-    display: none;
-}
-[data-sot-surface="recording-player"] [data-sot-part="recording-player-meta"] {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-}
-[data-sot-surface="recording-player"] [data-sot-part="recording-player-date"] {
-    font: 500 11.5px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.02em;
-}
-[data-sot-panel="recording-player-tag-manager-slot"] {
-    margin-bottom: 12px;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-panel="recording-player-controls"] {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    overflow: visible;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-control-icon"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-control-icon"]
-    svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    fill: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-control="recording-player-play"]
-    [data-sot-part="recording-player-control-icon"]
-    svg {
-    width: 18px;
-    height: 18px;
-    fill: white;
-    stroke: white;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-current-time"],
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-duration"] {
-    font: 500 12px var(--font-mono);
-    color: var(--fg-tertiary);
-    letter-spacing: 0.03em;
-    min-width: 44px;
-    text-align: center;
-}
-[data-sot-surface="recording-player"]
-    [data-sot-part="recording-player-volume-anchor"] {
-    position: relative;
-    display: inline-flex;
-}
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-control="recording-player-seek"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-part="recording-player-current-time"],
-[data-sot-surface="recording-player"][data-no-audio="true"]
-    [data-sot-part="recording-player-duration"] {
-    opacity: 0.42;
-    pointer-events: none;
-}
-@media (max-width: 640px) {
-    [data-sot-surface="recording-player"]
-        [data-sot-control="recording-player-speed"] {
-        flex: 0 0 50.75px;
-        width: 50.75px;
-        min-width: 50.75px;
-    }
 }
 [data-sot-part="recording-source-record-shell"] {
     display: flex;

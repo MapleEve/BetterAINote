@@ -72,6 +72,54 @@ const SOT_PLAYER_SOURCE_CLASS_INITIALIZERS = [
         expected: "block size-[16px] max-w-none object-contain",
     },
 ] as const;
+const RECORDING_PLAYER_CLASS_INITIALIZERS = [
+    {
+        constName: "RECORDING_PLAYER_META_CLASS_NAME",
+        expected: "flex flex-wrap items-center gap-2.5",
+    },
+    {
+        constName: "RECORDING_PLAYER_DATE_CLASS_NAME",
+        expected:
+            "[font:500_11.5px_var(--font-mono)] tracking-[0.02em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "RECORDING_PLAYER_TAG_MANAGER_SLOT_CLASS_NAME",
+        expected: "mb-3",
+    },
+    {
+        constName: "RECORDING_PLAYER_CONTROLS_CLASS_NAME",
+        expected: "flex min-w-0 items-center gap-3 overflow-visible",
+    },
+    {
+        constName: "RECORDING_PLAYER_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "RECORDING_PLAYER_PRIMARY_CONTROL_ICON_CLASS_NAME",
+        expected:
+            "inline-flex items-center justify-center [&_svg]:size-[18px] [&_svg]:fill-white [&_svg]:stroke-white [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]",
+    },
+    {
+        constName: "RECORDING_PLAYER_TIME_CLASS_NAME",
+        expected:
+            "min-w-11 text-center [font:500_12px_var(--font-mono)] tracking-[0.03em] text-[var(--fg-tertiary)]",
+    },
+    {
+        constName: "RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        expected:
+            "pointer-events-none opacity-[0.42] data-[disabled]:opacity-[0.42]",
+    },
+    {
+        constName: "RECORDING_PLAYER_SPEED_CLASS_NAME",
+        expected:
+            "max-[640px]:w-[50.75px] max-[640px]:min-w-[50.75px] max-[640px]:basis-[50.75px] max-[640px]:grow-0 max-[640px]:shrink-0",
+    },
+    {
+        constName: "RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME",
+        expected: "relative inline-flex",
+    },
+] as const;
 
 function extractCssBlock(source: string, marker: string) {
     const markerIndex = source.indexOf(marker);
@@ -551,8 +599,30 @@ describe("dashboard recording player regressions", () => {
             "--sot-player-tag-chip-blue-fg",
         ]) {
             expect(globals).toContain(sotPlayerTagChipToken);
+        }
+        for (const sotPlayerTagChipToken of [
+            "--sot-player-tag-chip-bg",
+            "--sot-player-tag-chip-border",
+            "--sot-player-tag-chip-fg",
+        ]) {
             expect(sotPlayerPrimitives).toContain(sotPlayerTagChipToken);
         }
+        expect(sotPlayerPrimitives).toContain(
+            "SOT_PLAYER_TAG_CHIP_VARIABLES_CLASS",
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            "SOT_PLAYER_TAG_COLOR_TOKEN",
+        );
+        expect(sotPlayerPrimitives).not.toContain("sotPlayerTagChipStyle");
+        expect(sotPlayerPrimitives).not.toContain(
+            'background: "var(--sot-player-tag-chip-bg)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'borderColor: "var(--sot-player-tag-chip-border)"',
+        );
+        expect(sotPlayerPrimitives).not.toContain(
+            'color: "var(--sot-player-tag-chip-fg)"',
+        );
         expect(globals).not.toContain("dashboard-recording-tag-chip");
         expect(badgePrimitive).not.toContain("dashboard-recording-tag-chip");
         expect(sotPlayerPrimitives).not.toContain(
@@ -713,7 +783,9 @@ describe("dashboard recording player regressions", () => {
         expect(speedControl).toContain("<SotPlayerSpeedButton");
         expect(speedControl).not.toContain("variant=");
         expect(speedControl).not.toContain("size=");
-        expect(speedControl).not.toContain("className=");
+        expect(speedControl).toContain(
+            "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
+        );
         for (const control of [volumeControl, volumeMuteControl]) {
             expect(control).toContain("<SotPlayerControlButton");
             expect(control).toContain('controlSize="sm"');
@@ -852,7 +924,12 @@ describe("dashboard recording player regressions", () => {
         expect(seekSliderSource).toContain(
             "tabIndex: playbackDisabled ? -1 : 0",
         );
-        expect(seekSliderSource).not.toContain("className=");
+        expect(seekSliderSource).toContain(
+            "className={\n                        playbackDisabled",
+        );
+        expect(seekSliderSource).toContain(
+            "? RECORDING_PLAYER_DISABLED_CLASS_NAME",
+        );
         expect(seekSliderSource).not.toContain("className:");
         expect(seekSliderSource).not.toContain("style:");
         expect(source).toContain("<SotPlayerSeekSlider");
@@ -939,6 +1016,9 @@ describe("dashboard recording player regressions", () => {
         expect(speedControl).toContain(
             'data-sot-control="recording-player-speed"',
         );
+        expect(speedControl).toContain(
+            "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
+        );
         expect(source).toContain("togglePlayPause");
         expect(source).toContain("seekToSliderValue");
         expect(source).toContain("setVolume");
@@ -975,6 +1055,13 @@ describe("dashboard recording player regressions", () => {
             path.join(process.cwd(), "src/app/globals.css"),
             "utf8",
         );
+        const recordingPlayer = readFileSync(
+            path.join(
+                process.cwd(),
+                "src/features/recordings/components/recording-player.tsx",
+            ),
+            "utf8",
+        );
         const recordingLoading = readFileSync(
             path.join(
                 process.cwd(),
@@ -1007,8 +1094,35 @@ describe("dashboard recording player regressions", () => {
             );
 
         expect(legacySelectorLines).toEqual([]);
-        expect(globals).toContain(
+        expectExactStringConstInitializers(
+            recordingPlayer,
+            RECORDING_PLAYER_CLASS_INITIALIZERS,
+        );
+        expect(globals).not.toContain('[data-sot-surface="recording-player"]');
+        expect(globals).not.toContain(
             '[data-sot-part="recording-player-no-audio"][hidden]',
+        );
+        expect(globals).not.toContain(
+            '[data-sot-panel="recording-player-controls"]',
+        );
+        expect(globals).not.toContain("recording-player-control-icon");
+        expect(globals).not.toContain("recording-player-current-time");
+        expect(globals).not.toContain("recording-player-duration");
+        expect(globals).not.toContain("recording-player-volume-anchor");
+        expect(recordingPlayer).toContain(
+            "className={RECORDING_PLAYER_META_CLASS_NAME}",
+        );
+        expect(recordingPlayer).toContain(
+            "className={RECORDING_PLAYER_CONTROLS_CLASS_NAME}",
+        );
+        expect(recordingPlayer).toContain(
+            "className={RECORDING_PLAYER_SPEED_CLASS_NAME}",
+        );
+        expect(recordingPlayer).toContain(
+            "className={RECORDING_PLAYER_VOLUME_ANCHOR_CLASS_NAME}",
+        );
+        expect(recordingPlayer).toContain(
+            "playbackDisabled && RECORDING_PLAYER_DISABLED_CLASS_NAME",
         );
         expect(globals).not.toContain("dashboard-recording-player");
         expect(globals).not.toContain("dashboard-player-control-icon");

@@ -135,16 +135,14 @@ function DashboardPlayerSeekSlider({
             }}
         >
             <SotPlayerSeekSlider
-                aria-disabled={disabled ? "true" : undefined}
-                aria-label="播放进度"
                 className={cn(
                     "flex-none",
                     disabled && DASHBOARD_PLAYER_DISABLED_CLASS_NAME,
                 )}
+                disabled={disabled}
+                data-pct={progressPct}
                 data-sot-control="dashboard-player-seek"
                 data-sot-state={controlState}
-                data-pct={progressPct}
-                disabled={disabled}
                 max={100}
                 min={0}
                 rangeProps={{
@@ -154,6 +152,42 @@ function DashboardPlayerSeekSlider({
                 thumbProps={{
                     "data-pct": progressPct,
                     className: "-ml-[4.1875px]",
+                }}
+                rootProps={{
+                    "aria-disabled": disabled ? "true" : undefined,
+                    "aria-label": "播放进度",
+                    "aria-valuemax": 100,
+                    "aria-valuemin": 0,
+                    "aria-valuenow": Math.round(progress),
+                    "data-pct": progressPct,
+                    "data-sot-control": "dashboard-player-seek",
+                    "data-sot-state": controlState,
+                    onClick: (event) => {
+                        const rect =
+                            event.currentTarget.getBoundingClientRect();
+                        if (rect.width <= 0) {
+                            return;
+                        }
+                        onSeekToPercent(
+                            ((event.clientX - rect.left) / rect.width) * 100,
+                        );
+                    },
+                    onKeyDown: (event) => {
+                        if (event.key === "ArrowLeft") {
+                            onSeekToPercent(progress - 5);
+                        }
+                        if (event.key === "ArrowRight") {
+                            onSeekToPercent(progress + 5);
+                        }
+                        if (event.key === "Home") {
+                            onSeekToPercent(0);
+                        }
+                        if (event.key === "End") {
+                            onSeekToPercent(100);
+                        }
+                    },
+                    role: "slider",
+                    tabIndex: disabled ? -1 : 0,
                 }}
                 value={[progress]}
                 onValueChange={(values) => onSeekToPercent(values[0] ?? 0)}
