@@ -76,6 +76,39 @@ const ConfirmDialogContext = createContext<{
     confirm: (options: ConfirmDialogOptions) => Promise<boolean>;
 } | null>(null);
 
+const CONFIRM_DIALOG_OVERLAY_CLASS =
+    "bg-[color-mix(in_srgb,var(--graphite-950)_36%,transparent)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
+
+const CONFIRM_DIALOG_CONTENT_CLASS =
+    "m-[12px_auto] block w-full max-w-[460px] gap-0 overflow-hidden rounded-lg border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-md)] sm:max-w-[460px]";
+
+const CONFIRM_DIALOG_HEADER_CLASS = "block flex-row gap-0 px-5 pt-4 pb-1";
+
+const CONFIRM_DIALOG_TITLE_CLASS =
+    "font-display text-[16px] leading-[1.35] tracking-[-0.012em] text-[var(--fg-primary)]";
+
+const CONFIRM_DIALOG_BODY_CLASS =
+    "px-5 pt-2 pb-1 font-sans text-[13px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
+
+const CONFIRM_DIALOG_DESCRIPTION_CLASS = "mb-2";
+
+const CONFIRM_DIALOG_EXTRA_CLASS = "flex flex-col gap-3";
+
+const CONFIRM_DIALOG_DETAILS_LIST_CLASS =
+    "mt-1 mb-2 flex list-disc flex-col gap-1 pl-[18px]";
+
+const CONFIRM_DIALOG_DETAIL_ITEM_CLASS =
+    "flex items-center gap-1.5 font-sans text-[12.5px] leading-[1.55] font-medium text-[var(--fg-secondary)]";
+
+const CONFIRM_DIALOG_WARNING_CLASS =
+    "rounded-md border border-[color-mix(in_srgb,var(--signal-danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--signal-danger)_10%,transparent)] px-3 py-2 text-[var(--signal-danger)]";
+
+const CONFIRM_DIALOG_FOOTER_CLASS =
+    "border-t border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-4 pt-3 pb-4";
+
+const CONFIRM_DIALOG_ACTION_BUTTON_CLASS =
+    "h-[26px] min-w-[auto] gap-[7px] rounded-[7px]";
+
 export function ConfirmDialogProvider({
     children,
     slotProps,
@@ -128,6 +161,7 @@ export function ConfirmDialogProvider({
     const value = useMemo(() => ({ confirm }), [confirm]);
     const confirmButtonVariant = state?.confirmVariant ?? "destructive";
     const contentSlotProps = slotProps?.content;
+    const overlaySlotProps = slotProps?.overlay;
     const headerSlotProps = slotProps?.header;
     const titleSlotProps = slotProps?.title;
     const bodySlotProps = slotProps?.body;
@@ -172,15 +206,25 @@ export function ConfirmDialogProvider({
             >
                 <DialogContent
                     {...contentSlotProps}
-                    overlayProps={slotProps?.overlay}
+                    overlayProps={{
+                        ...overlaySlotProps,
+                        className: cn(
+                            CONFIRM_DIALOG_OVERLAY_CLASS,
+                            overlaySlotProps?.className,
+                        ),
+                    }}
                     portalWrapperProps={slotProps?.portalWrapper}
-                    className={cn("sm:max-w-md", contentSlotProps?.className)}
+                    className={cn(
+                        CONFIRM_DIALOG_CONTENT_CLASS,
+                        contentSlotProps?.className,
+                    )}
                     showCloseButton={false}
                 >
                     <DialogHeader
                         {...headerSlotProps}
                         className={cn(
                             "gap-2 text-left",
+                            CONFIRM_DIALOG_HEADER_CLASS,
                             headerSlotProps?.className,
                         )}
                     >
@@ -188,29 +232,53 @@ export function ConfirmDialogProvider({
                             {...titleSlotProps}
                             className={cn(
                                 "m-0 text-base leading-snug font-semibold tracking-normal",
+                                CONFIRM_DIALOG_TITLE_CLASS,
                                 titleSlotProps?.className,
                             )}
                         >
                             {state?.title}
                         </DialogTitle>
                     </DialogHeader>
-                    <div {...bodySlotProps}>
+                    <div
+                        {...bodySlotProps}
+                        className={cn(
+                            CONFIRM_DIALOG_BODY_CLASS,
+                            bodySlotProps?.className,
+                        )}
+                    >
                         <DialogDescription
                             {...descriptionSlotProps}
                             className={cn(
                                 "m-0 text-sm leading-relaxed text-muted-foreground",
+                                CONFIRM_DIALOG_DESCRIPTION_CLASS,
                                 descriptionSlotProps?.className,
                             )}
                         >
                             {state?.description}
                         </DialogDescription>
                         {state?.details?.length || state?.warning ? (
-                            <div {...extraSlotProps}>
+                            <div
+                                {...extraSlotProps}
+                                className={cn(
+                                    CONFIRM_DIALOG_EXTRA_CLASS,
+                                    extraSlotProps?.className,
+                                )}
+                            >
                                 {state.details?.length ? (
-                                    <ul {...detailsListSlotProps}>
+                                    <ul
+                                        {...detailsListSlotProps}
+                                        className={cn(
+                                            CONFIRM_DIALOG_DETAILS_LIST_CLASS,
+                                            detailsListSlotProps?.className,
+                                        )}
+                                    >
                                         {state.details.map((item) => (
                                             <li
                                                 {...detailItemSlotProps}
+                                                className={cn(
+                                                    CONFIRM_DIALOG_DETAIL_ITEM_CLASS,
+                                                    detailItemSlotProps?.className,
+                                                )}
                                                 key={item}
                                             >
                                                 {item}
@@ -219,7 +287,15 @@ export function ConfirmDialogProvider({
                                     </ul>
                                 ) : null}
                                 {state.warning ? (
-                                    <p {...warningSlotProps}>{state.warning}</p>
+                                    <p
+                                        {...warningSlotProps}
+                                        className={cn(
+                                            CONFIRM_DIALOG_WARNING_CLASS,
+                                            warningSlotProps?.className,
+                                        )}
+                                    >
+                                        {state.warning}
+                                    </p>
                                 ) : null}
                             </div>
                         ) : null}
@@ -228,6 +304,7 @@ export function ConfirmDialogProvider({
                         {...footerSlotProps}
                         className={cn(
                             "gap-[8px] sm:justify-end",
+                            CONFIRM_DIALOG_FOOTER_CLASS,
                             footerSlotProps?.className,
                         )}
                     >
@@ -237,6 +314,10 @@ export function ConfirmDialogProvider({
                             variant="outline"
                             size="sm"
                             onClick={() => close(false)}
+                            className={cn(
+                                CONFIRM_DIALOG_ACTION_BUTTON_CLASS,
+                                cancelButtonSlotProps?.className,
+                            )}
                         >
                             {state?.cancelLabel}
                         </Button>
@@ -246,6 +327,10 @@ export function ConfirmDialogProvider({
                             variant={confirmButtonVariant}
                             size="sm"
                             onClick={() => close(true)}
+                            className={cn(
+                                CONFIRM_DIALOG_ACTION_BUTTON_CLASS,
+                                confirmButtonSlotProps?.className,
+                            )}
                         >
                             {state?.confirmLabel}
                         </Button>

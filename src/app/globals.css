@@ -734,57 +734,16 @@ button:not([data-slot]) {
     font-family: inherit;
 }
 
-/* ======== App grid ======== */
-[data-sot-shell="dashboard-workstation"],
+/* ======== Route fallback grid ======== */
 [data-sot-shell="dashboard-loading"],
 [data-sot-shell="recording-route-loading"],
 [data-sot-shell="recording-route-empty"],
-[data-sot-shell="recording-route-error"],
-[data-sot-shell="recording-workstation"] {
+[data-sot-shell="recording-route-error"] {
     display: grid;
     grid-template-columns: 264px 1fr;
     height: 100vh;
     min-height: 720px;
     transition: grid-template-columns 320ms var(--ease-out);
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"] {
-    grid-template-columns: 56px 1fr;
-}
-
-/* Sidebar collapse */
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-panel="dashboard-sidebar"] {
-    padding: 16px 6px 12px;
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-brand-text"],
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-nav-section-label"],
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-favorite-label"],
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-favorite-count"],
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-sync-text"],
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-control="dashboard-sync"] {
-    display: none;
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-part="dashboard-brand"] {
-    justify-content: center;
-    padding: 4px 0 16px;
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-control="dashboard-favorite"] {
-    justify-content: center;
-    padding: 8px 0;
-    gap: 0;
-}
-[data-sot-shell="dashboard-workstation"][data-sidebar-collapsed="true"]
-    [data-sot-panel="dashboard-sync"] {
-    justify-content: center;
-    padding: 8px 0;
 }
 
 /* ======== Glass surfaces ========
@@ -1104,29 +1063,25 @@ button:not([data-slot]) {
 /* Scrollbars — themed to match surface */
 [data-sot-list="dashboard-recording-list-scroll"],
 [data-sot-part="dashboard-transcript-body"],
-[data-sot-part="recording-transcription-body"],
-[data-sot-panel="settings-body"] {
+[data-sot-part="recording-transcription-body"] {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--fg-tertiary) 40%, transparent)
         transparent;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar,
 [data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar,
-[data-sot-panel="settings-body"]::-webkit-scrollbar {
+[data-sot-part="recording-transcription-body"]::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-track,
 [data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-track,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-track,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-track {
+[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-track {
     background: transparent;
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb,
 [data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb {
+[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--fg-tertiary) 35%, transparent);
     border-radius: 999px;
     border: 2px solid transparent;
@@ -1134,8 +1089,7 @@ button:not([data-slot]) {
 }
 [data-sot-list="dashboard-recording-list-scroll"]::-webkit-scrollbar-thumb:hover,
 [data-sot-part="dashboard-transcript-body"]::-webkit-scrollbar-thumb:hover,
-[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb:hover,
-[data-sot-panel="settings-body"]::-webkit-scrollbar-thumb:hover {
+[data-sot-part="recording-transcription-body"]::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--fg-tertiary) 55%, transparent);
     background-clip: padding-box;
 }
@@ -1386,12 +1340,6 @@ button:not([data-slot]) {
     margin: 0;
     padding: 0;
     border: 0;
-    background: color-mix(in srgb, var(--graphite-950) 36%, transparent);
-    backdrop-filter: blur(6px) saturate(120%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 220ms var(--ease-out);
     z-index: var(--z-modal);
 }
 [data-sot-overlay="settings-shell"][data-state="open"],
@@ -1410,12 +1358,7 @@ button:not([data-slot]) {
 }
 [data-sot-surface="settings-shell"],
 [data-sot-content="confirm-dialog"] {
-    color: var(--fg-primary);
-    font-family: var(--font-sans);
     z-index: calc(var(--z-modal) + 1);
-    transition:
-        transform 280ms var(--ease-out),
-        opacity 220ms var(--ease-out);
 }
 [data-sot-surface="settings-shell"][data-state="closed"],
 [data-sot-content="confirm-dialog"][data-state="closed"] {
@@ -1443,39 +1386,22 @@ button:not([data-slot]) {
      browsers that hide their chrome on scroll. */
     height: min(94svh, 980px);
     max-height: calc(100svh - 1rem);
-    background: var(--bg-elevated);
-    border-radius: 16px;
-    border: 1px solid var(--line-hairline);
-    box-shadow: var(--shadow-xl);
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: 0;
     overflow: hidden;
     box-sizing: border-box;
-    transition:
-        transform 280ms var(--ease-out),
-        opacity 220ms var(--ease-out);
 }
 [data-sot-surface="settings-shell"][data-state="closed"] {
     transform: translateY(8px) scale(0.985);
     opacity: 0;
 }
-[data-theme="dark"] [data-sot-surface="settings-shell"] {
-    background: var(--bg-elevated);
-    border-color: var(--glass-border);
-}
 
 [data-sot-panel="settings-header"] {
     display: flex;
     align-items: center;
-    padding: 18px 20px;
-    border-bottom: 1px solid var(--line-hairline);
     /* Header stays pinned regardless of section content height. */
     flex: none;
-}
-[data-theme="dark"] [data-sot-panel="settings-header"] {
-    border-bottom-color: var(--glass-border-soft);
 }
 [data-sot-part="settings-user-summary"] {
     display: flex;
@@ -1487,16 +1413,6 @@ button:not([data-slot]) {
 [data-sot-part="settings-user-summary"] > div {
     min-width: 0;
 }
-[data-sot-part="settings-user-name"] {
-    font: 600 14px var(--font-sans);
-    color: var(--fg-primary);
-    margin: 0;
-}
-[data-sot-part="settings-user-subtitle"] {
-    font: 500 12px var(--font-mono);
-    color: var(--fg-tertiary);
-    margin: 2px 0 0;
-}
 
 [data-sot-panel="settings-body"] {
     display: grid;
@@ -1505,9 +1421,6 @@ button:not([data-slot]) {
     min-height: 0;
 }
 [data-sot-panel="settings-rail"] {
-    background: var(--bg-recessed);
-    border-right: 1px solid var(--line-hairline);
-    padding: 14px 8px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -1518,16 +1431,11 @@ button:not([data-slot]) {
     overscroll-behavior: contain;
     min-height: 0;
 }
-[data-theme="dark"] [data-sot-panel="settings-rail"] {
-    background: rgb(0 0 0 / 0.15);
-    border-right-color: var(--glass-border-soft);
-}
 
 [data-sot-panel="settings-scroll-body"],
 [data-sot-panel="settings-card-skeleton"],
 [data-sot-panel="settings-section-skeleton"],
 [data-sot-panel="settings-list-skeleton"] {
-    padding: 22px 26px;
     overflow-y: auto;
     /* Lock wheel/touch scrolling to this body — the workspace blurred
      behind the modal must NOT receive leftover scroll deltas when the
@@ -1539,6 +1447,11 @@ button:not([data-slot]) {
     /* Section content is read from top — every section-switch should
      reset to top, never inherit the previous section's offset.
      The JS handler resets scrollTop on activation. */
+}
+[data-sot-panel="settings-card-skeleton"],
+[data-sot-panel="settings-section-skeleton"],
+[data-sot-panel="settings-list-skeleton"] {
+    padding: 22px 26px;
 }
 @media (max-width: 720px) {
     [data-sot-panel="settings-header"] {
@@ -1832,18 +1745,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 }
 [data-sot-part="dashboard-speaker-bar-fill"] {
     display: block;
-}
-[data-sot-source-report-pane] {
-    display: flex;
-}
-[data-sot-source-report-state][hidden] {
-    display: none;
-}
-[data-sot-list="source-report-cards"] {
-    display: grid;
-}
-[data-sot-part="source-report-card-value"][data-sot-value="source"] {
-    display: flex;
 }
 [data-sot-control="matrix-row"] {
     display: grid;
@@ -2523,37 +2424,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     border: 1px solid var(--line-hairline);
 }
 
-[data-sot-part="recording-tag-overflow"],
-[data-sot-part="recording-tag-add"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 6px;
-    background: var(--bg-recessed);
-    border: 1px dashed var(--line-hairline);
-    box-shadow: none;
-    font: 600 11px var(--font-sans);
-    color: var(--fg-tertiary);
-    cursor: pointer;
-    transition: none;
-}
-[data-sot-part="recording-tag-add"] {
-    gap: 5px;
-    background: transparent;
-}
-[data-sot-part="recording-tag-overflow"]:hover,
-[data-sot-part="recording-tag-add"]:hover {
-    background: transparent;
-    color: var(--fg-primary);
-    border-color: var(--line-strong);
-}
-[data-sot-part="recording-tag-add"] svg {
-    width: 12px;
-    height: 12px;
-}
-
 /* ---------- Detail empty ---------- */
 [data-sot-panel="recording-route-empty"] {
     flex-direction: column;
@@ -2683,21 +2553,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
 [data-sot-section-group] {
     margin-bottom: 22px;
     position: relative;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head] {
-    margin-bottom: 6px;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head] h4 {
-    margin: 0;
-    font: 600 13.5px var(--font-display);
-    color: var(--fg-primary);
-    letter-spacing: 0;
-}
-[data-sot-panel="settings-scroll-body"] [data-sot-section-head] p {
-    margin: 4px 0 0;
-    font: 12.5px / 1.55 var(--font-sans);
-    color: var(--fg-tertiary);
-    max-width: 64ch;
 }
 [data-sot-section-divider] {
     border: 0;
@@ -2861,45 +2716,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
     }
 }
 
-/* ---------- Settings rail group fix ----------
-   The nav group is flex-based, so the group label and each settings nav
-   button need an explicit column flow inside the 200px rail.
-   Force column on the group, give the label its own visual treatment, and
-   keep item labels on one line. */
-[data-sot-panel="settings-rail"] {
-    writing-mode: horizontal-tb;
-}
-[data-sot-panel="settings-rail"] * {
-    writing-mode: horizontal-tb;
-}
-
-[data-sot-panel="settings-rail"] [data-sot-list="settings-nav-group"] {
-    flex-direction: column !important;
-    align-items: stretch;
-    gap: 2px;
-    padding: 0;
-    width: 100%;
-    min-width: 0;
-}
-[data-sot-panel="settings-rail"]
-    [data-sot-list="settings-nav-group"]
-    + [data-sot-list="settings-nav-group"] {
-    margin-top: 10px;
-}
-
-[data-sot-panel="settings-rail"] [data-sot-part="settings-nav-group-label"] {
-    display: block;
-    width: 100%;
-    padding: 10px 10px 4px;
-    font: 600 10px var(--font-sans);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 /* ============================================================
    Static state hooks for runtime-driven values — replaces the
    prior imperative style mutation.
@@ -2915,25 +2731,6 @@ body[data-drawer="open"] [data-sot-panel="dashboard-drawer-scrim"] {
    anchor or, when body-mounted (tag manager), at a fixed slot.
    ============================================================ */
 
-/* Tag-manager panel — body-mounted, fixed preset (top-right
-   of the workspace, just below the topbar). */
-[data-sot-panel="recording-tag-manager"] {
-    position: fixed;
-    top: 96px;
-    right: 28px;
-    width: 320px;
-    max-width: calc(100vw - 32px);
-    z-index: var(--z-context-menu);
-}
-@media (max-width: 768px) {
-    [data-sot-panel="recording-tag-manager"] {
-        top: 76px;
-        right: 12px;
-        left: 12px;
-        width: auto;
-        max-width: none;
-    }
-}
 /* ============================================================
    SystemBanner — primitive-owned surface.
    ============================================================ */
@@ -3038,91 +2835,24 @@ select::-ms-expand {
 
 /* ---- ConfirmDialog ---- */
 [data-sot-content="confirm-dialog"] {
-    font-family: var(--font-sans);
-    width: 100%;
-    max-width: 460px;
-    margin: 12px auto;
-    background: var(--bg-elevated);
-    border: 1px solid var(--line-hairline);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
     overflow: hidden;
     display: block;
-    padding: 0;
-    gap: 0;
-}
-[data-theme="dark"] [data-sot-content="confirm-dialog"] {
-    background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
-    border-color: var(--glass-border);
-    box-shadow: 0 22px 56px rgb(0 0 0 / 0.5);
 }
 [data-sot-part="confirm-head"] {
-    padding: 16px 20px 4px;
     display: block;
     flex-direction: row;
-    gap: normal;
     text-align: left;
 }
-[data-sot-part="confirm-title"] {
-    font: 600 16px / 1.35 var(--font-display);
-    letter-spacing: -0.012em;
-    color: var(--fg-primary);
-    margin: 0;
-}
 [data-sot-part="confirm-body"] {
-    padding: 8px 20px 4px;
-    font: 500 13px / 1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-part="confirm-description"] {
-    margin: 0 0 8px;
+    display: block;
 }
 [data-sot-part="confirm-extra"] {
     display: flex;
     flex-direction: column;
-    gap: 12px;
 }
 [data-sot-part="confirm-foot"] {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    padding: 12px 16px 16px;
-    background: var(--bg-recessed);
-    border-top: 1px solid var(--line-hairline);
-}
-[data-theme="dark"] [data-sot-part="confirm-foot"] {
-    background: color-mix(in srgb, white 3%, transparent);
-    border-top-color: var(--glass-border-soft);
-}
-[data-sot-content="confirm-dialog"]
-    [data-sot-part="confirm-foot"]
-    [data-sot-control] {
-    height: 26px;
-    min-width: auto;
-    gap: 7px;
-    border-radius: 7px;
-}
-[data-sot-list="confirm-dialog-details"] {
-    list-style: disc;
-    padding-left: 18px;
-    margin: 4px 0 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-[data-sot-item="confirm-dialog-detail"] {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font: 500 12.5px / 1.55 var(--font-sans);
-    color: var(--fg-secondary);
-}
-[data-sot-part="confirm-warning"] {
-    border: 1px solid color-mix(in srgb, var(--signal-danger) 30%, transparent);
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--signal-danger) 10%, transparent);
-    color: var(--signal-danger);
-    padding: 8px 12px;
 }
 
 /* ---- Detail empty (centered) ---- */

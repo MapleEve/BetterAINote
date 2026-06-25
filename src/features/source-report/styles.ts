@@ -35,3 +35,102 @@ export const SOURCE_REPORT_STYLE_VARIABLES = {
 
 export const SOURCE_REPORT_SKELETON_CLASS_NAME =
     "![background-color:transparent] [background-image:var(--source-report-skeleton-bg)] dark:[background-image:linear-gradient(90deg,rgb(255_255_255_/_0.05)_0%,rgb(255_255_255_/_0.12)_50%,rgb(255_255_255_/_0.05)_100%)] [background-size:220%_100%]";
+
+export const SOURCE_REPORT_STATE_CLASS_NAME =
+    "flex flex-col gap-0 [&[hidden]]:hidden";
+
+export const SOURCE_REPORT_STATE_STACK_CLASS_NAME =
+    "flex flex-col gap-3.5";
+
+export const SOURCE_REPORT_METRIC_CARDS_CLASS_NAME =
+    "grid grid-cols-4 gap-2 max-[1200px]:grid-cols-2";
+
+export const SOURCE_REPORT_CARD_LABEL_CLASS_NAME =
+    "text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_CARD_VALUE_CLASS_NAME =
+    "text-[13px] font-semibold text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_CARD_SOURCE_VALUE_CLASS_NAME =
+    "flex items-center gap-1.5";
+
+export const SOURCE_REPORT_CARD_NUMBER_VALUE_CLASS_NAME =
+    "font-mono text-[16px] font-semibold text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_CARD_SOURCE_ICON_CLASS_NAME =
+    "size-[14px] flex-none rounded-[3px] object-contain";
+
+export const SOURCE_REPORT_CARD_SOURCE_FALLBACK_CLASS_NAME =
+    "text-[11px] font-bold text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_SECTION_CLASS_NAME =
+    "flex flex-col gap-2 border-t border-[var(--line-hairline)] pt-2 dark:border-[var(--glass-border-soft)]";
+
+export const SOURCE_REPORT_SECTION_SEPARATOR_CLASS_NAME = "hidden";
+
+export const SOURCE_REPORT_SECTION_HEADER_CLASS_NAME =
+    "flex items-baseline gap-2.5";
+
+export const SOURCE_REPORT_SECTION_TITLE_CLASS_NAME =
+    "m-0 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_DESCRIPTION_CLASS_NAME =
+    "text-[11.5px] font-medium text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_SUMMARY_BODY_CLASS_NAME =
+    "flex flex-col gap-1.5";
+
+export const SOURCE_REPORT_SEGMENTS_CLASS_NAME =
+    "m-0 flex list-none flex-col gap-0.5 p-0";
+
+export const SOURCE_REPORT_SEGMENT_CLASS_NAME =
+    "grid grid-cols-[96px_56px_1fr] items-start gap-2.5 rounded-[6px] bg-transparent px-2.5 py-2 hover:bg-[var(--bg-recessed)]";
+
+export const SOURCE_REPORT_SEGMENT_SKELETON_CONTAINER_CLASS_NAME =
+    "block px-2.5 py-2";
+
+export const SOURCE_REPORT_SEGMENT_TIME_CLASS_NAME =
+    "font-mono text-[11.5px] font-medium text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_SEGMENT_SPEAKER_CLASS_NAME =
+    "text-[12px] font-semibold text-[var(--fg-secondary)]";
+
+export const SOURCE_REPORT_SEGMENT_TEXT_CLASS_NAME =
+    "m-0 text-[12.5px]/[1.55] font-medium text-[var(--fg-primary)] [text-wrap:pretty]";
+
+export const SOURCE_REPORT_SUMMARY_TEXT_CLASS_NAME =
+    "m-0 whitespace-pre-wrap text-[12.5px]/[1.55] font-medium text-[var(--fg-primary)] [text-wrap:pretty]";
+
+export const SOURCE_REPORT_META_CLASS_NAME =
+    "my-4 grid grid-cols-2 gap-x-3.5 gap-y-1.5 max-[1200px]:grid-cols-1";
+
+export const SOURCE_REPORT_META_ROW_CLASS_NAME =
+    "grid min-h-[30px] grid-cols-[80px_1fr] items-baseline gap-2 border-b border-dashed border-[var(--line-hairline)] py-1.5 dark:border-[var(--glass-border-soft)]";
+
+export const SOURCE_REPORT_META_LABEL_CLASS_NAME =
+    "m-0 text-[11px] font-semibold text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_META_VALUE_CLASS_NAME =
+    "m-0 break-words text-[12px] font-medium text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_META_MONO_VALUE_CLASS_NAME = "font-mono";
+
+export const SOURCE_REPORT_ACTION_ROW_CLASS_NAME =
+    "mt-1 flex flex-wrap items-center gap-2";
+
+export const SOURCE_REPORT_EMPTY_ACTION_ROW_CLASS_NAME =
+    "mt-2 flex flex-wrap items-center gap-1.5";
+
+export const SOURCE_REPORT_EMPTY_HEADER_CLASS_NAME = "gap-1";
+
+export const SOURCE_REPORT_EMPTY_TITLE_CLASS_NAME =
+    "m-0 block min-h-0 overflow-visible text-[13px]/[1.35] font-semibold tracking-normal text-[var(--fg-primary)]";
+
+export const SOURCE_REPORT_EMPTY_DESCRIPTION_CLASS_NAME =
+    "block max-w-[360px] text-[12px]/[1.5] font-medium tracking-normal text-[var(--fg-tertiary)]";
+
+export const SOURCE_REPORT_COPY_LABEL_CLASS_NAME =
+    "inline-flex min-w-0 items-center";
+
+export const SOURCE_REPORT_COPY_ICON_CLASS_NAME =
+    "stroke-current transition-[opacity,transform] duration-200 ease-out";

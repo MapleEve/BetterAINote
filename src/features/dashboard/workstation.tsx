@@ -295,6 +295,19 @@ const SETTINGS_DATA_SOURCE_PROVIDER_STORAGE_KEY =
     "settings-data-source-provider";
 const SOURCE_DRAWER_FOCUSABLE_SELECTOR =
     'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const DASHBOARD_WORKSTATION_SHELL_CLASS_NAME =
+    "grid h-screen min-h-[720px] grid-cols-[264px_1fr] transition-[grid-template-columns] duration-[320ms] ease-[var(--ease-out)] data-[sidebar-collapsed=true]:grid-cols-[56px_1fr] max-[860px]:h-auto max-[860px]:min-h-[100svh] max-[860px]:grid-cols-[minmax(0,1fr)] max-[860px]:overflow-x-clip";
+
+const dashboardSidebarCollapseClassNames = {
+    sidebar:
+        "group-data-[sidebar-collapsed=true]/dashboard-workstation:px-[6px] group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-4 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-3",
+    hidden: "group-data-[sidebar-collapsed=true]/dashboard-workstation:hidden",
+    brand: "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:pt-1 group-data-[sidebar-collapsed=true]/dashboard-workstation:pb-4",
+    favorite:
+        "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:gap-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:px-0 group-data-[sidebar-collapsed=true]/dashboard-workstation:py-2",
+    syncPanel:
+        "group-data-[sidebar-collapsed=true]/dashboard-workstation:justify-center group-data-[sidebar-collapsed=true]/dashboard-workstation:p-2",
+} as const;
 
 type DashboardTranscriptSkeletonSize =
     | "avatar"
@@ -4068,6 +4081,7 @@ export function Workstation({
         <div
             className={cn(
                 "group/dashboard-workstation",
+                DASHBOARD_WORKSTATION_SHELL_CLASS_NAME,
                 sourceProviderThemeClassName,
             )}
             data-sot-shell="dashboard-workstation"
@@ -4082,10 +4096,20 @@ export function Workstation({
             data-sot-surface="dashboard-workstation"
             data-sot-state={hydrated ? "ready" : "loading"}
         >
-            <aside data-sot-panel="dashboard-sidebar" ref={sourceDrawerRef}>
-                <div data-sot-part="dashboard-brand">
+            <aside
+                className={dashboardSidebarCollapseClassNames.sidebar}
+                data-sot-panel="dashboard-sidebar"
+                ref={sourceDrawerRef}
+            >
+                <div
+                    className={dashboardSidebarCollapseClassNames.brand}
+                    data-sot-part="dashboard-brand"
+                >
                     <img src="/assets/logo-mark-steel.svg" alt="" />
-                    <div data-sot-part="dashboard-brand-text">
+                    <div
+                        className={dashboardSidebarCollapseClassNames.hidden}
+                        data-sot-part="dashboard-brand-text"
+                    >
                         <div data-sot-part="dashboard-brand-name">
                             BetterAINote
                         </div>
@@ -4096,7 +4120,12 @@ export function Workstation({
                 </div>
 
                 <nav data-sot-list="dashboard-nav" aria-label="录音筛选">
-                    <div data-sot-part="dashboard-nav-section-label">收藏</div>
+                    <div
+                        className={dashboardSidebarCollapseClassNames.hidden}
+                        data-sot-part="dashboard-nav-section-label"
+                    >
+                        收藏
+                    </div>
                     {FAVORITES.map((item) => {
                         const Icon = item.icon;
                         const count =
@@ -4118,7 +4147,10 @@ export function Workstation({
                             <Button
                                 variant="ghost"
                                 size="default"
-                                className={dashboardButtonClassNames.nav}
+                                className={cn(
+                                    dashboardButtonClassNames.nav,
+                                    dashboardSidebarCollapseClassNames.favorite,
+                                )}
                                 type="button"
                                 aria-pressed={favorite === item.value}
                                 data-active={
@@ -4146,19 +4178,30 @@ export function Workstation({
                             >
                                 <Icon data-icon="inline-start" />
                                 <span
-                                    className="min-w-0 flex-1 truncate"
+                                    className={cn(
+                                        "min-w-0 flex-1 truncate",
+                                        dashboardSidebarCollapseClassNames.hidden,
+                                    )}
                                     data-sot-part="dashboard-favorite-label"
                                 >
                                     {getFavoriteLabel(item.value, t)}
                                 </span>
-                                <span data-sot-part="dashboard-favorite-count">
+                                <span
+                                    className={
+                                        dashboardSidebarCollapseClassNames.hidden
+                                    }
+                                    data-sot-part="dashboard-favorite-count"
+                                >
                                     {count}
                                 </span>
                             </Button>
                         );
                     })}
 
-                    <div data-sot-part="dashboard-nav-section-label">
+                    <div
+                        className={dashboardSidebarCollapseClassNames.hidden}
+                        data-sot-part="dashboard-nav-section-label"
+                    >
                         {t("sourceProviderRows.heading")}
                     </div>
                     <div
@@ -4412,12 +4455,16 @@ export function Workstation({
 
                 <div data-sot-part="dashboard-sidebar-footer">
                     <div
+                        className={dashboardSidebarCollapseClassNames.syncPanel}
                         data-sot-panel="dashboard-sync"
                         data-sot-state={syncButtonState}
                         data-sync-state={syncButtonState}
                     >
                         <span data-sot-part="dashboard-sync-indicator" />
-                        <div data-sot-part="dashboard-sync-text">
+                        <div
+                            className={dashboardSidebarCollapseClassNames.hidden}
+                            data-sot-part="dashboard-sync-text"
+                        >
                             <div data-sot-part="dashboard-sync-title">
                                 {syncStateLabel(syncButtonState, t)} ·
                                 BetterAINote
@@ -4429,7 +4476,10 @@ export function Workstation({
                         <Button
                             variant="ghost"
                             size="icon-sm"
-                            className={dashboardButtonClassNames.sync}
+                            className={cn(
+                                dashboardButtonClassNames.sync,
+                                dashboardSidebarCollapseClassNames.hidden,
+                            )}
                             type="button"
                             aria-label="同步"
                             aria-busy={syncButtonBusy}

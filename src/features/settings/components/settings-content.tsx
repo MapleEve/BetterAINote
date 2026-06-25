@@ -303,6 +303,25 @@ const SOURCE_DETAIL_STATUS_BADGE_CLASS =
 const SETTINGS_SAVE_STATUS_BADGE_CLASS =
     "h-auto gap-1.5 border-0 bg-transparent p-0 text-muted-foreground data-[sot-state=saved]:text-primary data-[sot-state=saving]:text-primary data-[sot-state=error]:text-destructive [&_[data-sot-part=settings-save-status-indicator]]:size-2 [&_[data-sot-part=settings-save-status-indicator]]:rounded-full [&_[data-sot-part=settings-save-status-indicator]]:bg-secondary-foreground/45 data-[sot-state=saved]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:animate-pulse data-[sot-state=saving]:[&_[data-sot-part=settings-save-status-indicator]]:bg-primary data-[sot-state=error]:[&_[data-sot-part=settings-save-status-indicator]]:bg-destructive";
 
+const SETTINGS_SCROLL_BODY_CLASS =
+    "min-h-0 overflow-y-auto px-[26px] py-[22px] [overscroll-behavior:contain]";
+
+const SETTINGS_THREE_PANE_SCROLL_BODY_CLASS =
+    "grid min-h-0 grid-cols-[280px_1fr] overflow-hidden p-0";
+
+const SETTINGS_SECTION_GROUP_CLASS = "relative mb-[22px]";
+
+const SETTINGS_SECTION_HEAD_CLASS = "mb-1.5";
+
+const SETTINGS_SECTION_HEAD_TITLE_CLASS =
+    "m-0 font-display text-[13.5px] font-semibold leading-normal tracking-normal text-[var(--fg-primary)]";
+
+const SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS =
+    "mt-1 mb-0 max-w-[64ch] font-sans text-[12.5px] leading-[1.55] text-[var(--fg-tertiary)]";
+
+const SETTINGS_SAVE_ACTIONS_CLASS =
+    "relative z-[2] mt-[18px] ml-auto flex flex-row-reverse items-center gap-2 pointer-events-none [&_[data-sot-control=settings-save]]:pointer-events-auto [&_[data-sot-control=settings-save]]:relative [&_[data-sot-control=settings-save]]:z-[3] [&_[data-sot-control=voscript-test]]:pointer-events-auto [&_[data-sot-control=voscript-test]]:relative [&_[data-sot-control=voscript-test]]:z-[3] [&_[data-sot-part=settings-save-status]]:pointer-events-auto [&_[data-sot-part=settings-save-status]]:relative [&_[data-sot-part=settings-save-status]]:z-[3] data-[sot-state=saving]:[&_[data-sot-control=settings-save]]:pointer-events-none data-[sot-state=saving]:[&_[data-sot-control=voscript-test]]:pointer-events-none";
+
 function SourceActionButton({
     className,
     tone,
@@ -1254,7 +1273,10 @@ function DataSourcesSettingsPanel({
             data-sot-selected-provider={selectedSource?.provider ?? "none"}
             data-sot-surface="settings-data-sources"
             aria-busy={isLoading}
-            className={SOURCE_PROVIDER_THEME_CLASS}
+            className={cn(
+                SOURCE_PROVIDER_THEME_CLASS,
+                SETTINGS_THREE_PANE_SCROLL_BODY_CLASS,
+            )}
         >
             <aside
                 className={SOURCE_PROVIDERS_LIST_CLASS}
@@ -2196,6 +2218,7 @@ function SectionShell({
                 data-sot-section={section}
                 data-sot-state="error"
                 data-sot-surface="settings-section"
+                className={SETTINGS_SCROLL_BODY_CLASS}
             >
                 <Alert
                     data-sot-banner="settings-section-load-error"
@@ -2251,6 +2274,7 @@ function SectionShell({
             data-sot-state={busy ? "busy" : "ready"}
             data-sot-surface="settings-section"
             data-sot-availability={voscriptAvailability}
+            className={SETTINGS_SCROLL_BODY_CLASS}
         >
             <h3 data-sot-title>{title}</h3>
             {subtitle ? (
@@ -2273,10 +2297,14 @@ function SettingsGroup({
     title: string;
 }) {
     return (
-        <section data-sot-section-group>
-            <header data-sot-section-head>
-                <h4>{title}</h4>
-                {subtitle ? <p>{subtitle}</p> : null}
+        <section className={SETTINGS_SECTION_GROUP_CLASS} data-sot-section-group>
+            <header className={SETTINGS_SECTION_HEAD_CLASS} data-sot-section-head>
+                <h4 className={SETTINGS_SECTION_HEAD_TITLE_CLASS}>{title}</h4>
+                {subtitle ? (
+                    <p className={SETTINGS_SECTION_HEAD_DESCRIPTION_CLASS}>
+                        {subtitle}
+                    </p>
+                ) : null}
             </header>
             {children}
         </section>
@@ -2441,6 +2469,7 @@ function SaveActions({
 }) {
     return (
         <div
+            className={SETTINGS_SAVE_ACTIONS_CLASS}
             data-sot-panel="settings-save-actions"
             data-sot-save-id={saveId ?? section}
             data-sot-section={section}

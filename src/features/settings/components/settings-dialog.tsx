@@ -125,6 +125,41 @@ const orderedSettingsNav = settingsNavGroups.flatMap((group) => group.items);
 
 const SETTINGS_CLOSE_BUTTON_CLASS = "shrink-0 size-[32px]";
 
+const SETTINGS_OVERLAY_CLASS =
+    "bg-[color-mix(in_srgb,var(--graphite-950)_36%,transparent)] backdrop-blur-[6px] backdrop-saturate-[120%] transition-opacity duration-[220ms] ease-[var(--ease-out)]";
+
+const SETTINGS_SHELL_SURFACE_CLASS =
+    "box-border flex h-[min(94svh,980px)] max-h-[calc(100svh-1rem)] w-[920px] max-w-[calc(100vw-40px)] flex-col gap-0 overflow-hidden rounded-[16px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-0 font-sans text-[var(--fg-primary)] shadow-[var(--shadow-xl)] transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out)] data-[state=closed]:translate-y-[8px] data-[state=closed]:scale-[0.985] data-[state=closed]:opacity-0";
+
+const SETTINGS_HEADER_CLASS =
+    "flex flex-none items-center border-b border-[var(--line-hairline)] px-5 py-[18px] max-[720px]:flex-wrap max-[720px]:items-start max-[720px]:gap-3";
+
+const SETTINGS_USER_SUMMARY_CLASS =
+    "flex min-w-0 flex-1 items-center gap-3 max-[720px]:basis-[calc(100%-42px)]";
+
+const SETTINGS_USER_SUMMARY_TEXT_CLASS = "min-w-0";
+
+const SETTINGS_USER_AVATAR_CLASS =
+    "grid size-9 flex-none place-items-center rounded-full border border-[var(--line-hairline)] bg-[var(--bg-recessed)] text-[var(--fg-secondary)] [&_svg:not([class*='size-'])]:size-4";
+
+const SETTINGS_USER_NAME_CLASS =
+    "m-0 font-sans text-sm font-semibold leading-normal tracking-normal text-[var(--fg-primary)] max-[720px]:truncate";
+
+const SETTINGS_USER_SUBTITLE_CLASS =
+    "mt-0.5 mb-0 font-mono text-xs font-medium leading-normal tracking-normal text-[var(--fg-tertiary)] max-[720px]:truncate";
+
+const SETTINGS_BODY_CLASS =
+    "grid min-h-0 flex-1 grid-cols-[200px_1fr]";
+
+const SETTINGS_RAIL_CLASS =
+    "flex min-h-0 flex-col gap-0.5 overflow-y-auto border-r border-[var(--line-hairline)] bg-[var(--bg-recessed)] px-2 py-3.5 [overscroll-behavior:contain] [writing-mode:horizontal-tb] [&_*]:[writing-mode:horizontal-tb]";
+
+const SETTINGS_NAV_GROUP_CLASS =
+    "flex w-full min-w-0 flex-col items-stretch gap-0.5 p-0 [&+&]:mt-2.5";
+
+const SETTINGS_NAV_GROUP_LABEL_CLASS =
+    "block w-full truncate px-2.5 pt-2.5 pb-1 font-sans text-[10px] font-semibold leading-normal tracking-[0.08em] text-[var(--fg-tertiary)] uppercase";
+
 const SETTINGS_NAV_BUTTON_CLASS =
     "h-auto w-full min-w-0 cursor-pointer justify-start gap-[10px] truncate rounded-[8px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[13px] font-medium leading-[normal] tracking-normal text-[var(--fg-secondary)] shadow-none data-[state=inactive]:[box-shadow:none] hover:bg-[var(--bg-recessed)] hover:text-[var(--fg-primary)] focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus-visible:ring-0 data-[state=active]:border-[var(--line-hairline)] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[var(--fg-primary)] data-[state=active]:shadow-xs data-[state=active]:hover:bg-[var(--bg-elevated)] data-[state=active]:hover:text-[var(--fg-primary)] dark:data-[state=active]:border-[var(--glass-border)] dark:data-[state=active]:bg-[rgb(255_255_255_/_0.07)] dark:data-[state=active]:shadow-none dark:data-[state=active]:[box-shadow:none] dark:data-[state=active]:hover:bg-[rgb(255_255_255_/_0.07)] has-[>svg]:px-[10px] [&_span]:min-w-0 [&_span]:truncate [&_svg:not([class*='size-'])]:size-[14px] [&_svg]:flex-none [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round]";
 
@@ -516,7 +551,11 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 data-sot-surface="settings-shell"
                 aria-label={t("settingsDialog.title")}
                 aria-busy={isSettingsBusy}
-                overlayProps={{ "data-sot-overlay": "settings-shell" }}
+                overlayProps={{
+                    "data-sot-overlay": "settings-shell",
+                    className: SETTINGS_OVERLAY_CLASS,
+                }}
+                className={SETTINGS_SHELL_SURFACE_CLASS}
                 onCloseAutoFocus={handleCloseAutoFocus}
                 onEscapeKeyDown={handleEscapeKeyDown}
                 onInteractOutside={(event) => {
@@ -548,19 +587,32 @@ export function SettingsDialog(props: SettingsDialogProps) {
                     {settingsUserSubtitle}
                 </DialogDescription>
                 <SettingsBusyProvider value={busyContextValue}>
-                    <header data-sot-panel="settings-header">
-                        <div data-sot-part="settings-user-summary">
+                    <header
+                        className={SETTINGS_HEADER_CLASS}
+                        data-sot-panel="settings-header"
+                    >
+                        <div
+                            className={SETTINGS_USER_SUMMARY_CLASS}
+                            data-sot-part="settings-user-summary"
+                        >
                             <span
                                 aria-hidden="true"
+                                className={SETTINGS_USER_AVATAR_CLASS}
                                 data-sot-part="settings-user-avatar"
                             >
                                 <Monitor />
                             </span>
-                            <div>
-                                <h2 data-sot-part="settings-user-name">
+                            <div className={SETTINGS_USER_SUMMARY_TEXT_CLASS}>
+                                <h2
+                                    className={SETTINGS_USER_NAME_CLASS}
+                                    data-sot-part="settings-user-name"
+                                >
                                     {settingsUserName}
                                 </h2>
-                                <p data-sot-part="settings-user-subtitle">
+                                <p
+                                    className={SETTINGS_USER_SUBTITLE_CLASS}
+                                    data-sot-part="settings-user-subtitle"
+                                >
                                     {settingsUserSubtitle}
                                 </p>
                             </div>
@@ -587,20 +639,30 @@ export function SettingsDialog(props: SettingsDialogProps) {
                         </DialogClose>
                     </header>
 
-                    <div data-sot-panel="settings-body">
+                    <div
+                        className={SETTINGS_BODY_CLASS}
+                        data-sot-panel="settings-body"
+                    >
                         {/* biome-ignore lint/a11y/useSemanticElements: SOT settings rail is aside[role=navigation]. */}
                         <aside
                             ref={navBoundaryRef}
                             role="navigation"
+                            className={SETTINGS_RAIL_CLASS}
                             data-sot-panel="settings-rail"
                             aria-label={t("settingsDialog.title")}
                         >
                             {settingsNavGroups.map((group) => (
                                 <div
                                     key={group.labelKey}
+                                    className={SETTINGS_NAV_GROUP_CLASS}
                                     data-sot-list="settings-nav-group"
                                 >
-                                    <div data-sot-part="settings-nav-group-label">
+                                    <div
+                                        className={
+                                            SETTINGS_NAV_GROUP_LABEL_CLASS
+                                        }
+                                        data-sot-part="settings-nav-group-label"
+                                    >
                                         {t(group.labelKey)}
                                     </div>
                                     {group.items.map((item) => {
