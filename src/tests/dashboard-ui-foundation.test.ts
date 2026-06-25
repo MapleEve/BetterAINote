@@ -2636,9 +2636,12 @@ describe("dashboard SOT foundation", () => {
         );
         expect(dashboardFavoriteButtonOpening).toContain('variant="ghost"');
         expect(dashboardFavoriteButtonOpening).toContain('size="default"');
-        expectClassNameConstReference(
+        expectCnClassNameReferences(
             dashboardFavoriteButtonOpening,
-            "dashboardButtonClassNames.nav",
+            [
+                "dashboardButtonClassNames.nav",
+                "dashboardSidebarCollapseClassNames.favorite",
+            ],
         );
         expect(dashboardFavoriteButton).toContain(
             '<Icon data-icon="inline-start" />',
@@ -3875,15 +3878,24 @@ describe("dashboard SOT foundation", () => {
         expectPrimitiveToExcludeBusinessTokens(cardPrimitive, [
             "sourceReportMetric",
         ]);
-        expect(workstation).toContain(
+        expect(workstation).not.toContain(
             "const SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
         );
         const sourceReportStyles = readSource("features/source-report/styles.ts");
+        expect(sourceReportStyles).toContain(
+            "export const SOURCE_REPORT_METRIC_CARD_CLASS_NAME =",
+        );
         for (const snippet of SOURCE_REPORT_STYLE_OWNER_SNIPPETS) {
             expect(sourceReportStyles).toContain(snippet);
         }
         expect(globals).not.toMatch(/--source-report-[a-z-]+/);
-        expect(globals).toContain("[data-sot-source-report-state] {");
+        for (const sourceReportStateSelector of [
+            '[data-sot-source-report-state][data-state="loaded"][data-sub-state="transcript-missing"]',
+            '[data-sot-source-report-state][data-state="loaded"][data-sub-state="summary-missing"]',
+            '[data-sot-source-report-state][data-state="loaded"][data-sub-state="both-missing"]',
+        ]) {
+            expect(globals).toContain(sourceReportStateSelector);
+        }
         expect(workstation).toContain("@/features/source-report/styles");
         expect(workstation).toContain("SOURCE_REPORT_SKELETON_CLASS_NAME");
         expect(workstation).toContain("SOURCE_REPORT_STYLE_VARIABLES");
@@ -3915,7 +3927,7 @@ describe("dashboard SOT foundation", () => {
         );
         expect(sourceReportMetricCard).toContain("hasNoPadding");
         expect(sourceReportMetricCard).toContain(
-            "className={SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
+            "className={SOURCE_REPORT_METRIC_CARD_CLASS_NAME}",
         );
         expect(sourceReportMetricCard).toContain(
             'data-sot-card="source-report-metric"',
@@ -3926,8 +3938,8 @@ describe("dashboard SOT foundation", () => {
         );
         const sourceReportMetricCardClassName =
             expectExactStringConstInitializer(
-                workstation,
-                "SOT_SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
+                sourceReportStyles,
+                "SOURCE_REPORT_METRIC_CARD_CLASS_NAME",
                 EXPECTED_SOURCE_REPORT_METRIC_CARD_CLASS_NAME,
             );
         for (const token of SOURCE_REPORT_METRIC_CARD_CLASS_TOKENS) {
