@@ -7,9 +7,19 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
+        property: "layout",
+        expected:
+            "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
+    },
+    {
         property: "surface",
         expected:
-            "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+            "!block !gap-0 !overflow-visible !rounded-[14px] !border !border-[var(--line-hairline)] !bg-[var(--bg-elevated)] !p-[18px] !shadow-[var(--shadow-xs)] !backdrop-blur-none [box-sizing:border-box] [min-height:375px] [width:min(420px,100%)]",
+    },
+    {
+        property: "frame",
+        expected:
+            "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
     },
     {
         property: "speakerDraft",
@@ -20,6 +30,14 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
         property: "providerCard",
         expected:
             "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
+    },
+    {
+        property: "providerList",
+        expected: "mb-[18px] flex flex-col gap-[8px]",
+    },
+    {
+        property: "summaryList",
+        expected: "mb-[18px] flex flex-col gap-[8px]",
     },
     {
         property: "sourceAuthModeGroup",
@@ -33,16 +51,25 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     {
         property: "secondaryAction",
         expected:
-            "h-[26px] gap-[6px] rounded-[8px] border border-[var(--line-hairline)] bg-transparent px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)] has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:var(--fg-secondary)] shadow-none hover:[background:transparent] hover:[color:var(--fg-secondary)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "primaryAction",
         expected:
-            "h-[26px] gap-[6px] rounded-[8px] border border-transparent bg-[var(--accent)] px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[10px]",
+            "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] [background:var(--accent)] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:white] shadow-none hover:[background:var(--accent)] focus-visible:border-primary focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     },
     {
         property: "header",
         expected: "grid auto-rows-min gap-0 p-0",
+    },
+    {
+        property: "steps",
+        expected: "mb-[14px] flex gap-[6px]",
+    },
+    {
+        property: "step",
+        expected:
+            "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
     },
     {
         property: "stepHeader",
@@ -50,21 +77,68 @@ const EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS = [
     },
     {
         property: "providerMeta",
-        expected: "grid auto-rows-min gap-0 p-0",
+        expected: "grid min-w-0 auto-rows-min gap-0 p-0",
     },
     {
         property: "heading",
         expected:
-            "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
+            "[font:600_13px_var(--font-sans)] [color:var(--fg-primary)] [margin:0_0_4px]",
     },
     {
         property: "sub",
         expected:
-            "mb-[12px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
+            "[font:12px/1.5_var(--font-sans)] [color:var(--fg-tertiary)] [margin:0_0_14px]",
     },
     {
         property: "stepBody",
-        expected: "gap-0 p-0",
+        expected: "[display:flex] [flex-direction:column] [gap:12px] p-0",
+    },
+    {
+        property: "stepTitle",
+        expected: "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
+    },
+    {
+        property: "stepDescription",
+        expected:
+            "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-bottom:14px]",
+    },
+    {
+        property: "errorMessage",
+        expected:
+            "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)]",
+    },
+    {
+        property: "defaultSources",
+        expected: "[display:flex] [flex-direction:column] [gap:6px]",
+    },
+    {
+        property: "defaultSource",
+        expected:
+            "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [color:var(--fg-primary)] [cursor:pointer] [text-align:left] data-[sot-state=selected]:[border-color:var(--accent)] data-[sot-state=selected]:[background:color-mix(in_oklab,var(--accent)_6%,transparent)] data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+    },
+    {
+        property: "defaultSourceSwatch",
+        expected:
+            "[width:20px] [height:20px] [flex:0_0_20px] [border-radius:4px] [background:transparent] data-[sot-swatch=accent]:[background:#1296db]",
+    },
+    {
+        property: "actions",
+        expected:
+            "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
+    },
+    {
+        property: "providerIcon",
+        expected:
+            "[display:inline-flex] [width:36px] [height:36px] flex-none [align-items:center] [justify-content:center] [overflow:hidden] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:#fff] [&_img]:[display:block] [&_img]:[width:100%] [&_img]:[height:100%] [&_img]:[object-fit:contain] [&_svg]:[width:18px] [&_svg]:[height:18px] [&_svg]:[fill:none] [&_svg]:[stroke:currentColor] [&_svg]:[stroke-width:1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:[object-fit:cover]",
+    },
+    {
+        property: "providerName",
+        expected: "[font:600_14px_var(--font-sans)] [color:var(--fg-primary)]",
+    },
+    {
+        property: "providerHint",
+        expected:
+            "[font:500_12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-top:2px]",
     },
 ] as const;
 
@@ -178,9 +252,6 @@ function extractOpeningElementAt(
 const OLD_UI_CONTRACT_RE =
     /uikit-|glass-surface|glass-control|bg-muted|text-muted-foreground|<LibrarySearch[\s/>]|<SourceFilterStackStrip[\s/>]|\.\/components\/library-search|\.\/components\/source-filter-stack-strip/;
 
-const ONBOARDING_PRIMITIVE_REPAINT_DECLARATION_RE =
-    /^\s*(?:background(?:-clip)?|border(?:-(?:color|radius|style|width))?|box-shadow|color|font(?:-[\w-]+)?|height|letter-spacing|line-height|padding|transition|width)\s*:|\b(?:color-mix|oklch|linear-gradient)\(/m;
-
 const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
     '[data-sot-control="onboarding-default-source"]',
     '[data-sot-control="onboarding-default-source"][data-sot-state="selected"]',
@@ -188,6 +259,32 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
 ] as const;
 
 const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
+    "[data-sot-frame]",
+    '[data-sot-frame="auth"]',
+    '[data-sot-frame="onboarding"]',
+    '[data-sot-layout="auth-workstation"]',
+    '[data-sot-layout="onboarding-workstation"]',
+    '[data-sot-panel="onboarding-steps"]',
+    '[data-sot-control="onboarding-step"]',
+    '[data-sot-part="auth-form-message"]',
+    '[data-sot-part="onboarding-error"]',
+    '[data-sot-part="auth-logo-mark"]',
+    '[data-sot-part="auth-heading"]',
+    '[data-sot-part="auth-description"]',
+    '[data-sot-part="auth-local-choice"]',
+    '[data-sot-part="onboarding-step-title"]',
+    '[data-sot-part="onboarding-step-description"]',
+    '[data-sot-part="onboarding-step-body"]',
+    '[data-sot-list="onboarding-default-sources"]',
+    '[data-sot-part="onboarding-default-source-swatch"]',
+    '[data-sot-part="onboarding-actions"]',
+    '[data-sot-list="provider-cards"]',
+    '[data-sot-list="speaker-profiles"]',
+    '[data-sot-list="finish-summary"]',
+    '[data-sot-part="provider-icon"]',
+    '[data-sot-part="provider-meta"]',
+    '[data-sot-part="provider-name"]',
+    '[data-sot-part="provider-hint"]',
     '[data-sot-card]:not([data-sot-card="source-report-metric"])',
     '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
     '[data-sot-part="card-heading"]',
@@ -335,12 +432,22 @@ describe("onboarding UI replacement regression", () => {
             "button",
         );
         expect(onboardingSkipButton).toContain('type="button"');
-        expect(onboardingSkipButton).toContain('style={{');
+        expect(onboardingSkipButton).toContain(
+            "className={onboardingCardClassNames.secondaryAction}",
+        );
         expect(defaultSourceNextButton).toContain('type="button"');
-        expect(defaultSourceNextButton).toContain('style={{');
+        expect(defaultSourceNextButton).toContain(
+            "className={onboardingCardClassNames.primaryAction}",
+        );
         expect(source).toContain(
             "className={onboardingCardClassNames.primaryAction}",
         );
+        const onboardingActionClassInitializers =
+            EXPECTED_ONBOARDING_CARD_CLASS_INITIALIZERS.filter(
+                ({ property }) =>
+                    property === "secondaryAction" ||
+                    property === "primaryAction",
+            ).map(({ expected }) => expected);
         for (const removedPrimitiveRepaintClass of [
             "!h-[26px]",
             "!gap-[6px]",
@@ -355,7 +462,11 @@ describe("onboarding UI replacement regression", () => {
             "!text-white",
             "!shadow-none",
         ]) {
-            expect(source).not.toContain(removedPrimitiveRepaintClass);
+            for (const actionClassInitializer of onboardingActionClassInitializers) {
+                expect(actionClassInitializer).not.toContain(
+                    removedPrimitiveRepaintClass,
+                );
+            }
         }
         const providerCardButton = extractOpeningElement(
             source,
@@ -422,16 +533,27 @@ describe("onboarding UI replacement regression", () => {
         expect(source).toContain("CardHeader,");
         expect(source).toContain("CardTitle,");
         expect(source).toContain('data-sot-part="onboarding-card-header"');
-        expect(source).toContain('font: "600 13px var(--font-sans)"');
-        expect(source).toContain('font: "12px/1.5 var(--font-sans)"');
+        expect(source).toContain(
+            "className={onboardingCardClassNames.header}",
+        );
+        expect(source).toContain(
+            "className={onboardingCardClassNames.heading}",
+        );
+        expect(source).toContain(
+            "className={onboardingCardClassNames.sub}",
+        );
         expect(source).toContain('data-sot-part="onboarding-step-header"');
-        expect(source).toContain('font: "600 14px var(--font-display)"');
-        expect(source).toContain('font: "12px var(--font-sans)"');
+        expect(source).toContain(
+            "className={onboardingCardClassNames.stepTitle}",
+        );
+        expect(source).toContain(
+            "className={onboardingCardClassNames.stepDescription}",
+        );
         expect(source).toMatch(
             /<CardContent(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepBody\})(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
         );
         expect(source).toMatch(
-            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="provider-name")(?![^>]*\b(?:variant|className)=)[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="provider-hint")(?![^>]*\b(?:variant|className)=)[^>]*>/,
+            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerName\})(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerHint\})(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
         );
         const speakerDraftCard = extractOpeningElement(
             source,
@@ -456,7 +578,7 @@ describe("onboarding UI replacement regression", () => {
             'data-sot-part="onboarding-default-source-swatch"',
         );
         expect(source).toContain('role="button"');
-        expect(source).toContain("style={{");
+        expect(source).not.toContain("style={{");
         expect(source).toContain("tabIndex=");
         expect(source).toContain("onKeyDown={(event) =>");
         expect(source).toContain('data-sot-control="speaker-profile-draft"');
@@ -473,30 +595,17 @@ describe("onboarding UI replacement regression", () => {
         expect(source).not.toMatch(
             /className="onboarding-default-source-(step|list|row|swatch)"/,
         );
-        expect(globals).toContain(
-            '[data-sot-list="onboarding-default-sources"]',
-        );
         for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
             expect(globals).not.toContain(selector);
         }
         for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-part="onboarding-default-source-swatch"]',
-        );
-        expect(globals).toContain('[data-sot-list="provider-cards"]');
-        expect(globals).toContain('[data-sot-list="speaker-profiles"]');
-        expect(globals).toContain('[data-sot-list="finish-summary"]');
         expect(globals).not.toContain(
             '[data-sot-card="onboarding"] > [data-slot="card-header"]',
         );
         expect(globals).not.toContain(
             '[data-sot-part="onboarding-step-header"][data-slot="card-header"]',
-        );
-        expect(globals).toContain('[data-sot-part="onboarding-step-title"]');
-        expect(globals).toContain(
-            '[data-sot-part="onboarding-step-description"]',
         );
         expect(globals).not.toContain(
             '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
@@ -522,13 +631,9 @@ describe("onboarding UI replacement regression", () => {
                 '[data-sot-control="speaker-profile-draft"][data-slot="card"]',
             ),
         ).toEqual([]);
-        for (const selector of ['[data-sot-part="onboarding-actions"]']) {
-            for (const block of collectCssRuleBlocks(globals, selector)) {
-                expect(block.declarations).not.toMatch(
-                    ONBOARDING_PRIMITIVE_REPAINT_DECLARATION_RE,
-                );
-            }
-        }
+        expect(
+            collectCssRuleBlocks(globals, '[data-sot-part="onboarding-actions"]'),
+        ).toEqual([]);
         expect(globals).not.toMatch(
             /\.onboarding-step-(head|title|sub|body)\b/,
         );

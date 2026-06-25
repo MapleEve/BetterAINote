@@ -12,6 +12,32 @@ const ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS = [
 ] as const;
 
 const REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS = [
+    "[data-sot-frame]",
+    '[data-sot-frame="auth"]',
+    '[data-sot-frame="onboarding"]',
+    '[data-sot-layout="auth-workstation"]',
+    '[data-sot-layout="onboarding-workstation"]',
+    '[data-sot-panel="onboarding-steps"]',
+    '[data-sot-control="onboarding-step"]',
+    '[data-sot-part="auth-form-message"]',
+    '[data-sot-part="onboarding-error"]',
+    '[data-sot-part="auth-logo-mark"]',
+    '[data-sot-part="auth-heading"]',
+    '[data-sot-part="auth-description"]',
+    '[data-sot-part="auth-local-choice"]',
+    '[data-sot-part="onboarding-step-title"]',
+    '[data-sot-part="onboarding-step-description"]',
+    '[data-sot-part="onboarding-step-body"]',
+    '[data-sot-list="onboarding-default-sources"]',
+    '[data-sot-part="onboarding-default-source-swatch"]',
+    '[data-sot-part="onboarding-actions"]',
+    '[data-sot-list="provider-cards"]',
+    '[data-sot-list="speaker-profiles"]',
+    '[data-sot-list="finish-summary"]',
+    '[data-sot-part="provider-icon"]',
+    '[data-sot-part="provider-meta"]',
+    '[data-sot-part="provider-name"]',
+    '[data-sot-part="provider-hint"]',
     '[data-sot-card]:not([data-sot-card="source-report-metric"])',
     '[data-sot-card]:not([data-sot-card="source-report-metric"])\n    + [data-sot-card]:not([data-sot-card="source-report-metric"])',
     '[data-sot-part="card-heading"]',
@@ -1197,9 +1223,6 @@ const DASHBOARD_RECORDING_LIST_DATA_SOT_CSS_SELECTORS = [
     '[data-sot-part="dashboard-recording-list-count"]',
     '[data-sot-list="dashboard-recording-list-scroll"]',
     '[data-sot-part="dashboard-sidebar-footer"]',
-    "[data-sot-frame]",
-    '[data-sot-frame="auth"]',
-    '[data-sot-frame="onboarding"]',
     '[data-sot-part="recording-list-state"]',
     '[data-sot-panel="recording-list-pagination"]',
     '[data-sot-part="recording-list-state-icon"]',
@@ -1465,6 +1488,17 @@ const CARD_PRIMITIVE_FORBIDDEN_BUSINESS_TOKENS = [
 
 const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     {
+        label: "layout",
+        snippets: [
+            "min-h-[100svh]",
+            "place-items-center",
+            "bg-[var(--bg-canvas)]",
+            "px-[32px]",
+            "pb-[80px]",
+            "pt-[28px]",
+        ],
+    },
+    {
         label: "surface",
         snippets: [
             "w-[min(420px,100%)]",
@@ -1501,7 +1535,39 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "frame",
-        snippets: ["p-0"],
+        snippets: [
+            "[border-radius:12px]",
+            "[border:1px_solid_var(--line-hairline)]",
+            "[background:var(--bg-canvas)]",
+            "[padding:28px]",
+            "[text-align:center]",
+        ],
+    },
+    {
+        label: "logo mark",
+        snippets: [
+            "[width:36px]",
+            "[height:36px]",
+            "[margin:0_0_14px]",
+            "[vertical-align:baseline]",
+        ],
+    },
+    {
+        label: "frame title",
+        snippets: [
+            "[font:600_18px_var(--font-display)]",
+            "[line-height:normal]",
+            "[margin-bottom:4px]",
+            "[color:var(--fg-primary)]",
+        ],
+    },
+    {
+        label: "frame description",
+        snippets: [
+            "[font:12px_var(--font-sans)]",
+            "[color:var(--fg-tertiary)]",
+            "[margin-bottom:18px]",
+        ],
     },
     {
         label: "content",
@@ -1509,7 +1575,11 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
     },
     {
         label: "footer",
-        snippets: ["mt-[14px]", "text-[12px]", "text-[var(--fg-disabled)]"],
+        snippets: [
+            "!mt-[14px]",
+            "!text-[12px]",
+            "!text-[var(--fg-disabled)]",
+        ],
     },
     {
         label: "field",
@@ -1524,6 +1594,15 @@ const AUTH_LOGIN_FEATURE_OWNER_CLASS_SNIPPETS = [
             "bg-[var(--bg-elevated)]",
             "focus-visible:border-primary",
             "aria-invalid:border-destructive",
+        ],
+    },
+    {
+        label: "form message",
+        snippets: [
+            "[max-width:280px]",
+            "[text-align:left]",
+            "data-[sot-state=error]:[color:var(--signal-danger)]",
+            "data-[sot-state=success]:[color:var(--signal-success)]",
         ],
     },
     {
@@ -2144,9 +2223,12 @@ function collectInlineModernColorFindings() {
             const onboardingDefaultSourceSotColor =
                 relativePath ===
                     "features/onboarding/components/onboarding-form.tsx" &&
-                line.includes(
+                (line.includes(
                     "color-mix(in oklab, var(--accent) 6%, transparent)",
-                );
+                ) ||
+                    line.includes(
+                        "color-mix(in_oklab,var(--accent)_6%,transparent)",
+                    ));
             if (onboardingDefaultSourceSotColor) continue;
 
             if (isOwnerLocalModernColorLine(relativePath, line)) {
@@ -4764,6 +4846,11 @@ describe("full UI replacement regression coverage", () => {
             ...AUTH_BUTTON_PRIMITIVE_FORBIDDEN_TOKENS,
             ...AUTH_INPUT_PRIMITIVE_FORBIDDEN_TOKENS,
         ]);
+        const authLayout = extractOpeningElement(
+            login,
+            'data-sot-layout="auth-workstation"',
+            "main",
+        );
         const authCard = extractOpeningElement(
             login,
             'data-sot-card="auth"',
@@ -4788,6 +4875,11 @@ describe("full UI replacement regression coverage", () => {
             login,
             'data-sot-frame="auth"',
             "CardContent",
+        );
+        const authLogoMark = extractOpeningElement(
+            login,
+            'data-sot-part="auth-logo-mark"',
+            "img",
         );
         const authFrameTitle = extractOpeningElement(
             login,
@@ -4834,16 +4926,30 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="auth-local-choice"',
             "FieldDescription",
         );
+        const authErrorMessage = extractOpeningElement(
+            login,
+            'data-sot-part="auth-form-message"',
+            "FieldError",
+        );
+        const authSuccessMessage = extractOpeningElement(
+            login,
+            'role="status"',
+            "FieldDescription",
+        );
         for (const [label, openingElement] of [
+            ["layout", authLayout],
             ["surface", authCard],
             ["header", authHeader],
             ["header title", authHeaderTitle],
             ["header description", authHeaderDescription],
             ["frame", authFrame],
+            ["logo mark", authLogoMark],
             ["frame title", authFrameTitle],
             ["frame description", authFrameDescription],
             ["content", authFieldGroup],
             ["field", authEmailField],
+            ["error message", authErrorMessage],
+            ["success message", authSuccessMessage],
             ["action field", authActionField],
             ["email", authEmailInput],
             ["submit", authSubmitButton],
@@ -4913,17 +5019,8 @@ describe("full UI replacement regression coverage", () => {
         expect(login).not.toContain('className="app"');
         expect(login).not.toContain('className="panel"');
         expect(login).not.toContain('className="modal-foot"');
-        for (const authDataSotSelector of [
-            '[data-sot-layout="auth-workstation"]',
-            '[data-sot-part="auth-logo-mark"]',
-            '[data-sot-part="auth-heading"]',
-            '[data-sot-part="auth-description"]',
-            '[data-sot-part="auth-form-message"]',
-            '[data-sot-part="auth-form-message"][data-sot-state="error"]',
-            '[data-sot-part="auth-form-message"][data-sot-state="success"]',
-            '[data-sot-part="auth-local-choice"]',
-        ]) {
-            expect(globals).toContain(authDataSotSelector);
+        for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
         }
         for (const removedAuthPrimitiveRepaintSelector of [
             '[data-sot-control="auth-email"][data-slot="input"]',
@@ -4955,22 +5052,45 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).toContain('data-sot-frame="onboarding"');
         expect(onboarding).toContain('data-sot-part="card-heading"');
         expect(onboarding).toContain("const onboardingCardClassNames = {");
+        expect(onboarding).toContain("layout:");
         expect(onboarding).toContain("surface:");
+        expect(onboarding).toContain("frame:");
         expect(onboarding).toContain("speakerDraft:");
         expect(onboarding).toContain("header:");
+        expect(onboarding).toContain("steps:");
+        expect(onboarding).toContain("step:");
         expect(onboarding).toContain("stepHeader:");
         expect(onboarding).toContain("providerMeta:");
         expect(onboarding).toContain("heading:");
         expect(onboarding).toContain("sub:");
+        expect(onboarding).toContain("stepTitle:");
+        expect(onboarding).toContain("stepDescription:");
+        expect(onboarding).toContain("errorMessage:");
         expect(onboarding).toContain("stepBody:");
+        expect(onboarding).toContain("defaultSources:");
+        expect(onboarding).toContain("defaultSource:");
+        expect(onboarding).toContain("defaultSourceSwatch:");
+        expect(onboarding).toContain("actions:");
         expect(onboarding).toContain("providerCard:");
+        expect(onboarding).toContain("providerList:");
+        expect(onboarding).toContain("summaryList:");
+        expect(onboarding).toContain("providerIcon:");
+        expect(onboarding).toContain("providerName:");
+        expect(onboarding).toContain("providerHint:");
         expect(onboarding).toContain("sourceAuthModeGroup:");
         expect(onboarding).toContain("sourceAuthModeOption:");
         expect(onboarding).toContain("secondaryAction:");
         expect(onboarding).toContain("primaryAction:");
         expect(onboarding).toContain('data-sot-part="onboarding-card-header"');
-        expect(onboarding).toContain('font: "600 13px var(--font-sans)"');
-        expect(onboarding).toContain('font: "12px/1.5 var(--font-sans)"');
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.header}",
+        );
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.heading}",
+        );
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.sub}",
+        );
         expect(onboarding).not.toContain('className="onboarding-sot-canvas"');
         expect(onboarding).not.toContain('className="card"');
         expect(onboarding).not.toContain('className="frame"');
@@ -4986,8 +5106,12 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="onboarding-step-description"',
         );
         expect(onboarding).toContain('data-sot-part="onboarding-step-body"');
-        expect(onboarding).toContain('font: "600 14px var(--font-display)"');
-        expect(onboarding).toContain('font: "12px var(--font-sans)"');
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.stepTitle}",
+        );
+        expect(onboarding).toContain(
+            "className={onboardingCardClassNames.stepDescription}",
+        );
         expect(onboarding).toMatch(
             /<CardContent(?=[^>]*\bclassName=\{onboardingCardClassNames\.stepBody\})(?=[^>]*\bdata-sot-part="onboarding-step-body")[^>]*>/,
         );
@@ -5009,13 +5133,13 @@ describe("full UI replacement regression coverage", () => {
             'data-sot-part="onboarding-default-source-swatch"',
         );
         expect(onboarding).toContain('role="button"');
-        expect(onboarding).toContain("style={{");
+        expect(onboarding).not.toContain("style={{");
         expect(onboarding).toContain("tabIndex=");
         expect(onboarding).toContain(
             'data-sot-control="speaker-profile-draft"',
         );
         expect(onboarding).toMatch(
-            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
+            /data-sot-control="speaker-profile-draft"[\s\S]*<CardHeader(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerMeta\})(?=[^>]*\bdata-sot-part="provider-meta")[^>]*>[\s\S]*<CardTitle(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerName\})(?=[^>]*\bdata-sot-part="provider-name")[^>]*>[\s\S]*<CardDescription(?=[^>]*\bclassName=\{onboardingCardClassNames\.providerHint\})(?=[^>]*\bdata-sot-part="provider-hint")[^>]*>/,
         );
         expect(onboarding).toContain('data-sot-list="speaker-profiles"');
         expect(onboarding).toContain('data-sot-list="finish-summary"');
@@ -5078,12 +5202,20 @@ describe("full UI replacement regression coverage", () => {
             "button",
         );
         expect(onboardingSkipButton).toContain('type="button"');
-        expect(onboardingSkipButton).toContain('style={{');
+        expect(onboardingSkipButton).toContain(
+            "className={onboardingCardClassNames.secondaryAction}",
+        );
         expect(defaultSourceNextButton).toContain('type="button"');
-        expect(defaultSourceNextButton).toContain('style={{');
+        expect(defaultSourceNextButton).toContain(
+            "className={onboardingCardClassNames.primaryAction}",
+        );
         expect(onboarding).toContain(
             "className={onboardingCardClassNames.primaryAction}",
         );
+        const onboardingActionClassInitializers = [
+            extractObjectStringProperty(onboarding, "secondaryAction"),
+            extractObjectStringProperty(onboarding, "primaryAction"),
+        ];
         for (const removedOnboardingPrimitiveRepaintClass of [
             "!h-[26px]",
             "!gap-[6px]",
@@ -5098,9 +5230,11 @@ describe("full UI replacement regression coverage", () => {
             "!text-white",
             "!shadow-none",
         ]) {
-            expect(onboarding).not.toContain(
-                removedOnboardingPrimitiveRepaintClass,
-            );
+            for (const actionClassInitializer of onboardingActionClassInitializers) {
+                expect(actionClassInitializer).not.toContain(
+                    removedOnboardingPrimitiveRepaintClass,
+                );
+            }
         }
         const providerCardButton = extractOpeningElement(
             onboarding,
@@ -5208,13 +5342,9 @@ describe("full UI replacement regression coverage", () => {
         expect(onboarding).not.toContain('className="sm"');
         expect(onboarding).toContain('role="button"');
         expect(onboarding).toContain("onKeyDown={(event) =>");
-        expect(globals).toContain('[data-sot-layout="onboarding-workstation"]');
-        expect(globals).toContain('[data-sot-panel="onboarding-steps"]');
-        expect(globals).toContain('[data-sot-control="onboarding-step"]');
-        expect(globals).toContain(
-            '[data-sot-control="onboarding-step"][data-sot-state="active"]',
-        );
-        expect(globals).toContain('[data-sot-part="onboarding-actions"]');
+        for (const selector of REMOVED_AUTH_ONBOARDING_CARD_GLOBAL_SELECTORS) {
+            expect(globals).not.toContain(selector);
+        }
         expect(globals).not.toContain(
             '[data-sot-card="onboarding"] > [data-slot="card-header"]',
         );
@@ -5224,7 +5354,6 @@ describe("full UI replacement regression coverage", () => {
         expect(globals).not.toContain(
             '[data-sot-part="onboarding-step-body"][data-slot="card-content"]',
         );
-        expect(globals).toContain('[data-sot-part="provider-meta"]');
         expect(globals).not.toContain(
             '[data-sot-part="provider-meta"][data-slot="card-header"]',
         );
@@ -5246,15 +5375,9 @@ describe("full UI replacement regression coverage", () => {
                 '[data-sot-control="speaker-profile-draft"][data-slot="card"]',
             ),
         ).toEqual([]);
-        expect(globals).toContain(
-            '[data-sot-list="onboarding-default-sources"]',
-        );
         for (const selector of ONBOARDING_DEFAULT_SOURCE_ROOT_REPAINT_SELECTORS) {
             expect(collectExactCssRuleBlocks(globals, selector)).toEqual([]);
         }
-        expect(globals).toContain(
-            '[data-sot-part="onboarding-default-source-swatch"]',
-        );
         expect(globals).not.toMatch(
             /\.onboarding-default-source-(list|row|swatch)\b/,
         );

@@ -86,26 +86,52 @@ const PROVIDER_ASSETS: Partial<Record<SourceProvider, string>> = {
 };
 
 const onboardingCardClassNames = {
+    layout:
+        "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
     surface:
-        "min-h-[375px] gap-0 w-[min(420px,100%)] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
+        "!block !gap-0 !overflow-visible !rounded-[14px] !border !border-[var(--line-hairline)] !bg-[var(--bg-elevated)] !p-[18px] !shadow-[var(--shadow-xs)] !backdrop-blur-none [box-sizing:border-box] [min-height:375px] [width:min(420px,100%)]",
+    frame:
+        "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:18px]",
     speakerDraft:
         "grid grid-cols-[36px_1fr_auto_auto] items-center gap-3 border-primary/50 bg-primary/10 p-3.5",
     providerCard:
         "grid h-auto w-full grid-cols-[36px_1fr_auto_auto] items-center justify-start gap-3 rounded-md px-3.5 py-3 text-left whitespace-normal data-[sot-state=selected]:border-transparent data-[sot-state=selected]:bg-secondary data-[sot-state=selected]:text-secondary-foreground data-[sot-state=selected]:hover:bg-secondary/80 dark:data-[sot-state=selected]:bg-secondary has-[>svg]:px-3.5",
+    providerList: "mb-[18px] flex flex-col gap-[8px]",
+    summaryList: "mb-[18px] flex flex-col gap-[8px]",
     sourceAuthModeGroup: "grid w-full grid-cols-2 items-stretch",
     sourceAuthModeOption:
         "h-auto flex-col items-start justify-start whitespace-normal px-3.5 py-3 text-left",
     secondaryAction:
-        "h-[26px] gap-[6px] rounded-[8px] border border-[var(--line-hairline)] bg-transparent px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-[var(--fg-secondary)] shadow-none hover:bg-transparent hover:text-[var(--fg-secondary)] has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:var(--fg-secondary)] shadow-none hover:[background:transparent] hover:[color:var(--fg-secondary)] disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     primaryAction:
-        "h-[26px] gap-[6px] rounded-[8px] border border-transparent bg-[var(--accent)] px-[10px] py-0 text-[11px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[10px]",
+        "[display:inline-flex] [align-items:center] [height:26px] [gap:6px] [border-radius:8px] [border:1px_solid_transparent] [background:var(--accent)] [padding:0_10px] [font:600_11px_var(--font-sans)] [line-height:normal] [color:white] shadow-none hover:[background:var(--accent)] focus-visible:border-primary focus-visible:ring-0 disabled:cursor-not-allowed has-[>svg]:px-[10px]",
     header: "grid auto-rows-min gap-0 p-0",
+    steps: "mb-[14px] flex gap-[6px]",
+    step:
+        "[appearance:none] flex-1 [height:4px] [padding:0] [border:0] [border-radius:2px] [background:var(--bg-recessed)] [cursor:pointer] data-[sot-state=active]:[background:var(--accent)] data-[sot-state=complete]:[background:var(--accent)] disabled:cursor-not-allowed",
     stepHeader: "grid auto-rows-min gap-0 p-0",
-    providerMeta: "grid auto-rows-min gap-0 p-0",
+    providerMeta: "grid min-w-0 auto-rows-min gap-0 p-0",
     heading:
-        "mb-1 font-sans text-[13px] font-semibold text-[var(--fg-primary)]",
-    sub: "mb-[12px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
-    stepBody: "gap-0 p-0",
+        "[font:600_13px_var(--font-sans)] [color:var(--fg-primary)] [margin:0_0_4px]",
+    sub: "[font:12px/1.5_var(--font-sans)] [color:var(--fg-tertiary)] [margin:0_0_14px]",
+    stepTitle: "[font:600_14px_var(--font-display)] [color:var(--fg-primary)]",
+    stepDescription:
+        "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-bottom:14px]",
+    errorMessage:
+        "[font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)]",
+    stepBody: "[display:flex] [flex-direction:column] [gap:12px] p-0",
+    defaultSources: "[display:flex] [flex-direction:column] [gap:6px]",
+    defaultSource:
+        "[appearance:none] [display:flex] [align-items:center] [gap:8px] [padding:8px] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:transparent] [color:var(--fg-primary)] [cursor:pointer] [text-align:left] data-[sot-state=selected]:[border-color:var(--accent)] data-[sot-state=selected]:[background:color-mix(in_oklab,var(--accent)_6%,transparent)] data-[sot-state=disabled]:[cursor:not-allowed] data-[sot-state=disabled]:opacity-[0.55]",
+    defaultSourceSwatch:
+        "[width:20px] [height:20px] [flex:0_0_20px] [border-radius:4px] [background:transparent] data-[sot-swatch=accent]:[background:#1296db]",
+    actions:
+        "[display:flex] [gap:8px] [justify-content:flex-end] [margin-top:14px]",
+    providerIcon:
+        "[display:inline-flex] [width:36px] [height:36px] flex-none [align-items:center] [justify-content:center] [overflow:hidden] [border-radius:8px] [border:1px_solid_var(--line-hairline)] [background:#fff] [&_img]:[display:block] [&_img]:[width:100%] [&_img]:[height:100%] [&_img]:[object-fit:contain] [&_svg]:[width:18px] [&_svg]:[height:18px] [&_svg]:[fill:none] [&_svg]:[stroke:currentColor] [&_svg]:[stroke-width:1.8] [&_svg]:[stroke-linecap:round] [&_svg]:[stroke-linejoin:round] [&[data-sot-cover=true]_img]:[object-fit:cover]",
+    providerName: "[font:600_14px_var(--font-sans)] [color:var(--fg-primary)]",
+    providerHint:
+        "[font:500_12px_var(--font-sans)] [color:var(--fg-tertiary)] [margin-top:2px]",
 } as const;
 
 function getStepIndex(step: OnboardingStepId) {
@@ -300,6 +326,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
 
     return (
         <main
+            className={onboardingCardClassNames.layout}
             data-sot-layout="onboarding-workstation"
             data-sot-ready={isMounted ? "true" : "false"}
             data-sot-surface="onboarding"
@@ -308,57 +335,34 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                 hasNoPadding
                 className={onboardingCardClassNames.surface}
                 data-sot-card="onboarding"
-                style={{
-                    backdropFilter: "none",
-                    background: "var(--bg-elevated)",
-                    border: "1px solid var(--line-hairline)",
-                    borderRadius: 14,
-                    boxShadow: "var(--shadow-xs)",
-                    boxSizing: "border-box",
-                    display: "block",
-                    minHeight: 375,
-                    overflow: "visible",
-                    padding: 18,
-                    width: "min(420px, 100%)",
-                }}
             >
-                <div data-sot-part="onboarding-card-header">
+                <div
+                    className={onboardingCardClassNames.header}
+                    data-sot-part="onboarding-card-header"
+                >
                     <div
+                        className={onboardingCardClassNames.heading}
                         data-sot-part="card-heading"
-                        style={{
-                            color: "var(--fg-primary)",
-                            font: "600 13px var(--font-sans)",
-                            margin: "0 0 4px",
-                        }}
                     >
                         上手 / Onboarding · 4 步
                     </div>
                     <div
+                        className={onboardingCardClassNames.sub}
                         data-sot-part="card-sub"
-                        style={{
-                            color: "var(--fg-tertiary)",
-                            font: "12px/1.5 var(--font-sans)",
-                            margin: "0 0 14px",
-                        }}
                     >
                         连接来源 → 选默认转写 → 设置说话人档案 → 完成
                     </div>
                 </div>
                 <div
+                    className={onboardingCardClassNames.frame}
                     data-pct={progressPct}
                     data-sot-frame="onboarding"
                     data-sot-panel="onboarding-current"
                     data-sot-provider={provider}
                     data-sot-state={isFinishing ? "saving" : onboardingState}
-                    style={{
-                        background: "var(--bg-canvas)",
-                        border: "1px solid var(--line-hairline)",
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        padding: 18,
-                    }}
                 >
                     <div
+                        className={onboardingCardClassNames.steps}
                         data-sot-panel="onboarding-steps"
                         data-sot-progress={visibleStep}
                     >
@@ -376,50 +380,32 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                             return (
                                 <button
                                     aria-label={`第 ${index + 1} 步 · ${step.title}`}
+                                    className={onboardingCardClassNames.step}
                                     data-sot-control="onboarding-step"
                                     data-sot-step={step.id}
                                     data-sot-state={status}
+                                    data-slot="button"
                                     disabled={controlsLocked}
                                     key={step.id}
                                     onClick={() => goToStep(step.id)}
-                                    style={{
-                                        appearance: "none",
-                                        background:
-                                            status === "complete" ||
-                                            status === "active"
-                                                ? "var(--accent)"
-                                                : "var(--bg-recessed)",
-                                        border: 0,
-                                        borderRadius: 2,
-                                        cursor: controlsLocked
-                                            ? "not-allowed"
-                                            : "pointer",
-                                        flex: 1,
-                                        height: 4,
-                                        padding: 0,
-                                    }}
                                     type="button"
                                 />
                             );
                         })}
                     </div>
-                    <div data-sot-part="onboarding-step-header">
+                    <div
+                        className={onboardingCardClassNames.stepHeader}
+                        data-sot-part="onboarding-step-header"
+                    >
                         <div
+                            className={onboardingCardClassNames.stepTitle}
                             data-sot-part="onboarding-step-title"
-                            style={{
-                                color: "var(--fg-primary)",
-                                font: "600 14px var(--font-display)",
-                            }}
                         >
                             {visibleStepTitle}
                         </div>
                         <div
+                            className={onboardingCardClassNames.stepDescription}
                             data-sot-part="onboarding-step-description"
-                            style={{
-                                color: "var(--fg-tertiary)",
-                                font: "12px var(--font-sans)",
-                                marginBottom: 14,
-                            }}
                         >
                             {ONBOARDING_STEPS[visibleStepIndex].hint}
                         </div>
@@ -430,6 +416,7 @@ export function OnboardingForm({ onConnected }: OnboardingFormProps) {
                     >
                         {finishError ? (
                             <div
+                                className={onboardingCardClassNames.errorMessage}
                                 data-sot-part="onboarding-error"
                                 data-sot-state="error"
                                 role="alert"
@@ -573,7 +560,10 @@ function SourceStep({
                 />
             </OnboardingFieldRow>
 
-            <div data-sot-list="provider-cards">
+            <div
+                className={onboardingCardClassNames.providerList}
+                data-sot-list="provider-cards"
+            >
                 {providerOptions.map((item) => {
                     const isActive = item.provider === provider;
                     const ProviderIcon = PROVIDER_ICONS[item.provider];
@@ -597,6 +587,7 @@ function SourceStep({
                             type="button"
                         >
                             <span
+                                className={onboardingCardClassNames.providerIcon}
                                 data-sot-part="provider-icon"
                                 data-sot-cover={
                                     item.provider === "feishu-minutes"
@@ -610,11 +601,24 @@ function SourceStep({
                                     <ProviderIcon />
                                 )}
                             </span>
-                            <span data-sot-part="provider-meta">
-                                <span data-sot-part="provider-name">
+                            <span
+                                className={onboardingCardClassNames.providerMeta}
+                                data-sot-part="provider-meta"
+                            >
+                                <span
+                                    className={
+                                        onboardingCardClassNames.providerName
+                                    }
+                                    data-sot-part="provider-name"
+                                >
                                     {item.label}
                                 </span>
-                                <span data-sot-part="provider-hint">
+                                <span
+                                    className={
+                                        onboardingCardClassNames.providerHint
+                                    }
+                                    data-sot-part="provider-hint"
+                                >
                                     {isActive
                                         ? "将作为首次连接来源"
                                         : "可在后续设置里继续补充"}
@@ -772,7 +776,10 @@ function TranscriptionStep({
 
     return (
         <div data-sot-panel="onboarding-default-source-step">
-            <div data-sot-list="onboarding-default-sources">
+            <div
+                className={onboardingCardClassNames.defaultSources}
+                data-sot-list="onboarding-default-sources"
+            >
                 {options.map((option) => {
                     const isActive = option.id === defaultTranscriptionSource;
 
@@ -783,6 +790,7 @@ function TranscriptionStep({
                                     ? "true"
                                     : undefined
                             }
+                            className={onboardingCardClassNames.defaultSource}
                             data-sot-control="onboarding-default-source"
                             data-sot-provider={option.id}
                             data-sot-state={
@@ -812,31 +820,12 @@ function TranscriptionStep({
                                 setDefaultTranscriptionSource(option.id);
                             }}
                             role="button"
-                            style={{
-                                alignItems: "center",
-                                appearance: "none",
-                                background: isActive
-                                    ? "color-mix(in oklab, var(--accent) 6%, transparent)"
-                                    : "transparent",
-                                border: `1px solid ${isActive ? "var(--accent)" : "var(--line-hairline)"}`,
-                                borderRadius: 8,
-                                color: "var(--fg-primary)",
-                                cursor:
-                                    isSaving || !option.connected
-                                        ? "not-allowed"
-                                        : "pointer",
-                                display: "flex",
-                                gap: 8,
-                                opacity:
-                                    !isActive && !option.connected
-                                        ? 0.55
-                                        : undefined,
-                                padding: 8,
-                                textAlign: "left",
-                            }}
                             tabIndex={isSaving || !option.connected ? -1 : 0}
                         >
                             <span
+                                className={
+                                    onboardingCardClassNames.defaultSourceSwatch
+                                }
                                 data-sot-part="onboarding-default-source-swatch"
                                 data-sot-swatch={option.swatch}
                             />
@@ -845,45 +834,26 @@ function TranscriptionStep({
                     );
                 })}
             </div>
-            <div data-sot-part="onboarding-actions">
+            <div
+                className={onboardingCardClassNames.actions}
+                data-sot-part="onboarding-actions"
+            >
                 <button
+                    className={onboardingCardClassNames.secondaryAction}
                     data-sot-control="onboarding-skip"
+                    data-slot="button"
                     disabled={isSaving}
                     onClick={onNext}
-                    style={{
-                        alignItems: "center",
-                        background: "transparent",
-                        border: "1px solid var(--line-hairline)",
-                        borderRadius: 8,
-                        color: "var(--fg-secondary)",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        font: "600 11px var(--font-sans)",
-                        gap: 6,
-                        height: 26,
-                        padding: "0 10px",
-                    }}
                     type="button"
                 >
                     跳过
                 </button>
                 <button
+                    className={onboardingCardClassNames.primaryAction}
                     data-sot-control="onboarding-next"
+                    data-slot="button"
                     disabled={isSaving}
                     onClick={onNext}
-                    style={{
-                        alignItems: "center",
-                        background: "var(--accent)",
-                        border: "1px solid transparent",
-                        borderRadius: 8,
-                        color: "white",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        font: "600 11px var(--font-sans)",
-                        gap: 6,
-                        height: 26,
-                        padding: "0 10px",
-                    }}
                     type="button"
                 >
                     下一步
@@ -914,24 +884,36 @@ function SpeakersStep({
 }) {
     return (
         <>
-            <div data-sot-list="speaker-profiles">
+            <div
+                className={onboardingCardClassNames.providerList}
+                data-sot-list="speaker-profiles"
+            >
                 <Card
                     hasNoPadding
                     className={onboardingCardClassNames.speakerDraft}
                     data-sot-control="speaker-profile-draft"
                     data-sot-state={speakerState}
                 >
-                    <span data-sot-part="provider-icon">
+                    <span
+                        className={onboardingCardClassNames.providerIcon}
+                        data-sot-part="provider-icon"
+                    >
                         <UserRound />
                     </span>
                     <CardHeader
                         className={onboardingCardClassNames.providerMeta}
                         data-sot-part="provider-meta"
                     >
-                        <CardTitle data-sot-part="provider-name">
+                        <CardTitle
+                            className={onboardingCardClassNames.providerName}
+                            data-sot-part="provider-name"
+                        >
                             第一个说话人
                         </CardTitle>
-                        <CardDescription data-sot-part="provider-hint">
+                        <CardDescription
+                            className={onboardingCardClassNames.providerHint}
+                            data-sot-part="provider-hint"
+                        >
                             可先留空，工作台内继续校对
                         </CardDescription>
                     </CardHeader>
@@ -1014,7 +996,10 @@ function FinishStep({
 }) {
     return (
         <>
-            <div data-sot-list="finish-summary">
+            <div
+                className={onboardingCardClassNames.summaryList}
+                data-sot-list="finish-summary"
+            >
                 <MatrixRow
                     label="来源"
                     state={connectedSourceLabel ? "connected" : "ready"}
@@ -1044,7 +1029,10 @@ function FinishStep({
                     }
                 />
             </div>
-            <div data-sot-part="onboarding-actions">
+            <div
+                className={onboardingCardClassNames.actions}
+                data-sot-part="onboarding-actions"
+            >
                 <Button
                     type="button"
                     variant="ghost"
@@ -1102,7 +1090,10 @@ function WizardActions({
     onNext: () => void;
 }) {
     return (
-        <div data-sot-part="onboarding-actions">
+        <div
+            className={onboardingCardClassNames.actions}
+            data-sot-part="onboarding-actions"
+        >
             {onBack ? (
                 <Button
                     type="button"

@@ -25,6 +25,8 @@ import {
 } from "@/lib/platform/browser-router";
 
 const authLoginClassNames = {
+    layout:
+        "grid min-h-[100svh] place-items-center bg-[var(--bg-canvas)] px-[32px] pb-[80px] pt-[28px] text-[var(--fg-primary)]",
     surface:
         "gap-0 w-[min(420px,100%)] min-h-[389px] overflow-visible rounded-[14px] border border-[var(--line-hairline)] bg-[var(--bg-elevated)] p-[18px] shadow-xs backdrop-blur-none",
     header: "grid auto-rows-min gap-0 p-0",
@@ -32,9 +34,14 @@ const authLoginClassNames = {
         "mb-1 font-sans text-[13px] font-semibold leading-[normal] text-[var(--fg-primary)]",
     headerDescription:
         "mb-[14px] font-sans text-[12px] leading-[1.5] text-[var(--fg-tertiary)]",
-    frame: "p-0",
-    frameTitle: "",
-    frameDescription: "",
+    frame:
+        "[overflow:hidden] [border-radius:12px] [border:1px_solid_var(--line-hairline)] [background:var(--bg-canvas)] [padding:28px] [text-align:center]",
+    logoMark:
+        "[display:inline] [width:36px] [height:36px] [margin:0_0_14px] [vertical-align:baseline]",
+    frameTitle:
+        "[font:600_18px_var(--font-display)] [line-height:normal] [margin-bottom:4px] [color:var(--fg-primary)]",
+    frameDescription:
+        "[font:12px_var(--font-sans)] [line-height:normal] [color:var(--fg-tertiary)] [margin-bottom:18px]",
     fieldGroup: "mx-auto max-w-[280px] gap-[10px]",
     field: "flex flex-col gap-0 [&>*]:w-full",
     actionField: "flex flex-col gap-0 [&>*]:w-full [&>.sr-only]:w-auto",
@@ -42,7 +49,10 @@ const authLoginClassNames = {
         "h-[36px] rounded-[9px] border-primary bg-[var(--bg-elevated)] px-[12px] py-0 text-[13px] font-medium leading-[normal] text-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_18%,transparent)] focus-visible:border-primary focus-visible:ring-0 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklab,var(--signal-danger)_16%,transparent)] aria-invalid:ring-0 dark:bg-[var(--bg-elevated)] md:text-[13px]",
     submitButton:
         "h-[38px] w-full rounded-[8px] border border-transparent bg-[var(--accent)] px-[12px] py-0 text-[12px] font-semibold leading-[normal] text-white shadow-none hover:bg-[var(--accent)] focus-visible:border-primary focus-visible:ring-0 has-[>svg]:px-[12px]",
-    footer: "mt-[14px] text-[12px] text-[var(--fg-disabled)]",
+    formMessage:
+        "[max-width:280px] [margin:-2px_auto_10px] [text-align:left] [font:12px_var(--font-sans)] [color:var(--fg-tertiary)] data-[sot-state=error]:[color:var(--signal-danger)] data-[sot-state=success]:[color:var(--signal-success)]",
+    footer:
+        "!mt-[14px] !text-[12px] !leading-[normal] !text-[var(--fg-disabled)]",
     inlineLink:
         "h-auto min-h-0 rounded-none p-0 align-baseline text-[12px] font-normal leading-[normal] text-[var(--accent)] underline underline-offset-auto hover:text-[var(--accent)] hover:underline",
 } as const;
@@ -138,6 +148,7 @@ export function LoginForm({
 
     return (
         <main
+            className={authLoginClassNames.layout}
             data-sot-layout="auth-workstation"
             data-sot-surface={`${intent}-workstation`}
         >
@@ -169,6 +180,7 @@ export function LoginForm({
                         data-sot-frame="auth"
                     >
                         <img
+                            className={authLoginClassNames.logoMark}
                             data-sot-part="auth-logo-mark"
                             src="/assets/logo-mark-steel.svg"
                             alt=""
@@ -218,6 +230,9 @@ export function LoginForm({
                                 />
                                 {formState?.kind === "error" ? (
                                     <FieldError
+                                        className={
+                                            authLoginClassNames.formMessage
+                                        }
                                         data-sot-part="auth-form-message"
                                         data-sot-state={formState.kind}
                                         data-auth-form-state={formState.kind}
@@ -227,6 +242,9 @@ export function LoginForm({
                                 ) : null}
                                 {formState?.kind === "success" ? (
                                     <FieldDescription
+                                        className={
+                                            authLoginClassNames.formMessage
+                                        }
                                         role="status"
                                         data-sot-part="auth-form-message"
                                         data-sot-state={formState.kind}
